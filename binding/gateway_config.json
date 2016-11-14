@@ -1,0 +1,32 @@
+{
+  "modules": [
+    {
+      "module name": "opc_ua",
+      "loading args": {
+        "module path": "dotnet.dll"
+      },
+      "args": {
+        "dotnet_module_path": "Opc.Ua.Client.SampleModule",
+        "dotnet_module_entry_class": "Opc.Ua.Client.SampleModule",
+        "dotnet_module_args": "OPC_GW;M3QNluoyD2XyVtoUfRUbrj8io8DYQzgqjYLz0Lvr3dY="
+      }
+    },
+    {
+      "module name": "IoTHub",
+      "loading args": {
+        "module path": "iothub.dll"
+      },
+      "args": {
+        "IoTHubName": "erichb",
+        "IoTHubSuffix": "azure-devices.net",
+        "Transport": "MQTT"
+      }
+    }
+  ],
+  "links": [
+   {
+      "source": "opc_ua",
+      "sink": "IoTHub"
+   }
+  ]
+}
