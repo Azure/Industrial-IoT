@@ -8,7 +8,7 @@
       "args": {
         "dotnet_module_path": "Opc.Ua.Client.SampleModule",
         "dotnet_module_entry_class": "Opc.Ua.Client.SampleModule",
-        "dotnet_module_args": "OPC_GW;M3QNluoyD2XyVtoUfRUbrj8io8DYQzgqjYLz0Lvr3dY="
+        "dotnet_module_args": "<DeviceID>;<SharedAccessKey>"
       }
     },
     {
@@ -17,9 +17,9 @@
         "module path": "iothub.dll"
       },
       "args": {
-        "IoTHubName": "erichb",
+        "IoTHubName": "<IoTHubName>",
         "IoTHubSuffix": "azure-devices.net",
-        "Transport": "MQTT"
+        "Transport": "AMQP"
       }
     }
   ],
