@@ -1,0 +1,5 @@
+What you need:
+aziotsharedutil.lib
+gateway.lib
+nanomsg.lib
+parson.lib
