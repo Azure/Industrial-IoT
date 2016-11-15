@@ -1,12 +1,12 @@
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments
 
 # OPC UA Client Module for the Azure IoT Gateway SDK
-This sample demonstrates how the Gateway SDK can be used to connect to existing OPC UA servers and send telemetry data from these servers via the OPC UA "Pub/Sub" specification extension (part 14) to Azure IoT Hub in JSON format. All transports to Azure that the Gateway SDK supports can be used, i.e. HTTPS, AMQP and MQTT. The transport is selected in the Transport setting in gateway_config.JSON.
+This sample demonstrates how the Azure IoT Gateway SDK can be used to connect to existing OPC UA servers and send JSON encoded telemetry data from these servers via the soon to be released OPC UA "Pub/Sub" specification extension (part 14, currently in draft state) to Azure IoT Hub. All transports to Azure that the Gateway SDK supports can be used, i.e. HTTPS, AMQP and MQTT. The transport is selected in the Transport setting in gateway_config.JSON.
 
-The sample is based on the Client sample from the .Net Standard reference stack. Visit https://github.com/OPCFoundation/UA-.NETStandardLibrary/tree/master/SampleApplications/Samples for similar samples.
+The sample is based on the Client sample from the .NET Standard reference stack. Visit https://github.com/OPCFoundation/UA-.NETStandardLibrary/tree/master/SampleApplications/Samples for similar samples.
 
 ## Operating System Compatibility
-Since this sample is written for .NET, Windows 8, 8.1 & 10 are supported right now. Once the Gateway SDK supports .Net Standard, so will this module and then Linux will also be supported.
+Since this sample is written for .NET, Windows 7, 8, 8.1 & 10 are supported right now. Once the Gateway SDK supports .NET Standard, so will this module and then Linux will also be supported.
 
 ## Directory Structure
 
@@ -17,12 +17,12 @@ This folder contains the binding to the Gateway SDK, i.e. the native entry point
 This folder contains the static libraries the native entry point needs to link with.
 
 ### Root Directory
-This folfer contains the C# OPC UA module source file (Module.cs), files to generate the required OPC UA application certificate (CreateCert.cmd and Opc.Ua.CertificateGenerator.exe) and the NuGet package configuration file (packages.config).
+This folder contains the C# OPC UA module source file (Module.cs), files to generate the required OPC UA application certificate (CreateCert.cmd and Opc.Ua.CertificateGenerator.exe) and the NuGet package configuration file (packages.config).
 
 ## Configuring the Sample Module
 The OPC UA server endpoints the module should connect to can be configured in the **Opc.Ua.Client.SampleModule.Endpoints.xml** file. The default sample server and client endpoints are already defined in the file for reference.
 
-Furthermore, the list of OPC UA nodes that should be published to Azure IoT can be configured in the **ListOfPublishedNodes** section of the **Opc.Ua.Client.SampleModule.Config.xml** configuration file. The **Current Server Time** node (node ID 2258) for both the sample server and client are already specificed in this section for reference.
+Furthermore, the list of OPC UA nodes that should be published to Azure IoT Hub can be configured in the **ListOfPublishedNodes** section of the **Opc.Ua.Client.SampleModule.Config.xml** configuration file. The **Current Server Time** node (node ID 2258) for both the sample server and client are already specificed in this section for reference.
 
 Finally, in the gateway_config.json, configure the name of IoT Hub you want to send the telemetry to (JSON field "IoTHubName") as well as the IoT Hub device ID and shared access key to use (JSON field "dotnet_module_args").
 
