@@ -170,14 +170,14 @@
     <ua:XmlElement>
       <ListOfPublishedNodes xmlns="http://opcfoundation.org/UA/SDK/Configuration.xsd">
         <NodeLookup>
-          <ua:EndpointUrl>opc.tcp://erichb02:51210/UA/SampleServer</ua:EndpointUrl>
+          <ua:EndpointUrl>opc.tcp://TODO:Add uri here</ua:EndpointUrl>
           <ua:NodeId>
             <!-- Current Server Time -->
             <ua:Identifier>i=2258</ua:Identifier>
           </ua:NodeId>
         </NodeLookup>
         <NodeLookup>
-          <ua:EndpointUrl>opc.tcp://erichb02:61210/UA/SampleClient</ua:EndpointUrl>
+          <ua:EndpointUrl>opc.tcp://TODO:Add uri here</ua:EndpointUrl>
           <ua:NodeId>
             <!-- Current Server Time -->
             <ua:Identifier>i=2258</ua:Identifier>

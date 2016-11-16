@@ -7,7 +7,7 @@
   <ua:Endpoints>
     <ua:ConfiguredEndpoint>
       <ua:Endpoint>
-        <EndpointUrl>opc.tcp://erichb02:51210/UA/SampleServer</EndpointUrl>
+        <EndpointUrl>opc.tcp://TODO:Add uri here</EndpointUrl>
         <SecurityMode>SignAndEncrypt_3</SecurityMode>
         <SecurityPolicyUri>http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15</SecurityPolicyUri>
         <UserIdentityTokens>
@@ -23,7 +23,7 @@
     </ua:ConfiguredEndpoint>
     <ua:ConfiguredEndpoint>
       <ua:Endpoint>
-        <EndpointUrl>opc.tcp://erichb02:61210/UA/SampleClient</EndpointUrl>
+        <EndpointUrl>opc.tcp://TODO:Add uri here</EndpointUrl>
         <SecurityMode>SignAndEncrypt_3</SecurityMode>
         <SecurityPolicyUri>http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15</SecurityPolicyUri>
         <UserIdentityTokens>

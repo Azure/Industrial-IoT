@@ -95,7 +95,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <AdditionalOptions> /guard:cf %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>E:\azure-iot-gateway-sdk\deps\c-utility\inc;E:\azure-iot-gateway-sdk\.\deps\parson;E:\azure-iot-gateway-sdk\.\deps\nanomsg\src;E:\azure-iot-gateway-sdk\core\inc;E:\azure-iot-gateway-sdk\samples\dotnet_binding_sample\..\..\modules\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsC</CompileAs>
@@ -154,7 +154,7 @@ copy $(ProjectDir)\*.xml $(ProjectDir)$(OutDir)
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalOptions> /guard:cf %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>E:\azure-iot-gateway-sdk\deps\c-utility\inc;E:\azure-iot-gateway-sdk\.\deps\parson;E:\azure-iot-gateway-sdk\.\deps\nanomsg\src;E:\azure-iot-gateway-sdk\core\inc;E:\azure-iot-gateway-sdk\samples\dotnet_binding_sample\..\..\modules\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsC</CompileAs>
       <ExceptionHandling>
@@ -400,9 +400,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="E:\azure-iot-gateway-sdk\samples\dotnet_binding_sample\src\main.c" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Opc.Ua.Client.Module.csproj">
       <Project>{25d19ffd-d553-4270-8a7a-6f510572bdc0}</Project>
     </ProjectReference>
@@ -429,6 +426,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

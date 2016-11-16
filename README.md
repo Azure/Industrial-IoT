@@ -27,11 +27,11 @@ Furthermore, the list of OPC UA nodes that should be published to Azure IoT Hub 
 Finally, in the gateway_config.json, configure the name of IoT Hub you want to send the telemetry to (JSON field "IoTHubName") as well as the IoT Hub device ID and shared access key to use (JSON field "dotnet_module_args").
 
 ## Building and Running the Sample Module
-To build the sample, you first need to clone and build the Azure IoT Gateway SDK. See https://github.com/azure/azure-iot-gateway-sdk for more information.
+To build the sample, you first need to clone and build the Azure IoT Gateway SDK. See https://github.com/azure/azure-iot-gateway-sdk for more information and **follow the instructions for building the gateway with the "dotnet binding"**.
 
-Once done, copy the just compiled **aziotsharedutil.lib** & .pdb, **gateway.lib** & .pdb, **nanomsg.lib** & .pdb and **parson.lib** & .pdb to the **/lib** folder.
+Once done, copy the just compiled **aziotsharedutil.lib** & .pdb, **gateway.lib** & .pdb, **nanomsg.lib** & .pdb and **parson.lib** & .pdb to the **/lib** folder. It is easiest just to search for them. If you find multiple copies, any of them will do.
 
-Then copy the just compiled **dotnet.dll** & .pdb, **iothub.dll** & .pdb, **Microsoft.Azure.IoT.Gateway.dll** & .pdb and **nanomsg.dll** & .pdb to the **/binding** folder.
+Then copy the just compiled **dotnet.dll** & .pdb, **iothub.dll** & .pdb, **Microsoft.Azure.IoT.Gateway.dll** & .pdb and **nanomsg.dll** & .pdb to the **/binding** folder. Again, just to search for them and if you find multiple copies, any of them will do).
 
 Then open the solution file (**Opc.Ua.Client.Module.sln**) in Visual Studio and rebuild the solution. This will first restore the NuGet packages and then build both the binding project and the module project.
 
