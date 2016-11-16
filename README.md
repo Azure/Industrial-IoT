@@ -13,6 +13,9 @@ Since this sample is written for .NET, Windows 7, 8, 8.1 & 10 are supported righ
 ### /binding
 This folder contains the binding to the Gateway SDK, i.e. the native entry point required (main.c), the gateway configuration file (gateway_config.json) as well as the two OPC UA gateway module configuration files (Opc.Ua.Client.SampleModule.Config.xml and Opc.Ua.Client.SampleModule.Endpoints.xml).
 
+## /inc
+This folder contains the headers required for the dotnet binding project, copied from the Azure IoT SDK for convenience. **These should be replaced with the newest ones from the gateway SDK!**
+
 ### /lib
 This folder contains the static libraries the native entry point needs to link with.
 
