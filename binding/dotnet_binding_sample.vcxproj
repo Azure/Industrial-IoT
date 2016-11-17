@@ -80,10 +80,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;ARCHITECTURE_x86=1;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\azure-iot-gateway-sdk\deps\c-utility\inc;E:\azure-iot-gateway-sdk\.\deps\parson;E:\azure-iot-gateway-sdk\.\deps\nanomsg\src;E:\azure-iot-gateway-sdk\core\inc;E:\azure-iot-gateway-sdk\samples\dotnet_binding_sample\..\..\modules\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\azure-iot-gateway-sdk\deps\c-utility\inc;E:\azure-iot-gateway-sdk\.\deps\parson;E:\azure-iot-gateway-sdk\.\deps\nanomsg\src;E:\azure-iot-gateway-sdk\core\inc;E:\azure-iot-gateway-sdk\samples\dotnet_binding_sample\..\..\modules\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -137,10 +137,10 @@ copy $(ProjectDir)\*.xml $(ProjectDir)$(OutDir)
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;ARCHITECTURE_x86=1;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>E:\azure-iot-gateway-sdk\deps\c-utility\inc;E:\azure-iot-gateway-sdk\.\deps\parson;E:\azure-iot-gateway-sdk\.\deps\nanomsg\src;E:\azure-iot-gateway-sdk\core\inc;E:\azure-iot-gateway-sdk\samples\dotnet_binding_sample\..\..\modules\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>E:\azure-iot-gateway-sdk\deps\c-utility\inc;E:\azure-iot-gateway-sdk\.\deps\parson;E:\azure-iot-gateway-sdk\.\deps\nanomsg\src;E:\azure-iot-gateway-sdk\core\inc;E:\azure-iot-gateway-sdk\samples\dotnet_binding_sample\..\..\modules\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
