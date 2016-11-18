@@ -40,16 +40,13 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Opc.Ua.Client">
-      <HintPath>packages\OPCFoundation.NetStandard.Opc.Ua.SDK.0.0.6\lib\net46\Opc.Ua.Client.dll</HintPath>
+      <HintPath>packages\OPCFoundation.NetStandard.Opc.Ua.SDK.0.0.7\lib\net46\Opc.Ua.Client.dll</HintPath>
     </Reference>
     <Reference Include="Opc.Ua.Configuration">
-      <HintPath>packages\OPCFoundation.NetStandard.Opc.Ua.SDK.0.0.6\lib\net46\Opc.Ua.Configuration.dll</HintPath>
+      <HintPath>packages\OPCFoundation.NetStandard.Opc.Ua.SDK.0.0.7\lib\net46\Opc.Ua.Configuration.dll</HintPath>
     </Reference>
     <Reference Include="Opc.Ua.Core">
-      <HintPath>packages\OPCFoundation.NetStandard.Opc.Ua.Core.0.0.6\lib\net46\Opc.Ua.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Opc.Ua.Sample">
-      <HintPath>packages\OPCFoundation.NetStandard.Opc.Ua.SDK.0.0.6\lib\net46\Opc.Ua.Sample.dll</HintPath>
+      <HintPath>packages\OPCFoundation.NetStandard.Opc.Ua.Core.0.0.7\lib\net46\Opc.Ua.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
