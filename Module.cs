@@ -202,8 +202,8 @@ namespace Opc.Ua.Client
             }
             else
             {
-                Console.WriteLine("Opc.Ua.Client.SampleModule: ERROR: Opc.Ua.Client.SampleModule: Could not find endpoint URL " + nodeLookup.EndPointURL.ToString() + " in active server sessions, NodeID " + nodeLookup.NodeID.Identifier.ToString() + " NOT published!");
-                Console.WriteLine("Opc.Ua.Client.SampleModule: Please update your config.xml with the updated enpoint URL!");
+                Console.WriteLine("Opc.Ua.Client.SampleModule: ERROR: Could not find endpoint URL " + nodeLookup.EndPointURL.ToString() + " in active server sessions, NodeID " + nodeLookup.NodeID.Identifier.ToString() + " NOT published!");
+                Console.WriteLine("Opc.Ua.Client.SampleModule: To fix this, please update your config.xml with the updated enpoint URL!");
             }
         }
 
