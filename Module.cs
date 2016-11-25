@@ -128,6 +128,7 @@ namespace Opc.Ua.Client
 
             if (newSession != null)
             {
+                Console.WriteLine("Opc.Ua.Client.SampleModule: Created session with updated endpoint " + selectedEndpoint.EndpointUrl + " from server!");
                 newSession.KeepAlive += new KeepAliveEventHandler(StandardClient_KeepAlive);
                 m_sessions.Add(newSession);
             }
@@ -198,6 +199,11 @@ namespace Opc.Ua.Client
                 monitoredItem.Notification += new MonitoredItemNotificationEventHandler(MonitoredItem_Notification);
                 subscription.AddItem(monitoredItem);
                 subscription.ApplyChanges();
+            }
+            else
+            {
+                Console.WriteLine("Opc.Ua.Client.SampleModule: ERROR: Opc.Ua.Client.SampleModule: Could not find endpoint URL " + nodeLookup.EndPointURL.ToString() + " in active server sessions, NodeID " + nodeLookup.NodeID.Identifier.ToString() + " NOT published!");
+                Console.WriteLine("Opc.Ua.Client.SampleModule: Please update your config.xml with the updated enpoint URL!");
             }
         }
 

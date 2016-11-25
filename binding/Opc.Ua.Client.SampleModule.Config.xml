@@ -177,7 +177,7 @@
           </ua:NodeId>
         </NodeLookup>
         <NodeLookup>
-          <ua:EndpointUrl>opc.tcp://TODO:Add uri here</ua:EndpointUrl>
+          <ua:EndpointUrl>opc.tcp://TODO:Add another uri here</ua:EndpointUrl>
           <ua:NodeId>
             <!-- Current Server Time -->
             <ua:Identifier>i=2258</ua:Identifier>

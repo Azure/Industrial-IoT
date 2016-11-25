@@ -21,8 +21,6 @@ extern "C"
 {
 #endif
 
-
-
 #define GATEWAY_ADD_LINK_RESULT_VALUES \
     GATEWAY_ADD_LINK_SUCCESS, \
     GATEWAY_ADD_LINK_ERROR, \
@@ -53,26 +51,38 @@ typedef struct GATEWAY_LINK_ENTRY_TAG
 /** @brief      Struct representing a particular gateway. */
 typedef struct GATEWAY_HANDLE_DATA_TAG* GATEWAY_HANDLE;
 
+/** @brief      Struct representing the loader and entrypoint
+ *              to be used for a specific module.
+ */
+typedef struct GATEWAY_MODULE_LOADER_INFO_TAG
+{
+    /** @brief  Pointer to the module loader to be used for
+     *          loading this module.
+     */
+    const MODULE_LOADER* loader;
+
+    /** @brief  Pointer to the entrypoint for this module.
+     */
+    void* entrypoint;
+} GATEWAY_MODULE_LOADER_INFO;
+
 /** @brief      Struct representing a single entry of the #GATEWAY_PROPERTIES.
  */
 typedef struct GATEWAY_MODULES_ENTRY_TAG
 {
     /** @brief  The (possibly @c NULL) name of the module */
     const char* module_name;
-    
-    /** @brief  The configuration for loading the module into the gateway. */
-    const void* loader_configuration;
 
-    /** @brief  The API to use for loading this module. */
-    const MODULE_LOADER_API * loader_api;
-    
+    /** @brief  The module loader information for this module */
+    GATEWAY_MODULE_LOADER_INFO module_loader_info;
+
     /** @brief  The user-defined configuration object for the module */
     const void* module_configuration;
 } GATEWAY_MODULES_ENTRY;
 
-/** @brief      Struct representing the properties that should be used when 
- *              creating a module; each entry of the @c VECTOR_HANDLE being a 
- *              #GATEWAY_MODULES_ENTRY. 
+/** @brief      Struct representing the properties that should be used when
+ *              creating a module; each entry of the @c VECTOR_HANDLE being a
+ *              #GATEWAY_MODULES_ENTRY.
  */
 typedef struct GATEWAY_PROPERTIES_DATA_TAG
 {
@@ -85,7 +95,7 @@ typedef struct GATEWAY_PROPERTIES_DATA_TAG
 
 /** @brief      Creates a gateway using a JSON configuration file as input
  *              which describes each module. Each module described in the
- *              configuration must support Module_CreateFromJson. 
+ *              configuration must support Module_CreateFromJson.
  *
  * @param       file_path   Path to the JSON configuration file for this
  *                          gateway.
@@ -94,44 +104,53 @@ typedef struct GATEWAY_PROPERTIES_DATA_TAG
  *
  *              {
  *                  "modules" :
- *                  [ 
+ *                  [
  *                      {
- *                          "module name" : "one",
- *                          "loading args" : 
- *                          {
- *                              "module path" : "module1.dll"
- *                          },    
- *                          "args" : ...
- *                      },
- *                      {
- *                          "module name" : "two",
- *                          "loading args" : 
- *                          {
- *                              "module path" : "module2.dll"
- *                          },
- *                          "args" : ...
- *                      }
+                            "name": "sensor",
+                            "loader": {
+                                "name": "dotnet",
+                                "entrypoint": {
+                                    "class.name": "Microsoft.Azure.Gateway.SensorModule",
+                                    "assembly.path": "./bin/Microsoft.Azure.Gateway.Modules.dll"
+                                }
+                            },
+                            "args" : {
+                                "power.level": 5
+                            }
+                        },
+                        {
+                            "name": "logger",
+                            "loader": {
+                                "name": "native",
+                                "entrypoint": {
+                                    "module.path": "./bin/liblogger.so"
+                                }
+                            },
+                            "args": {
+                                "filename": "/var/logs/gateway-log.json"
+                            }
+                        }
  *                  ],
  *                  "links":
  *                  [
  *                      {
- *                          "source": "one",
- *                          "sink": "two"
+ *                          "source": "sensor",
+ *                          "sink": "logger"
  *                      }
  *                  ]
  *              }
  *
- * @return      A non-NULL #GATEWAY_HANDLE that can be used to manage the 
+ * @return      A non-NULL #GATEWAY_HANDLE that can be used to manage the
  *              gateway or @c NULL on failure.
  */
 extern GATEWAY_HANDLE Gateway_CreateFromJson(const char* file_path);
 
 /** @brief      Creates a new gateway using the provided #GATEWAY_PROPERTIES.
  *
- *  @param      properties      #GATEWAY_PROPERTIES structure containing 
+ *  @param      properties      #GATEWAY_PROPERTIES structure containing
  *                              specific module properties and information.
  *
- *  @return     A non-NULL #GATEWAY_HANDLE that can be used to manage the 
+ *  @return     A non-NULL #GATEWAY_HANDLE that can be used to manage the
  *              gateway or @c NULL on failure.
  */
 extern GATEWAY_HANDLE Gateway_Create(const GATEWAY_PROPERTIES* properties);

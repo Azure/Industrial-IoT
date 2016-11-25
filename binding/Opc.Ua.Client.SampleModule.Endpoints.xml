@@ -23,7 +23,7 @@
     </ua:ConfiguredEndpoint>
     <ua:ConfiguredEndpoint>
       <ua:Endpoint>
-        <EndpointUrl>opc.tcp://TODO:Add uri here</EndpointUrl>
+        <EndpointUrl>opc.tcp://TODO:Add another uri here</EndpointUrl>
         <SecurityMode>SignAndEncrypt_3</SecurityMode>
         <SecurityPolicyUri>http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15</SecurityPolicyUri>
         <UserIdentityTokens>

@@ -1,6 +1,6 @@
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments
 
-# OPC UA Client Module for the Azure IoT Gateway SDK
+# OPC UA Client Module for the Azure IoT Gateway SDK release 2016-11-18
 This sample demonstrates how the Azure IoT Gateway SDK can be used to connect to existing OPC UA servers and send JSON encoded telemetry data from these servers via the soon to be released OPC UA "Pub/Sub" specification extension (part 14, currently in draft state) to Azure IoT Hub. All transports to Azure that the Gateway SDK supports can be used, i.e. HTTPS, AMQP and MQTT. The transport is selected in the Transport setting in gateway_config.JSON.
 
 The sample is based on the Client sample from the .NET Standard reference stack. Visit https://github.com/OPCFoundation/UA-.NETStandardLibrary/tree/master/SampleApplications/Samples for similar samples.

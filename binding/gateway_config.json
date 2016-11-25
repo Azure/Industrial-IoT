@@ -1,20 +1,23 @@
 {
   "modules": [
     {
-      "module name": "opc_ua",
-      "loading args": {
-        "module path": "dotnet.dll"
+      "name": "opc_ua",
+      "loader": {
+        "name": "dotnet",
+        "entrypoint": {
+          "assembly.name": "Opc.Ua.Client.SampleModule",
+          "entry.type": "Opc.Ua.Client.SampleModule"
+        }
       },
-      "args": {
-        "dotnet_module_path": "Opc.Ua.Client.SampleModule",
-        "dotnet_module_entry_class": "Opc.Ua.Client.SampleModule",
-        "dotnet_module_args": "<DeviceID>;<SharedAccessKey>"
-      }
+      "args": "<DeviceID>;<SharedAccessKey>"
     },
     {
-      "module name": "IoTHub",
-      "loading args": {
-        "module path": "iothub.dll"
+      "name": "IoTHub",
+      "loader": {
+        "name": "native",
+        "entrypoint": {
+          "module.path": "iothub.dll"
+        }
       },
       "args": {
         "IoTHubName": "<IoTHubName>",
