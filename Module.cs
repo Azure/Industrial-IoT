@@ -19,21 +19,10 @@ namespace Opc.Ua.Client
         }
 
         [DataMember(Name = "EndpointUrl", IsRequired = true, Order = 0)]
-        public Uri EndPointURL
-        {
-            get { return m_endPointURL; }
-            set { m_endPointURL = value; }
-        }
+        public Uri EndPointURL;
 
         [DataMember(Name = "NodeId", IsRequired = true, Order = 1)]
-        public NodeId NodeID
-        {
-            get { return m_nodeID; }
-            set { m_nodeID = value; }
-        }
-
-        Uri     m_endPointURL;
-        NodeId  m_nodeID;
+        public NodeId NodeID;
     }
 
     [CollectionDataContract(Name = "ListOfPublishedNodes", Namespace = Namespaces.OpcUaConfig, ItemName = "NodeLookup")]
@@ -86,16 +75,23 @@ namespace Opc.Ua.Client
                 m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
             }
 
-            // get list of persisted endpoints and create sessions for each.
-            ConfiguredEndpointCollection endpoints = m_configuration.LoadCachedEndpoints(true);
-            endpoints.DiscoveryUrls = m_configuration.ClientConfiguration.WellKnownDiscoveryUrls;
+            // get a list of persisted endpoint URLs and create a session for each.
+            List<Uri> endpointUrls = new List<Uri>();
+            PublishedNodesCollection nodesLookups = PublishedNodesCollection.Load(m_configuration);
+            foreach (NodeLookup nodeLookup in nodesLookups)
+            {
+                if (!endpointUrls.Contains(nodeLookup.EndPointURL))
+                {
+                    endpointUrls.Add(nodeLookup.EndPointURL);
+                }
+            }
 
             try
             {
                 List<Task> connectionAttempts = new List<Task>();
-                foreach (ConfiguredEndpoint endpoint in endpoints)
+                foreach (Uri endpointUrl in endpointUrls)
                 {
-                    connectionAttempts.Add(EndpointConnect(endpoint));
+                    connectionAttempts.Add(EndpointConnect(endpointUrl));
                 }
 
                 // Wait for all sessions to be connected
@@ -109,11 +105,10 @@ namespace Opc.Ua.Client
             Console.WriteLine("Opc.Ua.Client.SampleModule: OPC UA Client Sample Module created.");
         }
 
-        private async Task EndpointConnect(ConfiguredEndpoint endpoint)
+        private async Task EndpointConnect(Uri endpointUrl)
         {
-            EndpointDescription selectedEndpoint = SelectUaTcpEndpoint(DiscoverEndpoints(m_configuration, endpoint.EndpointUrl, 10));
-            EndpointConfiguration endpointConfiguration = EndpointConfiguration.Create(m_configuration);
-            ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server, endpointConfiguration);
+            EndpointDescription selectedEndpoint = SelectUaTcpEndpoint(DiscoverEndpoints(m_configuration, endpointUrl, 10));
+            ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server, EndpointConfiguration.Create(m_configuration));
             configuredEndpoint.Update(selectedEndpoint);
 
             Session newSession = await Session.Create(
