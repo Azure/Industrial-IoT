@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using Microsoft.Azure.IoT.Gateway;
 using Opc.Ua.Configuration;
+using Newtonsoft.Json;
 
 namespace Opc.Ua.Client
 {
@@ -54,7 +55,7 @@ namespace Opc.Ua.Client
 
             // TODO: Security: The shared access key should be stored in secure storage, e.g. a TPM
             // and the device ID can be used as a lookup
-            string configurationString = Encoding.UTF8.GetString(configuration);
+            string configurationString = JsonConvert.DeserializeObject<string>(Encoding.UTF8.GetString(configuration));
             m_DeviceID = configurationString.Substring(0, configurationString.IndexOf(';'));
             m_SharedAccessKey = configurationString.Substring(configurationString.IndexOf(';') + 1);
 
