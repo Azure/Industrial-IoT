@@ -25,7 +25,7 @@ This folder contains the C# OPC UA module source file (Module.cs), files to gene
 ## Configuring the Sample Module
 The OPC UA server endpoints the module should connect to as well as the list of OPC UA nodes for each endpoint that should be published to Azure IoT Hub can be configured in the **ListOfPublishedNodes** section of the **Opc.Ua.Client.SampleModule.Config.xml** configuration file. The **Current Server Time** node (node ID 2258) is specified as an example.
 
-Also, in the gateway_config.json, configure the name of IoT Hub you want to send the telemetry to (JSON field "IoTHubName") as well as the IoT Hub device ID and shared access key to use (JSON field "dotnet_module_args").
+Also, in the gateway_config.json, configure the name of IoT Hub you want to send the telemetry to (JSON field "IoTHubName") as well as the IoT Hub device ID and shared access key to use (JSON field "args").
 
 ## Building and Running the Sample Module
 To build the sample, you first need to clone and build the Azure IoT Gateway SDK. See https://github.com/azure/azure-iot-gateway-sdk for more information and **follow the instructions for building the gateway with the "dotnet binding"**.
