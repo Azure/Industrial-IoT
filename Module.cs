@@ -65,12 +65,8 @@ namespace Opc.Ua.Client
             m_configuration = await application.LoadApplicationConfiguration(false);
 
             // check the application certificate.
-            bool certOK = await application.CheckApplicationInstanceCertificate(false, 0);
-            if (!certOK)
-            {
-                throw new Exception("Opc.Ua.Client.SampleModule: Application instance certificate invalid!");
-            }
-
+            await application.CheckApplicationInstanceCertificate(false, 0);
+            
             if (m_configuration.SecurityConfiguration.AutoAcceptUntrustedCertificates)
             {
                 m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
@@ -262,27 +258,9 @@ namespace Opc.Ua.Client
 
         private void StandardClient_KeepAlive(Session sender, KeepAliveEventArgs e)
         {
-            if (sender != null && sender.Endpoint != null)
-            {
-                Console.WriteLine(Utils.Format(
-                    "Opc.Ua.Client.SampleModule: Received keep-alive message from server: {0} ({1}) {2}",
-                    sender.Endpoint.EndpointUrl,
-                    sender.Endpoint.SecurityMode,
-                    (sender.EndpointConfiguration.UseBinaryEncoding) ? "UABinary" : "XML"));
-            }
-          
             if (e != null && sender != null)
             {
-                if (ServiceResult.IsGood(e.Status))
-                {
-                    Console.WriteLine(Utils.Format(
-                        "Opc.Ua.Client.SampleModule: Server Status good: {0} {1:yyyy-MM-dd HH:mm:ss} {2}/{3}",
-                        e.CurrentState,
-                        e.CurrentTime.ToLocalTime(),
-                        sender.OutstandingRequestCount,
-                        sender.DefunctRequestCount));
-                }
-                else
+                if (!ServiceResult.IsGood(e.Status))
                 {
                     Console.WriteLine(String.Format(
                         "Opc.Ua.Client.SampleModule: Server Status NOT good: {0} {1}/{2}", e.Status,
