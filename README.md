@@ -20,7 +20,7 @@ This folder contains the headers required for the dotnet binding project, copied
 This folder contains the static libraries the native entry point needs to link with.
 
 ### Root Directory
-This folder contains the C# OPC UA module source file (Module.cs), files to generate the required OPC UA application certificate (CreateCert.cmd and Opc.Ua.CertificateGenerator.exe) and the NuGet package configuration file (packages.config).
+This folder contains the C# OPC UA module source file (Module.cs) and the NuGet package configuration file (packages.config).
 
 ## Configuring the Sample Module
 The OPC UA server endpoints the module should connect to as well as the list of OPC UA nodes for each endpoint that should be published to Azure IoT Hub can be configured in the **ListOfPublishedNodes** section of the **Opc.Ua.Client.SampleModule.Config.xml** configuration file. The **Current Server Time** node (node ID 2258) is specified as an example.
@@ -36,11 +36,4 @@ Then copy the just compiled **dotnet.dll** & .pdb, **iothub.dll** & .pdb, **Micr
 
 Then open the solution file (**Opc.Ua.Client.Module.sln**) in Visual Studio and rebuild the solution. This will first restore the NuGet packages and then build both the binding project and the module project.
 
-Then execute the **CreateCerts.cmd** script and copy the **OPC Foundation** folder it generated to the **/binding** folder (it contains the application certificate for the module).
-
-Then run the binding sample in the debugger.
-
-To run the sample without debugging, copy the **OPC Foundation** folder into the folder you want to run the sample from.
-
-Enjoy!
-
+Then run the binding sample in the debugger. Enjoy!
