@@ -28,7 +28,7 @@ The OPC UA server endpoints the module should connect to as well as the list of 
 Also, in the gateway_config.json, configure the name of IoT Hub you want to send the telemetry to (JSON field "IoTHubName") as well as the IoT Hub device ID and shared access key to use (JSON field "args").
 
 ## Building and Running the Sample Module
-To build the reference implementation, you first need to clone and build the Azure IoT Gateway SDK. See https://github.com/azure/azure-iot-gateway-sdk for more information and **follow the instructions for building the gateway with the "dotnet binding"**.
+To build the reference implementation, you first need to clone and build the Azure IoT Gateway SDK. See https://github.com/azure/azure-iot-gateway-sdk for more information and **follow the instructions for building the gateway with the "dotnet binding", i.e. running tools\build_dotnet.cmd followed by tools\build.cmd --enable-dotnet-binding** 
 
 Once done, copy the just compiled **aziotsharedutil.lib** & .pdb, **gateway.lib** & .pdb, **nanomsg.lib** & .pdb and **parson.lib** & .pdb to the **/lib** folder. It is easiest just to search for them. If you find multiple copies, any of them will do.
 
