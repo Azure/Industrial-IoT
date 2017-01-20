@@ -67,11 +67,8 @@ namespace Opc.Ua.Client
             // check the application certificate.
             await application.CheckApplicationInstanceCertificate(false, 0);
             
-            if (m_configuration.SecurityConfiguration.AutoAcceptUntrustedCertificates)
-            {
-                m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
-            }
-
+            m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
+            
             // get a list of persisted endpoint URLs and create a session for each.
             List<Uri> endpointUrls = new List<Uri>();
             PublishedNodesCollection nodesLookups = PublishedNodesCollection.Load(m_configuration);

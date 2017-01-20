@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	HINSTANCE hDLL = LoadLibrary(TEXT("gateway.dll"));
+	HINSTANCE hDLL = LoadLibraryA("gateway.dll");
 	if (!hDLL)
 	{
 		printf("failed to load gateway.dll, error: %d\n", GetLastError());
