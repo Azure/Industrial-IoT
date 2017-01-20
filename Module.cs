@@ -162,7 +162,7 @@ namespace Opc.Ua.Client
             Session matchingSession = null;
             foreach(Session session in m_sessions)
             {
-                if (session.Endpoint.EndpointUrl == Utils.ReplaceLocalhost(nodeLookup.EndPointURL.ToString()))
+                if (session.Endpoint.EndpointUrl.ToLowerInvariant().TrimEnd('/') == Utils.ReplaceLocalhost(nodeLookup.EndPointURL.ToString()).ToLowerInvariant().TrimEnd('/'))
                 {
                     matchingSession = session;
                     break;
