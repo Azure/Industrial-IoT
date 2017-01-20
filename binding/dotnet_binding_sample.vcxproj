@@ -63,7 +63,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <AdditionalOptions> /guard:cf %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>..\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsC</CompileAs>
@@ -93,15 +93,12 @@
     <PostBuildEvent>
       <Message>
       </Message>
-      <Command>copy $(ProjectDir)\*.json $(ProjectDir)$(OutDir)
-copy $(ProjectDir)\*.dll $(ProjectDir)$(OutDir)
-copy $(ProjectDir)\*.pdb $(ProjectDir)$(OutDir)
-copy $(ProjectDir)\*.xml $(ProjectDir)$(OutDir)
-</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <Link>
       <AdditionalOptions> /machine:X86 /guard:cf %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;winhttp.lib;secur32.lib;ws2_32.lib;mswsock.lib;rpcrt4.lib;..\lib\gateway.lib;..\lib\aziotsharedutil.lib;..\lib\nanomsg.lib;..\lib\parson.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;winhttp.lib;secur32.lib;ws2_32.lib;mswsock.lib;rpcrt4.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -120,7 +117,7 @@ copy $(ProjectDir)\*.xml $(ProjectDir)$(OutDir)
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalOptions> /guard:cf %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>..\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsC</CompileAs>
       <ExceptionHandling>
@@ -150,15 +147,12 @@ copy $(ProjectDir)\*.xml $(ProjectDir)$(OutDir)
     <PostBuildEvent>
       <Message>
       </Message>
-      <Command>copy $(ProjectDir)\*.json $(ProjectDir)$(OutDir)
-copy $(ProjectDir)\*.dll $(ProjectDir)$(OutDir)
-copy $(ProjectDir)\*.pdb $(ProjectDir)$(OutDir)
-copy $(ProjectDir)\*.xml $(ProjectDir)$(OutDir)
-</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <Link>
       <AdditionalOptions> /machine:X86 /guard:cf %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;winhttp.lib;secur32.lib;ws2_32.lib;mswsock.lib;rpcrt4.lib;..\lib\gateway.lib;..\lib\aziotsharedutil.lib;..\lib\nanomsg.lib;..\lib\parson.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;winhttp.lib;secur32.lib;ws2_32.lib;mswsock.lib;rpcrt4.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>No</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -178,23 +172,6 @@ copy $(ProjectDir)\*.xml $(ProjectDir)$(OutDir)
     <ProjectReference Include="..\Opc.Ua.Client.Module.csproj">
       <Project>{25d19ffd-d553-4270-8a7a-6f510572bdc0}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="gateway_config.json">
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
-      <FileType>Document</FileType>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </Resource>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="Opc.Ua.Client.SampleModule.Config.xml">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
-    </Xml>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c" />
