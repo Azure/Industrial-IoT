@@ -95,21 +95,6 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="aziotsharedutil.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="dotnet.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="gateway.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="iothub.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="nanomsg.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Opc.Ua.Client.SampleModule.Config.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
