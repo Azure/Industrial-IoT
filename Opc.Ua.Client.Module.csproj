@@ -54,7 +54,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Azure.IoT.Gateway, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Azure.IoT.Gateway.SDK.Net.2017.1.13\lib\net40\Microsoft.Azure.IoT.Gateway.dll</HintPath>
+      <HintPath>packages\Azure.IoT.Gateway.SDK.Net.2017.1.13.2\lib\net40\Microsoft.Azure.IoT.Gateway.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -91,7 +91,9 @@
     <Content Include="gateway_config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>

@@ -93,7 +93,7 @@
     <PostBuildEvent>
       <Message>
       </Message>
-      <Command>copy $(ProjectDir)\..\packages\Azure.IoT.Gateway.SDK.Net.2017.1.13\build\x86\*.dll $(OutDir)</Command>
+      <Command>copy $(ProjectDir)\..\packages\Azure.IoT.Gateway.SDK.Net.2017.1.13.2\build\x86\*.dll $(OutDir)</Command>
     </PostBuildEvent>
     <Link>
       <AdditionalOptions> /machine:X86 /guard:cf %(AdditionalOptions)</AdditionalOptions>
@@ -146,7 +146,7 @@
     <PostBuildEvent>
       <Message>
       </Message>
-      <Command>copy $(ProjectDir)\..\packages\Azure.IoT.Gateway.SDK.Net.2017.1.13\build\x86\*.dll $(OutDir)</Command>
+      <Command>copy $(ProjectDir)\..\packages\Azure.IoT.Gateway.SDK.Net.2017.1.13.2\build\x86\*.dll $(OutDir)</Command>
     </PostBuildEvent>
     <Link>
       <AdditionalOptions> /machine:X86 /guard:cf %(AdditionalOptions)</AdditionalOptions>
