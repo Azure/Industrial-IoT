@@ -73,9 +73,6 @@
     <Content Include="gateway_config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Include="NuGet.Config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="packages.config" />
     <None Include="README.md" />
   </ItemGroup>
