@@ -41,7 +41,7 @@ int main(int argc, char** argv)
     printf("gateway will run until ENTER is pressed\n");
     getchar();
 
-	P_GATEWAY_CREATE_FROM_JSON Gateway_Destroy = (P_GATEWAY_CREATE_FROM_JSON)GetProcAddress(hDLL, "Gateway_Destroy");
+	P_GATEWAY_DESTROY Gateway_Destroy = (P_GATEWAY_DESTROY) GetProcAddress(hDLL, "Gateway_Destroy");
 	if (Gateway_Destroy)
 	{
 		Gateway_Destroy(pGateway);
