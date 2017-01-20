@@ -22,4 +22,9 @@ The OPC UA server endpoints the module should connect to and the list of OPC UA 
 Also, in the gateway_config.json, configure the name of IoT Hub you want to send the telemetry to (JSON field "IoTHubName") and the IoT Hub device ID and shared access key to use (JSON field "args").
 
 ## Building and Running the Module
-Simply open the solution file in Visual Studio and build it. Make sure you specify the gateway_config.json as a command line parameter, set the debugger type to Mixed and set the working directory to $(OutDir) before debugging. Enjoy!
+Simply open the solution file in Visual Studio and build it. Make sure you specify the gateway_config.json as a command line parameter, set the debugger type to Mixed and set the working directory to $(OutDir) before debugging.
+
+## Updating NuGet Packages
+There are manual steps required after updating the OPC UA or Gateway SDK NuGet packages:
+1. When updating the OPC UA NuGet packages, you need to re-add the new reference to the updated OPC UA DLLs in the Opc.Ua.Client.Module project as Visual Studio doesn't do that automatically for .Net Standard assemblies in .Net Framework projects.
+2. When updating the Gateway SDK NuGet package, you need to update the path in the post-build copy command for the Gateway SDK DLLs in the dotnet_binding_sample project.
