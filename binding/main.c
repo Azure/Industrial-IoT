@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <stdio.h>
 
-typedef void* (__cdecl *P_GATEWAY_CREATE_FROM_JSON)(char**);
+typedef void* (__cdecl *P_GATEWAY_CREATE_FROM_JSON)(char*);
 typedef void (__cdecl *P_GATEWAY_DESTROY)(void*);
 
 int main(int argc, char** argv)

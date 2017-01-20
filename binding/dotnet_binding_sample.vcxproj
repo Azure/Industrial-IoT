@@ -169,11 +169,6 @@
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Opc.Ua.Client.Module.csproj">
-      <Project>{25d19ffd-d553-4270-8a7a-6f510572bdc0}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="main.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
