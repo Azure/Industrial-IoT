@@ -13,9 +13,6 @@ Since this reference implementation is written for .NET, Windows 7, 8, 8.1 & 10 
 ### /binding
 This folder contains the native entry point required for the Gateway SDK (main.c).
 
-### /Properties
-This folder contains the assembly info file (AssemblyInfo.cs).
-
 ### Root Directory
 This folder contains the C# OPC UA module source file (Module.cs), the gateway configuration file (gateway_config.json) and the OPC UA gateway module configuration file (Opc.Ua.Client.SampleModule.Config.xml).
 
@@ -25,4 +22,4 @@ The OPC UA server endpoints the module should connect to and the list of OPC UA 
 Also, in the gateway_config.json, configure the name of IoT Hub you want to send the telemetry to (JSON field "IoTHubName") and the IoT Hub device ID and shared access key to use (JSON field "args").
 
 ## Building and Running the Module
-Simply open the solution file in Visual Studio and build it. Make sure you specify the gateway_config.json as a command line parameter and set the working directory to $(OutDir) before debugging. Enjoy!
+Simply open the solution file in Visual Studio and build it. Make sure you specify the gateway_config.json as a command line parameter, set the debugger type to Mixed and set the working directory to $(OutDir) before debugging. Enjoy!
