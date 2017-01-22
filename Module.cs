@@ -112,12 +112,12 @@ namespace Opc.Ua.Client
                 false,
                 m_configuration.ApplicationName,
                 60000,
-                null,
+                new UserIdentity(new AnonymousIdentityToken()),
                 null);
 
             if (newSession != null)
             {
-                Console.WriteLine("Opc.Ua.Client.SampleModule: Created session with updated endpoint " + selectedEndpoint.EndpointUrl + " from server!");
+                Console.WriteLine("Opc.Ua.Client.SampleModule: Created session with updated endpoint " + configuredEndpoint.EndpointUrl + " from server!");
                 newSession.KeepAlive += new KeepAliveEventHandler(StandardClient_KeepAlive);
                 m_sessions.Add(newSession);
             }
