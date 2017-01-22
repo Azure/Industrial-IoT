@@ -67,11 +67,8 @@ namespace Opc.Ua.Client
             // check the application certificate.
             await application.CheckApplicationInstanceCertificate(false, 0);
             
-            if (m_configuration.SecurityConfiguration.AutoAcceptUntrustedCertificates)
-            {
-                m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
-            }
-
+            m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
+            
             // get a list of persisted endpoint URLs and create a session for each.
             List<Uri> endpointUrls = new List<Uri>();
             PublishedNodesCollection nodesLookups = PublishedNodesCollection.Load(m_configuration);
@@ -115,12 +112,12 @@ namespace Opc.Ua.Client
                 false,
                 m_configuration.ApplicationName,
                 60000,
-                null,
+                new UserIdentity(new AnonymousIdentityToken()),
                 null);
 
             if (newSession != null)
             {
-                Console.WriteLine("Opc.Ua.Client.SampleModule: Created session with updated endpoint " + selectedEndpoint.EndpointUrl + " from server!");
+                Console.WriteLine("Opc.Ua.Client.SampleModule: Created session with updated endpoint " + configuredEndpoint.EndpointUrl + " from server!");
                 newSession.KeepAlive += new KeepAliveEventHandler(StandardClient_KeepAlive);
                 m_sessions.Add(newSession);
             }
@@ -162,7 +159,7 @@ namespace Opc.Ua.Client
             Session matchingSession = null;
             foreach(Session session in m_sessions)
             {
-                if (session.Endpoint.EndpointUrl == Utils.ReplaceLocalhost(nodeLookup.EndPointURL.ToString()))
+                if (session.Endpoint.EndpointUrl.ToLowerInvariant().TrimEnd('/') == Utils.ReplaceLocalhost(nodeLookup.EndPointURL.ToString()).ToLowerInvariant().TrimEnd('/'))
                 {
                     matchingSession = session;
                     break;
