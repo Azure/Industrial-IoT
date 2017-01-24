@@ -218,15 +218,10 @@ namespace Opc.Ua.Client
                 string json = encoder.Close();
 
                 var properties = new Dictionary<string, string>();
-
                 properties.Add("source", "mapping");
-                properties.Add("content-type", "application/json");
+                properties.Add("content-type", "application/opcua+uajson");
                 properties.Add("deviceName", m_DeviceID);
                 properties.Add("deviceKey", m_SharedAccessKey);
-
-                properties.Add("MonitoredItem", monitoredItem.DisplayName);
-                properties.Add("MonitoredItem-ResolvedNodeId", monitoredItem.ResolvedNodeId.ToString());
-                properties.Add("MonitoredItem-Status", monitoredItem.Status.ToString());
 
                 try
                 {
