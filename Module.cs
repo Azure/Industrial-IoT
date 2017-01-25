@@ -69,7 +69,7 @@ namespace Opc.Ua.Client
             
             m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
             
-            // get a list of persisted endpoint URLs and create a session for each.
+            // get a list of persisted endpoint URLs and create a list without duplicates.
             List<Uri> endpointUrls = new List<Uri>();
             PublishedNodesCollection nodesLookups = PublishedNodesCollection.Load(m_configuration);
             foreach (NodeLookup nodeLookup in nodesLookups)
@@ -80,28 +80,27 @@ namespace Opc.Ua.Client
                 }
             }
 
-            try
+            // now create a session for each unique endpoint
+            foreach (Uri endpointUrl in endpointUrls)
             {
-                List<Task> connectionAttempts = new List<Task>();
-                foreach (Uri endpointUrl in endpointUrls)
+                try
                 {
-                    connectionAttempts.Add(EndpointConnect(endpointUrl));
+                    Console.WriteLine("Opc.Ua.Client.SampleModule: Creating session for endpoint: " + endpointUrl.ToString());
+                    await EndpointConnect(endpointUrl);
                 }
-
-                // Wait for all sessions to be connected
-                Task.WaitAll(connectionAttempts.ToArray());
+                catch (Exception ex)
+                {
+                    string innerException = ex.InnerException != null ? "\r\n. Inner Exception: " + ex.InnerException.ToString() : String.Empty;
+                    Console.WriteLine("Opc.Ua.Client.SampleModule: Could not connect to updated endpoint " + endpointUrl.ToString() + ". Exception: " + ex.ToString() + innerException);
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Opc.Ua.Client.SampleModule: Exception: " + ex.ToString() + "\r\n" + ex.InnerException != null? ex.InnerException.ToString() : null );
-            }   
                  
             Console.WriteLine("Opc.Ua.Client.SampleModule: OPC UA Client Sample Module created.");
         }
 
         private async Task EndpointConnect(Uri endpointUrl)
         {
-            EndpointDescription selectedEndpoint = SelectUaTcpEndpoint(DiscoverEndpoints(m_configuration, endpointUrl, 10));
+            EndpointDescription selectedEndpoint = SelectUaTcpEndpoint(DiscoverEndpoints(m_configuration, endpointUrl, 60));
             ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server, EndpointConfiguration.Create(m_configuration));
             configuredEndpoint.Update(selectedEndpoint);
 
@@ -218,15 +217,10 @@ namespace Opc.Ua.Client
                 string json = encoder.Close();
 
                 var properties = new Dictionary<string, string>();
-
                 properties.Add("source", "mapping");
-                properties.Add("content-type", "application/json");
+                properties.Add("content-type", "application/opcua+uajson");
                 properties.Add("deviceName", m_DeviceID);
                 properties.Add("deviceKey", m_SharedAccessKey);
-
-                properties.Add("MonitoredItem", monitoredItem.DisplayName);
-                properties.Add("MonitoredItem-ResolvedNodeId", monitoredItem.ResolvedNodeId.ToString());
-                properties.Add("MonitoredItem-Status", monitoredItem.Status.ToString());
 
                 try
                 {
@@ -260,7 +254,9 @@ namespace Opc.Ua.Client
                 if (!ServiceResult.IsGood(e.Status))
                 {
                     Console.WriteLine(String.Format(
-                        "Opc.Ua.Client.SampleModule: Server Status NOT good: {0} {1}/{2}", e.Status,
+                        "Opc.Ua.Client.SampleModule: Server {0} Status NOT good: {1} {2}/{3}",
+                        sender.ConfiguredEndpoint.EndpointUrl,
+                        e.Status,
                         sender.OutstandingRequestCount,
                         sender.DefunctRequestCount));
                 }
@@ -269,7 +265,6 @@ namespace Opc.Ua.Client
 
         private EndpointDescriptionCollection DiscoverEndpoints(ApplicationConfiguration config, Uri discoveryUrl, int timeout)
         {
-            // use a short timeout.
             EndpointConfiguration configuration = EndpointConfiguration.Create(config);
             configuration.OperationTimeout = timeout;
 
