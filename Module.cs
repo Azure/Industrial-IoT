@@ -86,7 +86,7 @@ namespace Opc.Ua.Client
                 try
                 {
                     Console.WriteLine("Opc.Ua.Client.SampleModule: Creating session for endpoint: " + endpointUrl.ToString());
-                    EndpointConnect(endpointUrl);
+                    await EndpointConnect(endpointUrl);
                 }
                 catch (Exception ex)
                 {
@@ -98,13 +98,13 @@ namespace Opc.Ua.Client
             Console.WriteLine("Opc.Ua.Client.SampleModule: OPC UA Client Sample Module created.");
         }
 
-        private void EndpointConnect(Uri endpointUrl)
+        private async Task EndpointConnect(Uri endpointUrl)
         {
             EndpointDescription selectedEndpoint = SelectUaTcpEndpoint(DiscoverEndpoints(m_configuration, endpointUrl, 60));
             ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server, EndpointConfiguration.Create(m_configuration));
             configuredEndpoint.Update(selectedEndpoint);
 
-            Session newSession = Session.Create(
+            Session newSession = await Session.Create(
                 m_configuration,
                 configuredEndpoint,
                 true,
@@ -112,7 +112,7 @@ namespace Opc.Ua.Client
                 m_configuration.ApplicationName,
                 60000,
                 new UserIdentity(new AnonymousIdentityToken()),
-                null).Result;
+                null);
 
             if (newSession != null)
             {
@@ -254,7 +254,9 @@ namespace Opc.Ua.Client
                 if (!ServiceResult.IsGood(e.Status))
                 {
                     Console.WriteLine(String.Format(
-                        "Opc.Ua.Client.SampleModule: Server Status NOT good: {0} {1}/{2}", e.Status,
+                        "Opc.Ua.Client.SampleModule: Server {0} Status NOT good: {1} {2}/{3}",
+                        sender.ConfiguredEndpoint.EndpointUrl,
+                        e.Status,
                         sender.OutstandingRequestCount,
                         sender.DefunctRequestCount));
                 }
