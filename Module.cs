@@ -69,7 +69,7 @@ namespace Opc.Ua.Client
             
             m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
             
-            // get a list of persisted endpoint URLs and create a lis without duplicates.
+            // get a list of persisted endpoint URLs and create a list without duplicates.
             List<Uri> endpointUrls = new List<Uri>();
             PublishedNodesCollection nodesLookups = PublishedNodesCollection.Load(m_configuration);
             foreach (NodeLookup nodeLookup in nodesLookups)
