@@ -69,7 +69,7 @@ namespace Opc.Ua.Client
             
             m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
             
-            // get a list of persisted endpoint URLs and create a session for each.
+            // get a list of persisted endpoint URLs and create a lis without duplicates.
             List<Uri> endpointUrls = new List<Uri>();
             PublishedNodesCollection nodesLookups = PublishedNodesCollection.Load(m_configuration);
             foreach (NodeLookup nodeLookup in nodesLookups)
@@ -80,32 +80,31 @@ namespace Opc.Ua.Client
                 }
             }
 
-            try
+            // now create a session for each unique endpoint
+            foreach (Uri endpointUrl in endpointUrls)
             {
-                List<Task> connectionAttempts = new List<Task>();
-                foreach (Uri endpointUrl in endpointUrls)
+                try
                 {
-                    connectionAttempts.Add(EndpointConnect(endpointUrl));
+                    Console.WriteLine("Opc.Ua.Client.SampleModule: Creating session for endpoint: " + endpointUrl.ToString());
+                    EndpointConnect(endpointUrl);
                 }
-
-                // Wait for all sessions to be connected
-                Task.WaitAll(connectionAttempts.ToArray());
+                catch (Exception ex)
+                {
+                    string innerException = ex.InnerException != null ? "\r\n. Inner Exception: " + ex.InnerException.ToString() : String.Empty;
+                    Console.WriteLine("Opc.Ua.Client.SampleModule: Could not connect to updated endpoint " + endpointUrl.ToString() + ". Exception: " + ex.ToString() + innerException);
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Opc.Ua.Client.SampleModule: Exception: " + ex.ToString() + "\r\n" + ex.InnerException != null? ex.InnerException.ToString() : null );
-            }   
                  
             Console.WriteLine("Opc.Ua.Client.SampleModule: OPC UA Client Sample Module created.");
         }
 
-        private async Task EndpointConnect(Uri endpointUrl)
+        private void EndpointConnect(Uri endpointUrl)
         {
-            EndpointDescription selectedEndpoint = SelectUaTcpEndpoint(DiscoverEndpoints(m_configuration, endpointUrl, 10));
+            EndpointDescription selectedEndpoint = SelectUaTcpEndpoint(DiscoverEndpoints(m_configuration, endpointUrl, 60));
             ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server, EndpointConfiguration.Create(m_configuration));
             configuredEndpoint.Update(selectedEndpoint);
 
-            Session newSession = await Session.Create(
+            Session newSession = Session.Create(
                 m_configuration,
                 configuredEndpoint,
                 true,
@@ -113,7 +112,7 @@ namespace Opc.Ua.Client
                 m_configuration.ApplicationName,
                 60000,
                 new UserIdentity(new AnonymousIdentityToken()),
-                null);
+                null).Result;
 
             if (newSession != null)
             {
@@ -264,7 +263,6 @@ namespace Opc.Ua.Client
 
         private EndpointDescriptionCollection DiscoverEndpoints(ApplicationConfiguration config, Uri discoveryUrl, int timeout)
         {
-            // use a short timeout.
             EndpointConfiguration configuration = EndpointConfiguration.Create(config);
             configuration.OperationTimeout = timeout;
 
