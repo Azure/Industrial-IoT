@@ -1,0 +1,61 @@
+{
+    "modules": [
+        {
+            "name": "opc_ua",
+            "loader": {
+                "name": "dotnetcore",
+                "entrypoint": {
+                    "assembly.name": "Opc.Ua.Client.Module",
+                    "entry.type": "Opc.Ua.Client.SampleModule"
+                }
+            },
+            "args": {
+                "Configuration": {
+                    "ApplicationName": "Opc.Ua.Client.SampleModule",
+                    "ApplicationType": "Client",
+                    "ApplicationUri": "urn:localhost:OPCFoundation:SampleModule",
+                    "SecurityConfiguration": {
+                        "ApplicationCertificate": {}
+                    }
+                },
+                "Subscriptions": [
+                    {
+                        "Id": "<DeviceID>",
+                        "SharedAccessKey": "<SharedAccessKey>",
+                        "ServerUrl": "opc.tcp://<hostname>:51210/UA/SampleServer",
+                        "PublishingInterval": 400,
+                        "MonitoredItems": [
+                            {
+                                "StartNodeId": "i=2258",
+                                "NodeClass": 2,
+                                "DisplayName": "ServerStatusCurrentTime",
+                                "DiscardOldest": false
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "IoTHub",
+            "loader": {
+                "name": "native",
+                "entrypoint": {
+                    "module.path": "<Choose: iothub.dll / libiothub.so>"
+                }
+            },
+            "args": {
+                "IoTHubName": "<IoTHubName>",
+                "IoTHubSuffix": "azure-devices.net",
+                "Transport": "AMQP"
+            }
+        }
+    ],
+    "links": [
+        {
+            "source": "opc_ua",
+            "sink": "IoTHub"
+        }
+    ]
+}
+

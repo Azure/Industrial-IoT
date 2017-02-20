@@ -16,3 +16,10 @@ using System.Runtime.InteropServices;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("6C6DEC77-2861-4150-A307-74F733186A27")]
+
+[assembly: AssemblyVersion("0.1.15.0")]
+
+#if RELEASE_DELAY_SIGN
+[assembly: AssemblyDelaySign(true)]
+[assembly: AssemblyKeyFile("35MSSharedLib1024.snk")]
+#endif
