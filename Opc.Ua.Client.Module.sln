@@ -3,27 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Opc.Ua.Client.Module", "Opc.Ua.Client.Module.csproj", "{25D19FFD-D553-4270-8A7A-6F510572BDC0}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dotnet_binding_sample", "binding\dotnet_binding_sample.vcxproj", "{7064A025-384F-3689-89FD-9E480DBFE5C9}"
-	ProjectSection(ProjectDependencies) = postProject
-		{25D19FFD-D553-4270-8A7A-6F510572BDC0} = {25D19FFD-D553-4270-8A7A-6F510572BDC0}
-	EndProjectSection
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Opc.Ua.Client.Module", "src\Opc.Ua.Client.Module\Opc.Ua.Client.Module.xproj", "{43311AFB-D7C4-4E5A-B1DE-855407F90D1B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
 		Release|x86 = Release|x86
+		Signed|x86 = Signed|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{25D19FFD-D553-4270-8A7A-6F510572BDC0}.Debug|x86.ActiveCfg = Debug|x86
-		{25D19FFD-D553-4270-8A7A-6F510572BDC0}.Debug|x86.Build.0 = Debug|x86
-		{25D19FFD-D553-4270-8A7A-6F510572BDC0}.Release|x86.ActiveCfg = Release|x86
-		{25D19FFD-D553-4270-8A7A-6F510572BDC0}.Release|x86.Build.0 = Release|x86
-		{7064A025-384F-3689-89FD-9E480DBFE5C9}.Debug|x86.ActiveCfg = Debug|Win32
-		{7064A025-384F-3689-89FD-9E480DBFE5C9}.Debug|x86.Build.0 = Debug|Win32
-		{7064A025-384F-3689-89FD-9E480DBFE5C9}.Release|x86.ActiveCfg = Release|Win32
-		{7064A025-384F-3689-89FD-9E480DBFE5C9}.Release|x86.Build.0 = Release|Win32
+		{43311AFB-D7C4-4E5A-B1DE-855407F90D1B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{43311AFB-D7C4-4E5A-B1DE-855407F90D1B}.Debug|x86.Build.0 = Debug|Any CPU
+		{43311AFB-D7C4-4E5A-B1DE-855407F90D1B}.Release|x86.ActiveCfg = Release|Any CPU
+		{43311AFB-D7C4-4E5A-B1DE-855407F90D1B}.Release|x86.Build.0 = Release|Any CPU
+		{43311AFB-D7C4-4E5A-B1DE-855407F90D1B}.Signed|x86.ActiveCfg = Signed|Any CPU
+		{43311AFB-D7C4-4E5A-B1DE-855407F90D1B}.Signed|x86.Build.0 = Signed|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
