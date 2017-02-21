@@ -64,6 +64,8 @@ E.g. the sample template shows how to monitor the **Current Server Time** node (
                         "Id": "<DeviceID>",
                         "SharedAccessKey": "<SharedAccessKey>",
                         "ServerUrl": "opc.tcp://<hostname>:51210/UA/SampleServer",
+						"MinimumSecurityLevel": 0,
+						"MinimumSecurityMode": "SignAndEncrypt",
                         "PublishingInterval": 400,
                         "MonitoredItems": [
                             {
@@ -77,6 +79,8 @@ E.g. the sample template shows how to monitor the **Current Server Time** node (
                 ]
             },
 ```
+
+The JSON snippet above shows the default security settings, which can thus be ommitted.  By default the session is created on the endpoint that supports ```SignAndEncrypt``` message mode, regardless of the security level advertised by the server (0).  You can adjust these settings to customize the endpoint selection process, e.g. setting the Security mode to ```"Sign"``` will select all ```Sign``` and ```SignAndEncrypt``` endpoints, ```"None"``` will select all endpoints.
 
 # Running the module
 
