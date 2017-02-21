@@ -14,6 +14,8 @@ Use the following command line to clone the compatible version Azure IoT Gateway
 git clone --recursive https://github.com/Azure/azure-iot-gateway-sdk.git
 git checkout 09bbcb7feaf5acc3913abd722b96e993238edd0c
 ```
+
+The gateway needs to be build with the ```--enable_dotnetcore_binding``` flag to enable it to run this module.
 # Directory Structure
 
 ## /samples
@@ -80,5 +82,7 @@ E.g. the sample template shows how to monitor the **Current Server Time** node (
 
 To run the module and have it publish to IoT Hub, configure the name of your Hub (JSON field ```"IoTHubName"```) and the IoT Hub device ID and shared access key to use (JSON fields ```"Id"``` and ```"SharedAccessKey"```) in your version of ```gateway_config.json```.  Note that if you use a "Mapping" module in your configuration, you can omit the ```"SharedAccessKey"``` field.  Finally, ensure that the right native module is configured, based on your platform (i.e. iothub.dll for Windows, libiothub.so for Linux, etc.).
 
-To build a sample gateway to host the OPC-UA module - along with the module itself - clone the gateway SDK repo to your device and run the build script with the ```-i <root-of-sdk>```.  The resulting release folder will contain not just the module and managed dependencies, but also a native IoT Hub proxy module as well as a ```sample_gateway``` executable that you can pass the updated JSON configuration to.  
+You can build a sample gateway host as part of the Azure IoT Gateway SDK build system.  Ensure that you pass the ```--enable_dotnetcore_binding``` to the build script and use one of the resulting sample gateway hosts.   
+
+To simplify this step, and to build a sample gateway to host the OPC-UA module - along with the module itself - clone the gateway SDK repo to your device and run the build script with the ```-i <root-of-sdk>```.  The resulting release folder will contain not just the module and managed dependencies, but also a native IoT Hub proxy module as well as a ```sample_gateway``` executable that you can pass the updated JSON configuration to.  
 

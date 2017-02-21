@@ -192,10 +192,10 @@ namespace Opc.Ua.Client
                 Configuration.SecurityConfiguration.ApplicationCertificate = new CertificateIdentifier();
             if (Configuration.SecurityConfiguration.ApplicationCertificate.StoreType == null)
                 Configuration.SecurityConfiguration.ApplicationCertificate.StoreType =
-                    "Directory";
+                    "X509Store";
             if (Configuration.SecurityConfiguration.ApplicationCertificate.StorePath == null)
                 Configuration.SecurityConfiguration.ApplicationCertificate.StorePath =
-                    "OPC Foundation/CertificateStores/MachineDefault";
+                    "CurrentUser\\UA_MachineDefault";
             if (Configuration.SecurityConfiguration.ApplicationCertificate.SubjectName == null)
                 Configuration.SecurityConfiguration.ApplicationCertificate.SubjectName =
                     Configuration.ApplicationName;
@@ -276,6 +276,18 @@ namespace Opc.Ua.Client
         public int PublishingInterval { get; set; }
 
         /// <summary>
+        /// Minimum desired Security Level 
+        /// </summary>
+        [JsonProperty]
+        public byte MinimumSecurityLevel { get; set; } = 0;
+
+        /// <summary>
+        /// Minimum desired Security mode 
+        /// </summary>
+        [JsonProperty]
+        public MessageSecurityMode MinimumSecurityMode { get; set; } = MessageSecurityMode.SignAndEncrypt;
+
+        /// <summary>
         /// Monitored item configuration
         /// </summary>
         [JsonProperty]
@@ -322,84 +334,123 @@ namespace Opc.Ua.Client
 
         public async Task EndpointConnect()
         {
-            EndpointDescription selectedEndpoint = SelectUaTcpEndpoint(DiscoverEndpoints(Module.Configuration, ServerUrl, 60));
-            ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server, EndpointConfiguration.Create(Module.Configuration));
-            configuredEndpoint.Update(selectedEndpoint);
+            var endpointCollection = DiscoverEndpoints(Module.Configuration, ServerUrl, 60);
+            var selectedEndpoints = new List<EndpointDescription>();
 
-            _session = await Session.Create(
-                Module.Configuration,
-                configuredEndpoint,
-                true,
-                false,
-                Module.Configuration.ApplicationName,
-                60000,
-                new UserIdentity(new AnonymousIdentityToken()),
-                null);
-
-            if (_session != null)
+            // Select endpoints
+            foreach (EndpointDescription endpoint in endpointCollection)
             {
-                var subscription = new Subscription(_session.DefaultSubscription);
-                subscription.PublishingInterval = PublishingInterval;
-                // ...
-
-                subscription.AddItems(MonitoredItems);
-                _session.AddSubscription(subscription);
-
-                subscription.Create();
-
-                Console.WriteLine($"Opc.Ua.Client.SampleModule: Created session with updated endpoint {configuredEndpoint.EndpointUrl} from server!");
-                _session.KeepAlive += new KeepAliveEventHandler(StandardClient_KeepAlive);
+                if (endpoint.TransportProfileUri == Profiles.UaTcpTransport &&
+                    endpoint.SecurityLevel >= MinimumSecurityLevel &&
+                    endpoint.SecurityMode >= MinimumSecurityMode)
+                {
+                    selectedEndpoints.Add(endpoint);
+                }
             }
-            else
+
+            //
+            // Sort, but descending with highest level first i.e. return 
+            // < 0 if x is less than y
+            // > 0 if x is greater than y
+            //   0 if x and y are equal
+            //
+            selectedEndpoints.Sort((y, x) => x.SecurityLevel - y.SecurityLevel);
+
+            foreach (EndpointDescription endpoint in selectedEndpoints)
             {
-                throw new Exception("Could not create session");
+                ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(
+                    endpoint.Server, EndpointConfiguration.Create(Module.Configuration));
+                configuredEndpoint.Update(endpoint);
+
+                _session = await Session.Create(
+                    Module.Configuration,
+                    configuredEndpoint,
+                    true,
+                    false,
+                    Module.Configuration.ApplicationName,
+                    60000,
+                    new UserIdentity(new AnonymousIdentityToken()),
+                    null);
+
+                if (_session != null)
+                {
+                    var subscription = new Subscription(_session.DefaultSubscription);
+                    subscription.PublishingInterval = PublishingInterval;
+
+                    // TODO: Make other subscription settings configurable...
+
+                    subscription.AddItems(MonitoredItems);
+                    _session.AddSubscription(subscription);
+                    subscription.Create();
+
+                    Console.WriteLine($"Opc.Ua.Client.SampleModule: Created session with updated endpoint {configuredEndpoint.EndpointUrl} from server!");
+                    _session.KeepAlive += new KeepAliveEventHandler(StandardClient_KeepAlive);
+
+                    // Done
+                    return;
+                }
+
+                Console.WriteLine($"Opc.Ua.Client.SampleModule: WARNING Could not create session to endpoint {endpoint.ToString()}...");
+                //  ... try another endpoint until we do not have any more...
             }
+
+            throw new Exception("Failed to find acceptable endpoint to connect to.");
         }
 
         private void MonitoredItem_Notification(MonitoredItem monitoredItem, MonitoredItemNotificationEventArgs e)
         {
             try
             {
-                if (e.NotificationValue == null || monitoredItem.Subscription.Session == null)
+                MonitoredItemNotification notification = e.NotificationValue as MonitoredItemNotification;
+                if (notification == null)
                 {
                     return;
                 }
 
-                JsonEncoder encoder = new JsonEncoder(monitoredItem.Subscription.Session.MessageContext, false);
-                string hostname = monitoredItem.Subscription.Session.ConfiguredEndpoint.EndpointUrl.DnsSafeHost;
-                if (hostname == "localhost")
+                DataValue value = notification.Value as DataValue;
+                if (value == null)
                 {
-                    hostname = Utils.GetHostName();
-                }
-                encoder.WriteString("HostName", hostname);
-                encoder.WriteNodeId("MonitoredItem", monitoredItem.ResolvedNodeId);
-                e.NotificationValue.Encode(encoder);
-
-                string json = encoder.CloseAndReturnText();
-
-                var properties = new Dictionary<string, string>();
-                properties.Add("content-type", "application/opcua+uajson");
-                properties.Add("deviceName", Id);
-
-                if (SharedAccessKey != null)
-                {
-                    properties.Add("source", "mapping");
-                    properties.Add("deviceKey", SharedAccessKey);
+                    return;
                 }
 
-                try
+                using (var encoder = new JsonEncoder(monitoredItem.Subscription.Session.MessageContext, false))
                 {
-                    Module.Publish(new Message(json, properties));
-                }
-                catch (Exception ex)
-                {
-                    Utils.Trace(ex, "Opc.Ua.Client.SampleModule: Failed to publish message, dropping....");
+                    string applicationURI = monitoredItem.Subscription.Session.Endpoint.Server.ApplicationUri;
+                    encoder.WriteString("ApplicationUri", applicationURI);
+                    encoder.WriteString("DisplayName", monitoredItem.DisplayName);
+                    encoder.WriteNodeId("MonitoredItem", monitoredItem.ResolvedNodeId);
+                    // suppress output of server timestamp in json by setting it to minvalue
+                    value.ServerTimestamp = DateTime.MinValue;
+                    encoder.WriteDataValue("Value", value);
+
+                    string json = encoder.CloseAndReturnText();
+
+                    var properties = new Dictionary<string, string>();
+                    properties.Add("content-type", "application/opcua+uajson");
+                    properties.Add("deviceName", Id);
+
+                    if (SharedAccessKey != null)
+                    {
+                        properties.Add("source", "mapping");
+                        properties.Add("deviceKey", SharedAccessKey);
+                    }
+
+                    try
+                    {
+                        Module.Publish(new Message(json, properties));
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Opc.Ua.Client.SampleModule: Failed to publish message, dropping...");
+                        Console.WriteLine(ex.ToString());
+                    }
                 }
 
             }
             catch (Exception exception)
             {
-                Utils.Trace(exception, "Opc.Ua.Client.SampleModule: Error processing monitored item notification.");
+                Console.WriteLine("Opc.Ua.Client.SampleModule: Error processing monitored item notification.");
+                Console.WriteLine(exception.ToString());
             }
         }
 
@@ -450,24 +501,6 @@ namespace Opc.Ua.Client
 
                 endpoint.Server.DiscoveryUrls = updatedDiscoveryUrls;
             }
-        }
-
-        private EndpointDescription SelectUaTcpEndpoint(EndpointDescriptionCollection endpointCollection)
-        {
-            EndpointDescription bestEndpoint = null;
-            foreach (EndpointDescription endpoint in endpointCollection)
-            {
-                if (endpoint.TransportProfileUri == Profiles.UaTcpTransport)
-                {
-                    if ((bestEndpoint == null) ||
-                        (endpoint.SecurityLevel > bestEndpoint.SecurityLevel))
-                    {
-                        bestEndpoint = endpoint;
-                    }
-                }
-            }
-
-            return bestEndpoint;
         }
 
         /// <summary>

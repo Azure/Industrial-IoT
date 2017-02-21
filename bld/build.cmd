@@ -24,6 +24,7 @@ set build-clean=
 set build-configs=
 set build-platform=Win32
 if "%PROCESSOR_ARCHITECTURE%" == "AMD64" set build-platform=x64
+set build-runtime=
 set build-root=%repo-root%\build
 set build-rel-root=%build-root%\release
 
@@ -39,6 +40,8 @@ if "%1" equ "--sdk-root" goto :arg-sdk-root-folder
 if "%1" equ  "-i" goto :arg-sdk-root-folder
 if "%1" equ "--platform" goto :arg-build-platform
 if "%1" equ  "-p" goto :arg-build-platform
+if "%1" equ "--runtime" goto :arg-build-runtime
+if "%1" equ  "-r" goto :arg-build-runtime
 call :usage && exit /b 1
 
 :arg-build-clean
@@ -61,6 +64,12 @@ goto :args-continue
 shift
 if "%1" equ "" call :usage && exit /b 1
 set build-platform=%1
+goto :args-continue
+
+:arg-build-runtime
+shift
+if "%1" equ "" call :usage && exit /b 1
+set build-runtime=-r %1
 goto :args-continue
 
 :arg-build-rel-root
@@ -153,43 +162,30 @@ goto :eof
 rem // Build module and publish for 1 configuration
 :dotnet-build-and-publish
 if /I not "%~1" == "Release" if /I not "%~1" == "Debug" if /I not "%~1" == "Signed" goto :eof
-pushd %repo-root%
-call :dotnet-build %~1
-popd
-if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-pushd %repo-root%\bld\publish
-call :dotnet-publish %~1
-popd
-if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-goto :eof
-rem // Build module
+rem // Clean 
+:dotnet-clean
+if "%build-clean%" == "" goto :dotnet-build
+call :dotnet-project-clean %repo-root%\src\Opc.Ua.Client.Module
+call :dotnet-project-clean %repo-root%\bld\publish
+rem // Build
 :dotnet-build
-for /f %%i in ('dir /b /s project.json') do (
-    call :dotnet-project-build %~1 "%%i"
-    if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-)
-goto :eof
+pushd %repo-root%\src\Opc.Ua.Client.Module
+call dotnet build %build-runtime% -c %~1
+popd
+if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 rem // Publish all assemblies using publish dummy exe
 :dotnet-publish
-if not exist "%build-root%\module\%~1" mkdir "%build-root%\module\%~1"
-if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-echo.
-call dotnet publish --no-build -c %~1 -o "%build-root%\module\%~1"
-if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-goto :eof
-rem // Build a project
-:dotnet-project-build
-pushd "%~dp2"
-echo.
-if not "%build-clean%" == "" call :rmdir-force "bin\%~1"
-call dotnet build -c %~1
+pushd %repo-root%\bld\publish
+call dotnet publish %build-runtime% -c %~1 -o "%build-root%\module\%~1"
 popd
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 goto :eof
+
 rem // Clean a project
 :dotnet-project-clean
 pushd "%~dp1"
 call :rmdir-force bin
+call :rmdir-force obj
 popd
 goto :eof
 
@@ -275,8 +271,9 @@ echo build.cmd [options]
 echo options:
 echo -c --clean                  Build clean (Removes previous build output).
 echo -C --config ^<value^>         [Debug, Release] build configuration
-echo -p --platform ^<value^>       [Win32] build platform (e.g. Win32, x64, ...).
+echo -r --runtime ^<value^>        [win] The runtime to build module for.
 echo -i --sdk-root ^<value^>       [../azure-iot-gateway-sdk] Gateway SDK repo root.
+echo -p --platform ^<value^>       [Win32] build platform (e.g. Win32, x64, ...).
 echo -o --output ^<value^>         [/build/release] Root in which to place release.
 goto :eof
 
