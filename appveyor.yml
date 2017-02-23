@@ -1,0 +1,13 @@
+version: 0.1.7.{build}-{branch}
+branches:
+  except:
+    - gh-pages
+image: Visual Studio 2015
+before_build:
+  - dotnet restore
+matrix:
+  fast_finish: true
+configuration:
+  - Debug
+  - Release
+test: off

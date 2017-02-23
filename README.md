@@ -5,6 +5,10 @@ This reference implementation demonstrates how the Azure IoT Gateway SDK can be 
 
 This module uses the OPC Foundations's OPC UA reference stack and therefore licensing restrictions apply. Visit http://opcfoundation.github.io/UA-.NETStandardLibrary/ for OPC UA documentation and licensing terms.
 
+|Branch|Status|
+|------|-------------|
+|master|[![Build status](https://ci.appveyor.com/api/projects/status/6t7ru6ow7t9uv74r/branch/master?svg=true)](https://ci.appveyor.com/project/marcschier/iot-gateway-opc-ua-r4ba5/branch/master) [![Build Status](https://travis-ci.org/Azure/iot-gateway-opc-ua.svg?branch=master)](https://travis-ci.org/Azure/iot-gateway-opc-ua)|
+
 # Azure IoT Gateway SDK compatibility
 The current version of the Proxy module is targeted at the Azure IoT Gateway SDK at commit 09bbcb7feaf5acc3913abd722b96e993238edd0c.
 
