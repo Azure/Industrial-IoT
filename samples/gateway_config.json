@@ -23,8 +23,8 @@
                         "Id": "<DeviceID>",
                         "SharedAccessKey": "<SharedAccessKey>",
                         "ServerUrl": "opc.tcp://<hostname>:51210/UA/SampleServer",
-						"MinimumSecurityLevel": 0,
-						"MinimumSecurityMode": "SignAndEncrypt",
+                        "MinimumSecurityLevel": 0,
+                        "MinimumSecurityMode": "SignAndEncrypt",
                         "PublishingInterval": 400,
                         "MonitoredItems": [
                             {
