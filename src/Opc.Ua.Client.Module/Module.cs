@@ -199,6 +199,9 @@ namespace Opc.Ua.Client
             if (Configuration.SecurityConfiguration.ApplicationCertificate.SubjectName == null)
                 Configuration.SecurityConfiguration.ApplicationCertificate.SubjectName =
                     Configuration.ApplicationName;
+
+            Configuration.Validate(Configuration.ApplicationType).Wait();
+
             if (Configuration.SecurityConfiguration.ApplicationCertificate.Certificate == null)
             {
                 X509Certificate2 certificate = CertificateFactory.CreateCertificate(
@@ -220,9 +223,8 @@ namespace Opc.Ua.Client
             {
                 Console.WriteLine("Opc.Ua.Client.SampleModule: WARNING: missing application certificate, using unsecure connection.");
             }
-            Configuration.Validate(Configuration.ApplicationType).Wait();
 
-            if (Configuration.SecurityConfiguration.AutoAcceptUntrustedCertificates)
+            if (Configuration.SecurityConfiguration.AutoAcceptUntrustedCertificates) 
                 Configuration.CertificateValidator.CertificateValidation +=
                     new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
         }
@@ -360,6 +362,8 @@ namespace Opc.Ua.Client
             //
             selectedEndpoints.Sort((y, x) => x.SecurityLevel - y.SecurityLevel);
 
+            // Do not emit all exceptions as they occur, only throw them all when no connection can be made.
+            var exceptions = new List<Exception>(selectedEndpoints.Count);
             foreach (EndpointDescription endpoint in selectedEndpoints)
             {
                 ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(
@@ -367,7 +371,7 @@ namespace Opc.Ua.Client
                 configuredEndpoint.Update(endpoint);
                 try 
                 {
-                    Console.WriteLine($"Opc.Ua.Client.SampleModule: Establishing session with mode: {endpoint.SecurityMode}, level:{endpoint.SecurityLevel} to {configuredEndpoint.EndpointUrl}...");
+                    Console.WriteLine($"Opc.Ua.Client.SampleModule: Trying to create session with mode: {endpoint.SecurityMode}, level:{endpoint.SecurityLevel} to {configuredEndpoint.EndpointUrl}...");
                     _session = await Session.Create(
                         Module.Configuration,
                         configuredEndpoint,
@@ -389,26 +393,27 @@ namespace Opc.Ua.Client
                         _session.AddSubscription(subscription);
                         subscription.Create();
 
-                        Console.WriteLine($"Opc.Ua.Client.SampleModule: Session with server endpoint {configuredEndpoint.EndpointUrl} established!");
+                        Console.WriteLine($"Opc.Ua.Client.SampleModule: Session with mode: {endpoint.SecurityMode}, level:{endpoint.SecurityLevel} to {configuredEndpoint.EndpointUrl} established!");
                         _session.KeepAlive += new KeepAliveEventHandler(StandardClient_KeepAlive);
 
                         // Done
                         return;
                     }
-                    else 
-                    {
-                        Console.WriteLine($"Opc.Ua.Client.SampleModule: WARNING Could not create session to endpoint {endpoint.ToString()}...");
-                    }
+                    exceptions.Add(new Exception($"ERROR: Create session to endpoint {endpoint.ToString()} returned null."));
+                }
+                catch (AggregateException ae) 
+                {
+                    exceptions.AddRange(ae.InnerExceptions);
                 }
                 catch (Exception ex) 
                 {
-                    Console.WriteLine($"Opc.Ua.Client.SampleModule: ERROR Exception creating session to endpoint {endpoint.ToString()}...");
-                    Console.WriteLine($"Opc.Ua.Client.SampleModule: {ex.ToString()}");
+                    exceptions.Add(ex);
                 }
-                //  ... try another endpoint until we do not have any more...
-            }
 
-            throw new Exception("Failed to find acceptable endpoint to connect to.");
+                //  ... try another endpoint until we do not have any more...
+                Console.WriteLine($"Opc.Ua.Client.SampleModule: WARNING Could not create session to endpoint {endpoint.ToString()}...");
+            }
+            throw new AggregateException("Failed to find acceptable endpoint to connect to.", exceptions);
         }
 
         private void MonitoredItem_Notification(MonitoredItem monitoredItem, MonitoredItemNotificationEventArgs e)
