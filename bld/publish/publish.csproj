@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <AssemblyName>publish</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <PackageId>publish</PackageId>
+    <RuntimeFrameworkVersion>1.1.1</RuntimeFrameworkVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Opc.Ua.Client.Module\Opc.Ua.Client.Module.csproj" />
+  </ItemGroup>
+
+</Project>

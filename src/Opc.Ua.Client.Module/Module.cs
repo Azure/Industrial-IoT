@@ -9,7 +9,7 @@ namespace Opc.Ua.Client
     using System.Runtime.Serialization;
     using System.Text;
     using Newtonsoft.Json;
-    using Microsoft.Azure.IoT.Gateway;
+    using Microsoft.Azure.Devices.Gateway;
     using Ua;
     using System.Security.Cryptography.X509Certificates;
 

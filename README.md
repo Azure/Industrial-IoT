@@ -10,13 +10,13 @@ This module uses the OPC Foundations's OPC UA reference stack and therefore lice
 |master|[![Build status](https://ci.appveyor.com/api/projects/status/6t7ru6ow7t9uv74r/branch/master?svg=true)](https://ci.appveyor.com/project/marcschier/iot-gateway-opc-ua-r4ba5/branch/master) [![Build Status](https://travis-ci.org/Azure/iot-gateway-opc-ua.svg?branch=master)](https://travis-ci.org/Azure/iot-gateway-opc-ua)|
 
 # Azure IoT Gateway SDK compatibility
-The current version of the Proxy module is targeted at the Azure IoT Gateway SDK at commit 09bbcb7feaf5acc3913abd722b96e993238edd0c.
+The current version of the Proxy module is targeted at the Azure IoT Gateway SDK at commit '287beed07490d98a24a4e9ddd33ec7127fc3acbf'.
 
 Use the following command line to clone the compatible version Azure IoT Gateway SDK, then follow the build instructions included:
 
 ```
 git clone --recursive https://github.com/Azure/azure-iot-gateway-sdk.git
-git checkout 09bbcb7feaf5acc3913abd722b96e993238edd0c
+git checkout 287beed07490d98a24a4e9ddd33ec7127fc3acbf
 ```
 
 The gateway needs to be build with the ```--enable-dotnet-core-binding``` flag to enable it to run this module.
@@ -35,6 +35,8 @@ This folder contains build scripts for Windows and Linux.
 # Building the Module
 
 Run ```bld/build``` to build the module both Debug and Release.  The published module can be found in ```build/release``` folder.  Run the build script with the ```--help``` command line argument to see all build options.  
+
+The build system requires the latest .net Core command line tools to be installed (1.1.1 or later).  On Windows, install Visual Studio 2017 with the dotnet core work load.  On Linux, follow the instructions [here](https://www.microsoft.com/net/core#linuxubuntu).
 
 # Configuring the Module
 OPC UA nodes whose values should be published to Azure IoT Hub can be configured in the module JSON configuration.  A sample template configuration file can be found in ```samples/gateway_config.json```.  The configuration consists of a OPC-UA Application Configuration and Subscriptions section.  

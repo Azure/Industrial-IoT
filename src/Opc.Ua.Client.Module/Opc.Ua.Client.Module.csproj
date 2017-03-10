@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Managed OPC UA Publisher module for the Azure IoT Field Gateway</Description>
+    <AssemblyTitle>Opc Ua Publisher Module for Azure IoT Field Gateway</AssemblyTitle>
+    <VersionPrefix>0.2.0</VersionPrefix>
+    <Authors>microsoft</Authors>
+    <TargetFrameworks>netstandard1.6</TargetFrameworks>
+    <NoWarn>$(NoWarn);1591;1734</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>Opc.Ua.Client.Module</AssemblyName>
+    <PackageId>Opc.Ua.Client.Module</PackageId>
+    <PackageTags>Azure;IoT;.NET;OPC UA;Gateway</PackageTags>
+    <PackageReleaseNotes>https://github.com/Azure/iot-gateway-opc-ua/releases</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/Azure/iot-gateway-opc-ua</PackageProjectUrl>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/Azure/iot-gateway-opc-ua/master/license.txt</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <RepositoryUrl>https://github.com/Azure/iot-gateway-opc-ua</RepositoryUrl>
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="0.2.0" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.SDK" Version="0.2.0" />
+    <PackageReference Include="Portable.BouncyCastle" Version="1.8.1.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Signed' ">
+    <DefineConstants>$(DefineConstants);RELEASE_DELAY_SIGN</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' ">
+    <PackageReference Include="System.Runtime.Serialization.Json" Version="4.3.0" />
+    <PackageReference Include="system.xml.xpath.xmldocument" Version="4.3.0" />
+    <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.3.0" />
+    <PackageReference Include="System.Private.ServiceModel" Version="4.1.0" />
+    <PackageReference Include="Microsoft.Azure.Devices.Gateway" Version="1.0.0" />
+  </ItemGroup>
+
+</Project>

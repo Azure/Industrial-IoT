@@ -121,12 +121,6 @@ rem // Build the sdk for 1 configuration
 if /I not "%~1" == "Release" if /I not "%~1" == "Debug" if /I not "%~1" == "MinSizeRel" if /I not "%~1" == "RelWithDebInfo" goto :eof
 rem // If incremental, check if we had a successful build before...
 if exist %build-root%\sdk\%build-platform%-%~1.done goto :eof
-rem // Clean bindings project output
-pushd %build-sdk-root%\bindings
-for /f %%i in ('dir /b /s project.json') do call :dotnet-project-clean "%%i"
-popd
-rem // First build the dotnetcore binding for configuration.  TODO: Remove once build script is fixed.
-call build_dotnet_core.cmd --config %~1
 rem // Force clean cmake output and install-deps to avoid errors.
 call :rmdir-force %build-sdk-root%\build
 call :rmdir-force %build-sdk-root%\install-deps
@@ -136,8 +130,8 @@ call build.cmd --config %~1 --platform %build-platform% --enable-dotnet-core-bin
 echo Finished building SDK (%~1)
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 rem // Copy build output over and mark it as successfully built.
-if not exist "%build-root%\sdk\%build-platform%" mkdir "%build-root%\sdk\%build-platform%"
-xcopy /e /i /y /q "%build-sdk-root%\build" "%build-root%\sdk\%build-platform%"
+if not exist "%build-root%\sdk\%build-platform%\%~1" mkdir "%build-root%\sdk\%build-platform%\%~1"
+xcopy /e /i /y /q "%build-sdk-root%\build" "%build-root%\sdk\%build-platform%\%~1"
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 echo %~1 >> %build-root%\sdk\%build-platform%-%~1.done
 goto :eof
@@ -146,36 +140,35 @@ rem ----------------------------------------------------------------------------
 rem -- build module
 rem -----------------------------------------------------------------------------
 :module-build
-
-rem // Restore packages
-:dotnet-restore
-pushd %repo-root%
-call dotnet restore
-popd
-if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-rem // Build and publish all specified configurations
-for %%c in (%build-configs%) do (
-    call :dotnet-build-and-publish %%c
-    if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-)
-goto :eof
-rem // Build module and publish for 1 configuration
-:dotnet-build-and-publish
-if /I not "%~1" == "Release" if /I not "%~1" == "Debug" if /I not "%~1" == "Signed" goto :eof
 rem // Clean 
 :dotnet-clean
 if "%build-clean%" == "" goto :dotnet-build
 call :dotnet-project-clean %repo-root%\src\Opc.Ua.Client.Module
 call :dotnet-project-clean %repo-root%\bld\publish
+
 rem // Build
 :dotnet-build
-pushd %repo-root%\src\Opc.Ua.Client.Module
+if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
+rem // Build and publish all specified configurations
+for %%c in (%build-configs%) do (
+	call :dotnet-build-and-publish %%c
+    if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
+)
+goto :eof
+
+rem // Build module and publish for 1 configuration
+:dotnet-build-and-publish
+if /I not "%~1" == "Release" if /I not "%~1" == "Debug" if /I not "%~1" == "Signed" goto :eof
+pushd %repo-root%
+rem // Restore packages
+call dotnet restore
 call dotnet build %build-runtime% -c %~1
 popd
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 rem // Publish all assemblies using publish dummy exe
-:dotnet-publish
 pushd %repo-root%\bld\publish
+rem // Restore packages
+call dotnet restore
 call dotnet publish %build-runtime% -c %~1 -o "%build-root%\module\%~1"
 popd
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
@@ -183,9 +176,8 @@ goto :eof
 
 rem // Clean a project
 :dotnet-project-clean
-pushd "%~dp1"
-call :rmdir-force bin
-call :rmdir-force obj
+pushd "%~1"
+call dotnet clean
 popd
 goto :eof
 
@@ -223,15 +215,15 @@ if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 if "%build-sdk-root%" == "" goto :eof
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 rem // Copy a sample gw host.exe, iothub.dll, iothub_client.dll
-pushd %build-root%\sdk\%build-platform%
+pushd %build-root%\sdk\%build-platform%\%~1
 xcopy /e /y /i /q "samples\azure_functions_sample\%~1" "%build-rel-root%\%~1"
 popd
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-pushd %build-root%\sdk\%build-platform%
+pushd %build-root%\sdk\%build-platform%\%~1
 xcopy /e /y /i /q "samples\dotnet_core_module_sample\%~1" "%build-rel-root%\%~1"
 popd
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-pushd %build-root%\sdk\%build-platform%
+pushd %build-root%\sdk\%build-platform%\%~1
 xcopy /e /y /i /q "modules\iothub\%~1" "%build-rel-root%\%~1"
 popd
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!

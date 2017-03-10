@@ -24,7 +24,6 @@ usage ()
     echo "options"
     echo " -c --clean                  Build clean (Removes previous build output)."
     echo " -C --config ^<value^>         [Debug, Release] build configuration"
-    echo " -r --runtime ^<value^>        Runtime to publish for."
     echo " -i --sdk-root ^<value^>       [../azure-iot-gateway-sdk] Gateway SDK repo root."
     echo " -o --output ^<value^>         [/build/release] Root in which to place release."
     echo " -x --xtrace                 print a trace of each command"
@@ -47,9 +46,6 @@ process_args ()
 		elif [ $save_next_arg == 3 ]; then
 			build_sdk_root="$arg"
 			save_next_arg=0
-		elif [ $save_next_arg == 4 ]; then
-			build_runtime="$arg"
-			save_next_arg=0
 		else
 			case "$arg" in
 				-x | --xtrace)
@@ -62,8 +58,6 @@ process_args ()
 					build_clean=1;;
 				-i | --sdk-root)
 					save_next_arg=3;;
-				-r | --runtime)
-					save_next_arg=4;;
 				*)
 					usage;;
 			esac
@@ -93,25 +87,14 @@ sdk_build()
 
                 mkdir -p "${build_root}/sdk/${c}"
 
-                # linux script in tools is totally hosed, build directly
-                pushd "${build_sdk_root}/bindings/dotnetcore/dotnet-core-binding" > /dev/null
-                    dotnet restore \
-                        || return $?
-                    dotnet build -c ${c} -r ${build_runtime} \
-                            ./Microsoft.Azure.IoT.Gateway \
-                            ./PrinterModule \
-                            ./SensorModule \
-                        || return $?
-                popd > /dev/null
-
-                rm -r -f "${build_sdk_root}/build" || \
-                    return 1
-                rm -r -f "${build_sdk_root}/install-deps" || \
-                    return 1
+                rm -r -f "${build_sdk_root}/build" \
+                    || return 1
+                rm -r -f "${build_sdk_root}/install-deps" \
+                    || return 1
 
                 pushd ${build_sdk_root}/tools > /dev/null
-                    ( ./build.sh --config ${c} --enable-dotnet-core-binding --disable-ble-module ) || \
-                        return 1
+					( ./build.sh --config ${c} --enable-dotnet-core-binding --disable-ble-module ) \
+						|| return $build_error
                 popd > /dev/null
 
                 cp -r "${build_sdk_root}/build/"* "${build_root}/sdk/${c}" || \
@@ -129,24 +112,25 @@ sdk_build()
 # -----------------------------------------------------------------------------
 module_build()
 {
-	pushd "${repo_root}" > /dev/null
 	echo -e "\033[1mBuilding module...\033[0m"
-	dotnet restore || exit 1
 	for c in ${build_configs[@]}; do
 		echo -e "\033[1m    ${c}...\033[0m"
-
 		mkdir -p "${build_root}/module/${c}"
 
-        dotnet build -c ${c} --framework netstandard1.6 \
-                -r ${build_runtime} ./src/Opc.Ua.Client.Module \
-            || return $?
+		pushd "${repo_root}/src/Opc.Ua.Client.Module" > /dev/null
+			dotnet restore \
+				|| return $?
+			dotnet build -c ${c} --framework netstandard1.6 \
+				|| return $?
+		popd > /dev/null
 
-        dotnet publish -c ${c} -o "${build_root}/module/${c}" --framework netcoreapp1.1 \
-                -r ${build_runtime} ./bld/publish \
-            || return $?
-
+		pushd "${repo_root}/bld/publish" > /dev/null
+			dotnet restore \
+				|| return $?
+			dotnet publish -c ${c} -o "${build_root}/module/${c}" --framework netcoreapp1.1 \
+				|| return $?
+		popd > /dev/null
 	done
-    popd > /dev/null
 	return 0
 }
 
@@ -160,7 +144,8 @@ release_all()
         mkdir -p "${build_rel_root}/${c}"
 
         pushd "${build_root}/module/${c}" > /dev/null
-            find . -type f -print0 | xargs -0 -I%%% cp %%% "${build_rel_root}/${c}" || \
+			cp * "${build_rel_root}/${c}" > /dev/null
+            find ./runtimes/unix -type f -print0 | xargs -0 -I%%% cp %%% "${build_rel_root}/${c}" || \
                 return 1
         popd > /dev/null
 
@@ -179,6 +164,9 @@ release_all()
                 find . -wholename *gateway*.so -type f -print0 | xargs -0 \
                         -I%%% cp %%% "${build_rel_root}/${c}" || \
                     return 1
+                find . -wholename *aziotsharedutil*.so -type f -print0 | xargs -0 \
+                        -I%%% cp %%% "${build_rel_root}/${c}" || \
+                    return 1
                 cp -r "samples/dotnet_core_module_sample/dotnet_core_module_sample" \
                         "${build_rel_root}/${c}/sample_gateway" || \
                     return 1
@@ -192,10 +180,6 @@ release_all()
 
 pushd "${repo_root}" > /dev/null
 process_args $*
-
-if [ -z "$build_runtime" ]; then
-	build_runtime=ubuntu.16.10
-fi
 
 if [ -z "$build_configs" ]; then
 	build_configs=(Debug Release)

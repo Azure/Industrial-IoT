@@ -1,13 +1,15 @@
-version: 0.1.7.{build}-{branch}
-branches:
-  except:
-    - gh-pages
+environment:
+  matrix:
+    - module: debug 
+      build_args: -C Debug
+    - module: release
+      build_args: -C Release
 image: Visual Studio 2015
-before_build:
-  - dotnet restore
+install:
+  - ps: Start-FileDownload 'https://go.microsoft.com/fwlink/?linkid=843448' -FileName dotnet_1_1_1_install.exe
+  - cmd /c dotnet_1_1_1_install.exe /install /quiet /norestart
+build:
+build_script:
+  - cmd /c bld\build.cmd -c %build_args%
 matrix:
-  fast_finish: true
-configuration:
-  - Debug
-  - Release
-test: off
+    fast_finish: true

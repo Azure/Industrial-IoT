@@ -1,10 +1,10 @@
 {
-    "modules": [
+   "modules": [
         {
             "name": "opc_ua",
             "loader": {
                 "name": "dotnetcore",
-                "entrypoint": {
+				"entrypoint": {
                     "assembly.name": "Opc.Ua.Client.Module",
                     "entry.type": "Opc.Ua.Client.SampleModule"
                 }
