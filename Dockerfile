@@ -21,7 +21,7 @@ RUN \
 	&& \
 		git -C /build/gateway submodule update --recursive --init \
 	&& \
-        /build/module/bld/build.sh -C Release -i /build/gateway -o /gateway \
+        bash /build/module/bld/build.sh -C Release -i /build/gateway -o /gateway \
 	&& \
 		ldconfig /gateway/Release
 
