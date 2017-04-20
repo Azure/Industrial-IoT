@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Azure.IoT.Gateway.SDK.NetCore</id>
+    <version>2017.03.27-beta</version>
+    <title>Azure IoT Gateway SDK for .Net Core</title>
+    <description>This package contains the Microsoft Azure IoT Gateway SDK targeting the .NET Core Framework</description>
+    <authors>Microsoft Corporation</authors>
+    <language>en-US</language>
+    <projectUrl>https://github.com/azure/azure-iot-gateway-sdk</projectUrl>
+    <licenseUrl>https://github.com/Azure/azure-iot-gateway-sdk/blob/master/License.txt</licenseUrl>
+    <tags>Microsoft Azure IoT Gateway SDK dotnetcore</tags>
+  </metadata>
+  <files>
+    <file src="bindings\dotnetcore\dotnet-core-binding\Microsoft.Azure.Devices.Gateway\bin\Debug\netstandard1.3\Microsoft.Azure.Devices.Gateway.dll" target="lib\netstandard1.3" />
+    <file src="bindings\dotnetcore\dotnet-core-binding\Microsoft.Azure.Devices.Gateway\bin\Debug\netstandard1.3\Microsoft.Azure.Devices.Gateway.pdb" target="lib\netstandard1.3" />
+    <file src="build\core\Debug\gateway.dll" target="runtimes\win-x86\native\gateway.dll" />
+    <file src="build\core\Debug\gateway.pdb" target="runtimes\win-x86\native\gateway.pdb" />
+    <file src="build\bindings\dotnetcore\Debug\dotnetcore.dll" target="runtimes\win-x86\native\dotnetcore.dll" />
+    <file src="build\bindings\dotnetcore\Debug\dotnetcore.pdb" target="runtimes\win-x86\native\dotnetcore.pdb" />
+    <file src="build\modules\iothub\Debug\iothub.dll" target="runtimes\win-x86\native\iothub.dll" />
+    <file src="build\modules\iothub\Debug\iothub.pdb" target="runtimes\win-x86\native\iothub.pdb" />
+    <file src="install-deps\bin\aziotsharedutil.dll" target="runtimes\win-x86\native\aziotsharedutil.dll" />
+    <file src="install-deps\bin\iothub_client.dll" target="runtimes\win-x86\native\iothub_client.dll" />
+    <file src="install-deps\bin\iothub_service_client.dll" target="runtimes\win-x86\native\iothub_service_client.dll" />
+    <file src="install-deps\bin\nanomsg.dll" target="runtimes\win-x86\native\nanomsg.dll" />
+    <file src="install-deps\bin\serializer.dll" target="runtimes\win-x86\native\serializer.dll" />
+    <file src="binariesfrompreviousbuild\gateway.dll" target="runtimes\win-x64\native\gateway.dll" />
+    <file src="binariesfrompreviousbuild\gateway.pdb" target="runtimes\win-x64\native\gateway.pdb" />
+    <file src="binariesfrompreviousbuild\dotnetcore.dll" target="runtimes\win-x64\native\dotnetcore.dll" />
+    <file src="binariesfrompreviousbuild\dotnetcore.pdb" target="runtimes\win-x64\native\dotnetcore.pdb" />
+    <file src="binariesfrompreviousbuild\iothub.dll" target="runtimes\win-x64\native\iothub.dll" />
+    <file src="binariesfrompreviousbuild\iothub.pdb" target="runtimes\win-x64\native\iothub.pdb" />
+    <file src="binariesfrompreviousbuild\aziotsharedutil.dll" target="runtimes\win-x64\native\aziotsharedutil.dll" />
+    <file src="binariesfrompreviousbuild\iothub_client.dll" target="runtimes\win-x64\native\iothub_client.dll" />
+    <file src="binariesfrompreviousbuild\iothub_service_client.dll" target="runtimes\win-x64\native\iothub_service_client.dll" />
+    <file src="binariesfrompreviousbuild\nanomsg.dll" target="runtimes\win-x64\native\nanomsg.dll" />
+    <file src="binariesfrompreviousbuild\serializer.dll" target="runtimes\win-x64\native\serializer.dll" />
+    <file src="binariesfromlinuxbuild\libgateway.so" target="runtimes\debian.8-x64\native\libgateway.so" />
+    <file src="binariesfromlinuxbuild\libdotnetcore.so" target="runtimes\debian.8-x64\native\libdotnetcore.so" />
+    <file src="binariesfromlinuxbuild\libiothub.so" target="runtimes\debian.8-x64\native\libiothub.so" />
+    <file src="binariesfromlinuxbuild\libaziotsharedutil.so" target="runtimes\debian.8-x64\native\libaziotsharedutil.so" />
+    <file src="binariesfromlinuxbuild\libiothub_client.so" target="runtimes\debian.8-x64\native\libiothub_client.so" />
+    <file src="binariesfromlinuxbuild\libiothub_service_client.so" target="runtimes\debian.8-x64\native\libiothub_service_client.so" />
+    <file src="binariesfromlinuxbuild\libnanomsg.so.5.0.0" target="runtimes\debian.8-x64\native\libnanomsg.so.5.0.0" />
+    <file src="binariesfromlinuxbuild\libserializer.so" target="runtimes\debian.8-x64\native\libserializer.so" />
+    <file src="binariesfromlinuxbuild\dotnet_core_module_sample.exe" target="runtimes\debian.8-x64\native\dotnet_core_module_sample.exe" />
+  </files>
+</package>

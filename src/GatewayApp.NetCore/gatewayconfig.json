@@ -1,0 +1,41 @@
+{
+  "modules": [
+    {
+      "name": "OpcUa",
+      "loader": {
+        "name": "dotnetcore",
+        "entrypoint": {
+          "assembly.name": "Opc.Ua.Publisher.Module",
+          "entry.type": "Opc.Ua.Publisher.Module"
+        }
+      },
+      "args": {
+        "Configuration": {
+          "ApplicationName": "<ReplaceWithYourApplicationName>",
+          "ApplicationType": "ClientAndServer",
+          "ApplicationUri": "urn:localhost:microsoft:publisher"
+        }
+      }
+    },
+    {
+      "name": "IoTHub",
+      "loader": {
+        "name": "native",
+        "entrypoint": {
+          "module.path": "iothub.dll"
+        }
+      },
+      "args": {
+        "IoTHubName": "<ReplaceWithYourIoTHubName>",
+        "IoTHubSuffix": "azure-devices.net",
+        "Transport": "AMQP"
+      }
+    }
+  ],
+  "links": [
+    {
+      "source": "OpcUa",
+      "sink": "IoTHub"
+    }
+  ]
+}

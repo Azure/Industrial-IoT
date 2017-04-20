@@ -1,4 +1,4 @@
-Microsoft Azure IoT Gateway SDK OPC UA Client Module
+Microsoft Azure IoT Gateway SDK OPC UA Publisher Module
 Copyright (c) Microsoft Corporation 
 
 MIT license

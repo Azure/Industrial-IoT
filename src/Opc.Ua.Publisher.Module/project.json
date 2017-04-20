@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0-*",
+  "buildOptions": {
+    "embed": {
+      "includeFiles": [
+        "Publisher.PredefinedNodes.uanodes"
+      ]
+    },
+    "debugType": "portable"
+  },
+
+  "dependencies": {
+    "OPCFoundation.NetStandard.Opc.Ua.SDK": "0.2.3",
+    "IoTHubCredentialTools": "1.0.0-*",
+    "Azure.IoT.Gateway.SDK.NetCore": "2017.3.27-beta"
+  },
+
+  "frameworks": {
+    "netstandard1.3": {}
+  }
+}

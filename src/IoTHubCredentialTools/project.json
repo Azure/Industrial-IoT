@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0-*",
+
+  "dependencies": {
+    "NETStandard.Library": "1.6.0",
+    "Portable.BouncyCastle": "1.8.1.2",
+    "System.Collections.NonGeneric": "4.3.0"
+  },
+
+  "frameworks": {
+    "netstandard1.3": {}
+  }
+}
