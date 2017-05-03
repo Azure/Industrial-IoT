@@ -369,7 +369,7 @@ namespace Opc.Ua.Publisher
                 monitoredItem.AttributeId = Attributes.Value;
                 monitoredItem.DisplayName = nodeDisplayName;
                 monitoredItem.MonitoringMode = MonitoringMode.Reporting;
-                monitoredItem.SamplingInterval = 0;
+                monitoredItem.SamplingInterval = 1000;
                 monitoredItem.QueueSize = 0;
                 monitoredItem.DiscardOldest = true;
 
