@@ -5,12 +5,13 @@
   },
 
   "dependencies": {
+    "Microsoft.Azure.Devices.Gateway.Native.Ubuntu.x64": "1.1.0",
+    "Microsoft.Azure.Devices.Gateway.Native.Windows.x64": "1.1.0",
     "Microsoft.NETCore.App": {
       "type": "platform",
       "version": "1.0.0"
     },
-    "Opc.Ua.Publisher.Module": "1.0.0-*",
-    "Azure.IoT.Gateway.SDK.NetCore": "2017.3.27-beta"
+    "Opc.Ua.Publisher.Module": "1.0.0-*"
   },
 
   "frameworks": {

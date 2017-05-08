@@ -19,3 +19,4 @@
 *.pdb
 /src/GatewayApp.NetCore/Logs
 *.der
+*.exe
