@@ -30,6 +30,7 @@ namespace GatewayApp.NetCore
                 Console.WriteLine("Target system is Windows.");
                 File.WriteAllText(gatewayConfigFile, File.ReadAllText(gatewayConfigFile).Replace("libiothub.so", "iothub.dll"));
             }
+            Console.WriteLine(RuntimeInformation.OSDescription);
 
             // print target system info
             if (IsX64Process())
@@ -161,7 +162,7 @@ namespace GatewayApp.NetCore
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                return "debian.8-x64";
+                return "ubuntu.16.04-x64"; // "debian.8-x64";
             }
             else
             {
