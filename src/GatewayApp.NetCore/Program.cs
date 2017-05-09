@@ -162,10 +162,21 @@ namespace GatewayApp.NetCore
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                return "ubuntu.16.04-x64"; // "debian.8-x64";
+                string _OSDescription = RuntimeInformation.OSDescription.ToLowerInvariant();
+                if (_OSDescription.Contains("moby") || _OSDescription.Contains("debian"))
+                {
+                    // Moby (used by Docker) or Debian
+                    return "debian.8-x64";
+                }
+                else
+                {
+                    // fall back to Ubuntu, the only other Linux distro we support
+                    return "ubuntu.16.04-x64";
+                }
             }
             else
             {
+                // fall back to Windows, the only other OS we support
                 if (IsX64Process())
                 {
                     return "win-x64";
