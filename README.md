@@ -1,9 +1,9 @@
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments
 
-# OPC UA Publisher Module for the Azure IoT Gateway SDK
-This reference implementation demonstrates how the Azure IoT Gateway SDK can be used to connect to existing OPC UA servers and publishes JSON encoded telemetry data from these servers in OPC UA "Pub/Sub" format (using a JSON payload) to Azure IoT Hub. All transport protocols supported by the Gateway SDK can be used, i.e. HTTPS, AMQP and MQTT. The transport is selected in the transport setting in the gatewayconfig.json file.
+# OPC Publisher Module for Azure IoT Edge
+This reference implementation demonstrates how Azure IoT Edge can be used to connect to existing OPC UA servers and publishes JSON encoded telemetry data from these servers in OPC UA "Pub/Sub" format (using a JSON payload) to Azure IoT Hub. All transport protocols supported by Azure IoT Edge can be used, i.e. HTTPS, AMQP and MQTT. The transport is selected in the transport setting in the gatewayconfig.json file.
 
-This module, apart from including an OPC UA *client* for connecting to existing OPC UA servers you have on your network, also includes an OPC UA *server* on port 62222 that can be used to configure the module.
+This module, apart from including an OPC UA *client* for connecting to existing OPC UA servers you have on your network, also includes an OPC UA *server* on port 62222 that can be used to manage the module.
 
 This module uses the OPC Foundations's OPC UA reference stack and therefore licensing restrictions apply. Visit http://opcfoundation.github.io/UA-.NETStandardLibrary/ for OPC UA documentation and licensing terms.
 
@@ -24,7 +24,7 @@ dotnet restore
 dotnet publish .\src\GatewayApp.NetCore
 ```
 # Configuring the Module
-The OPC UA nodes whose values should be published to Azure IoT Hub can be configured in the "publishednodes.json" file. It has the format:
+The OPC UA nodes whose values should be published to Azure IoT Hub can be configured by creating a "publishednodes.json" file. This file is auto-generated and persisted by the module automatically when using the server management interface. It has the format:
 ```
 [
   {
@@ -45,7 +45,7 @@ You should pass your application name and the IoT Hub owner connection string (w
 
 # Running the module
 
-You can run the module on Windows along with the Gateway SDK and IoT Hub module directly via Visual Studio 2015 by hitting F5 (after publishing). Don't forget your command line arguments!
+You can run the module on Windows along with Azure IoT Edge and its IoT Hub module directly via Visual Studio 2015 by hitting F5 (after publishing). Don't forget your command line arguments!
 
 You can also run the module in a Docker container using the Dockerfile provided. From the root of the repo, in a console, type:
 
