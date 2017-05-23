@@ -10,9 +10,9 @@
   },
 
   "dependencies": {
-    "OPCFoundation.NetStandard.Opc.Ua.SDK": "0.2.3",
     "Microsoft.Azure.Devices.Gateway.Module.NetStandard": "1.0.2",
-    "IoTHubCredentialTools": "1.0.0-*"
+    "IoTHubCredentialTools": "1.0.0-*",
+    "OPCFoundation.NetStandard.Opc.Ua.SDK": "0.2.4"
   },
 
   "frameworks": {
