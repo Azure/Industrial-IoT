@@ -43,6 +43,22 @@ namespace GatewayApp.NetCore
                 throw new Exception("32-bit systems are currently not supported.");
             }
             
+            // make sure our gateway runtime DLLs are in the current directory
+            string runtimesFolder = GetPathToRuntimesFolder(Directory.GetCurrentDirectory());
+            if (string.IsNullOrEmpty(runtimesFolder))
+            {
+                throw new Exception("Runtimes folder not found. Please make sure you have published the gateway app!");
+            }
+
+            // we always copy them across, overwriting existing ones, to make sure we have the right ones
+            string pathToNativeGatewayModules = runtimesFolder + Path.DirectorySeparatorChar + GetRuntimeID() + Path.DirectorySeparatorChar + "native";
+            List<string> filePaths = new List<string>(Directory.EnumerateFiles(pathToNativeGatewayModules));
+            foreach (string sourcefilePath in filePaths)
+            {
+                string destinationFilePath = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Path.GetFileName(sourcefilePath);
+                File.Copy(sourcefilePath, destinationFilePath, true);
+            }
+
             // check if we got command line arguments to patch our gateway config file and register ourselves with IoT Hub
             if ((args.Length > 0) && !string.IsNullOrEmpty(args[0]))
             {
@@ -115,10 +131,50 @@ namespace GatewayApp.NetCore
                 Console.WriteLine(".NET Core Gateway failed to initialize.");
             }
         }
-        
+
+        private static string GetPathToRuntimesFolder(string currentPath)
+        {
+            List<string> directories = new List<string>(Directory.EnumerateDirectories(currentPath));
+            foreach(string directoryPath in directories)
+            {
+                if (directoryPath.EndsWith("runtimes", StringComparison.OrdinalIgnoreCase))
+                {
+                    return directoryPath;
+                }
+
+                string result = GetPathToRuntimesFolder(directoryPath);
+                if (result != null)
+                {
+                    // found it
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
         private static bool IsX64Process()
         {
             return (IntPtr.Size == 8);
+        }
+
+        private static string GetRuntimeID()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return "debian.8-x64";
+            }
+            else
+            {
+                if (IsX64Process())
+                {
+                    return "win-x64";
+                }
+                else
+                {
+                    return "win-x86";
+                }
+            }
         }
     }
 }
