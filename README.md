@@ -24,7 +24,7 @@ dotnet restore
 dotnet publish .\src\GatewayApp.NetCore
 ```
 # Configuring the Module
-The OPC UA nodes whose values should be published to Azure IoT Hub can be configured by creating a "publishednodes.json" file. This file is auto-generated and persisted by the module automatically when using the server management interface. It has the format:
+The OPC UA nodes whose values should be published to Azure IoT Hub can be configured by creating a "publishednodes.json" file. This file is auto-generated and persisted by the module automatically when using the Publisher's OPC UA server interface from a client. It has the format:
 ```
 [
   {
