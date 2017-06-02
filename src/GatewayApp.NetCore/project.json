@@ -5,6 +5,7 @@
   },
 
   "dependencies": {
+    "Microsoft.Azure.Devices.Gateway.Native.Debian.x64": "1.1.0",
     "Microsoft.Azure.Devices.Gateway.Native.Ubuntu.x64": "1.1.0",
     "Microsoft.Azure.Devices.Gateway.Native.Windows.x64": "1.1.0",
     "Microsoft.NETCore.App": {
