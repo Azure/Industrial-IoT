@@ -18,11 +18,8 @@ This folder contains the source code of the module, a managed gateway loader and
 
 # Building the Module
 
-This module requires the .NET Core SDK V1.0. You can build the module from Visual Studio 2015 by opening the solution file, right clicking the GatewayApp.NetCore project and selecting "publish". Alternatively, the module can be built from the command line with:
-```
-dotnet restore
-dotnet publish .\src\GatewayApp.NetCore
-```
+This module requires the .NET Core SDK V1.1. You can build the module from Visual Studio 2017 by opening the solution file, right clicking the GatewayApp.NetCore project and selecting "publish".
+
 # Configuring the Module
 The OPC UA nodes whose values should be published to Azure IoT Hub can be configured in the "publishednodes.json" file. It has the format:
 ```
@@ -45,7 +42,7 @@ You should pass your application name and the IoT Hub owner connection string (w
 
 # Running the module
 
-You can run the module on Windows along with the Gateway SDK and IoT Hub module directly via Visual Studio 2015 by hitting F5 (after publishing). Don't forget your command line arguments!
+You can run the module through the supplied gateway app GatewayApp.NetCore on Windows along with the Gateway SDK and IoT Hub module directly via Visual Studio 2017 by hitting F5 (after publishing GatewayApp.NetCore). Don't forget your command line arguments!
 
 You can also run the module in a Docker container using the Dockerfile provided. From the root of the repo, in a console, type:
 
