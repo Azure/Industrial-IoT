@@ -163,7 +163,6 @@ namespace Opc.Ua.Publisher
             // add sign & encrypt policy
             ServerSecurityPolicy newPolicy = new ServerSecurityPolicy();
             newPolicy.SecurityMode = MessageSecurityMode.SignAndEncrypt;
-            newPolicy.SecurityLevel = 1;
             newPolicy.SecurityPolicyUri = SecurityPolicies.Basic128Rsa15;
             Configuration.ServerConfiguration.SecurityPolicies.Add(newPolicy);
 
