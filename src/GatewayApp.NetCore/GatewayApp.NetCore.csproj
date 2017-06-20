@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\IoTHub.Module\IoTHub.Module.csproj" />
+    <ProjectReference Include="..\Opc.Ua.IoTHub.Module\Opc.Ua.IoTHub.Module.csproj" />
     <ProjectReference Include="..\Opc.Ua.Publisher.Module\Opc.Ua.Publisher.Module.csproj" />
   </ItemGroup>
 

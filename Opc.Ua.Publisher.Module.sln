@@ -18,7 +18,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Opc.Ua.Publisher.Module", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IoTHubCredentialTools", "src\IoTHubCredentialTools\IoTHubCredentialTools.csproj", "{2605E447-DF6E-4FB8-B226-CD1DB643F186}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IoTHub.Module", "src\IoTHub.Module\IoTHub.Module.csproj", "{87861322-1441-482A-B286-473E857CEACC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Opc.Ua.IoTHub.Module", "src\Opc.Ua.IoTHub.Module\Opc.Ua.IoTHub.Module.csproj", "{B7B97F4D-B753-4E1B-A745-2E99B9D11D74}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,10 +38,10 @@ Global
 		{2605E447-DF6E-4FB8-B226-CD1DB643F186}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2605E447-DF6E-4FB8-B226-CD1DB643F186}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2605E447-DF6E-4FB8-B226-CD1DB643F186}.Release|Any CPU.Build.0 = Release|Any CPU
-		{87861322-1441-482A-B286-473E857CEACC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{87861322-1441-482A-B286-473E857CEACC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{87861322-1441-482A-B286-473E857CEACC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{87861322-1441-482A-B286-473E857CEACC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7B97F4D-B753-4E1B-A745-2E99B9D11D74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7B97F4D-B753-4E1B-A745-2E99B9D11D74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7B97F4D-B753-4E1B-A745-2E99B9D11D74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7B97F4D-B753-4E1B-A745-2E99B9D11D74}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
