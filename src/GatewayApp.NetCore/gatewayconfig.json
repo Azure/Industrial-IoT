@@ -20,16 +20,13 @@
     {
       "name": "IoTHub",
       "loader": {
-        "name": "native",
+        "name": "dotnetcore",
         "entrypoint": {
-          "module.path": "iothub.dll"
+          "assembly.name": "Opc.Ua.IoTHub.Module",
+          "entry.type": "Opc.Ua.IoTHub.Module"
         }
       },
-      "args": {
-        "IoTHubName": "<ReplaceWithYourIoTHubName>",
-        "IoTHubSuffix": "azure-devices.net",
-        "Transport": "AMQP"
-      }
+      "args": "<ReplaceWithYourApplicationName>"
     }
   ],
   "links": [
