@@ -7,12 +7,12 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Opc.Ua.Publisher
+namespace Opc.Ua.IoTHub
 {
     /// <summary>
     /// Gateway module that acts as IoT Hub connectivity
     /// </summary>
-    public class Module : IGatewayModule
+    public class Module : IGatewayModule, IGatewayModuleStart
     {
         private static AmqpConnection m_publisher = new AmqpConnection();
         private static TraceConfiguration m_trace = new TraceConfiguration();
@@ -20,10 +20,23 @@ namespace Opc.Ua.Publisher
         /// <summary>
         /// Trace message helper
         /// </summary>
-        public static void Trace(string message)
+        public static void Trace(string message, params object[] args)
         {
-            Utils.Trace(message);
-            Console.WriteLine(message);
+            Utils.Trace(message, args);
+            Console.WriteLine(message, args);
+        }
+
+        public static void Trace(int traceMask, string format, params object[] args)
+        {
+            Utils.Trace(traceMask, format, args);
+            Console.WriteLine(format, args);
+        }
+
+        public static void Trace(Exception e, string format, params object[] args)
+        {
+            Utils.Trace(e, format, args);
+            Console.WriteLine(e.ToString());
+            Console.WriteLine(format, args);
         }
 
         /// <summary>
@@ -31,7 +44,7 @@ namespace Opc.Ua.Publisher
         /// </summary>
         public void Create(Broker broker, byte[] configuration)
         {
-            string appName = Encoding.UTF8.GetString(configuration);
+            string appName = Encoding.UTF8.GetString(configuration).Replace("\"","");
 
             // enable logging
             m_trace.DeleteOnLoad = true;
@@ -48,10 +61,16 @@ namespace Opc.Ua.Publisher
             }
             catch (Exception ex)
             {
-                Utils.Trace(ex, "Failed to configure AMQP connection, dropping....");
+                Module.Trace(ex, "Failed to configure AMQP connection, dropping....");
             }
 
             Trace("Opc.Ua.IoTHub.Module: Created.");
+        }
+        
+        public void Start()
+        {
+            // NO-OP
+            Trace("Opc.Ua.IoTHub.Module: Started.");
         }
 
         /// <summary>
@@ -74,12 +93,12 @@ namespace Opc.Ua.Publisher
                 if (!m_publisher.IsClosed())
                 {
                     m_publisher.Publish(new ArraySegment<byte>(received_message.Content));
-                    Utils.Trace("Published message for device " + received_message.Properties["deviceName"]);
+                    Trace("Published message for device " + received_message.Properties["deviceName"]);
                 }
             }
             catch (Exception ex)
             {
-                Utils.Trace(ex, "Failed to publish message, dropping....");
+                Module.Trace(ex, "Failed to publish message, dropping....");
             }
         }
 

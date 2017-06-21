@@ -120,13 +120,13 @@ namespace Opc.Ua.Publisher
                 ICertificateStore store = Configuration.SecurityConfiguration.TrustedPeerCertificates.OpenStore();
                 if (store == null)
                 {
-                    Utils.Trace("Could not open trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
+                    Module.Trace("Could not open trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
                 }
                 else
                 {
                     try
                     {
-                        Utils.Trace(Utils.TraceMasks.Information, "Adding certificate to trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
+                        Module.Trace(Utils.TraceMasks.Information, "Adding certificate to trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
                         X509Certificate2 publicKey = new X509Certificate2(certificate.RawData);
                         store.Add(publicKey).Wait();
                     }
@@ -138,7 +138,7 @@ namespace Opc.Ua.Publisher
             }
             catch (Exception e)
             {
-                Utils.Trace(e, "Could not add certificate to trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
+                Module.Trace(e, "Could not add certificate to trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
             }
         
             // patch our base address

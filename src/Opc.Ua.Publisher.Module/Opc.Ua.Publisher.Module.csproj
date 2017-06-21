@@ -11,6 +11,7 @@
     <GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
     <Description />
     <Company>Microsoft</Company>
+    <RootNamespace>Opc.Ua.Publisher</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

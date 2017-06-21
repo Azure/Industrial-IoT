@@ -13,7 +13,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using IoTHubCredentialTools;
 
-namespace Opc.Ua.Publisher
+namespace Opc.Ua.IoTHub
 {
     [DataContract(Name = "AmqpConnectionConfiguration", Namespace = Namespaces.OpcUaConfig)]
     public class AmqpConnection
@@ -146,13 +146,13 @@ namespace Opc.Ua.Publisher
                     await ResetLinkAsync();
                 }
 
-                Utils.Trace("AMQP Connection opened, connected to '{0}'...", Endpoint);
+                Module.Trace("AMQP Connection opened, connected to '{0}'...", Endpoint);
 
                 m_closed = false;
             }
             catch (Exception e)
             {
-                Utils.Trace("AMQP Connection failed to open, exception: {0}...", e.Message);
+                Module.Trace("AMQP Connection failed to open, exception: {0}...", e.Message);
             }
             finally
             {
@@ -257,7 +257,7 @@ namespace Opc.Ua.Publisher
             }
             if (((m_sendRejectedCounter + m_sendAcceptedCounter) % 100) == 0)
             {
-                Utils.Trace("Send Statistics: {0} sent {1} accepted {2} rejected", 
+                Module.Trace("Send Statistics: {0} sent {1} accepted {2} rejected", 
                     m_sendCounter, m_sendAcceptedCounter, m_sendRejectedCounter);
             }
         }
@@ -519,21 +519,19 @@ namespace Opc.Ua.Publisher
                     bool result = RenewTokenAsync(GenerateSharedAccessToken()).Wait(TokenLifetime);
                     if (!result)
                     {
-                        Utils.Trace("Unexpected timeout error renewing token.");
+                        Module.Trace("Unexpected timeout error renewing token.");
                     }
                 }
             }
             catch (Exception e)
             {
-                Utils.Trace(e, "Unexpected error renewing token.");
-
-                var ae = e as AggregateException;
-
-                if (ae != null)
+                Module.Trace(e, "Unexpected error renewing token.");
+                
+                if (e is AggregateException ae)
                 {
                     foreach (var ie in ae.InnerExceptions)
                     {
-                        Utils.Trace("[{0}] {1}", ie.GetType().Name, ie.Message);
+                        Module.Trace("[{0}] {1}", ie.GetType().Name, ie.Message);
                     }
                 }
             }

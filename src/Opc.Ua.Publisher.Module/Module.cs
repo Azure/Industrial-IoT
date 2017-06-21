@@ -37,10 +37,23 @@ namespace Opc.Ua.Publisher
         /// <summary>
         /// Trace message helper
         /// </summary>
-        public static void Trace(string message)
+        public static void Trace(string message, params object[] args)
         {
-            Utils.Trace(message);
-            Console.WriteLine(message);
+            Utils.Trace(message, args);
+            Console.WriteLine(message, args);
+        }
+
+        public static void Trace(int traceMask, string format, params object[] args)
+        {
+            Utils.Trace(traceMask, format, args);
+            Console.WriteLine(format, args);
+        }
+
+        public static void Trace(Exception e, string format, params object[] args)
+        {
+            Utils.Trace(e, format, args);
+            Console.WriteLine(e.ToString());
+            Console.WriteLine(format, args);
         }
 
         /// <summary>
@@ -461,7 +474,7 @@ namespace Opc.Ua.Publisher
             {
                 if (!ServiceResult.IsGood(e.Status))
                 {
-                    Utils.Trace(String.Format(
+                    Trace(String.Format(
                         "Status: {0}/t/tOutstanding requests: {1}/t/tDefunct requests: {2}",
                         e.Status,
                         session.OutstandingRequestCount,
