@@ -16,9 +16,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="gatewayconfig.json">
+    <None Remove="gatewayconfig.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="gatewayconfig.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
