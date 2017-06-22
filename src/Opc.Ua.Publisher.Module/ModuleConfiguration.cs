@@ -170,7 +170,7 @@ namespace Opc.Ua.Publisher
             Configuration.TraceConfiguration = new TraceConfiguration();
             Configuration.TraceConfiguration.DeleteOnLoad = true;
             Configuration.TraceConfiguration.TraceMasks = 519;
-            Configuration.TraceConfiguration.OutputFilePath = "./Logs/" + Configuration.ApplicationName + ".log.txt";
+            Configuration.TraceConfiguration.OutputFilePath = "./Logs/" + Configuration.ApplicationName + ".Publisher.Module.log.txt";
             Configuration.TraceConfiguration.ApplySettings();
 
             // the OperationTimeout should be twice the minimum value for PublishingInterval * KeepAliveCount, so set to 120s

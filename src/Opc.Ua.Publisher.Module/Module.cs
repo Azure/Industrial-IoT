@@ -435,8 +435,7 @@ namespace Opc.Ua.Publisher
                 encoder.WriteDataValue("Value", value);
 
                 string json = encoder.CloseAndReturnText();
-                byte[] bytes = new UTF8Encoding(false).GetBytes(json);
-
+                
                 // publish
                 var properties = new Dictionary<string, string>();
                 properties.Add("content-type", "application/opcua+uajson");
