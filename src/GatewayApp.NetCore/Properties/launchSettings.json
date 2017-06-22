@@ -2,7 +2,7 @@
   "profiles": {
     "GatewayApp.NetCore": {
       "commandName": "Project",
-      "commandLineArgs": "myapp",
+      "commandLineArgs": "myapp HostName=erichbtest2.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=dKPpzroYca5br8XDmf/BM4m4lAm49fVxToMHoiZCFIs=",
       "workingDirectory": ".\\bin\\Debug\\netcoreapp1.1"
     }
   }
