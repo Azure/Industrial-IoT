@@ -1,6 +1,10 @@
 ﻿[
   {
-    "EndpointUrl": "opc.tcp://erichb01:51210/UA/SampleServer",
-    "NodeId": { "Identifier": "i=2258" }
+    "EndpointUrl": "opc.tcp://myopcservername:51210/UA/SampleServer",
+    "NodeId": { "Identifier": "ns=1;i=123" }
+  },
+  {
+    "EndpointUrl": "opc.tcp://myopcservername:51210/UA/SampleServer",
+    "NodeId": { "Identifier": "ns=2;i=456" }
   }
 ]
