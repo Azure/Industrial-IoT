@@ -34,6 +34,7 @@ The OPC UA nodes whose values should be published to Azure IoT Hub can be config
   }
 ]
 ```
+Once created, make sure it is copied to the publish directory where the app will try to read it from.
 
 # Configuring the Gateway
 The ```Configuration``` Section must contain at a minimum all items shown in the provide file. The JSON type conforms to the OPC UA reference stack serialization of the ```ApplicationConfiguration``` type.  
@@ -42,7 +43,7 @@ You should pass your application name and the IoT Hub owner connection string (w
 
 # Running the module
 
-You can run the module through the supplied gateway app GatewayApp.NetCore on Windows along with the Gateway SDK and IoT Hub module directly via Visual Studio 2017 by hitting F5 (after publishing GatewayApp.NetCore). Don't forget your command line arguments!
+You can run the module through the supplied gateway app GatewayApp.NetCore on Windows along with the Gateway SDK and IoT Hub module directly via Visual Studio 2017 by hitting F5 (after publishing GatewayApp.NetCore). Don't forget your command line arguments, i.e. <yourApplicationName> (needs to be specified always) and the <IoTHubOwnerConnectionString> (needs to be specified on first run ONLY)!
 
 You can also run the module in a Docker container using the Dockerfile provided. From the root of the repo, in a console, type:
 
@@ -55,3 +56,5 @@ On first run, for one-time IoT Hub registration:
 From then on:
 
 ```docker run -it --rm gw <applicationName>```
+
+For detailed instructions on using Docker with the OPC Publisher, see [here](https://docs.microsoft.com/en-us/azure/iot-suite/iot-suite-connected-factory-gateway-deployment).
