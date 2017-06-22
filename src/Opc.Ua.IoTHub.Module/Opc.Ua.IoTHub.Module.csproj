@@ -18,7 +18,6 @@
     <PackageReference Include="AMQPNetLite" Version="1.2.3" />
     <PackageReference Include="AMQPNetLite.WebSockets" Version="1.2.3" />
     <PackageReference Include="Microsoft.Azure.Devices.Gateway.Module.NetStandard" Version="1.0.4" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.SDK" Version="0.2.4" />
   </ItemGroup>
 
   <ItemGroup>

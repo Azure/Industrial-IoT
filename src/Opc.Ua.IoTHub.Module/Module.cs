@@ -4,6 +4,7 @@
 using IoTHubCredentialTools;
 using Microsoft.Azure.Devices.Gateway;
 using System;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,29 +13,30 @@ namespace Opc.Ua.IoTHub
     /// <summary>
     /// Gateway module that acts as IoT Hub connectivity
     /// </summary>
-    public class Module : IGatewayModule, IGatewayModuleStart
+    public class Module : IGatewayModule
     {
         private static AmqpConnection m_publisher = new AmqpConnection();
-        private static TraceConfiguration m_trace = new TraceConfiguration();
+        private static StreamWriter m_trace = null;
 
         /// <summary>
         /// Trace message helper
         /// </summary>
         public static void Trace(string message, params object[] args)
         {
-            Utils.Trace(message, args);
+            m_trace.WriteLine(message, args);
             Console.WriteLine(message, args);
         }
 
         public static void Trace(int traceMask, string format, params object[] args)
         {
-            Utils.Trace(traceMask, format, args);
+            m_trace.WriteLine(format, args);
             Console.WriteLine(format, args);
         }
 
         public static void Trace(Exception e, string format, params object[] args)
         {
-            Utils.Trace(e, format, args);
+            m_trace.WriteLine(e.ToString());
+            m_trace.WriteLine(format, args);
             Console.WriteLine(e.ToString());
             Console.WriteLine(format, args);
         }
@@ -47,11 +49,8 @@ namespace Opc.Ua.IoTHub
             string appName = Encoding.UTF8.GetString(configuration).Replace("\"","");
 
             // enable logging
-            m_trace.DeleteOnLoad = true;
-            m_trace.TraceMasks = 519;
-            m_trace.OutputFilePath = "./Logs/" + appName + ".IoTHub.Module.log.txt";
-            m_trace.ApplySettings();
-
+            m_trace = new StreamWriter(File.Open("./Logs/" + appName + ".IoTHub.Module.log.txt", FileMode.Create));
+           
             Trace("Opc.Ua.IoTHub.Module: Creating...");
 
             // configure connection
@@ -66,12 +65,6 @@ namespace Opc.Ua.IoTHub
 
             Trace("Opc.Ua.IoTHub.Module: Created.");
         }
-        
-        public void Start()
-        {
-            // NO-OP
-            Trace("Opc.Ua.IoTHub.Module: Started.");
-        }
 
         /// <summary>
         /// Disconnect all sessions
@@ -81,6 +74,9 @@ namespace Opc.Ua.IoTHub
             m_publisher.Close();
 
             Trace("Opc.Ua.IoTHub.Module: Closed.");
+
+            m_trace.Flush();
+            m_trace.Dispose();
         }
 
         /// <summary>

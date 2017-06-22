@@ -10,47 +10,34 @@ using System.Net;
 using System.Threading;
 using System.Diagnostics;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using IoTHubCredentialTools;
 
 namespace Opc.Ua.IoTHub
 {
-    [DataContract(Name = "AmqpConnectionConfiguration", Namespace = Namespaces.OpcUaConfig)]
-    public class AmqpConnection
+     public class AmqpConnection
     {
         #region Serialized Configuration Properties
 
-        [DataMember(Order = 2, IsRequired = true)]
         public string Host { get; set; }
 
-        [DataMember(Order = 3, IsRequired = false)]
         public int Port { get; set; }
 
-        [DataMember(Order = 4, IsRequired = true)]
         public string Endpoint { get; set; }
 
-        [DataMember(Order = 5, IsRequired = false)]
         public string WebSocketEndpoint { get; set; }
 
-        [DataMember(Order = 6, IsRequired = false)]
         public string KeyName { get; set; }
 
-        [DataMember(Order = 7, IsRequired = false)]
         public string KeyValue { get; set; }
 
-        [DataMember(Order = 8, IsRequired = false)]
         public string KeyEncoding { get; set; }
 
-        [DataMember(Order = 9, IsRequired = false)]
         public bool UseCbs { get; set; }
 
-        [DataMember(Order = 10, IsRequired = false)]
         public string TokenType { get; set; }
 
-        [DataMember(Order = 11, IsRequired = false)]
         public string TokenScope { get; set; }
 
-        [DataMember(Order = 12, IsRequired = false)]
         public int TokenLifetime { get; set; }
 
         #endregion
@@ -79,15 +66,6 @@ namespace Opc.Ua.IoTHub
         /// Default Constructor 
         /// </summary>
         public AmqpConnection()
-        {
-            Initialize();
-        }
-
-        /// <summary>
-        /// Initializes the object during deserialization.
-        /// </summary>
-        [OnDeserializing()]
-        private void Initialize(StreamingContext context)
         {
             Initialize();
         }
