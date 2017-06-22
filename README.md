@@ -21,7 +21,7 @@ This folder contains the source code of the module, a managed gateway loader and
 This module requires the .NET Core SDK V1.1. You can build the module from Visual Studio 2017 by opening the solution file, right clicking the GatewayApp.NetCore project and selecting "publish".
 
 # Configuring the Module
-The OPC UA nodes whose values should be published to Azure IoT Hub can be configured by creating a "publishednodes.json" file. This file is auto-generated and persisted by the module automatically when using the Publisher's OPC UA server interface from a client. If you want to create the file manually, below is a sample publishednodes.json file:
+The OPC UA nodes whose values should be published to Azure IoT Hub can be configured by creating a "publishednodes.json" file. This file is auto-generated and persisted by the module automatically when using the Publisher's OPC UA server interface from a client. If you want to create the file manually instead, below is the format of the SAMPLE publishednodes.json file:
 ```
 [
   {
@@ -34,7 +34,7 @@ The OPC UA nodes whose values should be published to Azure IoT Hub can be config
   }
 ]
 ```
-Once created, make sure it is copied to the publish directory where the app will try to read it from.
+The "Identifier" tag follows the string representation of an OPC UA node ID as described in the OPC UA specifications.
 
 # Configuring the Gateway
 The ```Configuration``` Section must contain at a minimum all items shown in the provide file. The JSON type conforms to the OPC UA reference stack serialization of the ```ApplicationConfiguration``` type.  

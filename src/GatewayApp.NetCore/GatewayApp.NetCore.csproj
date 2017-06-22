@@ -17,11 +17,15 @@
 
   <ItemGroup>
     <None Remove="gatewayconfig.json" />
+    <None Remove="publishednodes.json" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="gatewayconfig.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="publishednodes.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
