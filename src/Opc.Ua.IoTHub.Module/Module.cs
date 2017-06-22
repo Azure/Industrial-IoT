@@ -93,7 +93,6 @@ namespace Opc.Ua.IoTHub
                 if (!m_publisher.IsClosed())
                 {
                     m_publisher.Publish(new ArraySegment<byte>(received_message.Content));
-                    Trace("Published message for device " + received_message.Properties["deviceName"]);
                 }
             }
             catch (Exception ex)

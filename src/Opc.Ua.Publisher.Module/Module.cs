@@ -450,7 +450,6 @@ namespace Opc.Ua.Publisher
                 try
                 {
                     Publish(new Message(json, properties));
-                    Trace("Opc.Ua.Publisher.Module: Published: " + json + " from " + m_deviceName);
                 }
                 catch (Exception ex)
                 {
