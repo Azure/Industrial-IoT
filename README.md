@@ -43,8 +43,10 @@ You should pass your application name and the IoT Hub owner connection string (w
 
 # Running the module
 
-You can run the module through the supplied gateway app GatewayApp.NetCore on Windows along with the Gateway SDK and IoT Hub module directly via Visual Studio 2017 by hitting F5 (after publishing GatewayApp.NetCore). Don't forget your command line arguments, i.e. <yourApplicationName> (needs to be specified always) and the <IoTHubOwnerConnectionString> (needs to be specified on first run ONLY)!
+## From Visual Studio 2017
+You can run the module through the supplied gateway app GatewayApp.NetCore on Windows along with the Gateway SDK and IoT Hub module directly via Visual Studio 2017 by hitting F5 (after publishing GatewayApp.NetCore). Don't forget your command line arguments, i.e. ```<yourApplicationName>``` (needs to be specified always) and the ```<IoTHubOwnerConnectionString>``` (needs to be specified on first run ONLY)!
 
+## From Docker
 You can also run the module in a Docker container using the Dockerfile provided. From the root of the repo, in a console, type:
 
 ```docker build -t gw .```
