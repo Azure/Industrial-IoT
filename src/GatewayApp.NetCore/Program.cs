@@ -1,10 +1,11 @@
-﻿
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using IoTHubCredentialTools;
+using Microsoft.Azure.Devices.Gateway;
 using System;
 using System.IO;
-using Microsoft.Azure.Devices.Gateway;
-using IoTHubCredentialTools;
 using System.Runtime.InteropServices;
-using System.Collections.Generic;
 
 namespace GatewayApp.NetCore
 {

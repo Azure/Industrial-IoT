@@ -24,12 +24,14 @@ namespace Opc.Ua.IoTHub
         public static void Trace(string message, params object[] args)
         {
             m_trace.WriteLine(message, args);
+            m_trace.Flush();
             Console.WriteLine(message, args);
         }
 
         public static void Trace(int traceMask, string format, params object[] args)
         {
             m_trace.WriteLine(format, args);
+            m_trace.Flush();
             Console.WriteLine(format, args);
         }
 
@@ -37,6 +39,7 @@ namespace Opc.Ua.IoTHub
         {
             m_trace.WriteLine(e.ToString());
             m_trace.WriteLine(format, args);
+            m_trace.Flush();
             Console.WriteLine(e.ToString());
             Console.WriteLine(format, args);
         }
@@ -49,7 +52,7 @@ namespace Opc.Ua.IoTHub
             string appName = Encoding.UTF8.GetString(configuration).Replace("\"","");
 
             // enable logging
-            m_trace = new StreamWriter(File.Open("./Logs/" + appName + ".IoTHub.Module.log.txt", FileMode.Create));
+            m_trace = new StreamWriter(File.Open("./Logs/" + appName + ".IoTHub.Module.log.txt", FileMode.Create, FileAccess.Write, FileShare.Read));
            
             Trace("Opc.Ua.IoTHub.Module: Creating...");
 
