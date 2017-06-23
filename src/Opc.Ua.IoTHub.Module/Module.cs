@@ -52,7 +52,12 @@ namespace Opc.Ua.IoTHub
             string appName = Encoding.UTF8.GetString(configuration).Replace("\"","");
 
             // enable logging
-            m_trace = new StreamWriter(File.Open("./Logs/" + appName + ".IoTHub.Module.log.txt", FileMode.Create, FileAccess.Write, FileShare.Read));
+            string logpath = "./Logs/" + appName + ".IoTHub.Module.log.txt";
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_LOGP")))
+            {
+                logpath = Environment.GetEnvironmentVariable("_GW_LOGP").Replace(".txt", ".IoTHub.Module.txt");
+            }
+            m_trace = new StreamWriter(File.Open(logpath, FileMode.Create, FileAccess.Write, FileShare.Read));
            
             Trace("Opc.Ua.IoTHub.Module: Creating...");
 
