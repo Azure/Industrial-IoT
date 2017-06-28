@@ -31,7 +31,7 @@ RUN \
         echo "#!/bin/bash" > /lds/start.sh \
     &&  echo "service start lds" >> /lds/start.sh \
     &&  echo "export LD_LIBRARY_PATH=/build/src/GatewayApp.NetCore/bin/Debug/netcoreapp1.1" >> /lds/start.sh \
-    &&  echo "exec /build/src/GatewayApp.NetCore/bin/Debug/netcoreapp1.1/GatewayApp.NetCore $@" >> /lds/start.sh \
+    &&  echo 'exec /build/src/GatewayApp.NetCore/bin/Debug/netcoreapp1.1/GatewayApp.NetCore $@' >> /lds/start.sh \
     &&  chmod +x /lds/start.sh
 
 EXPOSE 5353
