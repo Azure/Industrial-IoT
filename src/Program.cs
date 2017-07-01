@@ -212,7 +212,10 @@ namespace Opc.Ua.Publisher
                 session.Close();
             }
 
-            m_deviceClient.CloseAsync().Wait();
+            if (m_deviceClient != null)
+            {
+                m_deviceClient.CloseAsync().Wait();
+            }
         }
 
         /// <summary>
@@ -343,7 +346,10 @@ namespace Opc.Ua.Publisher
 
                 try
                 {
-                    m_deviceClient.SendEventAsync(eventMessage).Wait();
+                    if (m_deviceClient != null)
+                    {
+                        m_deviceClient.SendEventAsync(eventMessage).Wait();
+                    }
                 }
                 catch (Exception ex)
                 {
