@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <AssemblyName>Opc.Ua.Publisher</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <PackageId>Opc.Ua.Publisher</PackageId>
+    <RuntimeFrameworkVersion>1.1.2</RuntimeFrameworkVersion>
+    <GenerateAssemblyCompanyAttribute>true</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
+    <Description />
+    <Company>Microsoft</Company>
+    <Version>1.1.2</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="publishednodes.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="publishednodes.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Publisher.PredefinedNodes.uanodes" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Devices" Version="1.2.8" />
+    <PackageReference Include="Microsoft.Azure.Devices.Client" Version="1.2.13" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.SDK" Version="0.2.4" />
+  </ItemGroup>
+
+</Project>

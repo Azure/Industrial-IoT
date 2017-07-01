@@ -1,8 +1,5 @@
-﻿
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Opc.Ua.Publisher
@@ -10,26 +7,19 @@ namespace Opc.Ua.Publisher
     /// <summary>
     /// Module configuration object to deserialize / serialize
     /// </summary>
-    [JsonObject(MemberSerialization.OptIn)]
     public class ModuleConfiguration
     {
         /// <summary>
         /// Opc client configuration
         /// </summary>
-        [JsonProperty]
         public ApplicationConfiguration Configuration { get; set; }
 
-        /// <summary>
-        /// Called when the object is deserialized
-        /// </summary>
-        /// <param name="context"></param>
-        [OnDeserialized]
-        internal void OnDeserializedMethod(StreamingContext context)
+        public ModuleConfiguration(string applicationName)
         {
-            // Validate configuration and set reasonable defaults
-
-            Configuration.ApplicationUri = Configuration.ApplicationUri.Replace("localhost", Utils.GetHostName());
-
+            // set reasonable defaults
+            Configuration = new ApplicationConfiguration();
+            Configuration.ApplicationName = applicationName;
+            Configuration.ApplicationUri = "urn:" + Utils.GetHostName() + ":microsoft:" + Configuration.ApplicationName;
             Configuration.ApplicationType = ApplicationType.ClientAndServer;
             Configuration.TransportQuotas = new TransportQuotas { OperationTimeout = 15000 };
             Configuration.ClientConfiguration = new ClientConfiguration();
@@ -120,13 +110,13 @@ namespace Opc.Ua.Publisher
                 ICertificateStore store = Configuration.SecurityConfiguration.TrustedPeerCertificates.OpenStore();
                 if (store == null)
                 {
-                    Module.Trace("Could not open trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
+                    Program.Trace("Could not open trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
                 }
                 else
                 {
                     try
                     {
-                        Module.Trace(Utils.TraceMasks.Information, "Adding certificate to trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
+                        Program.Trace(Utils.TraceMasks.Information, "Adding certificate to trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
                         X509Certificate2 publicKey = new X509Certificate2(certificate.RawData);
                         store.Add(publicKey).Wait();
                     }
@@ -138,7 +128,7 @@ namespace Opc.Ua.Publisher
             }
             catch (Exception e)
             {
-                Module.Trace(e, "Could not add certificate to trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
+                Program.Trace(e, "Could not add certificate to trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
             }
         
             // patch our base address
