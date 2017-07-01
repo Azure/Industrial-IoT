@@ -14,6 +14,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="CertificateStores\**" />
+    <Compile Remove="Logs\**" />
+    <EmbeddedResource Remove="CertificateStores\**" />
+    <EmbeddedResource Remove="Logs\**" />
+    <None Remove="CertificateStores\**" />
+    <None Remove="Logs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="publishednodes.json" />
   </ItemGroup>
 
