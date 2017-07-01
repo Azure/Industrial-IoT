@@ -11,11 +11,6 @@ This application uses the OPC Foundations's OPC UA reference stack and therefore
 |------|-------------|
 |master|[![Build status](https://ci.appveyor.com/api/projects/status/6t7ru6ow7t9uv74r/branch/master?svg=true)](https://ci.appveyor.com/project/marcschier/iot-gateway-opc-ua-r4ba5/branch/master) [![Build Status](https://travis-ci.org/Azure/iot-gateway-opc-ua.svg?branch=master)](https://travis-ci.org/Azure/iot-gateway-opc-ua)|
 
-# Directory Structure
-
-## /src
-This folder contains the source code of the module, a managed gateway loader and a library to handle IoT Hub credentials.
-
 # Building the Application
 
 This application requires the .NET Core SDK V1.1. You can build the application from Visual Studio 2017 by opening the solution file and hitting F7.
