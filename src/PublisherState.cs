@@ -271,8 +271,8 @@ namespace Publisher
             try
             {
                 DeviceClient newClient = DeviceClient.CreateFromConnectionString(connectionString, Microsoft.Azure.Devices.Client.TransportType.Mqtt);
-                newClient.OpenAsync().Wait();
                 newClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
+                newClient.OpenAsync().Wait();
                 SecureIoTHubToken.Write(Program.m_configuration.ApplicationName, connectionString);
                 Program.m_deviceClient = newClient;
             }
