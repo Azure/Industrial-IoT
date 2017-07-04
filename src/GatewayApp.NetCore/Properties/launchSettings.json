@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "GatewayApp.NetCore": {
-      "commandName": "Project",
-      "workingDirectory": ".\\bin\\Debug\\netcoreapp1.1"
-    }
-  }
-}

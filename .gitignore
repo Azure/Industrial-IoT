@@ -20,3 +20,4 @@
 /src/GatewayApp.NetCore/Logs
 *.der
 *.exe
+/src/out

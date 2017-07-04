@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Opc.Ua.Publisher": {
+      "commandName": "Project",
+      "commandLineArgs": "myApp"
+    }
+  }
+}
