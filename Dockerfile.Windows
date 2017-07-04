@@ -1,14 +1,10 @@
 FROM microsoft/dotnet:1.1-sdk-nanoserver
 
-COPY / /build
+COPY /src /build
 
 WORKDIR /build
 RUN dotnet restore
+RUN dotnet publish -c Release -o out
 
-WORKDIR /build/src/GatewayApp.NetCore
-RUN dotnet publish -c Debug -f netcoreapp1.1 -r win10-x64 -o bin/Debug/netcoreapp1.1
-
-WORKDIR /build/src/GatewayApp.NetCore/bin/Debug/netcoreapp1.1
-RUN dir
-ENV PATH=/build/src/GatewayApp.NetCore/bin/Debug/netcoreapp1.1
-ENTRYPOINT ["./GatewayApp.NetCore"]
+WORKDIR /build/out
+ENTRYPOINT ["dotnet", "Opc.Ua.Publisher.dll"]

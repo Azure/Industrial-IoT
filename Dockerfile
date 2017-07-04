@@ -8,4 +8,3 @@ RUN dotnet publish -c Release -o out
 
 WORKDIR /build/out
 ENTRYPOINT ["dotnet", "Opc.Ua.Publisher.dll"]
-
