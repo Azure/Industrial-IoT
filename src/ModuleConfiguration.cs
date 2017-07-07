@@ -155,7 +155,7 @@ namespace Opc.Ua.Publisher
 
             // enable logging
             Configuration.TraceConfiguration = new TraceConfiguration();
-            Configuration.TraceConfiguration.TraceMasks = 519;
+            Configuration.TraceConfiguration.TraceMasks = Utils.TraceMasks.Error | Utils.TraceMasks.Security | Utils.TraceMasks.StackTrace | Utils.TraceMasks.StartStop;
             Configuration.TraceConfiguration.OutputFilePath = "./Logs/" + Configuration.ApplicationName + ".log.txt";
             Configuration.TraceConfiguration.ApplySettings();
 
