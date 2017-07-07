@@ -1,6 +1,6 @@
 FROM microsoft/dotnet:1.1-sdk
 
-COPY / /build
+COPY /src /build
 
 RUN \
         set -ex \
@@ -29,15 +29,15 @@ RUN \
     &&  chmod +x /etc/init.d/lds \
     && \
         echo "#!/bin/bash" > /lds/start.sh \
-    &&  echo "service start lds" >> /lds/start.sh \
-    &&  echo "export LD_LIBRARY_PATH=/build/src/GatewayApp.NetCore/bin/Debug/netcoreapp1.1" >> /lds/start.sh \
-    &&  echo 'exec /build/src/GatewayApp.NetCore/bin/Debug/netcoreapp1.1/GatewayApp.NetCore $@' >> /lds/start.sh \
+    &&  echo "service lds start" >> /lds/start.sh \
+    &&  echo 'exec dotnet Opc.Ua.Publisher.dll $@' >> /lds/start.sh \
     &&  chmod +x /lds/start.sh
 
 EXPOSE 5353
 
 WORKDIR /build
 RUN dotnet restore
-RUN dotnet publish -c Release -f netcoreapp1.1 -r debian.8-x64 -o bin/Debug/netcoreapp1.1
-
+RUN dotnet publish -c Release -o out
+WORKDIR /build/out
 ENTRYPOINT ["/lds/start.sh"]
+

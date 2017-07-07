@@ -11,6 +11,6 @@ install:
   - sudo apt-get update
   - sudo apt-get install dotnet-dev-1.0.4 -y
 script: 
-  - dotnet restore
-  - dotnet build -c Debug -f netcoreapp1.1 src/GatewayApp.NetCore
-  - dotnet build -c Release -f netcoreapp1.1 src/GatewayApp.NetCore
+  - dotnet restore src
+  - dotnet build -c Debug src
+  - dotnet build -c Release src

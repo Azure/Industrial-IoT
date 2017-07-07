@@ -1,71 +1,124 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
+﻿
+using IoTHubCredentialTools;
+using Microsoft.Azure.Devices;
+using Microsoft.Azure.Devices.Client;
+using Newtonsoft.Json;
+using Opc.Ua.Client;
+using Publisher;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Text;
-using Newtonsoft.Json;
-using Microsoft.Azure.Devices.Gateway;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using Publisher;
-using Opc.Ua.Client;
-using IoTHubCredentialTools;
 using System.IO;
-using System.Net;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Opc.Ua.Publisher
 {
-    /// <summary>
-    /// Gateway module that acts as Opc.Ua Publisher and Server
-    /// </summary>
-    public class Module : IGatewayModule, IGatewayModuleStart
+    public class Program
     {
         public static ApplicationConfiguration m_configuration = null;
         public static List<Session> m_sessions = new List<Session>();
         public static PublishedNodesCollection m_nodesLookups = new PublishedNodesCollection();
         public static List<Uri> m_endpointUrls = new List<Uri>();
-        public static string m_deviceName = string.Empty;
-        public static string m_accessKey = string.Empty;
+        public static string m_applicationName = string.Empty;
+        public static DeviceClient m_deviceClient = null;
 
-        private static Broker m_broker = null;
-        private PublisherServer m_server = new PublisherServer();
-
-        private const string m_IoTHubAPIVersion = "?api-version=2016-11-14";
+        private static PublisherServer m_server = new PublisherServer();
 
         /// <summary>
         /// Trace message helper
         /// </summary>
-        public static void Trace(string message)
+        public static void Trace(string message, params object[] args)
         {
-            Utils.Trace(message);
-            Console.WriteLine(message);
+            Utils.Trace(message, args);
+            Console.WriteLine(message, args);
         }
 
-        /// <summary>
-        /// Create module, throws if configuration is bad
-        /// </summary>
-        public void Create(Broker broker, byte[] configuration)
+        public static void Trace(int traceMask, string format, params object[] args)
         {
-            Trace("Opc.Ua.Publisher.Module: Creating...");
+            Utils.Trace(traceMask, format, args);
+            Console.WriteLine(format, args);
+        }
 
-            m_broker = broker;
+        public static void Trace(Exception e, string format, params object[] args)
+        {
+            Utils.Trace(e, format, args);
+            Console.WriteLine(e.ToString());
+            Console.WriteLine(format, args);
+        }
 
-            string configString = Encoding.UTF8.GetString(configuration);
-
-            // Deserialize from configuration string
-            ModuleConfiguration moduleConfiguration = null;
-            try
+        public static void Main(string[] args)
+        {
+            if ((args.Length == 0) || string.IsNullOrEmpty(args[0]))
             {
-                moduleConfiguration = JsonConvert.DeserializeObject<ModuleConfiguration>(configString);
-            }
-            catch (Exception ex)
-            {
-                Trace("Opc.Ua.Publisher.Module: Module config string " + configString + " could not be deserialized: " + ex.Message);
-                throw;
+                Console.WriteLine("Please specify an application name as argument!");
+                return;
             }
 
+            m_applicationName = args[0];
+            string ownerConnectionString = string.Empty;
+
+            // check if we also received an owner connection string
+            if ((args.Length > 1) && !string.IsNullOrEmpty(args[1]))
+            {
+                ownerConnectionString = args[1];
+            }
+            else
+            {
+                Trace("IoT Hub owner connection string not passed as argument.");
+
+                // check if we have an environment variable to register ourselves with IoT Hub
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_HUB_CS")))
+                {
+                    ownerConnectionString = Environment.GetEnvironmentVariable("_HUB_CS");
+                }
+            }
+
+            // register ourselves with IoT Hub
+            if (ownerConnectionString != string.Empty)
+            {
+                Trace("Attemping to register ourselves with IoT Hub using owner connection string: " + ownerConnectionString);
+                RegistryManager manager = RegistryManager.CreateFromConnectionString(ownerConnectionString);
+
+                // remove any existing device
+                Device existingDevice = manager.GetDeviceAsync(m_applicationName).Result;
+                if (existingDevice != null)
+                {
+                    manager.RemoveDeviceAsync(m_applicationName).Wait();
+                }
+
+                Device newDevice = manager.AddDeviceAsync(new Device(m_applicationName)).Result;
+                if (newDevice != null)
+                {
+                    string hostname = ownerConnectionString.Substring(0, ownerConnectionString.IndexOf(";"));
+                    string deviceConnectionString = hostname + ";DeviceId=" + m_applicationName + ";SharedAccessKey=" + newDevice.Authentication.SymmetricKey.PrimaryKey;
+                    SecureIoTHubToken.Write(m_applicationName, deviceConnectionString);
+                }
+                else
+                {
+                    Trace("Could not register ourselves with IoT Hub using owner connection string: " + ownerConnectionString);
+                }
+            }
+            else
+            {
+                Trace("IoT Hub owner connection string not found, registration with IoT Hub abandoned.");
+            }
+
+            // try to read connection string from secure store and open IoTHub client
+            Trace("Attemping to read connection string from secure store with certificate name: " + m_applicationName);
+            string connectionString = SecureIoTHubToken.Read(m_applicationName);
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                Trace("Attemping to configure publisher with connection string: " + connectionString);
+                m_deviceClient = DeviceClient.CreateFromConnectionString(connectionString, Microsoft.Azure.Devices.Client.TransportType.Mqtt);
+                m_deviceClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
+                m_deviceClient.OpenAsync().Wait();
+            }
+            else
+            {
+                Trace("Device connection string not found in secure store.");
+            }
+                       
+            ModuleConfiguration moduleConfiguration = new ModuleConfiguration(m_applicationName);
             m_configuration = moduleConfiguration.Configuration;
             m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
 
@@ -86,15 +139,15 @@ namespace Opc.Ua.Publisher
                     publishedNodesFilePath = Environment.GetEnvironmentVariable("_GW_PNFP");
                 }
 
-                Trace("Opc.Ua.Publisher.Module: Attemping to load nodes file from: " + publishedNodesFilePath);
+                Trace("Attemping to load nodes file from: " + publishedNodesFilePath);
                 m_nodesLookups = JsonConvert.DeserializeObject<PublishedNodesCollection>(File.ReadAllText(publishedNodesFilePath));
-                Trace("Opc.Ua.Publisher.Module: Loaded " + m_nodesLookups.Count.ToString() + " nodes.");
+                Trace("Loaded " + m_nodesLookups.Count.ToString() + " nodes.");
             }
             catch (Exception ex)
             {
-                Trace("Opc.Ua.Publisher.Module: Nodes file loading failed with: " + ex.Message);
+                Trace("Nodes file loading failed with: " + ex.Message);
             }
-            
+
             foreach (NodeLookup nodeLookup in m_nodesLookups)
             {
                 if (!m_endpointUrls.Contains(nodeLookup.EndPointURL))
@@ -106,46 +159,23 @@ namespace Opc.Ua.Publisher
             // start the server
             try
             {
-                Trace("Opc.Ua.Publisher.Module: Starting server on endpoint " + m_configuration.ServerConfiguration.BaseAddresses[0].ToString() + "...");
+                Trace("Starting server on endpoint " + m_configuration.ServerConfiguration.BaseAddresses[0].ToString() + "...");
                 m_server.Start(m_configuration);
-                Trace("Opc.Ua.Publisher.Module: Server started.");
+                Trace("Server started.");
             }
             catch (Exception ex)
             {
-                Trace("Opc.Ua.Publisher.Module: Starting server failed with: " + ex.Message);
+                Trace("Starting server failed with: " + ex.Message);
             }
-
-            // check if we have an environment variable to register ourselves with IoT Hub
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_HUB_CS")))
-            {
-                string ownerConnectionString = Environment.GetEnvironmentVariable("_HUB_CS");
-
-                if ((m_configuration != null) && (!string.IsNullOrEmpty(m_configuration.ApplicationName)))
-                {
-                    Trace("Attemping to register ourselves with IoT Hub using owner connection string: " + ownerConnectionString);
-                    string deviceConnectionString = IoTHubRegistration.RegisterDeviceWithIoTHub(m_configuration.ApplicationName, ownerConnectionString);
-                    if (!string.IsNullOrEmpty(deviceConnectionString))
-                    {
-                        SecureIoTHubToken.Write(m_configuration.ApplicationName, deviceConnectionString);
-                    }
-                    else
-                    {
-                        Trace("Could not register ourselves with IoT Hub using owner connection string: " + ownerConnectionString);
-                    }
-                }
-            }
-
-            // try to configure our publisher component
-            TryConfigurePublisherAsync().Wait();
 
             // connect to servers
-            Trace("Opc.Ua.Publisher.Module: Attemping to connect to servers...");
+            Trace("Attemping to connect to servers...");
             try
             {
                 List<Task> connectionAttempts = new List<Task>();
                 foreach (Uri endpointUrl in m_endpointUrls)
                 {
-                    Trace("Opc.Ua.Publisher.Module: Connecting to server: " + endpointUrl);
+                    Trace("Connecting to server: " + endpointUrl);
                     connectionAttempts.Add(EndpointConnect(endpointUrl));
                 }
 
@@ -154,105 +184,11 @@ namespace Opc.Ua.Publisher
             }
             catch (Exception ex)
             {
-                Trace("Opc.Ua.Publisher.Module: Exception: " + ex.ToString() + "\r\n" + ex.InnerException != null ? ex.InnerException.ToString() : null);
+                Trace("Exception: " + ex.ToString() + "\r\n" + ex.InnerException != null ? ex.InnerException.ToString() : null);
             }
-
-            Trace("Opc.Ua.Publisher.Module: Created.");
-        }
-
-        /// <summary>
-        /// Disconnect all sessions
-        /// </summary>
-        public void Destroy()
-        {
-            foreach (Session session in m_sessions)
-            {
-                session.Close();
-            }
-
-            Trace("Opc.Ua.Publisher.Module: All sessions closed.");
-        }
-
-        /// <summary>
-        /// Receive message from broker
-        /// </summary>
-        public void Receive(Message received_message)
-        {
-            // No-op
-        }
-
-        /// <summary>
-        /// Try to configure our Publisher settings
-        /// </summary>
-        public static async Task TryConfigurePublisherAsync()
-        {
-            // read connection string from secure store and configure publisher, if possible
-            if ((m_configuration != null) && (!string.IsNullOrEmpty(m_configuration.ApplicationName)))
-            {
-                Trace("Opc.Ua.Publisher.Module: Attemping to read connection string from secure store with certificate name: " + m_configuration.ApplicationName);
-                string connectionString = SecureIoTHubToken.Read(m_configuration.ApplicationName);
-                if (!string.IsNullOrEmpty(connectionString))
-                {
-                    Trace("Opc.Ua.Publisher.Module: Attemping to configure publisher with connection string: " + connectionString);
-                    string[] parsedConnectionString = IoTHubRegistration.ParseConnectionString(connectionString, true);
-                    if ((parsedConnectionString != null) && (parsedConnectionString.Length == 3))
-                    {
-                        // note: IoTHub name can't be changed during runtime in the GW IoTHub module
-                        string _IoTHubName = parsedConnectionString[0];
-                        m_deviceName = parsedConnectionString[1];
-                        m_accessKey = parsedConnectionString[2];
-
-                        Trace("Opc.Ua.Publisher.Module: Publisher configured for device: " + m_deviceName);
-
-                        // try to connect to IoT Hub
-                        using (HttpClient httpClient = new HttpClient())
-                        {
-                            httpClient.BaseAddress = new UriBuilder { Scheme = "https", Host = _IoTHubName }.Uri;
-
-                            string sharedAccessToken = IoTHubRegistration.GenerateSharedAccessToken(string.Empty, Convert.FromBase64String(m_accessKey), _IoTHubName, 60000);
-                            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("SharedAccessSignature", sharedAccessToken);
-
-                            // send an empty d2c message
-                            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/devices/" + m_deviceName + "/messages/events" + IoTHubRegistration._IoTHubAPIVersion);
-                            HttpResponseMessage response = await httpClient.SendAsync(request).ConfigureAwait(false);
-                            if (response.StatusCode != HttpStatusCode.NoContent)
-                            {
-                                throw new Exception("Opc.Ua.Publisher.Module: Could not connect to IoT Hub. Response: " + response.ToString());
-                            }
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception("Opc.Ua.Publisher.Module: Publisher configuration failed!");
-                    }
-                }
-                else
-                {
-                    Trace("Opc.Ua.Publisher.Module: Connection string not found in secure store.");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Publish message to bus
-        /// </summary>
-        public static void Publish(Message message)
-        {
-            if (m_broker != null)
-            {
-                m_broker.Publish(message);
-            }
-        }
-
-        /// <summary>
-        /// Called when gateway starts, establishes the connections to endpoints
-        /// </summary>
-        public void Start()
-        {
-            Trace("Opc.Ua.Publisher.Module: Starting...");
 
             // subscribe to preconfigured nodes
-            Trace("Opc.Ua.Publisher.Module: Attemping to subscribe to published nodes...");
+            Trace("Attemping to subscribe to published nodes...");
             if (m_nodesLookups != null)
             {
                 foreach (NodeLookup nodeLookup in m_nodesLookups)
@@ -263,42 +199,22 @@ namespace Opc.Ua.Publisher
                     }
                     catch (Exception ex)
                     {
-                        Trace("Opc.Ua.Publisher.Module: Unexpected error publishing node: " + ex.Message + "\r\nIgnoring node: " + nodeLookup.EndPointURL.AbsoluteUri + ", " + nodeLookup.NodeID.ToString());
+                        Trace("Unexpected error publishing node: " + ex.Message + "\r\nIgnoring node: " + nodeLookup.EndPointURL.AbsoluteUri + ", " + nodeLookup.NodeID.ToString());
                     }
                 }
             }
-            Trace("Opc.Ua.Publisher.Module: Started.");
-        }
 
-        /// <summary>
-        /// Registers ourselves with IoTHub so we can send messages to it 
-        /// </summary>
-        private void SelfRegisterWithIoTHub(string ownerConnectionString)
-        {
-            string[] parsedConnectionString = IoTHubRegistration.ParseConnectionString(ownerConnectionString, false);
-            string deviceConnectionString = string.Empty;
-            if ((parsedConnectionString != null) && (parsedConnectionString.Length == 3))
+            Console.WriteLine("Publisher is running. Press enter to quit.");
+            Console.ReadLine();
+
+            foreach (Session session in m_sessions)
             {
-                string IoTHubName = parsedConnectionString[0];
-                string name = parsedConnectionString[1];
-                string accessToken = parsedConnectionString[2];
-
-                using (HttpClient httpClient = new HttpClient())
-                {
-                    httpClient.BaseAddress = new UriBuilder { Scheme = "https", Host = IoTHubName }.Uri;
-
-                    string sharedAccessSignature = IoTHubRegistration.GenerateSharedAccessToken(name, Convert.FromBase64String(accessToken), IoTHubName, 60000);
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("SharedAccessSignature", sharedAccessSignature);
-                    deviceConnectionString = IoTHubRegistration.CreateDeviceInIoTHubDeviceRegistry(httpClient, m_configuration.ApplicationName.Replace(" ", "")).Result;
-
-                    // prepend the rest of the connection string
-                    deviceConnectionString = "HostName=" + IoTHubName + ";DeviceId=" + m_configuration.ApplicationName.Replace(" ", "") + ";SharedAccessKey=" + deviceConnectionString;
-                    SecureIoTHubToken.Write(m_configuration.ApplicationName, deviceConnectionString);
-                }
+                session.Close();
             }
-            else
+
+            if (m_deviceClient != null)
             {
-                Trace("Opc.Ua.Publisher.Module: Could not parse IoT Hub owner connection string: " + ownerConnectionString);
+                m_deviceClient.CloseAsync().Wait();
             }
         }
 
@@ -323,7 +239,7 @@ namespace Opc.Ua.Publisher
 
             if (newSession != null)
             {
-                Trace("Opc.Ua.Publisher.Module: Created session with updated endpoint " + selectedEndpoint.EndpointUrl + " from server!");
+                Trace("Created session with updated endpoint " + selectedEndpoint.EndpointUrl + " from server!");
                 newSession.KeepAlive += new KeepAliveEventHandler((sender, e) => StandardClient_KeepAlive(sender, e, newSession));
                 m_sessions.Add(newSession);
             }
@@ -373,14 +289,14 @@ namespace Opc.Ua.Publisher
                 monitoredItem.QueueSize = 0;
                 monitoredItem.DiscardOldest = true;
 
-                monitoredItem.Notification += new MonitoredItemNotificationEventHandler(Module.MonitoredItem_Notification);
+                monitoredItem.Notification += new MonitoredItemNotificationEventHandler(MonitoredItem_Notification);
                 subscription.AddItem(monitoredItem);
                 subscription.ApplyChanges();
             }
             else
             {
-                Trace("Opc.Ua.Publisher.Module: ERROR: Could not find endpoint URL " + nodeLookup.EndPointURL.ToString() + " in active server sessions, NodeID " + nodeLookup.NodeID.Identifier.ToString() + " NOT published!");
-                Trace("Opc.Ua.Publisher.Module: To fix this, please update your publishednodes.json file with the updated endpoint URL!");
+                Trace("ERROR: Could not find endpoint URL " + nodeLookup.EndPointURL.ToString() + " in active server sessions, NodeID " + nodeLookup.NodeID.Identifier.ToString() + " NOT published!");
+                Trace("To fix this, please update your publishednodes.json file with the updated endpoint URL!");
             }
         }
 
@@ -412,7 +328,7 @@ namespace Opc.Ua.Publisher
                 string applicationURI = monitoredItem.Subscription.Session.Endpoint.Server.ApplicationUri;
                 encoder.WriteString("ApplicationUri", applicationURI);
                 encoder.WriteString("DisplayName", monitoredItem.DisplayName);
- 
+
                 // write NodeId as ns=x;i=y
                 NodeId nodeId = monitoredItem.ResolvedNodeId;
                 encoder.WriteString("NodeId", new NodeId(nodeId.Identifier, nodeId.NamespaceIndex).ToString());
@@ -422,33 +338,28 @@ namespace Opc.Ua.Publisher
                 encoder.WriteDataValue("Value", value);
 
                 string json = encoder.CloseAndReturnText();
-                byte[] bytes = new UTF8Encoding(false).GetBytes(json);
+                var eventMessage = new Microsoft.Azure.Devices.Client.Message(Encoding.UTF8.GetBytes(json));
 
                 // publish
-                var properties = new Dictionary<string, string>();
-                properties.Add("content-type", "application/opcua+uajson");
-                properties.Add("deviceName", m_deviceName);
-
-                if (m_accessKey != null)
-                {
-                    properties.Add("source", "mapping");
-                    properties.Add("deviceKey", m_accessKey);
-                }
+                eventMessage.Properties.Add("content-type", "application/opcua+uajson");
+                eventMessage.Properties.Add("deviceName", m_applicationName);
 
                 try
                 {
-                    Publish(new Message(json, properties));
-                    Trace("Opc.Ua.Publisher.Module: Published: " + json + " from " + m_deviceName);
+                    if (m_deviceClient != null)
+                    {
+                        m_deviceClient.SendEventAsync(eventMessage).Wait();
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Trace("Opc.Ua.Publisher.Module: Failed to publish message, dropping...");
+                    Trace("Failed to publish message, dropping...");
                     Trace(ex.ToString());
                 }
             }
             catch (Exception exception)
             {
-                Trace("Opc.Ua.Publisher.Module: Error processing monitored item notification: " + exception.ToString());
+                Trace("Error processing monitored item notification: " + exception.ToString());
             }
         }
 
@@ -461,7 +372,7 @@ namespace Opc.Ua.Publisher
             {
                 if (!ServiceResult.IsGood(e.Status))
                 {
-                    Utils.Trace(String.Format(
+                    Trace(String.Format(
                         "Status: {0}/t/tOutstanding requests: {1}/t/tDefunct requests: {2}",
                         e.Status,
                         session.OutstandingRequestCount,
@@ -489,8 +400,8 @@ namespace Opc.Ua.Publisher
                 }
                 catch (Exception e)
                 {
-                    Trace("Opc.Ua.Publisher.Module: Could not fetch endpoints from url: " + discoveryUrl.ToString());
-                    Trace("Opc.Ua.Publisher.Module: Reason = " + e.Message);
+                    Trace("Could not fetch endpoints from url: " + discoveryUrl.ToString());
+                    Trace("Reason = " + e.Message);
                     throw e;
                 }
             }
@@ -543,11 +454,11 @@ namespace Opc.Ua.Publisher
         /// <summary>
         /// Standard certificate validation callback
         /// </summary>
-        private void CertificateValidator_CertificateValidation(CertificateValidator validator, CertificateValidationEventArgs e)
+        private static void CertificateValidator_CertificateValidation(CertificateValidator validator, CertificateValidationEventArgs e)
         {
             if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
             {
-                Trace("Opc.Ua.Publisher.Module: Certificate \""
+                Trace("Certificate \""
                     + e.Certificate.Subject
                     + "\" not trusted. If you want to trust this certificate, please copy it from the \""
                     + m_configuration.SecurityConfiguration.RejectedCertificateStore.StorePath + "/certs"
@@ -556,5 +467,6 @@ namespace Opc.Ua.Publisher
                     + "\" folder. A restart of the gateway is NOT required.");
             }
         }
+
     }
 }
