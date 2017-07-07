@@ -87,10 +87,18 @@ namespace Opc.Ua.Publisher
                 certificate = CertificateFactory.CreateCertificate(
                     Configuration.SecurityConfiguration.ApplicationCertificate.StoreType,
                     Configuration.SecurityConfiguration.ApplicationCertificate.StorePath,
+                    null,
                     Configuration.ApplicationUri,
                     Configuration.ApplicationName,
                     Configuration.ApplicationName,
-                    new List<string>(){ Configuration.ApplicationName }
+                    null,
+                    CertificateFactory.defaultKeySize,
+                    DateTime.UtcNow - TimeSpan.FromDays(1),
+                    CertificateFactory.defaultLifeTime,
+                    CertificateFactory.defaultHashSize,
+                    false,
+                    null,
+                    null
                     );
             }
             if (certificate == null)
