@@ -17,7 +17,8 @@
 *.dll
 *.so
 *.pdb
-/src/GatewayApp.NetCore/Logs
 *.der
 *.exe
 /src/out
+/src/Logs
+
