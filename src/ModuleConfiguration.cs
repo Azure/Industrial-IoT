@@ -177,6 +177,12 @@ namespace Opc.Ua.Publisher
             // the OperationTimeout should be twice the minimum value for PublishingInterval * KeepAliveCount, so set to 120s
             Configuration.TransportQuotas.OperationTimeout = 120000;
 
+            // allow SHA1 certificates for now as many OPC Servers still use them
+            Configuration.SecurityConfiguration.RejectSHA1SignedCertificates = false;
+
+            // allow 1024 minimum key size as many OPC Servers still use them
+            Configuration.SecurityConfiguration.MinimumCertificateKeySize = 1024;
+
             // validate the configuration now
             Configuration.Validate(Configuration.ApplicationType).Wait();
         }
