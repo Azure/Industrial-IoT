@@ -22,6 +22,19 @@ namespace Opc.Ua.Publisher
             Configuration.ClientConfiguration = new ClientConfiguration();
             Configuration.ServerConfiguration = new ServerConfiguration();
 
+            // enable logging
+            Configuration.TraceConfiguration = new TraceConfiguration();
+            Configuration.TraceConfiguration.TraceMasks = Utils.TraceMasks.Error | Utils.TraceMasks.Security | Utils.TraceMasks.StackTrace | Utils.TraceMasks.StartStop;
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_LOGP")))
+            {
+                Configuration.TraceConfiguration.OutputFilePath = Environment.GetEnvironmentVariable("_GW_LOGP");
+            }
+            else
+            {
+                Configuration.TraceConfiguration.OutputFilePath = "./Logs/" + Configuration.ApplicationName + ".log.txt";
+            }
+            Configuration.TraceConfiguration.ApplySettings();
+
             if (Configuration.SecurityConfiguration == null)
             {
                 Configuration.SecurityConfiguration = new SecurityConfiguration();
@@ -161,14 +174,14 @@ namespace Opc.Ua.Publisher
             newPolicy.SecurityPolicyUri = SecurityPolicies.Basic128Rsa15;
             Configuration.ServerConfiguration.SecurityPolicies.Add(newPolicy);
 
-            // enable logging
-            Configuration.TraceConfiguration = new TraceConfiguration();
-            Configuration.TraceConfiguration.TraceMasks = Utils.TraceMasks.Error | Utils.TraceMasks.Security | Utils.TraceMasks.StackTrace | Utils.TraceMasks.StartStop;
-            Configuration.TraceConfiguration.OutputFilePath = "./Logs/" + Configuration.ApplicationName + ".log.txt";
-            Configuration.TraceConfiguration.ApplySettings();
-
             // the OperationTimeout should be twice the minimum value for PublishingInterval * KeepAliveCount, so set to 120s
             Configuration.TransportQuotas.OperationTimeout = 120000;
+
+            // allow SHA1 certificates for now as many OPC Servers still use them
+            Configuration.SecurityConfiguration.RejectSHA1SignedCertificates = false;
+
+            // allow 1024 minimum key size as many OPC Servers still use them
+            Configuration.SecurityConfiguration.MinimumCertificateKeySize = 1024;
 
             // validate the configuration now
             Configuration.Validate(Configuration.ApplicationType).Wait();
