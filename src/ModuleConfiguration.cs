@@ -90,8 +90,8 @@ namespace Opc.Ua.Publisher
             }
 
             Configuration.SecurityConfiguration.ApplicationCertificate = new CertificateIdentifier();
-            Configuration.SecurityConfiguration.ApplicationCertificate.StoreType = "X509Store";
-            Configuration.SecurityConfiguration.ApplicationCertificate.StorePath = "CurrentUser\\UA_MachineDefault";
+            Configuration.SecurityConfiguration.ApplicationCertificate.StoreType = "Directory";
+            Configuration.SecurityConfiguration.ApplicationCertificate.StorePath = "CertificateStores/UA Applications";
             Configuration.SecurityConfiguration.ApplicationCertificate.SubjectName = Configuration.ApplicationName;
 
             X509Certificate2 certificate = Configuration.SecurityConfiguration.ApplicationCertificate.Find(true).Result;
