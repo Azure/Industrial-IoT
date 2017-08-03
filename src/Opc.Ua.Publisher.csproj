@@ -40,6 +40,7 @@
     <PackageReference Include="Microsoft.Azure.Devices" Version="1.2.9" />
     <PackageReference Include="Microsoft.Azure.Devices.Client" Version="1.3.0" />
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="0.4.0" />
+    <PackageReference Include="System.Threading.Timer" Version="4.3.0" />
   </ItemGroup>
 
 </Project>

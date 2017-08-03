@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 
+
 namespace Opc.Ua.Publisher
 {
     public class Program
@@ -25,6 +26,7 @@ namespace Opc.Ua.Publisher
         public static DeviceClient m_deviceClient = null;
         private static ConcurrentQueue<string> m_sendQueue = new ConcurrentQueue<string>();
         private const uint m_maxSizeOfIoTHubMessageBytes = 4096;
+        private const int m_defaultSendIntervalInMilliSeconds = 1000;
         private static int m_currentSizeOfIoTHubMessageBytes = 0;
         private static List<OpcUaMessage> m_messageList = new List<OpcUaMessage>();
         private static PublisherServer m_server = new PublisherServer();
@@ -391,12 +393,15 @@ namespace Opc.Ua.Publisher
         {
             try
             {
+                //Send every x seconds, regardless if IoT Hub message is full. 
+                Timer sendTimer = new Timer(async state => await SendToIoTHubAsync(), null, 0, m_defaultSendIntervalInMilliSeconds);
 
                 while (true)
                 {
                     if (ct.IsCancellationRequested)
                     {
                         Trace("Cancellation requested. Sending remaining messages.");
+                        sendTimer.Dispose();
                         await SendToIoTHubAsync();
                         break;
                     }
@@ -459,30 +464,33 @@ namespace Opc.Ua.Publisher
         /// </summary>
         private static async Task SendToIoTHubAsync()
         {
-            string msgListInJson = JsonConvert.SerializeObject(m_messageList);
-
-            var encodedMessage = new Microsoft.Azure.Devices.Client.Message(Encoding.UTF8.GetBytes(msgListInJson));
-
-            // publish
-            encodedMessage.Properties.Add("content-type", "application/opcua+uajson");
-            encodedMessage.Properties.Add("deviceName", m_applicationName);
-
-            try
+            if (m_messageList.Count > 0)
             {
-                if (m_deviceClient != null)
+                string msgListInJson = JsonConvert.SerializeObject(m_messageList);
+
+                var encodedMessage = new Microsoft.Azure.Devices.Client.Message(Encoding.UTF8.GetBytes(msgListInJson));
+
+                // publish
+                encodedMessage.Properties.Add("content-type", "application/opcua+uajson");
+                encodedMessage.Properties.Add("deviceName", m_applicationName);
+
+                try
                 {
-                    await m_deviceClient.SendEventAsync(encodedMessage);
+                    if (m_deviceClient != null)
+                    {
+                        await m_deviceClient.SendEventAsync(encodedMessage);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Trace("Failed to publish message, dropping...");
-                Trace(ex.ToString());
-            }
+                catch (Exception ex)
+                {
+                    Trace("Failed to publish message, dropping...");
+                    Trace(ex.ToString());
+                }
 
-            //Reset IoT Hub message size
-            m_currentSizeOfIoTHubMessageBytes = 0;
-            m_messageList.Clear();
+                //Reset IoT Hub message size
+                m_currentSizeOfIoTHubMessageBytes = 0;
+                m_messageList.Clear();
+            }
         }
 
         private class OpcUaMessage
