@@ -226,7 +226,7 @@ namespace Opc.Ua.Publisher
         /// </summary>
         public static async Task EndpointConnect(Uri endpointUrl)
         {
-            EndpointDescription selectedEndpoint = CoreClientUtils.SelectEndpoint(endpointUrl.AbsoluteUri, true, 10);
+            EndpointDescription selectedEndpoint = CoreClientUtils.SelectEndpoint(endpointUrl.AbsoluteUri, true);
             ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server, EndpointConfiguration.Create(m_configuration));
             configuredEndpoint.Update(selectedEndpoint);
 
