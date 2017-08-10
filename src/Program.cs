@@ -57,17 +57,16 @@ namespace Opc.Ua.Publisher
         {
             try
             {
-                if ((args.Length == 0) || string.IsNullOrEmpty(args[0]))
+                if ((args.Length == 0) || string.IsNullOrEmpty(args[0]) || args[0].Equals("localhost", StringComparison.OrdinalIgnoreCase))
                 {
-                    Trace("Please specify an application name as argument!");
-                    return;
+                    m_applicationName = Utils.GetHostName();
                 }
                 else
                 {
-                    Trace("Publisher is starting up...");
+                    m_applicationName = args[0];
                 }
 
-                m_applicationName = args[0];
+                Trace("Publisher is starting up...");
                 ModuleConfiguration moduleConfiguration = new ModuleConfiguration(m_applicationName);
                 m_configuration = moduleConfiguration.Configuration;
                 m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
@@ -260,7 +259,7 @@ namespace Opc.Ua.Publisher
         /// </summary>
         public static async Task EndpointConnect(Uri endpointUrl)
         {
-            EndpointDescription selectedEndpoint = SelectUaTcpEndpoint(DiscoverEndpoints(m_configuration, endpointUrl, 10));
+            EndpointDescription selectedEndpoint = CoreClientUtils.SelectEndpoint(endpointUrl.AbsoluteUri, true);
             ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server, EndpointConfiguration.Create(m_configuration));
             configuredEndpoint.Update(selectedEndpoint);
 
@@ -523,76 +522,6 @@ namespace Opc.Ua.Publisher
                         session.DefunctRequestCount));
                 }
             }
-        }
-
-        /// <summary>
-        /// Discovers all endpoints provided by an OPC UA server using a discovery client
-        /// </summary>
-        private static EndpointDescriptionCollection DiscoverEndpoints(ApplicationConfiguration config, Uri discoveryUrl, int timeout)
-        {
-            EndpointConfiguration configuration = EndpointConfiguration.Create(config);
-            configuration.OperationTimeout = timeout;
-
-            using (DiscoveryClient client = DiscoveryClient.Create(
-                discoveryUrl,
-                EndpointConfiguration.Create(config)))
-            {
-                try
-                {
-                    EndpointDescriptionCollection endpoints = client.GetEndpoints(null);
-                    return ReplaceLocalHostWithRemoteHost(endpoints, discoveryUrl);
-                }
-                catch (Exception e)
-                {
-                    Trace("Could not fetch endpoints from url: " + discoveryUrl.ToString());
-                    Trace("Reason = " + e.Message);
-                    throw e;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Replaces all instances of "LocalHost" in a collection of endpoint description with the real host name
-        /// </summary>
-        private static EndpointDescriptionCollection ReplaceLocalHostWithRemoteHost(EndpointDescriptionCollection endpoints, Uri discoveryUrl)
-        {
-            EndpointDescriptionCollection updatedEndpoints = endpoints;
-
-            foreach (EndpointDescription endpoint in updatedEndpoints)
-            {
-                endpoint.EndpointUrl = Utils.ReplaceLocalhost(endpoint.EndpointUrl, discoveryUrl.DnsSafeHost);
-
-                StringCollection updatedDiscoveryUrls = new StringCollection();
-                foreach (string url in endpoint.Server.DiscoveryUrls)
-                {
-                    updatedDiscoveryUrls.Add(Utils.ReplaceLocalhost(url, discoveryUrl.DnsSafeHost));
-                }
-
-                endpoint.Server.DiscoveryUrls = updatedDiscoveryUrls;
-            }
-
-            return updatedEndpoints;
-        }
-
-        /// <summary>
-        /// Selects the UA TCP endpoint from an endpoint collection with the highest security settings offered
-        /// </summary>
-        private static EndpointDescription SelectUaTcpEndpoint(EndpointDescriptionCollection endpointCollection)
-        {
-            EndpointDescription bestEndpoint = null;
-            foreach (EndpointDescription endpoint in endpointCollection)
-            {
-                if (endpoint.TransportProfileUri == Profiles.UaTcpTransport)
-                {
-                    if ((bestEndpoint == null) ||
-                        (endpoint.SecurityLevel > bestEndpoint.SecurityLevel))
-                    {
-                        bestEndpoint = endpoint;
-                    }
-                }
-            }
-
-            return bestEndpoint;
         }
 
         /// <summary>

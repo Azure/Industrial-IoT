@@ -18,7 +18,9 @@
 *.so
 *.pdb
 *.der
+*.pfx
 *.exe
 /src/out
 /src/Logs
+
 
