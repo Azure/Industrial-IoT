@@ -50,17 +50,16 @@ namespace Opc.Ua.Publisher
         {
             try
             {
-                if ((args.Length == 0) || string.IsNullOrEmpty(args[0]))
+                if ((args.Length == 0) || string.IsNullOrEmpty(args[0]) || args[0].Equals("localhost", StringComparison.OrdinalIgnoreCase))
                 {
-                    Trace("Please specify an application name as argument!");
-                    return;
+                    m_applicationName = Utils.GetHostName();
                 }
                 else
                 {
-                    Trace("Publisher is starting up...");
+                    m_applicationName = args[0];
                 }
 
-                m_applicationName = args[0];
+                Trace("Publisher is starting up...");
                 ModuleConfiguration moduleConfiguration = new ModuleConfiguration(m_applicationName);
                 m_configuration = moduleConfiguration.Configuration;
                 m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
