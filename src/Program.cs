@@ -29,192 +29,194 @@ namespace Opc.Ua.Publisher
         /// </summary>
         public static void Trace(string message, params object[] args)
         {
-            Utils.Trace(message, args);
-            Console.WriteLine(message, args);
+            Utils.Trace(Utils.TraceMasks.Error, message, args);
+            Console.WriteLine(DateTime.Now.ToString() + ": " + message, args);
         }
 
         public static void Trace(int traceMask, string format, params object[] args)
         {
             Utils.Trace(traceMask, format, args);
-            Console.WriteLine(format, args);
+            Console.WriteLine(DateTime.Now.ToString() + ": " + format, args);
         }
 
         public static void Trace(Exception e, string format, params object[] args)
         {
             Utils.Trace(e, format, args);
-            Console.WriteLine(e.ToString());
-            Console.WriteLine(format, args);
+            Console.WriteLine(DateTime.Now.ToString() + ": " + e.Message.ToString());
+            Console.WriteLine(DateTime.Now.ToString() + ": " + format, args);
         }
 
         public static void Main(string[] args)
         {
-            if ((args.Length == 0) || string.IsNullOrEmpty(args[0]))
+            try
             {
-                Console.WriteLine("Please specify an application name as argument!");
-                return;
-            }
-
-            m_applicationName = args[0];
-            string ownerConnectionString = string.Empty;
-
-            // check if we also received an owner connection string
-            if ((args.Length > 1) && !string.IsNullOrEmpty(args[1]))
-            {
-                ownerConnectionString = args[1];
-            }
-            else
-            {
-                Trace("IoT Hub owner connection string not passed as argument.");
-
-                // check if we have an environment variable to register ourselves with IoT Hub
-                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_HUB_CS")))
+                if ((args.Length == 0) || string.IsNullOrEmpty(args[0]) || args[0].Equals("localhost", StringComparison.OrdinalIgnoreCase))
                 {
-                    ownerConnectionString = Environment.GetEnvironmentVariable("_HUB_CS");
-                }
-            }
-
-            // register ourselves with IoT Hub
-            if (ownerConnectionString != string.Empty)
-            {
-                Trace("Attemping to register ourselves with IoT Hub using owner connection string: " + ownerConnectionString);
-                RegistryManager manager = RegistryManager.CreateFromConnectionString(ownerConnectionString);
-
-                // remove any existing device
-                Device existingDevice = manager.GetDeviceAsync(m_applicationName).Result;
-                if (existingDevice != null)
-                {
-                    manager.RemoveDeviceAsync(m_applicationName).Wait();
-                }
-
-                Device newDevice = manager.AddDeviceAsync(new Device(m_applicationName)).Result;
-                if (newDevice != null)
-                {
-                    string hostname = ownerConnectionString.Substring(0, ownerConnectionString.IndexOf(";"));
-                    string deviceConnectionString = hostname + ";DeviceId=" + m_applicationName + ";SharedAccessKey=" + newDevice.Authentication.SymmetricKey.PrimaryKey;
-                    SecureIoTHubToken.Write(m_applicationName, deviceConnectionString);
+                    m_applicationName = Utils.GetHostName();
                 }
                 else
                 {
-                    Trace("Could not register ourselves with IoT Hub using owner connection string: " + ownerConnectionString);
+                    m_applicationName = args[0];
                 }
-            }
-            else
-            {
-                Trace("IoT Hub owner connection string not found, registration with IoT Hub abandoned.");
-            }
 
-            // try to read connection string from secure store and open IoTHub client
-            Trace("Attemping to read connection string from secure store with certificate name: " + m_applicationName);
-            string connectionString = SecureIoTHubToken.Read(m_applicationName);
-            if (!string.IsNullOrEmpty(connectionString))
-            {
-                Trace("Attemping to configure publisher with connection string: " + connectionString);
-                m_deviceClient = DeviceClient.CreateFromConnectionString(connectionString, Microsoft.Azure.Devices.Client.TransportType.Mqtt);
-                m_deviceClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
-                m_deviceClient.OpenAsync().Wait();
-            }
-            else
-            {
-                Trace("Device connection string not found in secure store.");
-            }
-                       
-            ModuleConfiguration moduleConfiguration = new ModuleConfiguration(m_applicationName);
-            m_configuration = moduleConfiguration.Configuration;
-            m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
+                Trace("Publisher is starting up...");
+                ModuleConfiguration moduleConfiguration = new ModuleConfiguration(m_applicationName);
+                m_configuration = moduleConfiguration.Configuration;
+                m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
 
-            // update log configuration, if available
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_LOGP")))
-            {
-                m_configuration.TraceConfiguration.OutputFilePath = Environment.GetEnvironmentVariable("_GW_LOGP");
-                m_configuration.TraceConfiguration.ApplySettings();
-            }
-
-            // get a list of persisted endpoint URLs and create a session for each.
-            try
-            {
-                // check if we have an env variable specifying the published nodes path, otherwise use current directory
-                string publishedNodesFilePath = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "publishednodes.json";
-                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_PNFP")))
+                // start our server interface
+                try
                 {
-                    publishedNodesFilePath = Environment.GetEnvironmentVariable("_GW_PNFP");
+                    Trace("Starting server on endpoint " + m_configuration.ServerConfiguration.BaseAddresses[0].ToString() + "...");
+                    m_server.Start(m_configuration);
+                    Trace("Server started.");
                 }
-
-                Trace("Attemping to load nodes file from: " + publishedNodesFilePath);
-                m_nodesLookups = JsonConvert.DeserializeObject<PublishedNodesCollection>(File.ReadAllText(publishedNodesFilePath));
-                Trace("Loaded " + m_nodesLookups.Count.ToString() + " nodes.");
-            }
-            catch (Exception ex)
-            {
-                Trace("Nodes file loading failed with: " + ex.Message);
-            }
-
-            foreach (NodeLookup nodeLookup in m_nodesLookups)
-            {
-                if (!m_endpointUrls.Contains(nodeLookup.EndPointURL))
+                catch (Exception ex)
                 {
-                    m_endpointUrls.Add(nodeLookup.EndPointURL);
+                    Trace("Starting server failed with: " + ex.Message);
                 }
-            }
 
-            // start the server
-            try
-            {
-                Trace("Starting server on endpoint " + m_configuration.ServerConfiguration.BaseAddresses[0].ToString() + "...");
-                m_server.Start(m_configuration);
-                Trace("Server started.");
-            }
-            catch (Exception ex)
-            {
-                Trace("Starting server failed with: " + ex.Message);
-            }
-
-            // connect to servers
-            Trace("Attemping to connect to servers...");
-            try
-            {
-                List<Task> connectionAttempts = new List<Task>();
-                foreach (Uri endpointUrl in m_endpointUrls)
+                // check if we also received an owner connection string
+                string ownerConnectionString = string.Empty;
+                if ((args.Length > 1) && !string.IsNullOrEmpty(args[1]))
                 {
-                    Trace("Connecting to server: " + endpointUrl);
-                    connectionAttempts.Add(EndpointConnect(endpointUrl));
+                    ownerConnectionString = args[1];
+                }
+                else
+                {
+                    Trace("IoT Hub owner connection string not passed as argument.");
+
+                    // check if we have an environment variable to register ourselves with IoT Hub
+                    if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_HUB_CS")))
+                    {
+                        ownerConnectionString = Environment.GetEnvironmentVariable("_HUB_CS");
+                    }
                 }
 
-                // Wait for all sessions to be connected
-                Task.WaitAll(connectionAttempts.ToArray());
-            }
-            catch (Exception ex)
-            {
-                Trace("Exception: " + ex.ToString() + "\r\n" + ex.InnerException != null ? ex.InnerException.ToString() : null);
-            }
+                // register ourselves with IoT Hub
+                if (ownerConnectionString != string.Empty)
+                {
+                    Trace("Attemping to register ourselves with IoT Hub using owner connection string: " + ownerConnectionString);
+                    RegistryManager manager = RegistryManager.CreateFromConnectionString(ownerConnectionString);
 
-            // subscribe to preconfigured nodes
-            Trace("Attemping to subscribe to published nodes...");
-            if (m_nodesLookups != null)
-            {
+                    // remove any existing device
+                    Device existingDevice = manager.GetDeviceAsync(m_applicationName).Result;
+                    if (existingDevice != null)
+                    {
+                        manager.RemoveDeviceAsync(m_applicationName).Wait();
+                    }
+
+                    Device newDevice = manager.AddDeviceAsync(new Device(m_applicationName)).Result;
+                    if (newDevice != null)
+                    {
+                        string hostname = ownerConnectionString.Substring(0, ownerConnectionString.IndexOf(";"));
+                        string deviceConnectionString = hostname + ";DeviceId=" + m_applicationName + ";SharedAccessKey=" + newDevice.Authentication.SymmetricKey.PrimaryKey;
+                        SecureIoTHubToken.Write(m_applicationName, deviceConnectionString);
+                    }
+                    else
+                    {
+                        Trace("Could not register ourselves with IoT Hub using owner connection string: " + ownerConnectionString);
+                    }
+                }
+                else
+                {
+                    Trace("IoT Hub owner connection string not found, registration with IoT Hub abandoned.");
+                }
+
+                // try to read connection string from secure store and open IoTHub client
+                Trace("Attemping to read connection string from secure store with certificate name: " + m_applicationName);
+                string connectionString = SecureIoTHubToken.Read(m_applicationName);
+                if (!string.IsNullOrEmpty(connectionString))
+                {
+                    Trace("Attemping to configure publisher with connection string: " + connectionString);
+                    m_deviceClient = DeviceClient.CreateFromConnectionString(connectionString, Microsoft.Azure.Devices.Client.TransportType.Mqtt);
+                    m_deviceClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
+                    m_deviceClient.OpenAsync().Wait();
+                }
+                else
+                {
+                    Trace("Device connection string not found in secure store.");
+                }
+
+                // get a list of persisted endpoint URLs and create a session for each.
+                try
+                {
+                    // check if we have an env variable specifying the published nodes path, otherwise use current directory
+                    string publishedNodesFilePath = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "publishednodes.json";
+                    if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_PNFP")))
+                    {
+                        publishedNodesFilePath = Environment.GetEnvironmentVariable("_GW_PNFP");
+                    }
+
+                    Trace("Attemping to load nodes file from: " + publishedNodesFilePath);
+                    m_nodesLookups = JsonConvert.DeserializeObject<PublishedNodesCollection>(File.ReadAllText(publishedNodesFilePath));
+                    Trace("Loaded " + m_nodesLookups.Count.ToString() + " nodes.");
+                }
+                catch (Exception ex)
+                {
+                    Trace("Nodes file loading failed with: " + ex.Message);
+                }
+
                 foreach (NodeLookup nodeLookup in m_nodesLookups)
                 {
-                    try
+                    if (!m_endpointUrls.Contains(nodeLookup.EndPointURL))
                     {
-                        CreateMonitoredItem(nodeLookup);
-                    }
-                    catch (Exception ex)
-                    {
-                        Trace("Unexpected error publishing node: " + ex.Message + "\r\nIgnoring node: " + nodeLookup.EndPointURL.AbsoluteUri + ", " + nodeLookup.NodeID.ToString());
+                        m_endpointUrls.Add(nodeLookup.EndPointURL);
                     }
                 }
+
+                // connect to the other servers
+                Trace("Attemping to connect to servers...");
+                try
+                {
+                    List<Task> connectionAttempts = new List<Task>();
+                    foreach (Uri endpointUrl in m_endpointUrls)
+                    {
+                        Trace("Connecting to server: " + endpointUrl);
+                        connectionAttempts.Add(EndpointConnect(endpointUrl));
+                    }
+
+                    // Wait for all sessions to be connected
+                    Task.WaitAll(connectionAttempts.ToArray());
+                }
+                catch (Exception ex)
+                {
+                    Trace("Exception: " + ex.ToString() + "\r\n" + ex.InnerException != null ? ex.InnerException.ToString() : null);
+                }
+
+                // subscribe to preconfigured nodes
+                Trace("Attemping to subscribe to published nodes...");
+                if (m_nodesLookups != null)
+                {
+                    foreach (NodeLookup nodeLookup in m_nodesLookups)
+                    {
+                        try
+                        {
+                            CreateMonitoredItem(nodeLookup);
+                        }
+                        catch (Exception ex)
+                        {
+                            Trace("Unexpected error publishing node: " + ex.Message + "\r\nIgnoring node: " + nodeLookup.EndPointURL.AbsoluteUri + ", " + nodeLookup.NodeID.ToString());
+                        }
+                    }
+                }
+
+                Trace("Publisher is running. Press enter to quit.");
+                Console.ReadLine();
+
+                foreach (Session session in m_sessions)
+                {
+                    session.Close();
+                }
+
+                if (m_deviceClient != null)
+                {
+                    m_deviceClient.CloseAsync().Wait();
+                }
             }
-
-            Console.WriteLine("Publisher is running. Press enter to quit.");
-            Console.ReadLine();
-
-            foreach (Session session in m_sessions)
+            catch (Exception e)
             {
-                session.Close();
-            }
-
-            if (m_deviceClient != null)
-            {
-                m_deviceClient.CloseAsync().Wait();
+                Trace(e, "Unhandled exception in Publisher, exiting!");
             }
         }
 
@@ -223,7 +225,7 @@ namespace Opc.Ua.Publisher
         /// </summary>
         public static async Task EndpointConnect(Uri endpointUrl)
         {
-            EndpointDescription selectedEndpoint = SelectUaTcpEndpoint(DiscoverEndpoints(m_configuration, endpointUrl, 10));
+            EndpointDescription selectedEndpoint = CoreClientUtils.SelectEndpoint(endpointUrl.AbsoluteUri, true);
             ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server, EndpointConfiguration.Create(m_configuration));
             configuredEndpoint.Update(selectedEndpoint);
 
@@ -379,76 +381,6 @@ namespace Opc.Ua.Publisher
                         session.DefunctRequestCount));
                 }
             }
-        }
-
-        /// <summary>
-        /// Discovers all endpoints provided by an OPC UA server using a discovery client
-        /// </summary>
-        private static EndpointDescriptionCollection DiscoverEndpoints(ApplicationConfiguration config, Uri discoveryUrl, int timeout)
-        {
-            EndpointConfiguration configuration = EndpointConfiguration.Create(config);
-            configuration.OperationTimeout = timeout;
-
-            using (DiscoveryClient client = DiscoveryClient.Create(
-                discoveryUrl,
-                EndpointConfiguration.Create(config)))
-            {
-                try
-                {
-                    EndpointDescriptionCollection endpoints = client.GetEndpoints(null);
-                    return ReplaceLocalHostWithRemoteHost(endpoints, discoveryUrl);
-                }
-                catch (Exception e)
-                {
-                    Trace("Could not fetch endpoints from url: " + discoveryUrl.ToString());
-                    Trace("Reason = " + e.Message);
-                    throw e;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Replaces all instances of "LocalHost" in a collection of endpoint description with the real host name
-        /// </summary>
-        private static EndpointDescriptionCollection ReplaceLocalHostWithRemoteHost(EndpointDescriptionCollection endpoints, Uri discoveryUrl)
-        {
-            EndpointDescriptionCollection updatedEndpoints = endpoints;
-
-            foreach (EndpointDescription endpoint in updatedEndpoints)
-            {
-                endpoint.EndpointUrl = Utils.ReplaceLocalhost(endpoint.EndpointUrl, discoveryUrl.DnsSafeHost);
-
-                StringCollection updatedDiscoveryUrls = new StringCollection();
-                foreach (string url in endpoint.Server.DiscoveryUrls)
-                {
-                    updatedDiscoveryUrls.Add(Utils.ReplaceLocalhost(url, discoveryUrl.DnsSafeHost));
-                }
-
-                endpoint.Server.DiscoveryUrls = updatedDiscoveryUrls;
-            }
-
-            return updatedEndpoints;
-        }
-
-        /// <summary>
-        /// Selects the UA TCP endpoint from an endpoint collection with the highest security settings offered
-        /// </summary>
-        private static EndpointDescription SelectUaTcpEndpoint(EndpointDescriptionCollection endpointCollection)
-        {
-            EndpointDescription bestEndpoint = null;
-            foreach (EndpointDescription endpoint in endpointCollection)
-            {
-                if (endpoint.TransportProfileUri == Profiles.UaTcpTransport)
-                {
-                    if ((bestEndpoint == null) ||
-                        (endpoint.SecurityLevel > bestEndpoint.SecurityLevel))
-                    {
-                        bestEndpoint = endpoint;
-                    }
-                }
-            }
-
-            return bestEndpoint;
         }
 
         /// <summary>

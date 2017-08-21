@@ -213,7 +213,8 @@ namespace Publisher
 
                     // update our data on success only
                     // we keep the session to the server, as there may be other nodes still published on it
-                    Program.m_nodesLookups.Remove(lookup);
+                    var itemToRemove = Program.m_nodesLookups.Find(l => l.NodeID == lookup.NodeID && l.EndPointURL == lookup.EndPointURL);
+                    Program.m_nodesLookups.Remove(itemToRemove);
 
                     //serialize Program.m_nodesLookups to disk
                     string publishedNodesFilePath = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "publishednodes.json";
