@@ -15,9 +15,11 @@ namespace Publisher
         public PublisherNodeManager(Opc.Ua.Server.IServerInternal server, ApplicationConfiguration configuration)
         : base(server)
         {
-            List<string> namespaceUris = new List<string>();
-            namespaceUris.Add(Namespaces.Publisher);
-            namespaceUris.Add(Namespaces.Publisher + "/Instance");
+            List<string> namespaceUris = new List<string>
+            {
+                Namespaces.Publisher,
+                Namespaces.Publisher + "/Instance"
+            };
             NamespaceUris = namespaceUris;
 
             m_typeNamespaceIndex = Server.NamespaceUris.GetIndexOrAppend(namespaceUris[0]);

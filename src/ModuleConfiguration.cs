@@ -1,9 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using System;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Opc.Ua.Publisher
 {
+    using System.IO;
+    using static Opc.Ua.Workarounds.TraceWorkaround;
+
     public class ModuleConfiguration
     {
         /// <summary>
@@ -14,89 +17,95 @@ namespace Opc.Ua.Publisher
         public ModuleConfiguration(string applicationName)
         {
             // set reasonable defaults
-            Configuration = new ApplicationConfiguration();
-            Configuration.ApplicationName = applicationName;
+            Configuration = new ApplicationConfiguration()
+            {
+                ApplicationName = applicationName
+            };
             Configuration.ApplicationUri = "urn:" + Utils.GetHostName() + ":microsoft:" + Configuration.ApplicationName;
             Configuration.ApplicationType = ApplicationType.ClientAndServer;
             Configuration.TransportQuotas = new TransportQuotas { OperationTimeout = 15000 };
             Configuration.ClientConfiguration = new ClientConfiguration();
             Configuration.ServerConfiguration = new ServerConfiguration();
 
-            // enable logging
-            Configuration.TraceConfiguration = new TraceConfiguration();
-            Configuration.TraceConfiguration.TraceMasks = Utils.TraceMasks.Error | Utils.TraceMasks.Security | Utils.TraceMasks.StackTrace | Utils.TraceMasks.StartStop;
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_LOGP")))
+            // enable logging and enforce information flag
+            Program.OpcStackTraceMask |= Utils.TraceMasks.Information;
+            Configuration.TraceConfiguration = new TraceConfiguration()
             {
-                Configuration.TraceConfiguration.OutputFilePath = Environment.GetEnvironmentVariable("_GW_LOGP");
+                TraceMasks = Program.OpcStackTraceMask
+            };
+            // StdOutAndFile is not working correct, due to a bug in the stack. Need to workaround with own Trace for now.
+            Utils.SetTraceOutput(Utils.TraceOutput.FileOnly);
+            if (string.IsNullOrEmpty(Program.LogFileName))
+            {
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_LOGP")))
+                {
+                    Configuration.TraceConfiguration.OutputFilePath = Environment.GetEnvironmentVariable("_GW_LOGP");
+                }
+                else
+                {
+                    Configuration.TraceConfiguration.OutputFilePath = "./Logs/" + Configuration.ApplicationName + ".log.txt";
+                }
             }
             else
             {
-                Configuration.TraceConfiguration.OutputFilePath = "./Logs/" + Configuration.ApplicationName + ".log.txt";
+                Configuration.TraceConfiguration.OutputFilePath = Program.LogFileName;
             }
             Configuration.TraceConfiguration.ApplySettings();
+            Trace($"Current directory is: {Directory.GetCurrentDirectory()}");
+            Trace($"Log file is: {Utils.GetAbsoluteFilePath(Configuration.TraceConfiguration.OutputFilePath, true, false, false, true)}");
+            Trace($"Trace mask set to: 0x{Program.OpcStackTraceMask:X}");
 
-            if (Configuration.SecurityConfiguration == null)
-            {
-                Configuration.SecurityConfiguration = new SecurityConfiguration();
-            }
+            Configuration.SecurityConfiguration = new SecurityConfiguration();
 
-            if (Configuration.SecurityConfiguration.TrustedPeerCertificates == null)
+            // Trusted cert store configuration.
+            Configuration.SecurityConfiguration.TrustedPeerCertificates = new CertificateTrustList();
+            Configuration.SecurityConfiguration.TrustedPeerCertificates.StoreType = Program.OpcTrustedCertStoreType;
+            if (string.IsNullOrEmpty(Program.OpcTrustedCertStorePath))
             {
-                Configuration.SecurityConfiguration.TrustedPeerCertificates = new CertificateTrustList();
-            }
-
-            if (Configuration.SecurityConfiguration.TrustedIssuerCertificates == null)
-            {
-                Configuration.SecurityConfiguration.TrustedIssuerCertificates = new CertificateTrustList();
-            }
-
-            if (Configuration.SecurityConfiguration.RejectedCertificateStore == null)
-            {
-                Configuration.SecurityConfiguration.RejectedCertificateStore = new CertificateTrustList();
-            }
-
-            if (Configuration.SecurityConfiguration.TrustedPeerCertificates.StoreType == null)
-            {
-                Configuration.SecurityConfiguration.TrustedPeerCertificates.StoreType = "Directory";
-            }
-
-            if (Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath == null)
-            {
-                Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath = "CertificateStores/UA Applications";
+                // Set default.
+                Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath = Program.OpcTrustedCertStoreType == CertificateStoreType.X509Store ? Program.OpcTrustedCertX509StorePathDefault : Program.OpcTrustedCertDirectoryStorePathDefault;
                 if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_TPC_SP")))
                 {
+                    // Use environment variable.
                     Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath = Environment.GetEnvironmentVariable("_TPC_SP");
                 }
             }
-
-            if (Configuration.SecurityConfiguration.TrustedIssuerCertificates.StoreType == null)
+            else
             {
-                Configuration.SecurityConfiguration.TrustedIssuerCertificates.StoreType = "Directory";
+                Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath = Program.OpcTrustedCertStorePath;
             }
+            Trace($"Trusted Peer Certificate store type is: {Configuration.SecurityConfiguration.TrustedPeerCertificates.StoreType}");
+            Trace($"Trusted Peer Certificate store path is: {Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
 
-            if (Configuration.SecurityConfiguration.TrustedIssuerCertificates.StorePath == null)
+            // Trusted issuer cert store configuration.
+            Configuration.SecurityConfiguration.TrustedIssuerCertificates = new CertificateTrustList();
+            Configuration.SecurityConfiguration.TrustedIssuerCertificates.StoreType = Program.OpcIssuerCertStoreType;
+            Configuration.SecurityConfiguration.TrustedIssuerCertificates.StorePath = Program.OpcIssuerCertStorePath;
+            Trace($"Trusted Issuer store type is: {Configuration.SecurityConfiguration.TrustedIssuerCertificates.StoreType}");
+            Trace($"Trusted Issuer Certificate store path is: {Configuration.SecurityConfiguration.TrustedIssuerCertificates.StorePath}");
+
+            // Rejected cert store configuration.
+            Configuration.SecurityConfiguration.RejectedCertificateStore = new CertificateTrustList();
+            Configuration.SecurityConfiguration.RejectedCertificateStore.StoreType = Program.OpcRejectedCertStoreType;
+            Configuration.SecurityConfiguration.RejectedCertificateStore.StorePath = Program.OpcRejectedCertStorePath;
+            Trace($"Rejected certificate store type is: {Configuration.SecurityConfiguration.RejectedCertificateStore.StoreType}");
+            Trace($"Rejected Certificate store path is: {Configuration.SecurityConfiguration.RejectedCertificateStore.StorePath}");
+
+            Configuration.SecurityConfiguration.ApplicationCertificate = new CertificateIdentifier()
             {
-                Configuration.SecurityConfiguration.TrustedIssuerCertificates.StorePath = "CertificateStores/UA Certificate Authorities";
-            }
+                StoreType = Program.OpcOwnCertStoreType,
+                StorePath = Program.OpcOwnCertStorePath,
+                SubjectName = Configuration.ApplicationName
+            };
+            Trace($"Application Certificate store type is: {Configuration.SecurityConfiguration.ApplicationCertificate.StoreType}");
+            Trace($"Application Certificate store path is: {Configuration.SecurityConfiguration.ApplicationCertificate.StorePath}");
 
-            if (Configuration.SecurityConfiguration.RejectedCertificateStore.StoreType == null)
-            {
-                Configuration.SecurityConfiguration.RejectedCertificateStore.StoreType = "Directory";
-            }
-
-            if (Configuration.SecurityConfiguration.RejectedCertificateStore.StorePath == null)
-            {
-                Configuration.SecurityConfiguration.RejectedCertificateStore.StorePath = "CertificateStores/Rejected Certificates";
-            }
-
-            Configuration.SecurityConfiguration.ApplicationCertificate = new CertificateIdentifier();
-            Configuration.SecurityConfiguration.ApplicationCertificate.StoreType = "X509Store";
-            Configuration.SecurityConfiguration.ApplicationCertificate.StorePath = "CurrentUser\\UA_MachineDefault";
-            Configuration.SecurityConfiguration.ApplicationCertificate.SubjectName = Configuration.ApplicationName;
-
+            // Use existing certificate, if it is there.
             X509Certificate2 certificate = Configuration.SecurityConfiguration.ApplicationCertificate.Find(true).Result;
             if (certificate == null)
             {
+                Trace($"Create a self-signed Application certificate valid from yesterday for {CertificateFactory.defaultLifeTime} months,");
+                Trace($"with a {CertificateFactory.defaultKeySize} bit key and {CertificateFactory.defaultHashSize} bit hash.");
                 certificate = CertificateFactory.CreateCertificate(
                     Configuration.SecurityConfiguration.ApplicationCertificate.StoreType,
                     Configuration.SecurityConfiguration.ApplicationCertificate.StorePath,
@@ -113,75 +122,84 @@ namespace Opc.Ua.Publisher
                     null,
                     null
                     );
-            }
-            if (certificate == null)
-            {
-                throw new Exception("OPC UA application certificate could not be created, cannot continue without it!");
-            }
+                Configuration.SecurityConfiguration.ApplicationCertificate.Certificate = certificate ?? throw new Exception("OPC UA application certificate could not be created! Cannot continue without it!");
 
-            Configuration.SecurityConfiguration.ApplicationCertificate.Certificate = certificate;
-            Configuration.ApplicationUri = Utils.GetApplicationUriFromCertificate(certificate);
-
-            // Ensure it is trusted
-            try
-            {
-                ICertificateStore store = Configuration.SecurityConfiguration.TrustedPeerCertificates.OpenStore();
-                if (store == null)
+                // Trust myself if requested.
+                if (Program.TrustMyself)
                 {
-                    Program.Trace("Could not open trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
+                    // Ensure it is trusted
+                    try
+                    {
+                        ICertificateStore store = Configuration.SecurityConfiguration.TrustedPeerCertificates.OpenStore();
+                        if (store == null)
+                        {
+                            Trace($"Could not open trusted peer store. StorePath={Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
+                        }
+                        else
+                        {
+                            try
+                            {
+                                Trace($"Adding publisher certificate to trusted peer store. StorePath={Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
+                                X509Certificate2 publicKey = new X509Certificate2(certificate.RawData);
+                                store.Add(publicKey).Wait();
+                            }
+                            finally
+                            {
+                                store.Close();
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Trace(e, $"Could not add publisher certificate to trusted peer store. StorePath={Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
+                    }
                 }
                 else
                 {
-                    try
-                    {
-                        Program.Trace(Utils.TraceMasks.Information, "Adding certificate to trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
-                        X509Certificate2 publicKey = new X509Certificate2(certificate.RawData);
-                        store.Add(publicKey).Wait();
-                    }
-                    finally
-                    {
-                        store.Close();
-                    }
+                    Trace("Publisher certificate is not added to trusted peer store.");
                 }
             }
-            catch (Exception e)
+            else
             {
-                Program.Trace(e, "Could not add certificate to trusted peer store. StorePath={0}", Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath);
+                Trace("Application certificate found in Application Certificate Store");
             }
-        
+            Configuration.ApplicationUri = Utils.GetApplicationUriFromCertificate(certificate);
+            Trace($"Application certificate is for Application URI: {Configuration.ApplicationUri}");
+
             // patch our base address
             if (Configuration.ServerConfiguration.BaseAddresses.Count == 0)
             {
-                Configuration.ServerConfiguration.BaseAddresses.Add("opc.tcp://" + Configuration.ApplicationName.ToLowerInvariant() + ":62222/UA/Publisher");
+                Configuration.ServerConfiguration.BaseAddresses.Add($"opc.tcp://{Configuration.ApplicationName.ToLowerInvariant()}:{Program.PublisherServerPort}{Program.PublisherServerPath}");
             }
-
-            // tighten security policy by removing security policy "none" 
-            foreach (ServerSecurityPolicy policy in Configuration.ServerConfiguration.SecurityPolicies)
+            foreach (var endpoint in Configuration.ServerConfiguration.BaseAddresses)
             {
-                if (policy.SecurityMode == MessageSecurityMode.None)
-                {
-                    Configuration.ServerConfiguration.SecurityPolicies.Remove(policy);
-                    break;
-                }
+                Trace($"Publisher server Endpoint URL: {endpoint}");
             }
 
-            // turn off LDS registration
-            Configuration.ServerConfiguration.MaxRegistrationInterval = 0;
+            // Set LDS registration interval
+            Configuration.ServerConfiguration.MaxRegistrationInterval = Program.LdsRegistrationInterval;
+            Trace($"LDS(-ME) registration intervall set to {Program.LdsRegistrationInterval} ms (0 means no registration)");
 
             // add sign & encrypt policy
-            ServerSecurityPolicy newPolicy = new ServerSecurityPolicy();
-            newPolicy.SecurityMode = MessageSecurityMode.SignAndEncrypt;
-            newPolicy.SecurityPolicyUri = SecurityPolicies.Basic128Rsa15;
+            ServerSecurityPolicy newPolicy = new ServerSecurityPolicy()
+            {
+                SecurityMode = MessageSecurityMode.SignAndEncrypt,
+                SecurityPolicyUri = SecurityPolicies.Basic256Sha256
+            };
             Configuration.ServerConfiguration.SecurityPolicies.Add(newPolicy);
+            Trace($"Security policy {newPolicy.SecurityPolicyUri} with mode {newPolicy.SecurityMode} added");
 
             // the OperationTimeout should be twice the minimum value for PublishingInterval * KeepAliveCount, so set to 120s
-            Configuration.TransportQuotas.OperationTimeout = 120000;
+            Configuration.TransportQuotas.OperationTimeout = Program.OpcOperationTimeout;
+            Trace($"OperationTimeout set to {Configuration.TransportQuotas.OperationTimeout}");
 
             // allow SHA1 certificates for now as many OPC Servers still use them
             Configuration.SecurityConfiguration.RejectSHA1SignedCertificates = false;
+            Trace($"Rejection of SHA1 signed certificates is {(Configuration.SecurityConfiguration.RejectSHA1SignedCertificates ? "enabled" : "disabled")}");
 
             // allow 1024 minimum key size as many OPC Servers still use them
             Configuration.SecurityConfiguration.MinimumCertificateKeySize = 1024;
+            Trace($"Minimum certificate key size set to {Configuration.SecurityConfiguration.MinimumCertificateKeySize}");
 
             // validate the configuration now
             Configuration.Validate(Configuration.ApplicationType).Wait();

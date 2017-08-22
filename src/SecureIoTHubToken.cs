@@ -1,9 +1,5 @@
 ﻿
-using System;
-using System.IO;
-using System.Collections;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
+using Opc.Ua;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -14,48 +10,99 @@ using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
+using System;
+using System.Collections;
+using System.IO;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace IoTHubCredentialTools
 {
     public class SecureIoTHubToken
     {
-        public static string Read(string name)
+        public static string Read(string name, string storeType, string storePath)
         {
-            // load an existing key from a no-expired cert with the subject name passed in from the OS-provided X509Store
-            using (X509Store store = new X509Store("IoTHub", StoreLocation.CurrentUser))
+            // handle each store type differently
+            switch (storeType)
             {
-                store.Open(OpenFlags.ReadOnly);
-                foreach (X509Certificate2 cert in store.Certificates)
-                {
-                    if ((cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase)) &&
-                        (DateTime.Now < cert.NotAfter))
+                case CertificateStoreType.Directory:
                     {
-                        using (RSA rsa = cert.GetRSAPrivateKey())
+                        // load an existing key from a no-expired cert with the subject name passed in from the OS-provided X509Store
+                        using (DirectoryCertificateStore store = new DirectoryCertificateStore())
                         {
-                            if (rsa != null)
+                            store.Open(storePath);
+                            X509CertificateCollection certificates = store.Enumerate().Result;
+
+                            foreach (X509Certificate2 cert in certificates)
                             {
-                                foreach (System.Security.Cryptography.X509Certificates.X509Extension extension in cert.Extensions)
+                                if ((cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase)) &&
+                                    (DateTime.Now < cert.NotAfter))
                                 {
-                                    // check for instruction code extension
-                                    if ((extension.Oid.Value == "2.5.29.23") && (extension.RawData.Length >= 4))
+                                    using (RSA rsa = cert.GetRSAPrivateKey())
                                     {
-                                        byte[] bytes = new byte[extension.RawData.Length - 4];
-                                        Array.Copy(extension.RawData, 4, bytes, 0, bytes.Length);
-                                        byte[] token = rsa.Decrypt(bytes, RSAEncryptionPadding.OaepSHA1);
-                                        return Encoding.ASCII.GetString(token);
+                                        if (rsa != null)
+                                        {
+                                            foreach (System.Security.Cryptography.X509Certificates.X509Extension extension in cert.Extensions)
+                                            {
+                                                // check for instruction code extension
+                                                if ((extension.Oid.Value == "2.5.29.23") && (extension.RawData.Length >= 4))
+                                                {
+                                                    byte[] bytes = new byte[extension.RawData.Length - 4];
+                                                    Array.Copy(extension.RawData, 4, bytes, 0, bytes.Length);
+                                                    byte[] token = rsa.Decrypt(bytes, RSAEncryptionPadding.OaepSHA1);
+                                                    return Encoding.ASCII.GetString(token);
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
+                        break;
                     }
-                }
+                case CertificateStoreType.X509Store:
+                    {
+                        // load an existing key from a no-expired cert with the subject name passed in from the OS-provided X509Store
+                        using (X509Store store = new X509Store(storePath, StoreLocation.CurrentUser))
+                        {
+                            store.Open(OpenFlags.ReadOnly);
+                            foreach (X509Certificate2 cert in store.Certificates)
+                            {
+                                if ((cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase)) &&
+                                    (DateTime.Now < cert.NotAfter))
+                                {
+                                    using (RSA rsa = cert.GetRSAPrivateKey())
+                                    {
+                                        if (rsa != null)
+                                        {
+                                            foreach (System.Security.Cryptography.X509Certificates.X509Extension extension in cert.Extensions)
+                                            {
+                                                // check for instruction code extension
+                                                if ((extension.Oid.Value == "2.5.29.23") && (extension.RawData.Length >= 4))
+                                                {
+                                                    byte[] bytes = new byte[extension.RawData.Length - 4];
+                                                    Array.Copy(extension.RawData, 4, bytes, 0, bytes.Length);
+                                                    byte[] token = rsa.Decrypt(bytes, RSAEncryptionPadding.OaepSHA1);
+                                                    return Encoding.ASCII.GetString(token);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        throw new Exception($"The requested store type '{storeType}' is not supported. Please change.");
+                    }
             }
-
             return null;
         }
 
-        public static void Write(string name, string connectionString)
+        public static void Write(string name, string connectionString, string storeType, string storePath)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -110,7 +157,7 @@ namespace IoTHubCredentialTools
                 }
             }
             rsa.Dispose();
-            
+
             // sign the cert with the private key
             ISignatureFactory signatureFactory = new Asn1SignatureFactory("SHA256WITHRSA", keys.Private, random);
             Org.BouncyCastle.X509.X509Certificate x509 = cg.Generate(signatureFactory);
@@ -129,23 +176,58 @@ namespace IoTHubCredentialTools
                 // create X509Certificate2 object from PKCS12 file
                 certificate = CreateCertificateFromPKCS12(pfxData.ToArray(), passcode);
 
-                // Add to X509Store
-                using (X509Store store = new X509Store("IoTHub", StoreLocation.CurrentUser))
+                // handle each store type differently
+                switch (storeType)
                 {
-                    store.Open(OpenFlags.ReadWrite);
-
-                    // remove any existing cert with our name from the store
-                    foreach (X509Certificate2 cert in store.Certificates)
-                    {
-                        if (cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase))
+                    case CertificateStoreType.Directory:
                         {
-                            store.Remove(cert);
-                        }
-                    }
+                            // Add to DirectoryStore
+                            using (DirectoryCertificateStore store = new DirectoryCertificateStore())
+                            {
+                                store.Open(storePath);
+                                X509CertificateCollection certificates = store.Enumerate().Result;
 
-                    // add new one
-                    store.Add(certificate);
+                                // remove any existing cert with our name from the store
+                                foreach (X509Certificate2 cert in certificates)
+                                {
+                                    if (cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        store.Delete(cert.Thumbprint);
+                                    }
+                                }
+
+                                // add new one
+                                store.Add(certificate);
+                            }
+                            break;
+                        }
+                    case CertificateStoreType.X509Store:
+                        {
+                            // Add to X509Store
+                            using (X509Store store = new X509Store("IoTHub", StoreLocation.CurrentUser))
+                            {
+                                store.Open(OpenFlags.ReadWrite);
+
+                                // remove any existing cert with our name from the store
+                                foreach (X509Certificate2 cert in store.Certificates)
+                                {
+                                    if (cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        store.Remove(cert);
+                                    }
+                                }
+
+                                // add new one
+                                store.Add(certificate);
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            throw new Exception($"The requested store type '{storeType}' is not supported. Please change.");
+                        }
                 }
+                return;
             }
         }
 
