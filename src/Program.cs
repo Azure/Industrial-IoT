@@ -24,13 +24,12 @@ namespace Opc.Ua.Publisher
 
     public class Program
     {
-        public static ApplicationConfiguration m_configuration = null;
-        public static List<Session> m_sessions = new List<Session>();
-        public static PublishedNodesCollection m_nodesLookups = new PublishedNodesCollection();
-        public static List<Uri> m_endpointUrls = new List<Uri>();
+        public static ApplicationConfiguration OpcConfiguration = null;
+        public static List<Session> OpcSessions = new List<Session>();
+        public static PublishedNodesCollection PublishedNodes = new PublishedNodesCollection();
+        public static List<Uri> PublishedNodesEndpointUrls = new List<Uri>();
         public static string ApplicationName { get; set; }
-        public static DeviceClient m_deviceClient = null;
-
+        public static DeviceClient IotHubClient = null;
         public static string IoTHubOwnerConnectionString { get; set; }
         public static string LogFileName { get; set; }
         public static ushort PublisherServerPort { get; set; } = 62222;
@@ -68,23 +67,19 @@ namespace Opc.Ua.Publisher
 
         public static string PublishedNodesAbsFilenameDefault = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
         public static string PublishedNodesAbsFilename { get; set; }
-
-
-        private static PublisherServer _publishingServer = new PublisherServer();
         public static Microsoft.Azure.Devices.Client.TransportType IotHubProtocol { get; set; } = Microsoft.Azure.Devices.Client.TransportType.Mqtt;
+        private static uint MaxSizeOfIoTHubMessageBytes { get; set; } = 4096;
+        private static int DefaultSendIntervalInMilliSeconds { get; set; } = 1000;
 
-        private static void Usage(Mono.Options.OptionSet options)
-        private static ConcurrentQueue<string> m_sendQueue = new ConcurrentQueue<string>();
-        private const uint m_maxSizeOfIoTHubMessageBytes = 4096;
-        private const int m_defaultSendIntervalInMilliSeconds = 1000;
-        private static int m_currentSizeOfIoTHubMessageBytes = 0;
-        private static List<OpcUaMessage> m_messageList = new List<OpcUaMessage>();
-        private static PublisherServer m_server = new PublisherServer();
+
+        private static ConcurrentQueue<string> _sendQueue = new ConcurrentQueue<string>();
+        private static int _currentSizeOfIoTHubMessageBytes = 0;
+        private static List<OpcUaMessage> _messageList = new List<OpcUaMessage>();
 
         /// <summary>
         /// Trace message helper
         /// </summary>
-        public static void Trace(string message, params object[] args)
+        private static void Usage(Mono.Options.OptionSet options)
         {
 
             // show usage
@@ -132,6 +127,8 @@ namespace Opc.Ua.Publisher
                     { "ih|iothubprotocol=", $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}",
                         (Microsoft.Azure.Devices.Client.TransportType p) => IotHubProtocol = p
                     },
+                    { "ms|iothubmessagesize=", $"the max size of a message which could be send to IoTHub.\nDefault: {MaxSizeOfIoTHubMessageBytes}", (uint u) => MaxSizeOfIoTHubMessageBytes = u },
+                    { "si|iothubsendinterval=", $"the interval in ms when telemetry should be send to IoTHub.\nDefault: '{DefaultSendIntervalInMilliSeconds}'", (int i) => DefaultSendIntervalInMilliSeconds = i },
 
                     // opc server configuration options
                     { "lf|logfile=", $"the filename of the logfile to use.\nDefault: './logs/<applicationname>.log.txt'", (string l) => LogFileName = l },
@@ -271,14 +268,15 @@ namespace Opc.Ua.Publisher
                 WriteLine("Publisher is starting up...");
                 ModuleConfiguration moduleConfiguration = new ModuleConfiguration(ApplicationName);
                 opcTraceInitialized = true;
-                m_configuration = moduleConfiguration.Configuration;
-                m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
+                OpcConfiguration = moduleConfiguration.Configuration;
+                OpcConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
 
                 // start our server interface
                 try
                 {
-                    Trace($"Starting server on endpoint {m_configuration.ServerConfiguration.BaseAddresses[0].ToString()} ...");
-                    _publishingServer.Start(m_configuration);
+                    Trace($"Starting server on endpoint {OpcConfiguration.ServerConfiguration.BaseAddresses[0].ToString()} ...");
+                    PublisherServer publisherServer = new PublisherServer();
+                    publisherServer.Start(OpcConfiguration);
                     Trace("Server started.");
                 }
                 catch (Exception ex)
@@ -346,9 +344,9 @@ namespace Opc.Ua.Publisher
                 if (!string.IsNullOrEmpty(deviceConnectionString))
                 {
                     Trace($"Create Publisher IoTHub client with device connection string: '{deviceConnectionString}' using '{IotHubProtocol}' for communication.");
-                    m_deviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, IotHubProtocol);
-                    m_deviceClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
-                    m_deviceClient.OpenAsync().Wait();
+                    IotHubClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, IotHubProtocol);
+                    IotHubClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
+                    IotHubClient.OpenAsync().Wait();
                 }
                 else
                 {
@@ -371,8 +369,8 @@ namespace Opc.Ua.Publisher
                         }
                     }
                     Trace($"Attemping to load nodes file from: {PublishedNodesAbsFilename}");
-                    m_nodesLookups = JsonConvert.DeserializeObject<PublishedNodesCollection>(File.ReadAllText(PublishedNodesAbsFilename));
-                    Trace($"Loaded {m_nodesLookups.Count.ToString()} nodes.");
+                    PublishedNodes = JsonConvert.DeserializeObject<PublishedNodesCollection>(File.ReadAllText(PublishedNodesAbsFilename));
+                    Trace($"Loaded {PublishedNodes.Count.ToString()} nodes.");
                 }
                 catch (Exception ex)
                 {
@@ -381,11 +379,11 @@ namespace Opc.Ua.Publisher
                     return;
                 }
 
-                foreach (NodeLookup nodeLookup in m_nodesLookups)
+                foreach (NodeLookup nodeLookup in PublishedNodes)
                 {
-                    if (!m_endpointUrls.Contains(nodeLookup.EndPointURL))
+                    if (!PublishedNodesEndpointUrls.Contains(nodeLookup.EndPointURL))
                     {
-                        m_endpointUrls.Add(nodeLookup.EndPointURL);
+                        PublishedNodesEndpointUrls.Add(nodeLookup.EndPointURL);
                     }
                 }
 
@@ -394,7 +392,7 @@ namespace Opc.Ua.Publisher
                 try
                 {
                     List<Task> connectionAttempts = new List<Task>();
-                    foreach (Uri endpointUrl in m_endpointUrls)
+                    foreach (Uri endpointUrl in PublishedNodesEndpointUrls)
                     {
                         Trace($"Connecting to server: {endpointUrl}");
                         connectionAttempts.Add(EndpointConnect(endpointUrl));
@@ -410,9 +408,9 @@ namespace Opc.Ua.Publisher
 
                 // subscribe to preconfigured nodes
                 Trace("Attemping to subscribe to published nodes...");
-                if (m_nodesLookups != null)
+                if (PublishedNodes != null)
                 {
-                    foreach (NodeLookup nodeLookup in m_nodesLookups)
+                    foreach (NodeLookup nodeLookup in PublishedNodes)
                     {
                         try
                         {
@@ -424,7 +422,6 @@ namespace Opc.Ua.Publisher
                         }
                     }
                 }
-
 
                 Task dequeueAndSendTask = null;
                 var tokenSource = new CancellationTokenSource();
@@ -439,11 +436,10 @@ namespace Opc.Ua.Publisher
                 {
                     Trace("Exception: " + ex.ToString());
                 }
-
-                Trace("Publisher is running. Press enter to quit.");
+                Trace("Publisher is running. Press ENTER to quit.");
                 Console.ReadLine();
 
-                foreach (Session session in m_sessions)
+                foreach (Session session in OpcSessions)
                 {
                     session.Close();
                 }
@@ -459,11 +455,10 @@ namespace Opc.Ua.Publisher
                     Trace("Exception: " + ex.ToString());
                 }
 
-                if (m_deviceClient != null)
+                if (IotHubClient != null)
                 {
-                    m_deviceClient.CloseAsync().Wait();
+                    IotHubClient.CloseAsync().Wait();
                 }
-
             }
             catch (Exception e)
             {
@@ -486,15 +481,15 @@ namespace Opc.Ua.Publisher
         public static async Task EndpointConnect(Uri endpointUrl)
         {
             EndpointDescription selectedEndpoint = CoreClientUtils.SelectEndpoint(endpointUrl.AbsoluteUri, true);
-            ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server, EndpointConfiguration.Create(m_configuration));
+            ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server, EndpointConfiguration.Create(OpcConfiguration));
             configuredEndpoint.Update(selectedEndpoint);
 
             Session newSession = await Session.Create(
-                m_configuration,
+                OpcConfiguration,
                 configuredEndpoint,
                 true,
                 false,
-                m_configuration.ApplicationName,
+                OpcConfiguration.ApplicationName,
                 60000,
                 new UserIdentity(new AnonymousIdentityToken()),
                 null);
@@ -503,7 +498,7 @@ namespace Opc.Ua.Publisher
             {
                 Trace($"Created session with updated endpoint '{selectedEndpoint.EndpointUrl}' from server!");
                 newSession.KeepAlive += new KeepAliveEventHandler((sender, e) => StandardClient_KeepAlive(sender, e, newSession));
-                m_sessions.Add(newSession);
+                OpcSessions.Add(newSession);
             }
         }
 
@@ -514,7 +509,7 @@ namespace Opc.Ua.Publisher
         {
             // find the right session using our lookup
             Session matchingSession = null;
-            foreach (Session session in m_sessions)
+            foreach (Session session in OpcSessions)
             {
                 char[] trimChars = { '/', ' ' };
                 if (session.Endpoint.EndpointUrl.TrimEnd(trimChars).Equals(nodeLookup.EndPointURL.ToString().TrimEnd(trimChars), StringComparison.OrdinalIgnoreCase))
@@ -602,12 +597,12 @@ namespace Opc.Ua.Publisher
                 string json = encoder.CloseAndReturnText();
 
                 // add message to fifo send queue
-                m_sendQueue.Enqueue(json);
+                _sendQueue.Enqueue(json);
 
             }
             catch (Exception exception)
             {
-                Trace("Error processing monitored item notification: " + exception.ToString());
+                Trace(exception, "Error processing monitored item notification");
             }
         }
 
@@ -619,20 +614,20 @@ namespace Opc.Ua.Publisher
             try
             {
                 //Send every x seconds, regardless if IoT Hub message is full. 
-                Timer sendTimer = new Timer(async state => await SendToIoTHubAsync(), null, 0, m_defaultSendIntervalInMilliSeconds);
+                Timer sendTimer = new Timer(async state => await SendToIoTHubAsync(), null, 0, DefaultSendIntervalInMilliSeconds);
 
                 while (true)
                 {
                     if (ct.IsCancellationRequested)
                     {
-                        Trace("Cancellation requested. Sending remaining messages.");
+                        Trace($"Cancellation requested. Sending {_sendQueue.Count} remaining messages.");
                         sendTimer.Dispose();
                         await SendToIoTHubAsync();
                         break;
                     }
 
 
-                    if (m_sendQueue.Count > 0)
+                    if (_sendQueue.Count > 0)
                     {
                         bool isPeekSuccessful = false;
                         bool isDequeueSuccessful = false;
@@ -643,7 +638,7 @@ namespace Opc.Ua.Publisher
                         //and whether it will fit. If so, dequeue message and add it to the list. 
                         //If it cannot fit, send current message to IoT Hub, reset it, and repeat.
 
-                        isPeekSuccessful = m_sendQueue.TryPeek(out messageInJson);
+                        isPeekSuccessful = _sendQueue.TryPeek(out messageInJson);
 
                         //Get size of next message in the queue
                         if (isPeekSuccessful)
@@ -653,18 +648,18 @@ namespace Opc.Ua.Publisher
 
                         //Determine if it will fit into remaining space of the IoT Hub message. 
                         //If so, dequeue it
-                        if (m_currentSizeOfIoTHubMessageBytes + nextMessageSizeBytes < m_maxSizeOfIoTHubMessageBytes)
+                        if (_currentSizeOfIoTHubMessageBytes + nextMessageSizeBytes < MaxSizeOfIoTHubMessageBytes)
                         {
-                            isDequeueSuccessful = m_sendQueue.TryDequeue(out messageInJson);
+                            isDequeueSuccessful = _sendQueue.TryDequeue(out messageInJson);
 
                             //Add dequeued message to list
                             if (isDequeueSuccessful)
                             {
                                 OpcUaMessage msgPayload = JsonConvert.DeserializeObject<OpcUaMessage>(messageInJson);
 
-                                m_messageList.Add(msgPayload);
+                                _messageList.Add(msgPayload);
 
-                                m_currentSizeOfIoTHubMessageBytes = m_currentSizeOfIoTHubMessageBytes + nextMessageSizeBytes;
+                                _currentSizeOfIoTHubMessageBytes = _currentSizeOfIoTHubMessageBytes + nextMessageSizeBytes;
 
                             }
                         }
@@ -679,7 +674,7 @@ namespace Opc.Ua.Publisher
             }
             catch (Exception exception)
             {
-                Console.WriteLine("Error dequeuing message: " + exception.ToString());
+                Trace(exception, "Error while dequeuing messages.");
             }
 
         }
@@ -689,32 +684,35 @@ namespace Opc.Ua.Publisher
         /// </summary>
         private static async Task SendToIoTHubAsync()
         {
-            if (m_messageList.Count > 0)
+            if (_messageList.Count > 0)
             {
-                string msgListInJson = JsonConvert.SerializeObject(m_messageList);
+                string msgListInJson = JsonConvert.SerializeObject(_messageList);
 
                 var encodedMessage = new Microsoft.Azure.Devices.Client.Message(Encoding.UTF8.GetBytes(msgListInJson));
 
                 // publish
                 encodedMessage.Properties.Add("content-type", "application/opcua+uajson");
-                encodedMessage.Properties.Add("deviceName", m_applicationName);
+                encodedMessage.Properties.Add("deviceName", ApplicationName);
 
                 try
                 {
-                    if (m_deviceClient != null)
+                    if (IotHubClient != null)
                     {
-                        await m_deviceClient.SendEventAsync(encodedMessage);
+                        await IotHubClient.SendEventAsync(encodedMessage);
+                    }
+                    else
+                    {
+                        Trace("No IoTHub client available ");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Trace("Failed to publish message, dropping...");
-                    Trace(ex.ToString());
+                    Trace(ex, "Exception while sending message to IoTHub. Dropping...");
                 }
 
                 //Reset IoT Hub message size
-                m_currentSizeOfIoTHubMessageBytes = 0;
-                m_messageList.Clear();
+                _currentSizeOfIoTHubMessageBytes = 0;
+                _messageList.Clear();
             }
         }
 
@@ -754,8 +752,8 @@ namespace Opc.Ua.Publisher
             if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
             {
                 Trace($"Certificate '{e.Certificate.Subject}' not trusted. If you want to trust this certificate, please copy it from the/r/n" +
-                        $"'{m_configuration.SecurityConfiguration.RejectedCertificateStore.StorePath}/certs' to the " +
-                        $"'{m_configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}/certs' folder./r/n" +
+                        $"'{OpcConfiguration.SecurityConfiguration.RejectedCertificateStore.StorePath}/certs' to the " +
+                        $"'{OpcConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath}/certs' folder./r/n" +
                         "A restart of the gateway is NOT required.");
             }
         }

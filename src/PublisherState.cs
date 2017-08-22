@@ -63,7 +63,7 @@ namespace Publisher
             }
 
             // create session, if it doesn't exist already and complete asynchonourly (do to thread dependencies in the UA stack)
-            if (!Program.m_endpointUrls.Contains(lookup.EndPointURL))
+            if (!Program.PublishedNodesEndpointUrls.Contains(lookup.EndPointURL))
             {
                 try
                 {
@@ -100,7 +100,7 @@ namespace Publisher
             {
                 // find the right session using our lookup
                 Session matchingSession = null;
-                foreach (Session session in Program.m_sessions)
+                foreach (Session session in Program.OpcSessions)
                 {
                     char[] trimChars = { '/', ' ' };
                     if (session.Endpoint.EndpointUrl.TrimEnd(trimChars).StartsWith(lookup.EndPointURL.ToString().TrimEnd(trimChars), StringComparison.OrdinalIgnoreCase))
@@ -134,14 +134,14 @@ namespace Publisher
                 Trace("DoPublish: Monitored item created.");
 
                 // update our data
-                Program.m_nodesLookups.Add(lookup);
-                if (!Program.m_endpointUrls.Contains(lookup.EndPointURL))
+                Program.PublishedNodes.Add(lookup);
+                if (!Program.PublishedNodesEndpointUrls.Contains(lookup.EndPointURL))
                 {
-                    Program.m_endpointUrls.Add(lookup.EndPointURL);
+                    Program.PublishedNodesEndpointUrls.Add(lookup.EndPointURL);
                 }
 
                 //serialize Program.m_nodesLookups to disk
-                File.WriteAllText(Program.PublishedNodesAbsFilename, JsonConvert.SerializeObject(Program.m_nodesLookups));
+                File.WriteAllText(Program.PublishedNodesAbsFilename, JsonConvert.SerializeObject(Program.PublishedNodes));
 
                 Trace($"DoPublish: Now publishing: {lookup.ToString()}");
                 return ServiceResult.Good;
@@ -188,7 +188,7 @@ namespace Publisher
             
             // find the right session using our lookup
             Session matchingSession = null;
-            foreach (Session session in Program.m_sessions)
+            foreach (Session session in Program.OpcSessions)
             {
                 char[] trimChars = { '/', ' ' };
                 if (session.Endpoint.EndpointUrl.TrimEnd(trimChars).Equals(lookup.EndPointURL.ToString().TrimEnd(trimChars), StringComparison.OrdinalIgnoreCase))
@@ -200,7 +200,7 @@ namespace Publisher
 
             if (matchingSession == null)
             {
-                Trace("UnPublishNodeMethod: Session for published node not found: " + lookup.EndPointURL.ToString());
+                Trace($"UnPublishNodeMethod: Session for published node with NodeId '{lookup.EndPointURL.ToString()}' not found.");
                 return ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session for published node not found!");
             }
 
@@ -214,11 +214,11 @@ namespace Publisher
 
                     // update our data on success only
                     // we keep the session to the server, as there may be other nodes still published on it
-                    var itemToRemove = Program.m_nodesLookups.Find(l => l.NodeID == lookup.NodeID && l.EndPointURL == lookup.EndPointURL);
-                    Program.m_nodesLookups.Remove(itemToRemove);
+                    var itemToRemove = Program.PublishedNodes.Find(l => l.NodeID == lookup.NodeID && l.EndPointURL == lookup.EndPointURL);
+                    Program.PublishedNodes.Remove(itemToRemove);
 
                     //serialize Program.m_nodesLookups to disk
-                    File.WriteAllText(Program.PublishedNodesAbsFilename, JsonConvert.SerializeObject(Program.m_nodesLookups));
+                    File.WriteAllText(Program.PublishedNodesAbsFilename, JsonConvert.SerializeObject(Program.PublishedNodes));
 
                     return ServiceResult.Good;
                 }
@@ -233,7 +233,7 @@ namespace Publisher
         /// </summary>
         private ServiceResult GetListOfPublishedNodesMethod(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
-            outputArguments[0] = JsonConvert.SerializeObject(Program.m_nodesLookups);
+            outputArguments[0] = JsonConvert.SerializeObject(Program.PublishedNodes);
             Trace("GetListOfPublishedNodesMethod: Success!");
 
             return ServiceResult.Good;
@@ -255,7 +255,7 @@ namespace Publisher
             timestamp = DateTime.Now;
 
             // read current connection string and compare to the one passed in
-            string currentConnectionString = SecureIoTHubToken.Read(Program.m_configuration.ApplicationName, Program.IotDeviceCertStoreType, Program.IotDeviceCertStorePath);
+            string currentConnectionString = SecureIoTHubToken.Read(Program.OpcConfiguration.ApplicationName, Program.IotDeviceCertStoreType, Program.IotDeviceCertStorePath);
             if (string.Equals(connectionString, currentConnectionString, StringComparison.OrdinalIgnoreCase))
             {
                 Trace("ConnectionStringWrite: Connection string up to date!");
@@ -270,8 +270,8 @@ namespace Publisher
                 DeviceClient newClient = DeviceClient.CreateFromConnectionString(connectionString, Program.IotHubProtocol);
                 newClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
                 newClient.OpenAsync().Wait();
-                SecureIoTHubToken.Write(Program.m_configuration.ApplicationName, connectionString, Program.IotDeviceCertStoreType, Program.IotDeviceCertStorePath);
-                Program.m_deviceClient = newClient;
+                SecureIoTHubToken.Write(Program.OpcConfiguration.ApplicationName, connectionString, Program.IotDeviceCertStoreType, Program.IotDeviceCertStorePath);
+                Program.IotHubClient = newClient;
             }
             catch (Exception ex)
             {
