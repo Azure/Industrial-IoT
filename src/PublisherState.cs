@@ -262,7 +262,7 @@ namespace Publisher
                 return ServiceResult.Create(StatusCodes.Bad, "Connection string already up-to-date!");
             }
 
-            Trace($"ConnectionStringWrite: Attemping to configure publisher with connection string: {connectionString}");
+            Trace($"ConnectionStringWrite: Attempting to configure publisher with connection string: {connectionString}");
            
             // configure publisher and write connection string
             try

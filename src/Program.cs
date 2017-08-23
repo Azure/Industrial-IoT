@@ -303,9 +303,13 @@ namespace Opc.Ua.Publisher
                 string deviceConnectionString;
                 Trace($"IoTHub device cert store type is: {IotDeviceCertStoreType}");
                 Trace($"IoTHub device cert path is: {IotDeviceCertStorePath}");
-                if (IoTHubOwnerConnectionString != string.Empty)
+                if (string.IsNullOrEmpty(IoTHubOwnerConnectionString))
                 {
-                    Trace($"Attemping to register ourselves with IoT Hub using owner connection string: {IoTHubOwnerConnectionString}");
+                    Trace("IoT Hub owner connection string not specified. Assume device connection string already in cert store.");
+                }
+                else
+                {
+                    Trace($"Attempting to register ourselves with IoT Hub using owner connection string: {IoTHubOwnerConnectionString}");
                     RegistryManager manager = RegistryManager.CreateFromConnectionString(IoTHubOwnerConnectionString);
 
                     // remove any existing device
@@ -333,13 +337,9 @@ namespace Opc.Ua.Publisher
                         return;
                     }
                 }
-                else
-                {
-                    Trace("IoT Hub owner connection string not specified. Assume device connection string already in cert store.");
-                }
 
                 // try to read connection string from secure store and open IoTHub client
-                Trace($"Attemping to read device connection string from cert store using subject name: {ApplicationName}");
+                Trace($"Attempting to read device connection string from cert store using subject name: {ApplicationName}");
                 deviceConnectionString = SecureIoTHubToken.Read(ApplicationName, IotDeviceCertStoreType, IotDeviceCertStorePath);
                 if (!string.IsNullOrEmpty(deviceConnectionString))
                 {
@@ -368,7 +368,7 @@ namespace Opc.Ua.Publisher
                             PublishedNodesAbsFilename = Environment.GetEnvironmentVariable("_GW_PNFP");
                         }
                     }
-                    Trace($"Attemping to load nodes file from: {PublishedNodesAbsFilename}");
+                    Trace($"Attempting to load nodes file from: {PublishedNodesAbsFilename}");
                     PublishedNodes = JsonConvert.DeserializeObject<PublishedNodesCollection>(File.ReadAllText(PublishedNodesAbsFilename));
                     Trace($"Loaded {PublishedNodes.Count.ToString()} nodes.");
                 }
@@ -388,7 +388,7 @@ namespace Opc.Ua.Publisher
                 }
 
                 // connect to the other servers
-                Trace("Attemping to connect to servers...");
+                Trace("Attempting to connect to servers...");
                 try
                 {
                     List<Task> connectionAttempts = new List<Task>();
@@ -407,7 +407,7 @@ namespace Opc.Ua.Publisher
                 }
 
                 // subscribe to preconfigured nodes
-                Trace("Attemping to subscribe to published nodes...");
+                Trace("Attempting to subscribe to published nodes...");
                 if (PublishedNodes != null)
                 {
                     foreach (NodeLookup nodeLookup in PublishedNodes)
