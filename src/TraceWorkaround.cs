@@ -4,6 +4,7 @@ using static System.Console;
 
 namespace Opc.Ua.Workarounds
 {
+
     public static class TraceWorkaround
     {
         /// <summary>

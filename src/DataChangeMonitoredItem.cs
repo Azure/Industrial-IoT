@@ -29,7 +29,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Opc.Ua.Server; 
 
 namespace Opc.Ua.Sample
