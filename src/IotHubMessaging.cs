@@ -317,7 +317,7 @@ namespace Opc.Ua.Publisher
             if (_sendTimer != null)
             {
                 // send in x seconds
-                Trace(Utils.TraceMasks.OperationDetail, $"Retart timer to send data to IoTHub in {_defaultSendIntervalSeconds} seconds.");
+                Trace(Utils.TraceMasks.OperationDetail, $"Retart timer to send data to IoTHub in {_defaultSendIntervalSeconds} second(s).");
                 _sendTimer.Change(TimeSpan.FromSeconds(_defaultSendIntervalSeconds), TimeSpan.FromSeconds(_defaultSendIntervalSeconds));
             }
 

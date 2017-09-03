@@ -258,7 +258,7 @@ namespace Opc.Ua.Publisher
                             }
                         }
                     },
-                    { "st|opcstacktracemask=", $"the trace mask for the OPC stack. See github OPC .NET stack for definitions.\nTo enable IoTHub telemetry tracing set it to 711.\n(Information is enforced)\nDefault: 0x{OpcStackTraceMask:X}  ({Program.OpcStackTraceMask})", (int i) => {
+                    { "st|opcstacktracemask=", $"the trace mask for the OPC stack. See github OPC .NET stack for definitions.\nTo enable IoTHub telemetry tracing set it to 711. Information mask 0x2 is enforced.\nDefault: {OpcStackTraceMask:X}  ({Program.OpcStackTraceMask})", (int i) => {
                             if (i >= 0)
                             {
                                 OpcStackTraceMask = i;
