@@ -53,7 +53,7 @@ namespace Opc.Ua.Publisher
             Configuration.TraceConfiguration.ApplySettings();
             Trace($"Current directory is: {Directory.GetCurrentDirectory()}");
             Trace($"Log file is: {Utils.GetAbsoluteFilePath(Configuration.TraceConfiguration.OutputFilePath, true, false, false, true)}");
-            Trace($"Trace mask set to: 0x{Program.OpcStackTraceMask:X}");
+            Trace($"opcstacktracemask set to: 0x{Program.OpcStackTraceMask:X} ({Program.OpcStackTraceMask})");
 
             Configuration.SecurityConfiguration = new SecurityConfiguration();
 

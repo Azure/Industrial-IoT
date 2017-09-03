@@ -35,12 +35,11 @@ namespace Opc.Ua.Publisher
         //
         // IoTHub related
         //
-        public static DeviceClient IotHubClient = null;
-        public static string IoTHubOwnerConnectionString { get; set; }
+        private static string _IotHubOwnerConnectionString { get; set; }
         public static Microsoft.Azure.Devices.Client.TransportType IotHubProtocol { get; set; } = Microsoft.Azure.Devices.Client.TransportType.Mqtt;
         public static IotHubMessaging IotHubMessaging;
-        private static uint MaxSizeOfIoTHubMessageBytes { get; set; } = 4096;
-        private static int DefaultSendIntervalSeconds { get; set; } = 1;
+        private static uint _MaxSizeOfIoTHubMessageBytes { get; set; } = 4096;
+        private static int _DefaultSendIntervalSeconds { get; set; } = 1;
 
         public static string IotDeviceCertStoreType { get; set; } = X509Store;
         private const string _iotDeviceCertDirectoryStorePathDefault = "CertificateStores/IoTHub";
@@ -58,12 +57,15 @@ namespace Opc.Ua.Publisher
         public static int LdsRegistrationInterval = 0;
         public static int OpcOperationTimeout = 120000;
         public static bool TrustMyself = true;
+        // Enable Utils.TraceMasks.OperationDetail to get output for IoTHub telemetry operations. Current: 0x287 (647), with OperationDetail: 0x2C7 (711)
         public static int OpcStackTraceMask = Utils.TraceMasks.Error | Utils.TraceMasks.Security | Utils.TraceMasks.StackTrace | Utils.TraceMasks.StartStop | Utils.TraceMasks.Information;
         public static bool OpcPublisherAutoAccept = false;
         public static uint OpcSessionCreationTimeout = 10;
         public static uint OpcSessionCreationBackoffMax = 5;
         public static uint OpcKeepAliveDisconnectThreshold = 10;
         public static int OpcKeepAliveIntervalInSec = 5;
+        public static int OpcSamplingRateMillisec = 1000;
+        
         public static string PublisherServerSecurityPolicy = SecurityPolicies.Basic128Rsa15;
 
         public static string OpcOwnCertStoreType = X509Store;
@@ -98,6 +100,7 @@ namespace Opc.Ua.Publisher
             WriteLine("Usage: {0}.exe applicationname [iothubconnectionstring] [options]", Assembly.GetEntryAssembly().GetName().Name);
             WriteLine();
             WriteLine("OPC Edge Publisher to subscribe to configured OPC UA servers and send telemetry to Azure IoTHub.");
+            WriteLine("To exit the application, just press ENTER while it is running.");
             WriteLine();
             WriteLine("applicationname: the OPC UA application name to use, required");
             WriteLine("                 The application name is also used to register the publisher under this name in the");
@@ -162,10 +165,10 @@ namespace Opc.Ua.Publisher
                     { "ih|iothubprotocol=", $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}",
                         (Microsoft.Azure.Devices.Client.TransportType p) => IotHubProtocol = p
                     },
-                    { "ms|iothubmessagesize=", $"the max size of a message which could be send to IoTHub. when telemetry of this size is available it will be sent.\nMin: 1\nMax: 256 * 1024\nDefault: {MaxSizeOfIoTHubMessageBytes}", (uint u) => {
-                            if (u >= 1 && u <= 256 * 1024)
+                    { "ms|iothubmessagesize=", $"the max size of a message which could be send to IoTHub. when telemetry of this size is available it will be sent.\n0 will enforce immediate send when telemetry is available\nMin: 0\nMax: 256 * 1024\nDefault: {_MaxSizeOfIoTHubMessageBytes}", (uint u) => {
+                            if (u >= 0 && u <= 256 * 1024)
                             {
-                                MaxSizeOfIoTHubMessageBytes = u;
+                                _MaxSizeOfIoTHubMessageBytes = u;
                             }
                             else
                             {
@@ -173,10 +176,10 @@ namespace Opc.Ua.Publisher
                             }
                         }
                     },
-                    { "si|iothubsendinterval=", $"the interval in seconds when telemetry should be send to IoTHub. If 0, then only the iothubmessagesize parameter controls when telemetry is sent.\nDefault: '{DefaultSendIntervalSeconds}'", (int i) => {
+                    { "si|iothubsendinterval=", $"the interval in seconds when telemetry should be send to IoTHub. If 0, then only the iothubmessagesize parameter controls when telemetry is sent.\nDefault: '{_DefaultSendIntervalSeconds}'", (int i) => {
                             if (i >= 0)
                             {
-                                DefaultSendIntervalSeconds = i;
+                                _DefaultSendIntervalSeconds = i;
                             }
                             else
                             {
@@ -208,6 +211,17 @@ namespace Opc.Ua.Publisher
                             else
                             {
                                 throw new OptionException("The operation timeout must be larger or equal 0.", "operationtimeout");
+                            }
+                        }
+                    },
+                    { "ds|defaultsamplingrate=", $"the sampling rate in millisecond for which monitored nodes should be queried.\nMin: 100\nDefault: {OpcSamplingRateMillisec}", (int i) => {
+                            if (i >= 100)
+                            {
+                                OpcSamplingRateMillisec = i;
+                            }
+                            else
+                            {
+                                throw new OptionException("The sampling rate must be larger or equal 100.", "defaultsamplingrate");
                             }
                         }
                     },
@@ -244,7 +258,7 @@ namespace Opc.Ua.Publisher
                             }
                         }
                     },
-                    { "st|opcstacktracemask=", $"the trace mask for the OPC stack. See github OPC .NET stack for definitions.\n(Information is enforced)\nDefault: 0x{OpcStackTraceMask:X}", (int i) => {
+                    { "st|opcstacktracemask=", $"the trace mask for the OPC stack. See github OPC .NET stack for definitions.\nTo enable IoTHub telemetry tracing set it to 711.\n(Information is enforced)\nDefault: 0x{OpcStackTraceMask:X}  ({Program.OpcStackTraceMask})", (int i) => {
                             if (i >= 0)
                             {
                                 OpcStackTraceMask = i;
@@ -376,7 +390,7 @@ namespace Opc.Ua.Publisher
                 else if (arguments.Count == 2)
                 {
                     ApplicationName = arguments[0];
-                    IoTHubOwnerConnectionString = arguments[1];
+                    _IotHubOwnerConnectionString = arguments[1];
                 }
                 else if (arguments.Count == 1)
                 {
@@ -425,76 +439,7 @@ namespace Opc.Ua.Publisher
                 }
                 catch (Exception e)
                 {
-                    Trace($"Starting server failed with: {e.Message}");
-                    Trace("exiting...");
-                    return;
-                }
-
-                // check if we also received an owner connection string
-                if (string.IsNullOrEmpty(IoTHubOwnerConnectionString))
-                {
-                    Trace("IoT Hub owner connection string not passed as argument.");
-
-                    // check if we have an environment variable to register ourselves with IoT Hub
-                    if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_HUB_CS")))
-                    {
-                        IoTHubOwnerConnectionString = Environment.GetEnvironmentVariable("_HUB_CS");
-                        Trace("IoT Hub owner connection string read from environment.");
-                    }
-                }
-
-                // register ourselves with IoT Hub
-                string deviceConnectionString;
-                Trace($"IoTHub device cert store type is: {IotDeviceCertStoreType}");
-                Trace($"IoTHub device cert path is: {IotDeviceCertStorePath}");
-                if (string.IsNullOrEmpty(IoTHubOwnerConnectionString))
-                {
-                    Trace("IoT Hub owner connection string not specified. Assume device connection string already in cert store.");
-                }
-                else
-                {
-                    Trace($"Attempting to register ourselves with IoT Hub using owner connection string: {IoTHubOwnerConnectionString}");
-                    RegistryManager manager = RegistryManager.CreateFromConnectionString(IoTHubOwnerConnectionString);
-
-                    // remove any existing device
-                    Device existingDevice = manager.GetDeviceAsync(ApplicationName).Result;
-                    if (existingDevice != null)
-                    {
-                        Trace($"Device '{ApplicationName}' found in IoTHub registry. Remove it.");
-                        manager.RemoveDeviceAsync(ApplicationName).Wait();
-                    }
-
-                    Trace($"Adding device '{ApplicationName}' to IoTHub registry.");
-                    Device newDevice = manager.AddDeviceAsync(new Device(ApplicationName)).Result;
-                    if (newDevice != null)
-                    {
-                        string hostname = IoTHubOwnerConnectionString.Substring(0, IoTHubOwnerConnectionString.IndexOf(";"));
-                        deviceConnectionString = hostname + ";DeviceId=" + ApplicationName + ";SharedAccessKey=" + newDevice.Authentication.SymmetricKey.PrimaryKey;
-                        Trace($"Device connection string is: {deviceConnectionString}");
-                        Trace($"Adding it to device cert store.");
-                        SecureIoTHubToken.Write(ApplicationName, deviceConnectionString, IotDeviceCertStoreType, IotDeviceCertStoreType);
-                    }
-                    else
-                    {
-                        Trace($"Could not register ourselves with IoT Hub using owner connection string: {IoTHubOwnerConnectionString}");
-                        Trace("exiting...");
-                        return;
-                    }
-                }
-
-                // try to read connection string from secure store and open IoTHub client
-                Trace($"Attempting to read device connection string from cert store using subject name: {ApplicationName}");
-                deviceConnectionString = SecureIoTHubToken.Read(ApplicationName, IotDeviceCertStoreType, IotDeviceCertStorePath);
-                if (!string.IsNullOrEmpty(deviceConnectionString))
-                {
-                    Trace($"Create Publisher IoTHub client with device connection string: '{deviceConnectionString}' using '{IotHubProtocol}' for communication.");
-                    IotHubClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, IotHubProtocol);
-                    IotHubClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
-                    IotHubClient.OpenAsync().Wait();
-                }
-                else
-                {
-                    Trace("Device connection string not found in secure store. Could not connect to IoTHub.");
+                    Trace(e, $"Failed to start Publisher OPC UA server.");
                     Trace("exiting...");
                     return;
                 }
@@ -512,6 +457,7 @@ namespace Opc.Ua.Publisher
                             NodesToPublishAbsFilename = Environment.GetEnvironmentVariable("_GW_PNFP");
                         }
                     }
+
                     Trace($"Attempting to load nodes file from: {NodesToPublishAbsFilename}");
                     NodesToPublish = JsonConvert.DeserializeObject<List<NodeToPublish>>(File.ReadAllText(NodesToPublishAbsFilename));
                     Trace($"Loaded {NodesToPublish.Count.ToString()} nodes to publish.");
@@ -523,8 +469,12 @@ namespace Opc.Ua.Publisher
                     return;
                 }
 
-                // create IoTHub messaging.
-                IotHubMessaging = new IotHubMessaging(MaxSizeOfIoTHubMessageBytes, DefaultSendIntervalSeconds);
+                // initialize and start IoTHub messaging
+                IotHubMessaging = new IotHubMessaging();
+                if (!IotHubMessaging.Init(_IotHubOwnerConnectionString, _MaxSizeOfIoTHubMessageBytes, _DefaultSendIntervalSeconds))
+                {
+                    return;
+                }
 
                 // create a list to manage sessions and monitored items.
                 var uniqueEndpointUris = NodesToPublish.Select(n => n.EndPointUri).Distinct();
@@ -537,10 +487,49 @@ namespace Opc.Ua.Publisher
 
                         // add monitored item info for all nodes to publish for this endpoint URI.
                         var nodesOnEndpointUri = NodesToPublish.Where(n => n.EndPointUri.Equals(endpointUri));
-                        foreach (var node in nodesOnEndpointUri)
+                        foreach (var nodeInfo in nodesOnEndpointUri)
                         {
-                            MonitoredItemInfo monitoredItemInfo = new MonitoredItemInfo(node.NodeId, opcSession.EndpointUri);
-                            opcSession.MonitoredItemsInfo.Add(monitoredItemInfo);
+                            // differentiate if legacy syntax is used
+                            if (nodeInfo.NodeId == null)
+                            {
+                                // differentiate if there is only a single node specified or a node list with a common sampling interval
+                                if (nodeInfo.ExpandedNodeId == null)
+                                {
+                                    // create a monitored item for each node in the list and set the sampling interval if specified
+                                    foreach (var singleExpandedNodeId in nodeInfo.Nodes.ExpandedNodeIds)
+                                    {
+                                        MonitoredItemInfo monitoredItemInfo = new MonitoredItemInfo(singleExpandedNodeId, opcSession.EndpointUri);
+                                        if (nodeInfo.Nodes.SamplingInterval != 0)
+                                        {
+                                            monitoredItemInfo.SamplingInterval = nodeInfo.Nodes.SamplingInterval;
+                                        }
+                                        opcSession.MonitoredItemsInfo.Add(monitoredItemInfo);
+                                    }
+                                }
+                                else
+                                {
+                                    // create a monitored item for the node
+                                        MonitoredItemInfo monitoredItemInfo = new MonitoredItemInfo(nodeInfo.ExpandedNodeId, opcSession.EndpointUri);
+                                        if (nodeInfo.SamplingInterval != 0)
+                                        {
+                                            monitoredItemInfo.SamplingInterval = nodeInfo.SamplingInterval;
+                                        }
+                                        opcSession.MonitoredItemsInfo.Add(monitoredItemInfo);
+                                }
+                            }
+                            else
+                            {
+                                // give user a warning that the syntax is obsolete
+                                Trace($"Please update the syntax of the configuration file and use ExpandedNodeId instead of NodeId property name for node with identifier '{nodeInfo.NodeId.ToString()}' on EndpointUrl '{nodeInfo.EndPointUri}'.");
+
+                                // create a monitored item for the node with the configured or default sampling interval
+                                MonitoredItemInfo monitoredItemInfo = new MonitoredItemInfo(nodeInfo.NodeId, opcSession.EndpointUri);
+                                if (nodeInfo.SamplingInterval != 0)
+                                {
+                                    monitoredItemInfo.SamplingInterval = nodeInfo.SamplingInterval;
+                                }
+                                opcSession.MonitoredItemsInfo.Add(monitoredItemInfo);
+                            }
                         }
 
                         // add the session info.
@@ -553,28 +542,30 @@ namespace Opc.Ua.Publisher
                 Task.Run( async () => await SessionConnector(cts.Token));
 
                 // stop on user request
+                Trace("");
+                Trace("");
                 Trace("Publisher is running. Press ENTER to quit.");
+                Trace("");
+                Trace("");
                 ReadLine();
                 cts.Cancel();
 
                 // close all connected session
                 Task.Run(async () => await SessionShutdown()).Wait();
 
-                if (IotHubClient != null)
-                {
-                    IotHubClient.CloseAsync().Wait();
-                }
+                // shutdown the IoTHub messaging
+                IotHubMessaging.Shutdown();
             }
             catch (Exception e)
             {
                 if (opcTraceInitialized)
                 {
                     Trace(e, e.StackTrace);
-                    e = e.InnerException != null ? e.InnerException : null;
+                    e = e.InnerException ?? null;
                     while (e != null)
                     {
                         Trace(e, e.StackTrace);
-                        e = e.InnerException != null ? e.InnerException : null;
+                        e = e.InnerException ?? null;
                     }
                     Trace("Publisher exiting... ");
                 }
@@ -582,12 +573,12 @@ namespace Opc.Ua.Publisher
                 {
                     WriteLine($"{DateTime.Now.ToString()}: {e.Message.ToString()}");
                     WriteLine($"{DateTime.Now.ToString()}: {e.StackTrace}");
-                    e = e.InnerException != null ? e.InnerException : null;
+                    e = e.InnerException ?? null;
                     while (e != null)
                     {
                         WriteLine($"{DateTime.Now.ToString()}: {e.Message.ToString()}");
                         WriteLine($"{DateTime.Now.ToString()}: {e.StackTrace}");
-                        e = e.InnerException != null ? e.InnerException : null;
+                        e = e.InnerException ?? null;
                     }
                     WriteLine($"{DateTime.Now.ToString()}: Publisher exiting...");
                 }

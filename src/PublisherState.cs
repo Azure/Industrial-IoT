@@ -13,6 +13,7 @@ namespace Publisher
 {
     using System.Threading.Tasks;
     using static Opc.Ua.Utils;
+    using static Program;
 
     public partial class PublisherState
     {
@@ -63,14 +64,14 @@ namespace Publisher
             try
             {
                 // find the session we need to monitor the node
-                OpcSession opcSession = Program.OpcSessions.First(s => s.EndpointUri == nodeToPublish.EndPointUri);
+                OpcSession opcSession = OpcSessions.First(s => s.EndpointUri == nodeToPublish.EndPointUri);
 
                 // Add a new session.
                 if (opcSession == null)
                 {
                     // create new session info.
-                    opcSession = new OpcSession(nodeToPublish.EndPointUri, Program.OpcSessionCreationTimeout);
-                    Program.OpcSessions.Add(opcSession);
+                    opcSession = new OpcSession(nodeToPublish.EndPointUri, OpcSessionCreationTimeout);
+                    OpcSessions.Add(opcSession);
                     Trace($"DoPublish: No matching session found for endpoint '{nodeToPublish.EndPointUri.AbsolutePath}'. Requested to create a new one.");
                 }
                 else
@@ -88,10 +89,10 @@ namespace Publisher
                 Trace("DoPublish: Session processing completed.");
 
                 // update our data
-                Program.NodesToPublish.Add(nodeToPublish);
+                NodesToPublish.Add(nodeToPublish);
 
                 // persist it to disk
-                File.WriteAllText(Program.NodesToPublishAbsFilename, JsonConvert.SerializeObject(Program.NodesToPublish));
+                File.WriteAllText(NodesToPublishAbsFilename, JsonConvert.SerializeObject(NodesToPublish));
 
                 Trace($"DoPublish: Now publishing: {nodeToPublish.ToString()}");
                 return ServiceResult.Good;
@@ -137,7 +138,7 @@ namespace Publisher
             try
             {
                 // find the session we need to monitor the node
-                OpcSession opcSession = Program.OpcSessions.First(s => s.EndpointUri == nodeToUnpublish.EndPointUri);
+                OpcSession opcSession = OpcSessions.First(s => s.EndpointUri == nodeToUnpublish.EndPointUri);
                 if (opcSession == null)
                 {
                     // do nothing if there is no session for this endpoint.
@@ -159,11 +160,11 @@ namespace Publisher
                 Trace("UnPublishNodeMethod: Session processing completed.");
 
                 // remove node from our persisted data set.
-                var itemToRemove = Program.NodesToPublish.Find(l => l.NodeId == nodeToUnpublish.NodeId && l.EndPointUri == nodeToUnpublish.EndPointUri);
-                Program.NodesToPublish.Remove(itemToRemove);
+                var itemToRemove = NodesToPublish.Find(l => l.NodeId == nodeToUnpublish.NodeId && l.EndPointUri == nodeToUnpublish.EndPointUri);
+                NodesToPublish.Remove(itemToRemove);
 
                 // persist data
-                File.WriteAllText(Program.NodesToPublishAbsFilename, JsonConvert.SerializeObject(Program.NodesToPublish));
+                File.WriteAllText(NodesToPublishAbsFilename, JsonConvert.SerializeObject(NodesToPublish));
             }
             catch (Exception e)
             {
@@ -178,7 +179,7 @@ namespace Publisher
         /// </summary>
         private ServiceResult GetListOfPublishedNodesMethod(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
-            outputArguments[0] = JsonConvert.SerializeObject(Program.NodesToPublish);
+            outputArguments[0] = JsonConvert.SerializeObject(NodesToPublish);
             Trace("GetListOfPublishedNodesMethod: Success!");
 
             return ServiceResult.Good;
@@ -200,7 +201,7 @@ namespace Publisher
             timestamp = DateTime.Now;
 
             // read current connection string and compare to the one passed in
-            string currentConnectionString = SecureIoTHubToken.Read(Program.OpcConfiguration.ApplicationName, Program.IotDeviceCertStoreType, Program.IotDeviceCertStorePath);
+            string currentConnectionString = SecureIoTHubToken.Read(OpcConfiguration.ApplicationName, IotDeviceCertStoreType, IotDeviceCertStorePath);
             if (string.Equals(connectionString, currentConnectionString, StringComparison.OrdinalIgnoreCase))
             {
                 Trace("ConnectionStringWrite: Connection string up to date!");
@@ -212,11 +213,7 @@ namespace Publisher
             // configure publisher and write connection string
             try
             {
-                DeviceClient newClient = DeviceClient.CreateFromConnectionString(connectionString, Program.IotHubProtocol);
-                newClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
-                newClient.OpenAsync().Wait();
-                SecureIoTHubToken.Write(Program.OpcConfiguration.ApplicationName, connectionString, Program.IotDeviceCertStoreType, Program.IotDeviceCertStorePath);
-                Program.IotHubClient = newClient;
+                IotHubMessaging.UpdateConnectionString(connectionString);
             }
             catch (Exception e)
             {
