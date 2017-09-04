@@ -13,14 +13,17 @@ namespace Opc.Ua.Workarounds
         /// </summary>
         public static void Trace(string message, params object[] args)
         {
-            Utils.Trace(Utils.TraceMasks.Information, message, args);
-            WriteLine(DateTime.Now.ToString() + ": " + message, args);
+            Utils.Trace(Utils.TraceMasks.Error, message, args);
+            if (VerboseConsole)
+            {
+                WriteLine(DateTime.Now.ToString() + ": " + message, args);
+            }
         }
 
         public static void Trace(int traceMask, string format, params object[] args)
         {
             Utils.Trace(traceMask, format, args);
-            if ((OpcStackTraceMask & traceMask) != 0)
+            if (VerboseConsole && (OpcStackTraceMask & traceMask) != 0)
             {
                 WriteLine(DateTime.Now.ToString() + ": " + format, args);
             }

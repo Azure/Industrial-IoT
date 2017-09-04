@@ -143,7 +143,7 @@ namespace Opc.Ua.Publisher
             _namespaceTable = new NamespaceTable();
         }
 
-        public async Task ConnectAndOrMonitor()
+        public async Task ConnectAndMonitor()
         {
             _opcSessionSemaphore.Wait();
             Trace($"Connect and monitor session and nodes on endpoint '{EndpointUri.AbsoluteUri}'.");

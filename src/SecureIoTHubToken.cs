@@ -21,14 +21,42 @@ namespace IoTHubCredentialTools
 {
     public class SecureIoTHubToken
     {
+        private static string CheckForToken(X509Certificate2 cert, string name)
+        {
+            if ((cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase)) &&
+                (DateTime.Now < cert.NotAfter))
+            {
+                using (RSA rsa = cert.GetRSAPrivateKey())
+                {
+                    if (rsa != null)
+                    {
+                        foreach (System.Security.Cryptography.X509Certificates.X509Extension extension in cert.Extensions)
+                        {
+                            // check for instruction code extension
+                            if ((extension.Oid.Value == "2.5.29.23") && (extension.RawData.Length >= 4))
+                            {
+                                byte[] bytes = new byte[extension.RawData.Length - 4];
+                                Array.Copy(extension.RawData, 4, bytes, 0, bytes.Length);
+                                byte[] token = rsa.Decrypt(bytes, RSAEncryptionPadding.OaepSHA1);
+                                return Encoding.ASCII.GetString(token);
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
         public static string Read(string name, string storeType, string storePath)
         {
+            string token = null;
+
             // handle each store type differently
             switch (storeType)
             {
                 case CertificateStoreType.Directory:
                     {
-                        // load an existing key from a no-expired cert with the subject name passed in from the OS-provided X509Store
+                        // search a non expired cert with the given subject in the directory cert store and return the token
                         using (DirectoryCertificateStore store = new DirectoryCertificateStore())
                         {
                             store.Open(storePath);
@@ -36,64 +64,32 @@ namespace IoTHubCredentialTools
 
                             foreach (X509Certificate2 cert in certificates)
                             {
-                                if ((cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase)) &&
-                                    (DateTime.Now < cert.NotAfter))
+                                if ((token = CheckForToken(cert, name)) != null)
                                 {
-                                    using (RSA rsa = cert.GetRSAPrivateKey())
-                                    {
-                                        if (rsa != null)
-                                        {
-                                            foreach (System.Security.Cryptography.X509Certificates.X509Extension extension in cert.Extensions)
-                                            {
-                                                // check for instruction code extension
-                                                if ((extension.Oid.Value == "2.5.29.23") && (extension.RawData.Length >= 4))
-                                                {
-                                                    byte[] bytes = new byte[extension.RawData.Length - 4];
-                                                    Array.Copy(extension.RawData, 4, bytes, 0, bytes.Length);
-                                                    byte[] token = rsa.Decrypt(bytes, RSAEncryptionPadding.OaepSHA1);
-                                                    return Encoding.ASCII.GetString(token);
-                                                }
-                                            }
-                                        }
-                                    }
+                                    return token;
                                 }
                             }
                         }
                         break;
                     }
+
                 case CertificateStoreType.X509Store:
                     {
-                        // load an existing key from a no-expired cert with the subject name passed in from the OS-provided X509Store
+                        // search a non expired cert with the given subject in the X509 cert store and return the token
                         using (X509Store store = new X509Store(storePath, StoreLocation.CurrentUser))
                         {
                             store.Open(OpenFlags.ReadOnly);
                             foreach (X509Certificate2 cert in store.Certificates)
                             {
-                                if ((cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase)) &&
-                                    (DateTime.Now < cert.NotAfter))
+                                if ((token = CheckForToken(cert, name)) != null)
                                 {
-                                    using (RSA rsa = cert.GetRSAPrivateKey())
-                                    {
-                                        if (rsa != null)
-                                        {
-                                            foreach (System.Security.Cryptography.X509Certificates.X509Extension extension in cert.Extensions)
-                                            {
-                                                // check for instruction code extension
-                                                if ((extension.Oid.Value == "2.5.29.23") && (extension.RawData.Length >= 4))
-                                                {
-                                                    byte[] bytes = new byte[extension.RawData.Length - 4];
-                                                    Array.Copy(extension.RawData, 4, bytes, 0, bytes.Length);
-                                                    byte[] token = rsa.Decrypt(bytes, RSAEncryptionPadding.OaepSHA1);
-                                                    return Encoding.ASCII.GetString(token);
-                                                }
-                                            }
-                                        }
-                                    }
+                                    return token;
                                 }
                             }
                         }
                         break;
                     }
+
                 default:
                     {
                         throw new Exception($"The requested store type '{storeType}' is not supported. Please change.");

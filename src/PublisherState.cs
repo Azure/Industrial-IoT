@@ -83,8 +83,8 @@ namespace Publisher
                 opcSession.AddNodeForMonitoring(nodeToPublish.NodeId);
                 Trace("DoPublish: Requested to monitor item.");
 
-                // do whatever is needed.
-                Task monitorTask = Task.Run(async () => await opcSession.ConnectAndOrMonitor());
+                // start monitoring the node
+                Task monitorTask = Task.Run(async () => await opcSession.ConnectAndMonitor());
                 monitorTask.Wait();
                 Trace("DoPublish: Session processing completed.");
 
@@ -134,7 +134,7 @@ namespace Publisher
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as second argument!");
             }
 
-            // Find the session and stop monitoring the item.
+            // Find the session and stop monitoring the node.
             try
             {
                 // find the session we need to monitor the node
@@ -154,8 +154,8 @@ namespace Publisher
                 opcSession.TagNodeForMonitoringStop(nodeToUnpublish.NodeId);
                 Trace("UnPublishNodeMethod: Requested to stop monitoring of node.");
 
-                // do whatever is needed.
-                Task monitorTask = Task.Run(async () => await opcSession.ConnectAndOrMonitor());
+                // stop monitoring the node
+                Task monitorTask = Task.Run(async () => await opcSession.ConnectAndMonitor());
                 monitorTask.Wait();
                 Trace("UnPublishNodeMethod: Session processing completed.");
 
@@ -213,7 +213,7 @@ namespace Publisher
             // configure publisher and write connection string
             try
             {
-                IotHubMessaging.UpdateConnectionString(connectionString);
+                IotHubMessaging.ConnectionStringWrite(connectionString);
             }
             catch (Exception e)
             {

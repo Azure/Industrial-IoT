@@ -31,6 +31,7 @@ namespace Opc.Ua.Publisher
         public static string NodesToPublishAbsFilenameDefault = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
         public static string NodesToPublishAbsFilename { get; set; }
         public static string ShopfloorDomain { get; set; }
+        public static bool VerboseConsole { get; set; }
 
         //
         // IoTHub related
@@ -58,8 +59,8 @@ namespace Opc.Ua.Publisher
         public static int OpcOperationTimeout = 120000;
         public static bool TrustMyself = true;
         // Enable Utils.TraceMasks.OperationDetail to get output for IoTHub telemetry operations. Current: 0x287 (647), with OperationDetail: 0x2C7 (711)
-        public static int OpcStackTraceMask = Utils.TraceMasks.Error | Utils.TraceMasks.Security | Utils.TraceMasks.StackTrace | Utils.TraceMasks.StartStop | Utils.TraceMasks.Information;
-        public static bool OpcPublisherAutoAccept = false;
+        public static int OpcStackTraceMask = Utils.TraceMasks.Error | Utils.TraceMasks.Security | Utils.TraceMasks.StackTrace | Utils.TraceMasks.StartStop;
+        public static bool OpcPublisherAutoTrustServerCerts = false;
         public static uint OpcSessionCreationTimeout = 10;
         public static uint OpcSessionCreationBackoffMax = 5;
         public static uint OpcKeepAliveDisconnectThreshold = 10;
@@ -132,12 +133,12 @@ namespace Opc.Ua.Publisher
             {
                 var shouldShowHelp = false;
 
-                // these are the available options, not that they set the variables
+                // command line options configuration
                 Mono.Options.OptionSet options = new Mono.Options.OptionSet {
                     // Publishing configuration options
                     { "pf|publishfile=", $"the filename to configure the nodes to publish.\nDefault: '{NodesToPublishAbsFilenameDefault}'", (string p) => NodesToPublishAbsFilename = p },
                     { "sd|shopfloordomain=", $"the domain of the shopfloor. if specified this domain is appended (delimited by a ':' to the 'ApplicationURI' property when telemetry is ingested to IoTHub.\n" +
-                            "The value must follw the syntactical rules of a DNS hostname.\nDefault: not set", (string s) => {
+                            "The value must follow the syntactical rules of a DNS hostname.\nDefault: not set", (string s) => {
                             Regex domainNameRegex = new Regex("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
                             if (domainNameRegex.IsMatch(s))
                             {
@@ -149,7 +150,7 @@ namespace Opc.Ua.Publisher
                             }
                         }
                      },
-                    { "sw|sessionconnectwait=", $"specify the wait time in seconds publisher is trying to connect to disconnected endpoints\nMin: 10\nDefault: {PublisherSessionConnectWaitSec}", (int i) => {
+                    { "sw|sessionconnectwait=", $"specify the wait time in seconds publisher is trying to connect to disconnected endpoints and starts monitoring unmonitored items\nMin: 10\nDefault: {PublisherSessionConnectWaitSec}", (int i) => {
                             if (i > 10)
                             {
                                 PublisherSessionConnectWaitSec = i;
@@ -160,6 +161,7 @@ namespace Opc.Ua.Publisher
                             }
                         }
                     },
+                    { "vc|verboseconsole=", $"the output of publisher is shown on the console.\nDefault: {VerboseConsole}", (bool b) => VerboseConsole = b },
 
                     // IoTHub specific options
                     { "ih|iothubprotocol=", $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}",
@@ -214,7 +216,8 @@ namespace Opc.Ua.Publisher
                             }
                         }
                     },
-                    { "ds|defaultsamplingrate=", $"the sampling rate in millisecond for which monitored nodes should be queried.\nMin: 100\nDefault: {OpcSamplingRateMillisec}", (int i) => {
+                    { "ds|defaultsamplingrate=", $"the sampling interval in milliseconds, the OPC UA servers should use to sample the values of the nodes to publish.\n" +
+                        $"Please check the OPC UA spec for more details.\nMin: 100\nDefault: {OpcSamplingRateMillisec}", (int i) => {
                             if (i >= 100)
                             {
                                 OpcSamplingRateMillisec = i;
@@ -258,7 +261,7 @@ namespace Opc.Ua.Publisher
                             }
                         }
                     },
-                    { "st|opcstacktracemask=", $"the trace mask for the OPC stack. See github OPC .NET stack for definitions.\nTo enable IoTHub telemetry tracing set it to 711. Information mask 0x2 is enforced.\nDefault: {OpcStackTraceMask:X}  ({Program.OpcStackTraceMask})", (int i) => {
+                    { "st|opcstacktracemask=", $"the trace mask for the OPC stack. See github OPC .NET stack for definitions.\nTo enable IoTHub telemetry tracing set it to 711.\nDefault: {OpcStackTraceMask:X}  ({Program.OpcStackTraceMask})", (int i) => {
                             if (i >= 0)
                             {
                                 OpcStackTraceMask = i;
@@ -269,7 +272,7 @@ namespace Opc.Ua.Publisher
                             }
                         }
                     },
-                    { "aa|autoaccept=", $"the publisher accept all servers it is connecting to.\nDefault: {OpcPublisherAutoAccept}", (bool b) => OpcPublisherAutoAccept = b },
+                    { "as|autotrustservercerts=", $"the publisher trusts all servers it is establishing a connection to.\nDefault: {OpcPublisherAutoTrustServerCerts}", (bool b) => OpcPublisherAutoTrustServerCerts = b },
 
                     // trust own public cert option
                     { "tm|trustmyself=", $"the publisher certificate is put into the trusted certificate store automatically.\nDefault: {TrustMyself}", (bool b) => TrustMyself = b },
@@ -418,14 +421,14 @@ namespace Opc.Ua.Publisher
                 }
 
                 // Set certificate validator.
-                if (OpcPublisherAutoAccept)
+                if (OpcPublisherAutoTrustServerCerts)
                 {
-                    Trace("Publisher configured to auto trust server certificates.");
-                    OpcConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_AutoAccept);
+                    Trace("Publisher configured to auto trust server certificates of the servers it is connecting to.");
+                    OpcConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_AutoTrustServerCerts);
                 }
                 else
                 {
-                    Trace("Publisher configured to not auto trust server certificates, but use certificate stores.");
+                    Trace("Publisher configured to not auto trust server certificates. When connecting to servers, you need to manually copy the rejected server certs to the trusted store to trust them.");
                     OpcConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_Default);
                 }
 
@@ -542,11 +545,11 @@ namespace Opc.Ua.Publisher
                 Task.Run( async () => await SessionConnector(cts.Token));
 
                 // stop on user request
-                Trace("");
-                Trace("");
-                Trace("Publisher is running. Press ENTER to quit.");
-                Trace("");
-                Trace("");
+                WriteLine("");
+                WriteLine("");
+                WriteLine("Publisher is running. Press ENTER to quit.");
+                WriteLine("");
+                WriteLine("");
                 ReadLine();
                 cts.Cancel();
 
@@ -595,7 +598,7 @@ namespace Opc.Ua.Publisher
                 try
                 {
                     // get tasks for all disconnected sessions and start them
-                    var singleSessionHandlerTaskList = OpcSessions.Where(p => p.State == OpcSession.SessionState.Disconnected).Select(s => s.ConnectAndOrMonitor());
+                    var singleSessionHandlerTaskList = OpcSessions.Where(p => p.State == OpcSession.SessionState.Disconnected).Select(s => s.ConnectAndMonitor());
                     await Task.WhenAll(singleSessionHandlerTaskList);
                 }
                 catch (Exception e)
@@ -643,13 +646,13 @@ namespace Opc.Ua.Publisher
         }
 
         /// <summary>
-        /// Default certificate validation callback
+        /// Auto trust server certificate validation callback
         /// </summary>
-        private static void CertificateValidator_AutoAccept(CertificateValidator validator, CertificateValidationEventArgs e)
+        private static void CertificateValidator_AutoTrustServerCerts(CertificateValidator validator, CertificateValidationEventArgs e)
         {
             if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
             {
-                Trace($"Certificate '{e.Certificate.Subject}' will be auto accepted.");
+                Trace($"Certificate '{e.Certificate.Subject}' will be trusted, since the autotrustservercerts options was specified.");
                 e.Accept = true;
                 return;
             }

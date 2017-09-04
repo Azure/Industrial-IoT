@@ -27,13 +27,11 @@ namespace Opc.Ua.Publisher
             Configuration.ClientConfiguration = new ClientConfiguration();
             Configuration.ServerConfiguration = new ServerConfiguration();
 
-            // enable logging and enforce information flag
-            Program.OpcStackTraceMask |= Utils.TraceMasks.Information;
+            // initialize stack tracing
             Configuration.TraceConfiguration = new TraceConfiguration()
             {
                 TraceMasks = Program.OpcStackTraceMask
             };
-            // StdOutAndFile is not working correct, due to a bug in the stack. Need to workaround with own Trace for now.
             Utils.SetTraceOutput(Utils.TraceOutput.FileOnly);
             if (string.IsNullOrEmpty(Program.LogFileName))
             {

@@ -34,6 +34,7 @@ namespace Opc.Ua.Publisher
         private ConcurrentQueue<string> _sendQueue;
         private int _currentSizeOfIotHubMessageBytes;
         private List<OpcUaMessage> _messageList;
+        private SemaphoreSlim _messageListSemaphore;
         private uint _maxSizeOfIoTHubMessageBytes;
         private int _defaultSendIntervalSeconds;
         private CancellationTokenSource _tokenSource;
@@ -47,6 +48,7 @@ namespace Opc.Ua.Publisher
             _sendQueue = new ConcurrentQueue<string>();
             _sendQueueEvent = new AutoResetEvent(false);
             _messageList = new List<OpcUaMessage>();
+            _messageListSemaphore = new SemaphoreSlim(1);
             _currentSizeOfIotHubMessageBytes = 0;
         }
 
@@ -141,7 +143,7 @@ namespace Opc.Ua.Publisher
             return true;
         }
 
-        public void UpdateConnectionString(string iotHubOwnerConnectionString)
+        public void ConnectionStringWrite(string iotHubOwnerConnectionString)
         {
             DeviceClient newClient = DeviceClient.CreateFromConnectionString(iotHubOwnerConnectionString, IotHubProtocol);
             newClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
@@ -252,7 +254,9 @@ namespace Opc.Ua.Publisher
                             if (isDequeueSuccessful)
                             {
                                 OpcUaMessage msgPayload = JsonConvert.DeserializeObject<OpcUaMessage>(messageInJson);
+                                _messageListSemaphore.Wait();
                                 _messageList.Add(msgPayload);
+                                _messageListSemaphore.Release();
                                 _currentSizeOfIotHubMessageBytes = _currentSizeOfIotHubMessageBytes + nextMessageSizeBytes;
                                 Trace(Utils.TraceMasks.OperationDetail, $"Added new message with size {nextMessageSizeBytes} to IoTHub message (size is now {_currentSizeOfIotHubMessageBytes}). {_sendQueue.Count} message(s) in send queue.");
 
@@ -283,9 +287,13 @@ namespace Opc.Ua.Publisher
         {
             if (_messageList.Count > 0)
             {
+                // process all queued messages
+                _messageListSemaphore.Wait();
                 string msgListInJson = JsonConvert.SerializeObject(_messageList);
-
                 var encodedMessage = new Microsoft.Azure.Devices.Client.Message(Encoding.UTF8.GetBytes(msgListInJson));
+                _currentSizeOfIotHubMessageBytes = 0;
+                _messageList.Clear();
+                _messageListSemaphore.Release();
 
                 // publish
                 encodedMessage.Properties.Add("content-type", "application/opcua+uajson");
@@ -300,17 +308,13 @@ namespace Opc.Ua.Publisher
                     }
                     else
                     {
-                        Trace("No IoTHub client available ");
+                        Trace("No IoTHub client available. Dropping messages...");
                     }
                 }
                 catch (Exception e)
                 {
-                    Trace(e, "Exception while sending message to IoTHub. Dropping...");
+                    Trace(e, "Exception while sending message to IoTHub. Dropping messages...");
                 }
-
-                // reset IoTHub message size
-                _currentSizeOfIotHubMessageBytes = 0;
-                _messageList.Clear();
             }
 
             // Restart timer
