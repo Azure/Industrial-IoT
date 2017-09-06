@@ -18,7 +18,7 @@ namespace Publisher
     public partial class PublisherState
     {
         /// <summary>
-        /// Called after the class is created
+        /// Called after the class is created.
         /// </summary>
         protected override void OnAfterCreate(ISystemContext context, NodeState node)
         {
@@ -31,7 +31,7 @@ namespace Publisher
         }
 
         /// <summary>
-        /// Method exposed as a node in the server to publish a node to IoT Hub that it is connected to
+        /// Method to start monitoring a node and publish the data to IoTHub.
         /// </summary>
         private ServiceResult PublishNodeMethod(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
@@ -60,13 +60,13 @@ namespace Publisher
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as second argument!");
             }
 
-            // Create session and add item to monitor, what ever is needed.
+            // find/create a session to the endpoint URL and start monitoring the node.
             try
             {
                 // find the session we need to monitor the node
                 OpcSession opcSession = OpcSessions.First(s => s.EndpointUri == nodeToPublish.EndPointUri);
 
-                // Add a new session.
+                // add a new session.
                 if (opcSession == null)
                 {
                     // create new session info.
@@ -79,8 +79,8 @@ namespace Publisher
                     Trace($"DoPublish: Session found for endpoint '{nodeToPublish.EndPointUri.AbsolutePath}'");
                 }
 
-                // add the node info to the sessions monitored items list.
-                opcSession.AddNodeForMonitoring(nodeToPublish.NodeId);
+                // add the node info to the subscription with the default publishing interval
+                opcSession.AddNodeForMonitoring(OpcPublishingInterval, nodeToPublish.NodeId);
                 Trace("DoPublish: Requested to monitor item.");
 
                 // start monitoring the node
@@ -105,7 +105,7 @@ namespace Publisher
         }
 
         /// <summary>
-        /// Method exposed as a node in the server to stop monitoring it and no longer publish telemetry of it.
+        /// Method to remove the node from the subscription and stop publishing telemetry to IoTHub.
         /// </summary>
         private ServiceResult UnPublishNodeMethod(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
@@ -134,7 +134,7 @@ namespace Publisher
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as second argument!");
             }
 
-            // Find the session and stop monitoring the node.
+            // find the session and stop monitoring the node.
             try
             {
                 // find the session we need to monitor the node
@@ -175,7 +175,7 @@ namespace Publisher
         }
 
         /// <summary>
-        /// Method exposed as a node in the server to get a list of published nodes
+        /// Method to get the list of published nodes.
         /// </summary>
         private ServiceResult GetListOfPublishedNodesMethod(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
@@ -186,7 +186,7 @@ namespace Publisher
         }
 
         /// <summary>
-        /// Data node in the server which registers ourselves with IoT Hub when this node is written to
+        /// Data node in the server which registers ourselves with IoT Hub when this node is written.
         /// </summary>
         public ServiceResult ConnectionStringWrite(ISystemContext context, NodeState node, NumericRange indexRange, QualifiedName dataEncoding, ref object value, ref StatusCode statusCode, ref DateTime timestamp)
         {

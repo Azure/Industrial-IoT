@@ -1,8 +1,4 @@
-﻿
-using IoTHubCredentialTools;
-using Microsoft.Azure.Devices;
-using Microsoft.Azure.Devices.Client;
-using Mono.Options;
+﻿using Mono.Options;
 using Newtonsoft.Json;
 using Publisher;
 using System;
@@ -15,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace Opc.Ua.Publisher
 {
+    using static Opc.Ua.Workarounds.TraceWorkaround;
     using System.Text.RegularExpressions;
     using static Opc.Ua.CertificateStoreType;
-    using static Opc.Ua.Workarounds.TraceWorkaround;
     using static System.Console;
 
     public class Program
@@ -63,10 +59,11 @@ namespace Opc.Ua.Publisher
         public static bool OpcPublisherAutoTrustServerCerts = false;
         public static uint OpcSessionCreationTimeout = 10;
         public static uint OpcSessionCreationBackoffMax = 5;
-        public static uint OpcKeepAliveDisconnectThreshold = 10;
-        public static int OpcKeepAliveIntervalInSec = 5;
-        public static int OpcSamplingRateMillisec = 1000;
-        
+        public static uint OpcKeepAliveDisconnectThreshold = 5;
+        public static int OpcKeepAliveIntervalInSec = 2;
+        public static int OpcSamplingInterval = 1000;
+        public static int OpcPublishingInterval = 0;
+
         public static string PublisherServerSecurityPolicy = SecurityPolicies.Basic128Rsa15;
 
         public static string OpcOwnCertStoreType = X509Store;
@@ -216,15 +213,29 @@ namespace Opc.Ua.Publisher
                             }
                         }
                     },
-                    { "ds|defaultsamplingrate=", $"the sampling interval in milliseconds, the OPC UA servers should use to sample the values of the nodes to publish.\n" +
-                        $"Please check the OPC UA spec for more details.\nMin: 100\nDefault: {OpcSamplingRateMillisec}", (int i) => {
-                            if (i >= 100)
+                    { "oi|opcsamplinginterval=", "the publisher is using this as default value in milliseconds to request the servers to sample the nodes with this interval\n" +
+                        "this value might be revised by the OPC UA servers to a supported sampling interval.\n" +
+                        "please check the OPC UA specification for details how this is handled by the OPC UA stack.\n" +
+                        "a negative value will set the sampling interval to the publishing interval of the subscription this node is on.\n" +
+                        $"0 will configure the OPC UA server to sample in the highest possible resolution and should be taken with care.\nDefault: {OpcSamplingInterval}", (int i) => OpcSamplingInterval = i
+                    },
+                    { "op|opcpublishinginterval=", "the publisher is using this as default value in milliseconds for the publishing interval setting of the subscriptions established to the OPC UA servers.\n" +
+                        "please check the OPC UA specification for details how this is handled by the OPC UA stack.\n" +
+                        $"a value less than or equal zero will let the server revise the publishing interval.\nDefault: {OpcPublishingInterval}", (int i) => {
+                            if (i > 0 && i >= OpcSamplingInterval)
                             {
-                                OpcSamplingRateMillisec = i;
+                                OpcPublishingInterval = i;
                             }
                             else
                             {
-                                throw new OptionException("The sampling rate must be larger or equal 100.", "defaultsamplingrate");
+                                if (i <= 0)
+                                {
+                                    OpcPublishingInterval = 0;
+                                }
+                                else
+                                {
+                                    throw new OptionException($"The opcpublishinterval ({i}) must be larger than the opcsamplinginterval ({OpcSamplingInterval}).", "opcpublishinterval");
+                                }
                             }
                         }
                     },
@@ -407,6 +418,7 @@ namespace Opc.Ua.Publisher
 
                 // init OPC configuration and tracing
                 ModuleConfiguration moduleConfiguration = new ModuleConfiguration(ApplicationName);
+                Init(OpcStackTraceMask, VerboseConsole);
                 opcTraceInitialized = true;
                 OpcConfiguration = moduleConfiguration.Configuration;
 
@@ -479,18 +491,30 @@ namespace Opc.Ua.Publisher
                     return;
                 }
 
-                // create a list to manage sessions and monitored items.
+                // ensure all OPC sampling intervals and OPC publishing intervals are set
+                foreach (var node in NodesToPublish)
+                {
+                    node.OpcSamplingInterval = node.OpcSamplingInterval ?? OpcSamplingInterval;
+                    node.OpcPublishingInterval = node.OpcPublishingInterval ?? OpcPublishingInterval;
+                }
+
+                // create a list to manage sessions, subscriptions and monitored items.
                 var uniqueEndpointUris = NodesToPublish.Select(n => n.EndPointUri).Distinct();
                 foreach (var endpointUri in uniqueEndpointUris)
                 {
-                    if (!OpcSessions.Any(s => s.EndpointUri.Equals(endpointUri)))
-                    {
-                        // create new session info.
-                        OpcSession opcSession = new OpcSession(endpointUri, OpcSessionCreationTimeout);
+                    // create new session info.
+                    OpcSession opcSession = new OpcSession(endpointUri, OpcSessionCreationTimeout);
 
-                        // add monitored item info for all nodes to publish for this endpoint URI.
-                        var nodesOnEndpointUri = NodesToPublish.Where(n => n.EndPointUri.Equals(endpointUri));
-                        foreach (var nodeInfo in nodesOnEndpointUri)
+                    // create for all different OPC publishing intervals to this endpoint separate subscriptions
+                    var nodeInfosWithDistinctPublishingInterval = NodesToPublish.Where(n => n.EndPointUri.Equals(endpointUri)).Distinct(new NodePublishingIntervalComparer());
+                    foreach (var nodeInfoWithDistinctPublishingInterval in nodeInfosWithDistinctPublishingInterval)
+                    {
+                        // create a subscription for the publishing interval and add it to the session.
+                        OpcSubscription opcSubscription = new OpcSubscription(nodeInfoWithDistinctPublishingInterval.OpcPublishingInterval);
+
+                        // add all nodes with this OPC publishing interval to this subscription.
+                        var nodeInfosWithSamePublishingInterval = NodesToPublish.Where(n => n.EndPointUri.Equals(endpointUri)).Where(n => n.OpcPublishingInterval == nodeInfoWithDistinctPublishingInterval.OpcPublishingInterval);
+                        foreach (var nodeInfo in nodeInfosWithSamePublishingInterval)
                         {
                             // differentiate if legacy syntax is used
                             if (nodeInfo.NodeId == null)
@@ -501,23 +525,23 @@ namespace Opc.Ua.Publisher
                                     // create a monitored item for each node in the list and set the sampling interval if specified
                                     foreach (var singleExpandedNodeId in nodeInfo.Nodes.ExpandedNodeIds)
                                     {
-                                        MonitoredItemInfo monitoredItemInfo = new MonitoredItemInfo(singleExpandedNodeId, opcSession.EndpointUri);
-                                        if (nodeInfo.Nodes.SamplingInterval != 0)
+                                        OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(singleExpandedNodeId, opcSession.EndpointUri)
                                         {
-                                            monitoredItemInfo.SamplingInterval = nodeInfo.Nodes.SamplingInterval;
-                                        }
-                                        opcSession.MonitoredItemsInfo.Add(monitoredItemInfo);
+                                            RequestedSamplingInterval = (int)nodeInfo.OpcSamplingInterval,
+                                            SamplingInterval = (int)nodeInfo.OpcSamplingInterval
+                                        };
+                                        opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                                     }
                                 }
                                 else
                                 {
                                     // create a monitored item for the node
-                                        MonitoredItemInfo monitoredItemInfo = new MonitoredItemInfo(nodeInfo.ExpandedNodeId, opcSession.EndpointUri);
-                                        if (nodeInfo.SamplingInterval != 0)
-                                        {
-                                            monitoredItemInfo.SamplingInterval = nodeInfo.SamplingInterval;
-                                        }
-                                        opcSession.MonitoredItemsInfo.Add(monitoredItemInfo);
+                                    OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.ExpandedNodeId, opcSession.EndpointUri)
+                                    {
+                                        RequestedSamplingInterval = (int)nodeInfo.OpcSamplingInterval,
+                                        SamplingInterval = (int)nodeInfo.OpcSamplingInterval
+                                    };
+                                    opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                                 }
                             }
                             else
@@ -526,18 +550,21 @@ namespace Opc.Ua.Publisher
                                 Trace($"Please update the syntax of the configuration file and use ExpandedNodeId instead of NodeId property name for node with identifier '{nodeInfo.NodeId.ToString()}' on EndpointUrl '{nodeInfo.EndPointUri}'.");
 
                                 // create a monitored item for the node with the configured or default sampling interval
-                                MonitoredItemInfo monitoredItemInfo = new MonitoredItemInfo(nodeInfo.NodeId, opcSession.EndpointUri);
-                                if (nodeInfo.SamplingInterval != 0)
+                                OpcMonitoredItem monitoredItemInfo = new OpcMonitoredItem(nodeInfo.NodeId, opcSession.EndpointUri)
                                 {
-                                    monitoredItemInfo.SamplingInterval = nodeInfo.SamplingInterval;
-                                }
-                                opcSession.MonitoredItemsInfo.Add(monitoredItemInfo);
+                                    RequestedSamplingInterval = (int)nodeInfo.OpcSamplingInterval,
+                                    SamplingInterval = (int)nodeInfo.OpcSamplingInterval
+                                };
+                                opcSubscription.OpcMonitoredItems.Add(monitoredItemInfo);
                             }
                         }
 
-                        // add the session info.
-                        OpcSessions.Add(opcSession);
+                        // add subscription to session.
+                        opcSession.OpcSubscriptions.Add(opcSubscription);
                     }
+
+                    // add session.
+                    OpcSessions.Add(opcSession);
                 }
 
                 // kick off the task to maintain all sessions
@@ -589,7 +616,7 @@ namespace Opc.Ua.Publisher
         }
 
         /// <summary>
-        /// Checks all sessions configured and try to connect if they are disconnected.
+        /// Kicks of the work horse of the publisher regularily for all sessions.
         /// </summary>
         public static async Task SessionConnector(CancellationToken cancellationtoken)
         {
@@ -598,7 +625,7 @@ namespace Opc.Ua.Publisher
                 try
                 {
                     // get tasks for all disconnected sessions and start them
-                    var singleSessionHandlerTaskList = OpcSessions.Where(p => p.State == OpcSession.SessionState.Disconnected).Select(s => s.ConnectAndMonitor());
+                    var singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitor());
                     await Task.WhenAll(singleSessionHandlerTaskList);
                 }
                 catch (Exception e)
@@ -657,6 +684,5 @@ namespace Opc.Ua.Publisher
                 return;
             }
         }
-
     }
 }

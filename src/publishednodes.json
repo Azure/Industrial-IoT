@@ -1,22 +1,41 @@
 ﻿[
     {
+        // Publisher will request the server at EndpointUrl to sample the node with the OPC sampling interval specified on command line (or the default value: OPC publishing interval)
+        // and the subscription will publish the node value with the OPC publishing interval specified on command line (or the default value: server revised interval).
+        // Publisher will use the default subscription to the OPC UA server to monitor the node.
+        // please consult the OPC UA specification for details on how OPC monitored node sampling interval and OPC subscription publishing interval settings are handled by the OPC UA stack.
+        // the publishing interval of the data to Azure IoTHub is controlled by the command line settings (or the default: publish data to IoTHub at least each 1 second).
+
         // example for an EnpointUrl is: opc.tcp://win10iot:51210/UA/SampleServer
         "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
         "ExpandedNodeId": {
             // the identifier specifies the NamespaceUri and the node identifier in XML notation as specified in Part 6 of the OPC UA specification in the XML Mapping section.
             "Identifier": "nsu=http://opcfoundation.org/UA/;i=2258"
         }
-        // since there is no SamplingInterval specified, the command line parameter or default SamplingInterval is used for the node.
     },
+
+
     {
+        // Publisher will request the server at EndpointUrl to sample the node with the OPC sampling interval specified on command line (or the default value: OPC publishing interval).
+        // Publisher will create a separate subscription to the OPC UA server to monitor the nodes and the OPC publishing interval for this subscription is set to 4000 ms.
+        // if the OPC sampling interval is set to an higher value, Publisher will adjust the OPC publishing interval of the subscription to this value.
+        // please consult the OPC UA specification for details on how OPC monitored node sampling interval and OPC subscription publishing interval settings are handled by the OPC UA stack.
+        // the publishing interval of the data to Azure IoTHub is controlled by the command line settings (or the default: publish data to IoTHub at least each 1 second).
         "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
         "ExpandedNodeId": {
             "Identifier": "nsu=http://opcfoundation.org/UA/;i=2258"
         },
-        // the specifice SamplingInterval is used for the configured node.
-        "SamplingInterval": 4000
+        "OpcPublishingInterval": 4000
     },
+
+
     {
+        // Publisher will request the server at EndpointUrl to sample the node with the OPC sampling interval of 1000 ms
+        // and the subscription will publish the node value with the OPC publishing interval specified on command line (or the default value: server revised interval).
+        // if the OPC publishing interval is set to a lower value, Publisher will adjust the OPC publishing interval of the subscription to the OPC sampling interval value.
+        // Publisher will use the default subscription to the OPC UA server to monitor the node.
+        // please consult the OPC UA specification for details on how OPC monitored node sampling interval and OPC subscription publishing interval settings are handled by the OPC UA stack.
+        // the publishing interval of the data to Azure IoTHub is controlled by the command line settings (or the default: publish data to IoTHub at least each 1 second).
         "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
         "Nodes": {
             "ExpandedNodeIds": [
@@ -24,13 +43,15 @@
                 { "Identifier": "nsu=http://opcfoundation.org/UA/;i=2258" },
                 { "Identifier": "nsu=http://opcfoundation.org/UA/;i=2258" }
             ],
-            // the SamplingInterval is used for all three configured nodes.
-            "SamplingInterval": 2000
+            // the OPC sampling interval is used for all three configured nodes.
+            "OpcSamplingInterval": 1000
         }
     },
+
+
     // the format below is only supported for backward compatibility. you need to ensure that the
-    // OPC UA server on the configured EndpointUrl has the namespaceindex as you expect.
-    // Please use the ExpandedNodeId syntax instead.
+    // OPC UA server on the configured EndpointUrl has the namespaceindex you expect with your configuration.
+    // please use the ExpandedNodeId syntax instead.
     {
         "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
         "NodeId": {

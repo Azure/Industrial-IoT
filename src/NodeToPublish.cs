@@ -5,13 +5,22 @@ using System.Collections.Generic;
 
 namespace Opc.Ua.Publisher
 {
-
+    /// <summary>
+    /// Class describing a list of nodes in the ExpandedNodeId format (using nsu as namespace syntax)
+    /// </summary>
     public class NodesOnEndpoint
     {
         public List<ExpandedNodeId> ExpandedNodeIds;
-        public int SamplingInterval;
+        public int? OpcSamplingInterval;
+        public int? OpcPublishingInterval;
     }
 
+    /// <summary>
+    /// Class describing the nodes which should be published. It supports three formats:
+    /// - NodeId syntax using the namespace index (ns) syntax
+    /// - ExpandedNodeId syntax, using the namespace URI (nsu) syntax
+    /// - List of ExpandedNodeId syntax, to allow putting nodes with similar publishing and/or sampling intervals in one object
+    /// </summary>
     public partial class NodeToPublish
     {
         public NodeToPublish()
@@ -25,14 +34,38 @@ namespace Opc.Ua.Publisher
         }
 
         [JsonProperty("EndpointUrl")]
-        public Uri EndPointUri { get; set; }
+        public Uri EndPointUri;
 
-        public ExpandedNodeId ExpandedNodeId { get; set; }
+        public bool ShouldGiveUp;
 
-        public NodeId NodeId { get; set; }
+        public ExpandedNodeId ExpandedNodeId;
 
-        public int SamplingInterval { get; set; }
+        public NodeId NodeId;
 
-        public NodesOnEndpoint Nodes { get; set; }
+        public int? OpcSamplingInterval;
+        public int? OpcPublishingInterval;
+        public NodesOnEndpoint Nodes;
+    }
+
+    /// <summary>
+    /// Comparer using the publishing interval as comparison element. Used to identify nodes to put on the same subscription.
+    /// </summary>
+    class NodePublishingIntervalComparer : IEqualityComparer<NodeToPublish>
+    {
+        public bool Equals(NodeToPublish n1, NodeToPublish n2)
+        {
+            if (n1.OpcPublishingInterval == null || n2.OpcPublishingInterval == null)
+            {
+                throw new Exception("Please make sure that the OpcPublishingInverval value is set for all nodes.");
+            }
+            if (n1.OpcPublishingInterval == n2.OpcPublishingInterval)
+                return true;
+            return false;
+        }
+
+        public int GetHashCode(NodeToPublish n)
+        {
+            return n.GetHashCode();
+        }
     }
 }

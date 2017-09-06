@@ -21,6 +21,10 @@ namespace IoTHubCredentialTools
 {
     public class SecureIoTHubToken
     {
+        /// <summary>
+        /// Validates the cert and extracts the token from the cert.
+        /// </summary>
+        /// <returns></returns>
         private static string CheckForToken(X509Certificate2 cert, string name)
         {
             if ((cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase)) &&
@@ -47,6 +51,10 @@ namespace IoTHubCredentialTools
             return null;
         }
 
+        /// <summary>
+        /// Returns the token from the cert in the given cert store.
+        /// </summary>
+        /// <returns></returns>
         public static string Read(string name, string storeType, string storePath)
         {
             string token = null;
@@ -98,6 +106,9 @@ namespace IoTHubCredentialTools
             return null;
         }
 
+        /// <summary>
+        /// Creates a cert with the connectionstring (token) and stores it in the given cert store.
+        /// </summary>
         public static void Write(string name, string connectionString, string storeType, string storePath)
         {
             if (string.IsNullOrEmpty(connectionString))
@@ -227,6 +238,10 @@ namespace IoTHubCredentialTools
             }
         }
 
+        /// <summary>
+        /// Creates a X509 cert from a PKCS512 raw data stream.
+        /// </summary>
+        /// <returns></returns>
         private static X509Certificate2 CreateCertificateFromPKCS12(byte[] rawData, string password)
         {
             Exception ex = null;

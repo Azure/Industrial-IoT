@@ -4,17 +4,35 @@ using static System.Console;
 
 namespace Opc.Ua.Workarounds
 {
-    using static Opc.Ua.Publisher.Program;
-
+    /// <summary>
+    /// Class to enable output to the console.
+    /// </summary>
     public static class TraceWorkaround
     {
+        private static int _opcStackTraceMask;
+        private static bool _verboseConsole;
+
+        public static void Init(int opcStackTraceMask, bool verboseConsole)
+        {
+            _opcStackTraceMask = opcStackTraceMask;
+            _verboseConsole = verboseConsole;
+        }
         /// <summary>
         /// Trace message helper
         /// </summary>
+        public static void Trace(string message)
+        {
+            Utils.Trace(Utils.TraceMasks.Error, message);
+            if (_verboseConsole)
+            {
+                WriteLine(DateTime.Now.ToString() + ": " + message);
+            }
+        }
+
         public static void Trace(string message, params object[] args)
         {
             Utils.Trace(Utils.TraceMasks.Error, message, args);
-            if (VerboseConsole)
+            if (_verboseConsole)
             {
                 WriteLine(DateTime.Now.ToString() + ": " + message, args);
             }
@@ -23,7 +41,7 @@ namespace Opc.Ua.Workarounds
         public static void Trace(int traceMask, string format, params object[] args)
         {
             Utils.Trace(traceMask, format, args);
-            if (VerboseConsole && (OpcStackTraceMask & traceMask) != 0)
+            if (_verboseConsole && (_opcStackTraceMask & traceMask) != 0)
             {
                 WriteLine(DateTime.Now.ToString() + ": " + format, args);
             }

@@ -53,11 +53,14 @@ namespace Opc.Ua.Publisher
             Trace($"Log file is: {Utils.GetAbsoluteFilePath(Configuration.TraceConfiguration.OutputFilePath, true, false, false, true)}");
             Trace($"opcstacktracemask set to: 0x{Program.OpcStackTraceMask:X} ({Program.OpcStackTraceMask})");
 
-            Configuration.SecurityConfiguration = new SecurityConfiguration();
-
-            // Trusted cert store configuration.
-            Configuration.SecurityConfiguration.TrustedPeerCertificates = new CertificateTrustList();
-            Configuration.SecurityConfiguration.TrustedPeerCertificates.StoreType = Program.OpcTrustedCertStoreType;
+            Configuration.SecurityConfiguration = new SecurityConfiguration()
+            {
+                // Trusted cert store configuration.
+                TrustedPeerCertificates = new CertificateTrustList()
+                {
+                    StoreType = Program.OpcTrustedCertStoreType
+                }
+            };
             if (string.IsNullOrEmpty(Program.OpcTrustedCertStorePath))
             {
                 // Set default.
@@ -76,16 +79,20 @@ namespace Opc.Ua.Publisher
             Trace($"Trusted Peer Certificate store path is: {Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
 
             // Trusted issuer cert store configuration.
-            Configuration.SecurityConfiguration.TrustedIssuerCertificates = new CertificateTrustList();
-            Configuration.SecurityConfiguration.TrustedIssuerCertificates.StoreType = Program.OpcIssuerCertStoreType;
-            Configuration.SecurityConfiguration.TrustedIssuerCertificates.StorePath = Program.OpcIssuerCertStorePath;
+            Configuration.SecurityConfiguration.TrustedIssuerCertificates = new CertificateTrustList()
+            {
+                StoreType = Program.OpcIssuerCertStoreType,
+                StorePath = Program.OpcIssuerCertStorePath
+            };
             Trace($"Trusted Issuer store type is: {Configuration.SecurityConfiguration.TrustedIssuerCertificates.StoreType}");
             Trace($"Trusted Issuer Certificate store path is: {Configuration.SecurityConfiguration.TrustedIssuerCertificates.StorePath}");
 
             // Rejected cert store configuration.
-            Configuration.SecurityConfiguration.RejectedCertificateStore = new CertificateTrustList();
-            Configuration.SecurityConfiguration.RejectedCertificateStore.StoreType = Program.OpcRejectedCertStoreType;
-            Configuration.SecurityConfiguration.RejectedCertificateStore.StorePath = Program.OpcRejectedCertStorePath;
+            Configuration.SecurityConfiguration.RejectedCertificateStore = new CertificateTrustList()
+            {
+                StoreType = Program.OpcRejectedCertStoreType,
+                StorePath = Program.OpcRejectedCertStorePath
+            };
             Trace($"Rejected certificate store type is: {Configuration.SecurityConfiguration.RejectedCertificateStore.StoreType}");
             Trace($"Rejected Certificate store path is: {Configuration.SecurityConfiguration.RejectedCertificateStore.StorePath}");
 
