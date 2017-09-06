@@ -1,10 +1,40 @@
 ﻿[
-  {
-    "EndpointUrl": "opc.tcp://myopcservername:51210/UA/SampleServer",
-    "NodeId": { "Identifier": "ns=1;i=123" }
-  },
-  {
-    "EndpointUrl": "opc.tcp://myopcservername:51210/UA/SampleServer",
-    "NodeId": { "Identifier": "ns=2;i=456" }
-  }
+    {
+        // example for an EnpointUrl is: opc.tcp://win10iot:51210/UA/SampleServer
+        "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
+        "ExpandedNodeId": {
+            // the identifier specifies the NamespaceUri and the node identifier in XML notation as specified in Part 6 of the OPC UA specification in the XML Mapping section.
+            "Identifier": "nsu=http://opcfoundation.org/UA/;i=2258"
+        }
+        // since there is no SamplingInterval specified, the command line parameter or default SamplingInterval is used for the node.
+    },
+    {
+        "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
+        "ExpandedNodeId": {
+            "Identifier": "nsu=http://opcfoundation.org/UA/;i=2258"
+        },
+        // the specifice SamplingInterval is used for the configured node.
+        "SamplingInterval": 4000
+    },
+    {
+        "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
+        "Nodes": {
+            "ExpandedNodeIds": [
+                { "Identifier": "nsu=http://opcfoundation.org/UA/;i=2258" },
+                { "Identifier": "nsu=http://opcfoundation.org/UA/;i=2258" },
+                { "Identifier": "nsu=http://opcfoundation.org/UA/;i=2258" }
+            ],
+            // the SamplingInterval is used for all three configured nodes.
+            "SamplingInterval": 2000
+        }
+    },
+    // the format below is only supported for backward compatibility. you need to ensure that the
+    // OPC UA server on the configured EndpointUrl has the namespaceindex as you expect.
+    // Please use the ExpandedNodeId syntax instead.
+    {
+        "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
+        "NodeId": {
+            "Identifier": "ns=0;i=2258"
+        }
+    }
 ]

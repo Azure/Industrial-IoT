@@ -18,7 +18,7 @@ namespace Publisher
         {
             ServerProperties properties = new ServerProperties();
             properties.ManufacturerName = "Contoso";
-            properties.ProductName      = "OPC UA Factory Publisher";
+            properties.ProductName      = "IoT Edge OPC Publisher";
             properties.ProductUri       = "";
             properties.SoftwareVersion  = Utils.GetAssemblySoftwareVersion();
             properties.BuildNumber      = Utils.GetAssemblyBuildNumber();

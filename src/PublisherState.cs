@@ -3,15 +3,18 @@ using IoTHubCredentialTools;
 using Microsoft.Azure.Devices.Client;
 using Newtonsoft.Json;
 using Opc.Ua;
-using Opc.Ua.Client;
 using Opc.Ua.Publisher;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace Publisher
 {
+    using System.Threading.Tasks;
+    using static Opc.Ua.Utils;
+    using static Program;
+
     public partial class PublisherState
     {
         /// <summary>
@@ -34,202 +37,141 @@ namespace Publisher
         {
             if (inputArguments[0] == null || inputArguments[1] == null)
             {
-                Program.Trace("PublishNodeMethod: Invalid Arguments!");
+                Trace("PublishNodeMethod: Invalid Arguments!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments!");
             }
 
-            string nodeID = inputArguments[0] as string;
-            string uri = inputArguments[1] as string;
-            if (string.IsNullOrEmpty(nodeID) || string.IsNullOrEmpty(uri))
+            NodeToPublish nodeToPublish;
+            string nodeId = inputArguments[0] as string;
+            string endpointUrl = inputArguments[1] as string;
+            if (string.IsNullOrEmpty(nodeId) || string.IsNullOrEmpty(endpointUrl))
             {
-                Program.Trace("PublishNodeMethod: Arguments are not valid strings!");
+                Trace($"PublishNodeMethod: Arguments (0 (nodeId): '{nodeId}', 1 (endpointUrl):'{endpointUrl}') are not valid strings!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments as strings!");
             }
 
-            NodeLookup lookup = new NodeLookup();
-            lookup.NodeID = new NodeId(nodeID);
             try
             {
-                lookup.EndPointURL = new Uri(uri);
+                nodeToPublish = new NodeToPublish(nodeId, endpointUrl);
             }
             catch (UriFormatException)
             {
-                Program.Trace("PublishNodeMethod: Invalid endpoint URL!");
+                Trace($"PublishNodeMethod: The endpointUrl is invalid (0 (nodeId): '{nodeId}', 1 (endpointUrl):'{endpointUrl}')!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as second argument!");
             }
 
-            // create session, if it doesn't exist already and complete asynchonourly (do to thread dependencies in the UA stack)
-            if (!Program.m_endpointUrls.Contains(lookup.EndPointURL))
-            {
-                try
-                {
-                    Task.Run(() =>
-                    {
-                        Program.Trace("PublishNodeMethod: Session not found, creating one for " + lookup.EndPointURL);
-                        Program.EndpointConnect(lookup.EndPointURL).Wait();
-                        Program.Trace("PublishNodeMethod: Session created.");
-
-                        return DoPublish(lookup);
-                    });
-
-                    return ServiceResult.Create(StatusCodes.GoodCompletesAsynchronously, "Publishing takes a while, please be patient!");
-                }
-                catch (Exception ex)
-                {
-                    Program.Trace("PublishNodeMethod: Exception: " + ex.ToString());
-                    return ServiceResult.Create(ex, StatusCodes.BadUnexpectedError, "Unexpected error publishing node: " + ex.Message);
-                }
-            }
-            else
-            {
-                // complete synchonoursly
-                return DoPublish(lookup);
-            }
-        }
-
-        /// <summary>
-        /// Publishes a single Nodelookup
-        /// </summary>
-        private ServiceResult DoPublish(NodeLookup lookup)
-        {
+            // Create session and add item to monitor, what ever is needed.
             try
             {
-                // find the right session using our lookup
-                Session matchingSession = null;
-                foreach (Session session in Program.m_sessions)
+                // find the session we need to monitor the node
+                OpcSession opcSession = OpcSessions.First(s => s.EndpointUri == nodeToPublish.EndPointUri);
+
+                // Add a new session.
+                if (opcSession == null)
                 {
-                    char[] trimChars = { '/', ' ' };
-                    if (session.Endpoint.EndpointUrl.TrimEnd(trimChars).StartsWith(lookup.EndPointURL.ToString().TrimEnd(trimChars), StringComparison.OrdinalIgnoreCase))
-                    {
-                        lookup.EndPointURL = new Uri(session.Endpoint.EndpointUrl);
-                        matchingSession = session;
-                        break;
-                    }
+                    // create new session info.
+                    opcSession = new OpcSession(nodeToPublish.EndPointUri, OpcSessionCreationTimeout);
+                    OpcSessions.Add(opcSession);
+                    Trace($"DoPublish: No matching session found for endpoint '{nodeToPublish.EndPointUri.AbsolutePath}'. Requested to create a new one.");
+                }
+                else
+                {
+                    Trace($"DoPublish: Session found for endpoint '{nodeToPublish.EndPointUri.AbsolutePath}'");
                 }
 
-                if (matchingSession == null)
-                {
-                    Program.Trace("PublishNodeMethod: No matching session found for " + lookup.EndPointURL.ToString());
-                    return ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session for published node not found!");
-                }
-                Program.Trace("PublishNodeMethod: Session found.");
+                // add the node info to the sessions monitored items list.
+                opcSession.AddNodeForMonitoring(nodeToPublish.NodeId);
+                Trace("DoPublish: Requested to monitor item.");
 
-
-                // check if the node has already been published
-                foreach (MonitoredItem item in matchingSession.DefaultSubscription.MonitoredItems)
-                {
-                    if (item.StartNodeId == lookup.NodeID)
-                    {
-                        Program.Trace("PublishNodeMethod: Node ID has already been published " + lookup.NodeID.ToString());
-                        return ServiceResult.Create(StatusCodes.BadNodeIdExists, "Node has already been published!");
-                    }
-                }
-
-                // subscribe to the node
-                Program.CreateMonitoredItem(lookup);
-                Program.Trace("PublishNodeMethod: Monitored item created.");
+                // start monitoring the node
+                Task monitorTask = Task.Run(async () => await opcSession.ConnectAndMonitor());
+                monitorTask.Wait();
+                Trace("DoPublish: Session processing completed.");
 
                 // update our data
-                Program.m_nodesLookups.Add(lookup);
-                if (!Program.m_endpointUrls.Contains(lookup.EndPointURL))
-                {
-                    Program.m_endpointUrls.Add(lookup.EndPointURL);
-                }
+                NodesToPublish.Add(nodeToPublish);
 
-                //serialize Program.m_nodesLookups to disk
-                string publishedNodesFilePath = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "publishednodes.json";
-                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_PNFP")))
-                {
-                    publishedNodesFilePath = Environment.GetEnvironmentVariable("_GW_PNFP");
-                }
-                File.WriteAllText(publishedNodesFilePath, JsonConvert.SerializeObject(Program.m_nodesLookups));
+                // persist it to disk
+                File.WriteAllText(NodesToPublishAbsFilename, JsonConvert.SerializeObject(NodesToPublish));
 
-                Program.Trace("PublishNodeMethod: Successful publish: " + lookup.ToString());
+                Trace($"DoPublish: Now publishing: {nodeToPublish.ToString()}");
                 return ServiceResult.Good;
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Program.Trace("PublishNodeMethod: Exception: " + ex.ToString());
-                return ServiceResult.Create(ex, StatusCodes.BadUnexpectedError, "Unexpected error publishing node: " + ex.Message);
+                Trace(e, $"DoPublish: Exception while trying to configure publishing node '{nodeToPublish.ToString()}'");
+                return ServiceResult.Create(e, StatusCodes.BadUnexpectedError, $"Unexpected error publishing node: {e.Message}");
             }
         }
 
         /// <summary>
-        /// Method exposed as a node in the server to un-publish a node from IoT Hub that it is connected to
+        /// Method exposed as a node in the server to stop monitoring it and no longer publish telemetry of it.
         /// </summary>
         private ServiceResult UnPublishNodeMethod(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
             if (inputArguments[0] == null || inputArguments[1] == null)
             {
-                Program.Trace("UnPublishNodeMethod: Invalid arguments!");
+                Trace("UnPublishNodeMethod: Invalid arguments!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments!");
             }
 
-            string nodeID = inputArguments[0] as string;
-            string uri = inputArguments[1] as string;
-            if (string.IsNullOrEmpty(nodeID) || string.IsNullOrEmpty(uri))
+            string nodeId = inputArguments[0] as string;
+            string endpointUrl = inputArguments[1] as string;
+            if (string.IsNullOrEmpty(nodeId) || string.IsNullOrEmpty(endpointUrl))
             {
-                Program.Trace("UnPublishNodeMethod: Arguments are not valid strings!");
+                Trace($"UnPublishNodeMethod: Arguments (0 (nodeId): '{nodeId}', 1 (endpointUrl):'{endpointUrl}') are not valid strings!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments as strings!");
             }
 
-            NodeLookup lookup = new NodeLookup();
-            lookup.NodeID = new NodeId(nodeID);
+            NodeToPublish nodeToUnpublish = new NodeToPublish();
             try
             {
-                lookup.EndPointURL = new Uri(uri);
+                nodeToUnpublish = new NodeToPublish(nodeId, endpointUrl);
             }
             catch (UriFormatException)
             {
-                Program.Trace("UnPublishNodeMethod: Invalid endpoint URL!");
+                Trace($"UnPublishNodeMethod: The endpointUrl is invalid (0 (nodeId): '{nodeId}', 1 (endpointUrl):'{endpointUrl}')!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as second argument!");
             }
-            
-            // find the right session using our lookup
-            Session matchingSession = null;
-            foreach (Session session in Program.m_sessions)
+
+            // Find the session and stop monitoring the node.
+            try
             {
-                char[] trimChars = { '/', ' ' };
-                if (session.Endpoint.EndpointUrl.TrimEnd(trimChars).Equals(lookup.EndPointURL.ToString().TrimEnd(trimChars), StringComparison.OrdinalIgnoreCase))
+                // find the session we need to monitor the node
+                OpcSession opcSession = OpcSessions.First(s => s.EndpointUri == nodeToUnpublish.EndPointUri);
+                if (opcSession == null)
                 {
-                    matchingSession = session;
-                    break;
+                    // do nothing if there is no session for this endpoint.
+                    Trace($"UnPublishNodeMethod: Session for endpoint '{nodeToUnpublish.EndPointUri.AbsolutePath}' not found.");
+                    return ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session for endpoint of published node not found!");
                 }
-            }
-
-            if (matchingSession == null)
-            {
-                Program.Trace("UnPublishNodeMethod: Session for published node not found: " + lookup.EndPointURL.ToString());
-                return ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session for published node not found!");
-            }
-
-            // find the right monitored item to remove
-            foreach (MonitoredItem item in matchingSession.DefaultSubscription.MonitoredItems)
-            {
-                if (item.StartNodeId == lookup.NodeID)
+                else
                 {
-                    matchingSession.DefaultSubscription.RemoveItem(item);
-                    Program.Trace("UnPublishNodeMethod: Successful unpublish: " + lookup.NodeID.ToString());
-
-                    // update our data on success only
-                    // we keep the session to the server, as there may be other nodes still published on it
-                    var itemToRemove = Program.m_nodesLookups.Find(l => l.NodeID == lookup.NodeID && l.EndPointURL == lookup.EndPointURL);
-                    Program.m_nodesLookups.Remove(itemToRemove);
-
-                    //serialize Program.m_nodesLookups to disk
-                    string publishedNodesFilePath = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "publishednodes.json";
-                    if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_PNFP")))
-                    {
-                        publishedNodesFilePath = Environment.GetEnvironmentVariable("_GW_PNFP");
-                    }
-                    File.WriteAllText(publishedNodesFilePath, JsonConvert.SerializeObject(Program.m_nodesLookups));
-
-                    return ServiceResult.Good;
+                    Trace($"UnPublishNodeMethod: Session found for endpoint '{nodeToUnpublish.EndPointUri.AbsolutePath}'");
                 }
-            }
 
-            Program.Trace("UnPublishNodeMethod: Monitored item for node ID not found " + lookup.NodeID.ToString());
-            return ServiceResult.Create(StatusCodes.BadNodeIdInvalid, "Monitored item for node ID not found!");
+                // remove the node from the sessions monitored items list.
+                opcSession.TagNodeForMonitoringStop(nodeToUnpublish.NodeId);
+                Trace("UnPublishNodeMethod: Requested to stop monitoring of node.");
+
+                // stop monitoring the node
+                Task monitorTask = Task.Run(async () => await opcSession.ConnectAndMonitor());
+                monitorTask.Wait();
+                Trace("UnPublishNodeMethod: Session processing completed.");
+
+                // remove node from our persisted data set.
+                var itemToRemove = NodesToPublish.Find(l => l.NodeId == nodeToUnpublish.NodeId && l.EndPointUri == nodeToUnpublish.EndPointUri);
+                NodesToPublish.Remove(itemToRemove);
+
+                // persist data
+                File.WriteAllText(NodesToPublishAbsFilename, JsonConvert.SerializeObject(NodesToPublish));
+            }
+            catch (Exception e)
+            {
+                Trace(e, $"DoPublish: Exception while trying to configure publishing node '{nodeToUnpublish.ToString()}'");
+                return ServiceResult.Create(e, StatusCodes.BadUnexpectedError, $"Unexpected error publishing node: {e.Message}");
+            }
+            return ServiceResult.Good;
         }
 
         /// <summary>
@@ -237,8 +179,8 @@ namespace Publisher
         /// </summary>
         private ServiceResult GetListOfPublishedNodesMethod(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
-            outputArguments[0] = JsonConvert.SerializeObject(Program.m_nodesLookups);
-            Program.Trace("GetListOfPublishedNodesMethod: Success!");
+            outputArguments[0] = JsonConvert.SerializeObject(NodesToPublish);
+            Trace("GetListOfPublishedNodesMethod: Success!");
 
             return ServiceResult.Good;
         }
@@ -251,7 +193,7 @@ namespace Publisher
             var connectionString = value as string;
             if (string.IsNullOrEmpty(connectionString))
             {
-                Program.Trace("ConnectionStringWrite: Invalid Argument!");
+                Trace("ConnectionStringWrite: Invalid Argument!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments as strings!");
             }
 
@@ -259,33 +201,29 @@ namespace Publisher
             timestamp = DateTime.Now;
 
             // read current connection string and compare to the one passed in
-            string currentConnectionString = SecureIoTHubToken.Read(Program.m_configuration.ApplicationName);
+            string currentConnectionString = SecureIoTHubToken.Read(OpcConfiguration.ApplicationName, IotDeviceCertStoreType, IotDeviceCertStorePath);
             if (string.Equals(connectionString, currentConnectionString, StringComparison.OrdinalIgnoreCase))
             {
-                Program.Trace("ConnectionStringWrite: Connection string up to date!");
+                Trace("ConnectionStringWrite: Connection string up to date!");
                 return ServiceResult.Create(StatusCodes.Bad, "Connection string already up-to-date!");
             }
 
-            Program.Trace("Attemping to configure publisher with connection string: " + connectionString);
+            Trace($"ConnectionStringWrite: Attempting to configure publisher with connection string: {connectionString}");
            
             // configure publisher and write connection string
             try
             {
-                DeviceClient newClient = DeviceClient.CreateFromConnectionString(connectionString, Microsoft.Azure.Devices.Client.TransportType.Mqtt);
-                newClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
-                newClient.OpenAsync().Wait();
-                SecureIoTHubToken.Write(Program.m_configuration.ApplicationName, connectionString);
-                Program.m_deviceClient = newClient;
+                IotHubMessaging.ConnectionStringWrite(connectionString);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
                 statusCode = StatusCodes.Bad;
-                Program.Trace("ConnectionStringWrite: Exception: " + ex.ToString());
-                return ServiceResult.Create(StatusCodes.Bad, "Publisher registration failed: " + ex.Message);
+                Trace(e, $"ConnectionStringWrite: Exception while trying to create IoTHub client and store device connection string in cert store");
+                return ServiceResult.Create(StatusCodes.Bad, "Publisher registration failed: " + e.Message);
             }
             
             statusCode = StatusCodes.Good;
-            Program.Trace("ConnectionStringWrite: Success!");
+            Trace("ConnectionStringWrite: Success!");
 
             return statusCode;
         }

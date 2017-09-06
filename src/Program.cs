@@ -2,542 +2,659 @@
 using IoTHubCredentialTools;
 using Microsoft.Azure.Devices;
 using Microsoft.Azure.Devices.Client;
+using Mono.Options;
 using Newtonsoft.Json;
-using Opc.Ua.Client;
 using Publisher;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
-
+using System.Threading.Tasks;
 
 namespace Opc.Ua.Publisher
 {
+    using System.Text.RegularExpressions;
+    using static Opc.Ua.CertificateStoreType;
+    using static Opc.Ua.Workarounds.TraceWorkaround;
+    using static System.Console;
+
     public class Program
     {
-        public static ApplicationConfiguration m_configuration = null;
-        public static List<Session> m_sessions = new List<Session>();
-        public static PublishedNodesCollection m_nodesLookups = new PublishedNodesCollection();
-        public static List<Uri> m_endpointUrls = new List<Uri>();
-        public static string m_applicationName = string.Empty;
-        public static DeviceClient m_deviceClient = null;
-        private static ConcurrentQueue<string> m_sendQueue = new ConcurrentQueue<string>();
-        private const uint m_maxSizeOfIoTHubMessageBytes = 4096;
-        private const int m_defaultSendIntervalInMilliSeconds = 1000;
-        private static int m_currentSizeOfIoTHubMessageBytes = 0;
-        private static List<OpcUaMessage> m_messageList = new List<OpcUaMessage>();
-        private static PublisherServer m_server = new PublisherServer();
+        //
+        // Publisher app related
+        //
+        public static int PublisherSessionConnectWaitSec = 10;
+        public static List<OpcSession> OpcSessions = new List<OpcSession>();
+        public static List<NodeToPublish> NodesToPublish = new List<NodeToPublish>();
+        public static string NodesToPublishAbsFilenameDefault = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
+        public static string NodesToPublishAbsFilename { get; set; }
+        public static string ShopfloorDomain { get; set; }
+        public static bool VerboseConsole { get; set; }
+
+        //
+        // IoTHub related
+        //
+        private static string _IotHubOwnerConnectionString { get; set; }
+        public static Microsoft.Azure.Devices.Client.TransportType IotHubProtocol { get; set; } = Microsoft.Azure.Devices.Client.TransportType.Mqtt;
+        public static IotHubMessaging IotHubMessaging;
+        private static uint _MaxSizeOfIoTHubMessageBytes { get; set; } = 4096;
+        private static int _DefaultSendIntervalSeconds { get; set; } = 1;
+
+        public static string IotDeviceCertStoreType { get; set; } = X509Store;
+        private const string _iotDeviceCertDirectoryStorePathDefault = "CertificateStores/IoTHub";
+        private const string _iotDeviceCertX509StorePathDefault = "IoTHub";
+        public static string IotDeviceCertStorePath { get; set; } = _iotDeviceCertX509StorePathDefault;
+
+        //
+        // OPC component related
+        //
+        public static ApplicationConfiguration OpcConfiguration = null;
+        public static string ApplicationName;
+        public static string LogFileName;
+        public static ushort PublisherServerPort = 62222;
+        public static string PublisherServerPath = "/UA/Publisher";
+        public static int LdsRegistrationInterval = 0;
+        public static int OpcOperationTimeout = 120000;
+        public static bool TrustMyself = true;
+        // Enable Utils.TraceMasks.OperationDetail to get output for IoTHub telemetry operations. Current: 0x287 (647), with OperationDetail: 0x2C7 (711)
+        public static int OpcStackTraceMask = Utils.TraceMasks.Error | Utils.TraceMasks.Security | Utils.TraceMasks.StackTrace | Utils.TraceMasks.StartStop;
+        public static bool OpcPublisherAutoTrustServerCerts = false;
+        public static uint OpcSessionCreationTimeout = 10;
+        public static uint OpcSessionCreationBackoffMax = 5;
+        public static uint OpcKeepAliveDisconnectThreshold = 10;
+        public static int OpcKeepAliveIntervalInSec = 5;
+        public static int OpcSamplingRateMillisec = 1000;
+        
+        public static string PublisherServerSecurityPolicy = SecurityPolicies.Basic128Rsa15;
+
+        public static string OpcOwnCertStoreType = X509Store;
+        private const string _opcOwnCertDirectoryStorePathDefault = "CertificateStores/own";
+        private const string _opcOwnCertX509StorePathDefault = "CurrentUser\\UA_MachineDefault";
+        public static string OpcOwnCertStorePath = _opcOwnCertX509StorePathDefault;
+
+        public static string OpcTrustedCertStoreType = Directory;
+        public static string OpcTrustedCertDirectoryStorePathDefault = "CertificateStores/UA Applications";
+        public static string OpcTrustedCertX509StorePathDefault = "CurrentUser\\UA_MachineDefault";
+        public static string OpcTrustedCertStorePath = null;
+
+        public static string OpcRejectedCertStoreType = Directory;
+        private const string _opcRejectedCertDirectoryStorePathDefault = "CertificateStores/Rejected Certificates";
+        private const string _opcRejectedCertX509StorePathDefault = "CurrentUser\\UA_MachineDefault";
+        public static string OpcRejectedCertStorePath = _opcRejectedCertDirectoryStorePathDefault;
+
+        public static string OpcIssuerCertStoreType = Directory;
+        private const string _opcIssuerCertDirectoryStorePathDefault = "CertificateStores/UA Certificate Authorities";
+        private const string _opcIssuerCertX509StorePathDefault = "CurrentUser\\UA_MachineDefault";
+        public static string OpcIssuerCertStorePath = _opcIssuerCertDirectoryStorePathDefault;
+
 
         /// <summary>
-        /// Trace message helper
+        /// Usage message.
         /// </summary>
-        public static void Trace(string message, params object[] args)
+        private static void Usage(Mono.Options.OptionSet options)
         {
-            Utils.Trace(Utils.TraceMasks.Error, message, args);
-            Console.WriteLine(DateTime.Now.ToString() + ": " + message, args);
-        }
 
-        public static void Trace(int traceMask, string format, params object[] args)
-        {
-            Utils.Trace(traceMask, format, args);
-            Console.WriteLine(DateTime.Now.ToString() + ": " + format, args);
-        }
-
-        public static void Trace(Exception e, string format, params object[] args)
-        {
-            Utils.Trace(e, format, args);
-            Console.WriteLine(DateTime.Now.ToString() + ": " + e.Message.ToString());
-            Console.WriteLine(DateTime.Now.ToString() + ": " + format, args);
+            // show usage
+            WriteLine();
+            WriteLine("Usage: {0}.exe applicationname [iothubconnectionstring] [options]", Assembly.GetEntryAssembly().GetName().Name);
+            WriteLine();
+            WriteLine("OPC Edge Publisher to subscribe to configured OPC UA servers and send telemetry to Azure IoTHub.");
+            WriteLine("To exit the application, just press ENTER while it is running.");
+            WriteLine();
+            WriteLine("applicationname: the OPC UA application name to use, required");
+            WriteLine("                 The application name is also used to register the publisher under this name in the");
+            WriteLine("                 IoTHub device registry.");
+            WriteLine();
+            WriteLine("iothubconnectionstring: the IoTHub owner connectionstring, optional");
+            WriteLine();
+            WriteLine("There are a couple of environemnt variables which could be used to control the application:");
+            WriteLine("_HUB_CS: sets the IoTHub owner connectionstring");
+            WriteLine("_GW_LOGP: sets the filename of the log file to use"); 
+            WriteLine("_TPC_SP: sets the path to store certificates of trusted stations");
+            WriteLine("_GW_PNFP: sets the filename of the publishing configuration file");
+            WriteLine();
+            WriteLine("Notes:");
+            WriteLine("If an environment variable is controlling the OPC UA stack configuration, they are only taken into account");
+            WriteLine("if they are not set in the OPC UA configuration file.");
+            WriteLine("Command line arguments overrule OPC UA configuration file settings and environement variable settings.");
+            WriteLine();
+            
+            // output the options
+            WriteLine("Options:");
+            options.WriteOptionDescriptions(Console.Out);
         }
 
         public static void Main(string[] args)
         {
+            var opcTraceInitialized = false;
             try
             {
-                if ((args.Length == 0) || string.IsNullOrEmpty(args[0]) || args[0].Equals("localhost", StringComparison.OrdinalIgnoreCase))
+                var shouldShowHelp = false;
+
+                // command line options configuration
+                Mono.Options.OptionSet options = new Mono.Options.OptionSet {
+                    // Publishing configuration options
+                    { "pf|publishfile=", $"the filename to configure the nodes to publish.\nDefault: '{NodesToPublishAbsFilenameDefault}'", (string p) => NodesToPublishAbsFilename = p },
+                    { "sd|shopfloordomain=", $"the domain of the shopfloor. if specified this domain is appended (delimited by a ':' to the 'ApplicationURI' property when telemetry is ingested to IoTHub.\n" +
+                            "The value must follow the syntactical rules of a DNS hostname.\nDefault: not set", (string s) => {
+                            Regex domainNameRegex = new Regex("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
+                            if (domainNameRegex.IsMatch(s))
+                            {
+                                ShopfloorDomain = s;
+                            }
+                            else
+                            {
+                                throw new OptionException("The shopfloor domain is not a valid DNS hostname.", "shopfloordomain");
+                            }
+                        }
+                     },
+                    { "sw|sessionconnectwait=", $"specify the wait time in seconds publisher is trying to connect to disconnected endpoints and starts monitoring unmonitored items\nMin: 10\nDefault: {PublisherSessionConnectWaitSec}", (int i) => {
+                            if (i > 10)
+                            {
+                                PublisherSessionConnectWaitSec = i;
+                            }
+                            else
+                            {
+                                throw new OptionException("The sessionconnectwait must be greater than 10 sec", "sessionconnectwait");
+                            }
+                        }
+                    },
+                    { "vc|verboseconsole=", $"the output of publisher is shown on the console.\nDefault: {VerboseConsole}", (bool b) => VerboseConsole = b },
+
+                    // IoTHub specific options
+                    { "ih|iothubprotocol=", $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}",
+                        (Microsoft.Azure.Devices.Client.TransportType p) => IotHubProtocol = p
+                    },
+                    { "ms|iothubmessagesize=", $"the max size of a message which could be send to IoTHub. when telemetry of this size is available it will be sent.\n0 will enforce immediate send when telemetry is available\nMin: 0\nMax: 256 * 1024\nDefault: {_MaxSizeOfIoTHubMessageBytes}", (uint u) => {
+                            if (u >= 0 && u <= 256 * 1024)
+                            {
+                                _MaxSizeOfIoTHubMessageBytes = u;
+                            }
+                            else
+                            {
+                                throw new OptionException("The iothubmessagesize must be in the range between 1 and 256*1024.", "iothubmessagesize");
+                            }
+                        }
+                    },
+                    { "si|iothubsendinterval=", $"the interval in seconds when telemetry should be send to IoTHub. If 0, then only the iothubmessagesize parameter controls when telemetry is sent.\nDefault: '{_DefaultSendIntervalSeconds}'", (int i) => {
+                            if (i >= 0)
+                            {
+                                _DefaultSendIntervalSeconds = i;
+                            }
+                            else
+                            {
+                                throw new OptionException("The iothubsendinterval must be larger or equal 0.", "iothubsendinterval");
+                            }
+                        }
+                    },
+
+                    // opc server configuration options
+                    { "lf|logfile=", $"the filename of the logfile to use.\nDefault: './logs/<applicationname>.log.txt'", (string l) => LogFileName = l },
+                    { "pn|portnum=", $"the server port of the publisher OPC server endpoint.\nDefault: {PublisherServerPort}", (ushort p) => PublisherServerPort = p },
+                    { "pa|path=", $"the enpoint URL path part of the publisher OPC server endpoint.\nDefault: '{PublisherServerPath}'", (string a) => PublisherServerPath = a },
+                    { "lr|ldsreginterval=", $"the LDS(-ME) registration interval in ms. If 0, then the registration is disabled.\nDefault: {LdsRegistrationInterval}", (int i) => {
+                            if (i >= 0)
+                            {
+                                LdsRegistrationInterval = i;
+                            }
+                            else
+                            {
+                                throw new OptionException("The ldsreginterval must be larger or equal 0.", "ldsreginterval");
+                            }
+                        }
+                    },
+                    { "ot|operationtimeout=", $"the operation timeout of the publisher OPC UA client in ms.\nDefault: {OpcOperationTimeout}", (int i) => {
+                            if (i >= 0)
+                            {
+                                OpcOperationTimeout = i;
+                            }
+                            else
+                            {
+                                throw new OptionException("The operation timeout must be larger or equal 0.", "operationtimeout");
+                            }
+                        }
+                    },
+                    { "ds|defaultsamplingrate=", $"the sampling interval in milliseconds, the OPC UA servers should use to sample the values of the nodes to publish.\n" +
+                        $"Please check the OPC UA spec for more details.\nMin: 100\nDefault: {OpcSamplingRateMillisec}", (int i) => {
+                            if (i >= 100)
+                            {
+                                OpcSamplingRateMillisec = i;
+                            }
+                            else
+                            {
+                                throw new OptionException("The sampling rate must be larger or equal 100.", "defaultsamplingrate");
+                            }
+                        }
+                    },
+                    { "ct|createsessiontimeout=", $"specify the timeout in seconds used when creating a session to an endpoint. On unsuccessful connection attemps a backoff up to {OpcSessionCreationBackoffMax} times the specified timeout value is used.\nMin: 1\nDefault: {OpcSessionCreationTimeout}", (uint u) => {
+                            if (u > 1)
+                            {
+                                OpcSessionCreationTimeout = u;
+                            }
+                            else
+                            {
+                                throw new OptionException("The createsessiontimeout must be greater than 1 sec", "createsessiontimeout");
+                            }
+                        }
+                    },
+                    { "ki|keepaliveinterval=", $"specify the interval in seconds the publisher is sending keep alive messages to the OPC servers on the endpoints it is connected to.\nMin: 2\nDefault: {OpcKeepAliveIntervalInSec}", (int i) => {
+                            if (i >= 2)
+                            {
+                                OpcKeepAliveIntervalInSec = i;
+                            }
+                            else
+                            {
+                                throw new OptionException("The keepaliveinterval must be greater or equal 2", "keepalivethreshold");
+                            }
+                        }
+                    },
+                    { "kt|keepalivethreshold=", $"specify the number of keep alive packets a server could miss, before the session is disconneced\nMin: 1\nDefault: {OpcKeepAliveDisconnectThreshold}", (uint u) => {
+                            if (u > 1)
+                            {
+                                OpcKeepAliveDisconnectThreshold = u;
+                            }
+                            else
+                            {
+                                throw new OptionException("The keepalivethreshold must be greater than 1", "keepalivethreshold");
+                            }
+                        }
+                    },
+                    { "st|opcstacktracemask=", $"the trace mask for the OPC stack. See github OPC .NET stack for definitions.\nTo enable IoTHub telemetry tracing set it to 711.\nDefault: {OpcStackTraceMask:X}  ({Program.OpcStackTraceMask})", (int i) => {
+                            if (i >= 0)
+                            {
+                                OpcStackTraceMask = i;
+                            }
+                            else
+                            {
+                                throw new OptionException("The OPC stack trace mask must be larger or equal 0.", "opcstacktracemask");
+                            }
+                        }
+                    },
+                    { "as|autotrustservercerts=", $"the publisher trusts all servers it is establishing a connection to.\nDefault: {OpcPublisherAutoTrustServerCerts}", (bool b) => OpcPublisherAutoTrustServerCerts = b },
+
+                    // trust own public cert option
+                    { "tm|trustmyself=", $"the publisher certificate is put into the trusted certificate store automatically.\nDefault: {TrustMyself}", (bool b) => TrustMyself = b },
+
+                    // own cert store options
+                    { "at|appcertstoretype=", $"the own application cert store type. \n(allowed values: Directory, X509Store)\nDefault: '{OpcOwnCertStoreType}'", (string s) => {
+                            if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(Directory, StringComparison.OrdinalIgnoreCase))
+                            {
+                                OpcOwnCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : Directory;
+                            }
+                            else
+                            {
+                                throw new OptionException();
+                            }
+                        }
+                    },
+                    { "ap|appcertstorepath=", $"the path where the own application cert should be stored\nDefault (depends on store type):\n" +
+                            $"X509Store: '{_opcOwnCertX509StorePathDefault}'\n" +
+                            $"Directory: '{_opcOwnCertDirectoryStorePathDefault}'", (string s) => OpcOwnCertStorePath = s
+                    },
+
+                    // trusted cert store options
+                    {
+                    "tt|trustedcertstoretype=", $"the trusted cert store type. \n(allowed values: Directory, X509Store)\nDefault: {OpcTrustedCertStoreType}", (string s) => {
+                            if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(Directory, StringComparison.OrdinalIgnoreCase))
+                            {
+                                OpcTrustedCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : Directory;
+                            }
+                            else
+                            {
+                                throw new OptionException();
+                            }
+                        }
+                    },
+                    { "tp|trustedcertstorepath=", $"the path of the trusted cert store\nDefault (depends on store type):\n" +
+                            $"X509Store: '{OpcTrustedCertX509StorePathDefault}'\n" +
+                            $"Directory: '{OpcTrustedCertDirectoryStorePathDefault}'", (string s) => OpcTrustedCertStorePath = s
+                    },
+
+                    // rejected cert store options
+                    { "rt|rejectedcertstoretype=", $"the rejected cert store type. \n(allowed values: Directory, X509Store)\nDefault: {OpcRejectedCertStoreType}", (string s) => {
+                            if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(Directory, StringComparison.OrdinalIgnoreCase))
+                            {
+                                OpcRejectedCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : Directory;
+                            }
+                            else
+                            {
+                                throw new OptionException();
+                            }
+                        }
+                    },
+                    { "rp|rejectedcertstorepath=", $"the path of the rejected cert store\nDefault (depends on store type):\n" +
+                            $"X509Store: '{_opcRejectedCertX509StorePathDefault}'\n" +
+                            $"Directory: '{_opcRejectedCertDirectoryStorePathDefault}'", (string s) => OpcRejectedCertStorePath = s
+                    },
+
+                    // issuer cert store options
+                    {
+                    "it|issuercertstoretype=", $"the trusted issuer cert store type. \n(allowed values: Directory, X509Store)\nDefault: {OpcIssuerCertStoreType}", (string s) => {
+                            if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(Directory, StringComparison.OrdinalIgnoreCase))
+                            {
+                                OpcIssuerCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : Directory;
+                            }
+                            else
+                            {
+                                throw new OptionException();
+                            }
+                        }
+                    },
+                    { "ip|issuercertstorepath=", $"the path of the trusted issuer cert store\nDefault (depends on store type):\n" +
+                            $"X509Store: '{_opcIssuerCertX509StorePathDefault}'\n" +
+                            $"Directory: '{_opcIssuerCertDirectoryStorePathDefault}'", (string s) => OpcIssuerCertStorePath = s
+                    },
+
+                    // device connection string cert store options
+                    { "dt|devicecertstoretype=", $"the iothub device cert store type. \n(allowed values: Directory, X509Store)\nDefault: {IotDeviceCertStoreType}", (string s) => {
+                            if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(Directory, StringComparison.OrdinalIgnoreCase))
+                            {
+                                IotDeviceCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : Directory;
+                                IotDeviceCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? _iotDeviceCertX509StorePathDefault : _iotDeviceCertDirectoryStorePathDefault;
+                            }
+                            else
+                            {
+                                throw new OptionException();
+                            }
+                        }
+                    },
+                    { "dp|devicecertstorepath=", $"the path of the iot device cert store\nDefault Default (depends on store type):\n" +
+                            $"X509Store: '{_iotDeviceCertX509StorePathDefault}'\n" +
+                            $"Directory: '{_iotDeviceCertDirectoryStorePathDefault}'", (string s) => IotDeviceCertStorePath = s
+                    },
+
+                    // misc
+                    { "h|help", "show this message and exit", h => shouldShowHelp = h != null },
+                };
+
+                List<string> arguments;
+                try
                 {
-                    m_applicationName = Utils.GetHostName();
+                    // parse the command line
+                    arguments = options.Parse(args);
+                }
+                catch (OptionException e)
+                {
+                    // show message
+                    WriteLine($"Error: {e.Message}");
+                    // show usage
+                    Usage(options);
+                    return;
+                }
+
+                // Validate and parse arguments.
+                if (arguments.Count > 2 || shouldShowHelp)
+                {
+                    Usage(options);
+                    return;
+                }
+                else if (arguments.Count == 2)
+                {
+                    ApplicationName = arguments[0];
+                    _IotHubOwnerConnectionString = arguments[1];
+                }
+                else if (arguments.Count == 1)
+                {
+                    ApplicationName = arguments[0];
+                }
+                else {
+                    ApplicationName = Utils.GetHostName();
+                }
+
+                WriteLine("Publisher is starting up...");
+
+                // init OPC configuration and tracing
+                ModuleConfiguration moduleConfiguration = new ModuleConfiguration(ApplicationName);
+                opcTraceInitialized = true;
+                OpcConfiguration = moduleConfiguration.Configuration;
+
+                // log shopfloor domain setting
+                if (string.IsNullOrEmpty(ShopfloorDomain))
+                {
+                    Trace("There is no shopfloor domain configured.");
                 }
                 else
                 {
-                    m_applicationName = args[0];
+                    Trace($"Publisher is in shopfloor domain '{ShopfloorDomain}'.");
                 }
 
-                Trace("Publisher is starting up...");
-                ModuleConfiguration moduleConfiguration = new ModuleConfiguration(m_applicationName);
-                m_configuration = moduleConfiguration.Configuration;
-                m_configuration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
+                // Set certificate validator.
+                if (OpcPublisherAutoTrustServerCerts)
+                {
+                    Trace("Publisher configured to auto trust server certificates of the servers it is connecting to.");
+                    OpcConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_AutoTrustServerCerts);
+                }
+                else
+                {
+                    Trace("Publisher configured to not auto trust server certificates. When connecting to servers, you need to manually copy the rejected server certs to the trusted store to trust them.");
+                    OpcConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_Default);
+                }
 
                 // start our server interface
                 try
                 {
-                    Trace("Starting server on endpoint " + m_configuration.ServerConfiguration.BaseAddresses[0].ToString() + "...");
-                    m_server.Start(m_configuration);
+                    Trace($"Starting server on endpoint {OpcConfiguration.ServerConfiguration.BaseAddresses[0].ToString()} ...");
+                    PublisherServer publisherServer = new PublisherServer();
+                    publisherServer.Start(OpcConfiguration);
                     Trace("Server started.");
                 }
-                catch (Exception ex)
+                catch (Exception e)
                 {
-                    Trace("Starting server failed with: " + ex.Message);
+                    Trace(e, $"Failed to start Publisher OPC UA server.");
+                    Trace("exiting...");
+                    return;
                 }
 
-                // check if we also received an owner connection string
-                string ownerConnectionString = string.Empty;
-                if ((args.Length > 1) && !string.IsNullOrEmpty(args[1]))
-                {
-                    ownerConnectionString = args[1];
-                }
-                else
-                {
-                    Trace("IoT Hub owner connection string not passed as argument.");
-
-                    // check if we have an environment variable to register ourselves with IoT Hub
-                    if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_HUB_CS")))
-                    {
-                        ownerConnectionString = Environment.GetEnvironmentVariable("_HUB_CS");
-                    }
-                }
-
-                // register ourselves with IoT Hub
-                if (ownerConnectionString != string.Empty)
-                {
-                    Trace("Attemping to register ourselves with IoT Hub using owner connection string: " + ownerConnectionString);
-                    RegistryManager manager = RegistryManager.CreateFromConnectionString(ownerConnectionString);
-
-                    // remove any existing device
-                    Device existingDevice = manager.GetDeviceAsync(m_applicationName).Result;
-                    if (existingDevice != null)
-                    {
-                        manager.RemoveDeviceAsync(m_applicationName).Wait();
-                    }
-
-                    Device newDevice = manager.AddDeviceAsync(new Device(m_applicationName)).Result;
-                    if (newDevice != null)
-                    {
-                        string hostname = ownerConnectionString.Substring(0, ownerConnectionString.IndexOf(";"));
-                        string deviceConnectionString = hostname + ";DeviceId=" + m_applicationName + ";SharedAccessKey=" + newDevice.Authentication.SymmetricKey.PrimaryKey;
-                        SecureIoTHubToken.Write(m_applicationName, deviceConnectionString);
-                    }
-                    else
-                    {
-                        Trace("Could not register ourselves with IoT Hub using owner connection string: " + ownerConnectionString);
-                    }
-                }
-                else
-                {
-                    Trace("IoT Hub owner connection string not found, registration with IoT Hub abandoned.");
-                }
-
-                // try to read connection string from secure store and open IoTHub client
-                Trace("Attemping to read connection string from secure store with certificate name: " + m_applicationName);
-                string connectionString = SecureIoTHubToken.Read(m_applicationName);
-                if (!string.IsNullOrEmpty(connectionString))
-                {
-                    Trace("Attemping to configure publisher with connection string: " + connectionString);
-                    m_deviceClient = DeviceClient.CreateFromConnectionString(connectionString, Microsoft.Azure.Devices.Client.TransportType.Mqtt);
-                    m_deviceClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
-                    m_deviceClient.OpenAsync().Wait();
-                }
-                else
-                {
-                    Trace("Device connection string not found in secure store.");
-                }
-
-                // get a list of persisted endpoint URLs and create a session for each.
+                // get information on the nodes to publish and validate the json by deserializing it.
                 try
                 {
-                    // check if we have an env variable specifying the published nodes path, otherwise use current directory
-                    string publishedNodesFilePath = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "publishednodes.json";
-                    if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_PNFP")))
+                    if (string.IsNullOrEmpty(NodesToPublishAbsFilename))
                     {
-                        publishedNodesFilePath = Environment.GetEnvironmentVariable("_GW_PNFP");
-                    }
-
-                    Trace("Attemping to load nodes file from: " + publishedNodesFilePath);
-                    m_nodesLookups = JsonConvert.DeserializeObject<PublishedNodesCollection>(File.ReadAllText(publishedNodesFilePath));
-                    Trace("Loaded " + m_nodesLookups.Count.ToString() + " nodes.");
-                }
-                catch (Exception ex)
-                {
-                    Trace("Nodes file loading failed with: " + ex.Message);
-                }
-
-                foreach (NodeLookup nodeLookup in m_nodesLookups)
-                {
-                    if (!m_endpointUrls.Contains(nodeLookup.EndPointURL))
-                    {
-                        m_endpointUrls.Add(nodeLookup.EndPointURL);
-                    }
-                }
-
-                // connect to the other servers
-                Trace("Attemping to connect to servers...");
-                try
-                {
-                    List<Task> connectionAttempts = new List<Task>();
-                    foreach (Uri endpointUrl in m_endpointUrls)
-                    {
-                        Trace("Connecting to server: " + endpointUrl);
-                        connectionAttempts.Add(EndpointConnect(endpointUrl));
-                    }
-
-                    // Wait for all sessions to be connected
-                    Task.WaitAll(connectionAttempts.ToArray());
-                }
-                catch (Exception ex)
-                {
-                    Trace("Exception: " + ex.ToString() + "\r\n" + ex.InnerException != null ? ex.InnerException.ToString() : null);
-                }
-
-                // subscribe to preconfigured nodes
-                Trace("Attemping to subscribe to published nodes...");
-                if (m_nodesLookups != null)
-                {
-                    foreach (NodeLookup nodeLookup in m_nodesLookups)
-                    {
-                        try
+                        // check if we have an env variable specifying the published nodes path, otherwise use the default
+                        NodesToPublishAbsFilename = NodesToPublishAbsFilenameDefault;
+                        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_PNFP")))
                         {
-                            CreateMonitoredItem(nodeLookup);
-                        }
-                        catch (Exception ex)
-                        {
-                            Trace("Unexpected error publishing node: " + ex.Message + "\r\nIgnoring node: " + nodeLookup.EndPointURL.AbsoluteUri + ", " + nodeLookup.NodeID.ToString());
+                            Trace("Publishing node configuration file path read from environment.");
+                            NodesToPublishAbsFilename = Environment.GetEnvironmentVariable("_GW_PNFP");
                         }
                     }
+
+                    Trace($"Attempting to load nodes file from: {NodesToPublishAbsFilename}");
+                    NodesToPublish = JsonConvert.DeserializeObject<List<NodeToPublish>>(File.ReadAllText(NodesToPublishAbsFilename));
+                    Trace($"Loaded {NodesToPublish.Count.ToString()} nodes to publish.");
                 }
-
-
-                Task dequeueAndSendTask = null;
-                var tokenSource = new CancellationTokenSource();
-                var token = tokenSource.Token;
-
-                Trace("Creating task to send OPC UA messages in batches to IoT Hub...");
-                try
+                catch (Exception e)
                 {
-                    dequeueAndSendTask = Task.Run(() => DeQueueMessagesAsync(token),token);
-                }
-                catch (Exception ex)
-                {
-                    Trace("Exception: " + ex.ToString());
+                    Trace(e, "Loading of the node configuration file failed. Does the file exist and has correct syntax?");
+                    Trace("exiting...");
+                    return;
                 }
 
-                Trace("Publisher is running. Press enter to quit.");
-                Console.ReadLine();
-
-                foreach (Session session in m_sessions)
+                // initialize and start IoTHub messaging
+                IotHubMessaging = new IotHubMessaging();
+                if (!IotHubMessaging.Init(_IotHubOwnerConnectionString, _MaxSizeOfIoTHubMessageBytes, _DefaultSendIntervalSeconds))
                 {
-                    session.Close();
+                    return;
                 }
 
-                //Send cancellation token and wait for last IoT Hub message to be sent.
-                try
+                // create a list to manage sessions and monitored items.
+                var uniqueEndpointUris = NodesToPublish.Select(n => n.EndPointUri).Distinct();
+                foreach (var endpointUri in uniqueEndpointUris)
                 {
-                    tokenSource.Cancel();
-                    dequeueAndSendTask.Wait();
-                }
-                catch (Exception ex)
-                {
-                    Trace("Exception: " + ex.ToString());
+                    if (!OpcSessions.Any(s => s.EndpointUri.Equals(endpointUri)))
+                    {
+                        // create new session info.
+                        OpcSession opcSession = new OpcSession(endpointUri, OpcSessionCreationTimeout);
+
+                        // add monitored item info for all nodes to publish for this endpoint URI.
+                        var nodesOnEndpointUri = NodesToPublish.Where(n => n.EndPointUri.Equals(endpointUri));
+                        foreach (var nodeInfo in nodesOnEndpointUri)
+                        {
+                            // differentiate if legacy syntax is used
+                            if (nodeInfo.NodeId == null)
+                            {
+                                // differentiate if there is only a single node specified or a node list with a common sampling interval
+                                if (nodeInfo.ExpandedNodeId == null)
+                                {
+                                    // create a monitored item for each node in the list and set the sampling interval if specified
+                                    foreach (var singleExpandedNodeId in nodeInfo.Nodes.ExpandedNodeIds)
+                                    {
+                                        MonitoredItemInfo monitoredItemInfo = new MonitoredItemInfo(singleExpandedNodeId, opcSession.EndpointUri);
+                                        if (nodeInfo.Nodes.SamplingInterval != 0)
+                                        {
+                                            monitoredItemInfo.SamplingInterval = nodeInfo.Nodes.SamplingInterval;
+                                        }
+                                        opcSession.MonitoredItemsInfo.Add(monitoredItemInfo);
+                                    }
+                                }
+                                else
+                                {
+                                    // create a monitored item for the node
+                                        MonitoredItemInfo monitoredItemInfo = new MonitoredItemInfo(nodeInfo.ExpandedNodeId, opcSession.EndpointUri);
+                                        if (nodeInfo.SamplingInterval != 0)
+                                        {
+                                            monitoredItemInfo.SamplingInterval = nodeInfo.SamplingInterval;
+                                        }
+                                        opcSession.MonitoredItemsInfo.Add(monitoredItemInfo);
+                                }
+                            }
+                            else
+                            {
+                                // give user a warning that the syntax is obsolete
+                                Trace($"Please update the syntax of the configuration file and use ExpandedNodeId instead of NodeId property name for node with identifier '{nodeInfo.NodeId.ToString()}' on EndpointUrl '{nodeInfo.EndPointUri}'.");
+
+                                // create a monitored item for the node with the configured or default sampling interval
+                                MonitoredItemInfo monitoredItemInfo = new MonitoredItemInfo(nodeInfo.NodeId, opcSession.EndpointUri);
+                                if (nodeInfo.SamplingInterval != 0)
+                                {
+                                    monitoredItemInfo.SamplingInterval = nodeInfo.SamplingInterval;
+                                }
+                                opcSession.MonitoredItemsInfo.Add(monitoredItemInfo);
+                            }
+                        }
+
+                        // add the session info.
+                        OpcSessions.Add(opcSession);
+                    }
                 }
 
-                if (m_deviceClient != null)
-                {
-                    m_deviceClient.CloseAsync().Wait();
-                }
+                // kick off the task to maintain all sessions
+                var cts = new CancellationTokenSource();
+                Task.Run( async () => await SessionConnector(cts.Token));
 
+                // stop on user request
+                WriteLine("");
+                WriteLine("");
+                WriteLine("Publisher is running. Press ENTER to quit.");
+                WriteLine("");
+                WriteLine("");
+                ReadLine();
+                cts.Cancel();
+
+                // close all connected session
+                Task.Run(async () => await SessionShutdown()).Wait();
+
+                // shutdown the IoTHub messaging
+                IotHubMessaging.Shutdown();
             }
             catch (Exception e)
             {
-                Trace(e, "Unhandled exception in Publisher, exiting!");
-            }
-        }
-
-        /// <summary>
-        /// Connects to a single OPC UA Server's endpoint
-        /// </summary>
-        public static async Task EndpointConnect(Uri endpointUrl)
-        {
-            EndpointDescription selectedEndpoint = CoreClientUtils.SelectEndpoint(endpointUrl.AbsoluteUri, true);
-            ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server, EndpointConfiguration.Create(m_configuration));
-            configuredEndpoint.Update(selectedEndpoint);
-
-            Session newSession = await Session.Create(
-                m_configuration,
-                configuredEndpoint,
-                true,
-                false,
-                m_configuration.ApplicationName,
-                60000,
-                new UserIdentity(new AnonymousIdentityToken()),
-                null);
-
-            if (newSession != null)
-            {
-                Trace("Created session with updated endpoint " + selectedEndpoint.EndpointUrl + " from server!");
-                newSession.KeepAlive += new KeepAliveEventHandler((sender, e) => StandardClient_KeepAlive(sender, e, newSession));
-                m_sessions.Add(newSession);
-            }
-        }
-
-        /// <summary>
-        /// Creates a subscription to a monitored item on an OPC UA server
-        /// </summary>
-        public static void CreateMonitoredItem(NodeLookup nodeLookup)
-        {
-            // find the right session using our lookup
-            Session matchingSession = null;
-            foreach (Session session in m_sessions)
-            {
-                char[] trimChars = { '/', ' ' };
-                if (session.Endpoint.EndpointUrl.TrimEnd(trimChars).Equals(nodeLookup.EndPointURL.ToString().TrimEnd(trimChars), StringComparison.OrdinalIgnoreCase))
+                if (opcTraceInitialized)
                 {
-                    matchingSession = session;
-                    break;
-                }
-            }
-
-            if (matchingSession != null)
-            {
-                Subscription subscription = matchingSession.DefaultSubscription;
-                if (matchingSession.AddSubscription(subscription))
-                {
-                    subscription.Create();
-                }
-
-                // get the DisplayName for the node.
-                Node node = matchingSession.ReadNode(nodeLookup.NodeID);
-                string nodeDisplayName = node.DisplayName.Text;
-                if (String.IsNullOrEmpty(nodeDisplayName))
-                {
-                    nodeDisplayName = nodeLookup.NodeID.Identifier.ToString();
-                }
-
-                // add the new monitored item.
-                MonitoredItem monitoredItem = new MonitoredItem(subscription.DefaultItem);
-
-                monitoredItem.StartNodeId = nodeLookup.NodeID;
-                monitoredItem.AttributeId = Attributes.Value;
-                monitoredItem.DisplayName = nodeDisplayName;
-                monitoredItem.MonitoringMode = MonitoringMode.Reporting;
-                monitoredItem.SamplingInterval = 1000;
-                monitoredItem.QueueSize = 0;
-                monitoredItem.DiscardOldest = true;
-
-                monitoredItem.Notification += new MonitoredItemNotificationEventHandler(MonitoredItem_Notification);
-                subscription.AddItem(monitoredItem);
-                subscription.ApplyChanges();
-            }
-            else
-            {
-                Trace("ERROR: Could not find endpoint URL " + nodeLookup.EndPointURL.ToString() + " in active server sessions, NodeID " + nodeLookup.NodeID.Identifier.ToString() + " NOT published!");
-                Trace("To fix this, please update your publishednodes.json file with the updated endpoint URL!");
-            }
-        }
-
-        /// <summary>
-        /// The notification that the data for a monitored item has changed on an OPC UA server
-        /// </summary>
-        public static void MonitoredItem_Notification(MonitoredItem monitoredItem, MonitoredItemNotificationEventArgs e)
-        {
-            try
-            {
-                if (e.NotificationValue == null || monitoredItem.Subscription.Session == null)
-                {
-                    return;
-                }
-
-                MonitoredItemNotification notification = e.NotificationValue as MonitoredItemNotification;
-                if (notification == null)
-                {
-                    return;
-                }
-
-                DataValue value = notification.Value as DataValue;
-                if (value == null)
-                {
-                    return;
-                }
-
-                JsonEncoder encoder = new JsonEncoder(monitoredItem.Subscription.Session.MessageContext, false);
-                string applicationURI = monitoredItem.Subscription.Session.Endpoint.Server.ApplicationUri;
-                encoder.WriteString("ApplicationUri", applicationURI);
-                encoder.WriteString("DisplayName", monitoredItem.DisplayName);
-
-                // write NodeId as ns=x;i=y
-                NodeId nodeId = monitoredItem.ResolvedNodeId;
-                encoder.WriteString("NodeId", new NodeId(nodeId.Identifier, nodeId.NamespaceIndex).ToString());
-
-                // suppress output of server timestamp in json by setting it to minvalue
-                value.ServerTimestamp = DateTime.MinValue;
-                encoder.WriteDataValue("Value", value);
-
-                string json = encoder.CloseAndReturnText();
-
-                // add message to fifo send queue
-                m_sendQueue.Enqueue(json);
-
-            }
-            catch (Exception exception)
-            {
-                Trace("Error processing monitored item notification: " + exception.ToString());
-            }
-        }
-
-        /// <summary>
-        /// Dequeue messages
-        /// </summary>
-        private static async Task DeQueueMessagesAsync(CancellationToken ct)
-        {
-            try
-            {
-                //Send every x seconds, regardless if IoT Hub message is full. 
-                Timer sendTimer = new Timer(async state => await SendToIoTHubAsync(), null, 0, m_defaultSendIntervalInMilliSeconds);
-
-                while (true)
-                {
-                    if (ct.IsCancellationRequested)
+                    Trace(e, e.StackTrace);
+                    e = e.InnerException ?? null;
+                    while (e != null)
                     {
-                        Trace("Cancellation requested. Sending remaining messages.");
-                        sendTimer.Dispose();
-                        await SendToIoTHubAsync();
-                        break;
+                        Trace(e, e.StackTrace);
+                        e = e.InnerException ?? null;
                     }
-
-
-                    if (m_sendQueue.Count > 0)
+                    Trace("Publisher exiting... ");
+                }
+                else
+                {
+                    WriteLine($"{DateTime.Now.ToString()}: {e.Message.ToString()}");
+                    WriteLine($"{DateTime.Now.ToString()}: {e.StackTrace}");
+                    e = e.InnerException ?? null;
+                    while (e != null)
                     {
-                        bool isPeekSuccessful = false;
-                        bool isDequeueSuccessful = false;
-                        string messageInJson = string.Empty;
-                        int nextMessageSizeBytes = 0;
-
-                        //Perform a TryPeek to determine size of next message 
-                        //and whether it will fit. If so, dequeue message and add it to the list. 
-                        //If it cannot fit, send current message to IoT Hub, reset it, and repeat.
-
-                        isPeekSuccessful = m_sendQueue.TryPeek(out messageInJson);
-
-                        //Get size of next message in the queue
-                        if (isPeekSuccessful)
-                        {
-                            nextMessageSizeBytes = System.Text.Encoding.UTF8.GetByteCount(messageInJson);
-                        }
-
-                        //Determine if it will fit into remaining space of the IoT Hub message. 
-                        //If so, dequeue it
-                        if (m_currentSizeOfIoTHubMessageBytes + nextMessageSizeBytes < m_maxSizeOfIoTHubMessageBytes)
-                        {
-                            isDequeueSuccessful = m_sendQueue.TryDequeue(out messageInJson);
-
-                            //Add dequeued message to list
-                            if (isDequeueSuccessful)
-                            {
-                                OpcUaMessage msgPayload = JsonConvert.DeserializeObject<OpcUaMessage>(messageInJson);
-
-                                m_messageList.Add(msgPayload);
-
-                                m_currentSizeOfIoTHubMessageBytes = m_currentSizeOfIoTHubMessageBytes + nextMessageSizeBytes;
-
-                            }
-                        }
-                        else
-                        {
-                            //Message is full. Send it to IoT Hub
-                            await SendToIoTHubAsync();
-
-                        }
+                        WriteLine($"{DateTime.Now.ToString()}: {e.Message.ToString()}");
+                        WriteLine($"{DateTime.Now.ToString()}: {e.StackTrace}");
+                        e = e.InnerException ?? null;
                     }
+                    WriteLine($"{DateTime.Now.ToString()}: Publisher exiting...");
                 }
             }
-            catch (Exception exception)
-            {
-                Console.WriteLine("Error dequeuing message: " + exception.ToString());
-            }
-
         }
 
         /// <summary>
-        /// Send dequeued messages to IoT Hub
+        /// Checks all sessions configured and try to connect if they are disconnected.
         /// </summary>
-        private static async Task SendToIoTHubAsync()
+        public static async Task SessionConnector(CancellationToken cancellationtoken)
         {
-            if (m_messageList.Count > 0)
+            while (true)
             {
-                string msgListInJson = JsonConvert.SerializeObject(m_messageList);
-
-                var encodedMessage = new Microsoft.Azure.Devices.Client.Message(Encoding.UTF8.GetBytes(msgListInJson));
-
-                // publish
-                encodedMessage.Properties.Add("content-type", "application/opcua+uajson");
-                encodedMessage.Properties.Add("deviceName", m_applicationName);
-
                 try
                 {
-                    if (m_deviceClient != null)
-                    {
-                        await m_deviceClient.SendEventAsync(encodedMessage);
-                    }
+                    // get tasks for all disconnected sessions and start them
+                    var singleSessionHandlerTaskList = OpcSessions.Where(p => p.State == OpcSession.SessionState.Disconnected).Select(s => s.ConnectAndMonitor());
+                    await Task.WhenAll(singleSessionHandlerTaskList);
                 }
-                catch (Exception ex)
+                catch (Exception e)
                 {
-                    Trace("Failed to publish message, dropping...");
-                    Trace(ex.ToString());
+                    Trace(e, $"Failed to connect and monitor a disconnected server. {(e.InnerException != null ? e.InnerException.Message : "")}");
                 }
-
-                //Reset IoT Hub message size
-                m_currentSizeOfIoTHubMessageBytes = 0;
-                m_messageList.Clear();
+                Thread.Sleep(PublisherSessionConnectWaitSec * 1000);
             }
         }
 
-        private class OpcUaMessage
-        {
-            public string ApplicationUri { get; set; }
-            public string DisplayName { get; set; }
-            public string NodeId { get; set; }
-            public OpcUaValue Value { get; set; }
-        }
-
-        private class OpcUaValue
-        {
-            public string Value { get; set; }
-            public string SourceTimestamp { get; set; }
-        }
-
         /// <summary>
-        /// Handler for the standard "keep alive" event sent by all OPC UA servers
+        /// Shutdown all sessions.
         /// </summary>
-        private static void StandardClient_KeepAlive(Session sender, KeepAliveEventArgs e, Session session)
+        public static async Task SessionShutdown()
         {
-            if (e != null && session != null)
+            try
             {
-                if (!ServiceResult.IsGood(e.Status))
+                // get tasks for all disconnected sessions and start them
+                var shutdownSessionTaskList = OpcSessions.Select(s => s.Shutdown());
+                if (shutdownSessionTaskList.GetEnumerator().MoveNext())
                 {
-                    Trace(String.Format(
-                        "Status: {0}/t/tOutstanding requests: {1}/t/tDefunct requests: {2}",
-                        e.Status,
-                        session.OutstandingRequestCount,
-                        session.DefunctRequestCount));
+                    shutdownSessionTaskList.GetEnumerator().Reset();
+                    await Task.WhenAll(shutdownSessionTaskList);
                 }
+            }
+            catch (Exception e)
+            {
+                Trace(e, $"Failed to shutdown sessions. Inner Exception message: { e.InnerException?.ToString()}");
             }
         }
 
         /// <summary>
-        /// Standard certificate validation callback
+        /// Default certificate validation callback
         /// </summary>
-        private static void CertificateValidator_CertificateValidation(CertificateValidator validator, CertificateValidationEventArgs e)
+        private static void CertificateValidator_Default(CertificateValidator validator, CertificateValidationEventArgs e)
         {
             if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
             {
-                Trace("Certificate \""
-                    + e.Certificate.Subject
-                    + "\" not trusted. If you want to trust this certificate, please copy it from the \""
-                    + m_configuration.SecurityConfiguration.RejectedCertificateStore.StorePath + "/certs"
-                    + "\" to the \""
-                    + m_configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath + "/certs"
-                    + "\" folder. A restart of the gateway is NOT required.");
+                Trace($"The Publisher does not trust the server with the certificate subject '{e.Certificate.Subject}'.");
+                Trace("If you want to trust this certificate, please copy it from the directory:");
+                Trace($"{OpcConfiguration.SecurityConfiguration.RejectedCertificateStore.StorePath}/certs");
+                Trace("to the directory:");
+                Trace($"{OpcConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath}/certs");
+            }
+        }
+
+        /// <summary>
+        /// Auto trust server certificate validation callback
+        /// </summary>
+        private static void CertificateValidator_AutoTrustServerCerts(CertificateValidator validator, CertificateValidationEventArgs e)
+        {
+            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
+            {
+                Trace($"Certificate '{e.Certificate.Subject}' will be trusted, since the autotrustservercerts options was specified.");
+                e.Accept = true;
+                return;
             }
         }
 
