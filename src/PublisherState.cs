@@ -41,22 +41,23 @@ namespace Publisher
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments!");
             }
 
-            NodeToPublish nodeToPublish;
-            string nodeId = inputArguments[0] as string;
-            string endpointUrl = inputArguments[1] as string;
-            if (string.IsNullOrEmpty(nodeId) || string.IsNullOrEmpty(endpointUrl))
-            {
-                Trace($"PublishNodeMethod: Arguments (0 (nodeId): '{nodeId}', 1 (endpointUrl):'{endpointUrl}') are not valid strings!");
-                return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments as strings!");
-            }
-
+            PublishNodeConfig publishNodeConfig;
+            NodeId nodeId = null;
+            Uri endpointUri = null;
             try
             {
-                nodeToPublish = new NodeToPublish(nodeId, endpointUrl);
+                nodeId = inputArguments[0] as string;
+                endpointUri = inputArguments[1] as Uri;
+                if (string.IsNullOrEmpty(inputArguments[0] as string) || string.IsNullOrEmpty(inputArguments[1] as string))
+                {
+                    Trace($"PublishNodeMethod: Arguments (0 (nodeId), 1 (endpointUrl)) are not valid strings!");
+                    return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments as strings!");
+                }
+                publishNodeConfig = new PublishNodeConfig(nodeId, endpointUri, OpcSamplingInterval, OpcPublishingInterval);
             }
             catch (UriFormatException)
             {
-                Trace($"PublishNodeMethod: The endpointUrl is invalid (0 (nodeId): '{nodeId}', 1 (endpointUrl):'{endpointUrl}')!");
+                Trace($"PublishNodeMethod: The endpointUri is invalid '{inputArguments[1] as string}'!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as second argument!");
             }
 
@@ -64,42 +65,48 @@ namespace Publisher
             try
             {
                 // find the session we need to monitor the node
-                OpcSession opcSession = OpcSessions.First(s => s.EndpointUri == nodeToPublish.EndPointUri);
+                OpcSession opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri == publishNodeConfig.EndpointUri);
 
                 // add a new session.
                 if (opcSession == null)
                 {
                     // create new session info.
-                    opcSession = new OpcSession(nodeToPublish.EndPointUri, OpcSessionCreationTimeout);
+                    opcSession = new OpcSession(publishNodeConfig.EndpointUri, OpcSessionCreationTimeout);
                     OpcSessions.Add(opcSession);
-                    Trace($"DoPublish: No matching session found for endpoint '{nodeToPublish.EndPointUri.AbsolutePath}'. Requested to create a new one.");
+                    Trace($"PublishNodeMethod: No matching session found for endpoint '{publishNodeConfig.EndpointUri.AbsolutePath}'. Requested to create a new one.");
                 }
                 else
                 {
-                    Trace($"DoPublish: Session found for endpoint '{nodeToPublish.EndPointUri.AbsolutePath}'");
+                    Trace($"PublishNodeMethod: Session found for endpoint '{publishNodeConfig.EndpointUri.AbsolutePath}'");
                 }
 
                 // add the node info to the subscription with the default publishing interval
-                opcSession.AddNodeForMonitoring(OpcPublishingInterval, nodeToPublish.NodeId);
-                Trace("DoPublish: Requested to monitor item.");
+                opcSession.AddNodeForMonitoring(OpcPublishingInterval, publishNodeConfig.NodeId);
+                Trace("PublishNodeMethod: Requested to monitor item.");
 
                 // start monitoring the node
                 Task monitorTask = Task.Run(async () => await opcSession.ConnectAndMonitor());
                 monitorTask.Wait();
-                Trace("DoPublish: Session processing completed.");
+                Trace("PublishNodeMethod: Session processing completed.");
 
                 // update our data
-                NodesToPublish.Add(nodeToPublish);
+                PublishConfig.Add(publishNodeConfig);
 
-                // persist it to disk
-                File.WriteAllText(NodesToPublishAbsFilename, JsonConvert.SerializeObject(NodesToPublish));
+                // add it also to the publish file 
+                var publishConfigFileEntry = new PublishConfigFileEntry()
+                {
+                    EndpointUri = endpointUri,
+                    NodeId = nodeId
+                };
+                PublishConfigFileEntries.Add(publishConfigFileEntry);
+                File.WriteAllText(NodesToPublishAbsFilename, JsonConvert.SerializeObject(PublishConfigFileEntries));
 
-                Trace($"DoPublish: Now publishing: {nodeToPublish.ToString()}");
+                Trace($"PublishNodeMethod: Now publishing: {publishNodeConfig.NodeId.ToString()}");
                 return ServiceResult.Good;
             }
             catch (Exception e)
             {
-                Trace(e, $"DoPublish: Exception while trying to configure publishing node '{nodeToPublish.ToString()}'");
+                Trace(e, $"PublishNodeMethod: Exception while trying to configure publishing node '{publishNodeConfig.NodeId.ToString()}'");
                 return ServiceResult.Create(e, StatusCodes.BadUnexpectedError, $"Unexpected error publishing node: {e.Message}");
             }
         }
@@ -115,22 +122,21 @@ namespace Publisher
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments!");
             }
 
-            string nodeId = inputArguments[0] as string;
-            string endpointUrl = inputArguments[1] as string;
-            if (string.IsNullOrEmpty(nodeId) || string.IsNullOrEmpty(endpointUrl))
-            {
-                Trace($"UnPublishNodeMethod: Arguments (0 (nodeId): '{nodeId}', 1 (endpointUrl):'{endpointUrl}') are not valid strings!");
-                return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments as strings!");
-            }
-
-            NodeToPublish nodeToUnpublish = new NodeToPublish();
+            NodeId nodeId = null;
+            Uri endpointUri = null;
             try
             {
-                nodeToUnpublish = new NodeToPublish(nodeId, endpointUrl);
+                nodeId = inputArguments[0] as string;
+                endpointUri = inputArguments[1] as Uri;
+                if (string.IsNullOrEmpty(inputArguments[0] as string) || string.IsNullOrEmpty(inputArguments[1] as string))
+                {
+                    Trace($"UnPublishNodeMethod: Arguments (0 (nodeId), 1 (endpointUrl)) are not valid strings!");
+                    return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments as strings!");
+                }
             }
             catch (UriFormatException)
             {
-                Trace($"UnPublishNodeMethod: The endpointUrl is invalid (0 (nodeId): '{nodeId}', 1 (endpointUrl):'{endpointUrl}')!");
+                Trace($"UnPublishNodeMethod: The endpointUrl is invalid '{inputArguments[1] as string}'!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as second argument!");
             }
 
@@ -138,20 +144,20 @@ namespace Publisher
             try
             {
                 // find the session we need to monitor the node
-                OpcSession opcSession = OpcSessions.First(s => s.EndpointUri == nodeToUnpublish.EndPointUri);
+                OpcSession opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri == endpointUri);
                 if (opcSession == null)
                 {
                     // do nothing if there is no session for this endpoint.
-                    Trace($"UnPublishNodeMethod: Session for endpoint '{nodeToUnpublish.EndPointUri.AbsolutePath}' not found.");
+                    Trace($"UnPublishNodeMethod: Session for endpoint '{endpointUri.AbsolutePath}' not found.");
                     return ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session for endpoint of published node not found!");
                 }
                 else
                 {
-                    Trace($"UnPublishNodeMethod: Session found for endpoint '{nodeToUnpublish.EndPointUri.AbsolutePath}'");
+                    Trace($"UnPublishNodeMethod: Session found for endpoint '{endpointUri.AbsolutePath}'");
                 }
 
                 // remove the node from the sessions monitored items list.
-                opcSession.TagNodeForMonitoringStop(nodeToUnpublish.NodeId);
+                opcSession.TagNodeForMonitoringStop(nodeId);
                 Trace("UnPublishNodeMethod: Requested to stop monitoring of node.");
 
                 // stop monitoring the node
@@ -159,16 +165,14 @@ namespace Publisher
                 monitorTask.Wait();
                 Trace("UnPublishNodeMethod: Session processing completed.");
 
-                // remove node from our persisted data set.
-                var itemToRemove = NodesToPublish.Find(l => l.NodeId == nodeToUnpublish.NodeId && l.EndPointUri == nodeToUnpublish.EndPointUri);
-                NodesToPublish.Remove(itemToRemove);
-
-                // persist data
-                File.WriteAllText(NodesToPublishAbsFilename, JsonConvert.SerializeObject(NodesToPublish));
+                // remove node from persisted config file
+                var entryToRemove = PublishConfigFileEntries.Find(l => l.NodeId == nodeId && l.EndpointUri == endpointUri);
+                PublishConfigFileEntries.Remove(entryToRemove);
+                File.WriteAllText(NodesToPublishAbsFilename, JsonConvert.SerializeObject(PublishConfigFileEntries));
             }
             catch (Exception e)
             {
-                Trace(e, $"DoPublish: Exception while trying to configure publishing node '{nodeToUnpublish.ToString()}'");
+                Trace(e, $"DoPublish: Exception while trying to configure publishing node '{nodeId.ToString()}'");
                 return ServiceResult.Create(e, StatusCodes.BadUnexpectedError, $"Unexpected error publishing node: {e.Message}");
             }
             return ServiceResult.Good;
@@ -179,7 +183,7 @@ namespace Publisher
         /// </summary>
         private ServiceResult GetListOfPublishedNodesMethod(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
-            outputArguments[0] = JsonConvert.SerializeObject(NodesToPublish);
+            outputArguments[0] = JsonConvert.SerializeObject(PublishConfigFileEntries);
             Trace("GetListOfPublishedNodesMethod: Success!");
 
             return ServiceResult.Good;

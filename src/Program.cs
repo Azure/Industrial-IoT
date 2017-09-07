@@ -23,7 +23,8 @@ namespace Opc.Ua.Publisher
         //
         public static int PublisherSessionConnectWaitSec = 10;
         public static List<OpcSession> OpcSessions = new List<OpcSession>();
-        public static List<NodeToPublish> NodesToPublish = new List<NodeToPublish>();
+        public static List<PublishConfigFileEntry> PublishConfigFileEntries = new List<PublishConfigFileEntry>();
+        public static List<PublishNodeConfig> PublishConfig = new List<PublishNodeConfig>();
         public static string NodesToPublishAbsFilenameDefault = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
         public static string NodesToPublishAbsFilename { get; set; }
         public static string ShopfloorDomain { get; set; }
@@ -474,8 +475,25 @@ namespace Opc.Ua.Publisher
                     }
 
                     Trace($"Attempting to load nodes file from: {NodesToPublishAbsFilename}");
-                    NodesToPublish = JsonConvert.DeserializeObject<List<NodeToPublish>>(File.ReadAllText(NodesToPublishAbsFilename));
-                    Trace($"Loaded {NodesToPublish.Count.ToString()} nodes to publish.");
+                    PublishConfigFileEntries = JsonConvert.DeserializeObject<List<PublishConfigFileEntry>>(File.ReadAllText(NodesToPublishAbsFilename));
+                    Trace($"Loaded {PublishConfigFileEntries.Count.ToString()} config file entry/entries.");
+
+                    foreach (var publishConfigFileEntry in PublishConfigFileEntries)
+                    {
+                        if (publishConfigFileEntry.NodeId == null)
+                        {
+                            // new node configuration syntax.
+                            foreach (var opcNode in publishConfigFileEntry.OpcNodes)
+                            {
+                                PublishConfig.Add(new PublishNodeConfig(ExpandedNodeId.Parse(opcNode.ExpandedNodeId), publishConfigFileEntry.EndpointUri, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval));
+                            }
+                        }
+                        else
+                        {
+                            // legacy node configuration syntax using default sampling and publishing interval.
+                            PublishConfig.Add(new PublishNodeConfig(publishConfigFileEntry.NodeId, publishConfigFileEntry.EndpointUri, OpcSamplingInterval, OpcPublishingInterval));
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
@@ -483,6 +501,7 @@ namespace Opc.Ua.Publisher
                     Trace("exiting...");
                     return;
                 }
+                Trace($"There are {PublishConfig.Count.ToString()} nodes to publish.");
 
                 // initialize and start IoTHub messaging
                 IotHubMessaging = new IotHubMessaging();
@@ -491,71 +510,47 @@ namespace Opc.Ua.Publisher
                     return;
                 }
 
-                // ensure all OPC sampling intervals and OPC publishing intervals are set
-                foreach (var node in NodesToPublish)
-                {
-                    node.OpcSamplingInterval = node.OpcSamplingInterval ?? OpcSamplingInterval;
-                    node.OpcPublishingInterval = node.OpcPublishingInterval ?? OpcPublishingInterval;
-                }
-
                 // create a list to manage sessions, subscriptions and monitored items.
-                var uniqueEndpointUris = NodesToPublish.Select(n => n.EndPointUri).Distinct();
-                foreach (var endpointUri in uniqueEndpointUris)
+                var uniqueEndpointUrls = PublishConfig.Select(n => n.EndpointUri).Distinct();
+                foreach (var endpointUrl in uniqueEndpointUrls)
                 {
                     // create new session info.
-                    OpcSession opcSession = new OpcSession(endpointUri, OpcSessionCreationTimeout);
+                    OpcSession opcSession = new OpcSession(endpointUrl, OpcSessionCreationTimeout);
 
                     // create for all different OPC publishing intervals to this endpoint separate subscriptions
-                    var nodeInfosWithDistinctPublishingInterval = NodesToPublish.Where(n => n.EndPointUri.Equals(endpointUri)).Distinct(new NodePublishingIntervalComparer());
-                    foreach (var nodeInfoWithDistinctPublishingInterval in nodeInfosWithDistinctPublishingInterval)
+                    var nodesDistinctPublishingInterval = PublishConfig.Where(n => n.EndpointUri.Equals(endpointUrl)).Select( c => c.OpcPublishingInterval).Distinct();
+                    foreach (var nodeDistinctPublishingInterval in nodesDistinctPublishingInterval)
                     {
                         // create a subscription for the publishing interval and add it to the session.
-                        OpcSubscription opcSubscription = new OpcSubscription(nodeInfoWithDistinctPublishingInterval.OpcPublishingInterval);
+                        OpcSubscription opcSubscription = new OpcSubscription(nodeDistinctPublishingInterval);
 
                         // add all nodes with this OPC publishing interval to this subscription.
-                        var nodeInfosWithSamePublishingInterval = NodesToPublish.Where(n => n.EndPointUri.Equals(endpointUri)).Where(n => n.OpcPublishingInterval == nodeInfoWithDistinctPublishingInterval.OpcPublishingInterval);
-                        foreach (var nodeInfo in nodeInfosWithSamePublishingInterval)
+                        var nodesWithSamePublishingInterval = PublishConfig.Where(n => n.EndpointUri.Equals(endpointUrl)).Where(n => n.OpcPublishingInterval == nodeDistinctPublishingInterval);
+                        foreach (var nodeInfo in nodesWithSamePublishingInterval)
                         {
                             // differentiate if legacy syntax is used
                             if (nodeInfo.NodeId == null)
                             {
-                                // differentiate if there is only a single node specified or a node list with a common sampling interval
-                                if (nodeInfo.ExpandedNodeId == null)
-                                {
-                                    // create a monitored item for each node in the list and set the sampling interval if specified
-                                    foreach (var singleExpandedNodeId in nodeInfo.Nodes.ExpandedNodeIds)
-                                    {
-                                        OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(singleExpandedNodeId, opcSession.EndpointUri)
-                                        {
-                                            RequestedSamplingInterval = (int)nodeInfo.OpcSamplingInterval,
-                                            SamplingInterval = (int)nodeInfo.OpcSamplingInterval
-                                        };
-                                        opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
-                                    }
-                                }
-                                else
-                                {
                                     // create a monitored item for the node
                                     OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.ExpandedNodeId, opcSession.EndpointUri)
                                     {
-                                        RequestedSamplingInterval = (int)nodeInfo.OpcSamplingInterval,
-                                        SamplingInterval = (int)nodeInfo.OpcSamplingInterval
+                                        RequestedSamplingInterval = nodeInfo.OpcSamplingInterval,
+                                        SamplingInterval = nodeInfo.OpcSamplingInterval
                                     };
                                     opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
-                                }
                             }
                             else
                             {
                                 // give user a warning that the syntax is obsolete
-                                Trace($"Please update the syntax of the configuration file and use ExpandedNodeId instead of NodeId property name for node with identifier '{nodeInfo.NodeId.ToString()}' on EndpointUrl '{nodeInfo.EndPointUri}'.");
+                                Trace($"Please update the syntax of the configuration file and use ExpandedNodeId instead of NodeId property name for node with identifier '{nodeInfo.NodeId.ToString()}' on EndpointUrl '{nodeInfo.EndpointUri.AbsolutePath}'.");
 
                                 // create a monitored item for the node with the configured or default sampling interval
-                                OpcMonitoredItem monitoredItemInfo = new OpcMonitoredItem(nodeInfo.NodeId, opcSession.EndpointUri)
+                                OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.NodeId, opcSession.EndpointUri)
                                 {
-                                    RequestedSamplingInterval = (int)nodeInfo.OpcSamplingInterval,
-                                    SamplingInterval = (int)nodeInfo.OpcSamplingInterval
+                                    RequestedSamplingInterval = nodeInfo.OpcSamplingInterval,
+                                    SamplingInterval = nodeInfo.OpcSamplingInterval
                                 };
-                                opcSubscription.OpcMonitoredItems.Add(monitoredItemInfo);
+                                opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                             }
                         }
 

@@ -112,7 +112,7 @@ namespace Opc.Ua.Publisher
                 string json = encoder.CloseAndReturnText();
 
                 // add message to fifo send queue
-                Trace(Utils.TraceMasks.OperationDetail, "Enqueue a new message:");
+                Trace(Utils.TraceMasks.OperationDetail, $"Enqueue a new message from subscription {monitoredItem.Subscription.Id} (publishing interval: {monitoredItem.Subscription.PublishingInterval}, sampling interval: {monitoredItem.SamplingInterval}):");
                 Trace(Utils.TraceMasks.OperationDetail,  "   ApplicationUri: " + (applicationURI + (string.IsNullOrEmpty(ShopfloorDomain) ? "" : $":{ShopfloorDomain}")));
                 Trace(Utils.TraceMasks.OperationDetail, $"   DisplayName: {monitoredItem.DisplayName}");
                 Trace(Utils.TraceMasks.OperationDetail, $"   Value: {value}");
@@ -299,7 +299,6 @@ namespace Opc.Ua.Publisher
 
                         Trace($"Start monitoring nodes on endpoint '{EndpointUri.AbsoluteUri}'.");
                         NodeId currentNodeId;
-                        bool subscriptionUpdateRequired = false;
                         try
                         {
                             // lookup namespace index if ExpandedNodeId format has been used and build NodeId identifier.
@@ -340,13 +339,6 @@ namespace Opc.Ua.Publisher
                                 Trace($"Sampling interval: requested: {item.RequestedSamplingInterval}; revised: {monitoredItem.SamplingInterval}");
                                 item.SamplingInterval = monitoredItem.SamplingInterval;
                             }
-                            if (item.SamplingInterval > opcSubscription.PublishingInterval)
-                            {
-                                Trace($"Publishing interval update required to {item.SamplingInterval} ms.");
-                                // todo
-                                subscriptionUpdateRequired = true;
-                            }
-
                         }
                         catch (Exception e) when (e.GetType() == typeof(ServiceResultException))
                         {
@@ -378,12 +370,6 @@ namespace Opc.Ua.Publisher
                         catch (Exception e)
                         {
                             Trace(e, $"Failed to monitor node '{item.StartNodeId.Identifier}' on endpoint '{EndpointUri}'");
-                        }
-                        // check if a subscription update is required.
-                        if (subscriptionUpdateRequired)
-                        {
-                            Trace($"Subscription with id {opcSubscription.Subscription.Id} on endpoint '{EndpointUri}' needs to be updated.");
-                            // todo
                         }
                     }
                 }
@@ -485,7 +471,7 @@ namespace Opc.Ua.Publisher
             try
             {
                 // find a subscription we could the node monitor on
-                OpcSubscription opcSubscription = OpcSubscriptions.First(s => s.RequestedPublishingInterval == publishingInterval);
+                OpcSubscription opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == publishingInterval);
                 // if there was none found, create one
                 if (opcSubscription == null)
                 {
@@ -498,7 +484,7 @@ namespace Opc.Ua.Publisher
                 }
 
                 // if it is already there, we just ignore it, otherwise we add a new item to monitor.
-                OpcMonitoredItem opcMonitoredItem = opcSubscription.OpcMonitoredItems.First(m => m.StartNodeId == nodeId);
+                OpcMonitoredItem opcMonitoredItem = opcSubscription.OpcMonitoredItems.FirstOrDefault(m => m.StartNodeId == nodeId);
                 if (opcMonitoredItem == null)
                 {
                     // add a new item to monitor
@@ -616,7 +602,7 @@ namespace Opc.Ua.Publisher
         {
             if (e != null && session != null)
             {
-                var opcSession = Program.OpcSessions.Where(s => s.Session.ConfiguredEndpoint.EndpointUrl.Equals(session.ConfiguredEndpoint.EndpointUrl)).First();
+                var opcSession = Program.OpcSessions.Where(s => s.Session.ConfiguredEndpoint.EndpointUrl.Equals(session.ConfiguredEndpoint.EndpointUrl)).FirstOrDefault();
                 if (!ServiceResult.IsGood(e.Status))
                 {
                     Trace($"Session endpoint: {session.ConfiguredEndpoint.EndpointUrl} has Status: {e.Status}");
@@ -637,7 +623,7 @@ namespace Opc.Ua.Publisher
                 }
                 else
                 {
-                    if (opcSession.MissedKeepAlives != 0)
+                    if (opcSession != null && opcSession.MissedKeepAlives != 0)
                     {
                         // Reset missed keep alive count
                         Trace($"Session endpoint: {session.ConfiguredEndpoint.EndpointUrl} got a keep alive after {opcSession.MissedKeepAlives} {(opcSession.MissedKeepAlives == 1 ? "was" : "were")} missed.");
