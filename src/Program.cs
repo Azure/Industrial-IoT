@@ -490,7 +490,7 @@ namespace Opc.Ua.Publisher
                         }
                         else
                         {
-                            // legacy node configuration syntax using default sampling and publishing interval.
+                            // legacy (using ns=) node configuration syntax using default sampling and publishing interval.
                             PublishConfig.Add(new PublishNodeConfig(publishConfigFileEntry.NodeId, publishConfigFileEntry.EndpointUri, OpcSamplingInterval, OpcPublishingInterval));
                         }
                     }
@@ -528,7 +528,7 @@ namespace Opc.Ua.Publisher
                         var nodesWithSamePublishingInterval = PublishConfig.Where(n => n.EndpointUri.Equals(endpointUrl)).Where(n => n.OpcPublishingInterval == nodeDistinctPublishingInterval);
                         foreach (var nodeInfo in nodesWithSamePublishingInterval)
                         {
-                            // differentiate if legacy syntax is used
+                            // differentiate if legacy (using ns=) or new syntax (using nsu=) is used
                             if (nodeInfo.NodeId == null)
                             {
                                     // create a monitored item for the node

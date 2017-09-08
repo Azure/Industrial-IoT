@@ -36,12 +36,14 @@ namespace Opc.Ua.Publisher
         public MonitoredItemNotificationEventHandler Notification;
         public Uri EndpointUri;
         public MonitoredItem MonitoredItem;
+        public string ConfigNodeId;
 
         /// <summary>
         /// Ctor using NodeId (ns syntax for namespace).
         /// </summary>
         public OpcMonitoredItem(NodeId nodeId, Uri sessionEndpointUri)
         {
+            ConfigNodeId = nodeId.ToString();
             StartNodeId = new ExpandedNodeId(nodeId);
             Initialize(sessionEndpointUri);
         }
@@ -51,6 +53,7 @@ namespace Opc.Ua.Publisher
         /// </summary>
         public OpcMonitoredItem(ExpandedNodeId expandedNodeId, Uri sessionEndpointUri)
         {
+            ConfigNodeId = expandedNodeId.ToString();
             StartNodeId = expandedNodeId;
             Initialize(sessionEndpointUri);
         }
@@ -74,7 +77,7 @@ namespace Opc.Ua.Publisher
         /// <summary>
         /// The notification that the data for a monitored item has changed on an OPC UA server.
         /// </summary>
-        public static void MonitoredItem_Notification(MonitoredItem monitoredItem, MonitoredItemNotificationEventArgs args)
+        public void MonitoredItem_Notification(MonitoredItem monitoredItem, MonitoredItemNotificationEventArgs args)
         {
             try
             {
@@ -101,9 +104,8 @@ namespace Opc.Ua.Publisher
                 encoder.WriteString("ApplicationUri", (applicationURI + (string.IsNullOrEmpty(ShopfloorDomain) ? "" : $":{ShopfloorDomain}")));
                 encoder.WriteString("DisplayName", monitoredItem.DisplayName);
 
-                // write NodeId as ns=x;i=y
-                NodeId nodeId = monitoredItem.ResolvedNodeId;
-                encoder.WriteString("NodeId", new NodeId(nodeId.Identifier, nodeId.NamespaceIndex).ToString());
+                // use the node Id as configured, to also have the namespace URI in case of a ExpandedNodeId.
+                encoder.WriteString("NodeId", ConfigNodeId);
 
                 // suppress output of server timestamp in json by setting it to minvalue
                 value.ServerTimestamp = DateTime.MinValue;
