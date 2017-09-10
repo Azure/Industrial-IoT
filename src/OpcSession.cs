@@ -602,15 +602,17 @@ namespace Opc.Ua.Publisher
         /// </summary>
         private static void StandardClient_KeepAlive(Session session, KeepAliveEventArgs e)
         {
-            if (e != null && session != null)
+            if (e != null && session != null && session.ConfiguredEndpoint != null)
             {
-                var opcSession = Program.OpcSessions.Where(s => s.Session.ConfiguredEndpoint.EndpointUrl.Equals(session.ConfiguredEndpoint.EndpointUrl)).FirstOrDefault();
+                var opcSessions = OpcSessions.Where(s => s.Session != null);
+                var opcSession = opcSessions.Where(s => s.Session.ConfiguredEndpoint.EndpointUrl.Equals(session.ConfiguredEndpoint.EndpointUrl)).FirstOrDefault();
                 if (!ServiceResult.IsGood(e.Status))
                 {
                     Trace($"Session endpoint: {session.ConfiguredEndpoint.EndpointUrl} has Status: {e.Status}");
                     Trace($"Outstanding requests: {session.OutstandingRequestCount}, Defunct requests: {session.DefunctRequestCount}");
                     Trace($"Good publish requests: {session.GoodPublishRequestCount}, KeepAlive interval: {session.KeepAliveInterval}");
                     Trace($"SessionId: {session.SessionId}");
+
                     if (opcSession != null && opcSession.State == SessionState.Connected)
                     {
                         opcSession.MissedKeepAlives++;
