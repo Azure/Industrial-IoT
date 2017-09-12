@@ -64,21 +64,28 @@ namespace Publisher
             try
             {
                 // find the session we need to monitor the node
-                OpcSessionsSemaphore.Wait();
-                OpcSession opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri == publishNodeConfig.EndpointUri);
-                // add a new session.
-                if (opcSession == null)
+                OpcSession opcSession = null;
+                try
                 {
-                    // create new session info.
-                    opcSession = new OpcSession(publishNodeConfig.EndpointUri, OpcSessionCreationTimeout);
-                    OpcSessions.Add(opcSession);
-                    Trace($"PublishNodeMethod: No matching session found for endpoint '{publishNodeConfig.EndpointUri.AbsolutePath}'. Requested to create a new one.");
+                    OpcSessionsSemaphore.Wait();
+                    opcSession = OpcSessions.DefaultIfEmpty(null).First(s => s.EndpointUri == publishNodeConfig.EndpointUri);
+                    // add a new session.
+                    if (opcSession == null)
+                    {
+                        // create new session info.
+                        opcSession = new OpcSession(publishNodeConfig.EndpointUri, OpcSessionCreationTimeout);
+                        OpcSessions.Add(opcSession);
+                        Trace($"PublishNodeMethod: No matching session found for endpoint '{publishNodeConfig.EndpointUri.AbsolutePath}'. Requested to create a new one.");
+                    }
+                    else
+                    {
+                        Trace($"PublishNodeMethod: Session found for endpoint '{publishNodeConfig.EndpointUri.AbsolutePath}'");
+                    }
                 }
-                else
+                finally
                 {
-                    Trace($"PublishNodeMethod: Session found for endpoint '{publishNodeConfig.EndpointUri.AbsolutePath}'");
+                    OpcSessionsSemaphore.Release();
                 }
-                OpcSessionsSemaphore.Release();
 
                 // add the node info to the subscription with the default publishing interval
                 opcSession.AddNodeForMonitoring(OpcPublishingInterval, publishNodeConfig.NodeId);
@@ -144,20 +151,26 @@ namespace Publisher
             try
             {
                 // find the session we need to monitor the node
-                OpcSessionsSemaphore.Wait();
-                OpcSession opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri == endpointUri);
-                if (opcSession == null)
+                OpcSession opcSession = null;
+                try
                 {
-                    // do nothing if there is no session for this endpoint.
-                    Trace($"UnPublishNodeMethod: Session for endpoint '{endpointUri.AbsolutePath}' not found.");
+                    OpcSessionsSemaphore.Wait();
+                    opcSession = OpcSessions.DefaultIfEmpty(null).First(s => s.EndpointUri == endpointUri);
+                    if (opcSession == null)
+                    {
+                        // do nothing if there is no session for this endpoint.
+                        Trace($"UnPublishNodeMethod: Session for endpoint '{endpointUri.AbsolutePath}' not found.");
+                        return ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session for endpoint of published node not found!");
+                    }
+                    else
+                    {
+                        Trace($"UnPublishNodeMethod: Session found for endpoint '{endpointUri.AbsolutePath}'");
+                    }
+                }
+                finally
+                {
                     OpcSessionsSemaphore.Release();
-                    return ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session for endpoint of published node not found!");
                 }
-                else
-                {
-                    Trace($"UnPublishNodeMethod: Session found for endpoint '{endpointUri.AbsolutePath}'");
-                }
-                OpcSessionsSemaphore.Release();
 
                 // remove the node from the sessions monitored items list.
                 opcSession.TagNodeForMonitoringStop(nodeId);

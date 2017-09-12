@@ -475,7 +475,7 @@ namespace Opc.Ua.Publisher
             try
             {
                 // find a subscription we could the node monitor on
-                OpcSubscription opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == publishingInterval);
+                OpcSubscription opcSubscription = OpcSubscriptions.DefaultIfEmpty(null).First(s => s.RequestedPublishingInterval == publishingInterval);
                 // if there was none found, create one
                 if (opcSubscription == null)
                 {
@@ -488,7 +488,7 @@ namespace Opc.Ua.Publisher
                 }
 
                 // if it is already there, we just ignore it, otherwise we add a new item to monitor.
-                OpcMonitoredItem opcMonitoredItem = opcSubscription.OpcMonitoredItems.FirstOrDefault(m => m.StartNodeId == nodeId);
+                OpcMonitoredItem opcMonitoredItem = opcSubscription.OpcMonitoredItems.DefaultIfEmpty(null).First(m => m.StartNodeId == nodeId);
                 if (opcMonitoredItem == null)
                 {
                     // add a new item to monitor
@@ -608,7 +608,7 @@ namespace Opc.Ua.Publisher
             {
                 OpcSessionsSemaphore.Wait();
                 var opcSessions = OpcSessions.Where(s => s.Session != null);
-                var opcSession = opcSessions.Where(s => s.Session.ConfiguredEndpoint.EndpointUrl.Equals(session.ConfiguredEndpoint.EndpointUrl)).FirstOrDefault();
+                var opcSession = opcSessions.Where(s => s.Session.ConfiguredEndpoint.EndpointUrl.Equals(session.ConfiguredEndpoint.EndpointUrl)).DefaultIfEmpty(null).First();
                 OpcSessionsSemaphore.Release();
                 if (!ServiceResult.IsGood(e.Status))
                 {
