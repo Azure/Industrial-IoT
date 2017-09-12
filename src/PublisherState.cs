@@ -155,21 +155,26 @@ namespace Publisher
                 try
                 {
                     OpcSessionsSemaphore.Wait();
-                    opcSession = OpcSessions.DefaultIfEmpty(null).FirstOrDefault(s => s.EndpointUri == endpointUri);
-                    if (opcSession == null)
-                    {
-                        // do nothing if there is no session for this endpoint.
-                        Trace($"UnPublishNodeMethod: Session for endpoint '{endpointUri.AbsolutePath}' not found.");
-                        return ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session for endpoint of published node not found!");
-                    }
-                    else
-                    {
-                        Trace($"UnPublishNodeMethod: Session found for endpoint '{endpointUri.AbsolutePath}'");
-                    }
+                    opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri == endpointUri);
+                }
+                catch
+                {
+                    opcSession = null;
                 }
                 finally
                 {
                     OpcSessionsSemaphore.Release();
+
+                }
+                if (opcSession == null)
+                {
+                    // do nothing if there is no session for this endpoint.
+                    Trace($"UnPublishNodeMethod: Session for endpoint '{endpointUri.AbsolutePath}' not found.");
+                    return ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session for endpoint of published node not found!");
+                }
+                else
+                {
+                    Trace($"UnPublishNodeMethod: Session found for endpoint '{endpointUri.AbsolutePath}'");
                 }
 
                 // remove the node from the sessions monitored items list.

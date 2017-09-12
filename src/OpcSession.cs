@@ -472,10 +472,18 @@ namespace Opc.Ua.Publisher
         public void AddNodeForMonitoring(int publishingInterval, NodeId nodeId)
         {
             _opcSessionSemaphore.Wait();
+            OpcSubscription opcSubscription = null;
             try
             {
                 // find a subscription we could the node monitor on
-                OpcSubscription opcSubscription = OpcSubscriptions.DefaultIfEmpty(null).FirstOrDefault(s => s.RequestedPublishingInterval == publishingInterval);
+                try
+                {
+                    opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == publishingInterval);
+                }
+                catch
+                {
+                    opcSubscription = null;
+                }
                 // if there was none found, create one
                 if (opcSubscription == null)
                 {
@@ -488,7 +496,16 @@ namespace Opc.Ua.Publisher
                 }
 
                 // if it is already there, we just ignore it, otherwise we add a new item to monitor.
-                OpcMonitoredItem opcMonitoredItem = opcSubscription.OpcMonitoredItems.DefaultIfEmpty(null).FirstOrDefault(m => m.StartNodeId == nodeId);
+                OpcMonitoredItem opcMonitoredItem = null;
+                try
+                {
+                    opcMonitoredItem = opcSubscription.OpcMonitoredItems.FirstOrDefault(m => m.StartNodeId == nodeId);
+                }
+                catch
+                {
+                    opcMonitoredItem = null;
+                }
+                // if there was none found, create one
                 if (opcMonitoredItem == null)
                 {
                     // add a new item to monitor
@@ -606,10 +623,22 @@ namespace Opc.Ua.Publisher
         {
             if (e != null && session != null && session.ConfiguredEndpoint != null)
             {
-                OpcSessionsSemaphore.Wait();
-                var opcSessions = OpcSessions.Where(s => s.Session != null);
-                var opcSession = opcSessions.Where(s => s.Session.ConfiguredEndpoint.EndpointUrl.Equals(session.ConfiguredEndpoint.EndpointUrl)).DefaultIfEmpty(null).FirstOrDefault();
-                OpcSessionsSemaphore.Release();
+                OpcSession opcSession = null;
+                try
+                {
+                    OpcSessionsSemaphore.Wait();
+                    var opcSessions = OpcSessions.Where(s => s.Session != null);
+                    opcSession = opcSessions.Where(s => s.Session.ConfiguredEndpoint.EndpointUrl.Equals(session.ConfiguredEndpoint.EndpointUrl)).FirstOrDefault();
+                }
+                catch
+                {
+                    opcSession = null;
+                }
+                finally
+                {
+                    OpcSessionsSemaphore.Release();
+                }
+
                 if (!ServiceResult.IsGood(e.Status))
                 {
                     Trace($"Session endpoint: {session.ConfiguredEndpoint.EndpointUrl} has Status: {e.Status}");
