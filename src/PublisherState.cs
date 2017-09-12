@@ -150,6 +150,7 @@ namespace Publisher
                 {
                     // do nothing if there is no session for this endpoint.
                     Trace($"UnPublishNodeMethod: Session for endpoint '{endpointUri.AbsolutePath}' not found.");
+                    OpcSessionsSemaphore.Release();
                     return ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session for endpoint of published node not found!");
                 }
                 else
