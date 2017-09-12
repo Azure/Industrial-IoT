@@ -155,7 +155,7 @@ namespace Publisher
                 try
                 {
                     OpcSessionsSemaphore.Wait();
-                    opcSession = OpcSessions.DefaultIfEmpty(null).First(s => s.EndpointUri == endpointUri);
+                    opcSession = OpcSessions.DefaultIfEmpty(null).FirstOrDefault(s => s.EndpointUri == endpointUri);
                     if (opcSession == null)
                     {
                         // do nothing if there is no session for this endpoint.
