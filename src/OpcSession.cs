@@ -388,12 +388,14 @@ namespace Opc.Ua.Publisher
                 }
 
                 // shutdown unused sessions.
+                OpcSessionsSemaphore.Wait();
                 var unusedSessions = OpcSessions.Where(s => s.OpcSubscriptions.Count == 0);
                 foreach (var unusedSession in unusedSessions)
                 {
                     await unusedSession.Shutdown();
                     OpcSessions.Remove(unusedSession);
                 }
+                OpcSessionsSemaphore.Release();
             }
             catch (Exception e)
             {
@@ -604,8 +606,10 @@ namespace Opc.Ua.Publisher
         {
             if (e != null && session != null && session.ConfiguredEndpoint != null)
             {
+                OpcSessionsSemaphore.Wait();
                 var opcSessions = OpcSessions.Where(s => s.Session != null);
                 var opcSession = opcSessions.Where(s => s.Session.ConfiguredEndpoint.EndpointUrl.Equals(session.ConfiguredEndpoint.EndpointUrl)).FirstOrDefault();
+                OpcSessionsSemaphore.Release();
                 if (!ServiceResult.IsGood(e.Status))
                 {
                     Trace($"Session endpoint: {session.ConfiguredEndpoint.EndpointUrl} has Status: {e.Status}");

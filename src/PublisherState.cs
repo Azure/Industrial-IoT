@@ -64,8 +64,8 @@ namespace Publisher
             try
             {
                 // find the session we need to monitor the node
+                OpcSessionsSemaphore.Wait();
                 OpcSession opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri == publishNodeConfig.EndpointUri);
-
                 // add a new session.
                 if (opcSession == null)
                 {
@@ -78,6 +78,7 @@ namespace Publisher
                 {
                     Trace($"PublishNodeMethod: Session found for endpoint '{publishNodeConfig.EndpointUri.AbsolutePath}'");
                 }
+                OpcSessionsSemaphore.Release();
 
                 // add the node info to the subscription with the default publishing interval
                 opcSession.AddNodeForMonitoring(OpcPublishingInterval, publishNodeConfig.NodeId);
@@ -143,6 +144,7 @@ namespace Publisher
             try
             {
                 // find the session we need to monitor the node
+                OpcSessionsSemaphore.Wait();
                 OpcSession opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri == endpointUri);
                 if (opcSession == null)
                 {
@@ -154,6 +156,7 @@ namespace Publisher
                 {
                     Trace($"UnPublishNodeMethod: Session found for endpoint '{endpointUri.AbsolutePath}'");
                 }
+                OpcSessionsSemaphore.Release();
 
                 // remove the node from the sessions monitored items list.
                 opcSession.TagNodeForMonitoringStop(nodeId);

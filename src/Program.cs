@@ -23,6 +23,7 @@ namespace Opc.Ua.Publisher
         //
         public static int PublisherSessionConnectWaitSec = 10;
         public static List<OpcSession> OpcSessions = new List<OpcSession>();
+        public static SemaphoreSlim OpcSessionsSemaphore = new SemaphoreSlim(1);
         public static List<PublishConfigFileEntry> PublishConfigFileEntries = new List<PublishConfigFileEntry>();
         public static List<PublishNodeConfig> PublishConfig = new List<PublishNodeConfig>();
         public static string NodesToPublishAbsFilenameDefault = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
@@ -511,6 +512,7 @@ namespace Opc.Ua.Publisher
                 }
 
                 // create a list to manage sessions, subscriptions and monitored items.
+                OpcSessionsSemaphore.Wait();
                 var uniqueEndpointUrls = PublishConfig.Select(n => n.EndpointUri).Distinct();
                 foreach (var endpointUrl in uniqueEndpointUrls)
                 {
@@ -561,6 +563,7 @@ namespace Opc.Ua.Publisher
                     // add session.
                     OpcSessions.Add(opcSession);
                 }
+                OpcSessionsSemaphore.Release();
 
                 // kick off the task to maintain all sessions
                 var cts = new CancellationTokenSource();
@@ -620,7 +623,9 @@ namespace Opc.Ua.Publisher
                 try
                 {
                     // get tasks for all disconnected sessions and start them
+                    OpcSessionsSemaphore.Wait();
                     var singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitor());
+                    OpcSessionsSemaphore.Release();
                     await Task.WhenAll(singleSessionHandlerTaskList);
                 }
                 catch (Exception e)
