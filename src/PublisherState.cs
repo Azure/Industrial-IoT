@@ -1,6 +1,5 @@
 ﻿
 using IoTHubCredentialTools;
-using Microsoft.Azure.Devices.Client;
 using Newtonsoft.Json;
 using Opc.Ua;
 using Opc.Ua.Publisher;
@@ -12,8 +11,8 @@ using System.Linq;
 namespace Publisher
 {
     using System.Threading.Tasks;
-    using static Opc.Ua.Utils;
     using static Program;
+    using static Opc.Ua.Workarounds.TraceWorkaround;
 
     public partial class PublisherState
     {
@@ -37,7 +36,7 @@ namespace Publisher
         {
             if (inputArguments[0] == null || inputArguments[1] == null)
             {
-                Trace("PublishNodeMethod: Invalid Arguments!");
+                Trace("PublishNodeMethod: Invalid Arguments when trying to publish a node.");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments!");
             }
 
