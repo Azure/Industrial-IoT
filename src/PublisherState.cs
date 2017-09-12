@@ -68,7 +68,15 @@ namespace Publisher
                 try
                 {
                     OpcSessionsSemaphore.Wait();
-                    opcSession = OpcSessions.DefaultIfEmpty(null).First(s => s.EndpointUri == publishNodeConfig.EndpointUri);
+                    try
+                    {
+                        opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri == publishNodeConfig.EndpointUri);
+                    }
+                    catch
+                    {
+                        opcSession = null;
+                    }
+
                     // add a new session.
                     if (opcSession == null)
                     {
