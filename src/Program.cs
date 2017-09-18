@@ -28,6 +28,7 @@ namespace Opc.Ua.Publisher
         public static List<PublishNodeConfig> PublishConfig = new List<PublishNodeConfig>();
         public static string NodesToPublishAbsFilenameDefault = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
         public static string NodesToPublishAbsFilename { get; set; }
+        public static SemaphoreSlim PublishDataSemaphore = new SemaphoreSlim(1);
         public static string ShopfloorDomain { get; set; }
         public static bool VerboseConsole { get; set; }
 
@@ -68,7 +69,7 @@ namespace Opc.Ua.Publisher
 
         public static string PublisherServerSecurityPolicy = SecurityPolicies.Basic128Rsa15;
 
-        public static string OpcOwnCertStoreType = X509Store;
+        public static string OpcOwnCertStoreType = Directory;
         private const string _opcOwnCertDirectoryStorePathDefault = "CertificateStores/own";
         private const string _opcOwnCertX509StorePathDefault = "CurrentUser\\UA_MachineDefault";
         public static string OpcOwnCertStorePath = _opcOwnCertX509StorePathDefault;
@@ -417,7 +418,7 @@ namespace Opc.Ua.Publisher
                 }
 
                 WriteLine("Publisher is starting up...");
-
+                
                 // init OPC configuration and tracing
                 ModuleConfiguration moduleConfiguration = new ModuleConfiguration(ApplicationName);
                 Init(OpcStackTraceMask, VerboseConsole);
@@ -464,6 +465,7 @@ namespace Opc.Ua.Publisher
                 // get information on the nodes to publish and validate the json by deserializing it.
                 try
                 {
+                    PublishDataSemaphore.Wait();
                     if (string.IsNullOrEmpty(NodesToPublishAbsFilename))
                     {
                         // check if we have an env variable specifying the published nodes path, otherwise use the default
@@ -502,6 +504,10 @@ namespace Opc.Ua.Publisher
                     Trace("exiting...");
                     return;
                 }
+                finally
+                {
+                    PublishDataSemaphore.Release();
+                }
                 Trace($"There are {PublishConfig.Count.ToString()} nodes to publish.");
 
                 // initialize and start IoTHub messaging
@@ -512,27 +518,30 @@ namespace Opc.Ua.Publisher
                 }
 
                 // create a list to manage sessions, subscriptions and monitored items.
-                OpcSessionsSemaphore.Wait();
-                var uniqueEndpointUrls = PublishConfig.Select(n => n.EndpointUri).Distinct();
-                foreach (var endpointUrl in uniqueEndpointUrls)
+                try
                 {
-                    // create new session info.
-                    OpcSession opcSession = new OpcSession(endpointUrl, OpcSessionCreationTimeout);
-
-                    // create for all different OPC publishing intervals to this endpoint separate subscriptions
-                    var nodesDistinctPublishingInterval = PublishConfig.Where(n => n.EndpointUri.Equals(endpointUrl)).Select( c => c.OpcPublishingInterval).Distinct();
-                    foreach (var nodeDistinctPublishingInterval in nodesDistinctPublishingInterval)
+                    PublishDataSemaphore.Wait();
+                    OpcSessionsSemaphore.Wait();
+                    var uniqueEndpointUrls = PublishConfig.Select(n => n.EndpointUri).Distinct();
+                    foreach (var endpointUrl in uniqueEndpointUrls)
                     {
-                        // create a subscription for the publishing interval and add it to the session.
-                        OpcSubscription opcSubscription = new OpcSubscription(nodeDistinctPublishingInterval);
+                        // create new session info.
+                        OpcSession opcSession = new OpcSession(endpointUrl, OpcSessionCreationTimeout);
 
-                        // add all nodes with this OPC publishing interval to this subscription.
-                        var nodesWithSamePublishingInterval = PublishConfig.Where(n => n.EndpointUri.Equals(endpointUrl)).Where(n => n.OpcPublishingInterval == nodeDistinctPublishingInterval);
-                        foreach (var nodeInfo in nodesWithSamePublishingInterval)
+                        // create for all different OPC publishing intervals to this endpoint separate subscriptions
+                        var nodesDistinctPublishingInterval = PublishConfig.Where(n => n.EndpointUri.Equals(endpointUrl)).Select(c => c.OpcPublishingInterval).Distinct();
+                        foreach (var nodeDistinctPublishingInterval in nodesDistinctPublishingInterval)
                         {
-                            // differentiate if legacy (using ns=) or new syntax (using nsu=) is used
-                            if (nodeInfo.NodeId == null)
+                            // create a subscription for the publishing interval and add it to the session.
+                            OpcSubscription opcSubscription = new OpcSubscription(nodeDistinctPublishingInterval);
+
+                            // add all nodes with this OPC publishing interval to this subscription.
+                            var nodesWithSamePublishingInterval = PublishConfig.Where(n => n.EndpointUri.Equals(endpointUrl)).Where(n => n.OpcPublishingInterval == nodeDistinctPublishingInterval);
+                            foreach (var nodeInfo in nodesWithSamePublishingInterval)
                             {
+                                // differentiate if legacy (using ns=) or new syntax (using nsu=) is used
+                                if (nodeInfo.NodeId == null)
+                                {
                                     // create a monitored item for the node
                                     OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.ExpandedNodeId, opcSession.EndpointUri)
                                     {
@@ -540,30 +549,35 @@ namespace Opc.Ua.Publisher
                                         SamplingInterval = nodeInfo.OpcSamplingInterval
                                     };
                                     opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
-                            }
-                            else
-                            {
-                                // give user a warning that the syntax is obsolete
-                                Trace($"Please update the syntax of the configuration file and use ExpandedNodeId instead of NodeId property name for node with identifier '{nodeInfo.NodeId.ToString()}' on EndpointUrl '{nodeInfo.EndpointUri.AbsolutePath}'.");
-
-                                // create a monitored item for the node with the configured or default sampling interval
-                                OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.NodeId, opcSession.EndpointUri)
+                                }
+                                else
                                 {
-                                    RequestedSamplingInterval = nodeInfo.OpcSamplingInterval,
-                                    SamplingInterval = nodeInfo.OpcSamplingInterval
-                                };
-                                opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
+                                    // give user a warning that the syntax is obsolete
+                                    Trace($"Please update the syntax of the configuration file and use ExpandedNodeId instead of NodeId property name for node with identifier '{nodeInfo.NodeId.ToString()}' on EndpointUrl '{nodeInfo.EndpointUri.AbsolutePath}'.");
+
+                                    // create a monitored item for the node with the configured or default sampling interval
+                                    OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.NodeId, opcSession.EndpointUri)
+                                    {
+                                        RequestedSamplingInterval = nodeInfo.OpcSamplingInterval,
+                                        SamplingInterval = nodeInfo.OpcSamplingInterval
+                                    };
+                                    opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
+                                }
                             }
+
+                            // add subscription to session.
+                            opcSession.OpcSubscriptions.Add(opcSubscription);
                         }
 
-                        // add subscription to session.
-                        opcSession.OpcSubscriptions.Add(opcSubscription);
+                        // add session.
+                        OpcSessions.Add(opcSession);
                     }
-
-                    // add session.
-                    OpcSessions.Add(opcSession);
                 }
-                OpcSessionsSemaphore.Release();
+                finally
+                {
+                    OpcSessionsSemaphore.Release();
+                    PublishDataSemaphore.Release();
+                }
 
                 // kick off the task to maintain all sessions
                 var cts = new CancellationTokenSource();
@@ -644,11 +658,19 @@ namespace Opc.Ua.Publisher
             try
             {
                 // get tasks for all disconnected sessions and start them
-                var shutdownSessionTaskList = OpcSessions.Select(s => s.Shutdown());
-                if (shutdownSessionTaskList.GetEnumerator().MoveNext())
+                try
                 {
-                    shutdownSessionTaskList.GetEnumerator().Reset();
-                    await Task.WhenAll(shutdownSessionTaskList);
+                    OpcSessionsSemaphore.Wait();
+                    var shutdownSessionTaskList = OpcSessions.Select(s => s.Shutdown());
+                    if (shutdownSessionTaskList.GetEnumerator().MoveNext())
+                    {
+                        shutdownSessionTaskList.GetEnumerator().Reset();
+                        await Task.WhenAll(shutdownSessionTaskList);
+                    }
+                }
+                finally
+                {
+                    OpcSessionsSemaphore.Release();
                 }
             }
             catch (Exception e)

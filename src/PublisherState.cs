@@ -45,19 +45,28 @@ namespace Publisher
             Uri endpointUri = null;
             try
             {
-                nodeId = inputArguments[0] as string;
-                endpointUri = inputArguments[1] as Uri;
                 if (string.IsNullOrEmpty(inputArguments[0] as string) || string.IsNullOrEmpty(inputArguments[1] as string))
                 {
                     Trace($"PublishNodeMethod: Arguments (0 (nodeId), 1 (endpointUrl)) are not valid strings!");
                     return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments as strings!");
                 }
+                nodeId = inputArguments[0] as string;
+                endpointUri = new Uri(inputArguments[1] as string);
                 publishNodeConfig = new PublishNodeConfig(nodeId, endpointUri, OpcSamplingInterval, OpcPublishingInterval);
             }
             catch (UriFormatException)
             {
                 Trace($"PublishNodeMethod: The endpointUri is invalid '{inputArguments[1] as string}'!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as second argument!");
+            }
+
+            // Process publishing and sampling intervals if passed in.
+            int publishingInterval = OpcPublishingInterval;
+            int samplingInterval = OpcSamplingInterval;
+            if (inputArguments.Count > 2)
+            {
+                int.TryParse(inputArguments[2] as string, out publishingInterval);
+                int.TryParse(inputArguments[3] as string, out samplingInterval);
             }
 
             // find/create a session to the endpoint URL and start monitoring the node.
@@ -68,14 +77,7 @@ namespace Publisher
                 try
                 {
                     OpcSessionsSemaphore.Wait();
-                    try
-                    {
-                        opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri == publishNodeConfig.EndpointUri);
-                    }
-                    catch
-                    {
-                        opcSession = null;
-                    }
+                    opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri == publishNodeConfig.EndpointUri);
 
                     // add a new session.
                     if (opcSession == null)
@@ -83,38 +85,41 @@ namespace Publisher
                         // create new session info.
                         opcSession = new OpcSession(publishNodeConfig.EndpointUri, OpcSessionCreationTimeout);
                         OpcSessions.Add(opcSession);
-                        Trace($"PublishNodeMethod: No matching session found for endpoint '{publishNodeConfig.EndpointUri.AbsolutePath}'. Requested to create a new one.");
+                        Trace($"PublishNodeMethod: No matching session found for endpoint '{publishNodeConfig.EndpointUri.OriginalString}'. Requested to create a new one.");
                     }
                     else
                     {
-                        Trace($"PublishNodeMethod: Session found for endpoint '{publishNodeConfig.EndpointUri.AbsolutePath}'");
+                        Trace($"PublishNodeMethod: Session found for endpoint '{publishNodeConfig.EndpointUri.OriginalString}'");
                     }
+
+                    // add the node info to the subscription with the default publishing interval
+                    opcSession.AddNodeForMonitoring(publishingInterval, samplingInterval, publishNodeConfig.NodeId);
+                    Trace("PublishNodeMethod: Requested to monitor item.");
                 }
                 finally
                 {
                     OpcSessionsSemaphore.Release();
                 }
 
-                // add the node info to the subscription with the default publishing interval
-                opcSession.AddNodeForMonitoring(OpcPublishingInterval, publishNodeConfig.NodeId);
-                Trace("PublishNodeMethod: Requested to monitor item.");
-
-                // start monitoring the node
-                Task monitorTask = Task.Run(async () => await opcSession.ConnectAndMonitor());
-                monitorTask.Wait();
-                Trace("PublishNodeMethod: Session processing completed.");
-
                 // update our data
-                PublishConfig.Add(publishNodeConfig);
-
-                // add it also to the publish file 
-                var publishConfigFileEntry = new PublishConfigFileEntry()
+                try
                 {
-                    EndpointUri = endpointUri,
-                    NodeId = nodeId
-                };
-                PublishConfigFileEntries.Add(publishConfigFileEntry);
-                File.WriteAllText(NodesToPublishAbsFilename, JsonConvert.SerializeObject(PublishConfigFileEntries));
+                    PublishDataSemaphore.Wait();
+                    PublishConfig.Add(publishNodeConfig);
+
+                    // add it also to the publish file 
+                    var publishConfigFileEntry = new PublishConfigFileEntry()
+                    {
+                        EndpointUri = endpointUri,
+                        NodeId = nodeId
+                    };
+                    PublishConfigFileEntries.Add(publishConfigFileEntry);
+                    File.WriteAllText(NodesToPublishAbsFilename, JsonConvert.SerializeObject(PublishConfigFileEntries));
+                }
+                finally
+                {
+                    PublishDataSemaphore.Release();
+                }
 
                 Trace($"PublishNodeMethod: Now publishing: {publishNodeConfig.NodeId.ToString()}");
                 return ServiceResult.Good;
@@ -141,13 +146,13 @@ namespace Publisher
             Uri endpointUri = null;
             try
             {
-                nodeId = inputArguments[0] as string;
-                endpointUri = inputArguments[1] as Uri;
                 if (string.IsNullOrEmpty(inputArguments[0] as string) || string.IsNullOrEmpty(inputArguments[1] as string))
                 {
                     Trace($"UnPublishNodeMethod: Arguments (0 (nodeId), 1 (endpointUrl)) are not valid strings!");
                     return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments as strings!");
                 }
+                nodeId = inputArguments[0] as string;
+                endpointUri = new Uri(inputArguments[1] as string);
             }
             catch (UriFormatException)
             {
@@ -177,27 +182,30 @@ namespace Publisher
                 if (opcSession == null)
                 {
                     // do nothing if there is no session for this endpoint.
-                    Trace($"UnPublishNodeMethod: Session for endpoint '{endpointUri.AbsolutePath}' not found.");
+                    Trace($"UnPublishNodeMethod: Session for endpoint '{endpointUri.OriginalString}' not found.");
                     return ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session for endpoint of published node not found!");
                 }
                 else
                 {
-                    Trace($"UnPublishNodeMethod: Session found for endpoint '{endpointUri.AbsolutePath}'");
+                    Trace($"UnPublishNodeMethod: Session found for endpoint '{endpointUri.OriginalString}'");
                 }
 
                 // remove the node from the sessions monitored items list.
                 opcSession.TagNodeForMonitoringStop(nodeId);
                 Trace("UnPublishNodeMethod: Requested to stop monitoring of node.");
 
-                // stop monitoring the node
-                Task monitorTask = Task.Run(async () => await opcSession.ConnectAndMonitor());
-                monitorTask.Wait();
-                Trace("UnPublishNodeMethod: Session processing completed.");
-
                 // remove node from persisted config file
-                var entryToRemove = PublishConfigFileEntries.Find(l => l.NodeId == nodeId && l.EndpointUri == endpointUri);
-                PublishConfigFileEntries.Remove(entryToRemove);
-                File.WriteAllText(NodesToPublishAbsFilename, JsonConvert.SerializeObject(PublishConfigFileEntries));
+                try
+                {
+                    PublishDataSemaphore.Wait();
+                    var entryToRemove = PublishConfigFileEntries.Find(l => l.NodeId == nodeId && l.EndpointUri == endpointUri);
+                    PublishConfigFileEntries.Remove(entryToRemove);
+                    File.WriteAllText(NodesToPublishAbsFilename, JsonConvert.SerializeObject(PublishConfigFileEntries));
+                }
+                finally
+                {
+                    PublishDataSemaphore.Release();
+                }
             }
             catch (Exception e)
             {
@@ -212,7 +220,15 @@ namespace Publisher
         /// </summary>
         private ServiceResult GetListOfPublishedNodesMethod(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
-            outputArguments[0] = JsonConvert.SerializeObject(PublishConfigFileEntries);
+            try
+            {
+                PublishDataSemaphore.Wait();
+                outputArguments[0] = JsonConvert.SerializeObject(PublishConfigFileEntries);
+            }
+            finally
+            {
+                PublishDataSemaphore.Release();
+            }
             Trace("GetListOfPublishedNodesMethod: Success!");
 
             return ServiceResult.Good;

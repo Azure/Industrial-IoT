@@ -207,8 +207,7 @@ namespace Opc.Ua.Publisher
                 {
                     Trace($"Connect and monitor session and nodes on endpoint '{EndpointUri.AbsoluteUri}'.");
                     EndpointDescription selectedEndpoint = CoreClientUtils.SelectEndpoint(EndpointUri.AbsoluteUri, true);
-                    ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server, EndpointConfiguration.Create(OpcConfiguration));
-                    configuredEndpoint.Update(selectedEndpoint);
+                    ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(null, selectedEndpoint, EndpointConfiguration.Create(OpcConfiguration));
 
                     try
                     {
@@ -388,14 +387,20 @@ namespace Opc.Ua.Publisher
                 }
 
                 // shutdown unused sessions.
-                OpcSessionsSemaphore.Wait();
-                var unusedSessions = OpcSessions.Where(s => s.OpcSubscriptions.Count == 0);
-                foreach (var unusedSession in unusedSessions)
+                try
                 {
-                    await unusedSession.Shutdown();
-                    OpcSessions.Remove(unusedSession);
+                    OpcSessionsSemaphore.Wait();
+                    var unusedSessions = OpcSessions.Where(s => s.OpcSubscriptions.Count == 0);
+                    foreach (var unusedSession in unusedSessions)
+                    {
+                        OpcSessions.Remove(unusedSession);
+                        await unusedSession.Shutdown();
+                    }
                 }
-                OpcSessionsSemaphore.Release();
+                finally
+                {
+                    OpcSessionsSemaphore.Release();
+                }
             }
             catch (Exception e)
             {
@@ -468,49 +473,37 @@ namespace Opc.Ua.Publisher
         /// If there is no spubscription with the requested publishing interval, one is created.
         /// </summary>
         /// <param name="publishingInterval"></param>
+        /// <param name="samplingInterval"></param>
         /// <param name="nodeId"></param>
-        public void AddNodeForMonitoring(int publishingInterval, NodeId nodeId)
+        public void AddNodeForMonitoring(int publishingInterval, int samplingInterval, NodeId nodeId)
         {
             _opcSessionSemaphore.Wait();
-            OpcSubscription opcSubscription = null;
             try
             {
                 // find a subscription we could the node monitor on
-                try
-                {
-                    opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == publishingInterval);
-                }
-                catch
-                {
-                    opcSubscription = null;
-                }
+                OpcSubscription opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == publishingInterval);
+                
                 // if there was none found, create one
                 if (opcSubscription == null)
                 {
-                    int revisedPublishingInterval;
-                    opcSubscription = new OpcSubscription(publishingInterval)
-                    {
-                        Subscription = CreateSubscription(publishingInterval, out revisedPublishingInterval),
-                        PublishingInterval = revisedPublishingInterval
-                    };
+                    opcSubscription = new OpcSubscription(publishingInterval);
+                    OpcSubscriptions.Add(opcSubscription);
+                    Trace($"AddNodeForMonitoring: No matching subscription with publishing interval of {publishingInterval} found'. Requested to create a new one.");
                 }
 
                 // if it is already there, we just ignore it, otherwise we add a new item to monitor.
-                OpcMonitoredItem opcMonitoredItem = null;
-                try
-                {
-                    opcMonitoredItem = opcSubscription.OpcMonitoredItems.FirstOrDefault(m => m.StartNodeId == nodeId);
-                }
-                catch
-                {
-                    opcMonitoredItem = null;
-                }
+                OpcMonitoredItem opcMonitoredItem = opcSubscription.OpcMonitoredItems.FirstOrDefault(m => m.StartNodeId == nodeId);
+                
                 // if there was none found, create one
                 if (opcMonitoredItem == null)
                 {
                     // add a new item to monitor
-                    opcMonitoredItem = new OpcMonitoredItem(nodeId, EndpointUri);
+                    opcMonitoredItem = new OpcMonitoredItem(nodeId, EndpointUri)
+                    {
+                        RequestedSamplingInterval = samplingInterval
+                    };
                     opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
+                    Trace($"AddNodeForMonitoring: Added item with nodeId '{nodeId.ToString()}' for monitoring.");
                 }
             }
             finally
@@ -585,10 +578,7 @@ namespace Opc.Ua.Publisher
             finally
             {
                 _opcSessionSemaphore.Release();
-                if (OpcSessions.Count(s => s.State == SessionState.Connected) == 0)
-                {
-                    _opcSessionSemaphore.Dispose();
-                }
+                _opcSessionSemaphore.Dispose();
             }
         }
 
@@ -629,10 +619,6 @@ namespace Opc.Ua.Publisher
                     OpcSessionsSemaphore.Wait();
                     var opcSessions = OpcSessions.Where(s => s.Session != null);
                     opcSession = opcSessions.Where(s => s.Session.ConfiguredEndpoint.EndpointUrl.Equals(session.ConfiguredEndpoint.EndpointUrl)).FirstOrDefault();
-                }
-                catch
-                {
-                    opcSession = null;
                 }
                 finally
                 {

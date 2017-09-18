@@ -128,41 +128,6 @@ namespace Opc.Ua.Publisher
                     null
                     );
                 Configuration.SecurityConfiguration.ApplicationCertificate.Certificate = certificate ?? throw new Exception("OPC UA application certificate could not be created! Cannot continue without it!");
-
-                // Trust myself if requested.
-                if (Program.TrustMyself)
-                {
-                    // Ensure it is trusted
-                    try
-                    {
-                        ICertificateStore store = Configuration.SecurityConfiguration.TrustedPeerCertificates.OpenStore();
-                        if (store == null)
-                        {
-                            Trace($"Could not open trusted peer store. StorePath={Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
-                        }
-                        else
-                        {
-                            try
-                            {
-                                Trace($"Adding publisher certificate to trusted peer store. StorePath={Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
-                                X509Certificate2 publicKey = new X509Certificate2(certificate.RawData);
-                                store.Add(publicKey).Wait();
-                            }
-                            finally
-                            {
-                                store.Close();
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Trace(e, $"Could not add publisher certificate to trusted peer store. StorePath={Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
-                    }
-                }
-                else
-                {
-                    Trace("Publisher certificate is not added to trusted peer store.");
-                }
             }
             else
             {
@@ -171,10 +136,45 @@ namespace Opc.Ua.Publisher
             Configuration.ApplicationUri = Utils.GetApplicationUriFromCertificate(certificate);
             Trace($"Application certificate is for Application URI: {Configuration.ApplicationUri}");
 
+            // Trust myself if requested.
+            if (Program.TrustMyself)
+            {
+                // Ensure it is trusted
+                try
+                {
+                    ICertificateStore store = Configuration.SecurityConfiguration.TrustedPeerCertificates.OpenStore();
+                    if (store == null)
+                    {
+                        Trace($"Could not open trusted peer store. StorePath={Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
+                    }
+                    else
+                    {
+                        try
+                        {
+                            Trace($"Adding publisher certificate to trusted peer store. StorePath={Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
+                            X509Certificate2 publicKey = new X509Certificate2(certificate.RawData);
+                            store.Add(publicKey).Wait();
+                        }
+                        finally
+                        {
+                            store.Close();
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Trace(e, $"Could not add publisher certificate to trusted peer store. StorePath={Configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
+                }
+            }
+            else
+            {
+                Trace("Publisher certificate is not added to trusted peer store.");
+            }
+
             // patch our base address
             if (Configuration.ServerConfiguration.BaseAddresses.Count == 0)
             {
-                Configuration.ServerConfiguration.BaseAddresses.Add($"opc.tcp://{Configuration.ApplicationName.ToLowerInvariant()}:{Program.PublisherServerPort}{Program.PublisherServerPath}");
+                Configuration.ServerConfiguration.BaseAddresses.Add($"opc.tcp://{Utils.GetHostName().ToLowerInvariant()}:{Program.PublisherServerPort}{Program.PublisherServerPath}");
             }
             foreach (var endpoint in Configuration.ServerConfiguration.BaseAddresses)
             {
