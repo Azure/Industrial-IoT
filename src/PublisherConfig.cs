@@ -1,13 +1,11 @@
 ﻿
 using Newtonsoft.Json;
+using Opc.Ua;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace Opc.Ua.Publisher
+namespace OpcPublisher
 {
-    using static Program;
-
     /// <summary>
     /// Class describing a list of nodes in the ExpandedNodeId format (using nsu as namespace syntax)
     /// </summary>
@@ -26,13 +24,13 @@ namespace Opc.Ua.Publisher
     /// - ExpandedNodeId syntax, using the namespace URI (nsu) syntax
     /// - List of ExpandedNodeId syntax, to allow putting nodes with similar publishing and/or sampling intervals in one object
     /// </summary>
-    public partial class PublishConfigFileEntry
+    public partial class PublisherConfigFileEntry
     {
-        public PublishConfigFileEntry()
+        public PublisherConfigFileEntry()
         {
         }
 
-        public PublishConfigFileEntry(string nodeId, string endpointUrl)
+        public PublisherConfigFileEntry(string nodeId, string endpointUrl)
         {
             NodeId = new NodeId(nodeId);
             EndpointUri = new Uri(endpointUrl);
@@ -46,7 +44,7 @@ namespace Opc.Ua.Publisher
         public List<OpcNodesOnEndpointUrl> OpcNodes;
     }
 
-    public class PublishNodeConfig
+    public class NodeToPublishConfig
     {
         public Uri EndpointUri;
         public NodeId NodeId;
@@ -54,7 +52,7 @@ namespace Opc.Ua.Publisher
         public int OpcSamplingInterval;
         public int OpcPublishingInterval;
 
-        public PublishNodeConfig(NodeId nodeId, Uri endpointUri, int opcSamplingInterval, int opcPublishingInterval)
+        public NodeToPublishConfig(NodeId nodeId, Uri endpointUri, int opcSamplingInterval, int opcPublishingInterval)
         {
             NodeId = nodeId;
             ExpandedNodeId = null;
@@ -62,7 +60,7 @@ namespace Opc.Ua.Publisher
             OpcSamplingInterval = opcSamplingInterval;
             OpcPublishingInterval = opcPublishingInterval;
         }
-        public PublishNodeConfig(ExpandedNodeId expandedNodeId, Uri endpointUri, int opcSamplingInterval, int opcPublishingInterval)
+        public NodeToPublishConfig(ExpandedNodeId expandedNodeId, Uri endpointUri, int opcSamplingInterval, int opcPublishingInterval)
         {
             NodeId = null;
             ExpandedNodeId = expandedNodeId;

@@ -7,12 +7,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Opc.Ua.Publisher
+namespace OpcPublisher
 {
     using IoTHubCredentialTools;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Client;
-    using static Opc.Ua.Workarounds.TraceWorkaround;
+    using Opc.Ua;
+    using static OpcPublisher.Workarounds.TraceWorkaround;
     using static Program;
 
     /// <summary>
@@ -25,16 +26,16 @@ namespace Opc.Ua.Publisher
         /// </summary>
         private class OpcUaMessage
         {
-            public string ApplicationUri { get; set; }
-            public string DisplayName { get; set; }
-            public string NodeId { get; set; }
-            public OpcUaValue Value { get; set; }
+            public string ApplicationUri;
+            public string DisplayName;
+            public string NodeId;
+            public OpcUaValue Value;
         }
 
         private class OpcUaValue
         {
-            public string Value { get; set; }
-            public string SourceTimestamp { get; set; }
+            public string Value;
+            public string SourceTimestamp;
         }
 
         private ConcurrentQueue<string> _sendQueue;

@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Opc.Ua.Publisher
+namespace OpcPublisher
 {
     using Opc.Ua;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Opc.Ua.Workarounds.TraceWorkaround;
+    using static OpcPublisher.Workarounds.TraceWorkaround;
     using static Program;
 
     /// <summary>
@@ -81,7 +81,7 @@ namespace Opc.Ua.Publisher
         {
             try
             {
-                if (args.NotificationValue == null || monitoredItem.Subscription.Session == null)
+                if (args == null || args.NotificationValue == null || monitoredItem == null || monitoredItem.Subscription == null || monitoredItem.Subscription.Session == null)
                 {
                     return;
                 }
@@ -118,7 +118,7 @@ namespace Opc.Ua.Publisher
                 Trace(Utils.TraceMasks.OperationDetail,  "   ApplicationUri: " + (applicationURI + (string.IsNullOrEmpty(ShopfloorDomain) ? "" : $":{ShopfloorDomain}")));
                 Trace(Utils.TraceMasks.OperationDetail, $"   DisplayName: {monitoredItem.DisplayName}");
                 Trace(Utils.TraceMasks.OperationDetail, $"   Value: {value}");
-                Program.IotHubMessaging.Enqueue(json);
+                IotHubCommunication.Enqueue(json);
 
             }
             catch (Exception e)
@@ -206,11 +206,14 @@ namespace Opc.Ua.Publisher
                 if (State == SessionState.Disconnected)
                 {
                     Trace($"Connect and monitor session and nodes on endpoint '{EndpointUri.AbsoluteUri}'.");
-                    EndpointDescription selectedEndpoint = CoreClientUtils.SelectEndpoint(EndpointUri.AbsoluteUri, true);
-                    ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(null, selectedEndpoint, EndpointConfiguration.Create(OpcConfiguration));
-
                     try
                     {
+                        // release the session to not block for high network timeouts.
+                        _opcSessionSemaphore.Release();
+
+                        // start connecting
+                        EndpointDescription selectedEndpoint = CoreClientUtils.SelectEndpoint(EndpointUri.AbsoluteUri, true);
+                        ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(null, selectedEndpoint, EndpointConfiguration.Create(OpcConfiguration));
                         uint timeout = SessionTimeout * ((UnsuccessfulConnectionCount >= OpcSessionCreationBackoffMax) ? OpcSessionCreationBackoffMax : UnsuccessfulConnectionCount + 1);
                         Trace($"Create session for endpoint URI '{EndpointUri.AbsoluteUri}' with timeout of {timeout} ms.");
                         Session = await Session.Create(
@@ -233,7 +236,6 @@ namespace Opc.Ua.Publisher
 
                             // init object state and install keep alive
                             UnsuccessfulConnectionCount = 0;
-                            State = SessionState.Connected;
                             Session.KeepAliveInterval = OpcKeepAliveIntervalInSec * 1000;
                             Session.KeepAlive += StandardClient_KeepAlive;
 
@@ -261,6 +263,14 @@ namespace Opc.Ua.Publisher
                         State = SessionState.Disconnected;
                         Session = null;
                         return;
+                    }
+                    finally
+                    {
+                        _opcSessionSemaphore.Wait();
+                        if (Session != null)
+                        {
+                            State = SessionState.Connected;
+                        }
                     }
                 }
 
@@ -396,6 +406,17 @@ namespace Opc.Ua.Publisher
                         OpcSessions.Remove(unusedSession);
                         await unusedSession.Shutdown();
                     }
+
+                    // Shutdown everything on shutdown.
+                    if (PublisherShutdownInProgress == true)
+                    {
+                        var allSessions = OpcSessions;
+                        foreach (var session in allSessions)
+                        {
+                            OpcSessions.Remove(session);
+                            await session.Shutdown();
+                        }
+                    }
                 }
                 finally
                 {
@@ -480,6 +501,11 @@ namespace Opc.Ua.Publisher
             _opcSessionSemaphore.Wait();
             try
             {
+                if (PublisherShutdownInProgress)
+                {
+                    return;
+                }
+
                 // find a subscription we could the node monitor on
                 OpcSubscription opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == publishingInterval);
                 
@@ -521,6 +547,11 @@ namespace Opc.Ua.Publisher
             _opcSessionSemaphore.Wait();
             try
             {
+                if (PublisherShutdownInProgress)
+                {
+                    return;
+                }
+
                 // find all subscriptions the node is monitored on.
                 var opcSubscriptions = OpcSubscriptions.Where( s => s.OpcMonitoredItems.Any(m => m.StartNodeId == nodeId));
 
@@ -611,47 +642,55 @@ namespace Opc.Ua.Publisher
         /// </summary>
         private static void StandardClient_KeepAlive(Session session, KeepAliveEventArgs e)
         {
+            // Ignore if we are shutting down.
+            if (PublisherShutdownInProgress == true)
+            {
+                return;
+            }
+
             if (e != null && session != null && session.ConfiguredEndpoint != null)
             {
                 OpcSession opcSession = null;
                 try
                 {
                     OpcSessionsSemaphore.Wait();
+
+
                     var opcSessions = OpcSessions.Where(s => s.Session != null);
                     opcSession = opcSessions.Where(s => s.Session.ConfiguredEndpoint.EndpointUrl.Equals(session.ConfiguredEndpoint.EndpointUrl)).FirstOrDefault();
+
+                    if (!ServiceResult.IsGood(e.Status))
+                    {
+                        Trace($"Session endpoint: {session.ConfiguredEndpoint.EndpointUrl} has Status: {e.Status}");
+                        Trace($"Outstanding requests: {session.OutstandingRequestCount}, Defunct requests: {session.DefunctRequestCount}");
+                        Trace($"Good publish requests: {session.GoodPublishRequestCount}, KeepAlive interval: {session.KeepAliveInterval}");
+                        Trace($"SessionId: {session.SessionId}");
+
+                        if (opcSession != null && opcSession.State == SessionState.Connected)
+                        {
+                            opcSession.MissedKeepAlives++;
+                            Trace($"Missed KeepAlives: {opcSession.MissedKeepAlives}");
+                            if (opcSession.MissedKeepAlives >= OpcKeepAliveDisconnectThreshold)
+                            {
+                                Trace($"Hit configured missed keep alive threshold of {Program.OpcKeepAliveDisconnectThreshold}. Disconnecting the session to endpoint {session.ConfiguredEndpoint.EndpointUrl}.");
+                                session.KeepAlive -= StandardClient_KeepAlive;
+                                opcSession.Disconnect();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (opcSession != null && opcSession.MissedKeepAlives != 0)
+                        {
+                            // Reset missed keep alive count
+                            Trace($"Session endpoint: {session.ConfiguredEndpoint.EndpointUrl} got a keep alive after {opcSession.MissedKeepAlives} {(opcSession.MissedKeepAlives == 1 ? "was" : "were")} missed.");
+                            opcSession.MissedKeepAlives = 0;
+                        }
+                    }
                 }
                 finally
                 {
                     OpcSessionsSemaphore.Release();
-                }
-
-                if (!ServiceResult.IsGood(e.Status))
-                {
-                    Trace($"Session endpoint: {session.ConfiguredEndpoint.EndpointUrl} has Status: {e.Status}");
-                    Trace($"Outstanding requests: {session.OutstandingRequestCount}, Defunct requests: {session.DefunctRequestCount}");
-                    Trace($"Good publish requests: {session.GoodPublishRequestCount}, KeepAlive interval: {session.KeepAliveInterval}");
-                    Trace($"SessionId: {session.SessionId}");
-
-                    if (opcSession != null && opcSession.State == SessionState.Connected)
-                    {
-                        opcSession.MissedKeepAlives++;
-                        Trace($"Missed KeepAlives: {opcSession.MissedKeepAlives}");
-                        if (opcSession.MissedKeepAlives >= OpcKeepAliveDisconnectThreshold)
-                        {
-                            Trace($"Hit configured missed keep alive threshold of {Program.OpcKeepAliveDisconnectThreshold}. Disconnecting the session to endpoint {session.ConfiguredEndpoint.EndpointUrl}.");
-                            session.KeepAlive -= StandardClient_KeepAlive;
-                            opcSession.Disconnect();
-                        }
-                    }
-                }
-                else
-                {
-                    if (opcSession != null && opcSession.MissedKeepAlives != 0)
-                    {
-                        // Reset missed keep alive count
-                        Trace($"Session endpoint: {session.ConfiguredEndpoint.EndpointUrl} got a keep alive after {opcSession.MissedKeepAlives} {(opcSession.MissedKeepAlives == 1 ? "was" : "were")} missed.");
-                        opcSession.MissedKeepAlives = 0;
-                    }
                 }
             }
             else

@@ -1,8 +1,9 @@
 ﻿
+using Opc.Ua;
 using System;
 using static System.Console;
 
-namespace Opc.Ua.Workarounds
+namespace OpcPublisher.Workarounds
 {
     /// <summary>
     /// Class to enable output to the console.
