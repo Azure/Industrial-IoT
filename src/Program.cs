@@ -197,7 +197,7 @@ namespace OpcPublisher
                     },
 
                     // opc server configuration options
-                    { "lf|logfile=", $"the filename of the logfile to use.\nDefault: './logs/<applicationname>.log.txt'", (string l) => LogFileName = l },
+                    { "lf|logfile=", $"the filename of the logfile to use.\nDefault: './Logs/<applicationname>.log.txt'", (string l) => LogFileName = l },
                     { "pn|portnum=", $"the server port of the publisher OPC server endpoint.\nDefault: {PublisherServerPort}", (ushort p) => PublisherServerPort = p },
                     { "pa|path=", $"the enpoint URL path part of the publisher OPC server endpoint.\nDefault: '{PublisherServerPath}'", (string a) => PublisherServerPath = a },
                     { "lr|ldsreginterval=", $"the LDS(-ME) registration interval in ms. If 0, then the registration is disabled.\nDefault: {LdsRegistrationInterval}", (int i) => {
@@ -430,8 +430,8 @@ namespace OpcPublisher
                 WriteLine("Publisher is starting up...");
 
                 // init OPC configuration and tracing
-                OpcStackConfiguration opcStackConfiguration = new OpcStackConfiguration(ApplicationName);
                 Init(OpcStackTraceMask, VerboseConsole);
+                OpcStackConfiguration opcStackConfiguration = new OpcStackConfiguration(ApplicationName);
                 opcTraceInitialized = true;
                 OpcConfiguration = opcStackConfiguration.Configuration;
 
