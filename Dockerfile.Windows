@@ -6,5 +6,5 @@ WORKDIR /build
 RUN dotnet restore
 RUN dotnet publish -c Release -o out
 
-WORKDIR /build/out
-ENTRYPOINT ["dotnet", "OpcPublisher.dll"]
+WORKDIR /docker
+ENTRYPOINT ["dotnet", "/build/out/OpcPublisher.dll"]
