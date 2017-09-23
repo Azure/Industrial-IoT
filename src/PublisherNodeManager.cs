@@ -519,8 +519,6 @@ namespace OpcPublisher
                 {
                     PublishDataSemaphore.Release();
                 }
-
-                Trace($"PublishNode: Now publishing: {nodeToPublish.NodeId.ToString()}");
                 return ServiceResult.Good;
             }
             catch (Exception e)

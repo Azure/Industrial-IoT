@@ -1,10 +1,10 @@
 FROM microsoft/dotnet:1.1-sdk-nanoserver
 
-COPY /src /build
+COPY /src /build/src
 
-WORKDIR /build
+WORKDIR /build/src
 RUN dotnet restore
-RUN dotnet publish -c Release -o out
+RUN dotnet publish --configuration Release --output out
 
 WORKDIR /docker
 ENTRYPOINT ["dotnet", "/build/out/OpcPublisher.dll"]

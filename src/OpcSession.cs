@@ -535,6 +535,8 @@ namespace OpcPublisher
             finally
             {
                 _opcSessionSemaphore.Release();
+                // Start publishing.
+                Task.Run(async () => await ConnectAndMonitor());
             }
         }
 
@@ -569,6 +571,8 @@ namespace OpcPublisher
             finally
             {
                 _opcSessionSemaphore.Release();
+                // Stop publishing.
+                Task.Run(async () => await ConnectAndMonitor());
             }
         }
 
