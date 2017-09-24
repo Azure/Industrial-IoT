@@ -7,6 +7,12 @@ This application, apart from including an OPC UA *client* for connecting to exis
 
 The application is implemented using .NET Core technology and is able to run on the platforms supported by .NET Core.
 
+Publisher implements a retry logic to establish connections to endpoints which have not responded to a certain number of keep alive requests, if the OPC UA server on this endpoint had a power outage.
+
+For each distinct publishing interval to a OPC UA server it creates a separate subscription over which all nodes with this publishing interval are updated.
+
+Publisher supports aggregation of the data sent to IoTHub, to reduce network load. This batching is sending a packet to IoTHub only if the configured package size is reached.
+
 This application uses the OPC Foundations's OPC UA reference stack and therefore licensing restrictions apply. Visit http://opcfoundation.github.io/UA-.NETStandardLibrary/ for OPC UA documentation and licensing terms.
 
 |Branch|Status|
