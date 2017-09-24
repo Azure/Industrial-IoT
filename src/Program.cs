@@ -104,7 +104,7 @@ namespace OpcPublisher
 
             // show usage
             WriteLine();
-            WriteLine("Usage: {0}.exe applicationname [iothubconnectionstring] [options]", Assembly.GetEntryAssembly().GetName().Name);
+            WriteLine("Usage: {0}.exe <applicationname> [<iothubconnectionstring>] [<options>]", Assembly.GetEntryAssembly().GetName().Name);
             WriteLine();
             WriteLine("OPC Edge Publisher to subscribe to configured OPC UA servers and send telemetry to Azure IoTHub.");
             WriteLine("To exit the application, just press ENTER while it is running.");
@@ -115,16 +115,13 @@ namespace OpcPublisher
             WriteLine();
             WriteLine("iothubconnectionstring: the IoTHub owner connectionstring, optional");
             WriteLine();
-            WriteLine("There are a couple of environemnt variables which could be used to control the application:");
+            WriteLine("There are a couple of environment variables which could be used to control the application:");
             WriteLine("_HUB_CS: sets the IoTHub owner connectionstring");
             WriteLine("_GW_LOGP: sets the filename of the log file to use"); 
             WriteLine("_TPC_SP: sets the path to store certificates of trusted stations");
             WriteLine("_GW_PNFP: sets the filename of the publishing configuration file");
             WriteLine();
-            WriteLine("Notes:");
-            WriteLine("If an environment variable is controlling the OPC UA stack configuration, they are only taken into account");
-            WriteLine("if they are not set in the OPC UA configuration file.");
-            WriteLine("Command line arguments overrule OPC UA configuration file settings and environement variable settings.");
+            WriteLine("Command line arguments overrule environment variable settings.");
             WriteLine();
             
             // output the options
