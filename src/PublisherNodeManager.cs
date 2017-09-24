@@ -104,8 +104,6 @@ namespace OpcPublisher
                     const string connectionStringItemName = "ConnectionString";
                     DataItemState item = CreateDataItemVariable(dataFolder, connectionStringItemName, connectionStringItemName, BuiltInType.String, ValueRanks.Scalar, AccessLevels.CurrentWrite);
                     item.Value = String.Empty;
-                    DataItemState legacyItem = CreateDataItemVariable(dataFolder, 22, connectionStringItemName + "-legacy", BuiltInType.String, ValueRanks.Scalar, AccessLevels.CurrentWrite);
-                    item.Value = String.Empty;
                     #endregion
 
                     #region Methods
@@ -114,25 +112,16 @@ namespace OpcPublisher
                     #region PublishNode Method
                     MethodState publishNodeMethod = CreateMethod(methodsFolder, "PublishNode", "PublishNode");
                     SetPublishNodeMethodProperties(ref publishNodeMethod);
-
-                    MethodState legacyPublishNodeMethod = CreateMethod(methodsFolder, 16, "PublishNode-legacy");
-                    SetPublishNodeMethodProperties(ref legacyPublishNodeMethod);
                     #endregion
 
                     #region UnpublishNode Method
                     MethodState unpublishNodeMethod = CreateMethod(methodsFolder, "UnpublishNode", "UnpublishNode");
                     SetUnpublishNodeMethodProperties(ref unpublishNodeMethod);
-
-                    MethodState legacyUnpublishNodeMethod = CreateMethod(methodsFolder, 18, "UnPublishNode-legacy");
-                    SetUnpublishNodeMethodProperties(ref legacyUnpublishNodeMethod);
                     #endregion
 
                     #region GetListOfPublishedNodes Method
                     MethodState getListOfPublishedNodesMethod = CreateMethod(methodsFolder, "GetListOfPublishedNodes", "GetListOfPublishedNodes");
                     SetGetListOfPublishedNodesMethodProperties(ref getListOfPublishedNodesMethod);
-
-                    MethodState legacyGetListOfPublishedNodesMethod = CreateMethod(methodsFolder, 20, "GetListOfPublishedNodes-legacy");
-                    SetGetListOfPublishedNodesMethodProperties(ref legacyGetListOfPublishedNodesMethod);
                     #endregion
 
                     #endregion Methods
