@@ -275,7 +275,7 @@ namespace OpcPublisher
                             if (isDequeueSuccessful)
                             {
                                 OpcUaMessage msgPayload = JsonConvert.DeserializeObject<OpcUaMessage>(messageInJson);
-                                _messageListSemaphore.Wait();
+                                await _messageListSemaphore.WaitAsync();
                                 _messageList.Add(msgPayload);
                                 _messageListSemaphore.Release();
                                 _currentSizeOfIotHubMessageBytes = _currentSizeOfIotHubMessageBytes + nextMessageSizeBytes;
@@ -309,7 +309,7 @@ namespace OpcPublisher
             if (_messageList.Count > 0)
             {
                 // process all queued messages
-                _messageListSemaphore.Wait();
+                await _messageListSemaphore.WaitAsync();
                 string msgListInJson = JsonConvert.SerializeObject(_messageList);
                 var encodedMessage = new Microsoft.Azure.Devices.Client.Message(Encoding.UTF8.GetBytes(msgListInJson));
                 _currentSizeOfIotHubMessageBytes = 0;
@@ -342,7 +342,7 @@ namespace OpcPublisher
             if (_sendTimer != null)
             {
                 // send in x seconds
-                Trace(Utils.TraceMasks.OperationDetail, $"Retart timer to send data to IoTHub in {_defaultSendIntervalSeconds} second(s).");
+                Trace(Utils.TraceMasks.OperationDetail, $"Restart timer to send data to IoTHub in {_defaultSendIntervalSeconds} second(s).");
                 _sendTimer.Change(TimeSpan.FromSeconds(_defaultSendIntervalSeconds), TimeSpan.FromSeconds(_defaultSendIntervalSeconds));
             }
         }

@@ -72,17 +72,6 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Called after the server has been started.
-        /// </summary>
-        protected override void OnServerStarted(IServerInternal server)
-        {
-            base.OnServerStarted(server);
-
-            // request notifications when the user identity is changed. all valid users are accepted by default.
-            server.SessionManager.ImpersonateUser += new ImpersonateEventHandler(SessionManager_ImpersonateUser);
-        }
-
-        /// <summary>
         /// Cleans up before the server shuts down.
         /// </summary>
         /// <remarks>
@@ -120,15 +109,6 @@ namespace OpcPublisher
             }
 
             base.OnServerStopping();
-        }
-
-        /// <summary>
-        /// Called when a client tries to change its user identity.
-        /// </summary>
-        private void SessionManager_ImpersonateUser(Session session, ImpersonateEventArgs args)
-        {
-            // We do not require any authentication.
-            return;
         }
     }
 }

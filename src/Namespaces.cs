@@ -9,6 +9,6 @@ namespace OpcPublisher
         /// <summary>
         /// The namespace for the nodes provided by the publisher server.
         /// </summary>
-        public const string PublisherApplications = "http://opcfoundation.org/UA/Publisher/";
+        public const string PublisherApplications = "http://microsoft.com/Opc/Publisher/";
     }
 }

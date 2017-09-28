@@ -73,7 +73,7 @@ namespace OpcPublisher
                 Trace("Application certificate found in Application Certificate Store");
             }
             Configuration.ApplicationUri = Utils.GetApplicationUriFromCertificate(certificate);
-            Trace($"Application certificate is for Application URI: {Configuration.ApplicationUri}");
+            Trace($"Application certificate is for Application URI '{Configuration.ApplicationUri}', Application '{Configuration.ApplicationName} and has Subject '{Configuration.ApplicationName}'");
 
             // TrustedIssuerCertificates
             Configuration.SecurityConfiguration.TrustedIssuerCertificates = new CertificateTrustList();
@@ -166,13 +166,6 @@ namespace OpcPublisher
             Configuration.TransportQuotas = new TransportQuotas();
             // the OperationTimeout should be twice the minimum value for PublishingInterval * KeepAliveCount, so set to 120s
             Configuration.TransportQuotas.OperationTimeout = Program.OpcOperationTimeout;
-            Configuration.TransportQuotas.MaxStringLength = 1048576;
-            Configuration.TransportQuotas.MaxByteStringLength = 1048576;
-            Configuration.TransportQuotas.MaxArrayLength = 65535;
-            Configuration.TransportQuotas.MaxMessageSize = 4194304;
-            Configuration.TransportQuotas.MaxBufferSize = 65535;
-            Configuration.TransportQuotas.ChannelLifetime = 300000;
-            Configuration.TransportQuotas.SecurityTokenLifetime = 3600000;
             Trace($"OperationTimeout set to {Configuration.TransportQuotas.OperationTimeout}");
 
 
@@ -202,106 +195,9 @@ namespace OpcPublisher
             Configuration.ServerConfiguration.SecurityPolicies.Add(newPolicy);
             Trace($"Security policy {newPolicy.SecurityPolicyUri} with mode {newPolicy.SecurityMode} added");
 
-            // MinRequestThreadCount
-            Configuration.ServerConfiguration.MinRequestThreadCount = 5;
-
-            // MaxRequestThreadCount
-            Configuration.ServerConfiguration.MaxRequestThreadCount = 100;
-
-            // MaxQueuedRequestCount
-            Configuration.ServerConfiguration.MaxQueuedRequestCount = 2000;
-
-            // UserTokenPolicies
-            UserTokenPolicy userTokenPolicy = new UserTokenPolicy(UserTokenType.Anonymous)
-            {
-                SecurityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#None"
-            };
-            Configuration.ServerConfiguration.UserTokenPolicies.Add(userTokenPolicy);
-
-            // DiagnosticsEnabled
-            Configuration.ServerConfiguration.DiagnosticsEnabled = false;
-
-            // MaxSessionCount
-            Configuration.ServerConfiguration.MaxSessionCount = 100;
-
-            // MinSessionTimeout
-            Configuration.ServerConfiguration.MinSessionTimeout = 1000;
-
-            // MaxSessionTimeout
-            Configuration.ServerConfiguration.MaxSessionTimeout = 3600000;
-
-            // MaxBrowseContinuationPoints
-            Configuration.ServerConfiguration.MaxBrowseContinuationPoints = 10;
-
-            // MaxQueryContinuationPoints
-            Configuration.ServerConfiguration.MaxQueryContinuationPoints = 10;
-
-            // MaxHistoryContinuationPoints
-            Configuration.ServerConfiguration.MaxHistoryContinuationPoints = 100;
-
-            // MaxRequestAge
-            Configuration.ServerConfiguration.MaxRequestAge = 600000;
-
-            // MinPublishingInterval
-            Configuration.ServerConfiguration.MinPublishingInterval = 100;
-
-            // MaxPublishingInterval
-            Configuration.ServerConfiguration.MaxPublishingInterval = 3600000;
-
-            // PublishingResolution
-            Configuration.ServerConfiguration.PublishingResolution = 50;
-
-            // MaxSubscriptionLifetime
-            Configuration.ServerConfiguration.MaxSubscriptionLifetime = 3600000;
-
-            // MaxMessageQueueSize
-            Configuration.ServerConfiguration.MaxMessageQueueSize = 100;
-
-            // MaxNotificationQueueSize
-            Configuration.ServerConfiguration.MaxNotificationQueueSize = 100;
-
-            // MaxNotificationsPerPublish
-            Configuration.ServerConfiguration.MaxNotificationsPerPublish = 1000;
-
-            // MinMetadataSamplingInterval
-            Configuration.ServerConfiguration.MinMetadataSamplingInterval = 1000;
-
-            // AvailableSamplingRates
-            // not used
-
-            // RegistrationEndpoint
-            Configuration.ServerConfiguration.RegistrationEndpoint = new EndpointDescription();
-            Configuration.ServerConfiguration.RegistrationEndpoint.EndpointUrl = "opc.tcp://localhost:4840";
-            Configuration.ServerConfiguration.RegistrationEndpoint.Server.ApplicationUri = "opc.tcp://localhost:4840";
-            Configuration.ServerConfiguration.RegistrationEndpoint.Server.ApplicationType = ApplicationType.Server;
-            Configuration.ServerConfiguration.RegistrationEndpoint.Server.DiscoveryUrls.Add("opc.tcp://localhost:4840");
-            Configuration.ServerConfiguration.RegistrationEndpoint.SecurityMode = MessageSecurityMode.SignAndEncrypt;
-
             // MaxRegistrationInterval
             Configuration.ServerConfiguration.MaxRegistrationInterval = Program.LdsRegistrationInterval;
             Trace($"LDS(-ME) registration intervall set to {Program.LdsRegistrationInterval} ms (0 means no registration)");
-
-            // NodeManagerSaveFile
-            // not used
-
-            // MinSubscriptionLifetime
-            Configuration.ServerConfiguration.MinSubscriptionLifetime = 10000;
-
-            // MaxPublishRequestCount
-            Configuration.ServerConfiguration.MaxPublishRequestCount = 20;
-
-            // MaxSubscriptionCount
-            Configuration.ServerConfiguration.MaxSubscriptionCount = 100;
-
-            // MaxEventQueueSize
-            Configuration.ServerConfiguration.MaxEventQueueSize = 10000;
-
-            // ServerProfileArray
-            // see https://opcfoundation-onlineapplications.org/profilereporting/ for list of available profiles
-            Configuration.ServerConfiguration.ServerProfileArray.Add("Standard UA Server Profile");
-            Configuration.ServerConfiguration.ServerProfileArray.Add("Data Access Server Facet");
-            Configuration.ServerConfiguration.ServerProfileArray.Add("Method Server Facet");
-
 
             //
             // TraceConfiguration
@@ -339,31 +235,7 @@ namespace OpcPublisher
             Trace($"Log file is: {Utils.GetAbsoluteFilePath(Configuration.TraceConfiguration.OutputFilePath, true, false, false, true)}");
             Trace($"opcstacktracemask set to: 0x{Program.OpcStackTraceMask:X} ({Program.OpcStackTraceMask})");
 
-            // DisableHiResClock
-            Configuration.DisableHiResClock = true;
-
-            // 
-            // ClientConfiguration
-            //
-
             Configuration.ClientConfiguration = new ClientConfiguration();
-
-            // DefaultSessionTimeout
-            Configuration.ClientConfiguration.DefaultSessionTimeout = 600000;
-
-            // WellKnownDiscoveryUrls
-            Configuration.ClientConfiguration.WellKnownDiscoveryUrls.Add("opc.tcp://{0}:4840/UADiscovery");
-            Configuration.ClientConfiguration.WellKnownDiscoveryUrls.Add("http://{0}:52601/UADiscovery");
-            Configuration.ClientConfiguration.WellKnownDiscoveryUrls.Add("http://{0}/UADiscovery/Default.svc");
-
-            // DiscoveryServers
-            // Not used
-
-            // EndpointCacheFilePath
-            // Not used
-
-            // MinSubscriptionLifetime
-            Configuration.ClientConfiguration.MinSubscriptionLifetime = 10000;
 
             // validate the configuration now
             Configuration.Validate(Configuration.ApplicationType).Wait();

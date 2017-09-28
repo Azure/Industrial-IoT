@@ -199,7 +199,7 @@ namespace OpcPublisher
         /// <returns></returns>
         public async Task ConnectAndMonitor()
         {
-            _opcSessionSemaphore.Wait();
+            await _opcSessionSemaphore.WaitAsync();
             try
             {
                 // if the session is disconnected, create one.
@@ -266,7 +266,7 @@ namespace OpcPublisher
                     }
                     finally
                     {
-                        _opcSessionSemaphore.Wait();
+                        await _opcSessionSemaphore.WaitAsync();
                         if (Session != null)
                         {
                             State = SessionState.Connected;
@@ -399,7 +399,7 @@ namespace OpcPublisher
                 // shutdown unused sessions.
                 try
                 {
-                    OpcSessionsSemaphore.Wait();
+                    await OpcSessionsSemaphore.WaitAsync();
                     var unusedSessions = OpcSessions.Where(s => s.OpcSubscriptions.Count == 0);
                     foreach (var unusedSession in unusedSessions)
                     {
@@ -440,7 +440,7 @@ namespace OpcPublisher
         /// <returns></returns>
         public async Task Disconnect()
         {
-            _opcSessionSemaphore.Wait();
+            await _opcSessionSemaphore.WaitAsync();
             try
             {
                 foreach (var opcSubscription in OpcSubscriptions)
@@ -506,7 +506,7 @@ namespace OpcPublisher
                     return;
                 }
 
-                // find a subscription we could the node monitor on
+                // check if there is already a subscription with the same publishing interval, which could be used to monitor the node
                 OpcSubscription opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == publishingInterval);
                 
                 // if there was none found, create one
@@ -530,13 +530,14 @@ namespace OpcPublisher
                     };
                     opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                     Trace($"AddNodeForMonitoring: Added item with nodeId '{nodeId.ToString()}' for monitoring.");
+
+                    // Start publishing.
+                    Task.Run(async () => await ConnectAndMonitor());
                 }
             }
             finally
             {
                 _opcSessionSemaphore.Release();
-                // Start publishing.
-                Task.Run(async () => await ConnectAndMonitor());
             }
         }
 
@@ -567,12 +568,13 @@ namespace OpcPublisher
                         opcMonitoredItem.State = OpcMonitoredItem.OpcMonitoredItemState.StopMonitoring;
                     }
                 }
+
+                // Stop publishing.
+                Task.Run(async () => await ConnectAndMonitor());
             }
             finally
             {
                 _opcSessionSemaphore.Release();
-                // Stop publishing.
-                Task.Run(async () => await ConnectAndMonitor());
             }
         }
 
@@ -582,7 +584,7 @@ namespace OpcPublisher
         /// <returns></returns>
         public async Task Shutdown()
         {
-            _opcSessionSemaphore.Wait();
+            await _opcSessionSemaphore.WaitAsync();
             try
             {
                 // if the session is connected, close it.

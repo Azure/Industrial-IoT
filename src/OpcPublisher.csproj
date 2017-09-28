@@ -8,7 +8,7 @@
     <RuntimeFrameworkVersion>1.1.2</RuntimeFrameworkVersion>
     <GenerateAssemblyCompanyAttribute>true</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
-    <Description>This package subscribes to a configurable set of nodes in OPC UA server systems and publish them to Azure IoTHub.</Description>
+    <Description>This application subscribes to a configurable set of nodes in OPC UA server systems and publish them to Azure IoTHub.</Description>
     <Company>Microsoft</Company>
     <Version>1.1.2</Version>
   </PropertyGroup>

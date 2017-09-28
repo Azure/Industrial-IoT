@@ -115,7 +115,7 @@ namespace OpcPublisher
             WriteLine();
             WriteLine("iothubconnectionstring: the IoTHub owner connectionstring, optional");
             WriteLine();
-            WriteLine("There are a couple of environment variables which could be used to control the application:");
+            WriteLine("There are a couple of environment variables which can be used to control the application:");
             WriteLine("_HUB_CS: sets the IoTHub owner connectionstring");
             WriteLine("_GW_LOGP: sets the filename of the log file to use"); 
             WriteLine("_TPC_SP: sets the path to store certificates of trusted stations");
@@ -140,7 +140,7 @@ namespace OpcPublisher
                 Mono.Options.OptionSet options = new Mono.Options.OptionSet {
                     // Publishing configuration options
                     { "pf|publishfile=", $"the filename to configure the nodes to publish.\nDefault: '{NodesToPublishAbsFilenameDefault}'", (string p) => NodesToPublishAbsFilename = p },
-                    { "sd|shopfloordomain=", $"the domain of the shopfloor. if specified this domain is appended (delimited by a ':' to the 'ApplicationURI' property when telemetry is ingested to IoTHub.\n" +
+                    { "sd|shopfloordomain=", $"the domain of the shopfloor. if specified this domain is appended (delimited by a ':' to the 'ApplicationURI' property when telemetry is sent to IoTHub.\n" +
                             "The value must follow the syntactical rules of a DNS hostname.\nDefault: not set", (string s) => {
                             Regex domainNameRegex = new Regex("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
                             if (domainNameRegex.IsMatch(s))
@@ -170,7 +170,7 @@ namespace OpcPublisher
                     { "ih|iothubprotocol=", $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}",
                         (Microsoft.Azure.Devices.Client.TransportType p) => IotHubProtocol = p
                     },
-                    { "ms|iothubmessagesize=", $"the max size of a message which could be send to IoTHub. when telemetry of this size is available it will be sent.\n0 will enforce immediate send when telemetry is available\nMin: 0\nMax: 256 * 1024\nDefault: {_MaxSizeOfIoTHubMessageBytes}", (uint u) => {
+                    { "ms|iothubmessagesize=", $"the max size of a message which can be send to IoTHub. when telemetry of this size is available it will be sent.\n0 will enforce immediate send when telemetry is available\nMin: 0\nMax: 256 * 1024\nDefault: {_MaxSizeOfIoTHubMessageBytes}", (uint u) => {
                             if (u >= 0 && u <= 256 * 1024)
                             {
                                 _MaxSizeOfIoTHubMessageBytes = u;
@@ -267,7 +267,7 @@ namespace OpcPublisher
                             }
                         }
                     },
-                    { "kt|keepalivethreshold=", $"specify the number of keep alive packets a server could miss, before the session is disconneced\nMin: 1\nDefault: {OpcKeepAliveDisconnectThreshold}", (uint u) => {
+                    { "kt|keepalivethreshold=", $"specify the number of keep alive packets a server can miss, before the session is disconneced\nMin: 1\nDefault: {OpcKeepAliveDisconnectThreshold}", (uint u) => {
                             if (u > 1)
                             {
                                 OpcKeepAliveDisconnectThreshold = u;
@@ -535,7 +535,7 @@ namespace OpcPublisher
                         // create new session info.
                         OpcSession opcSession = new OpcSession(endpointUrl, OpcSessionCreationTimeout);
 
-                        // create for all different OPC publishing intervals to this endpoint separate subscriptions
+                        // create a subscription for each distinct publishing inverval
                         var nodesDistinctPublishingInterval = PublishConfig.Where(n => n.EndpointUri.Equals(endpointUrl)).Select(c => c.OpcPublishingInterval).Distinct();
                         foreach (var nodeDistinctPublishingInterval in nodesDistinctPublishingInterval)
                         {
