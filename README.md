@@ -9,7 +9,7 @@ The application is implemented using .NET Core technology and is able to run on 
 
 Publisher implements a retry logic to establish connections to endpoints which have not responded to a certain number of keep alive requests, for example if the OPC UA server on this endpoint had a power outage.
 
-For each distinct publishing interval to aanOPC UA server it creates a separate subscription over which all nodes with this publishing interval are updated.
+For each distinct publishing interval to an OPC UA server it creates a separate subscription over which all nodes with this publishing interval are updated.
 
 Publisher supports batching of the data sent to IoTHub, to reduce network load. This batching is sending a packet to IoTHub only if the configured package size is reached.
 
