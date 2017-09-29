@@ -344,7 +344,7 @@ On the host side create a launch.json:
 
     {
       "version": "0.2.0",
-      "adapter": "C:\\Users\\johanng\\Work Folders\\tools\\plink.exe",
+      "adapter": "<path>\\plink.exe",
       "adapterArgs": "root@localhost -pw Passw0rd -batch -T ~/vsdbg/vsdbg --interpreter=vscode",
       "languageMappings": {
         "C#": {
