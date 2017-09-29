@@ -7,28 +7,35 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Opc.Ua.Publisher
+namespace OpcPublisher
 {
     using IoTHubCredentialTools;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Client;
-    using static Opc.Ua.Workarounds.TraceWorkaround;
+    using Opc.Ua;
+    using static OpcPublisher.Workarounds.TraceWorkaround;
     using static Program;
 
+    /// <summary>
+    /// Class to handle all IoTHub communication.
+    /// </summary>
     public class IotHubMessaging
     {
+        /// <summary>
+        /// Classes for the telemetry message sent to IoTHub.
+        /// </summary>
         private class OpcUaMessage
         {
-            public string ApplicationUri { get; set; }
-            public string DisplayName { get; set; }
-            public string NodeId { get; set; }
-            public OpcUaValue Value { get; set; }
+            public string ApplicationUri;
+            public string DisplayName;
+            public string NodeId;
+            public OpcUaValue Value;
         }
 
         private class OpcUaValue
         {
-            public string Value { get; set; }
-            public string SourceTimestamp { get; set; }
+            public string Value;
+            public string SourceTimestamp;
         }
 
         private ConcurrentQueue<string> _sendQueue;
@@ -43,6 +50,9 @@ namespace Opc.Ua.Publisher
         private AutoResetEvent _sendQueueEvent;
         private DeviceClient _iotHubClient;
 
+        /// <summary>
+        /// Ctor for the class.
+        /// </summary>
         public IotHubMessaging()
         {
             _sendQueue = new ConcurrentQueue<string>();
@@ -52,6 +62,10 @@ namespace Opc.Ua.Publisher
             _currentSizeOfIotHubMessageBytes = 0;
         }
 
+        /// <summary>
+        /// Initializes the communication with secrets and details for (batched) send process.
+        /// </summary>
+        /// <returns></returns>
         public bool Init(string iotHubOwnerConnectionString, uint maxSizeOfIoTHubMessageBytes, int defaultSendIntervalSeconds)
         {
             _maxSizeOfIoTHubMessageBytes = maxSizeOfIoTHubMessageBytes;
@@ -143,6 +157,10 @@ namespace Opc.Ua.Publisher
             return true;
         }
 
+        /// <summary>
+        /// Method to write the IoTHub owner connection string into the cert store. 
+        /// </summary>
+        /// <param name="iotHubOwnerConnectionString"></param>
         public void ConnectionStringWrite(string iotHubOwnerConnectionString)
         {
             DeviceClient newClient = DeviceClient.CreateFromConnectionString(iotHubOwnerConnectionString, IotHubProtocol);
@@ -152,6 +170,9 @@ namespace Opc.Ua.Publisher
             _iotHubClient = newClient;
         }
 
+        /// <summary>
+        /// Shuts down the IoTHub communication.
+        /// </summary>
         public void Shutdown()
         {
             // send cancellation token and wait for last IoT Hub message to be sent.
@@ -180,7 +201,7 @@ namespace Opc.Ua.Publisher
         }
 
         //
-        // Enqueue a message.
+        // Enqueue a message for batch send.
         //
         public void Enqueue(string json)
         {
@@ -189,7 +210,7 @@ namespace Opc.Ua.Publisher
         }
 
         /// <summary>
-        /// Dequeue messages
+        /// Dequeue telemetry messages, compose them for batch send (if needed) and prepares them for sending to IoTHub.
         /// </summary>
         private async Task DeQueueMessagesAsync(CancellationToken ct)
         {
@@ -254,7 +275,7 @@ namespace Opc.Ua.Publisher
                             if (isDequeueSuccessful)
                             {
                                 OpcUaMessage msgPayload = JsonConvert.DeserializeObject<OpcUaMessage>(messageInJson);
-                                _messageListSemaphore.Wait();
+                                await _messageListSemaphore.WaitAsync();
                                 _messageList.Add(msgPayload);
                                 _messageListSemaphore.Release();
                                 _currentSizeOfIotHubMessageBytes = _currentSizeOfIotHubMessageBytes + nextMessageSizeBytes;
@@ -281,14 +302,14 @@ namespace Opc.Ua.Publisher
         }
 
         /// <summary>
-        /// Send dequeued messages to IoT Hub
+        /// Send messages to IoT Hub
         /// </summary>
         private async Task SendToIoTHubAsync()
         {
             if (_messageList.Count > 0)
             {
                 // process all queued messages
-                _messageListSemaphore.Wait();
+                await _messageListSemaphore.WaitAsync();
                 string msgListInJson = JsonConvert.SerializeObject(_messageList);
                 var encodedMessage = new Microsoft.Azure.Devices.Client.Message(Encoding.UTF8.GetBytes(msgListInJson));
                 _currentSizeOfIotHubMessageBytes = 0;
@@ -321,11 +342,9 @@ namespace Opc.Ua.Publisher
             if (_sendTimer != null)
             {
                 // send in x seconds
-                Trace(Utils.TraceMasks.OperationDetail, $"Retart timer to send data to IoTHub in {_defaultSendIntervalSeconds} second(s).");
+                Trace(Utils.TraceMasks.OperationDetail, $"Restart timer to send data to IoTHub in {_defaultSendIntervalSeconds} second(s).");
                 _sendTimer.Change(TimeSpan.FromSeconds(_defaultSendIntervalSeconds), TimeSpan.FromSeconds(_defaultSendIntervalSeconds));
             }
-
-
         }
     }
 }

@@ -1,10 +1,10 @@
 FROM microsoft/dotnet:1.1-sdk
 
-COPY /src /build
+COPY /src /build/src
 
-WORKDIR /build
+WORKDIR /build/src
 RUN dotnet restore
-RUN dotnet publish -c Release -o out
+RUN dotnet publish --configuration Release --output /build/out
 
-WORKDIR /build/out
-ENTRYPOINT ["dotnet", "Opc.Ua.Publisher.dll"]
+WORKDIR /docker
+ENTRYPOINT ["dotnet", "/build/out/OpcPublisher.dll"]

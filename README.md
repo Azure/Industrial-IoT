@@ -5,6 +5,14 @@ This reference implementation demonstrates how Azure IoT Edge can be used to con
 
 This application, apart from including an OPC UA *client* for connecting to existing OPC UA servers you have on your network, also includes an OPC UA *server* on port 62222 that can be used to manage what gets published.
 
+The application is implemented using .NET Core technology and is able to run on the platforms supported by .NET Core.
+
+Publisher implements a retry logic to establish connections to endpoints which have not responded to a certain number of keep alive requests, for example if the OPC UA server on this endpoint had a power outage.
+
+For each distinct publishing interval to an OPC UA server it creates a separate subscription over which all nodes with this publishing interval are updated.
+
+Publisher supports batching of the data sent to IoTHub, to reduce network load. This batching is sending a packet to IoTHub only if the configured package size is reached.
+
 This application uses the OPC Foundations's OPC UA reference stack and therefore licensing restrictions apply. Visit http://opcfoundation.github.io/UA-.NETStandardLibrary/ for OPC UA documentation and licensing terms.
 
 |Branch|Status|
@@ -12,41 +20,363 @@ This application uses the OPC Foundations's OPC UA reference stack and therefore
 |master|[![Build status](https://ci.appveyor.com/api/projects/status/6t7ru6ow7t9uv74r/branch/master?svg=true)](https://ci.appveyor.com/project/marcschier/iot-gateway-opc-ua-r4ba5/branch/master) [![Build Status](https://travis-ci.org/Azure/iot-gateway-opc-ua.svg?branch=master)](https://travis-ci.org/Azure/iot-gateway-opc-ua)|
 
 # Building the Application
+The application requires the .NET Core SDK 1.1.
 
-This application requires the .NET Core SDK V1.1. You can build the application from Visual Studio 2017 by opening the solution file and hitting F7.
+## As native Windows application
+Open the OpcPublisher.sln project with Visual Studio 2017 and build the solution by hitting F7.
 
-# Configuring the Application
-The OPC UA nodes whose values should be published to Azure IoT Hub can be configured by creating a "publishednodes.json" file. This file is auto-generated and persisted by the application automatically when using it's OPC UA server interface from a client. If you want to create the file manually instead, below is the format of the SAMPLE publishednodes.json file:
-```
-[
-  {
-    "EndpointUrl": "opc.tcp://myopcservername:51210/UA/SampleServer",
-    "NodeId": { "Identifier": "ns=1;i=123" }
-  }
-  {
-    "EndpointUrl": "opc.tcp:// myopcservername:51210/UA/SampleServer",
-    "NodeId": { "Identifier": "ns=2;i=456" }
-  }
-]
-```
-The "Identifier" tag follows the string representation of an OPC UA node ID as described in the OPC UA specifications.
+## As Docker container
 
+Depending if you use Docker Linux or Docker Windows containers, there are different configuration files (Dockerfile or Dockerfile.Windows) to use for building the container.
+From the root of the repository, in a console, type:
+
+    docker build -f <docker-configfile-to-use> -t <your-container-name> .
+
+The `-f` option for `docker build` is optional and the default is to use Dockerfile. Docker also support building directly from a git repository, which means you also can build a Linux container by:
+
+    docker build -t <your-container-name> .https://github.com/Azure/iot-edge-opc-publisher
+
+# Configuring the OPC UA nodes to publish
+The OPC UA nodes whose values should be published to Azure IoT Hub can be configured by creating a JSON formatted configuration file (defaultname: "publishednodes.json"). This file is updated and persisted by the application, when using it's OPC UA server methods "PublishNode" or "UnpublishNode".
+
+The syntax of the configuration file is as follows:
+
+    [
+        {
+            // example for an EnpointUrl is: opc.tcp://win10iot:51210/UA/SampleServer
+            "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
+            "OpcNodes": [
+                // Publisher will request the server at EndpointUrl to sample the node with the OPC sampling interval specified on command line (or the default value: OPC publishing interval)
+                // and the subscription will publish the node value with the OPC publishing interval specified on command line (or the default value: server revised publishing interval).
+                {
+                    // The identifier specifies the NamespaceUri and the node identifier in XML notation as specified in Part 6 of the OPC UA specification in the XML Mapping section.
+                    "ExpandedNodeId": "nsu=http://opcfoundation.org/UA/;i=2258"
+                },
+                // Publisher will request the server at EndpointUrl to sample the node with the OPC sampling interval specified on command line (or the default value: OPC publishing interval)
+                // and the subscription will publish the node value with an OPC publishing interval of 4 seconds.
+                // Publisher will use for each dinstinct publishing interval (of nodes on the same EndpointUrl) a separate subscription. All nodes without a publishing interval setting,
+                // will be on the same subscription and the OPC UA stack will publish with the lowest sampling interval of a node.
+                {
+                    "ExpandedNodeId": "nsu=http://opcfoundation.org/UA/;i=2258",
+                    "OpcPublishingInterval": 4000
+                },
+                // Publisher will request the server at EndpointUrl to sample the node with the given sampling interval of 1 second
+                // and the subscription will publish the node value with the OPC publishing interval specified on command line (or the default value: server revised interval).
+                // If the OPC publishing interval is set to a lower value, Publisher will adjust the OPC publishing interval of the subscription to the OPC sampling interval value.
+                {
+                    "ExpandedNodeId": "nsu=http://opcfoundation.org/UA/;i=2258",
+                    // the OPC sampling interval to use for this node.
+                    "OpcSamplingInterval": 1000
+                }
+            ]
+        },
+
+        // the format below is only supported for backward compatibility. you need to ensure that the
+        // OPC UA server on the configured EndpointUrl has the namespaceindex you expect with your configuration.
+        // please use the ExpandedNodeId syntax instead.
+        {
+            "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
+            "NodeId": {
+                "Identifier": "ns=0;i=2258"
+            }
+        }
+        // please consult the OPC UA specification for details on how OPC monitored node sampling interval and OPC subscription publishing interval settings are handled by the OPC UA stack.
+        // the publishing interval of the data to Azure IoTHub is controlled by the command line settings (or the default: publish data to IoTHub at least each 1 second).
+    ]
 # Running the Application
 
-## From Visual Studio 2017
-You can run the app directly via Visual Studio 2017 by hitting F5. Don't forget your command line arguments, i.e. ```<yourApplicationName>``` (needs to be specified always) and the ```<IoTHubOwnerConnectionString>``` (needs to be specified on first run ONLY)!
+## Command line options
+The complete usage of the application can be shown using the `--help` command line option and is as follows:
 
-## From Docker
-You can also run the application in a Docker container using the Dockerfile provided. From the root of the repo, in a console, type:
+    OpcPublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
 
-```docker build -t gw .```
+with:
 
-On first run, for one-time IoT Hub registration:
+    applicationname: the OPC UA application name to use, required
+                     The application name is also used to register the publisher under this name in the
+                     IoTHub device registry.
 
-```docker run -it --rm gw <applicationName> <IoTHubOwnerConnectionString>```
+    iothubconnectionstring: the IoTHub owner connectionstring, optional
 
-From then on:
+The following options are supported:
 
-```docker run -it --rm gw <applicationName>```
+      --pf, --publishfile=VALUE
+                             the filename to configure the nodes to publish.
+                               Default: '/docker/publishednodes.json'
+      --sd, --shopfloordomain=VALUE
+                             the domain of the shopfloor. if specified this
+                               domain is appended (delimited by a ':' to the '
+                               ApplicationURI' property when telemetry is
+                               sent to IoTHub.
+                               The value must follow the syntactical rules of a
+                               DNS hostname.
+                               Default: not set
+      --sw, --sessionconnectwait=VALUE
+                             specify the wait time in seconds publisher is
+                               trying to connect to disconnected endpoints and
+                               starts monitoring unmonitored items
+                               Min: 10
+                               Default: 10
+      --vc, --verboseconsole=VALUE
+                             the output of publisher is shown on the console.
+                               Default: False
+      --ih, --iothubprotocol=VALUE
+                             the protocol to use for communication with Azure
+                               IoTHub (allowed values: Amqp, Http1, Amqp_
+                               WebSocket_Only, Amqp_Tcp_Only, Mqtt, Mqtt_
+                               WebSocket_Only, Mqtt_Tcp_Only).
+                               Default: Mqtt
+      --ms, --iothubmessagesize=VALUE
+                             the max size of a message which can be send to
+                               IoTHub. when telemetry of this size is available
+                               it will be sent.
+                               0 will enforce immediate send when telemetry is
+                               available
+                               Min: 0
+                               Max: 256 * 1024
+                               Default: 4096
+      --si, --iothubsendinterval=VALUE
+                             the interval in seconds when telemetry should be
+                               send to IoTHub. If 0, then only the
+                               iothubmessagesize parameter controls when
+                               telemetry is sent.
+                               Default: '1'
+      --lf, --logfile=VALUE  the filename of the logfile to use.
+                               Default: './Logs/<applicationname>.log.txt'
+      --pn, --portnum=VALUE  the server port of the publisher OPC server
+                               endpoint.
+                               Default: 62222
+      --pa, --path=VALUE     the enpoint URL path part of the publisher OPC
+                               server endpoint.
+                               Default: '/UA/Publisher'
+      --lr, --ldsreginterval=VALUE
+                             the LDS(-ME) registration interval in ms. If 0,
+                               then the registration is disabled.
+                               Default: 0
+      --ot, --operationtimeout=VALUE
+                             the operation timeout of the publisher OPC UA
+                               client in ms.
+                               Default: 120000
+      --oi, --opcsamplinginterval=VALUE
+                             the publisher is using this as default value in
+                               milliseconds to request the servers to sample
+                               the nodes with this interval
+                               this value might be revised by the OPC UA
+                               servers to a supported sampling interval.
+                               please check the OPC UA specification for
+                               details how this is handled by the OPC UA stack.
+                               a negative value will set the sampling interval
+                               to the publishing interval of the subscription
+                               this node is on.
+                               0 will configure the OPC UA server to sample in
+                               the highest possible resolution and should be
+                               taken with care.
+                               Default: 1000
+      --op, --opcpublishinginterval=VALUE
+                             the publisher is using this as default value in
+                               milliseconds for the publishing interval setting
+                               of the subscriptions established to the OPC UA
+                               servers.
+                               please check the OPC UA specification for
+                               details how this is handled by the OPC UA stack.
+                               a value less than or equal zero will let the
+                               server revise the publishing interval.
+                               Default: 0
+      --ct, --createsessiontimeout=VALUE
+                             specify the timeout in seconds used when creating
+                               a session to an endpoint. On unsuccessful
+                               connection attemps a backoff up to 5 times the
+                               specified timeout value is used.
+                               Min: 1
+                               Default: 10
+      --ki, --keepaliveinterval=VALUE
+                             specify the interval in seconds the publisher is
+                               sending keep alive messages to the OPC servers
+                               on the endpoints it is connected to.
+                               Min: 2
+                               Default: 2
+      --kt, --keepalivethreshold=VALUE
+                             specify the number of keep alive packets a server
+                               can miss, before the session is disconneced
+                               Min: 1
+                               Default: 5
+      --st, --opcstacktracemask=VALUE
+                             the trace mask for the OPC stack. See github OPC .
+                               NET stack for definitions.
+                               To enable IoTHub telemetry tracing set it to 711.
 
-For detailed instructions on using Docker with the OPC Publisher, see [here](https://docs.microsoft.com/en-us/azure/iot-suite/iot-suite-connected-factory-gateway-deployment).
+                               Default: 285  (645)
+      --as, --autotrustservercerts=VALUE
+                             the publisher trusts all servers it is
+                               establishing a connection to.
+                               Default: False
+      --tm, --trustmyself=VALUE
+                             the publisher certificate is put into the trusted
+                               certificate store automatically.
+                               Default: True
+      --at, --appcertstoretype=VALUE
+                             the own application cert store type.
+                               (allowed values: Directory, X509Store)
+                               Default: 'X509Store'
+      --ap, --appcertstorepath=VALUE
+                             the path where the own application cert should be
+                               stored
+                               Default (depends on store type):
+                               X509Store: 'CurrentUser\UA_MachineDefault'
+                               Directory: 'CertificateStores/own'
+      --tt, --trustedcertstoretype=VALUE
+                             the trusted cert store type.
+                               (allowed values: Directory, X509Store)
+                               Default: Directory
+      --tp, --trustedcertstorepath=VALUE
+                             the path of the trusted cert store
+                               Default (depends on store type):
+                               X509Store: 'CurrentUser\UA_MachineDefault'
+                               Directory: 'CertificateStores/UA Applications'
+      --rt, --rejectedcertstoretype=VALUE
+                             the rejected cert store type.
+                               (allowed values: Directory, X509Store)
+                               Default: Directory
+      --rp, --rejectedcertstorepath=VALUE
+                             the path of the rejected cert store
+                               Default (depends on store type):
+                               X509Store: 'CurrentUser\UA_MachineDefault'
+                               Directory: 'CertificateStores/Rejected
+                               Certificates'
+      --it, --issuercertstoretype=VALUE
+                             the trusted issuer cert store type.
+                               (allowed values: Directory, X509Store)
+                               Default: Directory
+      --ip, --issuercertstorepath=VALUE
+                             the path of the trusted issuer cert store
+                               Default (depends on store type):
+                               X509Store: 'CurrentUser\UA_MachineDefault'
+                               Directory: 'CertificateStores/UA Certificate
+                               Authorities'
+      --dt, --devicecertstoretype=VALUE
+                             the iothub device cert store type.
+                               (allowed values: Directory, X509Store)
+                               Default: X509Store
+      --dp, --devicecertstorepath=VALUE
+                             the path of the iot device cert store
+                               Default Default (depends on store type):
+                               X509Store: 'IoTHub'
+                               Directory: 'CertificateStores/IoTHub'
+      -h, --help                 show this message and exit
+
+There are a couple of environment variables which can be used to control the application:
+_HUB_CS: sets the IoTHub owner connectionstring
+_GW_LOGP: sets the filename of the log file to use
+_TPC_SP: sets the path to store certificates of trusted stations
+_GW_PNFP: sets the filename of the publishing configuration file
+
+Command line arguments overrule environment variable settings.
+
+Typically you specify the IoTHub owner connectionstring only on the first start of the application. The connectionstring will be encrypted and stored in the platforms certificiate store.
+On subsequent calls it will be read from there and reused. If you specify the connectionstring on each start, the device which is created for the application in the IoTHub device registry will be removed and recreated each time.
+
+
+## Native on Windows
+Open the OpcPublisher.sln project with Visual Studio 2017, build the solution and publish it. You can start the application in the 'Target directory' you have published to with:
+
+    dotnet OpcPublisher.dll <applicationname> [<iothubconnectionstring>] [options]
+
+
+## Using a self-built container
+Build your own container and then start the container:
+
+    docker run <your-container-name> <applicationname> [<iothubconnectionstring>] [options]
+
+## Using a container from hub.docker.com
+There is a prebuilt container available on DockerHub. To start it, just do:
+
+    docker run microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
+
+## Important when using a container
+
+### Access to the Publisher OPC UA server
+The Publisher OPC UA server listens by default on port 62222. To expose this inbound port in a container, you need to use `docker run` option `-p`:
+
+    docker run -p 62222:62222 microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
+
+### Enable intercontainer nameresolution
+To enable name resolution from within the container to other containers, you need to create a user define docker bridge network and connect the container to this network using the `--network`option.
+Additionally you need to assign the container a name using the `--name` option as in this example:
+
+    docker network create -d bridge iot_edge
+    docker run --network iot_edge --name publisher microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
+
+The container can now be reached by other containers via the name `publisher`over the network.
+
+### Assigning a hostname
+Publisher uses the hostname of the machine is running on for certificate and endpoint generation. docker chooses a random hostname if there is none set by the `-h` option. Here an example to set the internal hostname of the container to `publisher`:
+
+    docker run -h publisher microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
+### Access to host volume (shared filesystem)
+In certain use cases it may make sense to use configuration information, certificate stores or log file locations from the host and not keep them in the container file system only. To achieve this you need to use the `-v` option of `docker run`.
+
+# Debugging the Application
+
+## Native on Winodws
+
+Open the OpcPublisher.sln project with Visual Studio 2017 and start debugging the app by hitting F5.
+
+## In a docker container
+
+Visual Studio 2017 supports debugging of application in docker container. This is done by using docker-compose. Since this does not allow to pass command line parameters it is not convenient. 
+Another debugging option VS2017 supports is to debug via ssh. In the root of the repository the docker build configuration file `Dockerfile.ssh` can be used to create a SSH enabled container by:
+
+    docker build -f .\Dockerfile.ssh -t publisherssh .
+
+The container can now be started for publisher debugging purposes with:
+
+    docker run -it publisherssh
+
+In the container you need to manually start the ssh daemon with:
+
+    service ssh start
+
+At this point you should be able to create an ssh session as user `root` with the password `Passw0rd`.
+
+To prepare debugging of the application in the container you need to do the following additional steps:
+
+On the host side create a launch.json:
+
+    {
+      "version": "0.2.0",
+      "adapter": "<path>\\plink.exe",
+      "adapterArgs": "root@localhost -pw Passw0rd -batch -T ~/vsdbg/vsdbg --interpreter=vscode",
+      "languageMappings": {
+        "C#": {
+          "languageId": "3F5162F8-07C6-11D3-9053-00C04FA302A1",
+          "extensions": [ "*" ]
+        }
+      },
+      "exceptionCategoryMappings": {
+        "CLR": "449EC4CC-30D2-4032-9256-EE18EB41B62B",
+        "MDA": "6ECE07A9-0EDE-45C4-8296-818D8FC401D4"
+      },
+      "configurations": [
+        {
+          "name": ".NET Core Launch",
+          "type": "coreclr",
+          "cwd": "~/publisher",
+          "program": "Opc.Ua.Publisher.dll",
+          "args": "<put-the-publisher-command-line-options-here>",
+
+          "request": "launch"
+        }
+      ]
+    }
+
+Build your project and publish it to a directory of your choice.
+
+Use a tool like WinSCP to copy over the published files to the container into the directory `/root/publisher` (this can be also a different directory, but needs to be in sync with the `cdw` property of launch.json.
+
+Now you could start debugging with the following command in Visual Studio's Command Window (View->Other Windows->Command Window):
+DebugAdapterHost.Launch /LaunchJson:"<path-to-the-launch.json-file-you-saved>"
+
+
+
+
+

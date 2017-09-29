@@ -1,10 +1,6 @@
 ﻿
-using IoTHubCredentialTools;
-using Microsoft.Azure.Devices;
-using Microsoft.Azure.Devices.Client;
 using Mono.Options;
 using Newtonsoft.Json;
-using Publisher;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,11 +9,13 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Opc.Ua.Publisher
+namespace OpcPublisher
 {
+    using Opc.Ua;
+    using Opc.Ua.Server;
     using System.Text.RegularExpressions;
     using static Opc.Ua.CertificateStoreType;
-    using static Opc.Ua.Workarounds.TraceWorkaround;
+    using static OpcPublisher.Workarounds.TraceWorkaround;
     using static System.Console;
 
     public class Program
@@ -27,25 +25,32 @@ namespace Opc.Ua.Publisher
         //
         public static int PublisherSessionConnectWaitSec = 10;
         public static List<OpcSession> OpcSessions = new List<OpcSession>();
-        public static List<NodeToPublish> NodesToPublish = new List<NodeToPublish>();
+        public static SemaphoreSlim OpcSessionsSemaphore = new SemaphoreSlim(1);
+        public static List<PublisherConfigFileEntry> PublisherConfigFileEntries = new List<PublisherConfigFileEntry>();
+        public static List<NodeToPublishConfig> PublishConfig = new List<NodeToPublishConfig>();
         public static string NodesToPublishAbsFilenameDefault = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
-        public static string NodesToPublishAbsFilename { get; set; }
-        public static string ShopfloorDomain { get; set; }
-        public static bool VerboseConsole { get; set; }
+        public static string NodesToPublishAbsFilename;
+        public static SemaphoreSlim PublishDataSemaphore = new SemaphoreSlim(1);
+        public static string ShopfloorDomain;
+        public static bool VerboseConsole;
+        public static bool PublisherShutdownInProgress = false;
+        private static PublisherServer _publisherServer;
+        private static DateTime _lastServerSessionEventTime = DateTime.UtcNow;
+        public static uint PublisherShutdownWaitPeriod = 10;
 
         //
         // IoTHub related
         //
-        private static string _IotHubOwnerConnectionString { get; set; }
-        public static Microsoft.Azure.Devices.Client.TransportType IotHubProtocol { get; set; } = Microsoft.Azure.Devices.Client.TransportType.Mqtt;
-        public static IotHubMessaging IotHubMessaging;
-        private static uint _MaxSizeOfIoTHubMessageBytes { get; set; } = 4096;
-        private static int _DefaultSendIntervalSeconds { get; set; } = 1;
+        private static string _IotHubOwnerConnectionString;
+        public static Microsoft.Azure.Devices.Client.TransportType IotHubProtocol = Microsoft.Azure.Devices.Client.TransportType.Mqtt;
+        public static IotHubMessaging IotHubCommunication;
+        private static uint _MaxSizeOfIoTHubMessageBytes = 4096;
+        private static int _DefaultSendIntervalSeconds = 1;
 
-        public static string IotDeviceCertStoreType { get; set; } = X509Store;
+        public static string IotDeviceCertStoreType = X509Store;
         private const string _iotDeviceCertDirectoryStorePathDefault = "CertificateStores/IoTHub";
         private const string _iotDeviceCertX509StorePathDefault = "IoTHub";
-        public static string IotDeviceCertStorePath { get; set; } = _iotDeviceCertX509StorePathDefault;
+        public static string IotDeviceCertStorePath = _iotDeviceCertX509StorePathDefault;
 
         //
         // OPC component related
@@ -63,10 +68,11 @@ namespace Opc.Ua.Publisher
         public static bool OpcPublisherAutoTrustServerCerts = false;
         public static uint OpcSessionCreationTimeout = 10;
         public static uint OpcSessionCreationBackoffMax = 5;
-        public static uint OpcKeepAliveDisconnectThreshold = 10;
-        public static int OpcKeepAliveIntervalInSec = 5;
-        public static int OpcSamplingRateMillisec = 1000;
-        
+        public static uint OpcKeepAliveDisconnectThreshold = 5;
+        public static int OpcKeepAliveIntervalInSec = 2;
+        public static int OpcSamplingInterval = 1000;
+        public static int OpcPublishingInterval = 0;
+
         public static string PublisherServerSecurityPolicy = SecurityPolicies.Basic128Rsa15;
 
         public static string OpcOwnCertStoreType = X509Store;
@@ -98,7 +104,7 @@ namespace Opc.Ua.Publisher
 
             // show usage
             WriteLine();
-            WriteLine("Usage: {0}.exe applicationname [iothubconnectionstring] [options]", Assembly.GetEntryAssembly().GetName().Name);
+            WriteLine("Usage: {0}.exe <applicationname> [<iothubconnectionstring>] [<options>]", Assembly.GetEntryAssembly().GetName().Name);
             WriteLine();
             WriteLine("OPC Edge Publisher to subscribe to configured OPC UA servers and send telemetry to Azure IoTHub.");
             WriteLine("To exit the application, just press ENTER while it is running.");
@@ -109,16 +115,13 @@ namespace Opc.Ua.Publisher
             WriteLine();
             WriteLine("iothubconnectionstring: the IoTHub owner connectionstring, optional");
             WriteLine();
-            WriteLine("There are a couple of environemnt variables which could be used to control the application:");
+            WriteLine("There are a couple of environment variables which can be used to control the application:");
             WriteLine("_HUB_CS: sets the IoTHub owner connectionstring");
             WriteLine("_GW_LOGP: sets the filename of the log file to use"); 
             WriteLine("_TPC_SP: sets the path to store certificates of trusted stations");
             WriteLine("_GW_PNFP: sets the filename of the publishing configuration file");
             WriteLine();
-            WriteLine("Notes:");
-            WriteLine("If an environment variable is controlling the OPC UA stack configuration, they are only taken into account");
-            WriteLine("if they are not set in the OPC UA configuration file.");
-            WriteLine("Command line arguments overrule OPC UA configuration file settings and environement variable settings.");
+            WriteLine("Command line arguments overrule environment variable settings.");
             WriteLine();
             
             // output the options
@@ -137,7 +140,7 @@ namespace Opc.Ua.Publisher
                 Mono.Options.OptionSet options = new Mono.Options.OptionSet {
                     // Publishing configuration options
                     { "pf|publishfile=", $"the filename to configure the nodes to publish.\nDefault: '{NodesToPublishAbsFilenameDefault}'", (string p) => NodesToPublishAbsFilename = p },
-                    { "sd|shopfloordomain=", $"the domain of the shopfloor. if specified this domain is appended (delimited by a ':' to the 'ApplicationURI' property when telemetry is ingested to IoTHub.\n" +
+                    { "sd|shopfloordomain=", $"the domain of the shopfloor. if specified this domain is appended (delimited by a ':' to the 'ApplicationURI' property when telemetry is sent to IoTHub.\n" +
                             "The value must follow the syntactical rules of a DNS hostname.\nDefault: not set", (string s) => {
                             Regex domainNameRegex = new Regex("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
                             if (domainNameRegex.IsMatch(s))
@@ -167,7 +170,7 @@ namespace Opc.Ua.Publisher
                     { "ih|iothubprotocol=", $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}",
                         (Microsoft.Azure.Devices.Client.TransportType p) => IotHubProtocol = p
                     },
-                    { "ms|iothubmessagesize=", $"the max size of a message which could be send to IoTHub. when telemetry of this size is available it will be sent.\n0 will enforce immediate send when telemetry is available\nMin: 0\nMax: 256 * 1024\nDefault: {_MaxSizeOfIoTHubMessageBytes}", (uint u) => {
+                    { "ms|iothubmessagesize=", $"the max size of a message which can be send to IoTHub. when telemetry of this size is available it will be sent.\n0 will enforce immediate send when telemetry is available\nMin: 0\nMax: 256 * 1024\nDefault: {_MaxSizeOfIoTHubMessageBytes}", (uint u) => {
                             if (u >= 0 && u <= 256 * 1024)
                             {
                                 _MaxSizeOfIoTHubMessageBytes = u;
@@ -191,7 +194,7 @@ namespace Opc.Ua.Publisher
                     },
 
                     // opc server configuration options
-                    { "lf|logfile=", $"the filename of the logfile to use.\nDefault: './logs/<applicationname>.log.txt'", (string l) => LogFileName = l },
+                    { "lf|logfile=", $"the filename of the logfile to use.\nDefault: './Logs/<applicationname>.log.txt'", (string l) => LogFileName = l },
                     { "pn|portnum=", $"the server port of the publisher OPC server endpoint.\nDefault: {PublisherServerPort}", (ushort p) => PublisherServerPort = p },
                     { "pa|path=", $"the enpoint URL path part of the publisher OPC server endpoint.\nDefault: '{PublisherServerPath}'", (string a) => PublisherServerPath = a },
                     { "lr|ldsreginterval=", $"the LDS(-ME) registration interval in ms. If 0, then the registration is disabled.\nDefault: {LdsRegistrationInterval}", (int i) => {
@@ -216,15 +219,29 @@ namespace Opc.Ua.Publisher
                             }
                         }
                     },
-                    { "ds|defaultsamplingrate=", $"the sampling interval in milliseconds, the OPC UA servers should use to sample the values of the nodes to publish.\n" +
-                        $"Please check the OPC UA spec for more details.\nMin: 100\nDefault: {OpcSamplingRateMillisec}", (int i) => {
-                            if (i >= 100)
+                    { "oi|opcsamplinginterval=", "the publisher is using this as default value in milliseconds to request the servers to sample the nodes with this interval\n" +
+                        "this value might be revised by the OPC UA servers to a supported sampling interval.\n" +
+                        "please check the OPC UA specification for details how this is handled by the OPC UA stack.\n" +
+                        "a negative value will set the sampling interval to the publishing interval of the subscription this node is on.\n" +
+                        $"0 will configure the OPC UA server to sample in the highest possible resolution and should be taken with care.\nDefault: {OpcSamplingInterval}", (int i) => OpcSamplingInterval = i
+                    },
+                    { "op|opcpublishinginterval=", "the publisher is using this as default value in milliseconds for the publishing interval setting of the subscriptions established to the OPC UA servers.\n" +
+                        "please check the OPC UA specification for details how this is handled by the OPC UA stack.\n" +
+                        $"a value less than or equal zero will let the server revise the publishing interval.\nDefault: {OpcPublishingInterval}", (int i) => {
+                            if (i > 0 && i >= OpcSamplingInterval)
                             {
-                                OpcSamplingRateMillisec = i;
+                                OpcPublishingInterval = i;
                             }
                             else
                             {
-                                throw new OptionException("The sampling rate must be larger or equal 100.", "defaultsamplingrate");
+                                if (i <= 0)
+                                {
+                                    OpcPublishingInterval = 0;
+                                }
+                                else
+                                {
+                                    throw new OptionException($"The opcpublishinterval ({i}) must be larger than the opcsamplinginterval ({OpcSamplingInterval}).", "opcpublishinterval");
+                                }
                             }
                         }
                     },
@@ -250,7 +267,7 @@ namespace Opc.Ua.Publisher
                             }
                         }
                     },
-                    { "kt|keepalivethreshold=", $"specify the number of keep alive packets a server could miss, before the session is disconneced\nMin: 1\nDefault: {OpcKeepAliveDisconnectThreshold}", (uint u) => {
+                    { "kt|keepalivethreshold=", $"specify the number of keep alive packets a server can miss, before the session is disconneced\nMin: 1\nDefault: {OpcKeepAliveDisconnectThreshold}", (uint u) => {
                             if (u > 1)
                             {
                                 OpcKeepAliveDisconnectThreshold = u;
@@ -282,6 +299,7 @@ namespace Opc.Ua.Publisher
                             if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(Directory, StringComparison.OrdinalIgnoreCase))
                             {
                                 OpcOwnCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : Directory;
+                                OpcOwnCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? _opcOwnCertX509StorePathDefault : _opcOwnCertDirectoryStorePathDefault;
                             }
                             else
                             {
@@ -300,6 +318,7 @@ namespace Opc.Ua.Publisher
                             if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(Directory, StringComparison.OrdinalIgnoreCase))
                             {
                                 OpcTrustedCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : Directory;
+                                OpcTrustedCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? OpcTrustedCertX509StorePathDefault : OpcTrustedCertDirectoryStorePathDefault;
                             }
                             else
                             {
@@ -317,6 +336,7 @@ namespace Opc.Ua.Publisher
                             if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(Directory, StringComparison.OrdinalIgnoreCase))
                             {
                                 OpcRejectedCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : Directory;
+                                OpcRejectedCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? _opcRejectedCertX509StorePathDefault : _opcRejectedCertDirectoryStorePathDefault;
                             }
                             else
                             {
@@ -335,6 +355,7 @@ namespace Opc.Ua.Publisher
                             if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(Directory, StringComparison.OrdinalIgnoreCase))
                             {
                                 OpcIssuerCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : Directory;
+                                OpcIssuerCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? _opcIssuerCertX509StorePathDefault : _opcIssuerCertDirectoryStorePathDefault;
                             }
                             else
                             {
@@ -406,9 +427,10 @@ namespace Opc.Ua.Publisher
                 WriteLine("Publisher is starting up...");
 
                 // init OPC configuration and tracing
-                ModuleConfiguration moduleConfiguration = new ModuleConfiguration(ApplicationName);
+                Init(OpcStackTraceMask, VerboseConsole);
+                OpcStackConfiguration opcStackConfiguration = new OpcStackConfiguration(ApplicationName);
                 opcTraceInitialized = true;
-                OpcConfiguration = moduleConfiguration.Configuration;
+                OpcConfiguration = opcStackConfiguration.Configuration;
 
                 // log shopfloor domain setting
                 if (string.IsNullOrEmpty(ShopfloorDomain))
@@ -436,8 +458,8 @@ namespace Opc.Ua.Publisher
                 try
                 {
                     Trace($"Starting server on endpoint {OpcConfiguration.ServerConfiguration.BaseAddresses[0].ToString()} ...");
-                    PublisherServer publisherServer = new PublisherServer();
-                    publisherServer.Start(OpcConfiguration);
+                    _publisherServer = new PublisherServer();
+                    _publisherServer.Start(OpcConfiguration);
                     Trace("Server started.");
                 }
                 catch (Exception e)
@@ -450,6 +472,7 @@ namespace Opc.Ua.Publisher
                 // get information on the nodes to publish and validate the json by deserializing it.
                 try
                 {
+                    PublishDataSemaphore.Wait(); 
                     if (string.IsNullOrEmpty(NodesToPublishAbsFilename))
                     {
                         // check if we have an env variable specifying the published nodes path, otherwise use the default
@@ -462,8 +485,25 @@ namespace Opc.Ua.Publisher
                     }
 
                     Trace($"Attempting to load nodes file from: {NodesToPublishAbsFilename}");
-                    NodesToPublish = JsonConvert.DeserializeObject<List<NodeToPublish>>(File.ReadAllText(NodesToPublishAbsFilename));
-                    Trace($"Loaded {NodesToPublish.Count.ToString()} nodes to publish.");
+                    PublisherConfigFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigFileEntry>>(File.ReadAllText(NodesToPublishAbsFilename));
+                    Trace($"Loaded {PublisherConfigFileEntries.Count.ToString()} config file entry/entries.");
+
+                    foreach (var publisherConfigFileEntry in PublisherConfigFileEntries)
+                    {
+                        if (publisherConfigFileEntry.NodeId == null)
+                        {
+                            // new node configuration syntax.
+                            foreach (var opcNode in publisherConfigFileEntry.OpcNodes)
+                            {
+                                PublishConfig.Add(new NodeToPublishConfig(ExpandedNodeId.Parse(opcNode.ExpandedNodeId), publisherConfigFileEntry.EndpointUri, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval));
+                            }
+                        }
+                        else
+                        {
+                            // legacy (using ns=) node configuration syntax using default sampling and publishing interval.
+                            PublishConfig.Add(new NodeToPublishConfig(publisherConfigFileEntry.NodeId, publisherConfigFileEntry.EndpointUri, OpcSamplingInterval, OpcPublishingInterval));
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
@@ -471,78 +511,89 @@ namespace Opc.Ua.Publisher
                     Trace("exiting...");
                     return;
                 }
+                finally
+                {
+                    PublishDataSemaphore.Release();
+                }
+                Trace($"There are {PublishConfig.Count.ToString()} nodes to publish.");
 
                 // initialize and start IoTHub messaging
-                IotHubMessaging = new IotHubMessaging();
-                if (!IotHubMessaging.Init(_IotHubOwnerConnectionString, _MaxSizeOfIoTHubMessageBytes, _DefaultSendIntervalSeconds))
+                IotHubCommunication = new IotHubMessaging();
+                if (!IotHubCommunication.Init(_IotHubOwnerConnectionString, _MaxSizeOfIoTHubMessageBytes, _DefaultSendIntervalSeconds))
                 {
                     return;
                 }
 
-                // create a list to manage sessions and monitored items.
-                var uniqueEndpointUris = NodesToPublish.Select(n => n.EndPointUri).Distinct();
-                foreach (var endpointUri in uniqueEndpointUris)
+                // create a list to manage sessions, subscriptions and monitored items.
+                try
                 {
-                    if (!OpcSessions.Any(s => s.EndpointUri.Equals(endpointUri)))
+                    PublishDataSemaphore.Wait();
+                    OpcSessionsSemaphore.Wait();
+                    var uniqueEndpointUrls = PublishConfig.Select(n => n.EndpointUri).Distinct();
+                    foreach (var endpointUrl in uniqueEndpointUrls)
                     {
                         // create new session info.
-                        OpcSession opcSession = new OpcSession(endpointUri, OpcSessionCreationTimeout);
+                        OpcSession opcSession = new OpcSession(endpointUrl, OpcSessionCreationTimeout);
 
-                        // add monitored item info for all nodes to publish for this endpoint URI.
-                        var nodesOnEndpointUri = NodesToPublish.Where(n => n.EndPointUri.Equals(endpointUri));
-                        foreach (var nodeInfo in nodesOnEndpointUri)
+                        // create a subscription for each distinct publishing inverval
+                        var nodesDistinctPublishingInterval = PublishConfig.Where(n => n.EndpointUri.Equals(endpointUrl)).Select(c => c.OpcPublishingInterval).Distinct();
+                        foreach (var nodeDistinctPublishingInterval in nodesDistinctPublishingInterval)
                         {
-                            // differentiate if legacy syntax is used
-                            if (nodeInfo.NodeId == null)
+                            // create a subscription for the publishing interval and add it to the session.
+                            OpcSubscription opcSubscription = new OpcSubscription(nodeDistinctPublishingInterval);
+
+                            // add all nodes with this OPC publishing interval to this subscription.
+                            var nodesWithSamePublishingInterval = PublishConfig.Where(n => n.EndpointUri.Equals(endpointUrl)).Where(n => n.OpcPublishingInterval == nodeDistinctPublishingInterval);
+                            foreach (var nodeInfo in nodesWithSamePublishingInterval)
                             {
-                                // differentiate if there is only a single node specified or a node list with a common sampling interval
-                                if (nodeInfo.ExpandedNodeId == null)
+                                // differentiate if legacy (using ns=) or new syntax (using nsu=) is used
+                                if (nodeInfo.NodeId == null)
                                 {
-                                    // create a monitored item for each node in the list and set the sampling interval if specified
-                                    foreach (var singleExpandedNodeId in nodeInfo.Nodes.ExpandedNodeIds)
+                                    // create a monitored item for the node
+                                    OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.ExpandedNodeId, opcSession.EndpointUri)
                                     {
-                                        MonitoredItemInfo monitoredItemInfo = new MonitoredItemInfo(singleExpandedNodeId, opcSession.EndpointUri);
-                                        if (nodeInfo.Nodes.SamplingInterval != 0)
-                                        {
-                                            monitoredItemInfo.SamplingInterval = nodeInfo.Nodes.SamplingInterval;
-                                        }
-                                        opcSession.MonitoredItemsInfo.Add(monitoredItemInfo);
-                                    }
+                                        RequestedSamplingInterval = nodeInfo.OpcSamplingInterval,
+                                        SamplingInterval = nodeInfo.OpcSamplingInterval
+                                    };
+                                    opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                                 }
                                 else
                                 {
-                                    // create a monitored item for the node
-                                        MonitoredItemInfo monitoredItemInfo = new MonitoredItemInfo(nodeInfo.ExpandedNodeId, opcSession.EndpointUri);
-                                        if (nodeInfo.SamplingInterval != 0)
-                                        {
-                                            monitoredItemInfo.SamplingInterval = nodeInfo.SamplingInterval;
-                                        }
-                                        opcSession.MonitoredItemsInfo.Add(monitoredItemInfo);
-                                }
-                            }
-                            else
-                            {
-                                // give user a warning that the syntax is obsolete
-                                Trace($"Please update the syntax of the configuration file and use ExpandedNodeId instead of NodeId property name for node with identifier '{nodeInfo.NodeId.ToString()}' on EndpointUrl '{nodeInfo.EndPointUri}'.");
+                                    // give user a warning that the syntax is obsolete
+                                    Trace($"Please update the syntax of the configuration file and use ExpandedNodeId instead of NodeId property name for node with identifier '{nodeInfo.NodeId.ToString()}' on EndpointUrl '{nodeInfo.EndpointUri.AbsolutePath}'.");
 
-                                // create a monitored item for the node with the configured or default sampling interval
-                                MonitoredItemInfo monitoredItemInfo = new MonitoredItemInfo(nodeInfo.NodeId, opcSession.EndpointUri);
-                                if (nodeInfo.SamplingInterval != 0)
-                                {
-                                    monitoredItemInfo.SamplingInterval = nodeInfo.SamplingInterval;
+                                    // create a monitored item for the node with the configured or default sampling interval
+                                    OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.NodeId, opcSession.EndpointUri)
+                                    {
+                                        RequestedSamplingInterval = nodeInfo.OpcSamplingInterval,
+                                        SamplingInterval = nodeInfo.OpcSamplingInterval
+                                    };
+                                    opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                                 }
-                                opcSession.MonitoredItemsInfo.Add(monitoredItemInfo);
                             }
+
+                            // add subscription to session.
+                            opcSession.OpcSubscriptions.Add(opcSubscription);
                         }
 
-                        // add the session info.
+                        // add session.
                         OpcSessions.Add(opcSession);
                     }
+                }
+                finally
+                {
+                    OpcSessionsSemaphore.Release();
+                    PublishDataSemaphore.Release();
                 }
 
                 // kick off the task to maintain all sessions
                 var cts = new CancellationTokenSource();
                 Task.Run( async () => await SessionConnector(cts.Token));
+
+                // Show notification on session events
+                _publisherServer.CurrentInstance.SessionManager.SessionActivated += ServerEventStatus;
+                _publisherServer.CurrentInstance.SessionManager.SessionClosing += ServerEventStatus;
+                _publisherServer.CurrentInstance.SessionManager.SessionCreated += ServerEventStatus;
 
                 // stop on user request
                 WriteLine("");
@@ -552,12 +603,19 @@ namespace Opc.Ua.Publisher
                 WriteLine("");
                 ReadLine();
                 cts.Cancel();
+                WriteLine("Publisher is shuting down...");
 
                 // close all connected session
+                PublisherShutdownInProgress = true;
+
+                // stop the server
+                _publisherServer.Stop();
+
+                // Clean up Publisher sessions
                 Task.Run(async () => await SessionShutdown()).Wait();
 
                 // shutdown the IoTHub messaging
-                IotHubMessaging.Shutdown();
+                IotHubCommunication.Shutdown();
             }
             catch (Exception e)
             {
@@ -589,7 +647,7 @@ namespace Opc.Ua.Publisher
         }
 
         /// <summary>
-        /// Checks all sessions configured and try to connect if they are disconnected.
+        /// Kicks of the work horse of the publisher regularily for all sessions.
         /// </summary>
         public static async Task SessionConnector(CancellationToken cancellationtoken)
         {
@@ -598,7 +656,9 @@ namespace Opc.Ua.Publisher
                 try
                 {
                     // get tasks for all disconnected sessions and start them
-                    var singleSessionHandlerTaskList = OpcSessions.Where(p => p.State == OpcSession.SessionState.Disconnected).Select(s => s.ConnectAndMonitor());
+                    OpcSessionsSemaphore.Wait();
+                    var singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitor());
+                    OpcSessionsSemaphore.Release();
                     await Task.WhenAll(singleSessionHandlerTaskList);
                 }
                 catch (Exception e)
@@ -614,19 +674,21 @@ namespace Opc.Ua.Publisher
         /// </summary>
         public static async Task SessionShutdown()
         {
-            try
+            uint maxTries = PublisherShutdownWaitPeriod;
+            while (true)
             {
-                // get tasks for all disconnected sessions and start them
-                var shutdownSessionTaskList = OpcSessions.Select(s => s.Shutdown());
-                if (shutdownSessionTaskList.GetEnumerator().MoveNext())
+                int sessionCount = OpcSessions.Count;
+                if (sessionCount == 0)
                 {
-                    shutdownSessionTaskList.GetEnumerator().Reset();
-                    await Task.WhenAll(shutdownSessionTaskList);
+                    return;
                 }
-            }
-            catch (Exception e)
-            {
-                Trace(e, $"Failed to shutdown sessions. Inner Exception message: { e.InnerException?.ToString()}");
+                if (maxTries-- == 0)
+                {
+                    Trace($"There are stil {sessionCount} sessions alive. Ignore and continue shutdown.");
+                    return;
+                }
+                Trace($"Publisher is shutting down. Wait {PublisherSessionConnectWaitSec} seconds, since there are stil {sessionCount} sessions alive...");
+                await Task.Delay(PublisherSessionConnectWaitSec * 1000);
             }
         }
 
@@ -658,5 +720,31 @@ namespace Opc.Ua.Publisher
             }
         }
 
+        /// <summary>
+        /// Handler for server status changes.
+        /// </summary>
+    
+        private static void ServerEventStatus(Session session, SessionEventReason reason)
+        {
+            _lastServerSessionEventTime = DateTime.UtcNow;
+            PrintSessionStatus(session, reason.ToString());
+        }
+
+        /// <summary>
+        /// Shows the session status.
+        /// </summary>
+        private static void PrintSessionStatus(Session session, string reason)
+        {
+            lock (session.DiagnosticsLock)
+            {
+                string item = String.Format("{0,9}:{1,20}:", reason, session.SessionDiagnostics.SessionName);
+                if (session.Identity != null)
+                {
+                    item += String.Format(":{0,20}", session.Identity.DisplayName);
+                }
+                item += String.Format(":{0}", session.Id);
+                Trace(item);
+            }
+        }
     }
 }

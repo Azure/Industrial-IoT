@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.14
+VisualStudioVersion = 15.0.26730.15
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Opc.Ua.Publisher", "Opc.Ua.Publisher.csproj", "{EAC47E1C-39F4-4E51-A241-88432552D461}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpcPublisher", "OpcPublisher.csproj", "{EAC47E1C-39F4-4E51-A241-88432552D461}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{560B34E9-68E3-4033-94D4-CE24073F5904}"
 	ProjectSection(SolutionItems) = preProject
@@ -30,5 +30,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C1B8DD9F-B491-4E8A-8DF9-3077636E9A84}
 	EndGlobalSection
 EndGlobal
