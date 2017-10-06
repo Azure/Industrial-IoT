@@ -115,7 +115,7 @@ namespace OpcPublisher
                         deviceConnectionString = hostname + ";DeviceId=" + ApplicationName + ";SharedAccessKey=" + newDevice.Authentication.SymmetricKey.PrimaryKey;
                         Trace($"Device connection string is: {deviceConnectionString}");
                         Trace($"Adding it to device cert store.");
-                        SecureIoTHubToken.Write(ApplicationName, deviceConnectionString, IotDeviceCertStoreType, IotDeviceCertStoreType);
+                        SecureIoTHubToken.Write(ApplicationName, deviceConnectionString, IotDeviceCertStoreType, IotDeviceCertStorePath);
                     }
                     else
                     {
