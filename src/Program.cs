@@ -72,6 +72,7 @@ namespace OpcPublisher
         public static int OpcKeepAliveIntervalInSec = 2;
         public static int OpcSamplingInterval = 1000;
         public static int OpcPublishingInterval = 0;
+        public static bool FetchOpcNodeDisplayName = false;
 
         public static string PublisherServerSecurityPolicy = SecurityPolicies.Basic128Rsa15;
 
@@ -293,6 +294,9 @@ namespace OpcPublisher
 
                     // trust own public cert option
                     { "tm|trustmyself=", $"the publisher certificate is put into the trusted certificate store automatically.\nDefault: {TrustMyself}", (bool b) => TrustMyself = b },
+
+                    // read the display name of the nodes to publish from the server and publish them instead of the node id
+                    { "fd|fetchdisplayname=", $"enable to read the display name of a published node from the server. this will increase the runtime.\nDefault: {FetchOpcNodeDisplayName}", (bool b) => FetchOpcNodeDisplayName = b },
 
                     // own cert store options
                     { "at|appcertstoretype=", $"the own application cert store type. \n(allowed values: Directory, X509Store)\nDefault: '{OpcOwnCertStoreType}'", (string s) => {

@@ -322,16 +322,24 @@ namespace OpcPublisher
                                 currentNodeId = new NodeId((NodeId)item.StartNodeId);
                             }
 
-                            // get the DisplayName for the node, otherwise use the nodeId
-                            Node node = Session.ReadNode(currentNodeId);
-                            item.DisplayName = node.DisplayName.Text ?? currentNodeId.ToString();
+                            // if configured, get the DisplayName for the node, otherwise use the nodeId
+                            Node node;
+                            if (FetchOpcNodeDisplayName == true)
+                            {
+                                node = Session.ReadNode(currentNodeId);
+                                item.DisplayName = node.DisplayName.Text ?? currentNodeId.ToString();
+                            }
+                            else
+                            {
+                                item.DisplayName = currentNodeId.ToString();
+                            }
 
                             // add the new monitored item.
                             MonitoredItem monitoredItem = new MonitoredItem()
                             {
                                 StartNodeId = currentNodeId,
                                 AttributeId = item.AttributeId,
-                                DisplayName = node.DisplayName.Text,
+                                DisplayName = item.DisplayName,
                                 MonitoringMode = item.MonitoringMode,
                                 SamplingInterval = item.RequestedSamplingInterval,
                                 QueueSize = item.QueueSize,
