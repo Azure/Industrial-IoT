@@ -132,7 +132,6 @@ namespace OpcPublisher
                 {
                     Trace($"Create Publisher IoTHub client with device connection string: '{deviceConnectionString}' using '{IotHubProtocol}' for communication.");
                     _iotHubClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, IotHubProtocol);
-                    _iotHubClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
                     _iotHubClient.OpenAsync().Wait();
                 }
                 else
@@ -164,7 +163,6 @@ namespace OpcPublisher
         public void ConnectionStringWrite(string iotHubOwnerConnectionString)
         {
             DeviceClient newClient = DeviceClient.CreateFromConnectionString(iotHubOwnerConnectionString, IotHubProtocol);
-            newClient.RetryPolicy = RetryPolicyType.Exponential_Backoff_With_Jitter;
             newClient.OpenAsync().Wait();
             SecureIoTHubToken.Write(OpcConfiguration.ApplicationName, iotHubOwnerConnectionString, IotDeviceCertStoreType, IotDeviceCertStorePath);
             _iotHubClient = newClient;

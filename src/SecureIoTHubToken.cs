@@ -13,6 +13,7 @@ using Org.BouncyCastle.X509;
 using System;
 using System.Collections;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -211,7 +212,7 @@ namespace IoTHubCredentialTools
                     case CertificateStoreType.X509Store:
                         {
                             // Add to X509Store
-                            using (X509Store store = new X509Store("IoTHub", StoreLocation.CurrentUser))
+                            using (X509Store store = new X509Store("iothub", StoreLocation.CurrentUser))
                             {
                                 store.Open(OpenFlags.ReadWrite);
 
@@ -224,8 +225,25 @@ namespace IoTHubCredentialTools
                                     }
                                 }
 
-                                // add new one
-                                store.Add(certificate);
+                                // add new cert to store
+                                try
+                                {
+                                    // .NET Core workaround as described here: https://github.com/dotnet/core/blob/master/release-notes/1.0/Known-Issues-RC2.md
+                                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                                    {
+                                        Mono.Unix.Native.FilePermissions mode = Mono.Unix.Native.FilePermissions.S_IRWXU;
+                                        Mono.Unix.Native.Syscall.chmod("/root/.dotnet", mode);
+                                        Mono.Unix.Native.Syscall.chmod("/root/.dotnet/corefx", mode);
+                                        Mono.Unix.Native.Syscall.chmod("/root/.dotnet/corefx/cryptography", mode);
+                                        Mono.Unix.Native.Syscall.chmod("/root/.dotnet/corefx/cryptography/x509stores", mode);
+                                        Mono.Unix.Native.Syscall.chmod("/root/.dotnet/corefx/cryptography/x509stores/iothub", mode);
+                                    }
+                                    store.Add(certificate);
+                                }
+                                catch (Exception e)
+                                {
+                                    throw new Exception($"Not able to add cert to the requested store type '{storeType}' (exception message: '{e.Message}'.");
+                                }
                             }
                             break;
                         }

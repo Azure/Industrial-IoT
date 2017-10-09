@@ -688,7 +688,8 @@ namespace OpcPublisher
                             {
                                 Trace($"Hit configured missed keep alive threshold of {Program.OpcKeepAliveDisconnectThreshold}. Disconnecting the session to endpoint {session.ConfiguredEndpoint.EndpointUrl}.");
                                 session.KeepAlive -= StandardClient_KeepAlive;
-                                opcSession.Disconnect();
+                                Task disconnectTask = Task.Run(() => opcSession.Disconnect());
+                                disconnectTask.Wait();
                             }
                         }
                     }

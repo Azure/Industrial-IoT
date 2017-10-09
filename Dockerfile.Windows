@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:1.1-sdk-nanoserver
+FROM microsoft/dotnet:2.0-sdk-nanoserver
 
 COPY /src /build/src
 
