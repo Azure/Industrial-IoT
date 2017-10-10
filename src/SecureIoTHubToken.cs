@@ -13,10 +13,10 @@ using Org.BouncyCastle.X509;
 using System;
 using System.Collections;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace IoTHubCredentialTools
 {
@@ -56,7 +56,7 @@ namespace IoTHubCredentialTools
         /// Returns the token from the cert in the given cert store.
         /// </summary>
         /// <returns></returns>
-        public static string Read(string name, string storeType, string storePath)
+        public async static Task<string> ReadAsync(string name, string storeType, string storePath)
         {
             string token = null;
 
@@ -69,7 +69,7 @@ namespace IoTHubCredentialTools
                         using (DirectoryCertificateStore store = new DirectoryCertificateStore())
                         {
                             store.Open(storePath);
-                            X509CertificateCollection certificates = store.Enumerate().Result;
+                            X509CertificateCollection certificates = await store.Enumerate();
 
                             foreach (X509Certificate2 cert in certificates)
                             {
@@ -110,7 +110,7 @@ namespace IoTHubCredentialTools
         /// <summary>
         /// Creates a cert with the connectionstring (token) and stores it in the given cert store.
         /// </summary>
-        public static void Write(string name, string connectionString, string storeType, string storePath)
+        public async static Task WriteAsync(string name, string connectionString, string storeType, string storePath)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -176,13 +176,13 @@ namespace IoTHubCredentialTools
             {
                 Pkcs12Store pkcsStore = new Pkcs12StoreBuilder().Build();
                 X509CertificateEntry[] chain = new X509CertificateEntry[1];
-                string passcode = "passcode";
+                string passcode = Guid.NewGuid().ToString();
                 chain[0] = new X509CertificateEntry(x509);
                 pkcsStore.SetKeyEntry(name, new AsymmetricKeyEntry(keys.Private), chain);
                 pkcsStore.Save(pfxData, passcode.ToCharArray(), random);
 
                 // create X509Certificate2 object from PKCS12 file
-                certificate = CreateCertificateFromPKCS12(pfxData.ToArray(), passcode);
+                certificate = CertificateFactory.CreateCertificateFromPKCS12(pfxData.ToArray(), passcode);
 
                 // handle each store type differently
                 switch (storeType)
@@ -193,7 +193,7 @@ namespace IoTHubCredentialTools
                             using (DirectoryCertificateStore store = new DirectoryCertificateStore())
                             {
                                 store.Open(storePath);
-                                X509CertificateCollection certificates = store.Enumerate().Result;
+                                X509CertificateCollection certificates = await store.Enumerate();
 
                                 // remove any existing cert with our name from the store
                                 foreach (X509Certificate2 cert in certificates)
@@ -212,7 +212,7 @@ namespace IoTHubCredentialTools
                     case CertificateStoreType.X509Store:
                         {
                             // Add to X509Store
-                            using (X509Store store = new X509Store("iothub", StoreLocation.CurrentUser))
+                            using (X509Store store = new X509Store(storePath, StoreLocation.CurrentUser))
                             {
                                 store.Open(OpenFlags.ReadWrite);
 
@@ -228,16 +228,6 @@ namespace IoTHubCredentialTools
                                 // add new cert to store
                                 try
                                 {
-                                    // .NET Core workaround as described here: https://github.com/dotnet/core/blob/master/release-notes/1.0/Known-Issues-RC2.md
-                                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                                    {
-                                        Mono.Unix.Native.FilePermissions mode = Mono.Unix.Native.FilePermissions.S_IRWXU;
-                                        Mono.Unix.Native.Syscall.chmod("/root/.dotnet", mode);
-                                        Mono.Unix.Native.Syscall.chmod("/root/.dotnet/corefx", mode);
-                                        Mono.Unix.Native.Syscall.chmod("/root/.dotnet/corefx/cryptography", mode);
-                                        Mono.Unix.Native.Syscall.chmod("/root/.dotnet/corefx/cryptography/x509stores", mode);
-                                        Mono.Unix.Native.Syscall.chmod("/root/.dotnet/corefx/cryptography/x509stores/iothub", mode);
-                                    }
                                     store.Add(certificate);
                                 }
                                 catch (Exception e)
@@ -256,48 +246,5 @@ namespace IoTHubCredentialTools
             }
         }
 
-        /// <summary>
-        /// Creates a X509 cert from a PKCS512 raw data stream.
-        /// </summary>
-        /// <returns></returns>
-        private static X509Certificate2 CreateCertificateFromPKCS12(byte[] rawData, string password)
-        {
-            Exception ex = null;
-            int flagsRetryCounter = 0;
-            X509Certificate2 certificate = null;
-            X509KeyStorageFlags[] storageFlags = {
-                X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.UserKeySet,
-                X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.MachineKeySet
-            };
-
-            // try some combinations of storage flags, support is platform dependent
-            while (certificate == null &&
-                flagsRetryCounter < storageFlags.Length)
-            {
-                try
-                {
-                    // merge first cert with private key into X509Certificate2
-                    certificate = new X509Certificate2(
-                        rawData,
-                        (password == null) ? String.Empty : password,
-                        storageFlags[flagsRetryCounter]);
-                    // can we really access the private key?
-                    using (RSA rsa = certificate.GetRSAPrivateKey()) { }
-                }
-                catch (Exception e)
-                {
-                    ex = e;
-                    certificate = null;
-                }
-                flagsRetryCounter++;
-            }
-
-            if (certificate == null)
-            {
-                throw new NotSupportedException("Creating X509Certificate from PKCS #12 store failed", ex);
-            }
-
-            return certificate;
-        }
     }
 }

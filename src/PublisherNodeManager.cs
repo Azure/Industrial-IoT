@@ -10,8 +10,10 @@ namespace OpcPublisher
     using Newtonsoft.Json;
     using System.IO;
     using System.Linq;
+    using static IotHubMessaging;
     using static OpcPublisher.Program;
     using static OpcPublisher.Workarounds.TraceWorkaround;
+    using static OpcStackConfiguration;
 
     public class PublisherNodeManager : CustomNodeManager2
     {
@@ -417,7 +419,7 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Method to start monitoring a node and publish the data to IoTHub.
+        /// Method to start monitoring a node and publish the data to IoTHub. Executes synchronously.
         /// </summary>
         private ServiceResult OnPublishNodeCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
@@ -464,7 +466,7 @@ namespace OpcPublisher
                 OpcSession opcSession = null;
                 try
                 {
-                    OpcSessionsSemaphore.Wait();
+                    OpcSessionsListSemaphore.WaitAsync();
                     opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri == nodeToPublish.EndpointUri);
 
                     // add a new session.
@@ -480,19 +482,19 @@ namespace OpcPublisher
                         Trace($"PublishNode: Session found for endpoint '{nodeToPublish.EndpointUri.OriginalString}'");
                     }
 
-                    // add the node info to the subscription with the default publishing interval
-                    opcSession.AddNodeForMonitoring(OpcPublishingInterval, OpcSamplingInterval, nodeToPublish.NodeId);
+                    // add the node info to the subscription with the default publishing interval, execute syncronously
+                    opcSession.AddNodeForMonitoring(OpcPublishingInterval, OpcSamplingInterval, nodeToPublish.NodeId).Wait();
                     Trace($"PublishNode: Requested to monitor item with NodeId '{nodeToPublish.NodeId.ToString()}' (PublishingInterval: {OpcPublishingInterval}, SamplingInterval: {OpcSamplingInterval})");
                 }
                 finally
                 {
-                    OpcSessionsSemaphore.Release();
+                    OpcSessionsListSemaphore.Release();
                 }
 
                 // update our data
                 try
                 {
-                    PublishDataSemaphore.Wait();
+                    PublishDataSemaphore.WaitAsync();
                     PublishConfig.Add(nodeToPublish);
 
                     // add it also to the publish file 
@@ -518,7 +520,7 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Method to remove the node from the subscription and stop publishing telemetry to IoTHub.
+        /// Method to remove the node from the subscription and stop publishing telemetry to IoTHub. Executes synchronously.
         /// </summary>
         private ServiceResult OnUnpublishNodeCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
@@ -558,7 +560,7 @@ namespace OpcPublisher
                 OpcSession opcSession = null;
                 try
                 {
-                    OpcSessionsSemaphore.Wait();
+                    OpcSessionsListSemaphore.WaitAsync();
                     opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri == endpointUri);
                 }
                 catch
@@ -567,7 +569,7 @@ namespace OpcPublisher
                 }
                 finally
                 {
-                    OpcSessionsSemaphore.Release();
+                    OpcSessionsListSemaphore.Release();
 
                 }
                 if (opcSession == null)
@@ -582,13 +584,13 @@ namespace OpcPublisher
                 }
 
                 // remove the node from the sessions monitored items list.
-                opcSession.TagNodeForMonitoringStop(nodeId);
+                opcSession.TagNodeForMonitoringStop(nodeId).Wait();
                 Trace("UnpublishNode: Requested to stop monitoring of node.");
 
                 // remove node from persisted config file
                 try
                 {
-                    PublishDataSemaphore.Wait();
+                    PublishDataSemaphore.WaitAsync();
                     var entryToRemove = PublisherConfigFileEntries.Find(l => l.NodeId == nodeId && l.EndpointUri == endpointUri);
                     PublisherConfigFileEntries.Remove(entryToRemove);
                     File.WriteAllText(NodesToPublishAbsFilename, JsonConvert.SerializeObject(PublisherConfigFileEntries));
@@ -607,13 +609,13 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Method to get the list of published nodes.
+        /// Method to get the list of published nodes. Executes synchronously.
         /// </summary>
         private ServiceResult OnGetListOfPublishedNodesCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
             try
             {
-                PublishDataSemaphore.Wait();
+                PublishDataSemaphore.WaitAsync();
                 outputArguments[0] = JsonConvert.SerializeObject(PublisherConfigFileEntries);
             }
             finally
@@ -626,7 +628,7 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Data node in the server which registers ourselves with IoT Hub when this node is written.
+        /// Data node in the server which registers ourselves with IoT Hub when this node is written. Executes synchronously.
         /// </summary>
         public ServiceResult OnConnectionStringWrite(ISystemContext context, NodeState node, NumericRange indexRange, QualifiedName dataEncoding, ref object value, ref StatusCode statusCode, ref DateTime timestamp)
         {
@@ -641,7 +643,7 @@ namespace OpcPublisher
             timestamp = DateTime.Now;
 
             // read current connection string and compare to the one passed in
-            string currentConnectionString = SecureIoTHubToken.Read(OpcConfiguration.ApplicationName, IotDeviceCertStoreType, IotDeviceCertStorePath);
+            string currentConnectionString = SecureIoTHubToken.ReadAsync(PublisherOpcApplicationConfiguration.ApplicationName, IotDeviceCertStoreType, IotDeviceCertStorePath).Result;
             if (string.Equals(connectionString, currentConnectionString, StringComparison.OrdinalIgnoreCase))
             {
                 Trace("ConnectionStringWrite: Connection string up to date!");
@@ -653,7 +655,7 @@ namespace OpcPublisher
             // configure publisher and write connection string
             try
             {
-                IotHubCommunication.ConnectionStringWrite(connectionString);
+                IotHubCommunication.ConnectionStringWriteAsync(connectionString).Wait();
             }
             catch (Exception e)
             {
