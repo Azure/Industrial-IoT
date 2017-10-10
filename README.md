@@ -102,7 +102,7 @@ The following options are supported:
 
       --pf, --publishfile=VALUE
                              the filename to configure the nodes to publish.
-                               Default: '/docker/publishednodes.json'
+                               Default: './publishednodes.json'
       --sd, --shopfloordomain=VALUE
                              the domain of the shopfloor. if specified this
                                domain is appended (delimited by a ':' to the '
@@ -214,6 +214,11 @@ The following options are supported:
                              the publisher certificate is put into the trusted
                                certificate store automatically.
                                Default: True
+      --fd, --fetchdisplayname=VALUE
+                             enable to read the display name of a published
+                               node from the server. this will increase the
+                               runtime.
+                               Default: False
       --at, --appcertstoretype=VALUE
                              the own application cert store type.
                                (allowed values: Directory, X509Store)
@@ -232,7 +237,7 @@ The following options are supported:
                              the path of the trusted cert store
                                Default (depends on store type):
                                X509Store: 'CurrentUser\UA_MachineDefault'
-                               Directory: 'CertificateStores/UA Applications'
+                               Directory: 'CertificateStores/trusted'
       --rt, --rejectedcertstoretype=VALUE
                              the rejected cert store type.
                                (allowed values: Directory, X509Store)
@@ -241,8 +246,7 @@ The following options are supported:
                              the path of the rejected cert store
                                Default (depends on store type):
                                X509Store: 'CurrentUser\UA_MachineDefault'
-                               Directory: 'CertificateStores/Rejected
-                               Certificates'
+                               Directory: 'CertificateStores/rejected'
       --it, --issuercertstoretype=VALUE
                              the trusted issuer cert store type.
                                (allowed values: Directory, X509Store)
@@ -251,8 +255,7 @@ The following options are supported:
                              the path of the trusted issuer cert store
                                Default (depends on store type):
                                X509Store: 'CurrentUser\UA_MachineDefault'
-                               Directory: 'CertificateStores/UA Certificate
-                               Authorities'
+                               Directory: 'CertificateStores/issuers'
       --dt, --devicecertstoretype=VALUE
                              the iothub device cert store type.
                                (allowed values: Directory, X509Store)
@@ -260,7 +263,7 @@ The following options are supported:
       --dp, --devicecertstorepath=VALUE
                              the path of the iot device cert store
                                Default Default (depends on store type):
-                               X509Store: 'IoTHub'
+                               X509Store: 'My'
                                Directory: 'CertificateStores/IoTHub'
       -h, --help                 show this message and exit
 
@@ -312,8 +315,11 @@ The container can now be reached by other containers via the name `publisher`ove
 Publisher uses the hostname of the machine is running on for certificate and endpoint generation. docker chooses a random hostname if there is none set by the `-h` option. Here an example to set the internal hostname of the container to `publisher`:
 
     docker run -h publisher microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
-### Access to host volume (shared filesystem)
-In certain use cases it may make sense to use configuration information, certificate stores or log file locations from the host and not keep them in the container file system only. To achieve this you need to use the `-v` option of `docker run`.
+### Using bind mounts (shared filesystem)
+In certain use cases it may make sense to read configuration information from or write log files to locations on the host and not keep them in the container file system only. To achieve this you need to use the `-v` option of `docker run` in the bind mount mode.
+
+### Store for X509 certificates
+Storing X509 certificates does not work with bind mounts, since the permissions of the path to the store need to be `rw` for the owner. Instead you need to use the `-v` option of `docker run` in the volume mode.
 
 # Debugging the Application
 
