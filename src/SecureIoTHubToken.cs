@@ -25,7 +25,6 @@ namespace IoTHubCredentialTools
         /// <summary>
         /// Validates the cert and extracts the token from the cert.
         /// </summary>
-        /// <returns></returns>
         private static string CheckForToken(X509Certificate2 cert, string name)
         {
             if ((cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase)) &&
@@ -55,7 +54,6 @@ namespace IoTHubCredentialTools
         /// <summary>
         /// Returns the token from the cert in the given cert store.
         /// </summary>
-        /// <returns></returns>
         public async static Task<string> ReadAsync(string name, string storeType, string storePath)
         {
             string token = null;
@@ -200,12 +198,12 @@ namespace IoTHubCredentialTools
                                 {
                                     if (cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase))
                                     {
-                                        store.Delete(cert.Thumbprint);
+                                        await store.Delete(cert.Thumbprint);
                                     }
                                 }
 
                                 // add new one
-                                store.Add(certificate);
+                                await store.Add(certificate);
                             }
                             break;
                         }

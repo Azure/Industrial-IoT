@@ -108,7 +108,6 @@ namespace OpcPublisher
         /// <summary>
         /// Initializes the communication with secrets and details for (batched) send process.
         /// </summary>
-        /// <returns></returns>
         public async Task<bool> InitAsync()
         {
             try
@@ -173,6 +172,8 @@ namespace OpcPublisher
                 {
                     Trace($"Create Publisher IoTHub client with device connection string: '{deviceConnectionString}' using '{IotHubProtocol}' for communication.");
                     _iotHubClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, IotHubProtocol);
+                    ExponentialBackoff exponentialRetryPolicy = new ExponentialBackoff(int.MaxValue, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(5000), TimeSpan.FromMilliseconds(100));
+                    _iotHubClient.SetRetryPolicy(exponentialRetryPolicy);
                     await _iotHubClient.OpenAsync();
                 }
                 else
@@ -191,7 +192,7 @@ namespace OpcPublisher
             }
             catch (Exception e)
             {
-                Trace(e, "Error during IoTHub messaging initialization.");
+                Trace(e, $"Error in InitAsync. (message: {e.Message})");
                 return false;
             }
             return true;
@@ -200,7 +201,6 @@ namespace OpcPublisher
         /// <summary>
         /// Method to write the IoTHub owner connection string into the cert store. 
         /// </summary>
-        /// <param name="iotHubOwnerConnectionString"></param>
         public async Task ConnectionStringWriteAsync(string iotHubOwnerConnectionString)
         {
             DeviceClient newClient = DeviceClient.CreateFromConnectionString(iotHubOwnerConnectionString, IotHubProtocol);
@@ -212,17 +212,17 @@ namespace OpcPublisher
         /// <summary>
         /// Shuts down the IoTHub communication.
         /// </summary>
-        public void Shutdown()
+        public async Task Shutdown()
         {
             // send cancellation token and wait for last IoT Hub message to be sent.
             try
             {
                 _tokenSource.Cancel();
-                _dequeueAndSendTask.Wait();
+                await _dequeueAndSendTask;
 
                 if (_iotHubClient != null)
                 {
-                    _iotHubClient.CloseAsync().Wait();
+                    await _iotHubClient.CloseAsync();
                 }
                 if (_sendTimer != null)
                 {

@@ -29,6 +29,7 @@ namespace OpcPublisher
         public static List<NodeToPublishConfig> PublishConfig = new List<NodeToPublishConfig>();
         public static SemaphoreSlim PublishDataSemaphore = new SemaphoreSlim(1);
         public static IotHubMessaging IotHubCommunication;
+        public static CancellationTokenSource ShutdownTokenSource;
 
         public static string NodesToPublishAbsFilename
         {
@@ -36,13 +37,6 @@ namespace OpcPublisher
             set => _nodesToPublishAbsFilename = value;
         }
         private static string _nodesToPublishAbsFilename;
-
-        public static bool PublisherShutdownInProgress
-        {
-            get => _publisherShutdownInProgress;
-            set => _publisherShutdownInProgress = value;
-        }
-        private static bool _publisherShutdownInProgress = false;
 
         public static uint PublisherShutdownWaitPeriod
         {
@@ -401,6 +395,9 @@ namespace OpcPublisher
 
                 WriteLine("Publisher is starting up...");
 
+                // Init shutdown token source.
+                ShutdownTokenSource = new CancellationTokenSource();
+
                 // init OPC configuration and tracing
                 OpcStackConfiguration opcStackConfiguration = new OpcStackConfiguration();
                 await opcStackConfiguration.ConfigureAsync();
@@ -561,8 +558,7 @@ namespace OpcPublisher
                 }
 
                 // kick off the task to maintain all sessions
-                var cts = new CancellationTokenSource();
-                Task.Run(() => SessionConnectorAsync(cts.Token));
+                Task sessionConnectorAsync = Task.Run(async () => await SessionConnectorAsync(ShutdownTokenSource.Token));
 
                 // Show notification on session events
                 _publisherServer.CurrentInstance.SessionManager.SessionActivated += ServerEventStatus;
@@ -576,20 +572,20 @@ namespace OpcPublisher
                 WriteLine("");
                 WriteLine("");
                 ReadLine();
-                cts.Cancel();
+                ShutdownTokenSource.Cancel();
                 WriteLine("Publisher is shuting down...");
 
-                // close all connected session
-                PublisherShutdownInProgress = true;
+                // Wait for session connector completion
+                await sessionConnectorAsync;
 
                 // stop the server
                 _publisherServer.Stop();
 
                 // Clean up Publisher sessions
-                SessionShutdownAsync().Wait();
+                await SessionShutdownAsync();
 
                 // shutdown the IoTHub messaging
-                IotHubCommunication.Shutdown();
+                await IotHubCommunication.Shutdown();
             }
             catch (Exception e)
             {
@@ -625,7 +621,7 @@ namespace OpcPublisher
         /// </summary>
         public static async Task SessionConnectorAsync(CancellationToken cancellationtoken)
         {
-            while (true && !PublisherShutdownInProgress)
+            while (true)
             {
                 try
                 {
@@ -639,30 +635,33 @@ namespace OpcPublisher
                 {
                     Trace(e, $"Failed to connect and monitor a disconnected server. {(e.InnerException != null ? e.InnerException.Message : "")}");
                 }
+                if (cancellationtoken.IsCancellationRequested)
+                {
+                    return;
+                }
                 await Task.Delay(_publisherSessionConnectWaitSec * 1000);
             }
         }
 
         /// <summary>
-        /// Wait till all sessions are shutdown.
-        /// async tasks.
+        /// Shutdown all sessions.
         /// </summary>
         public async static Task SessionShutdownAsync()
         {
-            // Shutdown all sessions.
             try
             {
-                await OpcSessionsListSemaphore.WaitAsync();
                 while (OpcSessions.Count > 0)
                 {
+                    await OpcSessionsListSemaphore.WaitAsync();
                     OpcSession opcSession = OpcSessions.ElementAt(0);
                     OpcSessions.RemoveAt(0);
+                    OpcSessionsListSemaphore.Release();
                     await opcSession.ShutdownAsync();
                 }
             }
-            finally
+            catch (Exception e)
             {
-                OpcSessionsListSemaphore.Release();
+                Trace(e, $"Failed to shutdown all sessions. (message: {e.Message}");
             }
 
             // Wait and continue after a while.

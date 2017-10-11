@@ -100,33 +100,22 @@ namespace OpcPublisher
 
                 try
                 {
-                    #region DataAccess_DataItem
                     FolderState dataFolder = CreateFolder(root, "Data", "Data");
 
                     const string connectionStringItemName = "ConnectionString";
                     DataItemState item = CreateDataItemVariable(dataFolder, connectionStringItemName, connectionStringItemName, BuiltInType.String, ValueRanks.Scalar, AccessLevels.CurrentWrite);
                     item.Value = String.Empty;
-                    #endregion
 
-                    #region Methods
                     FolderState methodsFolder = CreateFolder(root, "Methods", "Methods");
 
-                    #region PublishNode Method
                     MethodState publishNodeMethod = CreateMethod(methodsFolder, "PublishNode", "PublishNode");
                     SetPublishNodeMethodProperties(ref publishNodeMethod);
-                    #endregion
 
-                    #region UnpublishNode Method
                     MethodState unpublishNodeMethod = CreateMethod(methodsFolder, "UnpublishNode", "UnpublishNode");
                     SetUnpublishNodeMethodProperties(ref unpublishNodeMethod);
-                    #endregion
 
-                    #region GetListOfPublishedNodes Method
                     MethodState getListOfPublishedNodesMethod = CreateMethod(methodsFolder, "GetListOfPublishedNodes", "GetListOfPublishedNodes");
                     SetGetListOfPublishedNodesMethodProperties(ref getListOfPublishedNodesMethod);
-                    #endregion
-
-                    #endregion Methods
                 }
                 catch (Exception e)
                 {
@@ -457,7 +446,7 @@ namespace OpcPublisher
             // find/create a session to the endpoint URL and start monitoring the node.
             try
             {
-                if (PublisherShutdownInProgress)
+                if (ShutdownTokenSource.IsCancellationRequested)
                 {
                     return ServiceResult.Create(StatusCodes.BadUnexpectedError, $"Publisher shutdown in progress.");
                 }
@@ -551,7 +540,7 @@ namespace OpcPublisher
             // find the session and stop monitoring the node.
             try
             {
-                if (PublisherShutdownInProgress)
+                if (ShutdownTokenSource.IsCancellationRequested)
                 {
                     return ServiceResult.Create(StatusCodes.BadUnexpectedError, $"Publisher shutdown in progress.");
                 }
