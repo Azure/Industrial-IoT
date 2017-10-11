@@ -14,87 +14,42 @@ namespace OpcPublisher
     using Opc.Ua;
     using Opc.Ua.Server;
     using System.Text.RegularExpressions;
+    using static IotHubMessaging;
     using static Opc.Ua.CertificateStoreType;
     using static OpcPublisher.Workarounds.TraceWorkaround;
+    using static OpcSession;
+    using static OpcStackConfiguration;
     using static System.Console;
 
     public class Program
     {
-        //
-        // Publisher app related
-        //
-        public static int PublisherSessionConnectWaitSec = 10;
         public static List<OpcSession> OpcSessions = new List<OpcSession>();
-        public static SemaphoreSlim OpcSessionsSemaphore = new SemaphoreSlim(1);
+        public static SemaphoreSlim OpcSessionsListSemaphore = new SemaphoreSlim(1);
         public static List<PublisherConfigFileEntry> PublisherConfigFileEntries = new List<PublisherConfigFileEntry>();
         public static List<NodeToPublishConfig> PublishConfig = new List<NodeToPublishConfig>();
-        public static string NodesToPublishAbsFilenameDefault = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
-        public static string NodesToPublishAbsFilename;
         public static SemaphoreSlim PublishDataSemaphore = new SemaphoreSlim(1);
-        public static string ShopfloorDomain;
-        public static bool VerboseConsole;
-        public static bool PublisherShutdownInProgress = false;
+        public static IotHubMessaging IotHubCommunication;
+        public static CancellationTokenSource ShutdownTokenSource;
+
+        public static string NodesToPublishAbsFilename
+        {
+            get => _nodesToPublishAbsFilename;
+            set => _nodesToPublishAbsFilename = value;
+        }
+        private static string _nodesToPublishAbsFilename;
+
+        public static uint PublisherShutdownWaitPeriod
+        {
+            get => _publisherShutdownWaitPeriod;
+            set => _publisherShutdownWaitPeriod = value;
+        }
+        private static uint _publisherShutdownWaitPeriod = 10;
+
         private static PublisherServer _publisherServer;
         private static DateTime _lastServerSessionEventTime = DateTime.UtcNow;
-        public static uint PublisherShutdownWaitPeriod = 10;
-
-        //
-        // IoTHub related
-        //
-        private static string _IotHubOwnerConnectionString;
-        public static Microsoft.Azure.Devices.Client.TransportType IotHubProtocol = Microsoft.Azure.Devices.Client.TransportType.Mqtt;
-        public static IotHubMessaging IotHubCommunication;
-        private static uint _MaxSizeOfIoTHubMessageBytes = 4096;
-        private static int _DefaultSendIntervalSeconds = 1;
-
-        public static string IotDeviceCertStoreType = X509Store;
-        private const string _iotDeviceCertDirectoryStorePathDefault = "CertificateStores/IoTHub";
-        private const string _iotDeviceCertX509StorePathDefault = "IoTHub";
-        public static string IotDeviceCertStorePath = _iotDeviceCertX509StorePathDefault;
-
-        //
-        // OPC component related
-        //
-        public static ApplicationConfiguration OpcConfiguration = null;
-        public static string ApplicationName;
-        public static string LogFileName;
-        public static ushort PublisherServerPort = 62222;
-        public static string PublisherServerPath = "/UA/Publisher";
-        public static int LdsRegistrationInterval = 0;
-        public static int OpcOperationTimeout = 120000;
-        public static bool TrustMyself = true;
-        // Enable Utils.TraceMasks.OperationDetail to get output for IoTHub telemetry operations. Current: 0x287 (647), with OperationDetail: 0x2C7 (711)
-        public static int OpcStackTraceMask = Utils.TraceMasks.Error | Utils.TraceMasks.Security | Utils.TraceMasks.StackTrace | Utils.TraceMasks.StartStop;
-        public static bool OpcPublisherAutoTrustServerCerts = false;
-        public static uint OpcSessionCreationTimeout = 10;
-        public static uint OpcSessionCreationBackoffMax = 5;
-        public static uint OpcKeepAliveDisconnectThreshold = 5;
-        public static int OpcKeepAliveIntervalInSec = 2;
-        public static int OpcSamplingInterval = 1000;
-        public static int OpcPublishingInterval = 0;
-
-        public static string PublisherServerSecurityPolicy = SecurityPolicies.Basic128Rsa15;
-
-        public static string OpcOwnCertStoreType = X509Store;
-        private const string _opcOwnCertDirectoryStorePathDefault = "CertificateStores/own";
-        private const string _opcOwnCertX509StorePathDefault = "CurrentUser\\UA_MachineDefault";
-        public static string OpcOwnCertStorePath = _opcOwnCertX509StorePathDefault;
-
-        public static string OpcTrustedCertStoreType = Directory;
-        public static string OpcTrustedCertDirectoryStorePathDefault = "CertificateStores/UA Applications";
-        public static string OpcTrustedCertX509StorePathDefault = "CurrentUser\\UA_MachineDefault";
-        public static string OpcTrustedCertStorePath = null;
-
-        public static string OpcRejectedCertStoreType = Directory;
-        private const string _opcRejectedCertDirectoryStorePathDefault = "CertificateStores/Rejected Certificates";
-        private const string _opcRejectedCertX509StorePathDefault = "CurrentUser\\UA_MachineDefault";
-        public static string OpcRejectedCertStorePath = _opcRejectedCertDirectoryStorePathDefault;
-
-        public static string OpcIssuerCertStoreType = Directory;
-        private const string _opcIssuerCertDirectoryStorePathDefault = "CertificateStores/UA Certificate Authorities";
-        private const string _opcIssuerCertX509StorePathDefault = "CurrentUser\\UA_MachineDefault";
-        public static string OpcIssuerCertStorePath = _opcIssuerCertDirectoryStorePathDefault;
-
+        private static bool _opcTraceInitialized = false;
+        private static int _publisherSessionConnectWaitSec = 10;
+        private static string _nodesToPublishAbsFilenameDefault = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
 
         /// <summary>
         /// Usage message.
@@ -129,9 +84,19 @@ namespace OpcPublisher
             options.WriteOptionDescriptions(Console.Out);
         }
 
+        /// <summary>
+        /// Synchronous main method of the app.
+        /// </summary>
         public static void Main(string[] args)
         {
-            var opcTraceInitialized = false;
+            MainAsync(args).Wait();
+        }
+
+        /// <summary>
+        /// Asynchronous part of the main method of the app.
+        /// </summary>
+        public async static Task MainAsync(string[] args)
+        {
             try
             {
                 var shouldShowHelp = false;
@@ -139,7 +104,7 @@ namespace OpcPublisher
                 // command line options configuration
                 Mono.Options.OptionSet options = new Mono.Options.OptionSet {
                     // Publishing configuration options
-                    { "pf|publishfile=", $"the filename to configure the nodes to publish.\nDefault: '{NodesToPublishAbsFilenameDefault}'", (string p) => NodesToPublishAbsFilename = p },
+                    { "pf|publishfile=", $"the filename to configure the nodes to publish.\nDefault: '{_nodesToPublishAbsFilenameDefault}'", (string p) => _nodesToPublishAbsFilename = p },
                     { "sd|shopfloordomain=", $"the domain of the shopfloor. if specified this domain is appended (delimited by a ':' to the 'ApplicationURI' property when telemetry is sent to IoTHub.\n" +
                             "The value must follow the syntactical rules of a DNS hostname.\nDefault: not set", (string s) => {
                             Regex domainNameRegex = new Regex("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
@@ -153,10 +118,10 @@ namespace OpcPublisher
                             }
                         }
                      },
-                    { "sw|sessionconnectwait=", $"specify the wait time in seconds publisher is trying to connect to disconnected endpoints and starts monitoring unmonitored items\nMin: 10\nDefault: {PublisherSessionConnectWaitSec}", (int i) => {
+                    { "sw|sessionconnectwait=", $"specify the wait time in seconds publisher is trying to connect to disconnected endpoints and starts monitoring unmonitored items\nMin: 10\nDefault: {_publisherSessionConnectWaitSec}", (int i) => {
                             if (i > 10)
                             {
-                                PublisherSessionConnectWaitSec = i;
+                                _publisherSessionConnectWaitSec = i;
                             }
                             else
                             {
@@ -170,10 +135,10 @@ namespace OpcPublisher
                     { "ih|iothubprotocol=", $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}",
                         (Microsoft.Azure.Devices.Client.TransportType p) => IotHubProtocol = p
                     },
-                    { "ms|iothubmessagesize=", $"the max size of a message which can be send to IoTHub. when telemetry of this size is available it will be sent.\n0 will enforce immediate send when telemetry is available\nMin: 0\nMax: 256 * 1024\nDefault: {_MaxSizeOfIoTHubMessageBytes}", (uint u) => {
+                    { "ms|iothubmessagesize=", $"the max size of a message which can be send to IoTHub. when telemetry of this size is available it will be sent.\n0 will enforce immediate send when telemetry is available\nMin: 0\nMax: 256 * 1024\nDefault: {MaxSizeOfIoTHubMessageBytes}", (uint u) => {
                             if (u >= 0 && u <= 256 * 1024)
                             {
-                                _MaxSizeOfIoTHubMessageBytes = u;
+                                MaxSizeOfIoTHubMessageBytes = u;
                             }
                             else
                             {
@@ -181,10 +146,10 @@ namespace OpcPublisher
                             }
                         }
                     },
-                    { "si|iothubsendinterval=", $"the interval in seconds when telemetry should be send to IoTHub. If 0, then only the iothubmessagesize parameter controls when telemetry is sent.\nDefault: '{_DefaultSendIntervalSeconds}'", (int i) => {
+                    { "si|iothubsendinterval=", $"the interval in seconds when telemetry should be send to IoTHub. If 0, then only the iothubmessagesize parameter controls when telemetry is sent.\nDefault: '{DefaultSendIntervalSeconds}'", (int i) => {
                             if (i >= 0)
                             {
-                                _DefaultSendIntervalSeconds = i;
+                                DefaultSendIntervalSeconds = i;
                             }
                             else
                             {
@@ -278,7 +243,7 @@ namespace OpcPublisher
                             }
                         }
                     },
-                    { "st|opcstacktracemask=", $"the trace mask for the OPC stack. See github OPC .NET stack for definitions.\nTo enable IoTHub telemetry tracing set it to 711.\nDefault: {OpcStackTraceMask:X}  ({Program.OpcStackTraceMask})", (int i) => {
+                    { "st|opcstacktracemask=", $"the trace mask for the OPC stack. See github OPC .NET stack for definitions.\nTo enable IoTHub telemetry tracing set it to 711.\nDefault: {OpcStackTraceMask:X}  ({OpcStackTraceMask})", (int i) => {
                             if (i >= 0)
                             {
                                 OpcStackTraceMask = i;
@@ -294,12 +259,15 @@ namespace OpcPublisher
                     // trust own public cert option
                     { "tm|trustmyself=", $"the publisher certificate is put into the trusted certificate store automatically.\nDefault: {TrustMyself}", (bool b) => TrustMyself = b },
 
+                    // read the display name of the nodes to publish from the server and publish them instead of the node id
+                    { "fd|fetchdisplayname=", $"enable to read the display name of a published node from the server. this will increase the runtime.\nDefault: {FetchOpcNodeDisplayName}", (bool b) => FetchOpcNodeDisplayName = b },
+
                     // own cert store options
                     { "at|appcertstoretype=", $"the own application cert store type. \n(allowed values: Directory, X509Store)\nDefault: '{OpcOwnCertStoreType}'", (string s) => {
                             if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(Directory, StringComparison.OrdinalIgnoreCase))
                             {
                                 OpcOwnCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : Directory;
-                                OpcOwnCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? _opcOwnCertX509StorePathDefault : _opcOwnCertDirectoryStorePathDefault;
+                                OpcOwnCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? OpcOwnCertX509StorePathDefault : OpcOwnCertDirectoryStorePathDefault;
                             }
                             else
                             {
@@ -308,8 +276,8 @@ namespace OpcPublisher
                         }
                     },
                     { "ap|appcertstorepath=", $"the path where the own application cert should be stored\nDefault (depends on store type):\n" +
-                            $"X509Store: '{_opcOwnCertX509StorePathDefault}'\n" +
-                            $"Directory: '{_opcOwnCertDirectoryStorePathDefault}'", (string s) => OpcOwnCertStorePath = s
+                            $"X509Store: '{OpcOwnCertX509StorePathDefault}'\n" +
+                            $"Directory: '{OpcOwnCertDirectoryStorePathDefault}'", (string s) => OpcOwnCertStorePath = s
                     },
 
                     // trusted cert store options
@@ -336,7 +304,7 @@ namespace OpcPublisher
                             if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(Directory, StringComparison.OrdinalIgnoreCase))
                             {
                                 OpcRejectedCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : Directory;
-                                OpcRejectedCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? _opcRejectedCertX509StorePathDefault : _opcRejectedCertDirectoryStorePathDefault;
+                                OpcRejectedCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? OpcRejectedCertX509StorePathDefault : OpcRejectedCertDirectoryStorePathDefault;
                             }
                             else
                             {
@@ -345,8 +313,8 @@ namespace OpcPublisher
                         }
                     },
                     { "rp|rejectedcertstorepath=", $"the path of the rejected cert store\nDefault (depends on store type):\n" +
-                            $"X509Store: '{_opcRejectedCertX509StorePathDefault}'\n" +
-                            $"Directory: '{_opcRejectedCertDirectoryStorePathDefault}'", (string s) => OpcRejectedCertStorePath = s
+                            $"X509Store: '{OpcRejectedCertX509StorePathDefault}'\n" +
+                            $"Directory: '{OpcRejectedCertDirectoryStorePathDefault}'", (string s) => OpcRejectedCertStorePath = s
                     },
 
                     // issuer cert store options
@@ -355,7 +323,7 @@ namespace OpcPublisher
                             if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(Directory, StringComparison.OrdinalIgnoreCase))
                             {
                                 OpcIssuerCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : Directory;
-                                OpcIssuerCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? _opcIssuerCertX509StorePathDefault : _opcIssuerCertDirectoryStorePathDefault;
+                                OpcIssuerCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? OpcIssuerCertX509StorePathDefault : OpcIssuerCertDirectoryStorePathDefault;
                             }
                             else
                             {
@@ -364,8 +332,8 @@ namespace OpcPublisher
                         }
                     },
                     { "ip|issuercertstorepath=", $"the path of the trusted issuer cert store\nDefault (depends on store type):\n" +
-                            $"X509Store: '{_opcIssuerCertX509StorePathDefault}'\n" +
-                            $"Directory: '{_opcIssuerCertDirectoryStorePathDefault}'", (string s) => OpcIssuerCertStorePath = s
+                            $"X509Store: '{OpcIssuerCertX509StorePathDefault}'\n" +
+                            $"Directory: '{OpcIssuerCertDirectoryStorePathDefault}'", (string s) => OpcIssuerCertStorePath = s
                     },
 
                     // device connection string cert store options
@@ -373,7 +341,7 @@ namespace OpcPublisher
                             if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(Directory, StringComparison.OrdinalIgnoreCase))
                             {
                                 IotDeviceCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : Directory;
-                                IotDeviceCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? _iotDeviceCertX509StorePathDefault : _iotDeviceCertDirectoryStorePathDefault;
+                                IotDeviceCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? IotDeviceCertX509StorePathDefault : IotDeviceCertDirectoryStorePathDefault;
                             }
                             else
                             {
@@ -382,8 +350,8 @@ namespace OpcPublisher
                         }
                     },
                     { "dp|devicecertstorepath=", $"the path of the iot device cert store\nDefault Default (depends on store type):\n" +
-                            $"X509Store: '{_iotDeviceCertX509StorePathDefault}'\n" +
-                            $"Directory: '{_iotDeviceCertDirectoryStorePathDefault}'", (string s) => IotDeviceCertStorePath = s
+                            $"X509Store: '{IotDeviceCertX509StorePathDefault}'\n" +
+                            $"Directory: '{IotDeviceCertDirectoryStorePathDefault}'", (string s) => IotDeviceCertStorePath = s
                     },
 
                     // misc
@@ -414,23 +382,26 @@ namespace OpcPublisher
                 else if (arguments.Count == 2)
                 {
                     ApplicationName = arguments[0];
-                    _IotHubOwnerConnectionString = arguments[1];
+                    IotHubOwnerConnectionString = arguments[1];
                 }
                 else if (arguments.Count == 1)
                 {
                     ApplicationName = arguments[0];
                 }
-                else {
+                else
+                {
                     ApplicationName = Utils.GetHostName();
                 }
 
                 WriteLine("Publisher is starting up...");
 
+                // Init shutdown token source.
+                ShutdownTokenSource = new CancellationTokenSource();
+
                 // init OPC configuration and tracing
-                Init(OpcStackTraceMask, VerboseConsole);
-                OpcStackConfiguration opcStackConfiguration = new OpcStackConfiguration(ApplicationName);
-                opcTraceInitialized = true;
-                OpcConfiguration = opcStackConfiguration.Configuration;
+                OpcStackConfiguration opcStackConfiguration = new OpcStackConfiguration();
+                await opcStackConfiguration.ConfigureAsync();
+                _opcTraceInitialized = true;
 
                 // log shopfloor domain setting
                 if (string.IsNullOrEmpty(ShopfloorDomain))
@@ -446,20 +417,20 @@ namespace OpcPublisher
                 if (OpcPublisherAutoTrustServerCerts)
                 {
                     Trace("Publisher configured to auto trust server certificates of the servers it is connecting to.");
-                    OpcConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_AutoTrustServerCerts);
+                    PublisherOpcApplicationConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_AutoTrustServerCerts);
                 }
                 else
                 {
                     Trace("Publisher configured to not auto trust server certificates. When connecting to servers, you need to manually copy the rejected server certs to the trusted store to trust them.");
-                    OpcConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_Default);
+                    PublisherOpcApplicationConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_Default);
                 }
 
                 // start our server interface
                 try
                 {
-                    Trace($"Starting server on endpoint {OpcConfiguration.ServerConfiguration.BaseAddresses[0].ToString()} ...");
+                    Trace($"Starting server on endpoint {PublisherOpcApplicationConfiguration.ServerConfiguration.BaseAddresses[0].ToString()} ...");
                     _publisherServer = new PublisherServer();
-                    _publisherServer.Start(OpcConfiguration);
+                    _publisherServer.Start(PublisherOpcApplicationConfiguration);
                     Trace("Server started.");
                 }
                 catch (Exception e)
@@ -472,20 +443,20 @@ namespace OpcPublisher
                 // get information on the nodes to publish and validate the json by deserializing it.
                 try
                 {
-                    PublishDataSemaphore.Wait(); 
-                    if (string.IsNullOrEmpty(NodesToPublishAbsFilename))
+                    await PublishDataSemaphore.WaitAsync();
+                    if (string.IsNullOrEmpty(_nodesToPublishAbsFilename))
                     {
                         // check if we have an env variable specifying the published nodes path, otherwise use the default
-                        NodesToPublishAbsFilename = NodesToPublishAbsFilenameDefault;
+                        _nodesToPublishAbsFilename = _nodesToPublishAbsFilenameDefault;
                         if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_PNFP")))
                         {
                             Trace("Publishing node configuration file path read from environment.");
-                            NodesToPublishAbsFilename = Environment.GetEnvironmentVariable("_GW_PNFP");
+                            _nodesToPublishAbsFilename = Environment.GetEnvironmentVariable("_GW_PNFP");
                         }
                     }
 
-                    Trace($"Attempting to load nodes file from: {NodesToPublishAbsFilename}");
-                    PublisherConfigFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigFileEntry>>(File.ReadAllText(NodesToPublishAbsFilename));
+                    Trace($"Attempting to load nodes file from: {_nodesToPublishAbsFilename}");
+                    PublisherConfigFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigFileEntry>>(File.ReadAllText(_nodesToPublishAbsFilename));
                     Trace($"Loaded {PublisherConfigFileEntries.Count.ToString()} config file entry/entries.");
 
                     foreach (var publisherConfigFileEntry in PublisherConfigFileEntries)
@@ -519,7 +490,7 @@ namespace OpcPublisher
 
                 // initialize and start IoTHub messaging
                 IotHubCommunication = new IotHubMessaging();
-                if (!IotHubCommunication.Init(_IotHubOwnerConnectionString, _MaxSizeOfIoTHubMessageBytes, _DefaultSendIntervalSeconds))
+                if (! await IotHubCommunication.InitAsync())
                 {
                     return;
                 }
@@ -527,8 +498,8 @@ namespace OpcPublisher
                 // create a list to manage sessions, subscriptions and monitored items.
                 try
                 {
-                    PublishDataSemaphore.Wait();
-                    OpcSessionsSemaphore.Wait();
+                    await PublishDataSemaphore.WaitAsync();
+                    await OpcSessionsListSemaphore.WaitAsync();
                     var uniqueEndpointUrls = PublishConfig.Select(n => n.EndpointUri).Distinct();
                     foreach (var endpointUrl in uniqueEndpointUrls)
                     {
@@ -582,13 +553,12 @@ namespace OpcPublisher
                 }
                 finally
                 {
-                    OpcSessionsSemaphore.Release();
+                    OpcSessionsListSemaphore.Release();
                     PublishDataSemaphore.Release();
                 }
 
                 // kick off the task to maintain all sessions
-                var cts = new CancellationTokenSource();
-                Task.Run( async () => await SessionConnector(cts.Token));
+                Task sessionConnectorAsync = Task.Run(async () => await SessionConnectorAsync(ShutdownTokenSource.Token));
 
                 // Show notification on session events
                 _publisherServer.CurrentInstance.SessionManager.SessionActivated += ServerEventStatus;
@@ -602,24 +572,24 @@ namespace OpcPublisher
                 WriteLine("");
                 WriteLine("");
                 ReadLine();
-                cts.Cancel();
+                ShutdownTokenSource.Cancel();
                 WriteLine("Publisher is shuting down...");
 
-                // close all connected session
-                PublisherShutdownInProgress = true;
+                // Wait for session connector completion
+                await sessionConnectorAsync;
 
                 // stop the server
                 _publisherServer.Stop();
 
                 // Clean up Publisher sessions
-                Task.Run(async () => await SessionShutdown()).Wait();
+                await SessionShutdownAsync();
 
                 // shutdown the IoTHub messaging
-                IotHubCommunication.Shutdown();
+                await IotHubCommunication.Shutdown();
             }
             catch (Exception e)
             {
-                if (opcTraceInitialized)
+                if (_opcTraceInitialized)
                 {
                     Trace(e, e.StackTrace);
                     e = e.InnerException ?? null;
@@ -649,31 +619,52 @@ namespace OpcPublisher
         /// <summary>
         /// Kicks of the work horse of the publisher regularily for all sessions.
         /// </summary>
-        public static async Task SessionConnector(CancellationToken cancellationtoken)
+        public static async Task SessionConnectorAsync(CancellationToken cancellationtoken)
         {
             while (true)
             {
                 try
                 {
                     // get tasks for all disconnected sessions and start them
-                    OpcSessionsSemaphore.Wait();
-                    var singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitor());
-                    OpcSessionsSemaphore.Release();
+                    await OpcSessionsListSemaphore.WaitAsync();
+                    var singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitorAsync());
+                    OpcSessionsListSemaphore.Release();
                     await Task.WhenAll(singleSessionHandlerTaskList);
                 }
                 catch (Exception e)
                 {
                     Trace(e, $"Failed to connect and monitor a disconnected server. {(e.InnerException != null ? e.InnerException.Message : "")}");
                 }
-                Thread.Sleep(PublisherSessionConnectWaitSec * 1000);
+                if (cancellationtoken.IsCancellationRequested)
+                {
+                    return;
+                }
+                await Task.Delay(_publisherSessionConnectWaitSec * 1000);
             }
         }
 
         /// <summary>
         /// Shutdown all sessions.
         /// </summary>
-        public static async Task SessionShutdown()
+        public async static Task SessionShutdownAsync()
         {
+            try
+            {
+                while (OpcSessions.Count > 0)
+                {
+                    await OpcSessionsListSemaphore.WaitAsync();
+                    OpcSession opcSession = OpcSessions.ElementAt(0);
+                    OpcSessions.RemoveAt(0);
+                    OpcSessionsListSemaphore.Release();
+                    await opcSession.ShutdownAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                Trace(e, $"Failed to shutdown all sessions. (message: {e.Message}");
+            }
+
+            // Wait and continue after a while.
             uint maxTries = PublisherShutdownWaitPeriod;
             while (true)
             {
@@ -684,11 +675,11 @@ namespace OpcPublisher
                 }
                 if (maxTries-- == 0)
                 {
-                    Trace($"There are stil {sessionCount} sessions alive. Ignore and continue shutdown.");
+                    Trace($"There are still {sessionCount} sessions alive. Ignore and continue shutdown.");
                     return;
                 }
-                Trace($"Publisher is shutting down. Wait {PublisherSessionConnectWaitSec} seconds, since there are stil {sessionCount} sessions alive...");
-                await Task.Delay(PublisherSessionConnectWaitSec * 1000);
+                Trace($"Publisher is shutting down. Wait {_publisherSessionConnectWaitSec} seconds, since there are stil {sessionCount} sessions alive...");
+                await Task.Delay(_publisherSessionConnectWaitSec * 1000);
             }
         }
 
@@ -701,9 +692,9 @@ namespace OpcPublisher
             {
                 Trace($"The Publisher does not trust the server with the certificate subject '{e.Certificate.Subject}'.");
                 Trace("If you want to trust this certificate, please copy it from the directory:");
-                Trace($"{OpcConfiguration.SecurityConfiguration.RejectedCertificateStore.StorePath}/certs");
+                Trace($"{PublisherOpcApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore.StorePath}/certs");
                 Trace("to the directory:");
-                Trace($"{OpcConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath}/certs");
+                Trace($"{PublisherOpcApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath}/certs");
             }
         }
 

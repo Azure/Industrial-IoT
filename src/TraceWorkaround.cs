@@ -10,14 +10,13 @@ namespace OpcPublisher.Workarounds
     /// </summary>
     public static class TraceWorkaround
     {
-        private static int _opcStackTraceMask;
-        private static bool _verboseConsole;
-
-        public static void Init(int opcStackTraceMask, bool verboseConsole)
+        public static bool VerboseConsole
         {
-            _opcStackTraceMask = opcStackTraceMask;
-            _verboseConsole = verboseConsole;
+            get => _verboseConsole;
+            set => _verboseConsole = value;
         }
+        private static bool _verboseConsole = false;
+
         /// <summary>
         /// Trace message helper
         /// </summary>
@@ -42,7 +41,7 @@ namespace OpcPublisher.Workarounds
         public static void Trace(int traceMask, string format, params object[] args)
         {
             Utils.Trace(traceMask, format, args);
-            if (_verboseConsole && (_opcStackTraceMask & traceMask) != 0)
+            if (_verboseConsole && (OpcStackConfiguration.OpcStackTraceMask & traceMask) != 0)
             {
                 WriteLine(DateTime.Now.ToString() + ": " + format, args);
             }

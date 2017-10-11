@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:1.1-sdk
+FROM microsoft/dotnet:2.0-sdk-jessie
 
 COPY /src /build/src
 
