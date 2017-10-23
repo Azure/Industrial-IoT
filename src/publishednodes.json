@@ -28,9 +28,9 @@
         ]
     },
 
-    // the format below is only supported for backward compatibility. you need to ensure that the
+    // the format below (NodeId format) is only supported for backward compatibility. you need to ensure that the
     // OPC UA server on the configured EndpointUrl has the namespaceindex you expect with your configuration.
-    // please use the ExpandedNodeId syntax instead.
+    // please use the ExpandedNodeId format as in the examples above instead.
     {
         "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
         "NodeId": {
