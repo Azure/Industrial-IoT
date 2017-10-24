@@ -311,10 +311,11 @@ Additionally you need to assign the container a name using the `--name` option a
 
 The container can now be reached by other containers via the name `publisher`over the network.
 
-### Access other hosts from within the container
-Hosts which are implemented in other containers, could be reached with the parameters described in the "Enable intercontainer nameresolution" paragraph.
-If the environment has DNS working, then accessing the host on which the docker runtime executes as was as any other DNS reachable host is no issue.
-Problems occur in a network with Windows NetBIOS name resolution. To enable access to hosts (including the one on which the docker runtime executes) you need to start your container using the `--add-host` option.
+### Access other systems from within the container
+Other containers, can be reached using the parameters described in the "Enable intercontainer nameresolution" paragraph.
+If operating system on which docker is hosted is DNS enabled, then accessing all systems which are known by DNS will work..
+A problems occurs in a network which does use NetBIOS name resolution. To enable access to other systems (including the one on which docker is hosted) you need to start your container using the `--add-host` option,
+which effectevly is adding an entry to the containers host file.
 
     docker run --add-host mydevbox:192.168.178.23  microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 

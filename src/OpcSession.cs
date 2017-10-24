@@ -589,7 +589,7 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Checks if there are monitored nodes tagged to stop monitoring and stop monitoring.
+        /// Checks if there are monitored nodes tagged to stop monitoring.
         /// </summary>
         public async Task<bool> StopMonitoringNodes()
         {
