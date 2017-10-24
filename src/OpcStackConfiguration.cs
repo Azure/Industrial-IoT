@@ -5,7 +5,6 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace OpcPublisher
 {
-    using System.IO;
     using System.Threading.Tasks;
     using static Opc.Ua.CertificateStoreType;
     using static OpcPublisher.Workarounds.TraceWorkaround;

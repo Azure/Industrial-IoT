@@ -1,9 +1,7 @@
 ﻿
 using Mono.Options;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -19,24 +17,13 @@ namespace OpcPublisher
     using static OpcPublisher.Workarounds.TraceWorkaround;
     using static OpcSession;
     using static OpcStackConfiguration;
+    using static PublisherNodeConfiguration;
     using static System.Console;
 
     public class Program
     {
-        public static List<OpcSession> OpcSessions = new List<OpcSession>();
-        public static SemaphoreSlim OpcSessionsListSemaphore = new SemaphoreSlim(1);
-        public static List<PublisherConfigFileEntry> PublisherConfigFileEntries = new List<PublisherConfigFileEntry>();
-        public static List<NodeToPublishConfig> PublishConfig = new List<NodeToPublishConfig>();
-        public static SemaphoreSlim PublishDataSemaphore = new SemaphoreSlim(1);
         public static IotHubMessaging IotHubCommunication;
         public static CancellationTokenSource ShutdownTokenSource;
-
-        public static string NodesToPublishAbsFilename
-        {
-            get => _nodesToPublishAbsFilename;
-            set => _nodesToPublishAbsFilename = value;
-        }
-        private static string _nodesToPublishAbsFilename;
 
         public static uint PublisherShutdownWaitPeriod
         {
@@ -49,7 +36,6 @@ namespace OpcPublisher
         private static DateTime _lastServerSessionEventTime = DateTime.UtcNow;
         private static bool _opcTraceInitialized = false;
         private static int _publisherSessionConnectWaitSec = 10;
-        private static string _nodesToPublishAbsFilenameDefault = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
 
         /// <summary>
         /// Usage message.
@@ -104,7 +90,7 @@ namespace OpcPublisher
                 // command line options configuration
                 Mono.Options.OptionSet options = new Mono.Options.OptionSet {
                     // Publishing configuration options
-                    { "pf|publishfile=", $"the filename to configure the nodes to publish.\nDefault: '{_nodesToPublishAbsFilenameDefault}'", (string p) => _nodesToPublishAbsFilename = p },
+                    { "pf|publishfile=", $"the filename to configure the nodes to publish.\nDefault: '{PublisherNodeConfigurationFilename}'", (string p) => PublisherNodeConfigurationFilename = p },
                     { "sd|shopfloordomain=", $"the domain of the shopfloor. if specified this domain is appended (delimited by a ':' to the 'ApplicationURI' property when telemetry is sent to IoTHub.\n" +
                             "The value must follow the syntactical rules of a DNS hostname.\nDefault: not set", (string s) => {
                             Regex domainNameRegex = new Regex("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
@@ -440,121 +426,23 @@ namespace OpcPublisher
                     return;
                 }
 
-                // get information on the nodes to publish and validate the json by deserializing it.
-                try
+                // Read node configuration file
+                PublisherNodeConfiguration publisherNodeConfiguration = new PublisherNodeConfiguration();
+                if (!await publisherNodeConfiguration.ReadConfigAsync())
                 {
-                    await PublishDataSemaphore.WaitAsync();
-                    if (string.IsNullOrEmpty(_nodesToPublishAbsFilename))
-                    {
-                        // check if we have an env variable specifying the published nodes path, otherwise use the default
-                        _nodesToPublishAbsFilename = _nodesToPublishAbsFilenameDefault;
-                        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_PNFP")))
-                        {
-                            Trace("Publishing node configuration file path read from environment.");
-                            _nodesToPublishAbsFilename = Environment.GetEnvironmentVariable("_GW_PNFP");
-                        }
-                    }
-
-                    Trace($"Attempting to load nodes file from: {_nodesToPublishAbsFilename}");
-                    PublisherConfigFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigFileEntry>>(File.ReadAllText(_nodesToPublishAbsFilename));
-                    Trace($"Loaded {PublisherConfigFileEntries.Count.ToString()} config file entry/entries.");
-
-                    foreach (var publisherConfigFileEntry in PublisherConfigFileEntries)
-                    {
-                        if (publisherConfigFileEntry.NodeId == null)
-                        {
-                            // new node configuration syntax.
-                            foreach (var opcNode in publisherConfigFileEntry.OpcNodes)
-                            {
-                                PublishConfig.Add(new NodeToPublishConfig(ExpandedNodeId.Parse(opcNode.ExpandedNodeId), publisherConfigFileEntry.EndpointUri, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval));
-                            }
-                        }
-                        else
-                        {
-                            // legacy (using ns=) node configuration syntax using default sampling and publishing interval.
-                            PublishConfig.Add(new NodeToPublishConfig(publisherConfigFileEntry.NodeId, publisherConfigFileEntry.EndpointUri, OpcSamplingInterval, OpcPublishingInterval));
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Trace(e, "Loading of the node configuration file failed. Does the file exist and has correct syntax?");
-                    Trace("exiting...");
                     return;
                 }
-                finally
-                {
-                    PublishDataSemaphore.Release();
-                }
-                Trace($"There are {PublishConfig.Count.ToString()} nodes to publish.");
 
                 // initialize and start IoTHub messaging
                 IotHubCommunication = new IotHubMessaging();
-                if (! await IotHubCommunication.InitAsync())
+                if (!await IotHubCommunication.InitAsync())
                 {
                     return;
                 }
 
-                // create a list to manage sessions, subscriptions and monitored items.
-                try
+                if (!await publisherNodeConfiguration.CreateOpcPublishingDataAsync())
                 {
-                    await PublishDataSemaphore.WaitAsync();
-                    await OpcSessionsListSemaphore.WaitAsync();
-                    var uniqueEndpointUrls = PublishConfig.Select(n => n.EndpointUri).Distinct();
-                    foreach (var endpointUrl in uniqueEndpointUrls)
-                    {
-                        // create new session info.
-                        OpcSession opcSession = new OpcSession(endpointUrl, OpcSessionCreationTimeout);
-
-                        // create a subscription for each distinct publishing inverval
-                        var nodesDistinctPublishingInterval = PublishConfig.Where(n => n.EndpointUri.Equals(endpointUrl)).Select(c => c.OpcPublishingInterval).Distinct();
-                        foreach (var nodeDistinctPublishingInterval in nodesDistinctPublishingInterval)
-                        {
-                            // create a subscription for the publishing interval and add it to the session.
-                            OpcSubscription opcSubscription = new OpcSubscription(nodeDistinctPublishingInterval);
-
-                            // add all nodes with this OPC publishing interval to this subscription.
-                            var nodesWithSamePublishingInterval = PublishConfig.Where(n => n.EndpointUri.Equals(endpointUrl)).Where(n => n.OpcPublishingInterval == nodeDistinctPublishingInterval);
-                            foreach (var nodeInfo in nodesWithSamePublishingInterval)
-                            {
-                                // differentiate if legacy (using ns=) or new syntax (using nsu=) is used
-                                if (nodeInfo.NodeId == null)
-                                {
-                                    // create a monitored item for the node
-                                    OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.ExpandedNodeId, opcSession.EndpointUri)
-                                    {
-                                        RequestedSamplingInterval = nodeInfo.OpcSamplingInterval,
-                                        SamplingInterval = nodeInfo.OpcSamplingInterval
-                                    };
-                                    opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
-                                }
-                                else
-                                {
-                                    // give user a warning that the syntax is obsolete
-                                    Trace($"Please update the syntax of the configuration file and use ExpandedNodeId instead of NodeId property name for node with identifier '{nodeInfo.NodeId.ToString()}' on EndpointUrl '{nodeInfo.EndpointUri.AbsolutePath}'.");
-
-                                    // create a monitored item for the node with the configured or default sampling interval
-                                    OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.NodeId, opcSession.EndpointUri)
-                                    {
-                                        RequestedSamplingInterval = nodeInfo.OpcSamplingInterval,
-                                        SamplingInterval = nodeInfo.OpcSamplingInterval
-                                    };
-                                    opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
-                                }
-                            }
-
-                            // add subscription to session.
-                            opcSession.OpcSubscriptions.Add(opcSubscription);
-                        }
-
-                        // add session.
-                        OpcSessions.Add(opcSession);
-                    }
-                }
-                finally
-                {
-                    OpcSessionsListSemaphore.Release();
-                    PublishDataSemaphore.Release();
+                    return;
                 }
 
                 // kick off the task to maintain all sessions
@@ -573,7 +461,7 @@ namespace OpcPublisher
                 WriteLine("");
                 ReadLine();
                 ShutdownTokenSource.Cancel();
-                WriteLine("Publisher is shuting down...");
+                WriteLine("Publisher is shutting down...");
 
                 // Wait for session connector completion
                 await sessionConnectorAsync;

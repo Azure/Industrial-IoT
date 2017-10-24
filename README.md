@@ -20,7 +20,7 @@ This application uses the OPC Foundations's OPC UA reference stack and therefore
 |master|[![Build status](https://ci.appveyor.com/api/projects/status/6t7ru6ow7t9uv74r/branch/master?svg=true)](https://ci.appveyor.com/project/marcschier/iot-gateway-opc-ua-r4ba5/branch/master) [![Build Status](https://travis-ci.org/Azure/iot-gateway-opc-ua.svg?branch=master)](https://travis-ci.org/Azure/iot-gateway-opc-ua)|
 
 # Building the Application
-The application requires the .NET Core SDK 1.1.
+The application requires the .NET Core SDK 2.0.
 
 ## As native Windows application
 Open the OpcPublisher.sln project with Visual Studio 2017 and build the solution by hitting F7.
@@ -34,7 +34,7 @@ From the root of the repository, in a console, type:
 
 The `-f` option for `docker build` is optional and the default is to use Dockerfile. Docker also support building directly from a git repository, which means you also can build a Linux container by:
 
-    docker build -t <your-container-name> .https://github.com/Azure/iot-edge-opc-publisher
+    docker build -t <your-container-name> https://github.com/Azure/iot-edge-opc-publisher
 
 # Configuring the OPC UA nodes to publish
 The OPC UA nodes whose values should be published to Azure IoT Hub can be configured by creating a JSON formatted configuration file (defaultname: "publishednodes.json"). This file is updated and persisted by the application, when using it's OPC UA server methods "PublishNode" or "UnpublishNode".
@@ -71,9 +71,9 @@ The syntax of the configuration file is as follows:
             ]
         },
 
-        // the format below is only supported for backward compatibility. you need to ensure that the
+        // the format below (NodeId format) is only supported for backward compatibility. you need to ensure that the
         // OPC UA server on the configured EndpointUrl has the namespaceindex you expect with your configuration.
-        // please use the ExpandedNodeId syntax instead.
+        // please use the ExpandedNodeId format as in the examples above instead.
         {
             "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
             "NodeId": {
@@ -268,10 +268,10 @@ The following options are supported:
       -h, --help                 show this message and exit
 
 There are a couple of environment variables which can be used to control the application:
-_HUB_CS: sets the IoTHub owner connectionstring
-_GW_LOGP: sets the filename of the log file to use
-_TPC_SP: sets the path to store certificates of trusted stations
-_GW_PNFP: sets the filename of the publishing configuration file
+* _HUB_CS: sets the IoTHub owner connectionstring
+* _GW_LOGP: sets the filename of the log file to use
+* _TPC_SP: sets the path to store certificates of trusted stations
+* _GW_PNFP: sets the filename of the publishing configuration file
 
 Command line arguments overrule environment variable settings.
 
@@ -303,7 +303,7 @@ The Publisher OPC UA server listens by default on port 62222. To expose this inb
     docker run -p 62222:62222 microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
 ### Enable intercontainer nameresolution
-To enable name resolution from within the container to other containers, you need to create a user define docker bridge network and connect the container to this network using the `--network`option.
+To enable name resolution from within the container to other containers, you need to create a user define docker bridge network and connect the container to this network using the `--network` option.
 Additionally you need to assign the container a name using the `--name` option as in this example:
 
     docker network create -d bridge iot_edge
@@ -311,10 +311,19 @@ Additionally you need to assign the container a name using the `--name` option a
 
 The container can now be reached by other containers via the name `publisher`over the network.
 
+### Access other systems from within the container
+Other containers, can be reached using the parameters described in the "Enable intercontainer nameresolution" paragraph.
+If operating system on which docker is hosted is DNS enabled, then accessing all systems which are known by DNS will work..
+A problems occurs in a network which does use NetBIOS name resolution. To enable access to other systems (including the one on which docker is hosted) you need to start your container using the `--add-host` option,
+which effectevly is adding an entry to the containers host file.
+
+    docker run --add-host mydevbox:192.168.178.23  microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
+
 ### Assigning a hostname
 Publisher uses the hostname of the machine is running on for certificate and endpoint generation. docker chooses a random hostname if there is none set by the `-h` option. Here an example to set the internal hostname of the container to `publisher`:
 
     docker run -h publisher microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
+
 ### Using bind mounts (shared filesystem)
 In certain use cases it may make sense to read configuration information from or write log files to locations on the host and not keep them in the container file system only. To achieve this you need to use the `-v` option of `docker run` in the bind mount mode.
 
@@ -326,6 +335,8 @@ Storing X509 certificates does not work with bind mounts, since the permissions 
 ## Native on Winodws
 
 Open the OpcPublisher.sln project with Visual Studio 2017 and start debugging the app by hitting F5.
+
+If you need to access the OPC UA server in the publisher, you should ensure that the firewall setting allow access to the port the server is listening on (default: 62222).
 
 ## In a docker container
 
