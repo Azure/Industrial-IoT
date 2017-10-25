@@ -493,7 +493,7 @@ namespace OpcPublisher
                 }
 
                 // add the node info to the subscription with the default publishing interval, execute syncronously
-                opcSession.AddNodeForMonitoring(nodeId, expandedNodeId, OpcPublishingInterval, OpcSamplingInterval).Wait();
+                opcSession.AddNodeForMonitoring(nodeId, expandedNodeId, OpcPublishingInterval, OpcSamplingInterval, ShutdownTokenSource.Token).Wait();
                 Trace($"PublishNode: Requested to monitor item with NodeId '{nodeId.ToString()}' (PublishingInterval: {OpcPublishingInterval}, SamplingInterval: {OpcSamplingInterval})");
             }
             catch (Exception e)
@@ -582,7 +582,7 @@ namespace OpcPublisher
                 }
 
                 // remove the node from the sessions monitored items list.
-                opcSession.RequestMonitorItemRemoval(nodeId, expandedNodeId).Wait();
+                opcSession.RequestMonitorItemRemoval(nodeId, expandedNodeId, ShutdownTokenSource.Token).Wait();
                 Trace("UnpublishNode: Requested to stop monitoring of node.");
             }
             catch (Exception e)
