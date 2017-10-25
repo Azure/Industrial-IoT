@@ -27,6 +27,86 @@ namespace OpcPublisher
         }
         private static string _publisherNodeConfigurationFilename = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
 
+        public static int NumberOfOpcSessions
+        {
+            get
+            {
+                int result = 0;
+                try
+                {
+                    OpcSessionsListSemaphore.WaitAsync();
+                    result = OpcSessions.Count();
+                }
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
+                }
+                return result;
+            }
+        }
+
+        public static int NumberOfConnectedOpcSessions
+        {
+            get
+            {
+                int result = 0;
+                try
+                {
+                    OpcSessionsListSemaphore.WaitAsync();
+                    result = OpcSessions.Count(s => s.State == OpcSession.SessionState.Connected);
+                }
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
+                }
+                return result;
+            }
+        }
+
+        public static int NumberOfConnectedOpcSubscriptions
+        {
+            get
+            {
+                int result = 0;
+                try
+                {
+                    OpcSessionsListSemaphore.WaitAsync();
+                    var opcSessions = OpcSessions.Where(s => s.State == OpcSession.SessionState.Connected);
+                    foreach (var opcSession in opcSessions)
+                    {
+                        result += opcSession.GetNumberOfOpcSubscriptions();
+                    }
+                }
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
+                }
+                return result;
+            }
+        }
+
+        public static int NumberOfMonitoredItems
+        {
+            get
+            {
+                int result = 0;
+                try
+                {
+                    OpcSessionsListSemaphore.WaitAsync();
+                    var opcSessions = OpcSessions.Where(s => s.State == OpcSession.SessionState.Connected);
+                    foreach (var opcSession in opcSessions)
+                    {
+                        result += opcSession.GetNumberOfOpcMonitoredItems();
+                    }
+                }
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
+                }
+                return result;
+            }
+        }
+
         private List<NodePublishingConfiguration> _nodePublishingConfiguration;
         private static List<PublisherConfigurationFileEntry> _configurationFileEntries = new List<PublisherConfigurationFileEntry>();
 

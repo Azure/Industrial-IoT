@@ -19,6 +19,7 @@ namespace OpcPublisher
     using static OpcStackConfiguration;
     using static PublisherNodeConfiguration;
     using static System.Console;
+    using static Diagnostics;
 
     public class Program
     {
@@ -115,16 +116,29 @@ namespace OpcPublisher
                             }
                         }
                     },
-                    { "vc|verboseconsole=", $"the output of publisher is shown on the console.\nDefault: {VerboseConsole}", (bool b) => VerboseConsole = b },
+                    { "mq|monitoreditemqueuecapacity=", $"specify how many notifications of monitored items could be stored in the internal queue, if the data could not be sent quick enough to IoTHub\nMin: 1024\nDefault: {MonitoredItemsQueueCapacity}", (int i) => {
+                            if (i >= 1024)
+                            {
+                                MonitoredItemsQueueCapacity = i;
+                            }
+                            else
+                            {
+                                throw new OptionException("The monitoreditemqueueitems must be greater than 1024", "monitoreditemqueueitems");
+                            }
+                        }
+                    },
+                    { "di|diagnosticsinterval=", $"shows publisher diagnostic info at the specified interval in seconds. 0 disables diagnostic output.\nDefault: {DiagnosticsInterval}", (uint u) => DiagnosticsInterval = u },
 
+                    { "vc|verboseconsole=", $"the output of publisher is shown on the console.\nDefault: {VerboseConsole}", (bool b) => VerboseConsole = b },
+                    
                     // IoTHub specific options
                     { "ih|iothubprotocol=", $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}",
                         (Microsoft.Azure.Devices.Client.TransportType p) => IotHubProtocol = p
                     },
-                    { "ms|iothubmessagesize=", $"the max size of a message which can be send to IoTHub. when telemetry of this size is available it will be sent.\n0 will enforce immediate send when telemetry is available\nMin: 0\nMax: 256 * 1024\nDefault: {MaxSizeOfIoTHubMessageBytes}", (uint u) => {
-                            if (u >= 0 && u <= 256 * 1024)
+                    { "ms|iothubmessagesize=", $"the max size of a message which can be send to IoTHub. when telemetry of this size is available it will be sent.\n0 will enforce immediate send when telemetry is available\nMin: 0\nMax: {IotHubMessageSizeMax}\nDefault: {IotHubMessageSize}", (uint u) => {
+                            if (u >= 0 && u <= IotHubMessageSizeMax)
                             {
-                                MaxSizeOfIoTHubMessageBytes = u;
+                                IotHubMessageSize = u;
                             }
                             else
                             {
@@ -381,7 +395,10 @@ namespace OpcPublisher
 
                 WriteLine("Publisher is starting up...");
 
-                // Init shutdown token source.
+                // initialize publisher diagnostics
+                Diagnostics.Init();
+
+                // Shutdown token sources.
                 ShutdownTokenSource = new CancellationTokenSource();
 
                 // init OPC configuration and tracing
@@ -474,6 +491,9 @@ namespace OpcPublisher
 
                 // shutdown the IoTHub messaging
                 await IotHubCommunication.Shutdown();
+
+                // shutdown diagnostics
+                await Diagnostics.Shutdown();
             }
             catch (Exception e)
             {
@@ -515,7 +535,7 @@ namespace OpcPublisher
                 {
                     // get tasks for all disconnected sessions and start them
                     await OpcSessionsListSemaphore.WaitAsync();
-                    var singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitorAsync());
+                    var singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitorAsync(cancellationtoken));
                     OpcSessionsListSemaphore.Release();
                     await Task.WhenAll(singleSessionHandlerTaskList);
                 }
