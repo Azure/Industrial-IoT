@@ -18,39 +18,10 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IoTHubCredentialTools
+namespace OpcPublisher
 {
     public class SecureIoTHubToken
     {
-        /// <summary>
-        /// Validates the cert and extracts the token from the cert.
-        /// </summary>
-        private static string CheckForToken(X509Certificate2 cert, string name)
-        {
-            if ((cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase)) &&
-                (DateTime.Now < cert.NotAfter))
-            {
-                using (RSA rsa = cert.GetRSAPrivateKey())
-                {
-                    if (rsa != null)
-                    {
-                        foreach (System.Security.Cryptography.X509Certificates.X509Extension extension in cert.Extensions)
-                        {
-                            // check for instruction code extension
-                            if ((extension.Oid.Value == "2.5.29.23") && (extension.RawData.Length >= 4))
-                            {
-                                byte[] bytes = new byte[extension.RawData.Length - 4];
-                                Array.Copy(extension.RawData, 4, bytes, 0, bytes.Length);
-                                byte[] token = rsa.Decrypt(bytes, RSAEncryptionPadding.OaepSHA1);
-                                return Encoding.ASCII.GetString(token);
-                            }
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-
         /// <summary>
         /// Returns the token from the cert in the given cert store.
         /// </summary>
@@ -244,5 +215,33 @@ namespace IoTHubCredentialTools
             }
         }
 
+        /// <summary>
+        /// Validates the cert and extracts the token from the cert.
+        /// </summary>
+        private static string CheckForToken(X509Certificate2 cert, string name)
+        {
+            if ((cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase)) &&
+                (DateTime.Now < cert.NotAfter))
+            {
+                using (RSA rsa = cert.GetRSAPrivateKey())
+                {
+                    if (rsa != null)
+                    {
+                        foreach (System.Security.Cryptography.X509Certificates.X509Extension extension in cert.Extensions)
+                        {
+                            // check for instruction code extension
+                            if ((extension.Oid.Value == "2.5.29.23") && (extension.RawData.Length >= 4))
+                            {
+                                byte[] bytes = new byte[extension.RawData.Length - 4];
+                                Array.Copy(extension.RawData, 4, bytes, 0, bytes.Length);
+                                byte[] token = rsa.Decrypt(bytes, RSAEncryptionPadding.OaepSHA1);
+                                return Encoding.ASCII.GetString(token);
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
     }
 }

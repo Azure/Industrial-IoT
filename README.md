@@ -88,205 +88,204 @@ The syntax of the configuration file is as follows:
 ## Command line options
 The complete usage of the application can be shown using the `--help` command line option and is as follows:
 
-    Usage: OpcPublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
+        Usage: OpcPublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
 
-    OPC Edge Publisher to subscribe to configured OPC UA servers and send telemetry to Azure IoTHub.
-    To exit the application, just press ENTER while it is running.
+        OPC Edge Publisher to subscribe to configured OPC UA servers and send telemetry to Azure IoTHub.
+        To exit the application, just press ENTER while it is running.
 
-    applicationname: the OPC UA application name to use, required
-                     The application name is also used to register the publisher under this name in the
-                     IoTHub device registry.
+        applicationname: the OPC UA application name to use, required
+                         The application name is also used to register the publisher under this name in the
+                         IoTHub device registry.
 
-    iothubconnectionstring: the IoTHub owner connectionstring, optional
+        iothubconnectionstring: the IoTHub owner connectionstring, optional
 
-    There are a couple of environment variables which can be used to control the application:
-    _HUB_CS: sets the IoTHub owner connectionstring
-    _GW_LOGP: sets the filename of the log file to use
-    _TPC_SP: sets the path to store certificates of trusted stations
-    _GW_PNFP: sets the filename of the publishing configuration file
+        There are a couple of environment variables which can be used to control the application:
+        _HUB_CS: sets the IoTHub owner connectionstring
+        _GW_LOGP: sets the filename of the log file to use
+        _TPC_SP: sets the path to store certificates of trusted stations
+        _GW_PNFP: sets the filename of the publishing configuration file
 
-    Command line arguments overrule environment variable settings.
+        Command line arguments overrule environment variable settings.
 
-    Options:
-          --pf, --publishfile=VALUE
-                                 the filename to configure the nodes to publish.
-                                   Default: 'D:\Repos\hg\iot-edge-opc-publisher\src\
-                                   publishednodes.json'
-          --sd, --shopfloordomain=VALUE
-                                 the domain of the shopfloor. if specified this
-                                   domain is appended (delimited by a ':' to the '
-                                   ApplicationURI' property when telemetry is sent
-                                   to IoTHub.
-                                   The value must follow the syntactical rules of a
-                                   DNS hostname.
-                                   Default: not set
-          --sw, --sessionconnectwait=VALUE
-                                 specify the wait time in seconds publisher is
-                                   trying to connect to disconnected endpoints and
-                                   starts monitoring unmonitored items
-                                   Min: 10
-                                   Default: 10
-          --mq, --monitoreditemqueuecapacity=VALUE
-                                 specify how many notifications of monitored items
-                                   could be stored in the internal queue, if the
-                                   data could not be sent quick enough to IoTHub
-                                   Min: 1024
-                                   Default: 8192
-          --di, --diagnosticsinterval=VALUE
-                                 shows publisher diagnostic info at the specified
-                                   interval in seconds. 0 disables diagnostic
-                                   output.
-                                   Default: 0
-          --vc, --verboseconsole=VALUE
-                                 the output of publisher is shown on the console.
-                                   Default: False
-          --ih, --iothubprotocol=VALUE
-                                 the protocol to use for communication with Azure
-                                   IoTHub (allowed values: Amqp, Http1, Amqp_
-                                   WebSocket_Only, Amqp_Tcp_Only, Mqtt, Mqtt_
-                                   WebSocket_Only, Mqtt_Tcp_Only).
-                                   Default: Mqtt
-          --ms, --iothubmessagesize=VALUE
-                                 the max size of a message which can be send to
-                                   IoTHub. when telemetry of this size is available
-                                   it will be sent.
-                                   0 will enforce immediate send when telemetry is
-                                   available
-                                   Min: 0
-                                   Max: 262144
-                                   Default: 4096
-          --si, --iothubsendinterval=VALUE
-                                 the interval in seconds when telemetry should be
-                                   send to IoTHub. If 0, then only the
-                                   iothubmessagesize parameter controls when
-                                   telemetry is sent.
-                                   Default: '1'
-          --lf, --logfile=VALUE  the filename of the logfile to use.
-                                   Default: './Logs/<applicationname>.log.txt'
-          --pn, --portnum=VALUE  the server port of the publisher OPC server
-                                   endpoint.
-                                   Default: 62222
-          --pa, --path=VALUE     the enpoint URL path part of the publisher OPC
-                                   server endpoint.
-                                   Default: '/UA/Publisher'
-          --lr, --ldsreginterval=VALUE
-                                 the LDS(-ME) registration interval in ms. If 0,
-                                   then the registration is disabled.
-                                   Default: 0
-          --ot, --operationtimeout=VALUE
-                                 the operation timeout of the publisher OPC UA
-                                   client in ms.
-                                   Default: 120000
-          --oi, --opcsamplinginterval=VALUE
-                                 the publisher is using this as default value in
-                                   milliseconds to request the servers to sample
-                                   the nodes with this interval
-                                   this value might be revised by the OPC UA
-                                   servers to a supported sampling interval.
-                                   please check the OPC UA specification for
-                                   details how this is handled by the OPC UA stack.
-                                   a negative value will set the sampling interval
-                                   to the publishing interval of the subscription
-                                   this node is on.
-                                   0 will configure the OPC UA server to sample in
-                                   the highest possible resolution and should be
-                                   taken with care.
-                                   Default: 1000
-          --op, --opcpublishinginterval=VALUE
-                                 the publisher is using this as default value in
-                                   milliseconds for the publishing interval setting
-                                   of the subscriptions established to the OPC UA
-                                   servers.
-                                   please check the OPC UA specification for
-                                   details how this is handled by the OPC UA stack.
-                                   a value less than or equal zero will let the
-                                   server revise the publishing interval.
-                                   Default: 0
-          --ct, --createsessiontimeout=VALUE
-                                 specify the timeout in seconds used when creating
-                                   a session to an endpoint. On unsuccessful
-                                   connection attemps a backoff up to 5 times the
-                                   specified timeout value is used.
-                                   Min: 1
-                                   Default: 10
-          --ki, --keepaliveinterval=VALUE
-                                 specify the interval in seconds the publisher is
-                                   sending keep alive messages to the OPC servers
-                                   on the endpoints it is connected to.
-                                   Min: 2
-                                   Default: 2
-          --kt, --keepalivethreshold=VALUE
-                                 specify the number of keep alive packets a server
-                                   can miss, before the session is disconneced
-                                   Min: 1
-                                   Default: 5
-          --st, --opcstacktracemask=VALUE
-                                 the trace mask for the OPC stack. See github OPC .
-                                   NET stack for definitions.
-                                   To enable IoTHub telemetry tracing set it to 711.
+        Options:
+              --pf, --publishfile=VALUE
+                                     the filename to configure the nodes to publish.
+                                       Default: 'D:\Repos\hg\iot-edge-opc-publisher\src\
+                                       publishednodes.json'
+              --sd, --shopfloordomain=VALUE
+                                     the domain of the shopfloor. if specified this
+                                       domain is appended (delimited by a ':' to the '
+                                       ApplicationURI' property when telemetry is sent
+                                       to IoTHub.
+                                       The value must follow the syntactical rules of a
+                                       DNS hostname.
+                                       Default: not set
+              --sw, --sessionconnectwait=VALUE
+                                     specify the wait time in seconds publisher is
+                                       trying to connect to disconnected endpoints and
+                                       starts monitoring unmonitored items
+                                       Min: 10
+                                       Default: 10
+              --mq, --monitoreditemqueuecapacity=VALUE
+                                     specify how many notifications of monitored items
+                                       could be stored in the internal queue, if the
+                                       data could not be sent quick enough to IoTHub
+                                       Min: 1024
+                                       Default: 8192
+              --di, --diagnosticsinterval=VALUE
+                                     shows publisher diagnostic info at the specified
+                                       interval in seconds. 0 disables diagnostic
+                                       output.
+                                       Default: 0
+              --vc, --verboseconsole=VALUE
+                                     the output of publisher is shown on the console.
+                                       Default: False
+              --ih, --iothubprotocol=VALUE
+                                     the protocol to use for communication with Azure
+                                       IoTHub (allowed values: Amqp, Http1, Amqp_
+                                       WebSocket_Only, Amqp_Tcp_Only, Mqtt, Mqtt_
+                                       WebSocket_Only, Mqtt_Tcp_Only).
+                                       Default: Mqtt_WebSocket_Only
+              --ms, --iothubmessagesize=VALUE
+                                     the max size of a message which can be send to
+                                       IoTHub. when telemetry of this size is available
+                                       it will be sent.
+                                       0 will enforce immediate send when telemetry is
+                                       available
+                                       Min: 0
+                                       Max: 262144
+                                       Default: 262144
+              --si, --iothubsendinterval=VALUE
+                                     the interval in seconds when telemetry should be
+                                       send to IoTHub. If 0, then only the
+                                       iothubmessagesize parameter controls when
+                                       telemetry is sent.
+                                       Default: '10'
+              --lf, --logfile=VALUE  the filename of the logfile to use.
+                                       Default: './Logs/<applicationname>.log.txt'
+              --pn, --portnum=VALUE  the server port of the publisher OPC server
+                                       endpoint.
+                                       Default: 62222
+              --pa, --path=VALUE     the enpoint URL path part of the publisher OPC
+                                       server endpoint.
+                                       Default: '/UA/Publisher'
+              --lr, --ldsreginterval=VALUE
+                                     the LDS(-ME) registration interval in ms. If 0,
+                                       then the registration is disabled.
+                                       Default: 0
+              --ot, --operationtimeout=VALUE
+                                     the operation timeout of the publisher OPC UA
+                                       client in ms.
+                                       Default: 120000
+              --oi, --opcsamplinginterval=VALUE
+                                     the publisher is using this as default value in
+                                       milliseconds to request the servers to sample
+                                       the nodes with this interval
+                                       this value might be revised by the OPC UA
+                                       servers to a supported sampling interval.
+                                       please check the OPC UA specification for
+                                       details how this is handled by the OPC UA stack.
+                                       a negative value will set the sampling interval
+                                       to the publishing interval of the subscription
+                                       this node is on.
+                                       0 will configure the OPC UA server to sample in
+                                       the highest possible resolution and should be
+                                       taken with care.
+                                       Default: 1000
+              --op, --opcpublishinginterval=VALUE
+                                     the publisher is using this as default value in
+                                       milliseconds for the publishing interval setting
+                                       of the subscriptions established to the OPC UA
+                                       servers.
+                                       please check the OPC UA specification for
+                                       details how this is handled by the OPC UA stack.
+                                       a value less than or equal zero will let the
+                                       server revise the publishing interval.
+                                       Default: 0
+              --ct, --createsessiontimeout=VALUE
+                                     specify the timeout in seconds used when creating
+                                       a session to an endpoint. On unsuccessful
+                                       connection attemps a backoff up to 5 times the
+                                       specified timeout value is used.
+                                       Min: 1
+                                       Default: 10
+              --ki, --keepaliveinterval=VALUE
+                                     specify the interval in seconds the publisher is
+                                       sending keep alive messages to the OPC servers
+                                       on the endpoints it is connected to.
+                                       Min: 2
+                                       Default: 2
+              --kt, --keepalivethreshold=VALUE
+                                     specify the number of keep alive packets a server
+                                       can miss, before the session is disconneced
+                                       Min: 1
+                                       Default: 5
+              --st, --opcstacktracemask=VALUE
+                                     the trace mask for the OPC stack. See github OPC .
+                                       NET stack for definitions.
+                                       To enable IoTHub telemetry tracing set it to 711.
 
-                                   Default: 285  (645)
-          --as, --autotrustservercerts=VALUE
-                                 the publisher trusts all servers it is
-                                   establishing a connection to.
-                                   Default: False
-          --tm, --trustmyself=VALUE
-                                 the publisher certificate is put into the trusted
-                                   certificate store automatically.
-                                   Default: True
-          --fd, --fetchdisplayname=VALUE
-                                 enable to read the display name of a published
-                                   node from the server. this will increase the
-                                   runtime.
-                                   Default: False
-          --at, --appcertstoretype=VALUE
-                                 the own application cert store type.
-                                   (allowed values: Directory, X509Store)
-                                   Default: 'X509Store'
-          --ap, --appcertstorepath=VALUE
-                                 the path where the own application cert should be
-                                   stored
-                                   Default (depends on store type):
-                                   X509Store: 'CurrentUser\UA_MachineDefault'
-                                   Directory: 'CertificateStores/own'
-          --tt, --trustedcertstoretype=VALUE
-                                 the trusted cert store type.
-                                   (allowed values: Directory, X509Store)
-                                   Default: Directory
-          --tp, --trustedcertstorepath=VALUE
-                                 the path of the trusted cert store
-                                   Default (depends on store type):
-                                   X509Store: 'CurrentUser\UA_MachineDefault'
-                                   Directory: 'CertificateStores/trusted'
-          --rt, --rejectedcertstoretype=VALUE
-                                 the rejected cert store type.
-                                   (allowed values: Directory, X509Store)
-                                   Default: Directory
-          --rp, --rejectedcertstorepath=VALUE
-                                 the path of the rejected cert store
-                                   Default (depends on store type):
-                                   X509Store: 'CurrentUser\UA_MachineDefault'
-                                   Directory: 'CertificateStores/rejected'
-          --it, --issuercertstoretype=VALUE
-                                 the trusted issuer cert store type.
-                                   (allowed values: Directory, X509Store)
-                                   Default: Directory
-          --ip, --issuercertstorepath=VALUE
-                                 the path of the trusted issuer cert store
-                                   Default (depends on store type):
-                                   X509Store: 'CurrentUser\UA_MachineDefault'
-                                   Directory: 'CertificateStores/issuers'
-          --dt, --devicecertstoretype=VALUE
-                                 the iothub device cert store type.
-                                   (allowed values: Directory, X509Store)
-                                   Default: X509Store
-          --dp, --devicecertstorepath=VALUE
-                                 the path of the iot device cert store
-                                   Default Default (depends on store type):
-                                   X509Store: 'My'
-                                   Directory: 'CertificateStores/IoTHub'
-      -h, --help                 show this message and exit
-
+                                       Default: 285  (645)
+              --as, --autotrustservercerts=VALUE
+                                     the publisher trusts all servers it is
+                                       establishing a connection to.
+                                       Default: False
+              --tm, --trustmyself=VALUE
+                                     the publisher certificate is put into the trusted
+                                       certificate store automatically.
+                                       Default: True
+              --fd, --fetchdisplayname=VALUE
+                                     enable to read the display name of a published
+                                       node from the server. this will increase the
+                                       runtime.
+                                       Default: False
+              --at, --appcertstoretype=VALUE
+                                     the own application cert store type.
+                                       (allowed values: Directory, X509Store)
+                                       Default: 'X509Store'
+              --ap, --appcertstorepath=VALUE
+                                     the path where the own application cert should be
+                                       stored
+                                       Default (depends on store type):
+                                       X509Store: 'CurrentUser\UA_MachineDefault'
+                                       Directory: 'CertificateStores/own'
+              --tt, --trustedcertstoretype=VALUE
+                                     the trusted cert store type.
+                                       (allowed values: Directory, X509Store)
+                                       Default: Directory
+              --tp, --trustedcertstorepath=VALUE
+                                     the path of the trusted cert store
+                                       Default (depends on store type):
+                                       X509Store: 'CurrentUser\UA_MachineDefault'
+                                       Directory: 'CertificateStores/trusted'
+              --rt, --rejectedcertstoretype=VALUE
+                                     the rejected cert store type.
+                                       (allowed values: Directory, X509Store)
+                                       Default: Directory
+              --rp, --rejectedcertstorepath=VALUE
+                                     the path of the rejected cert store
+                                       Default (depends on store type):
+                                       X509Store: 'CurrentUser\UA_MachineDefault'
+                                       Directory: 'CertificateStores/rejected'
+              --it, --issuercertstoretype=VALUE
+                                     the trusted issuer cert store type.
+                                       (allowed values: Directory, X509Store)
+                                       Default: Directory
+              --ip, --issuercertstorepath=VALUE
+                                     the path of the trusted issuer cert store
+                                       Default (depends on store type):
+                                       X509Store: 'CurrentUser\UA_MachineDefault'
+                                       Directory: 'CertificateStores/issuers'
+              --dt, --devicecertstoretype=VALUE
+                                     the iothub device cert store type.
+                                       (allowed values: Directory, X509Store)
+                                       Default: X509Store
+              --dp, --devicecertstorepath=VALUE
+                                     the path of the iot device cert store
+                                       Default Default (depends on store type):
+                                       X509Store: 'My'
+                                       Directory: 'CertificateStores/IoTHub'
+          -h, --help                 show this message and exit
 
 There are a couple of environment variables which can be used to control the application:
 * _HUB_CS: sets the IoTHub owner connectionstring
@@ -377,154 +376,182 @@ Before you use Publisher in production scenarios, you need to test the performan
 which will trigger the output of diagnostic information at this interval.
 
 ### Test measurements
-Here are some measurements with different values for `--si` and `--ms` parameters publishing 497 nodes with an OPC publishing interval of 1 second.
-Publisher was used as debug build on Windows 10 natively for 120 seconds. The IoTHub protocol was configured to use HTTP (`--ih Http1`).
+Here are some measurements with different values for `--si` and `--ms` parameters publishing 500 nodes with an OPC publishing interval of 1 second.
+Publisher was used as debug build on Windows 10 natively for 120 seconds. The IoTHub protocol was the default MQTT protocol.
 
-#### Default configuration (--si 1 --ms 4096)
+#### Default configuration (--si 10 --ms 262144)
  
-        ======================================================================
-        OpcPublisher status @ 25.10.2017 11:08:25
+        ==========================================================================
+        OpcPublisher status @ 26.10.2017 15:33:05 (started @ 26.10.2017 15:31:09)
         ---------------------------------
         OPC sessions: 1
         connected OPC sessions: 1
-        connected OPC subscriptions: 1
-        OPC monitored items: 497
+        connected OPC subscriptions: 5
+        OPC monitored items: 500
         ---------------------------------
         monitored items queue bounded capacity: 8192
-        monitored items queue current items: 8107
-        monitored item notifications enqueued: 57076
-        monitored item notifications enqueue failure: 28551
-        monitored item notifications dequeued: 20418
+        monitored items queue current items: 0
+        monitored item notifications enqueued: 54363
+        monitored item notifications enqueue failure: 0
+        monitored item notifications dequeued: 54363
         ---------------------------------
-        messages sent to IoTHub: 1200
-        bytes sent to IoTHub: 4772773
-        avg msg size: 3977
-        time in ms for sent msgs: 113744
-        min time in ms for msg: 84
-        max time in ms for msg: 441
-        avg time in ms for msg: 94
+        messages sent to IoTHub: 109
+        last successful msg sent @: 26.10.2017 15:33:04
+        bytes sent to IoTHub: 12709429
+        avg msg size: 116600
+        duration in ms to send msgs: 11007 ms
+        min duration to send msg: 84 ms
+        max duration to send msg: 372 ms
+        avg duration to send msg: 100 ms
         msg send failures: 0
-        time in ms for failed msgs: 0
-        avg time in ms for failed msg: 0
+        duration for msgs with send failure: 0 ms
+        avg duration for msgs with send failure: 0 ms
         messages too large to sent to IoTHub: 0
         times we missed send interval: 0
         ---------------------------------
         current working set in MB: 90
-        ======================================================================
+        --si setting: 10
+        --ms setting: 262144
+        --ih setting: Mqtt
+        ==========================================================================
 
-The default configuration sends data to IoTHub each second or when 4kB of data to ingest is available. In this configuration we loose 28551 OPC node value updates (`monitored item notifications enqueue failure`).
+The default configuration sends data to IoTHub each 10 seconds or when 256 kB of data to ingest is available. This adds a moderate latency of max 10 seconds, but has lowest probablilty of loosing data because of the large message size.
+As you see in the diagnostics ouptut there are no OPC node udpates lost (`monitored item notifications enqueue failure`).
 
 #### Constant send inverval (--si 1 --ms 0)
 
-        ======================================================================
-        OpcPublisher status @ 25.10.2017 11:18:20
+        ==========================================================================
+        OpcPublisher status @ 26.10.2017 15:35:59 (started @ 26.10.2017 15:34:03)
         ---------------------------------
         OPC sessions: 1
         connected OPC sessions: 1
-        connected OPC subscriptions: 1
-        OPC monitored items: 497
+        connected OPC subscriptions: 5
+        OPC monitored items: 500
         ---------------------------------
         monitored items queue bounded capacity: 8192
         monitored items queue current items: 0
-        monitored item notifications enqueued: 56682
+        monitored item notifications enqueued: 54243
         monitored item notifications enqueue failure: 0
-        monitored item notifications dequeued: 56682
+        monitored item notifications dequeued: 54243
         ---------------------------------
-        messages sent to IoTHub: 114
-        bytes sent to IoTHub: 13130523
-        avg msg size: 115180
-        time in ms for sent msgs: 14454
-        min time in ms for msg: 100
-        max time in ms for msg: 705
-        avg time in ms for msg: 126
+        messages sent to IoTHub: 109
+        last successful msg sent @: 26.10.2017 15:35:59
+        bytes sent to IoTHub: 12683836
+        avg msg size: 116365
+        duration in ms to send msgs: 11915 ms
+        min duration to send msg: 86 ms
+        max duration to send msg: 381 ms
+        avg duration to send msg: 109 ms
         msg send failures: 0
-        time in ms for failed msgs: 0
-        avg time in ms for failed msg: 0
+        duration for msgs with send failure: 0 ms
+        avg duration for msgs with send failure: 0 ms
         messages too large to sent to IoTHub: 0
         times we missed send interval: 0
         ---------------------------------
-        current working set in MB: 87
-        ======================================================================
+        current working set in MB: 90
+        --si setting: 1
+        --ms setting: 0
+        --ih setting: Mqtt
+        ==========================================================================
 
 When the message size is set to 0 and there is a send interval configured (or the default of 1 second is used), then Publisher does use internally batch data using the maximal supported IoTHub message size, which is 256 kB. As you see in the diagnostic output,
-the average message size is 115180 byte. In this configuration we do not loose any OPC node value udpates. The average time to send a message to IoTHub (`avg time in ms for msg`) was only 22ms higher than in the
-default configuration, which has a average message size of 3877 byte.
+the average message size is 115019 byte. In this configuration we do not loose any OPC node value udpates and compared to the default it adds lower latency.
 
 #### Send each OPC node value update (--si 0 --ms 0)
 
-        ======================================================================
-        OpcPublisher status @ 25.10.2017 10:08:03
+        ==========================================================================
+        OpcPublisher status @ 26.10.2017 15:39:33 (started @ 26.10.2017 15:37:37)
         ---------------------------------
         OPC sessions: 1
         connected OPC sessions: 1
-        connected OPC subscriptions: 1
-        OPC monitored items: 497
+        connected OPC subscriptions: 5
+        OPC monitored items: 500
         ---------------------------------
         monitored items queue bounded capacity: 8192
-        monitored items queue current items: 8192
-        monitored item notifications enqueued: 57323
-        monitored item notifications enqueue failure: 48116
-        monitored item notifications dequeued: 1015
+        monitored items queue current items: 8184
+        monitored item notifications enqueued: 54232
+        monitored item notifications enqueue failure: 44624
+        monitored item notifications dequeued: 1424
         ---------------------------------
-        messages sent to IoTHub: 1014
-        bytes sent to IoTHub: 237292
+        messages sent to IoTHub: 1423
+        last successful msg sent @: 26.10.2017 15:39:33
+        bytes sent to IoTHub: 333046
         avg msg size: 234
-        time in ms for sent msgs: 114268
-        min time in ms for msg: 84
-        max time in ms for msg: 330
-        avg time in ms for msg: 112
+        duration in ms to send msgs: 107959 ms
+        min duration to send msg: 59 ms
+        max duration to send msg: 233 ms
+        avg duration to send msg: 75 ms
         msg send failures: 0
-        time in ms for failed msgs: 0
-        avg time in ms for failed msg: 0
+        duration for msgs with send failure: 0 ms
+        avg duration for msgs with send failure: 0 ms
         messages too large to sent to IoTHub: 0
         times we missed send interval: 0
         ---------------------------------
-        current working set in MB: 92
-        ======================================================================
+        current working set in MB: 96
+        --si setting: 0
+        --ms setting: 0
+        --ih setting: Mqtt
+        ==========================================================================
 
-This configuration sends for each OPC node value change a message to IoTHub. You see the average message size of 234 byte is pretty small and the average time required to send such a message was 
-112 ms - which is compared to larger message sizes - a high value. The advantage of this configuration is that Publisher does not add any latency to the ingest data path. The number of
-lost OPC node value updates (`monitored item notifications enqueue failure: 48116`) is the highest of all compared configurations.
+This configuration sends for each OPC node value change a message to IoTHub. You see the average message size of 234 byte is pretty small and the average time required to send such a message was 75 ms - which is compared to larger message sizes - a high value. The advantage of this configuration is that Publisher does not add any latency to the ingest data path. The number of
+lost OPC node value updates (`monitored item notifications enqueue failure: 44624`) is the highest of all compared configurations, which make this configuration not recommendable for use cases, when a lot of telemetry should be published.
 
 #### Maximum batching (--si 0 --ms 262144)
 
-        ======================================================================
-        OpcPublisher status @ 25.10.2017 10:05:23
+        ==========================================================================
+        OpcPublisher status @ 26.10.2017 15:42:55 (started @ 26.10.2017 15:41:00)
         ---------------------------------
         OPC sessions: 1
         connected OPC sessions: 1
-        connected OPC subscriptions: 1
-        OPC monitored items: 497
+        connected OPC subscriptions: 5
+        OPC monitored items: 500
         ---------------------------------
         monitored items queue bounded capacity: 8192
         monitored items queue current items: 0
-        monitored item notifications enqueued: 57086
+        monitored item notifications enqueued: 54137
         monitored item notifications enqueue failure: 0
-        monitored item notifications dequeued: 57086
+        monitored item notifications dequeued: 54137
         ---------------------------------
-        messages sent to IoTHub: 50
-        bytes sent to IoTHub: 13096746
-        avg msg size: 261934
-        time in ms for sent msgs: 8648
-        min time in ms for msg: 136
-        max time in ms for msg: 596
-        avg time in ms for msg: 172
+        messages sent to IoTHub: 48
+        last successful msg sent @: 26.10.2017 15:42:55
+        bytes sent to IoTHub: 12565544
+        avg msg size: 261782
+        duration in ms to send msgs: 6661 ms
+        min duration to send msg: 116 ms
+        max duration to send msg: 518 ms
+        avg duration to send msg: 138 ms
         msg send failures: 0
-        time in ms for failed msgs: 0
-        avg time in ms for failed msg: 0
+        duration for msgs with send failure: 0 ms
+        avg duration for msgs with send failure: 0 ms
         messages too large to sent to IoTHub: 0
         times we missed send interval: 0
         ---------------------------------
-        current working set in MB: 89
-        ======================================================================
+        current working set in MB: 90
+        --si setting: 0
+        --ms setting: 262144
+        --ih setting: Mqtt
+        ==========================================================================
 
 This configuration batches as much OPC node value udpates as possible. The maximum IoTHub message size is 256 kB, which is configured here. There is no send interval requested, which makes the time when data is ingested
-completly controlled by the data itself. This configuration has the least probability of loosing any OPC node values and could be used for publishing a high number of nodes.
+completely controlled by the data itself. This configuration has the least probability of loosing any OPC node values and could be used for publishing a high number of nodes.
 When using this configuration you need to ensure, that your scenario does not have conditions where high latency is introduced (because the message size of 256 kB is not reached).
+
+#### Transport protocol cmparison
+
+To compare the transport protocols the test use a send interval and message size configuration of `--si 10 --ms 16384`. From the diagnostics side we are only interested in the average duration required to send a message (`avg duration to send msg`).
+Here are the different results:
+* HTTP: `avg duration to send msg: 101 ms`
+* MQTT: `avg duration to send msg: 71 ms`
+* AMQP: `avg duration to send msg: 71 ms`
+* AMQP over Websockets: `avg duration to send msg: 73 ms`
+* MQTT over Websockets: `avg duration to send msg: 71 ms`
+
+The HTTP transport is not a streaming protocol and requires setup for each packet, hence the higher average duration for a message. We are using "MQTT over Websockets" as default, since it has good performance and requires typically no changes 
+even in very secured network environments.
 
 # Debugging the Application
 
-## Native on Winodws
+## Native on Windows
 
 Open the OpcPublisher.sln project with Visual Studio 2017 and start debugging the app by hitting F5.
 

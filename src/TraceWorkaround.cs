@@ -15,7 +15,6 @@ namespace OpcPublisher.Workarounds
             get => _verboseConsole;
             set => _verboseConsole = value;
         }
-        private static bool _verboseConsole = false;
 
         /// <summary>
         /// Trace message helper
@@ -53,5 +52,7 @@ namespace OpcPublisher.Workarounds
             WriteLine(DateTime.Now.ToString() + ": " + e.Message.ToString());
             WriteLine(DateTime.Now.ToString() + ": " + format, args);
         }
+
+        private static bool _verboseConsole = false;
     }
 }

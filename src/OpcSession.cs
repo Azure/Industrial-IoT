@@ -57,7 +57,7 @@ namespace OpcPublisher
             ConfigNodeId = nodeId;
             ConfigExpandedNodeId = null;
             ConfigType = OpcMonitoredItemConfigurationType.NodeId;
-            Initialize(sessionEndpointUri);
+            Init(sessionEndpointUri);
             if (requestNamespaceUpdate)
             {
                 State = OpcMonitoredItemState.UnmonitoredNamespaceUpdateRequested;
@@ -72,27 +72,11 @@ namespace OpcPublisher
             ConfigNodeId = null;
             ConfigExpandedNodeId = expandedNodeId;
             ConfigType = OpcMonitoredItemConfigurationType.ExpandedNodeId;
-            Initialize(sessionEndpointUri);
+            Init(sessionEndpointUri);
             if (requestNamespaceUpdate)
             {
                 State = OpcMonitoredItemState.UnmonitoredNamespaceUpdateRequested;
             }
-}
-
-        /// <summary>
-        /// Init class variables.
-        /// </summary>
-        private void Initialize(Uri sessionEndpointUri)
-        {
-            State = OpcMonitoredItemState.Unmonitored;
-            DisplayName = string.Empty;
-            AttributeId = Attributes.Value;
-            MonitoringMode = MonitoringMode.Reporting;
-            RequestedSamplingInterval = OpcSamplingInterval;
-            QueueSize = 0;
-            DiscardOldest = true;
-            Notification = new MonitoredItemNotificationEventHandler(MonitoredItem_Notification);
-            EndpointUri = sessionEndpointUri;
         }
 
         /// <summary>
@@ -202,6 +186,22 @@ namespace OpcPublisher
                 Trace(e, "Error processing monitored item notification");
             }
         }
+
+        /// <summary>
+        /// Init instance variables.
+        /// </summary>
+        private void Init(Uri sessionEndpointUri)
+        {
+            State = OpcMonitoredItemState.Unmonitored;
+            DisplayName = string.Empty;
+            AttributeId = Attributes.Value;
+            MonitoringMode = MonitoringMode.Reporting;
+            RequestedSamplingInterval = OpcSamplingInterval;
+            QueueSize = 0;
+            DiscardOldest = true;
+            Notification = new MonitoredItemNotificationEventHandler(MonitoredItem_Notification);
+            EndpointUri = sessionEndpointUri;
+        }
     }
 
     /// <summary>
@@ -234,19 +234,29 @@ namespace OpcPublisher
             Connecting,
             Connected,
         }
+
+        public Uri EndpointUri;
+        public Session OpcUaClientSession;
+        public SessionState State;
+        public List<OpcSubscription> OpcSubscriptions;
+        public uint UnsuccessfulConnectionCount;
+        public uint MissedKeepAlives;
+        public int PublishingInterval;
+        public KeepAliveEventHandler StandardKeepAliveEventHandlerAsync;
+
+        public uint SessionTimeout { get; }
+
         public static bool FetchOpcNodeDisplayName
         {
             get => _fetchOpcNodeDisplayName;
             set => _fetchOpcNodeDisplayName = value;
         }
-        private static bool _fetchOpcNodeDisplayName = false;
 
         public static string ShopfloorDomain
         {
             get => _shopfloorDomain;
             set => _shopfloorDomain = value;
         }
-        private static string _shopfloorDomain;
 
         public int GetNumberOfOpcSubscriptions()
         {
@@ -281,19 +291,6 @@ namespace OpcPublisher
             }
             return result;
         }
-
-        public Uri EndpointUri;
-        public Session OpcUaClientSession;
-        public SessionState State;
-        public List<OpcSubscription> OpcSubscriptions;
-        public uint SessionTimeout { get; }
-        public uint UnsuccessfulConnectionCount;
-        public uint MissedKeepAlives;
-        public int PublishingInterval;
-        private SemaphoreSlim _opcSessionSemaphore;
-        private NamespaceTable _namespaceTable;
-        private double _minSupportedSamplingInterval;
-        public KeepAliveEventHandler StandardKeepAliveEventHandlerAsync;
 
         /// <summary>
         /// Ctor for the session.
@@ -1056,6 +1053,7 @@ namespace OpcPublisher
             {
                 _opcSessionSemaphore.Release();
                 _opcSessionSemaphore.Dispose();
+                _opcSessionSemaphore = null;
             }
         }
 
@@ -1134,5 +1132,11 @@ namespace OpcPublisher
                 Trace("Keep alive arguments seems to be wrong.");
             }
         }
+
+        private static string _shopfloorDomain;
+        private static bool _fetchOpcNodeDisplayName = false;
+        private SemaphoreSlim _opcSessionSemaphore;
+        private NamespaceTable _namespaceTable;
+        private double _minSupportedSamplingInterval;
     }
 }
