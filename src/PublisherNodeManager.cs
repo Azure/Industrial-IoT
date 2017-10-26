@@ -6,7 +6,6 @@ using System.Collections.Generic;
 
 namespace OpcPublisher
 {
-    using IoTHubCredentialTools;
     using Newtonsoft.Json;
     using System.Linq;
     using static IotHubMessaging;
@@ -669,7 +668,5 @@ namespace OpcPublisher
 
             return statusCode;
         }
-
-
     }
 }

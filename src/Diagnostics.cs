@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 namespace OpcPublisher
 {
-    using static OpcPublisher.Workarounds.TraceWorkaround;
     using static IotHubMessaging;
+    using static OpcPublisher.Workarounds.TraceWorkaround;
+    using static Program;
     using static PublisherNodeConfiguration;
 
     /// <summary>
@@ -14,28 +15,21 @@ namespace OpcPublisher
     /// </summary>
     public static class Diagnostics
     {
-
         public static uint DiagnosticsInterval
         {
             get => _diagnosticsInterval;
             set => _diagnosticsInterval = value;
         }
-        private static uint _diagnosticsInterval = 0;
 
-        public static int IotHubMessagingMessagesSentCount
-        {
-            get => _messagesSentCount;
-        }
-        private static int _messagesSentCount = 0;
-
-        private static CancellationTokenSource _shutdownTokenSource;
-        private static Task _showDiagnosticsInfoTask;
+        public static int IotHubMessagingMessagesSentCount => _messagesSentCount;
+        public static SemaphoreSlim DiagnosticsSemaphore;
 
         public static void Init()
         {
             // init data
             _showDiagnosticsInfoTask = null;
             _shutdownTokenSource = new CancellationTokenSource();
+            DiagnosticsSemaphore = new SemaphoreSlim(1);
 
             // kick off the task to show diagnostic info
             if (_diagnosticsInterval > 0)
@@ -54,26 +48,30 @@ namespace OpcPublisher
                 await _showDiagnosticsInfoTask;
             }
 
+            DiagnosticsSemaphore.Dispose();
+            DiagnosticsSemaphore = null;
+            _shutdownTokenSource = null;
+            _showDiagnosticsInfoTask = null;
         }
 
         /// <summary>
         /// Kicks of the task to show diagnostic information each 30 seconds.
         /// </summary>
-        public static async Task ShowDiagnosticsInfoAsync(CancellationToken cancellationtoken)
+        public static async Task ShowDiagnosticsInfoAsync(CancellationToken ct)
         {
             while (true)
             {
                 try
                 {
 
-                    if (cancellationtoken.IsCancellationRequested)
+                    await Task.Delay((int)_diagnosticsInterval * 1000, ct);
+                    if (ct.IsCancellationRequested)
                     {
                         return;
                     }
-                    await Task.Delay((int)_diagnosticsInterval * 1000);
 
-                    Trace("======================================================================");
-                    Trace($"OpcPublisher status @ {System.DateTime.UtcNow}");
+                    Trace("==========================================================================");
+                    Trace($"OpcPublisher status @ {System.DateTime.UtcNow} (started @ {PublisherStartTime})");
                     Trace("---------------------------------");
                     Trace($"OPC sessions: {NumberOfOpcSessions}");
                     Trace($"connected OPC sessions: {NumberOfConnectedOpcSessions}");
@@ -87,20 +85,24 @@ namespace OpcPublisher
                     Trace($"monitored item notifications dequeued: {DequeueCount}");
                     Trace("---------------------------------");
                     Trace($"messages sent to IoTHub: {SentMessages}");
+                    Trace($"last successful msg sent @: {SentLastTime}");
                     Trace($"bytes sent to IoTHub: {SentBytes}");
                     Trace($"avg msg size: {SentBytes / (SentMessages == 0 ? 1 : SentMessages)}");
-                    Trace($"time in ms for sent msgs: {SentTime}");
-                    Trace($"min time in ms for msg: {MinSentTime}");
-                    Trace($"max time in ms for msg: {MaxSentTime}");
-                    Trace($"avg time in ms for msg: {SentTime / (SentMessages == 0 ? 1 : SentMessages)}");
+                    Trace($"duration in ms to send msgs: {SendDuration} ms");
+                    Trace($"min duration to send msg: {MinSendDuration} ms");
+                    Trace($"max duration to send msg: {MaxSendDuration} ms");
+                    Trace($"avg duration to send msg: {SendDuration / (SentMessages == 0 ? 1 : SentMessages)} ms");
                     Trace($"msg send failures: {FailedMessages}");
-                    Trace($"time in ms for failed msgs: {FailedTime}");
-                    Trace($"avg time in ms for failed msg: {FailedTime / (FailedMessages == 0 ? 1 : FailedMessages)}");
+                    Trace($"duration for msgs with send failure: {FailedTime} ms");
+                    Trace($"avg duration for msgs with send failure: {FailedTime / (FailedMessages == 0 ? 1 : FailedMessages)} ms");
                     Trace($"messages too large to sent to IoTHub: {TooLargeCount}");
                     Trace($"times we missed send interval: {MissedSendIntervalCount}");
                     Trace("---------------------------------");
                     Trace($"current working set in MB: {Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024)}");
-                    Trace("======================================================================");
+                    Trace($"--si setting: {DefaultSendIntervalSeconds}");
+                    Trace($"--ms setting: {IotHubMessageSize}");
+                    Trace($"--ih setting: {IotHubProtocol}");
+                    Trace("==========================================================================");
                 }
                 catch
                 {
@@ -108,5 +110,9 @@ namespace OpcPublisher
             }
         }
 
+        private static uint _diagnosticsInterval = 0;
+        private static int _messagesSentCount = 0;
+        private static CancellationTokenSource _shutdownTokenSource;
+        private static Task _showDiagnosticsInfoTask;
     }
 }
