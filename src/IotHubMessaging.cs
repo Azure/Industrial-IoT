@@ -291,7 +291,7 @@ namespace OpcPublisher
             byte[] iotHubMessageBuffer = new byte[iotHubMessageBufferSize];
             MemoryStream iotHubMessage = new MemoryStream(iotHubMessageBuffer);
             DateTime nextSendTime = DateTime.UtcNow + TimeSpan.FromSeconds(_defaultSendIntervalSeconds);
-            int millisecondsTillNextSend = TimeSpan.FromSeconds(_defaultSendIntervalSeconds).Milliseconds;
+            double millisecondsTillNextSend = nextSendTime.Subtract(DateTime.UtcNow).TotalMilliseconds;
 
             using (iotHubMessage)
             {
@@ -308,7 +308,7 @@ namespace OpcPublisher
                         // sanity check the send interval, compute the timeout and get the next monitored item message
                         if (_defaultSendIntervalSeconds > 0)
                         {
-                            millisecondsTillNextSend = nextSendTime.Subtract(DateTime.UtcNow).Milliseconds;
+                            millisecondsTillNextSend = nextSendTime.Subtract(DateTime.UtcNow).TotalMilliseconds;
                             if (millisecondsTillNextSend < 0)
                             {
                                 _missedSendIntervalCount++;
@@ -321,7 +321,7 @@ namespace OpcPublisher
                             // if we are in shutdown do not wait, else wait infinite if send interval is not set
                             millisecondsTillNextSend = ct.IsCancellationRequested ? 0 : Timeout.Infinite;
                         }
-                        bool gotItem = _monitoredItemsDataQueue.TryTake(out jsonMessage, millisecondsTillNextSend);
+                        bool gotItem = _monitoredItemsDataQueue.TryTake(out jsonMessage, (int)millisecondsTillNextSend);
 
                         // the two commandline parameter --ms (message size) and --si (send interval) control when data is sent to IoTHub
                         // pls see detailed comments on performance and memory consumption at https://github.com/Azure/iot-edge-opc-publisher
