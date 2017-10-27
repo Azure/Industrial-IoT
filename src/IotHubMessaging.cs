@@ -40,15 +40,7 @@ namespace OpcPublisher
 
         public static DateTime SentLastTime => _sentLastTime;
 
-        public static long SendDuration => _sendDuration;
-
-        public static long MinSendDuration => _minSendDuration;
-
-        public static long MaxSendDuration => _maxSendDuration;
-
         public static long FailedMessages => _failedMessages;
-
-        public static long FailedTime => _failedTime;
 
         public static string IotHubOwnerConnectionString
         {
@@ -397,26 +389,18 @@ namespace OpcPublisher
                             encodedIotHubMessage.Properties.Add(devicenamePropertyKey, devicenamePropertyValue);
                             if (_iotHubClient != null)
                             {
-                                Stopwatch stopwatch = new Stopwatch();
-                                stopwatch.Start();
                                 nextSendTime += TimeSpan.FromSeconds(_defaultSendIntervalSeconds);
                                 try
                                 {
                                     _sentBytes += encodedIotHubMessage.GetBytes().Length;
                                     await _iotHubClient.SendEventAsync(encodedIotHubMessage);
-                                    stopwatch.Stop();
                                     _sentMessages++;
                                     _sentLastTime = DateTime.UtcNow;
-                                    _sendDuration += stopwatch.ElapsedMilliseconds;
-                                    _maxSendDuration = Math.Max(_maxSendDuration, stopwatch.ElapsedMilliseconds);
-                                    _minSendDuration = Math.Min(_minSendDuration, stopwatch.ElapsedMilliseconds);
-                                    Trace(Utils.TraceMasks.OperationDetail, $"Sending {encodedIotHubMessage.BodyStream.Length} bytes to IoTHub took {stopwatch.ElapsedMilliseconds} ms.");
+                                    Trace(Utils.TraceMasks.OperationDetail, $"Sending {encodedIotHubMessage.BodyStream.Length} bytes to IoTHub.");
                                 }
                                 catch
                                 {
-                                    stopwatch.Stop();
                                     _failedMessages++;
-                                    _failedTime += stopwatch.ElapsedMilliseconds;
                                 }
 
                                 // reset the messaage

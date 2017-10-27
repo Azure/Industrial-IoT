@@ -88,13 +88,7 @@ namespace OpcPublisher
                     Trace($"last successful msg sent @: {SentLastTime}");
                     Trace($"bytes sent to IoTHub: {SentBytes}");
                     Trace($"avg msg size: {SentBytes / (SentMessages == 0 ? 1 : SentMessages)}");
-                    Trace($"duration in ms to send msgs: {SendDuration} ms");
-                    Trace($"min duration to send msg: {MinSendDuration} ms");
-                    Trace($"max duration to send msg: {MaxSendDuration} ms");
-                    Trace($"avg duration to send msg: {SendDuration / (SentMessages == 0 ? 1 : SentMessages)} ms");
                     Trace($"msg send failures: {FailedMessages}");
-                    Trace($"duration for msgs with send failure: {FailedTime} ms");
-                    Trace($"avg duration for msgs with send failure: {FailedTime / (FailedMessages == 0 ? 1 : FailedMessages)} ms");
                     Trace($"messages too large to sent to IoTHub: {TooLargeCount}");
                     Trace($"times we missed send interval: {MissedSendIntervalCount}");
                     Trace("---------------------------------");

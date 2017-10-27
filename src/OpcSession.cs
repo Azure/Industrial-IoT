@@ -893,7 +893,6 @@ namespace OpcPublisher
                     Trace($"AddNodeForMonitoring: Added item with nodeId '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' for monitoring.");
 
                     // update the publishing data
-                    // Start publishing.
                     Task.Run(async () => await ConnectAndMonitorAsync(ct));
                 }
             }

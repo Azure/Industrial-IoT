@@ -399,13 +399,7 @@ Publisher was used as debug build on Windows 10 natively for 120 seconds. The Io
         last successful msg sent @: 26.10.2017 15:33:04
         bytes sent to IoTHub: 12709429
         avg msg size: 116600
-        duration in ms to send msgs: 11007 ms
-        min duration to send msg: 84 ms
-        max duration to send msg: 372 ms
-        avg duration to send msg: 100 ms
         msg send failures: 0
-        duration for msgs with send failure: 0 ms
-        avg duration for msgs with send failure: 0 ms
         messages too large to sent to IoTHub: 0
         times we missed send interval: 0
         ---------------------------------
@@ -438,13 +432,7 @@ As you see in the diagnostics ouptut there are no OPC node udpates lost (`monito
         last successful msg sent @: 26.10.2017 15:35:59
         bytes sent to IoTHub: 12683836
         avg msg size: 116365
-        duration in ms to send msgs: 11915 ms
-        min duration to send msg: 86 ms
-        max duration to send msg: 381 ms
-        avg duration to send msg: 109 ms
         msg send failures: 0
-        duration for msgs with send failure: 0 ms
-        avg duration for msgs with send failure: 0 ms
         messages too large to sent to IoTHub: 0
         times we missed send interval: 0
         ---------------------------------
@@ -477,13 +465,7 @@ the average message size is 115019 byte. In this configuration we do not loose a
         last successful msg sent @: 26.10.2017 15:39:33
         bytes sent to IoTHub: 333046
         avg msg size: 234
-        duration in ms to send msgs: 107959 ms
-        min duration to send msg: 59 ms
-        max duration to send msg: 233 ms
-        avg duration to send msg: 75 ms
         msg send failures: 0
-        duration for msgs with send failure: 0 ms
-        avg duration for msgs with send failure: 0 ms
         messages too large to sent to IoTHub: 0
         times we missed send interval: 0
         ---------------------------------
@@ -493,7 +475,7 @@ the average message size is 115019 byte. In this configuration we do not loose a
         --ih setting: Mqtt
         ==========================================================================
 
-This configuration sends for each OPC node value change a message to IoTHub. You see the average message size of 234 byte is pretty small and the average time required to send such a message was 75 ms - which is compared to larger message sizes - a high value. The advantage of this configuration is that Publisher does not add any latency to the ingest data path. The number of
+This configuration sends for each OPC node value change a message to IoTHub. You see the average message size of 234 byte is pretty small. The advantage of this configuration is that Publisher does not add any latency to the ingest data path. The number of
 lost OPC node value updates (`monitored item notifications enqueue failure: 44624`) is the highest of all compared configurations, which make this configuration not recommendable for use cases, when a lot of telemetry should be published.
 
 #### Maximum batching (--si 0 --ms 262144)
@@ -516,13 +498,7 @@ lost OPC node value updates (`monitored item notifications enqueue failure: 4462
         last successful msg sent @: 26.10.2017 15:42:55
         bytes sent to IoTHub: 12565544
         avg msg size: 261782
-        duration in ms to send msgs: 6661 ms
-        min duration to send msg: 116 ms
-        max duration to send msg: 518 ms
-        avg duration to send msg: 138 ms
         msg send failures: 0
-        duration for msgs with send failure: 0 ms
-        avg duration for msgs with send failure: 0 ms
         messages too large to sent to IoTHub: 0
         times we missed send interval: 0
         ---------------------------------
@@ -535,19 +511,6 @@ lost OPC node value updates (`monitored item notifications enqueue failure: 4462
 This configuration batches as much OPC node value udpates as possible. The maximum IoTHub message size is 256 kB, which is configured here. There is no send interval requested, which makes the time when data is ingested
 completely controlled by the data itself. This configuration has the least probability of loosing any OPC node values and could be used for publishing a high number of nodes.
 When using this configuration you need to ensure, that your scenario does not have conditions where high latency is introduced (because the message size of 256 kB is not reached).
-
-#### Transport protocol cmparison
-
-To compare the transport protocols the test use a send interval and message size configuration of `--si 10 --ms 16384`. From the diagnostics side we are only interested in the average duration required to send a message (`avg duration to send msg`).
-Here are the different results:
-* HTTP: `avg duration to send msg: 101 ms`
-* MQTT: `avg duration to send msg: 71 ms`
-* AMQP: `avg duration to send msg: 71 ms`
-* AMQP over Websockets: `avg duration to send msg: 73 ms`
-* MQTT over Websockets: `avg duration to send msg: 71 ms`
-
-The HTTP transport is not a streaming protocol and requires setup for each packet, hence the higher average duration for a message. We are using "MQTT over Websockets" as default, since it has good performance and requires typically no changes 
-even in very secured network environments.
 
 # Debugging the Application
 
