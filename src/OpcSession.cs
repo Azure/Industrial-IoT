@@ -892,7 +892,7 @@ namespace OpcPublisher
                     opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                     Trace($"AddNodeForMonitoring: Added item with nodeId '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' for monitoring.");
 
-                    // update the publishing data
+                    // trigger the actual OPC communication with the server to be done
                     Task.Run(async () => await ConnectAndMonitorAsync(ct));
                 }
             }
@@ -935,7 +935,7 @@ namespace OpcPublisher
                     }
                 }
 
-                // Stop publishing.
+                // trigger the actual OPC communication with the server to be done
                 Task.Run(async () => await ConnectAndMonitorAsync(ct));
             }
             catch (Exception e)
