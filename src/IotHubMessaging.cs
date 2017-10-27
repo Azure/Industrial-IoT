@@ -1,19 +1,19 @@
 ﻿
-using Newtonsoft.Json;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace OpcPublisher
 {
-    using IoTHubCredentialTools;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Client;
     using Opc.Ua;
+    using System;
+    using System.Diagnostics;
+    using System.IO;
     using static Opc.Ua.CertificateStoreType;
+    using static OpcPublisher.Diagnostics;
     using static OpcPublisher.Workarounds.TraceWorkaround;
     using static OpcStackConfiguration;
 
@@ -22,87 +22,89 @@ namespace OpcPublisher
     /// </summary>
     public class IotHubMessaging
     {
+        public static string IotDeviceCertDirectoryStorePathDefault => "CertificateStores/IoTHub";
+
+        public static string IotDeviceCertX509StorePathDefault => "My";
+
+        public static long MonitoredItemsQueueCount => _monitoredItemsDataQueue.Count;
+
+        public static long DequeueCount => _dequeueCount;
+
+        public static long MissedSendIntervalCount => _missedSendIntervalCount;
+
+        public static long TooLargeCount => _tooLargeCount;
+
+        public static long SentBytes => _sentBytes;
+
+        public static long SentMessages => _sentMessages;
+
+        public static DateTime SentLastTime => _sentLastTime;
+
+        public static long FailedMessages => _failedMessages;
+
         public static string IotHubOwnerConnectionString
         {
             get => _iotHubOwnerConnectionString;
             set => _iotHubOwnerConnectionString = value;
         }
-        private static string _iotHubOwnerConnectionString = string.Empty;
 
         public static Microsoft.Azure.Devices.Client.TransportType IotHubProtocol
         {
             get => _iotHubProtocol;
             set => _iotHubProtocol = value;
         }
-        private static Microsoft.Azure.Devices.Client.TransportType _iotHubProtocol = Microsoft.Azure.Devices.Client.TransportType.Mqtt;
 
-        public static uint MaxSizeOfIoTHubMessageBytes
+        public const uint IotHubMessageSizeMax = (256 * 1024);
+        public static uint IotHubMessageSize
         {
-            get => _maxSizeOfIoTHubMessageBytes;
-            set => _maxSizeOfIoTHubMessageBytes = value;
+            get => _iotHubMessageSize;
+            set => _iotHubMessageSize = value;
         }
-        private static uint _maxSizeOfIoTHubMessageBytes = 4096;
 
         public static int DefaultSendIntervalSeconds
         {
             get => _defaultSendIntervalSeconds;
             set => _defaultSendIntervalSeconds = value;
         }
-        private static int _defaultSendIntervalSeconds = 1;
 
         public static string IotDeviceCertStoreType
         {
             get => _iotDeviceCertStoreType;
             set => _iotDeviceCertStoreType = value;
         }
-        private static string _iotDeviceCertStoreType = X509Store;
 
-        public static string IotDeviceCertDirectoryStorePathDefault => "CertificateStores/IoTHub";
-        public static string IotDeviceCertX509StorePathDefault => "My";
         public static string IotDeviceCertStorePath
         {
             get => _iotDeviceCertStorePath;
             set => _iotDeviceCertStorePath = value;
         }
-        private static string _iotDeviceCertStorePath = IotDeviceCertX509StorePathDefault;
 
-        /// <summary>
-        /// Classes for the telemetry message sent to IoTHub.
-        /// </summary>
-        private class OpcUaMessage
+        public static int MonitoredItemsQueueCapacity
         {
-            public string ApplicationUri;
-            public string DisplayName;
-            public string NodeId;
-            public OpcUaValue Value;
+            get => _monitoredItemsQueueCapacity;
+            set => _monitoredItemsQueueCapacity = value;
         }
 
-        private class OpcUaValue
+        public static long EnqueueCount
         {
-            public string Value;
-            public string SourceTimestamp;
+            get
+            {
+                DiagnosticsSemaphore.WaitAsync();
+                long result = _enqueueCount;
+                DiagnosticsSemaphore.Release();
+                return result;
+            }
         }
 
-        private ConcurrentQueue<string> _sendQueue;
-        private int _currentSizeOfIotHubMessageBytes;
-        private List<OpcUaMessage> _messageList;
-        private SemaphoreSlim _messageListSemaphore;
-        private CancellationTokenSource _tokenSource;
-        private Task _dequeueAndSendTask;
-        private Timer _sendTimer;
-        private AutoResetEvent _sendQueueEvent;
-        private DeviceClient _iotHubClient;
-
-        /// <summary>
-        /// Ctor for the class.
-        /// </summary>
-        public IotHubMessaging()
+        public static long EnqueueFailureCount
         {
-            _sendQueue = new ConcurrentQueue<string>();
-            _sendQueueEvent = new AutoResetEvent(false);
-            _messageList = new List<OpcUaMessage>();
-            _messageListSemaphore = new SemaphoreSlim(1);
-            _currentSizeOfIotHubMessageBytes = 0;
+            get
+            {
+                DiagnosticsSemaphore.WaitAsync();
+                long result = _enqueueFailureCount;
+                DiagnosticsSemaphore.Release();
+                return result;
+            }
         }
 
         /// <summary>
@@ -161,7 +163,6 @@ namespace OpcPublisher
                         Trace($"Could not register ourselves with IoT Hub using owner connection string: {_iotHubOwnerConnectionString}");
                         Trace("exiting...");
                         return false;
-
                     }
                 }
 
@@ -172,7 +173,7 @@ namespace OpcPublisher
                 {
                     Trace($"Create Publisher IoTHub client with device connection string: '{deviceConnectionString}' using '{IotHubProtocol}' for communication.");
                     _iotHubClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, IotHubProtocol);
-                    ExponentialBackoff exponentialRetryPolicy = new ExponentialBackoff(int.MaxValue, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(5000), TimeSpan.FromMilliseconds(100));
+                    ExponentialBackoff exponentialRetryPolicy = new ExponentialBackoff(int.MaxValue, TimeSpan.FromMilliseconds(2), TimeSpan.FromMilliseconds(1024), TimeSpan.FromMilliseconds(3));
                     _iotHubClient.SetRetryPolicy(exponentialRetryPolicy);
                     await _iotHubClient.OpenAsync();
                 }
@@ -183,12 +184,18 @@ namespace OpcPublisher
                     return false;
                 }
 
-                // start up task to send telemetry to IoTHub.
-                _dequeueAndSendTask = null;
+                // show config
+                Trace($"IoTHub messaging configured with a send interval of {_defaultSendIntervalSeconds} sec and a message buffer size of {_iotHubMessageSize} bytes.");
+
+                // create the queue for monitored items
+                _monitoredItemsDataQueue = new BlockingCollection<string>(_monitoredItemsQueueCapacity);
+
+                // start up task to send telemetry to IoTHub
+                _monitoredItemsProcessorTask = null;
                 _tokenSource = new CancellationTokenSource();
 
-                Trace("Creating task to send OPC UA messages in batches to IoT Hub...");
-                _dequeueAndSendTask = Task.Run(() => DeQueueMessagesAsync(_tokenSource.Token), _tokenSource.Token);
+                Trace("Creating task process and batch monitored item data updates...");
+                _monitoredItemsProcessorTask = Task.Run(async () => await MonitoredItemsProcessor(_tokenSource.Token), _tokenSource.Token);
             }
             catch (Exception e)
             {
@@ -218,20 +225,17 @@ namespace OpcPublisher
             try
             {
                 _tokenSource.Cancel();
-                await _dequeueAndSendTask;
+                await _monitoredItemsProcessorTask;
 
                 if (_iotHubClient != null)
                 {
                     await _iotHubClient.CloseAsync();
                 }
-                if (_sendTimer != null)
-                {
-                    _sendTimer.Dispose();
-                }
-                if (_sendQueueEvent != null)
-                {
-                    _sendQueueEvent.Dispose();
-                }
+
+                _monitoredItemsDataQueue = null;
+                _tokenSource = null;
+                _monitoredItemsProcessorTask = null;
+                _iotHubClient = null;
             }
             catch (Exception e)
             {
@@ -239,151 +243,235 @@ namespace OpcPublisher
             }
         }
 
-        //
-        // Enqueue a message for batch send.
-        //
+        /// <summary>
+        /// Enqueue a message for sending to IoTHub.
+        /// </summary>
+        /// <param name="json"></param>
         public void Enqueue(string json)
         {
-            _sendQueue.Enqueue(json);
-            _sendQueueEvent.Set();
+            // Try to add the message.
+            DiagnosticsSemaphore.WaitAsync();
+            _enqueueCount++;
+            DiagnosticsSemaphore.Release();
+            if (_monitoredItemsDataQueue.TryAdd(json) == false)
+            {
+                DiagnosticsSemaphore.WaitAsync();
+                long failureCount = ++_enqueueFailureCount;
+                DiagnosticsSemaphore.Release();
+                if (failureCount % 10000 == 0)
+                {
+                    Trace(Utils.TraceMasks.Error, $"The internal monitored item message queue is above its capacity of {_monitoredItemsDataQueue.BoundedCapacity}. We have already lost {failureCount} monitored item notifications:(");
+                }
+            }
         }
 
         /// <summary>
-        /// Dequeue telemetry messages, compose them for batch send (if needed) and prepares them for sending to IoTHub.
+        /// Dequeue monitored item notification messages, batch them for send (if needed) and send them to IoTHub.
         /// </summary>
-        private async Task DeQueueMessagesAsync(CancellationToken ct)
+        private async Task MonitoredItemsProcessor(CancellationToken ct)
         {
-            try
+            string contentPropertyKey = "content-type";
+            string contentPropertyValue = "application/opcua+uajson";
+            string devicenamePropertyKey = "devicename";
+            string devicenamePropertyValue = ApplicationName;
+            int userPropertyLength = contentPropertyKey.Length + contentPropertyValue.Length + devicenamePropertyKey.Length + devicenamePropertyValue.Length;
+            Microsoft.Azure.Devices.Client.Message tempMsg = new Microsoft.Azure.Devices.Client.Message();
+            // the system properties are MessageId (max 128 byte), Sequence number (ulong), ExpiryTime (DateTime) and more. ideally we get that from the client.
+            int systemPropertyLength = 128 + sizeof(ulong) + tempMsg.ExpiryTimeUtc.ToString().Length;
+            // if batching is requested the buffer will have the requested size, otherwise we reserve the max size
+            uint iotHubMessageBufferSize = (_iotHubMessageSize > 0 ? _iotHubMessageSize : IotHubMessageSizeMax) - (uint)userPropertyLength - (uint)systemPropertyLength;
+            byte[] iotHubMessageBuffer = new byte[iotHubMessageBufferSize];
+            MemoryStream iotHubMessage = new MemoryStream(iotHubMessageBuffer);
+            DateTime nextSendTime = DateTime.UtcNow + TimeSpan.FromSeconds(_defaultSendIntervalSeconds);
+            double millisecondsTillNextSend = nextSendTime.Subtract(DateTime.UtcNow).TotalMilliseconds;
+
+            using (iotHubMessage)
             {
-                if (_defaultSendIntervalSeconds > 0 && _maxSizeOfIoTHubMessageBytes > 0)
+                try
                 {
-                    // send every x seconds
-                    Trace($"Start timer to send data to IoTHub in {_defaultSendIntervalSeconds} seconds.");
-                    _sendTimer = new Timer(async state => await SendToIoTHubAsync(), null, TimeSpan.FromSeconds(_defaultSendIntervalSeconds), TimeSpan.FromSeconds(_defaultSendIntervalSeconds));
-                }
+                    string jsonMessage = string.Empty;
+                    bool needToBufferMessage = false;
+                    int jsonMessageSize = 0;
 
-                WaitHandle[] waitHandles = { _sendQueueEvent, ct.WaitHandle };
-                while (true)
-                {
-                    // wait till some work needs to be done
-                    WaitHandle.WaitAny(waitHandles);
-
-                    // do we need to stop
-                    if (ct.IsCancellationRequested)
+                    iotHubMessage.Position = 0;
+                    iotHubMessage.SetLength(0);
+                    while (true)
                     {
-                        Trace($"Cancellation requested. Sending {_sendQueue.Count} remaining messages.");
-                        await SendToIoTHubAsync();
-                        break;
-                    }
-
-                    if (_sendQueue.Count > 0)
-                    {
-                        bool isPeekSuccessful = false;
-                        bool isDequeueSuccessful = false;
-                        string messageInJson = string.Empty;
-                        int nextMessageSizeBytes = 0;
-
-                        // perform a TryPeek to determine size of next message 
-                        // and whether it will fit. If so, dequeue message and add it to the list. 
-                        // if it cannot fit, send current message to IoTHub, reset it, and repeat.
-
-                        isPeekSuccessful = _sendQueue.TryPeek(out messageInJson);
-
-                        // get size of next message in the queue
-                        if (isPeekSuccessful)
+                        // sanity check the send interval, compute the timeout and get the next monitored item message
+                        if (_defaultSendIntervalSeconds > 0)
                         {
-                            nextMessageSizeBytes = Encoding.UTF8.GetByteCount(messageInJson);
-
-                            // sanity check that the user has set a large enough IoTHub messages size.
-                            if (nextMessageSizeBytes > _maxSizeOfIoTHubMessageBytes && _maxSizeOfIoTHubMessageBytes > 0)
+                            millisecondsTillNextSend = nextSendTime.Subtract(DateTime.UtcNow).TotalMilliseconds;
+                            if (millisecondsTillNextSend < 0)
                             {
-                                Trace(Utils.TraceMasks.Error, $"There is a telemetry message (size: {nextMessageSizeBytes}), which will not fit into an IoTHub message (max size: {_maxSizeOfIoTHubMessageBytes}].");
-                                Trace(Utils.TraceMasks.Error, $"Please check your IoTHub message size settings. The telemetry message will be discarded silently. Sorry:(");
-                                _sendQueue.TryDequeue(out messageInJson);
-                                continue;
+                                _missedSendIntervalCount++;
+                                // do not wait if we missed the send interval
+                                millisecondsTillNextSend = 0;
                             }
                         }
-
-                        // determine if it will fit into remaining space of the IoTHub message or if we do not batch at all
-                        // if so, dequeue it
-                        if (_currentSizeOfIotHubMessageBytes + nextMessageSizeBytes < _maxSizeOfIoTHubMessageBytes || _maxSizeOfIoTHubMessageBytes == 0)
+                        else
                         {
-                            isDequeueSuccessful = _sendQueue.TryDequeue(out messageInJson);
+                            // if we are in shutdown do not wait, else wait infinite if send interval is not set
+                            millisecondsTillNextSend = ct.IsCancellationRequested ? 0 : Timeout.Infinite;
+                        }
+                        bool gotItem = _monitoredItemsDataQueue.TryTake(out jsonMessage, (int)millisecondsTillNextSend);
 
-                            // add dequeued message to list
-                            if (isDequeueSuccessful)
+                        // the two commandline parameter --ms (message size) and --si (send interval) control when data is sent to IoTHub
+                        // pls see detailed comments on performance and memory consumption at https://github.com/Azure/iot-edge-opc-publisher
+
+                        // check if we got an item or if we hit the timeout or got canceled
+                        if (gotItem)
+                        {
+                            _dequeueCount++;
+                            jsonMessageSize = Encoding.UTF8.GetByteCount(jsonMessage.ToString());
+
+                            // sanity check that the user has set a large enough IoTHub messages size
+                            if ((_iotHubMessageSize > 0 && jsonMessageSize > _iotHubMessageSize) || (_iotHubMessageSize == 0 && jsonMessageSize > iotHubMessageBufferSize))
                             {
-                                OpcUaMessage msgPayload = JsonConvert.DeserializeObject<OpcUaMessage>(messageInJson);
-                                await _messageListSemaphore.WaitAsync();
-                                _messageList.Add(msgPayload);
-                                _messageListSemaphore.Release();
-                                _currentSizeOfIotHubMessageBytes = _currentSizeOfIotHubMessageBytes + nextMessageSizeBytes;
-                                Trace(Utils.TraceMasks.OperationDetail, $"Added new message with size {nextMessageSizeBytes} to IoTHub message (size is now {_currentSizeOfIotHubMessageBytes}). {_sendQueue.Count} message(s) in send queue.");
+                                Trace(Utils.TraceMasks.Error, $"There is a telemetry message (size: {jsonMessageSize}), which will not fit into an IoTHub message (max size: {_iotHubMessageSize}].");
+                                Trace(Utils.TraceMasks.Error, $"Please check your IoTHub message size settings. The telemetry message will be discarded silently. Sorry:(");
+                                _tooLargeCount++;
+                                continue;
+                            }
 
-                                // fall through, if we should send immediately
-                                if (_maxSizeOfIoTHubMessageBytes != 0)
+                            // if batching is requested or we need to send at intervals, batch it otherwise send it right away
+                            needToBufferMessage = false;
+                            if (_iotHubMessageSize > 0 || (_iotHubMessageSize == 0 && _defaultSendIntervalSeconds > 0))
+                            {
+                                // if there is still space to batch, do it. otherwise send the buffer and flag the message for later buffering
+                                if (iotHubMessage.Position + jsonMessageSize <= iotHubMessage.Capacity)
                                 {
+                                    iotHubMessage.Write(Encoding.UTF8.GetBytes(jsonMessage.ToString()), 0, jsonMessageSize);
+                                    Trace(Utils.TraceMasks.OperationDetail, $"Added new message with size {jsonMessageSize} to IoTHub message (size is now {iotHubMessage.Position}).");
                                     continue;
+                                }
+                                else
+                                {
+                                    needToBufferMessage = true;
                                 }
                             }
                         }
+                        else
+                        {
+                            // if we got no message, we either reached the interval or we are in shutdown and have processed all messages
+                            if (ct.IsCancellationRequested)
+                            {
+                                Trace($"Cancellation requested.");
+                                _monitoredItemsDataQueue.CompleteAdding();
+                                _monitoredItemsDataQueue.Dispose();
+                                break;
+                            }
+                        }
 
-                        // the message needs to be sent now.
-                        Trace(Utils.TraceMasks.OperationDetail, $"IoTHub message complete. Trigger send of message with size {_currentSizeOfIotHubMessageBytes} to IoTHub.");
-                        await SendToIoTHubAsync();
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Trace(e, "Error while dequeuing messages.");
-            }
-        }
+                        // the batching is completed or we reached the send interval or got a cancelation request
+                        try
+                        {
+                            Microsoft.Azure.Devices.Client.Message encodedIotHubMessage = null;
 
-        /// <summary>
-        /// Send messages to IoT Hub
-        /// </summary>
-        private async Task SendToIoTHubAsync()
-        {
-            if (_messageList.Count > 0)
-            {
-                // process all queued messages
-                await _messageListSemaphore.WaitAsync();
-                string msgListInJson = JsonConvert.SerializeObject(_messageList);
-                var encodedMessage = new Microsoft.Azure.Devices.Client.Message(Encoding.UTF8.GetBytes(msgListInJson));
-                _currentSizeOfIotHubMessageBytes = 0;
-                _messageList.Clear();
-                _messageListSemaphore.Release();
+                            // if we reached the send interval, but have nothing to send, we continue
+                            if (!gotItem && iotHubMessage.Position == 0)
+                            {
+                                nextSendTime += TimeSpan.FromSeconds(_defaultSendIntervalSeconds);
+                                iotHubMessage.Position = 0;
+                                iotHubMessage.SetLength(0);
+                                continue;
+                            }
 
-                // publish
-                encodedMessage.Properties.Add("content-type", "application/opcua+uajson");
-                encodedMessage.Properties.Add("deviceName", ApplicationName);
+                            // if there is no batching and not interval configured, we send the JSON message we just got, otherwise we send the buffer
+                            if (_iotHubMessageSize == 0 && _defaultSendIntervalSeconds == 0)
+                            {
+                                encodedIotHubMessage = new Microsoft.Azure.Devices.Client.Message(Encoding.UTF8.GetBytes(jsonMessage.ToString()));
+                            }
+                            else
+                            {
+                                encodedIotHubMessage = new Microsoft.Azure.Devices.Client.Message(iotHubMessage.ToArray());
+                            }
+                            encodedIotHubMessage.Properties.Add(contentPropertyKey, contentPropertyValue);
+                            encodedIotHubMessage.Properties.Add(devicenamePropertyKey, devicenamePropertyValue);
+                            if (_iotHubClient != null)
+                            {
+                                nextSendTime += TimeSpan.FromSeconds(_defaultSendIntervalSeconds);
+                                try
+                                {
+                                    _sentBytes += encodedIotHubMessage.GetBytes().Length;
+                                    await _iotHubClient.SendEventAsync(encodedIotHubMessage);
+                                    _sentMessages++;
+                                    _sentLastTime = DateTime.UtcNow;
+                                    Trace(Utils.TraceMasks.OperationDetail, $"Sending {encodedIotHubMessage.BodyStream.Length} bytes to IoTHub.");
+                                }
+                                catch
+                                {
+                                    _failedMessages++;
+                                }
 
-                try
-                {
-                    if (_iotHubClient != null)
-                    {
-                        Trace(Utils.TraceMasks.OperationDetail, "Send data to IoTHub.");
-                        await _iotHubClient.SendEventAsync(encodedMessage);
-                    }
-                    else
-                    {
-                        Trace("No IoTHub client available. Dropping messages...");
+                                // reset the messaage
+                                iotHubMessage.Position = 0;
+                                iotHubMessage.SetLength(0);
+
+                                // if we had not yet buffered the last message because there was not enough space, buffer it now
+                                if (needToBufferMessage)
+                                {
+                                    iotHubMessage.Write(Encoding.UTF8.GetBytes(jsonMessage.ToString()), 0, jsonMessageSize);
+                                }
+                            }
+                            else
+                            {
+                                Trace("No IoTHub client available. Dropping messages...");
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Trace(e, "Exception while sending message to IoTHub. Dropping message...");
+                        }
                     }
                 }
                 catch (Exception e)
                 {
-                    Trace(e, "Exception while sending message to IoTHub. Dropping messages...");
+                    Trace(e, "Error while processing monitored item messages.");
                 }
             }
-
-            // Restart timer
-            if (_sendTimer != null)
-            {
-                // send in x seconds
-                Trace(Utils.TraceMasks.OperationDetail, $"Restart timer to send data to IoTHub in {_defaultSendIntervalSeconds} second(s).");
-                _sendTimer.Change(TimeSpan.FromSeconds(_defaultSendIntervalSeconds), TimeSpan.FromSeconds(_defaultSendIntervalSeconds));
-            }
         }
+
+        private static string _iotHubOwnerConnectionString = string.Empty;
+        private static Microsoft.Azure.Devices.Client.TransportType _iotHubProtocol = Microsoft.Azure.Devices.Client.TransportType.Mqtt_WebSocket_Only;
+        private static uint _iotHubMessageSize = 262144;
+        private static int _defaultSendIntervalSeconds = 10;
+        private static string _iotDeviceCertStoreType = X509Store;
+        private static string _iotDeviceCertStorePath = IotDeviceCertX509StorePathDefault;
+        private static int _monitoredItemsQueueCapacity = 8192;
+        private static long _enqueueCount;
+        private static long _enqueueFailureCount;
+        private static long _dequeueCount;
+        private static long _missedSendIntervalCount;
+        private static long _tooLargeCount;
+        private static long _sentBytes;
+        private static long _sentMessages;
+        private static DateTime _sentLastTime;
+        private static long _sendDuration;
+        private static long _minSendDuration = long.MaxValue;
+        private static long _maxSendDuration;
+        private static long _failedMessages;
+        private static long _failedTime;
+        private static BlockingCollection<string> _monitoredItemsDataQueue;
+        private static CancellationTokenSource _tokenSource;
+        private static Task _monitoredItemsProcessorTask;
+        private static DeviceClient _iotHubClient;
+
+        /// <summary>
+        /// Classes for the telemetry message sent to IoTHub.
+        /// </summary>
+        private class OpcUaMessage
+        {
+            public string ApplicationUri;
+            public string DisplayName;
+            public string NodeId;
+            public OpcUaValue Value;
+        }
+
+        private class OpcUaValue
+        {
+            public string Value;
+            public string SourceTimestamp;
+        }
+
     }
 }

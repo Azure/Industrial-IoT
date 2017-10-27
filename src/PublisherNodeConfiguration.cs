@@ -14,11 +14,11 @@ namespace OpcPublisher
     using static OpcPublisher.Workarounds.TraceWorkaround;
     using static OpcStackConfiguration;
 
-    public class PublisherNodeConfiguration
+    public static class PublisherNodeConfiguration
     {
-        public static SemaphoreSlim PublisherNodeConfigurationSemaphore = new SemaphoreSlim(1);
-        public static List<OpcSession> OpcSessions = new List<OpcSession>();
-        public static SemaphoreSlim OpcSessionsListSemaphore = new SemaphoreSlim(1);
+        public static SemaphoreSlim PublisherNodeConfigurationSemaphore;
+        public static List<OpcSession> OpcSessions;
+        public static SemaphoreSlim OpcSessionsListSemaphore;
 
         public static string PublisherNodeConfigurationFilename
         {
@@ -27,19 +27,116 @@ namespace OpcPublisher
         }
         private static string _publisherNodeConfigurationFilename = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
 
-        private List<NodePublishingConfiguration> _nodePublishingConfiguration;
-        private static List<PublisherConfigurationFileEntry> _configurationFileEntries = new List<PublisherConfigurationFileEntry>();
-
-        public PublisherNodeConfiguration()
+        public static int NumberOfOpcSessions
         {
+            get
+            {
+                int result = 0;
+                try
+                {
+                    OpcSessionsListSemaphore.WaitAsync();
+                    result = OpcSessions.Count();
+                }
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
+                }
+                return result;
+            }
+        }
+
+        public static int NumberOfConnectedOpcSessions
+        {
+            get
+            {
+                int result = 0;
+                try
+                {
+                    OpcSessionsListSemaphore.WaitAsync();
+                    result = OpcSessions.Count(s => s.State == OpcSession.SessionState.Connected);
+                }
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
+                }
+                return result;
+            }
+        }
+
+        public static int NumberOfConnectedOpcSubscriptions
+        {
+            get
+            {
+                int result = 0;
+                try
+                {
+                    OpcSessionsListSemaphore.WaitAsync();
+                    var opcSessions = OpcSessions.Where(s => s.State == OpcSession.SessionState.Connected);
+                    foreach (var opcSession in opcSessions)
+                    {
+                        result += opcSession.GetNumberOfOpcSubscriptions();
+                    }
+                }
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
+                }
+                return result;
+            }
+        }
+
+        public static int NumberOfMonitoredItems
+        {
+            get
+            {
+                int result = 0;
+                try
+                {
+                    OpcSessionsListSemaphore.WaitAsync();
+                    var opcSessions = OpcSessions.Where(s => s.State == OpcSession.SessionState.Connected);
+                    foreach (var opcSession in opcSessions)
+                    {
+                        result += opcSession.GetNumberOfOpcMonitoredItems();
+                    }
+                }
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
+                }
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Initialize resources for the node configuration.
+        /// </summary>
+        public static void Init()
+        {
+            OpcSessionsListSemaphore = new SemaphoreSlim(1);
+            PublisherNodeConfigurationSemaphore = new SemaphoreSlim(1);
+            OpcSessions = new List<OpcSession>();
             _nodePublishingConfiguration = new List<NodePublishingConfiguration>();
+            _configurationFileEntries = new List<PublisherConfigurationFileEntry>();
+        }
+
+        /// <summary>
+        /// Frees resources for the node configuration.
+        /// </summary>
+        public static void Deinit()
+        {
+            OpcSessions = null;
+            _nodePublishingConfiguration = null;
+            OpcSessionsListSemaphore.Dispose();
+            OpcSessionsListSemaphore = null;
+            PublisherNodeConfigurationSemaphore.Dispose();
+            PublisherNodeConfigurationSemaphore = null;
         }
 
         /// <summary>
         /// Read and parse the publisher node configuration file.
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> ReadConfigAsync()
+        public static async Task<bool> ReadConfigAsync()
         {
             // get information on the nodes to publish and validate the json by deserializing it.
             try
@@ -94,7 +191,7 @@ namespace OpcPublisher
         /// Create the publisher data structures to manage OPC sessions, subscriptions and monitored items.
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> CreateOpcPublishingDataAsync()
+        public static async Task<bool> CreateOpcPublishingDataAsync()
         {
             // create a list to manage sessions, subscriptions and monitored items.
             try
@@ -267,6 +364,9 @@ namespace OpcPublisher
                 Trace(e, "Update of node configuration file failed.");
             }
         }
+
+        private static List<NodePublishingConfiguration> _nodePublishingConfiguration;
+        private static List<PublisherConfigurationFileEntry> _configurationFileEntries;
     }
 
     /// <summary>

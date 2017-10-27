@@ -11,48 +11,43 @@ namespace OpcPublisher
 
     public class OpcStackConfiguration
     {
+        public static ApplicationConfiguration PublisherOpcApplicationConfiguration => _configuration;
 
         public static string ApplicationName
         {
             get => _applicationName;
             set => _applicationName = value;
         }
-        private static string _applicationName = "publisher";
 
         public static string LogFileName
         {
             get => _logFileName;
             set => _logFileName = value;
         }
-        private static string _logFileName;
 
         public static ushort PublisherServerPort
         {
             get => _publisherServerPort;
             set => _publisherServerPort = value;
         }
-        private static ushort _publisherServerPort = 62222;
 
         public static string PublisherServerPath
         {
             get => _publisherServerPath;
             set => _publisherServerPath = value;
         }
-        private static string _publisherServerPath = "/UA/Publisher";
 
         public static int OpcOperationTimeout
         {
             get => _opcOperationTimeout;
             set => _opcOperationTimeout = value;
         }
-        private static int _opcOperationTimeout = 120000;
 
         public static bool TrustMyself
         {
             get => _trustMyself;
             set => _trustMyself = value;
         }
-        private static bool _trustMyself = true;
 
         // Enable Utils.TraceMasks.OperationDetail to get output for IoTHub telemetry operations. Current: 0x287 (647), with OperationDetail: 0x2C7 (711)
         public static int OpcStackTraceMask
@@ -60,70 +55,60 @@ namespace OpcPublisher
             get => _opcStackTraceMask;
             set => _opcStackTraceMask = value;
         }
-        private static int _opcStackTraceMask = Utils.TraceMasks.Error | Utils.TraceMasks.Security | Utils.TraceMasks.StackTrace | Utils.TraceMasks.StartStop;
 
         public static bool OpcPublisherAutoTrustServerCerts
         {
             get => _opcPublisherAutoTrustServerCerts;
             set => _opcPublisherAutoTrustServerCerts = value;
         }
-        private static bool _opcPublisherAutoTrustServerCerts = false;
 
         public static uint OpcSessionCreationTimeout
         {
             get => _opcSessionCreationTimeout;
             set => _opcSessionCreationTimeout = value;
         }
-        private static uint _opcSessionCreationTimeout = 10;
 
         public static uint OpcSessionCreationBackoffMax
         {
             get => _opcSessionCreationBackoffMax;
             set => _opcSessionCreationBackoffMax = value;
         }
-        private static uint _opcSessionCreationBackoffMax = 5;
 
         public static uint OpcKeepAliveDisconnectThreshold
         {
             get => _opcKeepAliveDisconnectThreshold;
             set => _opcKeepAliveDisconnectThreshold = value;
         }
-        private static uint _opcKeepAliveDisconnectThreshold = 5;
 
         public static int OpcKeepAliveIntervalInSec
         {
             get => _opcKeepAliveIntervalInSec;
             set => _opcKeepAliveIntervalInSec = value;
         }
-        private static int _opcKeepAliveIntervalInSec = 2;
 
         public static int OpcSamplingInterval
         {
             get => _opcSamplingInterval;
             set => _opcSamplingInterval = value;
         }
-        private static int _opcSamplingInterval = 1000;
 
         public static int OpcPublishingInterval
         {
             get => _opcPublishingInterval;
             set => _opcPublishingInterval = value;
         }
-        private static int _opcPublishingInterval = 0;
 
         public static string PublisherServerSecurityPolicy
         {
             get => _publisherServerSecurityPolicy;
             set => _publisherServerSecurityPolicy = value;
         }
-        private static string _publisherServerSecurityPolicy = SecurityPolicies.Basic128Rsa15;
 
         public static string OpcOwnCertStoreType
         {
             get => _opcOwnCertStoreType;
             set => _opcOwnCertStoreType = value;
         }
-        private static string _opcOwnCertStoreType = X509Store;
 
         public static string OpcOwnCertDirectoryStorePathDefault => "CertificateStores/own";
         public static string OpcOwnCertX509StorePathDefault => "CurrentUser\\UA_MachineDefault";
@@ -132,14 +117,12 @@ namespace OpcPublisher
             get => _opcOwnCertStorePath;
             set => _opcOwnCertStorePath = value;
         }
-        private static string _opcOwnCertStorePath = OpcOwnCertX509StorePathDefault;
 
         public static string OpcTrustedCertStoreType
         {
             get => _opcTrustedCertStoreType;
             set => _opcTrustedCertStoreType = value;
         }
-        private static string _opcTrustedCertStoreType = CertificateStoreType.Directory;
 
         public static string OpcTrustedCertDirectoryStorePathDefault => "CertificateStores/trusted";
         public static string OpcTrustedCertX509StorePathDefault => "CurrentUser\\UA_MachineDefault";
@@ -148,14 +131,12 @@ namespace OpcPublisher
             get => _opcTrustedCertStorePath;
             set => _opcTrustedCertStorePath = value;
         }
-        private static string _opcTrustedCertStorePath = null;
 
         public static string OpcRejectedCertStoreType
         {
             get => _opcRejectedCertStoreType;
             set => _opcRejectedCertStoreType = value;
         }
-        private static string _opcRejectedCertStoreType = CertificateStoreType.Directory;
 
         public static string OpcRejectedCertDirectoryStorePathDefault => "CertificateStores/rejected";
         public static string OpcRejectedCertX509StorePathDefault => "CurrentUser\\UA_MachineDefault";
@@ -164,14 +145,12 @@ namespace OpcPublisher
             get => _opcRejectedCertStorePath;
             set => _opcRejectedCertStorePath = value;
         }
-        private static string _opcRejectedCertStorePath = OpcRejectedCertDirectoryStorePathDefault;
 
         public static string OpcIssuerCertStoreType
         {
             get => _opcIssuerCertStoreType;
             set => _opcIssuerCertStoreType = value;
         }
-        private static string _opcIssuerCertStoreType = CertificateStoreType.Directory;
 
         public static string OpcIssuerCertDirectoryStorePathDefault => "CertificateStores/issuers";
         public static string OpcIssuerCertX509StorePathDefault => "CurrentUser\\UA_MachineDefault";
@@ -180,20 +159,12 @@ namespace OpcPublisher
             get => _opcIssuerCertStorePath;
             set => _opcIssuerCertStorePath = value;
         }
-        private static string _opcIssuerCertStorePath = OpcIssuerCertDirectoryStorePathDefault;
 
         public static int LdsRegistrationInterval
         {
             get => _ldsRegistrationInterval;
             set => _ldsRegistrationInterval = value;
         }
-        private static int _ldsRegistrationInterval = 0;
-
-        public static ApplicationConfiguration PublisherOpcApplicationConfiguration
-        {
-            get => _configuration;
-        }
-        private static ApplicationConfiguration _configuration;
 
         /// <summary>
         /// Configures all OPC stack settings
@@ -424,5 +395,31 @@ namespace OpcPublisher
             // validate the configuration now
             await _configuration.Validate(_configuration.ApplicationType);
         }
+
+        private static string _applicationName = "publisher";
+        private static string _logFileName;
+        private static ushort _publisherServerPort = 62222;
+        private static string _publisherServerPath = "/UA/Publisher";
+        private static int _opcOperationTimeout = 120000;
+        private static bool _trustMyself = true;
+        private static int _opcStackTraceMask = Utils.TraceMasks.Error | Utils.TraceMasks.Security | Utils.TraceMasks.StackTrace | Utils.TraceMasks.StartStop;
+        private static bool _opcPublisherAutoTrustServerCerts = false;
+        private static uint _opcSessionCreationTimeout = 10;
+        private static uint _opcSessionCreationBackoffMax = 5;
+        private static uint _opcKeepAliveDisconnectThreshold = 5;
+        private static int _opcKeepAliveIntervalInSec = 2;
+        private static int _opcSamplingInterval = 1000;
+        private static int _opcPublishingInterval = 0;
+        private static string _publisherServerSecurityPolicy = SecurityPolicies.Basic128Rsa15;
+        private static string _opcOwnCertStoreType = X509Store;
+        private static string _opcOwnCertStorePath = OpcOwnCertX509StorePathDefault;
+        private static string _opcTrustedCertStoreType = CertificateStoreType.Directory;
+        private static string _opcTrustedCertStorePath = null;
+        private static string _opcRejectedCertStoreType = CertificateStoreType.Directory;
+        private static string _opcRejectedCertStorePath = OpcRejectedCertDirectoryStorePathDefault;
+        private static string _opcIssuerCertStoreType = CertificateStoreType.Directory;
+        private static string _opcIssuerCertStorePath = OpcIssuerCertDirectoryStorePathDefault;
+        private static int _ldsRegistrationInterval = 0;
+        private static ApplicationConfiguration _configuration;
     }
 }

@@ -12,6 +12,7 @@ namespace OpcPublisher
     using Opc.Ua;
     using Opc.Ua.Server;
     using System.Text.RegularExpressions;
+    using static Diagnostics;
     using static IotHubMessaging;
     using static Opc.Ua.CertificateStoreType;
     using static OpcPublisher.Workarounds.TraceWorkaround;
@@ -25,50 +26,9 @@ namespace OpcPublisher
         public static IotHubMessaging IotHubCommunication;
         public static CancellationTokenSource ShutdownTokenSource;
 
-        public static uint PublisherShutdownWaitPeriod
-        {
-            get => _publisherShutdownWaitPeriod;
-            set => _publisherShutdownWaitPeriod = value;
-        }
-        private static uint _publisherShutdownWaitPeriod = 10;
+        public static uint PublisherShutdownWaitPeriod => _publisherShutdownWaitPeriod;
 
-        private static PublisherServer _publisherServer;
-        private static DateTime _lastServerSessionEventTime = DateTime.UtcNow;
-        private static bool _opcTraceInitialized = false;
-        private static int _publisherSessionConnectWaitSec = 10;
-
-        /// <summary>
-        /// Usage message.
-        /// </summary>
-        private static void Usage(Mono.Options.OptionSet options)
-        {
-
-            // show usage
-            WriteLine();
-            WriteLine("Usage: {0}.exe <applicationname> [<iothubconnectionstring>] [<options>]", Assembly.GetEntryAssembly().GetName().Name);
-            WriteLine();
-            WriteLine("OPC Edge Publisher to subscribe to configured OPC UA servers and send telemetry to Azure IoTHub.");
-            WriteLine("To exit the application, just press ENTER while it is running.");
-            WriteLine();
-            WriteLine("applicationname: the OPC UA application name to use, required");
-            WriteLine("                 The application name is also used to register the publisher under this name in the");
-            WriteLine("                 IoTHub device registry.");
-            WriteLine();
-            WriteLine("iothubconnectionstring: the IoTHub owner connectionstring, optional");
-            WriteLine();
-            WriteLine("There are a couple of environment variables which can be used to control the application:");
-            WriteLine("_HUB_CS: sets the IoTHub owner connectionstring");
-            WriteLine("_GW_LOGP: sets the filename of the log file to use"); 
-            WriteLine("_TPC_SP: sets the path to store certificates of trusted stations");
-            WriteLine("_GW_PNFP: sets the filename of the publishing configuration file");
-            WriteLine();
-            WriteLine("Command line arguments overrule environment variable settings.");
-            WriteLine();
-            
-            // output the options
-            WriteLine("Options:");
-            options.WriteOptionDescriptions(Console.Out);
-        }
+        public static DateTime PublisherStartTime = DateTime.UtcNow;
 
         /// <summary>
         /// Synchronous main method of the app.
@@ -115,16 +75,29 @@ namespace OpcPublisher
                             }
                         }
                     },
-                    { "vc|verboseconsole=", $"the output of publisher is shown on the console.\nDefault: {VerboseConsole}", (bool b) => VerboseConsole = b },
+                    { "mq|monitoreditemqueuecapacity=", $"specify how many notifications of monitored items could be stored in the internal queue, if the data could not be sent quick enough to IoTHub\nMin: 1024\nDefault: {MonitoredItemsQueueCapacity}", (int i) => {
+                            if (i >= 1024)
+                            {
+                                MonitoredItemsQueueCapacity = i;
+                            }
+                            else
+                            {
+                                throw new OptionException("The monitoreditemqueueitems must be greater than 1024", "monitoreditemqueueitems");
+                            }
+                        }
+                    },
+                    { "di|diagnosticsinterval=", $"shows publisher diagnostic info at the specified interval in seconds. 0 disables diagnostic output.\nDefault: {DiagnosticsInterval}", (uint u) => DiagnosticsInterval = u },
 
+                    { "vc|verboseconsole=", $"the output of publisher is shown on the console.\nDefault: {VerboseConsole}", (bool b) => VerboseConsole = b },
+                    
                     // IoTHub specific options
                     { "ih|iothubprotocol=", $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}",
                         (Microsoft.Azure.Devices.Client.TransportType p) => IotHubProtocol = p
                     },
-                    { "ms|iothubmessagesize=", $"the max size of a message which can be send to IoTHub. when telemetry of this size is available it will be sent.\n0 will enforce immediate send when telemetry is available\nMin: 0\nMax: 256 * 1024\nDefault: {MaxSizeOfIoTHubMessageBytes}", (uint u) => {
-                            if (u >= 0 && u <= 256 * 1024)
+                    { "ms|iothubmessagesize=", $"the max size of a message which can be send to IoTHub. when telemetry of this size is available it will be sent.\n0 will enforce immediate send when telemetry is available\nMin: 0\nMax: {IotHubMessageSizeMax}\nDefault: {IotHubMessageSize}", (uint u) => {
+                            if (u >= 0 && u <= IotHubMessageSizeMax)
                             {
-                                MaxSizeOfIoTHubMessageBytes = u;
+                                IotHubMessageSize = u;
                             }
                             else
                             {
@@ -381,7 +354,7 @@ namespace OpcPublisher
 
                 WriteLine("Publisher is starting up...");
 
-                // Init shutdown token source.
+                // Shutdown token sources.
                 ShutdownTokenSource = new CancellationTokenSource();
 
                 // init OPC configuration and tracing
@@ -427,8 +400,8 @@ namespace OpcPublisher
                 }
 
                 // Read node configuration file
-                PublisherNodeConfiguration publisherNodeConfiguration = new PublisherNodeConfiguration();
-                if (!await publisherNodeConfiguration.ReadConfigAsync())
+                PublisherNodeConfiguration.Init();
+                if (!await PublisherNodeConfiguration.ReadConfigAsync())
                 {
                     return;
                 }
@@ -440,7 +413,7 @@ namespace OpcPublisher
                     return;
                 }
 
-                if (!await publisherNodeConfiguration.CreateOpcPublishingDataAsync())
+                if (!await PublisherNodeConfiguration.CreateOpcPublishingDataAsync())
                 {
                     return;
                 }
@@ -453,6 +426,9 @@ namespace OpcPublisher
                 _publisherServer.CurrentInstance.SessionManager.SessionClosing += ServerEventStatus;
                 _publisherServer.CurrentInstance.SessionManager.SessionCreated += ServerEventStatus;
 
+                // initialize publisher diagnostics
+                Diagnostics.Init();
+
                 // stop on user request
                 WriteLine("");
                 WriteLine("");
@@ -460,7 +436,7 @@ namespace OpcPublisher
                 WriteLine("");
                 WriteLine("");
                 ReadLine();
-                ShutdownTokenSource.Cancel();
+               ShutdownTokenSource.Cancel();
                 WriteLine("Publisher is shutting down...");
 
                 // Wait for session connector completion
@@ -474,6 +450,14 @@ namespace OpcPublisher
 
                 // shutdown the IoTHub messaging
                 await IotHubCommunication.Shutdown();
+                IotHubCommunication = null;
+
+                // shutdown diagnostics
+                await Diagnostics.Shutdown();
+
+                // free resources
+                PublisherNodeConfiguration.Deinit();
+                ShutdownTokenSource = null;
             }
             catch (Exception e)
             {
@@ -507,7 +491,7 @@ namespace OpcPublisher
         /// <summary>
         /// Kicks of the work horse of the publisher regularily for all sessions.
         /// </summary>
-        public static async Task SessionConnectorAsync(CancellationToken cancellationtoken)
+        public static async Task SessionConnectorAsync(CancellationToken ct)
         {
             while (true)
             {
@@ -515,7 +499,7 @@ namespace OpcPublisher
                 {
                     // get tasks for all disconnected sessions and start them
                     await OpcSessionsListSemaphore.WaitAsync();
-                    var singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitorAsync());
+                    var singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitorAsync(ct));
                     OpcSessionsListSemaphore.Release();
                     await Task.WhenAll(singleSessionHandlerTaskList);
                 }
@@ -523,11 +507,11 @@ namespace OpcPublisher
                 {
                     Trace(e, $"Failed to connect and monitor a disconnected server. {(e.InnerException != null ? e.InnerException.Message : "")}");
                 }
-                if (cancellationtoken.IsCancellationRequested)
+                await Task.Delay(_publisherSessionConnectWaitSec * 1000, ct);
+                if (ct.IsCancellationRequested)
                 {
                     return;
                 }
-                await Task.Delay(_publisherSessionConnectWaitSec * 1000);
             }
         }
 
@@ -553,7 +537,7 @@ namespace OpcPublisher
             }
 
             // Wait and continue after a while.
-            uint maxTries = PublisherShutdownWaitPeriod;
+            uint maxTries = _publisherShutdownWaitPeriod;
             while (true)
             {
                 int sessionCount = OpcSessions.Count;
@@ -569,6 +553,39 @@ namespace OpcPublisher
                 Trace($"Publisher is shutting down. Wait {_publisherSessionConnectWaitSec} seconds, since there are stil {sessionCount} sessions alive...");
                 await Task.Delay(_publisherSessionConnectWaitSec * 1000);
             }
+        }
+
+        /// <summary>
+        /// Usage message.
+        /// </summary>
+        private static void Usage(Mono.Options.OptionSet options)
+        {
+
+            // show usage
+            WriteLine();
+            WriteLine("Usage: {0}.exe <applicationname> [<iothubconnectionstring>] [<options>]", Assembly.GetEntryAssembly().GetName().Name);
+            WriteLine();
+            WriteLine("OPC Edge Publisher to subscribe to configured OPC UA servers and send telemetry to Azure IoTHub.");
+            WriteLine("To exit the application, just press ENTER while it is running.");
+            WriteLine();
+            WriteLine("applicationname: the OPC UA application name to use, required");
+            WriteLine("                 The application name is also used to register the publisher under this name in the");
+            WriteLine("                 IoTHub device registry.");
+            WriteLine();
+            WriteLine("iothubconnectionstring: the IoTHub owner connectionstring, optional");
+            WriteLine();
+            WriteLine("There are a couple of environment variables which can be used to control the application:");
+            WriteLine("_HUB_CS: sets the IoTHub owner connectionstring");
+            WriteLine("_GW_LOGP: sets the filename of the log file to use");
+            WriteLine("_TPC_SP: sets the path to store certificates of trusted stations");
+            WriteLine("_GW_PNFP: sets the filename of the publishing configuration file");
+            WriteLine();
+            WriteLine("Command line arguments overrule environment variable settings.");
+            WriteLine();
+
+            // output the options
+            WriteLine("Options:");
+            options.WriteOptionDescriptions(Console.Out);
         }
 
         /// <summary>
@@ -602,10 +619,8 @@ namespace OpcPublisher
         /// <summary>
         /// Handler for server status changes.
         /// </summary>
-    
         private static void ServerEventStatus(Session session, SessionEventReason reason)
         {
-            _lastServerSessionEventTime = DateTime.UtcNow;
             PrintSessionStatus(session, reason.ToString());
         }
 
@@ -625,5 +640,10 @@ namespace OpcPublisher
                 Trace(item);
             }
         }
+
+        private static uint _publisherShutdownWaitPeriod = 10;
+        private static PublisherServer _publisherServer;
+        private static bool _opcTraceInitialized = false;
+        private static int _publisherSessionConnectWaitSec = 10;
     }
 }
