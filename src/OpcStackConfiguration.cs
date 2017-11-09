@@ -390,6 +390,7 @@ namespace OpcPublisher
             Trace($"Log file is: {Utils.GetAbsoluteFilePath(_configuration.TraceConfiguration.OutputFilePath, true, false, false, true)}");
             Trace($"opcstacktracemask set to: 0x{_opcStackTraceMask:X} ({_opcStackTraceMask})");
 
+            // add deafult client configuration
             _configuration.ClientConfiguration = new ClientConfiguration();
 
             // validate the configuration now

@@ -258,6 +258,12 @@ namespace OpcPublisher
             set => _shopfloorDomain = value;
         }
 
+        public bool UseSecurity
+        {
+            get => _useSecurity;
+            set => _useSecurity = value;
+        }
+
         public int GetNumberOfOpcSubscriptions()
         {
             int result = 0;
@@ -295,7 +301,7 @@ namespace OpcPublisher
         /// <summary>
         /// Ctor for the session.
         /// </summary>
-        public OpcSession(Uri endpointUri, uint sessionTimeout)
+        public OpcSession(Uri endpointUri, bool useSecurity, uint sessionTimeout)
         {
             State = SessionState.Disconnected;
             EndpointUri = endpointUri;
@@ -304,6 +310,7 @@ namespace OpcPublisher
             UnsuccessfulConnectionCount = 0;
             MissedKeepAlives = 0;
             PublishingInterval = OpcPublishingInterval;
+            _useSecurity = useSecurity;
             _opcSessionSemaphore = new SemaphoreSlim(1);
             _namespaceTable = new NamespaceTable();
         }
@@ -366,10 +373,10 @@ namespace OpcPublisher
                     _opcSessionSemaphore.Release();
 
                     // start connecting
-                    EndpointDescription selectedEndpoint = CoreClientUtils.SelectEndpoint(EndpointUri.AbsoluteUri, true);
+                    EndpointDescription selectedEndpoint = CoreClientUtils.SelectEndpoint(EndpointUri.AbsoluteUri, _useSecurity);
                     ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(null, selectedEndpoint, EndpointConfiguration.Create(PublisherOpcApplicationConfiguration));
                     uint timeout = SessionTimeout * ((UnsuccessfulConnectionCount >= OpcSessionCreationBackoffMax) ? OpcSessionCreationBackoffMax : UnsuccessfulConnectionCount + 1);
-                    Trace($"Create session for endpoint URI '{EndpointUri.AbsoluteUri}' with timeout of {timeout} ms.");
+                    Trace($"Create {(_useSecurity ? "secured" : "unsecured")} session for endpoint URI '{EndpointUri.AbsoluteUri}' with timeout of {timeout} ms.");
                     OpcUaClientSession = await Session.Create(
                             PublisherOpcApplicationConfiguration,
                             configuredEndpoint,
@@ -1134,6 +1141,7 @@ namespace OpcPublisher
 
         private static string _shopfloorDomain;
         private static bool _fetchOpcNodeDisplayName = false;
+        private bool _useSecurity = true;
         private SemaphoreSlim _opcSessionSemaphore;
         private NamespaceTable _namespaceTable;
         private double _minSupportedSamplingInterval;

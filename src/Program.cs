@@ -432,11 +432,19 @@ namespace OpcPublisher
                 // stop on user request
                 WriteLine("");
                 WriteLine("");
-                WriteLine("Publisher is running. Press ENTER to quit.");
+                WriteLine("Publisher is running. Press any key to quit.");
+                try
+                {
+                    ReadKey(true);
+                }
+                catch
+                {
+                    // wait forever if there is no console
+                    await Task.Delay(Timeout.Infinite);
+                }
                 WriteLine("");
                 WriteLine("");
-                ReadLine();
-               ShutdownTokenSource.Cancel();
+                ShutdownTokenSource.Cancel();
                 WriteLine("Publisher is shutting down...");
 
                 // Wait for session connector completion
