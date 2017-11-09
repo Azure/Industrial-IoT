@@ -26,7 +26,6 @@ namespace OpcPublisher
             get => _publisherNodeConfigurationFilename;
             set => _publisherNodeConfigurationFilename = value;
         }
-        private static string _publisherNodeConfigurationFilename = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
 
         public static int NumberOfOpcSessions
         {
@@ -367,6 +366,7 @@ namespace OpcPublisher
             }
         }
 
+        private static string _publisherNodeConfigurationFilename = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
         private static List<NodePublishingConfiguration> _nodePublishingConfiguration;
         private static List<PublisherConfigurationFileEntry> _configurationFileEntries;
     }

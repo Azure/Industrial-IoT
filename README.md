@@ -83,10 +83,147 @@ The syntax of the configuration file is as follows:
         // please consult the OPC UA specification for details on how OPC monitored node sampling interval and OPC subscription publishing interval settings are handled by the OPC UA stack.
         // the publishing interval of the data to Azure IoTHub is controlled by the command line settings (or the default: publish data to IoTHub at least each 1 second).
     ]
+
+# Configuring the telemetry published to IoTHub
+If OpcPublisher gets notified about a value change in one of the configured published nodes, it generates a JSON formatted message, which is sent in batch mode or immediately to IoTHub.
+The content of this JSON formatted message could be configured via a configuration file. If no configuration file is specified via the  `--tc` option a default configuration is used,
+which is compatible with the [Connected factory Preconfigured Solution](https://github.com/Azure/azure-iot-connected-factory).
+
+The data which is ingested is taken from three objects:
+* the OpcPublisher node configuration object
+* the MonitoredItem object where the change occured
+* the event object the OPC UA stack provided in the value change notification event
+
+The telemetry which is put into the JSON formatted message is a selection of important properties of these objects. If you need more properties, you need to change the OpcPublisher code base.
+
+The syntax of the configuration file is as follows:
+
+    [
+        // The configuration file consists of an array of JSON objects.
+        // If the object has a key "ForEndpointUrl" (as the second object in this sample), the object defines the telemetry configuration for data from this specific endpoint.
+        // The value of "ForEndpointUrl" needs to be the same as is used in publishednodes.json.
+        // If there is no key "ForEndpointUrl" (as in the first object in this sample), the configuration is overwritting OpcPublisher's default telemetry configuration.
+
+        // The next object is overwritting the default telemetry configuration options of OpcPublisher. Here most of the settings are identical what is used as defalut settings.
+        {
+            // The first two keys ('EndpointUrl' and 'NodeId' are configuring the properties taken from the OpcPublisher node configuration object.
+
+            // This is the value of the EndpointUrl configuration from the publishednodes.json file of the node the change happened.
+            "EndpointUrl": {
+                // The following three keys can be used to configure the telemetry of the property.
+                // Publish controls if the property should be part of the telemetry sent to IoTHub.
+                "Publish": false,
+                // Pattern is a regular expression, which is applied to the actual value of the property (here Endpoint).
+                // If this key is ommited, then no regex matching is done, which improves performance.
+                // If the key is used you need to define groups in the regular expression. Publisher applies the
+                // regular expression and then concatenates all groups and use the resulting string as the value to sent to IoTHub.
+                // This example mimics the default behaviour and defines a group which matches the conplete value.
+                "Pattern": "(.*)",
+                // Name allows you to use a shorter string as key in the JSON message sent to IoTHub. By default the key is the same as the property name (EndpointUrl in our case).
+                "Name": "EndpointUrl"
+            },
+            "NodeId": {
+                "Publish": true,
+                "Name": "NodeId"
+            },
+
+            // The MonitoredItem object is configuring the properties taken from the MonitoredItem OPC UA object.
+            "MonitoredItem": {
+                // The 'Flat' key is only used in the 'MonitoredItem' and 'Value' object of this JSON. When set to true, then the properties configured here,
+                // will be added as top level keys to the JSON message. When set to false, the properties will be put in a object with name 'MonitoredItem' into the
+                // JSON message.
+                "Flat": true,
+                "ApplicationUri": {
+                    "Publish": true,
+                    "Name": "ApplicationUri"
+                },
+                "DisplayName": {
+                    "Publish": true,
+                    "Name": "DisplayName"
+                }
+            },
+            // The Value object is configuring the properties taken from the event object the OPC UA stack provided in the value change notification event.
+            "Value": {
+                // 'Flat' is here set to false, which will result in an 'Value' object created in the JSON message, which has contains the properties configured below.
+                "Flat": false,
+                "Value": {
+                    "Publish": true,
+                    "Name": "Value"
+                },
+                "SourceTimestamp": {
+                    "Publish": true,
+                    "Name": "SourceTimestamp"
+                },
+                // StatusCode is the 32 bit OPC UA status code formatted as hexadezimal number.
+                "StatusCode": {
+                    // 'Publish' is false, which means 'StatusCode' will not be part of the JSON message.
+                    "Publish": false,
+                    "Name": "StatusCode"
+                },
+                // 'Status' is the symbolic name of 'StatusCode'
+                "Status": {
+                    "Publish": false,
+                    "Name": "Status"
+                }
+            }
+        },
+        {
+            // In this object we configure the telemetry, which is generated for all notification we get from the endpoint specified
+            // be the key 'ForEndpointUrl'. The value of this key, is typically an endpoint URL configured in the publishednodes.json configuration file.
+            "ForEndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
+            "EndpointUrl": {
+                // We overwrite the default behaviour and publish the endpoint URL in this case.
+                "Publish": true,
+                // We also do not use 'EndpointUrl' as key, but save payload in the ingested message and just use 'eu'
+                "Name": "eu"
+            },
+            "NodeId": {
+                // We are not interested in the configured 'NodeId' value, so we do not publish it.
+                "Publish": false
+            },
+            "MonitoredItem": {
+                "Flat": false,
+                "ApplicationUri": {
+                    // We already publish the endpoint URL, so we do not need the ApplicationUri of the MonitoredItem to be published.
+                    "Publish": false
+                },
+                "DisplayName": {
+                    "Publish": true,
+                    // Our server is configured to hold enough identification information in the DisplayName (which is the OPC UA nodeId if --fd is not used).
+                    // But we are only interested in the meaningful part of the actual DisplayName property, so we define a regex which defines a group for this part
+                    // of the DisplayName we are interested in.
+                    "Pattern": "ns=.;s=(.*)",
+                    "Name": "DisplayName"
+                }
+            },
+            "Value": {
+                // We have no need for a 'Value' object in the JSON message and go for a completley flat JSON message sent to IoTHub.
+                "Flat": true,
+                "Name": "Value",
+                "Value": {
+                    "Publish": true,
+                    "Name": "Value"
+                },
+                "SourceTimestamp": {
+                    "Publish": true,
+                    "Name": "SourceTimestamp"
+                },
+                "StatusCode": {
+                    "Publish": true,
+                    "Name": "StatusCode"
+                },
+                "Status": {
+                    "Publish": true,
+                    "Name": "Status"
+                }
+            }
+        }
+    ]
 # Running the Application
 
 ## Command line options
 The complete usage of the application can be shown using the `--help` command line option and is as follows:
+
 
         Usage: OpcPublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
 
@@ -110,8 +247,10 @@ The complete usage of the application can be shown using the `--help` command li
         Options:
               --pf, --publishfile=VALUE
                                      the filename to configure the nodes to publish.
-                                       Default: 'D:\Repos\hg\iot-edge-opc-publisher\src\
-                                       publishednodes.json'
+                                       Default: '.\publishednodes.json'
+              --tc, --telemetryconfigfile=VALUE
+                                     the filename to configure the ingested telemetry
+                                       Default: ''
               --sd, --shopfloordomain=VALUE
                                      the domain of the shopfloor. if specified this
                                        domain is appended (delimited by a ':' to the '
@@ -286,6 +425,7 @@ The complete usage of the application can be shown using the `--help` command li
                                        X509Store: 'My'
                                        Directory: 'CertificateStores/IoTHub'
           -h, --help                 show this message and exit
+
 
 There are a couple of environment variables which can be used to control the application:
 * _HUB_CS: sets the IoTHub owner connectionstring

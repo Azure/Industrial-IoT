@@ -19,6 +19,7 @@ namespace OpcPublisher
     using static OpcSession;
     using static OpcStackConfiguration;
     using static PublisherNodeConfiguration;
+    using static PublisherTelemetryConfiguration;
     using static System.Console;
 
     public class Program
@@ -51,6 +52,7 @@ namespace OpcPublisher
                 Mono.Options.OptionSet options = new Mono.Options.OptionSet {
                     // Publishing configuration options
                     { "pf|publishfile=", $"the filename to configure the nodes to publish.\nDefault: '{PublisherNodeConfigurationFilename}'", (string p) => PublisherNodeConfigurationFilename = p },
+                    { "tc|telemetryconfigfile=", $"the filename to configure the ingested telemetry\nDefault: '{PublisherTelemetryConfigurationFilename}'", (string p) => PublisherTelemetryConfigurationFilename = p },
                     { "sd|shopfloordomain=", $"the domain of the shopfloor. if specified this domain is appended (delimited by a ':' to the 'ApplicationURI' property when telemetry is sent to IoTHub.\n" +
                             "The value must follow the syntactical rules of a DNS hostname.\nDefault: not set", (string s) => {
                             Regex domainNameRegex = new Regex("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
@@ -399,7 +401,13 @@ namespace OpcPublisher
                     return;
                 }
 
-                // Read node configuration file
+                // read telemetry configuration file
+                if (!await PublisherTelemetryConfiguration.ReadConfigAsync())
+                {
+                    return;
+                }
+
+                // read node configuration file
                 PublisherNodeConfiguration.Init();
                 if (!await PublisherNodeConfiguration.ReadConfigAsync())
                 {

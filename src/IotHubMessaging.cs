@@ -10,7 +10,6 @@ namespace OpcPublisher
     using Microsoft.Azure.Devices.Client;
     using Opc.Ua;
     using System;
-    using System.Diagnostics;
     using System.IO;
     using static Opc.Ua.CertificateStoreType;
     using static OpcPublisher.Diagnostics;
@@ -366,8 +365,8 @@ namespace OpcPublisher
                         {
                             Microsoft.Azure.Devices.Client.Message encodedIotHubMessage = null;
 
-                            // if we reached the send interval, but have nothing to send, we continue
-                            if (!gotItem && iotHubMessage.Position == 0)
+                            // if we reached the send interval, but have nothing to send (only the opening square bracket is there), we continue
+                            if (!gotItem && iotHubMessage.Position == 1)
                             {
                                 nextSendTime += TimeSpan.FromSeconds(_defaultSendIntervalSeconds);
                                 iotHubMessage.Position = 0;
