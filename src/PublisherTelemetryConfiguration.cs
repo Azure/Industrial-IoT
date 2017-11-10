@@ -17,6 +17,15 @@ namespace OpcPublisher
 
     public class PublisherTelemetryConfiguration
     {
+        public const string ApplicationUriKeyDefault = "ApplicationUri";
+        public const string DisplayNameKeyDefault = "DisplayName";
+        public const string ValueKeyDefault = "Value";
+        public const string SourceTimestampKeyDefault = "SourceTimestamp";
+        public const string StatusCodeKeyDefault = "StatusCode";
+        public const string StatusKeyDefault = "Status";
+        public const string EndpointUrlKeyDefault = "EndpointUrl";
+        public const string NodeIdDefault = "NodeId";
+
         public class Settings
         {
             [DefaultValue(true)]
@@ -39,13 +48,13 @@ namespace OpcPublisher
                 {
                     Publish = true,
                     Pattern = null,
-                    Name = "ApplicationUri"
+                    Name = null
                 };
                 DisplayName = new Settings
                 {
                     Publish = true,
                     Pattern = null,
-                    Name = "DisplayName"
+                    Name = null
                 };
             }
 
@@ -67,25 +76,25 @@ namespace OpcPublisher
                 {
                     Publish = true,
                     Pattern = null,
-                    Name = "Value"
+                    Name = null
                 };
                 SourceTimestamp = new Settings
                 {
                     Publish = true,
                     Pattern = null,
-                    Name = "SourceTimestamp"
+                    Name = null
                 };
                 StatusCode = new Settings
                 {
                     Publish = false,
                     Pattern = null,
-                    Name = "StatusCode"
+                    Name = null
                 };
                 Status = new Settings
                 {
                     Publish = false,
                     Pattern = null,
-                    Name = "Status"
+                    Name = null
                 };
             }
 
@@ -112,13 +121,13 @@ namespace OpcPublisher
                 {
                     Publish = false,
                     Pattern = null,
-                    Name = "EndpointUrl"
+                    Name = null
                 };
                 NodeId = new Settings
                 {
                     Publish = true,
                     Pattern = null,
-                    Name = "NodeId"
+                    Name = null
                 };
                 MonitoredItem = new MonitoredItemTelemetryConfiguration();
                 Value = new ValueTelemetryConfiguration();

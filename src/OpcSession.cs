@@ -426,9 +426,43 @@ namespace OpcPublisher
 
                 // serialize the object and patch the value name in case we are no flat
                 string json = JsonConvert.SerializeObject(messageData);
+
+                // update property names
                 if (valueIsFlat == false)
                 {
                     json = json.Replace(MessageData.ValueInfoReplacementTag, "Value");
+                }
+                if (telemetryConfiguration.MonitoredItem.ApplicationUri.Publish && !string.IsNullOrEmpty(telemetryConfiguration.MonitoredItem.ApplicationUri.Name))
+                {
+                    json = json.Replace($"\"{ApplicationUriKeyDefault}\":", $"\"{telemetryConfiguration.MonitoredItem.ApplicationUri.Name}\":");
+                }
+                if (telemetryConfiguration.MonitoredItem.DisplayName.Publish && !string.IsNullOrEmpty(telemetryConfiguration.MonitoredItem.DisplayName.Name))
+                {
+                    json = json.Replace($"\"{DisplayNameKeyDefault}\":", $"\"{telemetryConfiguration.MonitoredItem.DisplayName.Name}\":");
+                }
+                if (telemetryConfiguration.Value.Value.Publish && !string.IsNullOrEmpty(telemetryConfiguration.Value.Value.Name))
+                {
+                    json = json.Replace($"\"{ValueKeyDefault}\":", $"\"{telemetryConfiguration.Value.Value.Name}\":");
+                }
+                if (telemetryConfiguration.Value.SourceTimestamp.Publish && !string.IsNullOrEmpty(telemetryConfiguration.Value.SourceTimestamp.Name))
+                {
+                    json = json.Replace($"\"{SourceTimestampKeyDefault}\":", $"\"{telemetryConfiguration.Value.SourceTimestamp.Name}\":");
+                }
+                if (telemetryConfiguration.Value.StatusCode.Publish && !string.IsNullOrEmpty(telemetryConfiguration.Value.StatusCode.Name))
+                {
+                    json = json.Replace($"\"{StatusCodeKeyDefault}\":", $"\"{telemetryConfiguration.Value.StatusCode.Name}\":");
+                }
+                if (telemetryConfiguration.Value.Status.Publish && !string.IsNullOrEmpty(telemetryConfiguration.Value.Status.Name))
+                {
+                    json = json.Replace($"\"{StatusKeyDefault}\":", $"\"{telemetryConfiguration.Value.Status.Name}\":");
+                }
+                if (telemetryConfiguration.EndpointUrl.Publish && !string.IsNullOrEmpty(telemetryConfiguration.EndpointUrl.Name))
+                {
+                    json = json.Replace($"\"{EndpointUrlKeyDefault}\":", $"\"{telemetryConfiguration.EndpointUrl.Name}\":");
+                }
+                if (telemetryConfiguration.NodeId.Publish && !string.IsNullOrEmpty(telemetryConfiguration.NodeId.Name))
+                {
+                    json = json.Replace($"\"{NodeIdDefault}\":", $"\"{telemetryConfiguration.NodeId.Name}\":");
                 }
 
                 // add message to fifo send queue
