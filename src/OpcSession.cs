@@ -292,7 +292,7 @@ namespace OpcPublisher
                 }
 
                 // process MonitoredItem DisplayName property
-                if (telemetryConfiguration.MonitoredItem.DisplayName.Publish == true)
+                if (telemetryConfiguration.MonitoredItem.DisplayName.Publish == true && monitoredItem != null && monitoredItem.DisplayName != null)
                 {
                     // use the DisplayName as reported in the MonitoredItem
                     telemetryValue = monitoredItem.DisplayName;
@@ -324,7 +324,7 @@ namespace OpcPublisher
                 }
 
                 // process notification Value Value property
-                if (telemetryConfiguration.Value.Value.Publish == true)
+                if (telemetryConfiguration.Value.Value.Publish == true && value.Value != null)
                 {
                     // use the Value as reported in the notification event argument
                     telemetryValue = value.Value.ToString();
@@ -345,7 +345,7 @@ namespace OpcPublisher
                 }
 
                 // process notification Value SourceTimestamp property
-                if (telemetryConfiguration.Value.SourceTimestamp.Publish == true)
+                if (telemetryConfiguration.Value.SourceTimestamp.Publish == true && value.SourceTimestamp != null)
                 {
                     // use the SourceTimestamp as reported in the notification event argument in univeral sortable format
                     telemetryValue = value.SourceTimestamp.ToString("u");
@@ -366,9 +366,9 @@ namespace OpcPublisher
                 }
 
                 // process notification Value StatusCode property
-                if (telemetryConfiguration.Value.StatusCode.Publish == true)
+                if (telemetryConfiguration.Value.StatusCode.Publish == true && value.StatusCode != null)
                 {
-                    // use the SourceTimestamp as reported in the notification event argument in univeral sortable format
+                    // use the StatusCode as reported in the notification event argument
                     telemetryValue = value.StatusCode.Code.ToString("X");
                     if (!string.IsNullOrEmpty(telemetryConfiguration.Value.StatusCode.Pattern))
                     {
@@ -388,9 +388,9 @@ namespace OpcPublisher
 
 
                 // process notification Value StatusCode property as symbolic name
-                if (telemetryConfiguration.Value.Status.Publish == true)
+                if (telemetryConfiguration.Value.Status.Publish == true && value.StatusCode != null)
                 {
-                    // use the SourceTimestamp as reported in the notification event argument in univeral sortable format
+                    // use the StatusCode as reported in the notification event argument to lookup the symbolic name
                     telemetryValue = StatusCode.LookupSymbolicId(value.StatusCode.Code);
                     if (!string.IsNullOrEmpty(telemetryConfiguration.Value.Status.Pattern))
                     {
