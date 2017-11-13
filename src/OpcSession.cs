@@ -6,9 +6,7 @@ using System.Linq;
 
 namespace OpcPublisher
 {
-    using Newtonsoft.Json;
     using Opc.Ua;
-    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
     using static OpcPublisher.OpcMonitoredItem;
@@ -138,68 +136,67 @@ namespace OpcPublisher
             return false;
         }
 
+        /// <summary>
+        /// Class used to pass data from the MonitoredItem notification to the IoTHub message processing.
+        /// </summary>
         public class MessageData
         {
-            public MessageData()
-            {
-                MonitoredItemInfo = new MonitoredItemObjectInfo();
-                ValueInfo = new ValueObjectInfo();
-            }
-
-            public class MonitoredItemObjectInfo
-            {
-                [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-                public string ApplicationUri;
-                [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-                public string DisplayName;
-            }
-
-            public class ValueObjectInfo
-            {
-                [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-                public string Value;
-
-                [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-                public string SourceTimestamp;
-
-                [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-                public string Status;
-
-                [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-                public string StatusCode;
-            }
-
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public string EndpointUrl;
-
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public string NodeId;
-
-            [JsonProperty("MonitoredItem", NullValueHandling = NullValueHandling.Ignore)]
-            public MonitoredItemObjectInfo MonitoredItemInfo;
-
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public string ApplicationUri;
-
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public string DisplayName;
-
-            public const string ValueInfoReplacementTag = "__ValueInfo__ToReplace__";
-            [JsonProperty(ValueInfoReplacementTag, NullValueHandling = NullValueHandling.Ignore)]
-            public ValueObjectInfo ValueInfo;
-
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public string Value;
-
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public string SourceTimestamp;
-
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public string StatusCode;
-
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public string Status;
 
+            public MessageData()
+            {
+                EndpointUrl = null;
+                NodeId = null;
+                ApplicationUri = null;
+                DisplayName = null;
+                Value = null;
+                StatusCode = null;
+                SourceTimestamp = null;
+                Status = null;
+            }
+
+            public void ApplyPatterns(EndpointTelemetryConfiguration telemetryConfiguration)
+            {
+                if (telemetryConfiguration.EndpointUrl.Publish == true)
+                {
+                    EndpointUrl = telemetryConfiguration.EndpointUrl.PatternMatch(EndpointUrl);
+                }
+                if (telemetryConfiguration.NodeId.Publish == true)
+                {
+                    NodeId = telemetryConfiguration.NodeId.PatternMatch(NodeId);
+                }
+                if (telemetryConfiguration.MonitoredItem.ApplicationUri.Publish == true)
+                {
+                    ApplicationUri = telemetryConfiguration.MonitoredItem.ApplicationUri.PatternMatch(ApplicationUri);
+                }
+                if (telemetryConfiguration.MonitoredItem.DisplayName.Publish == true)
+                {
+                    DisplayName = telemetryConfiguration.MonitoredItem.DisplayName.PatternMatch(DisplayName);
+                }
+                if (telemetryConfiguration.Value.Value.Publish == true)
+                {
+                    Value = telemetryConfiguration.Value.Value.PatternMatch(Value);
+                }
+                if (telemetryConfiguration.Value.SourceTimestamp.Publish == true)
+                {
+                    SourceTimestamp = telemetryConfiguration.Value.SourceTimestamp.PatternMatch(SourceTimestamp);
+                }
+                if (telemetryConfiguration.Value.StatusCode.Publish == true)
+                {
+                    StatusCode = telemetryConfiguration.Value.StatusCode.PatternMatch(StatusCode);
+                }
+                if (telemetryConfiguration.Value.Status.Publish == true)
+                {
+                    Status = telemetryConfiguration.Value.Status.PatternMatch(Status);
+                }
+            }
         }
 
         /// <summary>
@@ -226,244 +223,51 @@ namespace OpcPublisher
                     return;
                 }
 
+                // update the required message data to pass only the required data to IotHubMessaging
                 MessageData messageData = new MessageData();
-                ServerTelemetryConfiguration telemetryConfiguration = GetServerTelemetryConfiguration(EndpointUri.AbsoluteUri);
-                string telemetryValue = string.Empty;
+                EndpointTelemetryConfiguration telemetryConfiguration = GetEndpointTelemetryConfiguration(EndpointUri.AbsoluteUri);
 
-                // process the NodeId configuration value (as configured in the publisher node configuration file)
-                if (telemetryConfiguration.NodeId.Publish)
+                // the endpoint URL is required to allow IotHubMessaging lookup the telemetry configuration
+                messageData.EndpointUrl = EndpointUri.AbsoluteUri;
+                if (telemetryConfiguration.NodeId.Publish == true)
                 {
-                    telemetryValue = ConfigType == OpcMonitoredItemConfigurationType.NodeId ? ConfigNodeId.ToString() : ConfigExpandedNodeId.ToString();
-                    if (!string.IsNullOrEmpty(telemetryConfiguration.NodeId.Pattern))
-                    {
-                        Regex regex = new Regex(telemetryConfiguration.NodeId.Pattern);
-                        Match match = regex.Match(telemetryValue);
-                        if (match.Groups[0].Success)
-                        {
-                            telemetryValue = string.Empty;
-                            foreach (var group in match.Groups.Skip(1))
-                            {
-                                telemetryValue += group.Value;
-                            }
-                        }
-                    }
-                    messageData.NodeId = telemetryValue;
+                    messageData.NodeId = ConfigType == OpcMonitoredItemConfigurationType.NodeId ? ConfigNodeId.ToString() : ConfigExpandedNodeId.ToString();
                 }
-
-                // process the EndpointUrl configuration value (as configured in the publisher node configuration file)
-                if (telemetryConfiguration.EndpointUrl.Publish)
-                {
-                    telemetryValue = EndpointUri.AbsoluteUri;
-                    if (!string.IsNullOrEmpty(telemetryConfiguration.EndpointUrl.Pattern))
-                    {
-                        Regex regex = new Regex(telemetryConfiguration.EndpointUrl.Pattern);
-                        Match match = regex.Match(telemetryValue);
-                        if (match.Groups[0].Success)
-                        {
-                            telemetryValue = string.Empty;
-                            foreach (var group in match.Groups.Skip(1))
-                            {
-                                telemetryValue += group.Value;
-                            }
-                        }
-                    }
-                    messageData.EndpointUrl = telemetryValue;
-                }
-
-                // process MonitoredItem server ApplicationUri property
                 if (telemetryConfiguration.MonitoredItem.ApplicationUri.Publish == true)
                 {
-                    // use the ApplicationUri as reported in the MonitoredItem and append the shopfloor domain if configured
-                    telemetryValue = (monitoredItem.Subscription.Session.Endpoint.Server.ApplicationUri + (string.IsNullOrEmpty(OpcSession.ShopfloorDomain) ? "" : $":{OpcSession.ShopfloorDomain}"));
-                    if (!string.IsNullOrEmpty(telemetryConfiguration.MonitoredItem.ApplicationUri.Pattern))
-                    {
-                        Regex regex = new Regex(telemetryConfiguration.MonitoredItem.ApplicationUri.Pattern);
-                        Match match = regex.Match(telemetryValue);
-                        if (match.Groups[0].Success)
-                        {
-                            telemetryValue = string.Empty;
-                            foreach (var group in match.Groups.Skip(1))
-                            {
-                                telemetryValue += group.Value;
-                            }
-                        }
-                    }
-                    messageData.ApplicationUri = messageData.MonitoredItemInfo.ApplicationUri = telemetryValue;
+                    messageData.ApplicationUri = (monitoredItem.Subscription.Session.Endpoint.Server.ApplicationUri + (string.IsNullOrEmpty(OpcSession.ShopfloorDomain) ? "" : $":{OpcSession.ShopfloorDomain}"));
                 }
-
-                // process MonitoredItem DisplayName property
-                if (telemetryConfiguration.MonitoredItem.DisplayName.Publish == true && monitoredItem != null && monitoredItem.DisplayName != null)
+                if (telemetryConfiguration.MonitoredItem.DisplayName.Publish == true && monitoredItem.DisplayName != null)
                 {
                     // use the DisplayName as reported in the MonitoredItem
-                    telemetryValue = monitoredItem.DisplayName;
-                    if (!string.IsNullOrEmpty(telemetryConfiguration.MonitoredItem.DisplayName.Pattern))
-                    {
-                        Regex regex = new Regex(telemetryConfiguration.MonitoredItem.DisplayName.Pattern);
-                        Match match = regex.Match(telemetryValue);
-                        if (match.Groups[0].Success)
-                        {
-                            telemetryValue = string.Empty;
-                            foreach (var group in match.Groups.Skip(1))
-                            {
-                                telemetryValue += group.Value;
-                            }
-                        }
-                    }
-                    messageData.DisplayName = messageData.MonitoredItemInfo.DisplayName = telemetryValue;
+                    messageData.DisplayName = monitoredItem.DisplayName;
                 }
-
-                // process flat setting for MonitoredItem
-                if (telemetryConfiguration.MonitoredItem.Flat == true)
-                {
-                    messageData.MonitoredItemInfo = null;
-                }
-                else
-                {
-                    messageData.ApplicationUri = null;
-                    messageData.DisplayName = null;
-                }
-
-                // process notification Value Value property
                 if (telemetryConfiguration.Value.Value.Publish == true && value.Value != null)
                 {
                     // use the Value as reported in the notification event argument
-                    telemetryValue = value.Value.ToString();
-                    if (!string.IsNullOrEmpty(telemetryConfiguration.Value.Value.Pattern))
-                    {
-                        Regex regex = new Regex(telemetryConfiguration.Value.Value.Pattern);
-                        Match match = regex.Match(telemetryValue);
-                        if (match.Groups[0].Success)
-                        {
-                            telemetryValue = string.Empty;
-                            foreach (var group in match.Groups.Skip(1))
-                            {
-                                telemetryValue += group.Value;
-                            }
-                        }
-                    }
-                    messageData.Value = messageData.ValueInfo.Value = telemetryValue;
+                    messageData.Value = value.Value.ToString();
                 }
-
-                // process notification Value SourceTimestamp property
                 if (telemetryConfiguration.Value.SourceTimestamp.Publish == true && value.SourceTimestamp != null)
                 {
                     // use the SourceTimestamp as reported in the notification event argument in univeral sortable format
-                    telemetryValue = value.SourceTimestamp.ToString("u");
-                    if (!string.IsNullOrEmpty(telemetryConfiguration.Value.SourceTimestamp.Pattern))
-                    {
-                        Regex regex = new Regex(telemetryConfiguration.Value.SourceTimestamp.Pattern);
-                        Match match = regex.Match(telemetryValue);
-                        if (match.Groups[0].Success)
-                        {
-                            telemetryValue = string.Empty;
-                            foreach (var group in match.Groups.Skip(1))
-                            {
-                                telemetryValue += group.Value;
-                            }
-                        }
-                    }
-                    messageData.SourceTimestamp = messageData.ValueInfo.SourceTimestamp = telemetryValue;
+                    messageData.SourceTimestamp = value.SourceTimestamp.ToString();
                 }
-
-                // process notification Value StatusCode property
                 if (telemetryConfiguration.Value.StatusCode.Publish == true && value.StatusCode != null)
                 {
                     // use the StatusCode as reported in the notification event argument
-                    telemetryValue = value.StatusCode.Code.ToString("X");
-                    if (!string.IsNullOrEmpty(telemetryConfiguration.Value.StatusCode.Pattern))
-                    {
-                        Regex regex = new Regex(telemetryConfiguration.Value.StatusCode.Pattern);
-                        Match match = regex.Match(telemetryValue);
-                        if (match.Groups[0].Success)
-                        {
-                            telemetryValue = string.Empty;
-                            foreach (var group in match.Groups.Skip(1))
-                            {
-                                telemetryValue += group.Value;
-                            }
-                        }
-                    }
-                    messageData.StatusCode = messageData.ValueInfo.StatusCode = telemetryValue;
+                    messageData.StatusCode = value.StatusCode.Code.ToString("X");
                 }
-
-
-                // process notification Value StatusCode property as symbolic name
                 if (telemetryConfiguration.Value.Status.Publish == true && value.StatusCode != null)
                 {
                     // use the StatusCode as reported in the notification event argument to lookup the symbolic name
-                    telemetryValue = StatusCode.LookupSymbolicId(value.StatusCode.Code);
-                    if (!string.IsNullOrEmpty(telemetryConfiguration.Value.Status.Pattern))
-                    {
-                        Regex regex = new Regex(telemetryConfiguration.Value.Status.Pattern);
-                        Match match = regex.Match(telemetryValue);
-                        if (match.Groups[0].Success)
-                        {
-                            telemetryValue = string.Empty;
-                            foreach (var group in match.Groups.Skip(1))
-                            {
-                                telemetryValue += group.Value;
-                            }
-                        }
-                    }
-                    messageData.Status = messageData.ValueInfo.Status = telemetryValue;
+                    messageData.Status = StatusCode.LookupSymbolicId(value.StatusCode.Code);
                 }
 
-                // process flat setting for Value
-                bool valueIsFlat = false;
-                if (telemetryConfiguration.Value.Flat == true)
-                {
-                    messageData.ValueInfo = null;
-                    valueIsFlat = true;
-                }
-                else
-                {
-                    messageData.Value = null;
-                    messageData.SourceTimestamp = null;
-                    messageData.StatusCode = null;
-                    messageData.Status = null;
-                    valueIsFlat = false;
-                }
+                // currently the pattern processing is done here, which adds runtime to the notification processing.
+                // In case of perf issues it could be also done in CreateJsonMessage of IoTHubMessaging.cs.
 
-                // serialize the object and patch the value name in case we are no flat
-                string json = JsonConvert.SerializeObject(messageData);
-
-                // update property names
-                if (valueIsFlat == false)
-                {
-                    json = json.Replace(MessageData.ValueInfoReplacementTag, "Value");
-                }
-                if (telemetryConfiguration.MonitoredItem.ApplicationUri.Publish && !string.IsNullOrEmpty(telemetryConfiguration.MonitoredItem.ApplicationUri.Name))
-                {
-                    json = json.Replace($"\"{ApplicationUriKeyDefault}\":", $"\"{telemetryConfiguration.MonitoredItem.ApplicationUri.Name}\":");
-                }
-                if (telemetryConfiguration.MonitoredItem.DisplayName.Publish && !string.IsNullOrEmpty(telemetryConfiguration.MonitoredItem.DisplayName.Name))
-                {
-                    json = json.Replace($"\"{DisplayNameKeyDefault}\":", $"\"{telemetryConfiguration.MonitoredItem.DisplayName.Name}\":");
-                }
-                if (telemetryConfiguration.Value.Value.Publish && !string.IsNullOrEmpty(telemetryConfiguration.Value.Value.Name))
-                {
-                    json = json.Replace($"\"{ValueKeyDefault}\":", $"\"{telemetryConfiguration.Value.Value.Name}\":");
-                }
-                if (telemetryConfiguration.Value.SourceTimestamp.Publish && !string.IsNullOrEmpty(telemetryConfiguration.Value.SourceTimestamp.Name))
-                {
-                    json = json.Replace($"\"{SourceTimestampKeyDefault}\":", $"\"{telemetryConfiguration.Value.SourceTimestamp.Name}\":");
-                }
-                if (telemetryConfiguration.Value.StatusCode.Publish && !string.IsNullOrEmpty(telemetryConfiguration.Value.StatusCode.Name))
-                {
-                    json = json.Replace($"\"{StatusCodeKeyDefault}\":", $"\"{telemetryConfiguration.Value.StatusCode.Name}\":");
-                }
-                if (telemetryConfiguration.Value.Status.Publish && !string.IsNullOrEmpty(telemetryConfiguration.Value.Status.Name))
-                {
-                    json = json.Replace($"\"{StatusKeyDefault}\":", $"\"{telemetryConfiguration.Value.Status.Name}\":");
-                }
-                if (telemetryConfiguration.EndpointUrl.Publish && !string.IsNullOrEmpty(telemetryConfiguration.EndpointUrl.Name))
-                {
-                    json = json.Replace($"\"{EndpointUrlKeyDefault}\":", $"\"{telemetryConfiguration.EndpointUrl.Name}\":");
-                }
-                if (telemetryConfiguration.NodeId.Publish && !string.IsNullOrEmpty(telemetryConfiguration.NodeId.Name))
-                {
-                    json = json.Replace($"\"{NodeIdDefault}\":", $"\"{telemetryConfiguration.NodeId.Name}\":");
-                }
+                // apply patterns
+                messageData.ApplyPatterns(telemetryConfiguration);
 
                 // add message to fifo send queue
                 Trace(Utils.TraceMasks.OperationDetail, $"Enqueue a new message from subscription {monitoredItem.Subscription.Id}");
@@ -471,7 +275,7 @@ namespace OpcPublisher
                 Trace(Utils.TraceMasks.OperationDetail, $"   EndpointUrl: {EndpointUri.AbsoluteUri}");
                 Trace(Utils.TraceMasks.OperationDetail, $"   DisplayName: {monitoredItem.DisplayName}");
                 Trace(Utils.TraceMasks.OperationDetail, $"   Value: {value}");
-                IotHubCommunication.Enqueue(json);
+                IotHubCommunication.Enqueue(messageData);
             }
             catch (Exception e)
             {
@@ -605,6 +409,7 @@ namespace OpcPublisher
             _useSecurity = useSecurity;
             _opcSessionSemaphore = new SemaphoreSlim(1);
             _namespaceTable = new NamespaceTable();
+            _telemetryConfiguration = GetEndpointTelemetryConfiguration(endpointUri.AbsoluteUri);
         }
 
         /// <summary>
@@ -1436,6 +1241,7 @@ namespace OpcPublisher
         private bool _useSecurity = true;
         private SemaphoreSlim _opcSessionSemaphore;
         private NamespaceTable _namespaceTable;
+        private EndpointTelemetryConfiguration _telemetryConfiguration;
         private double _minSupportedSamplingInterval;
     }
 }

@@ -8,11 +8,14 @@ namespace OpcPublisher
 {
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Client;
+    using Newtonsoft.Json;
     using Opc.Ua;
     using System;
     using System.IO;
     using static Opc.Ua.CertificateStoreType;
     using static OpcPublisher.Diagnostics;
+    using static OpcPublisher.OpcMonitoredItem;
+    using static OpcPublisher.PublisherTelemetryConfiguration;
     using static OpcPublisher.Workarounds.TraceWorkaround;
     using static OpcStackConfiguration;
 
@@ -107,6 +110,16 @@ namespace OpcPublisher
         }
 
         /// <summary>
+        /// Ctor for the class.
+        /// </summary>
+        public IotHubMessaging()
+        {
+            _jsonStringBuilder = new StringBuilder();
+            _jsonStringWriter = new StringWriter(_jsonStringBuilder);
+            _jsonWriter = new JsonTextWriter(_jsonStringWriter);
+        }
+
+        /// <summary>
         /// Initializes the communication with secrets and details for (batched) send process.
         /// </summary>
         public async Task<bool> InitAsync()
@@ -187,7 +200,7 @@ namespace OpcPublisher
                 Trace($"IoTHub messaging configured with a send interval of {_defaultSendIntervalSeconds} sec and a message buffer size of {_iotHubMessageSize} bytes.");
 
                 // create the queue for monitored items
-                _monitoredItemsDataQueue = new BlockingCollection<string>(_monitoredItemsQueueCapacity);
+                _monitoredItemsDataQueue = new BlockingCollection<MessageData>(_monitoredItemsQueueCapacity);
 
                 // start up task to send telemetry to IoTHub
                 _monitoredItemsProcessorTask = null;
@@ -246,7 +259,7 @@ namespace OpcPublisher
         /// Enqueue a message for sending to IoTHub.
         /// </summary>
         /// <param name="json"></param>
-        public void Enqueue(string json)
+        public void Enqueue(MessageData json)
         {
             // Try to add the message.
             DiagnosticsSemaphore.WaitAsync();
@@ -262,6 +275,125 @@ namespace OpcPublisher
                     Trace(Utils.TraceMasks.Error, $"The internal monitored item message queue is above its capacity of {_monitoredItemsDataQueue.BoundedCapacity}. We have already lost {failureCount} monitored item notifications:(");
                 }
             }
+        }
+
+        /// <summary>
+        /// Creates a JSON message to be sent to IoTHub, based on the telemetry configuration for the endpoint.
+        /// </summary>
+        private async Task<string> CreateJsonMessage(MessageData messageData)
+        {
+            try
+            {
+                // get telemetry configration
+                EndpointTelemetryConfiguration telemetryConfiguration = GetEndpointTelemetryConfiguration(messageData.EndpointUrl);
+
+                // currently the pattern processing is done in MonitoredItem_Notification of OpcSession.cs. In case of perf issues
+                // it could be also done here, the risk is then to lose messages in the communication queue.
+
+                // apply configured patterns to message data
+                // messageData.ApplyPatterns(telemetryConfiguration);
+
+                // build the JSON message
+                _jsonStringBuilder.Clear();
+                await _jsonWriter.WriteStartObjectAsync();
+                string telemetryValue = string.Empty;
+
+                // process EndpointUrl
+                if ((bool)telemetryConfiguration.EndpointUrl.Publish)
+                {
+                    await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.EndpointUrl.Name);
+                    await _jsonWriter.WriteValueAsync(messageData.EndpointUrl);
+                }
+
+                // process NodeId
+                if (!string.IsNullOrEmpty(messageData.NodeId))
+                {
+                    await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.NodeId.Name);
+                    await _jsonWriter.WriteValueAsync(messageData.NodeId);
+                }
+
+                // process MonitoredItem object properties
+                if (!string.IsNullOrEmpty(messageData.ApplicationUri) || !string.IsNullOrEmpty(messageData.DisplayName))
+                {
+                    if (!(bool)telemetryConfiguration.MonitoredItem.Flat)
+                    {
+                        await _jsonWriter.WritePropertyNameAsync("MonitoredItem");
+                        await _jsonWriter.WriteStartObjectAsync();
+                    }
+
+                    // process ApplicationUri
+                    if (!string.IsNullOrEmpty(messageData.ApplicationUri))
+                    {
+                        await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.MonitoredItem.ApplicationUri.Name);
+                        await _jsonWriter.WriteValueAsync(messageData.ApplicationUri);
+                    }
+
+                    // process DisplayName
+                    if (!string.IsNullOrEmpty(messageData.DisplayName))
+                    {
+                        await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.MonitoredItem.DisplayName.Name);
+                        await _jsonWriter.WriteValueAsync(messageData.DisplayName);
+                    }
+
+                    if (!(bool)telemetryConfiguration.MonitoredItem.Flat)
+                    {
+                        await _jsonWriter.WriteEndObjectAsync();
+                    }
+                }
+
+                // process Value object properties
+                if (!string.IsNullOrEmpty(messageData.Value) || !string.IsNullOrEmpty(messageData.SourceTimestamp) ||
+                   !string.IsNullOrEmpty(messageData.StatusCode) || !string.IsNullOrEmpty(messageData.Status))
+                {
+                    if (!(bool)telemetryConfiguration.Value.Flat)
+                    {
+                        await _jsonWriter.WritePropertyNameAsync("Value");
+                        await _jsonWriter.WriteStartObjectAsync();
+                    }
+
+                    // process Value
+                    if (!string.IsNullOrEmpty(messageData.Value))
+                    {
+                        await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.Value.Name);
+                        await _jsonWriter.WriteValueAsync(messageData.Value);
+                    }
+
+                    // process SourceTimestamp
+                    if (!string.IsNullOrEmpty(messageData.SourceTimestamp))
+                    {
+                        await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.SourceTimestamp.Name);
+                        await _jsonWriter.WriteValueAsync(messageData.SourceTimestamp);
+                    }
+
+                    // process StatusCode
+                    if (!string.IsNullOrEmpty(messageData.StatusCode))
+                    {
+                        await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.StatusCode.Name);
+                        await _jsonWriter.WriteValueAsync(messageData.StatusCode);
+                    }
+
+                    // process Status
+                    if (!string.IsNullOrEmpty(messageData.Status))
+                    {
+                        await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.Status.Name);
+                        await _jsonWriter.WriteValueAsync(messageData.Status);
+                    }
+
+                    if (!(bool)telemetryConfiguration.Value.Flat)
+                    {
+                        await _jsonWriter.WriteEndObjectAsync();
+                    }
+                }
+                await _jsonWriter.WriteEndObjectAsync();
+                await _jsonWriter.FlushAsync();
+                return _jsonStringBuilder.ToString();
+
+            }
+            catch (Exception e)
+            {
+                Trace(e, $"Generation of JSON message failed ({e.Message})");
+            }
+            return string.Empty;
         }
 
         /// <summary>
@@ -285,6 +417,7 @@ namespace OpcPublisher
                 try
                 {
                     string jsonMessage = string.Empty;
+                    MessageData messageData = new MessageData();
                     bool needToBufferMessage = false;
                     int jsonMessageSize = 0;
 
@@ -309,7 +442,7 @@ namespace OpcPublisher
                             // if we are in shutdown do not wait, else wait infinite if send interval is not set
                             millisecondsTillNextSend = ct.IsCancellationRequested ? 0 : Timeout.Infinite;
                         }
-                        bool gotItem = _monitoredItemsDataQueue.TryTake(out jsonMessage, (int)millisecondsTillNextSend);
+                        bool gotItem = _monitoredItemsDataQueue.TryTake(out messageData, (int)millisecondsTillNextSend);
 
                         // the two commandline parameter --ms (message size) and --si (send interval) control when data is sent to IoTHub
                         // pls see detailed comments on performance and memory consumption at https://github.com/Azure/iot-edge-opc-publisher
@@ -317,6 +450,9 @@ namespace OpcPublisher
                         // check if we got an item or if we hit the timeout or got canceled
                         if (gotItem)
                         {
+                            // create a JSON message from the messageData object
+                            jsonMessage = await CreateJsonMessage(messageData);
+
                             _dequeueCount++;
                             jsonMessageSize = Encoding.UTF8.GetByteCount(jsonMessage.ToString());
 
@@ -455,27 +591,12 @@ namespace OpcPublisher
         private static long _maxSendDuration;
         private static long _failedMessages;
         private static long _failedTime;
-        private static BlockingCollection<string> _monitoredItemsDataQueue;
+        private static BlockingCollection<MessageData> _monitoredItemsDataQueue;
         private static CancellationTokenSource _tokenSource;
         private static Task _monitoredItemsProcessorTask;
         private static DeviceClient _iotHubClient;
-
-        /// <summary>
-        /// Classes for the telemetry message sent to IoTHub.
-        /// </summary>
-        private class OpcUaMessage
-        {
-            public string ApplicationUri;
-            public string DisplayName;
-            public string NodeId;
-            public OpcUaValue Value;
-        }
-
-        private class OpcUaValue
-        {
-            public string Value;
-            public string SourceTimestamp;
-        }
-
+        private static StringBuilder _jsonStringBuilder;
+        private static StringWriter _jsonStringWriter;
+        private static JsonWriter _jsonWriter;
     }
 }

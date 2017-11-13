@@ -402,6 +402,7 @@ namespace OpcPublisher
                 }
 
                 // read telemetry configuration file
+                PublisherTelemetryConfiguration.Init();
                 if (!await PublisherTelemetryConfiguration.ReadConfigAsync())
                 {
                     return;
@@ -472,6 +473,7 @@ namespace OpcPublisher
                 await Diagnostics.Shutdown();
 
                 // free resources
+                PublisherTelemetryConfiguration.Deinit();
                 PublisherNodeConfiguration.Deinit();
                 ShutdownTokenSource = null;
             }

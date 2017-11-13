@@ -2,8 +2,8 @@
     {
         // example for an EnpointUrl is: opc.tcp://win10iot:51210/UA/SampleServer
         "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
-        // Allows to access the endpoint with SecurityPolicy.None (no signing and encryption applied to the OPC UA communication), default is true
-        "UseSecurity": false,
+        // Allows to access the endpoint with SecurityPolicy.None when set to 'false' (no signing and encryption applied to the OPC UA communication), default is true
+        "UseSecurity": true,
         "OpcNodes": [
             // Publisher will request the server at EndpointUrl to sample the node with the OPC sampling interval specified on command line (or the default value: OPC publishing interval)
             // and the subscription will publish the node value with the OPC publishing interval specified on command line (or the default value: server revised publishing interval).
