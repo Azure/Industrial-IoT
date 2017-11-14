@@ -244,8 +244,21 @@ namespace OpcPublisher
                 }
                 if (telemetryConfiguration.Value.Value.Publish == true && value.Value != null)
                 {
-                    // use the Value as reported in the notification event argument
-                    messageData.Value = value.Value.ToString();
+                    // use the Value as reported in the notification event argument encoded with the OPC UA JSON endcoder
+                    StatusCode savedStatusCode = value.StatusCode;
+                    JsonEncoder encoder = new JsonEncoder(monitoredItem.Subscription.Session.MessageContext, false);
+                    value.ServerTimestamp = DateTime.MinValue;
+                    value.SourceTimestamp = DateTime.MinValue;
+                    value.StatusCode = StatusCodes.Good;
+                    encoder.WriteDataValue("Value", value);
+                    string valueString = encoder.CloseAndReturnText();
+                    // we only want the value string, search for everything till the real value starts
+                    // and get it
+                    string marker = "{\"Value\":{\"Value\":\"";
+                    int markerStart = valueString.IndexOf(marker);
+                    int valueLength = valueString.Length - marker.Length - 3;
+                    messageData.Value = valueString.Substring(markerStart + marker.Length, valueLength);
+                    value.StatusCode = savedStatusCode;
                 }
                 if (telemetryConfiguration.Value.SourceTimestamp.Publish == true && value.SourceTimestamp != null)
                 {

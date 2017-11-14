@@ -205,7 +205,7 @@ The syntax of the configuration file is as follows:
                     //      "Value": "10.11.2017 14:03:17",
                     //      "SourceTimestamp": "2017-11-10 14:03:17Z"
                     // The 'Flat' property could only be used for the 'MonitoredItem' and 'Value'
-                    // configuratíon settings of the 'Defaults' objet and will be used for all JSON
+                    // objects of the 'Defaults' object and will be used for all JSON
                     // messages sent by publisher.
                     "Flat": false,
 
@@ -271,7 +271,7 @@ The syntax of the configuration file is as follows:
                     "Value": {
                         "Value": {
                             // The value of the node is important for us, everything else we
-                            //are not interested in to keep the data ingest as small as possible.
+                            // are not interested in to keep the data ingest as small as possible.
                             "Publish": true
                         },
                         "SourceTimestamp": {
