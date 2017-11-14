@@ -256,8 +256,11 @@ namespace OpcPublisher
                     // and get it
                     string marker = "{\"Value\":{\"Value\":\"";
                     int markerStart = valueString.IndexOf(marker);
-                    int valueLength = valueString.Length - marker.Length - 3;
-                    messageData.Value = valueString.Substring(markerStart + marker.Length, valueLength);
+                    if (markerStart >= 0 && valueString.Length - marker.Length > 3)
+                    {
+                        int valueLength = valueString.Length - marker.Length - 3;
+                        messageData.Value = valueString.Substring(markerStart + marker.Length, valueLength);
+                    }
                     value.StatusCode = savedStatusCode;
                 }
                 if (telemetryConfiguration.Value.SourceTimestamp.Publish == true && value.SourceTimestamp != null)
