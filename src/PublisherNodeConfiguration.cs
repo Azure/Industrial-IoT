@@ -300,6 +300,7 @@ namespace OpcPublisher
                                         {
                                             PublisherConfigurationFileEntry legacyPublisherConfigFileEntry = new PublisherConfigurationFileEntry();
                                             legacyPublisherConfigFileEntry.EndpointUri = session.EndpointUri;
+                                            legacyPublisherConfigFileEntry.UseSecurity = session.UseSecurity;
                                             legacyPublisherConfigFileEntry.NodeId = new NodeId(monitoredItem.ConfigExpandedNodeId.Identifier, (ushort)session.GetNamespaceIndex(monitoredItem.ConfigExpandedNodeId?.NamespaceUri));
                                             publisherConfigurationFileEntries.Add(legacyPublisherConfigFileEntry);
                                         }
@@ -323,6 +324,7 @@ namespace OpcPublisher
                                         // server namespace array.
                                         PublisherConfigurationFileEntry legacyPublisherConfigFileEntry = new PublisherConfigurationFileEntry();
                                         legacyPublisherConfigFileEntry.EndpointUri = session.EndpointUri;
+                                        legacyPublisherConfigFileEntry.UseSecurity = session.UseSecurity;
                                         legacyPublisherConfigFileEntry.NodeId = monitoredItem.ConfigNodeId;
                                         publisherConfigurationFileEntries.Add(legacyPublisherConfigFileEntry);
                                     }
@@ -405,8 +407,8 @@ namespace OpcPublisher
         public Uri EndpointUri { get; set; }
 
         [DefaultValue(true)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate)]
-        public bool UseSecurity { get; set; }
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
+        public bool? UseSecurity { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public NodeId NodeId { get; set; }
@@ -427,21 +429,21 @@ namespace OpcPublisher
         public int OpcSamplingInterval;
         public int OpcPublishingInterval;
 
-        public NodePublishingConfiguration(NodeId nodeId, Uri endpointUri, bool useSecurity, int opcSamplingInterval, int opcPublishingInterval)
+        public NodePublishingConfiguration(NodeId nodeId, Uri endpointUri, bool? useSecurity, int opcSamplingInterval, int opcPublishingInterval)
         {
             NodeId = nodeId;
             ExpandedNodeId = null;
             EndpointUri = endpointUri;
-            UseSecurity = useSecurity;
+            UseSecurity = useSecurity ?? true;
             OpcSamplingInterval = opcSamplingInterval;
             OpcPublishingInterval = opcPublishingInterval;
         }
-        public NodePublishingConfiguration(ExpandedNodeId expandedNodeId, Uri endpointUri, bool useSecurity, int opcSamplingInterval, int opcPublishingInterval)
+        public NodePublishingConfiguration(ExpandedNodeId expandedNodeId, Uri endpointUri, bool? useSecurity, int opcSamplingInterval, int opcPublishingInterval)
         {
             NodeId = null;
             ExpandedNodeId = expandedNodeId;
             EndpointUri = endpointUri;
-            UseSecurity = useSecurity;
+            UseSecurity = useSecurity ?? true;
             OpcSamplingInterval = opcSamplingInterval;
             OpcPublishingInterval = opcPublishingInterval;
         }

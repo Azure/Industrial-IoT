@@ -242,27 +242,6 @@ namespace OpcPublisher
                     // use the DisplayName as reported in the MonitoredItem
                     messageData.DisplayName = monitoredItem.DisplayName;
                 }
-                if (telemetryConfiguration.Value.Value.Publish == true && value.Value != null)
-                {
-                    // use the Value as reported in the notification event argument encoded with the OPC UA JSON endcoder
-                    StatusCode savedStatusCode = value.StatusCode;
-                    JsonEncoder encoder = new JsonEncoder(monitoredItem.Subscription.Session.MessageContext, false);
-                    value.ServerTimestamp = DateTime.MinValue;
-                    value.SourceTimestamp = DateTime.MinValue;
-                    value.StatusCode = StatusCodes.Good;
-                    encoder.WriteDataValue("Value", value);
-                    string valueString = encoder.CloseAndReturnText();
-                    // we only want the value string, search for everything till the real value starts
-                    // and get it
-                    string marker = "{\"Value\":{\"Value\":\"";
-                    int markerStart = valueString.IndexOf(marker);
-                    if (markerStart >= 0 && valueString.Length - marker.Length > 3)
-                    {
-                        int valueLength = valueString.Length - marker.Length - 3;
-                        messageData.Value = valueString.Substring(markerStart + marker.Length, valueLength);
-                    }
-                    value.StatusCode = savedStatusCode;
-                }
                 if (telemetryConfiguration.Value.SourceTimestamp.Publish == true && value.SourceTimestamp != null)
                 {
                     // use the SourceTimestamp as reported in the notification event argument in univeral sortable format
@@ -278,6 +257,25 @@ namespace OpcPublisher
                     // use the StatusCode as reported in the notification event argument to lookup the symbolic name
                     messageData.Status = StatusCode.LookupSymbolicId(value.StatusCode.Code);
                 }
+                if (telemetryConfiguration.Value.Value.Publish == true && value.Value != null)
+                {
+                    // use the Value as reported in the notification event argument encoded with the OPC UA JSON endcoder
+                    JsonEncoder encoder = new JsonEncoder(monitoredItem.Subscription.Session.MessageContext, false);
+                    value.ServerTimestamp = DateTime.MinValue;
+                    value.SourceTimestamp = DateTime.MinValue;
+                    value.StatusCode = StatusCodes.Good;
+                    encoder.WriteDataValue("Value", value);
+                    string valueString = encoder.CloseAndReturnText();
+                    // we only want the value string, search for everything till the real value starts
+                    // and get it
+                    string marker = "{\"Value\":{\"Value\":\"";
+                    int markerStart = valueString.IndexOf(marker);
+                    if (markerStart >= 0 && valueString.Length - marker.Length > 3)
+                    {
+                        int valueLength = valueString.Length - marker.Length - 3;
+                        messageData.Value = valueString.Substring(markerStart + marker.Length, valueLength);
+                    }
+                }
 
                 // currently the pattern processing is done here, which adds runtime to the notification processing.
                 // In case of perf issues it could be also done in CreateJsonMessage of IoTHubMessaging.cs.
@@ -288,9 +286,9 @@ namespace OpcPublisher
                 // add message to fifo send queue
                 Trace(Utils.TraceMasks.OperationDetail, $"Enqueue a new message from subscription {monitoredItem.Subscription.Id}");
                 Trace(Utils.TraceMasks.OperationDetail, $" with publishing interval: {monitoredItem.Subscription.PublishingInterval} and sampling interval: {monitoredItem.SamplingInterval}):");
-                Trace(Utils.TraceMasks.OperationDetail, $"   EndpointUrl: {EndpointUri.AbsoluteUri}");
-                Trace(Utils.TraceMasks.OperationDetail, $"   DisplayName: {monitoredItem.DisplayName}");
-                Trace(Utils.TraceMasks.OperationDetail, $"   Value: {value}");
+                Trace(Utils.TraceMasks.OperationDetail, $"   EndpointUrl: {messageData.EndpointUrl}");
+                Trace(Utils.TraceMasks.OperationDetail, $"   DisplayName: {messageData.DisplayName}");
+                Trace(Utils.TraceMasks.OperationDetail, $"   Value: {messageData.Value}");
                 IotHubCommunication.Enqueue(messageData);
             }
             catch (Exception e)
