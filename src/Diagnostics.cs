@@ -61,14 +61,14 @@ namespace OpcPublisher
         {
             while (true)
             {
+                if (ct.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 try
                 {
-
                     await Task.Delay((int)_diagnosticsInterval * 1000, ct);
-                    if (ct.IsCancellationRequested)
-                    {
-                        return;
-                    }
 
                     Trace("==========================================================================");
                     Trace($"OpcPublisher status @ {System.DateTime.UtcNow} (started @ {PublisherStartTime})");

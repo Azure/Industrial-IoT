@@ -140,6 +140,10 @@ The complete usage of the application can be shown using the `--help` command li
               --vc, --verboseconsole=VALUE
                                      the output of publisher is shown on the console.
                                        Default: False
+              --ns, --noshutdown=VALUE
+                                     publisher could not be stopped by pressing a key
+                                       on the console, but will run forever.
+                                       Default: False
               --ih, --iothubprotocol=VALUE
                                      the protocol to use for communication with Azure
                                        IoTHub (allowed values: Amqp, Http1, Amqp_
