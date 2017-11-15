@@ -555,9 +555,19 @@ In the `Image URI` field, enter `microsoft/iot-edge-opc-publisher:latest`
 * Adjust the command line parameters in `Cmd` as needed
 * Adjust the `Binds` source, which is set in the example to `//d/docker/docker`, which means that the publishednodes.json and the publisher.log.txt are put into
   folder d:\docker\docker on the Windows host IoT Edge is running (Note: you need to apply the the appropriate Settings to allow Docker for Windows accessing the drives.)
-* Update your publishednodes.json file as needed.
 * Leave the other settings unchanged and select `Save`.
-* Back in the `Set Modules` page, select `Next` twice and then `Submit`
+* Back in the `Set Modules` page, select `Next`
+* Add the following route in the `Specify Routes` page:
+
+        {
+           "routes":{
+              "upstream":"FROM /* INTO $upstream"
+           }
+        }
+
+* Select `Next`
+* Update your publishednodes.json file on your system IoT Edge is running as needed.
+* Select `Submit` to send your configuration down to IoT Edge
 
 
 
