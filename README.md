@@ -523,6 +523,40 @@ There is a prebuilt container available on DockerHub. To start it, just do:
 
     docker run microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
+## Using it as a module in Azure IoT Edge
+[Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge) is now in public preview and OpcPublisher is ready to be used as a module to run in IoT Edge.
+We recommend to take a look on the information available on the beforementioned link and use then the information provided here. You need to install the IoT Edge as
+explained in the Quickstart guides and create an IoTHub to be able to configure the modules to run on IoT Edge.
+
+To add publisher as module to your IoT Edge deployment, you go to the Azure portal and navigate to your IoTHub and:
+* Go to IoT Edge (preview) and select your IoT Edge device.
+* Select `Set Modules`.
+* Select `Add IoT Edge Module`.
+* In the `Name` field, enter `iot-edge-opc-publisher`.
+In the `Image URI` field, enter `microsoft/iot-edge-opc-publisher:latest`
+* Paste the following into the `Container Create Options` field:
+
+        {
+            "Hostname": "publisher",
+            "Cmd": [
+                "dotnet", "/build/out/OpcPublisher.dll", "publisher", "--pf", "/docker/publishednodes.json", "--lf", "/docker/publisher.log.txt", "--si", "1", "--ms", "0", "--di", "5", "--fd", "true", "--tm", "true", "--as", "true", "--vc", "true", "--ih", "Mqtt_Tcp_Only"
+            ],
+            "HostConfig": {
+                    "Binds": [
+                        "//d/docker/docker:/docker"
+                    ]
+            }
+        }
+
+* Adjust the command line parameters in `Cmd` as needed
+* Adjust the `Binds` source, which is set in the example to `//d/docker/docker`, which means that the publishednodes.json and the publisher.log.txt are put into
+  folder d:\docker\docker on the Windows host IoT Edge is running (Note: you need to apply the the appropriate Settings to allow Docker for Windows accessing the drives.)
+* Update your publishednodes.json file as needed.
+* Leave the other settings unchanged and select `Save`.
+* Back in the `Set Modules` page, select `Next` twice and then `Submit`
+
+
+
 ## Important when using a container
 
 ### Access to the Publisher OPC UA server

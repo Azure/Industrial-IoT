@@ -147,30 +147,39 @@ namespace OpcPublisher
                     Trace("Publishing node configuration file path read from environment.");
                     _publisherNodeConfigurationFilename = Environment.GetEnvironmentVariable("_GW_PNFP");
                 }
+                Trace($"The name of the configuration file for published nodes is: {_publisherNodeConfigurationFilename}");
 
-                Trace($"Attempting to load nodes file from: {_publisherNodeConfigurationFilename}");
-                _configurationFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigurationFileEntry>>(File.ReadAllText(_publisherNodeConfigurationFilename));
-                Trace($"Loaded {_configurationFileEntries.Count} config file entry/entries.");
-
-                foreach (var publisherConfigFileEntry in _configurationFileEntries)
+                // if the file exists, read it, if not just continue 
+                if (File.Exists(_publisherNodeConfigurationFilename))
                 {
-                    if (publisherConfigFileEntry.NodeId == null)
+                    Trace($"Attemtping to load node configuration from: {_publisherNodeConfigurationFilename}");
+                    _configurationFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigurationFileEntry>>(File.ReadAllText(_publisherNodeConfigurationFilename));
+                    Trace($"Loaded {_configurationFileEntries.Count} config file entry/entries.");
+
+                    foreach (var publisherConfigFileEntry in _configurationFileEntries)
                     {
-                        // new node configuration syntax.
-                        foreach (var opcNode in publisherConfigFileEntry.OpcNodes)
+                        if (publisherConfigFileEntry.NodeId == null)
                         {
-                            ExpandedNodeId expandedNodeId = ExpandedNodeId.Parse(opcNode.ExpandedNodeId);
-                            _nodePublishingConfiguration.Add(new NodePublishingConfiguration(expandedNodeId, publisherConfigFileEntry.EndpointUri, publisherConfigFileEntry.UseSecurity, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval));
+                            // new node configuration syntax.
+                            foreach (var opcNode in publisherConfigFileEntry.OpcNodes)
+                            {
+                                ExpandedNodeId expandedNodeId = ExpandedNodeId.Parse(opcNode.ExpandedNodeId);
+                                _nodePublishingConfiguration.Add(new NodePublishingConfiguration(expandedNodeId, publisherConfigFileEntry.EndpointUri, publisherConfigFileEntry.UseSecurity, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval));
+                            }
+                        }
+                        else
+                        {
+                            // NodeId (ns=) format node configuration syntax using default sampling and publishing interval.
+                            _nodePublishingConfiguration.Add(new NodePublishingConfiguration(publisherConfigFileEntry.NodeId, publisherConfigFileEntry.EndpointUri, publisherConfigFileEntry.UseSecurity, OpcSamplingInterval, OpcPublishingInterval));
+                            // give user a warning that the syntax is obsolete
+                            Trace($"Please update the syntax of the configuration file and use ExpandedNodeId instead of NodeId property name for node with identifier '{publisherConfigFileEntry.NodeId.ToString()}' on EndpointUrl '{publisherConfigFileEntry.EndpointUri.AbsoluteUri}'.");
+
                         }
                     }
-                    else
-                    {
-                        // NodeId (ns=) format node configuration syntax using default sampling and publishing interval.
-                        _nodePublishingConfiguration.Add(new NodePublishingConfiguration(publisherConfigFileEntry.NodeId, publisherConfigFileEntry.EndpointUri, publisherConfigFileEntry.UseSecurity, OpcSamplingInterval, OpcPublishingInterval));
-                        // give user a warning that the syntax is obsolete
-                        Trace($"Please update the syntax of the configuration file and use ExpandedNodeId instead of NodeId property name for node with identifier '{publisherConfigFileEntry.NodeId.ToString()}' on EndpointUrl '{publisherConfigFileEntry.EndpointUri.AbsoluteUri}'.");
-
-                    }
+                }
+                else
+                {
+                    Trace($"The node configuration file '{_publisherNodeConfigurationFilename}' does not exist. Starting up and wait for remote configuration requests.");
                 }
             }
             catch (Exception e)
