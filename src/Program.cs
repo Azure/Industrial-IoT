@@ -100,6 +100,8 @@ namespace OpcPublisher
                     { "di|diagnosticsinterval=", $"shows publisher diagnostic info at the specified interval in seconds. 0 disables diagnostic output.\nDefault: {DiagnosticsInterval}", (uint u) => DiagnosticsInterval = u },
 
                     { "vc|verboseconsole=", $"the output of publisher is shown on the console.\nDefault: {VerboseConsole}", (bool b) => VerboseConsole = b },
+
+                    { "ns|noshutdown=", $"publisher could not be stopped by pressing a key on the console, but will run forever.\nDefault: {_noShutdown}", (bool b) => _noShutdown = b },
                     
                     // IoTHub specific options
                     { "ih|iothubprotocol=", $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}",
@@ -459,15 +461,25 @@ namespace OpcPublisher
                 // stop on user request
                 WriteLine("");
                 WriteLine("");
-                WriteLine("Publisher is running. Press any key to quit.");
-                try
+                if (_noShutdown)
                 {
-                    ReadKey(true);
-                }
-                catch
-                {
-                    // wait forever if there is no console
+                    // wait forever if asked to do so
+                    WriteLine("Publisher is running infinite...");
                     await Task.Delay(Timeout.Infinite);
+                }
+                else
+                {
+                    WriteLine("Publisher is running. Press any key to quit.");
+                    try
+                    {
+                        ReadKey(true);
+                    }
+                    catch
+                    {
+                        // wait forever if there is no console
+                        WriteLine("There is no console. Publisher is running infinite...");
+                        await Task.Delay(Timeout.Infinite);
+                    }
                 }
                 WriteLine("");
                 WriteLine("");
@@ -543,7 +555,11 @@ namespace OpcPublisher
                 {
                     Trace(e, $"Failed to connect and monitor a disconnected server. {(e.InnerException != null ? e.InnerException.Message : "")}");
                 }
-                await Task.Delay(_publisherSessionConnectWaitSec * 1000, ct);
+                try
+                {
+                    await Task.Delay(_publisherSessionConnectWaitSec * 1000, ct);
+                }
+                catch { }
                 if (ct.IsCancellationRequested)
                 {
                     return;
@@ -681,5 +697,6 @@ namespace OpcPublisher
         private static PublisherServer _publisherServer;
         private static bool _opcTraceInitialized = false;
         private static int _publisherSessionConnectWaitSec = 10;
+        private static bool _noShutdown = false;
     }
 }

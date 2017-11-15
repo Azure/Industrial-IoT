@@ -505,7 +505,7 @@ namespace OpcPublisher
                             // if we are in shutdown do not wait, else wait infinite if send interval is not set
                             millisecondsTillNextSend = ct.IsCancellationRequested ? 0 : Timeout.Infinite;
                         }
-                        bool gotItem = _monitoredItemsDataQueue.TryTake(out messageData, (int)millisecondsTillNextSend);
+                        bool gotItem = _monitoredItemsDataQueue.TryTake(out messageData, (int)millisecondsTillNextSend, ct);
 
                         // the two commandline parameter --ms (message size) and --si (send interval) control when data is sent to IoTHub
                         // pls see detailed comments on performance and memory consumption at https://github.com/Azure/iot-edge-opc-publisher
@@ -629,7 +629,11 @@ namespace OpcPublisher
                 }
                 catch (Exception e)
                 {
-                    Trace(e, "Error while processing monitored item messages.");
+                    if (!(e is OperationCanceledException))
+                    {
+
+                        Trace(e, "Error while processing monitored item messages.");
+                    }
                 }
             }
         }
