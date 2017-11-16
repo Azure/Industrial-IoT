@@ -315,7 +315,7 @@ namespace OpcPublisher
                                         }
                                         else
                                         {
-                                            opcNodeOnEndpointUrl.ExpandedNodeId = monitoredItem.ConfigExpandedNodeId.ToString();
+                                            opcNodeOnEndpointUrl.ExpandedNodeId = monitoredItem.ConfigExpandedNodeIdOriginal.ToString();
                                             opcNodeOnEndpointUrl.OpcPublishingInterval = (int)subscription.RequestedPublishingInterval;
                                             opcNodeOnEndpointUrl.OpcSamplingInterval = monitoredItem.RequestedSamplingInterval;
                                             if (publisherConfigurationFileEntry.OpcNodes == null)
@@ -388,9 +388,13 @@ namespace OpcPublisher
     public class OpcNodeOnEndpointUrl
     {
         public string ExpandedNodeId;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+
+        [DefaultValue(OpcSamplingIntervalDefault)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate, NullValueHandling = NullValueHandling.Ignore)]
         public int? OpcSamplingInterval;
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+
+        [DefaultValue(OpcPublishingIntervalDefault)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate, NullValueHandling = NullValueHandling.Ignore)]
         public int? OpcPublishingInterval;
     }
 

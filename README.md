@@ -88,7 +88,7 @@ The syntax of the configuration file is as follows:
 
 # Configuring the telemetry published to IoTHub
 When OpcPublisher gets notified about a value change in one of the configured published nodes, it generates a JSON formatted message, which is sent to IoTHub.
-The content of this JSON formatted message could be configured via a configuration file. If no configuration file is specified via the `--tc` option a default configuration is used,
+The content of this JSON formatted message can be configured via a configuration file. If no configuration file is specified via the `--tc` option a default configuration is used,
 which is compatible with the [Connected factory Preconfigured Solution](https://github.com/Azure/azure-iot-connected-factory).
 
 The data which is ingested is taken from three sources:
@@ -154,7 +154,7 @@ The syntax of the configuration file is as follows:
                     // Name allows you to use a shorter string as property name in the JSON message
                     // sent by publisher. By default the property name is unchanged and will be
                     // here 'EndpointUrl'.
-                    // The 'Name' property could only be set in the 'Defaults' object to ensure
+                    // The 'Name' property can only be set in the 'Defaults' object to ensure
                     // all messages from publisher sent to IoTHub have a similar layout.
                     "Name": "EndpointUrl"
 
@@ -180,7 +180,7 @@ The syntax of the configuration file is as follows:
                     //          "ApplicationUri": "urn:myopcserver",
                     //          "DisplayName": "CurrentTime",
                     //      }
-                    // The 'Flat' property could only be used in the 'MonitoredItem' and
+                    // The 'Flat' property can only be used in the 'MonitoredItem' and
                     // 'Value' objects of the 'Defaults' object and will be used
                     // for all JSON messages sent by publisher.
                     "Flat": true,
@@ -203,7 +203,7 @@ The syntax of the configuration file is as follows:
                     //      "DisplayName": "CurrentTime",
                     //      "Value": "10.11.2017 14:03:17",
                     //      "SourceTimestamp": "2017-11-10 14:03:17Z"
-                    // The 'Flat' property could only be used for the 'MonitoredItem' and 'Value'
+                    // The 'Flat' property can only be used for the 'MonitoredItem' and 'Value'
                     // objects of the 'Defaults' object and will be used for all
                     // messages sent by publisher.
                     "Flat": false,
@@ -234,7 +234,7 @@ The syntax of the configuration file is as follows:
             // or the defaults used by publisher.
             // It is not allowed to specify 'Name' and 'Flat' properties in this object.
             "EndpointSpecific": [
-                // The following shows how a endpoint specific configuration could look like:
+                // The following shows how a endpoint specific configuration can look like:
                 {
                     // 'ForEndpointUrl' allows to configure for which OPC UA server this
                     // object applies and is a required property for all objects in the
@@ -335,8 +335,8 @@ The complete usage of the application can be shown using the `--help` command li
                                        Default: 10
               --mq, --monitoreditemqueuecapacity=VALUE
                                      specify how many notifications of monitored items
-                                       could be stored in the internal queue, if the
-                                       data could not be sent quick enough to IoTHub
+                                       can be stored in the internal queue, if the
+                                       data can not be sent quick enough to IoTHub
                                        Min: 1024
                                        Default: 8192
               --di, --diagnosticsinterval=VALUE
@@ -348,7 +348,7 @@ The complete usage of the application can be shown using the `--help` command li
                                      the output of publisher is shown on the console.
                                        Default: False
               --ns, --noshutdown=VALUE
-                                     publisher could not be stopped by pressing a key
+                                     publisher can not be stopped by pressing a key
                                        on the console, but will run forever.
                                        Default: False
               --ih, --iothubprotocol=VALUE
@@ -616,7 +616,7 @@ Since both are interdependent and both depend on the configuration of how many n
 do meet your requirements.
 
 The `--mq` parameter controls the upper bound of the capacity of the internal queue, which buffers all notifications if a value of an OPC node changes. If Publisher is not able to send messages to IoTHub fast enough,
-then this queue buffers those notifications. The parameter sets the number of notifications which could be buffered. If you seen the number of items in this queue increasing in your test runs, you need to:
+then this queue buffers those notifications. The parameter sets the number of notifications which can be buffered. If you seen the number of items in this queue increasing in your test runs, you need to:
 * decrease the IoTHub send interval (`--si`)
 * increase the IoTHub message size (`--ms`)
 otherwise you will loose the data values of those OPC node changes. The `--mq` parameter at the same time allows to prevent controlling the upper bound of the memory resources used by Publisher.
@@ -628,7 +628,7 @@ uses the maximal possible IoTHub message size of 256 kB to batch data.
 The `--ms` parameter allows you to enable batching of messages sent to IoTHub. Depending on the protocol you are using, the overhead to send a message to IoTHub is high compared to the actual time of sending the payload.
 If your scenario allows latency for the data ingested, you should configure Publisher to use the maximal message size of 256 kB.
 
-Before you use Publisher in production scenarios, you need to test the performance and memory under production conditions. You could use the `--di` commandline parameter to specify a interval in seconds,
+Before you use Publisher in production scenarios, you need to test the performance and memory under production conditions. You can use the `--di` commandline parameter to specify a interval in seconds,
 which will trigger the output of diagnostic information at this interval.
 
 ### Test measurements
@@ -765,7 +765,7 @@ lost OPC node value updates (`monitored item notifications enqueue failure: 4462
         ==========================================================================
 
 This configuration batches as much OPC node value udpates as possible. The maximum IoTHub message size is 256 kB, which is configured here. There is no send interval requested, which makes the time when data is ingested
-completely controlled by the data itself. This configuration has the least probability of loosing any OPC node values and could be used for publishing a high number of nodes.
+completely controlled by the data itself. This configuration has the least probability of loosing any OPC node values and can be used for publishing a high number of nodes.
 When using this configuration you need to ensure, that your scenario does not have conditions where high latency is introduced (because the message size of 256 kB is not reached).
 
 # Debugging the Application
@@ -828,7 +828,7 @@ Build your project and publish it to a directory of your choice.
 
 Use a tool like WinSCP to copy over the published files to the container into the directory `/root/publisher` (this can be also a different directory, but needs to be in sync with the `cdw` property of launch.json.
 
-Now you could start debugging with the following command in Visual Studio's Command Window (View->Other Windows->Command Window):
+Now you can start debugging with the following command in Visual Studio's Command Window (View->Other Windows->Command Window):
 DebugAdapterHost.Launch /LaunchJson:"<path-to-the-launch.json-file-you-saved>"
 
 

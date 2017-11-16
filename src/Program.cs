@@ -86,7 +86,7 @@ namespace OpcPublisher
                             }
                         }
                     },
-                    { "mq|monitoreditemqueuecapacity=", $"specify how many notifications of monitored items could be stored in the internal queue, if the data could not be sent quick enough to IoTHub\nMin: 1024\nDefault: {MonitoredItemsQueueCapacity}", (int i) => {
+                    { "mq|monitoreditemqueuecapacity=", $"specify how many notifications of monitored items can be stored in the internal queue, if the data can not be sent quick enough to IoTHub\nMin: 1024\nDefault: {MonitoredItemsQueueCapacity}", (int i) => {
                             if (i >= 1024)
                             {
                                 MonitoredItemsQueueCapacity = i;
@@ -101,7 +101,7 @@ namespace OpcPublisher
 
                     { "vc|verboseconsole=", $"the output of publisher is shown on the console.\nDefault: {VerboseConsole}", (bool b) => VerboseConsole = b },
 
-                    { "ns|noshutdown=", $"publisher could not be stopped by pressing a key on the console, but will run forever.\nDefault: {_noShutdown}", (bool b) => _noShutdown = b },
+                    { "ns|noshutdown=", $"publisher can not be stopped by pressing a key on the console, but will run forever.\nDefault: {_noShutdown}", (bool b) => _noShutdown = b },
                     
                     // IoTHub specific options
                     { "ih|iothubprotocol=", $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}",

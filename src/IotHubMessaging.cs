@@ -15,13 +15,11 @@ namespace OpcPublisher
     using System.IO;
     using System.Runtime.InteropServices;
     using System.Security.Cryptography.X509Certificates;
-    using static Opc.Ua.CertificateStoreType;
     using static OpcPublisher.Diagnostics;
     using static OpcPublisher.OpcMonitoredItem;
     using static OpcPublisher.PublisherTelemetryConfiguration;
     using static OpcPublisher.Workarounds.TraceWorkaround;
     using static OpcStackConfiguration;
-    using static Program;
 
     /// <summary>
     /// Class to handle all IoTHub communication.
@@ -246,7 +244,7 @@ namespace OpcPublisher
                     // During dev you might want to bypass the cert verification. It is highly recommended to verify certs systematically in production
                     if (bypassCertVerification)
                     {
-                        Trace($"ATTENTION: You are bypassing the EdgeHub security cert verfication. Please ensure the was by intent.");
+                        Trace($"ATTENTION: You are bypassing the EdgeHub security cert verfication. Please ensure this was intentional.");
                         mqttSettings.RemoteCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
                     }
                     ITransportSettings[] transportSettings = { mqttSettings };
@@ -418,7 +416,14 @@ namespace OpcPublisher
                     if (!string.IsNullOrEmpty(messageData.Value))
                     {
                         await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.Value.Name);
-                        await _jsonWriter.WriteValueAsync(messageData.Value);
+                        if (messageData.PreserveValueQuotes)
+                        {
+                            await _jsonWriter.WriteValueAsync(messageData.Value);
+                        }
+                        else
+                        {
+                            await _jsonWriter.WriteRawValueAsync(messageData.Value);
+                        }
                     }
 
                     // process SourceTimestamp

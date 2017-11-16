@@ -48,6 +48,7 @@ namespace OpcPublisher
         public MonitoredItem OpcUaClientMonitoredItem;
         public NodeId ConfigNodeId;
         public ExpandedNodeId ConfigExpandedNodeId;
+        public ExpandedNodeId ConfigExpandedNodeIdOriginal;
         public OpcMonitoredItemConfigurationType ConfigType;
 
         /// <summary>
@@ -57,6 +58,7 @@ namespace OpcPublisher
         {
             ConfigNodeId = nodeId;
             ConfigExpandedNodeId = null;
+            ConfigExpandedNodeIdOriginal = null;
             ConfigType = OpcMonitoredItemConfigurationType.NodeId;
             Init(sessionEndpointUri);
             if (requestNamespaceUpdate)
@@ -72,6 +74,7 @@ namespace OpcPublisher
         {
             ConfigNodeId = null;
             ConfigExpandedNodeId = expandedNodeId;
+            ConfigExpandedNodeIdOriginal = expandedNodeId;
             ConfigType = OpcMonitoredItemConfigurationType.ExpandedNodeId;
             Init(sessionEndpointUri);
             if (requestNamespaceUpdate)
@@ -149,6 +152,7 @@ namespace OpcPublisher
             public string SourceTimestamp;
             public string StatusCode;
             public string Status;
+            public bool PreserveValueQuotes;
 
             public MessageData()
             {
@@ -160,6 +164,7 @@ namespace OpcPublisher
                 StatusCode = null;
                 SourceTimestamp = null;
                 Status = null;
+                PreserveValueQuotes = false;
             }
 
             public void ApplyPatterns(EndpointTelemetryConfiguration telemetryConfiguration)
@@ -231,7 +236,7 @@ namespace OpcPublisher
                 messageData.EndpointUrl = EndpointUri.AbsoluteUri;
                 if (telemetryConfiguration.NodeId.Publish == true)
                 {
-                    messageData.NodeId = ConfigType == OpcMonitoredItemConfigurationType.NodeId ? ConfigNodeId.ToString() : ConfigExpandedNodeId.ToString();
+                    messageData.NodeId = ConfigType == OpcMonitoredItemConfigurationType.NodeId ? ConfigNodeId.ToString() : ConfigExpandedNodeIdOriginal.ToString();
                 }
                 if (telemetryConfiguration.MonitoredItem.ApplicationUri.Publish == true)
                 {
@@ -268,12 +273,27 @@ namespace OpcPublisher
                     string valueString = encoder.CloseAndReturnText();
                     // we only want the value string, search for everything till the real value starts
                     // and get it
-                    string marker = "{\"Value\":{\"Value\":\"";
+                    string marker = "{\"Value\":{\"Value\":";
                     int markerStart = valueString.IndexOf(marker);
-                    if (markerStart >= 0 && valueString.Length - marker.Length > 3)
+                    messageData.PreserveValueQuotes = true;
+                    if (markerStart >= 0)
                     {
-                        int valueLength = valueString.Length - marker.Length - 3;
-                        messageData.Value = valueString.Substring(markerStart + marker.Length, valueLength);
+                        // we either have a value in quotes of just a value
+                        int valueLength;
+                        int valueStart = marker.Length;
+                        if (valueString.IndexOf("\"", valueStart) >= 0)
+                        {
+                            // value is in quotes and two closing curly brackets at the end
+                            valueStart++;
+                            valueLength = valueString.Length - valueStart - 3;
+                        }
+                        else
+                        {
+                            // value is without quotes with two curly brackets at the end
+                            valueLength = valueString.Length - marker.Length - 2;
+                            messageData.PreserveValueQuotes = false;
+                        }
+                        messageData.Value = valueString.Substring(valueStart, valueLength);
                     }
                 }
 
