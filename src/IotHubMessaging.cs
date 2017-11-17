@@ -404,7 +404,7 @@ namespace OpcPublisher
 
                 // process Value object properties
                 if (!string.IsNullOrEmpty(messageData.Value) || !string.IsNullOrEmpty(messageData.SourceTimestamp) ||
-                   !string.IsNullOrEmpty(messageData.StatusCode) || !string.IsNullOrEmpty(messageData.Status))
+                   messageData.StatusCode != null || !string.IsNullOrEmpty(messageData.Status))
                 {
                     if (!(bool)telemetryConfiguration.Value.Flat)
                     {
@@ -434,7 +434,7 @@ namespace OpcPublisher
                     }
 
                     // process StatusCode
-                    if (!string.IsNullOrEmpty(messageData.StatusCode))
+                    if (messageData.StatusCode != null)
                     {
                         await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.StatusCode.Name);
                         await _jsonWriter.WriteValueAsync(messageData.StatusCode);
@@ -527,7 +527,7 @@ namespace OpcPublisher
                             // sanity check that the user has set a large enough IoTHub messages size
                             if ((_iotHubMessageSize > 0 && jsonMessageSize > _iotHubMessageSize ) || (_iotHubMessageSize == 0 && jsonMessageSize > iotHubMessageBufferSize))
                             {
-                                Trace(Utils.TraceMasks.Error, $"There is a telemetry message (size: {jsonMessageSize}), which will not fit into an IoTHub message (max size: {_iotHubMessageSize}].");
+                                Trace(Utils.TraceMasks.Error, $"There is a telemetry message (size: {jsonMessageSize}), which will not fit into an IoTHub message (max size: {iotHubMessageBufferSize}].");
                                 Trace(Utils.TraceMasks.Error, $"Please check your IoTHub message size settings. The telemetry message will be discarded silently. Sorry:(");
                                 _tooLargeCount++;
                                 continue;

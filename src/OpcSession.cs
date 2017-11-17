@@ -150,7 +150,7 @@ namespace OpcPublisher
             public string DisplayName;
             public string Value;
             public string SourceTimestamp;
-            public string StatusCode;
+            public uint? StatusCode;
             public string Status;
             public bool PreserveValueQuotes;
 
@@ -193,9 +193,12 @@ namespace OpcPublisher
                 {
                     SourceTimestamp = telemetryConfiguration.Value.SourceTimestamp.PatternMatch(SourceTimestamp);
                 }
-                if (telemetryConfiguration.Value.StatusCode.Publish == true)
+                if (telemetryConfiguration.Value.StatusCode.Publish == true && StatusCode != null)
                 {
-                    StatusCode = telemetryConfiguration.Value.StatusCode.PatternMatch(StatusCode);
+                    if (!string.IsNullOrEmpty(telemetryConfiguration.Value.StatusCode.Pattern))
+                    {
+                        Trace($"'Pattern' settngs for StatusCode are ignored.");
+                    }
                 }
                 if (telemetryConfiguration.Value.Status.Publish == true)
                 {
@@ -249,13 +252,13 @@ namespace OpcPublisher
                 }
                 if (telemetryConfiguration.Value.SourceTimestamp.Publish == true && value.SourceTimestamp != null)
                 {
-                    // use the SourceTimestamp as reported in the notification event argument in univeral sortable format
-                    messageData.SourceTimestamp = value.SourceTimestamp.ToString();
+                    // use the SourceTimestamp as reported in the notification event argument in ISO8601 format
+                    messageData.SourceTimestamp = value.SourceTimestamp.ToString("o");
                 }
                 if (telemetryConfiguration.Value.StatusCode.Publish == true && value.StatusCode != null)
                 {
                     // use the StatusCode as reported in the notification event argument
-                    messageData.StatusCode = value.StatusCode.Code.ToString("X");
+                    messageData.StatusCode = value.StatusCode.Code;
                 }
                 if (telemetryConfiguration.Value.Status.Publish == true && value.StatusCode != null)
                 {
@@ -278,7 +281,7 @@ namespace OpcPublisher
                     messageData.PreserveValueQuotes = true;
                     if (markerStart >= 0)
                     {
-                        // we either have a value in quotes of just a value
+                        // we either have a value in quotes or just a value
                         int valueLength;
                         int valueStart = marker.Length;
                         if (valueString.IndexOf("\"", valueStart) >= 0)

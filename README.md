@@ -114,7 +114,7 @@ The syntax of the configuration file is as follows:
         //      "DisplayName": "CurrentTime",
         //      "Value": {
         //          "Value": "10.11.2017 14:03:17",
-        //          "SourceTimestamp": "2017-11-10 14:03:17Z"
+        //          "SourceTimestamp": "2017-11-10T14:03:17Z"
         //      }
         //  }
 
@@ -202,7 +202,7 @@ The syntax of the configuration file is as follows:
                     // members won't be nested:
                     //      "DisplayName": "CurrentTime",
                     //      "Value": "10.11.2017 14:03:17",
-                    //      "SourceTimestamp": "2017-11-10 14:03:17Z"
+                    //      "SourceTimestamp": "2017-11-10T14:03:17Z"
                     // The 'Flat' property can only be used for the 'MonitoredItem' and 'Value'
                     // objects of the 'Defaults' object and will be used for all
                     // messages sent by publisher.
@@ -216,10 +216,11 @@ The syntax of the configuration file is as follows:
                         "Publish": true,
                         "Name": "SourceTimestamp"
                     },
-                    // StatusCode is the 32 bit OPC UA status code formatted as hexadezimal number.
+                    // 'StatusCode' is the 32 bit OPC UA status code
                     "StatusCode": {
                         "Publish": false,
                         "Name": "StatusCode"
+                        // 'Pattern' is ignored for the 'StatusCode' value
                     },
                     // 'Status' is the symbolic name of 'StatusCode'
                     "Status": {
