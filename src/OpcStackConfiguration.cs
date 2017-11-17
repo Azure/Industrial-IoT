@@ -86,11 +86,15 @@ namespace OpcPublisher
             set => _opcKeepAliveIntervalInSec = value;
         }
 
+        public const int OpcSamplingIntervalDefault = 1000;
+
         public static int OpcSamplingInterval
         {
             get => _opcSamplingInterval;
             set => _opcSamplingInterval = value;
         }
+
+        public const int OpcPublishingIntervalDefault = 0;
 
         public static int OpcPublishingInterval
         {
@@ -390,6 +394,7 @@ namespace OpcPublisher
             Trace($"Log file is: {Utils.GetAbsoluteFilePath(_configuration.TraceConfiguration.OutputFilePath, true, false, false, true)}");
             Trace($"opcstacktracemask set to: 0x{_opcStackTraceMask:X} ({_opcStackTraceMask})");
 
+            // add deafult client configuration
             _configuration.ClientConfiguration = new ClientConfiguration();
 
             // validate the configuration now
@@ -408,16 +413,16 @@ namespace OpcPublisher
         private static uint _opcSessionCreationBackoffMax = 5;
         private static uint _opcKeepAliveDisconnectThreshold = 5;
         private static int _opcKeepAliveIntervalInSec = 2;
-        private static int _opcSamplingInterval = 1000;
-        private static int _opcPublishingInterval = 0;
+        private static int _opcSamplingInterval = OpcSamplingIntervalDefault;
+        private static int _opcPublishingInterval = OpcPublishingIntervalDefault;
         private static string _publisherServerSecurityPolicy = SecurityPolicies.Basic128Rsa15;
         private static string _opcOwnCertStoreType = X509Store;
         private static string _opcOwnCertStorePath = OpcOwnCertX509StorePathDefault;
-        private static string _opcTrustedCertStoreType = CertificateStoreType.Directory;
+        private static string _opcTrustedCertStoreType = Directory;
         private static string _opcTrustedCertStorePath = null;
-        private static string _opcRejectedCertStoreType = CertificateStoreType.Directory;
+        private static string _opcRejectedCertStoreType = Directory;
         private static string _opcRejectedCertStorePath = OpcRejectedCertDirectoryStorePathDefault;
-        private static string _opcIssuerCertStoreType = CertificateStoreType.Directory;
+        private static string _opcIssuerCertStoreType = Directory;
         private static string _opcIssuerCertStorePath = OpcIssuerCertDirectoryStorePathDefault;
         private static int _ldsRegistrationInterval = 0;
         private static ApplicationConfiguration _configuration;

@@ -45,6 +45,8 @@ The syntax of the configuration file is as follows:
         {
             // example for an EnpointUrl is: opc.tcp://win10iot:51210/UA/SampleServer
             "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
+            // Allows to access the endpoint with SecurityPolicy.None when set to 'false' (no signing and encryption applied to the OPC UA communication), default is true
+            "UseSecurity": true,
             "OpcNodes": [
                 // Publisher will request the server at EndpointUrl to sample the node with the OPC sampling interval specified on command line (or the default value: OPC publishing interval)
                 // and the subscription will publish the node value with the OPC publishing interval specified on command line (or the default value: server revised publishing interval).
@@ -83,10 +85,214 @@ The syntax of the configuration file is as follows:
         // please consult the OPC UA specification for details on how OPC monitored node sampling interval and OPC subscription publishing interval settings are handled by the OPC UA stack.
         // the publishing interval of the data to Azure IoTHub is controlled by the command line settings (or the default: publish data to IoTHub at least each 1 second).
     ]
+
+# Configuring the telemetry published to IoTHub
+When OpcPublisher gets notified about a value change in one of the configured published nodes, it generates a JSON formatted message, which is sent to IoTHub.
+The content of this JSON formatted message can be configured via a configuration file. If no configuration file is specified via the `--tc` option a default configuration is used,
+which is compatible with the [Connected factory Preconfigured Solution](https://github.com/Azure/azure-iot-connected-factory).
+
+The data which is ingested is taken from three sources:
+* the OpcPublisher node configuration for the node
+* the MonitoredItem object of the OPC UA stack for which OpcPublisher got a notification
+* the argument passed to this notification, which provides details on the data value change
+
+The telemetry which is put into the JSON formatted message is a selection of important properties of these objects. If you need more properties, you need to change the OpcPublisher code base.
+
+The syntax of the configuration file is as follows:
+
+        // The configuration settings file consists of two objects:
+        // 1) The 'Defaults' object, which defines defaults for the telemetry configuration
+        // 2) An array 'EndpointSpecific' of endpoint specific configuration
+        // Both objects are optional and if they are not specified, then publisher uses
+        // its internal default configuration, which generates telemetry messages compatible
+        // with the Microsoft Connected factory Preconfigured Solution (https://github.com/Azure/azure-iot-connected-factory).
+
+        // A JSON telemetry message for Connected factory looks like:
+        //  {
+        //      "NodeId": "i=2058",
+        //      "ApplicationUri": "urn:myopcserver",
+        //      "DisplayName": "CurrentTime",
+        //      "Value": {
+        //          "Value": "10.11.2017 14:03:17",
+        //          "SourceTimestamp": "2017-11-10T14:03:17Z"
+        //      }
+        //  }
+
+        // The 'Defaults' object in the sample below, are similar to what publisher is
+        // using as its internal default telemetry configuration.
+        {
+            "Defaults": {
+                // The first two properties ('EndpointUrl' and 'NodeId' are configuring data
+                // taken from the OpcPublisher node configuration.
+                "EndpointUrl": {
+
+                    // The following three properties can be used to configure the 'EndpointUrl'
+                    // property in the JSON message send by publisher to IoTHub.
+
+                    // Publish controls if the property should be part of the JSON message at all.
+                    "Publish": false,
+
+                    // Pattern is a regular expression, which is applied to the actual value of the
+                    // property (here 'EndpointUrl').
+                    // If this key is ommited (which is the default), then no regex matching is done
+                    // at all, which improves performance.
+                    // If the key is used you need to define groups in the regular expression.
+                    // Publisher applies the regular expression and then concatenates all groups
+                    // found and use the resulting string as the value in the JSON message to
+                    //sent to IoTHub.
+                    // This example mimics the default behaviour and defines a group,
+                    // which matches the conplete value:
+                    "Pattern": "(.*)",
+                    // Here some more exaples for 'Pattern' values and the generated result:
+                    // "Pattern": "i=(.*)"
+                    // defined for Defaults.NodeId.Pattern, will generate for the above sample
+                    // a 'NodeId' value of '2058'to be sent by publisher
+                    // "Pattern": "(i)=(.*)"
+                    // defined for Defaults.NodeId.Pattern, will generate for the above sample
+                    // a 'NodeId' value of 'i2058' to be sent by publisher
+
+                    // Name allows you to use a shorter string as property name in the JSON message
+                    // sent by publisher. By default the property name is unchanged and will be
+                    // here 'EndpointUrl'.
+                    // The 'Name' property can only be set in the 'Defaults' object to ensure
+                    // all messages from publisher sent to IoTHub have a similar layout.
+                    "Name": "EndpointUrl"
+
+                },
+                "NodeId": {
+                    "Publish": true,
+
+                    // If you set Defaults.NodeId.Name to "ni", then the "NodeId" key/value pair
+                    // (from the above example) will change to:
+                    //      "ni": "i=2058",
+                    "Name": "NodeId"
+                },
+
+                // The MonitoredItem object is configuring the data taken from the MonitoredItem
+                // OPC UA object for published nodes.
+                "MonitoredItem": {
+
+                    // If you set the Defaults.MonitoredItem.Flat to 'false', then a
+                    // 'MonitoredItem' object will appear, which contains 'ApplicationUri'
+                    // and 'DisplayNode' proerties:
+                    //      "NodeId": "i=2058",
+                    //      "MonitoredItem": {
+                    //          "ApplicationUri": "urn:myopcserver",
+                    //          "DisplayName": "CurrentTime",
+                    //      }
+                    // The 'Flat' property can only be used in the 'MonitoredItem' and
+                    // 'Value' objects of the 'Defaults' object and will be used
+                    // for all JSON messages sent by publisher.
+                    "Flat": true,
+
+                    "ApplicationUri": {
+                        "Publish": true,
+                        "Name": "ApplicationUri"
+                    },
+                    "DisplayName": {
+                        "Publish": true,
+                        "Name": "DisplayName"
+                    }
+                },
+                // The Value object is configuring the properties taken from the event object
+                // the OPC UA stack provided in the value change notification event.
+                "Value": {
+                    // If you set the Defaults.Value.Flat to 'true', then the 'Value'
+                    // object will disappear completely and the 'Value' and 'SourceTimestamp'
+                    // members won't be nested:
+                    //      "DisplayName": "CurrentTime",
+                    //      "Value": "10.11.2017 14:03:17",
+                    //      "SourceTimestamp": "2017-11-10T14:03:17Z"
+                    // The 'Flat' property can only be used for the 'MonitoredItem' and 'Value'
+                    // objects of the 'Defaults' object and will be used for all
+                    // messages sent by publisher.
+                    "Flat": false,
+
+                    "Value": {
+                        "Publish": true,
+                        "Name": "Value"
+                    },
+                    "SourceTimestamp": {
+                        "Publish": true,
+                        "Name": "SourceTimestamp"
+                    },
+                    // 'StatusCode' is the 32 bit OPC UA status code
+                    "StatusCode": {
+                        "Publish": false,
+                        "Name": "StatusCode"
+                        // 'Pattern' is ignored for the 'StatusCode' value
+                    },
+                    // 'Status' is the symbolic name of 'StatusCode'
+                    "Status": {
+                        "Publish": false,
+                        "Name": "Status"
+                    }
+                }
+            },
+
+            // The next object allows to configure 'Publish' and 'Pattern' for specific
+            // endpoint URLs. Those will overwrite the ones specified in the 'Defaults' object
+            // or the defaults used by publisher.
+            // It is not allowed to specify 'Name' and 'Flat' properties in this object.
+            "EndpointSpecific": [
+                // The following shows how a endpoint specific configuration can look like:
+                {
+                    // 'ForEndpointUrl' allows to configure for which OPC UA server this
+                    // object applies and is a required property for all objects in the
+                    // 'EndpointSpecific' array.
+                    // The value of 'ForEndpointUrl' must be an 'EndpointUrl' configured in
+                    // the publishednodes.json confguration file.
+                    "ForEndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
+                    "EndpointUrl": {
+                        // We overwrite the default behaviour and publish the
+                        // endpoint URL in this case.
+                        "Publish": true,
+                        // We are only interested in the URL part following the 'opc.tcp://' prefix
+                        // and define a group matching this.
+                        "Pattern": "opc.tcp://(.*)"
+                    },
+                    "NodeId": {
+                        // We are not interested in the configured 'NodeId' value, 
+                        // so we do not publish it.
+                        "Publish": false
+                        // No 'Pattern' key is specified here, so the 'NodeId' value will be
+                        // taken as specified in the publishednodes configuration file.
+                    },
+                    "MonitoredItem": {
+                        "ApplicationUri": {
+                            // We already publish the endpoint URL, so we do not want
+                            //the ApplicationUri of the MonitoredItem to be published.
+                            "Publish": false
+                        },
+                        "DisplayName": {
+                            "Publish": true
+                        }
+                    },
+                    "Value": {
+                        "Value": {
+                            // The value of the node is important for us, everything else we
+                            // are not interested in to keep the data ingest as small as possible.
+                            "Publish": true
+                        },
+                        "SourceTimestamp": {
+                            "Publish": false
+                        },
+                        "StatusCode": {
+                            "Publish": false
+                        },
+                        "Status": {
+                            "Publish": false
+                        }
+                    }
+                }
+            ]
+        }
+
 # Running the Application
 
 ## Command line options
 The complete usage of the application can be shown using the `--help` command line option and is as follows:
+
 
         Usage: OpcPublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
 
@@ -110,8 +316,10 @@ The complete usage of the application can be shown using the `--help` command li
         Options:
               --pf, --publishfile=VALUE
                                      the filename to configure the nodes to publish.
-                                       Default: 'D:\Repos\hg\iot-edge-opc-publisher\src\
-                                       publishednodes.json'
+                                       Default: '.\publishednodes.json'
+              --tc, --telemetryconfigfile=VALUE
+                                     the filename to configure the ingested telemetry
+                                       Default: ''
               --sd, --shopfloordomain=VALUE
                                      the domain of the shopfloor. if specified this
                                        domain is appended (delimited by a ':' to the '
@@ -128,8 +336,8 @@ The complete usage of the application can be shown using the `--help` command li
                                        Default: 10
               --mq, --monitoreditemqueuecapacity=VALUE
                                      specify how many notifications of monitored items
-                                       could be stored in the internal queue, if the
-                                       data could not be sent quick enough to IoTHub
+                                       can be stored in the internal queue, if the
+                                       data can not be sent quick enough to IoTHub
                                        Min: 1024
                                        Default: 8192
               --di, --diagnosticsinterval=VALUE
@@ -141,7 +349,7 @@ The complete usage of the application can be shown using the `--help` command li
                                      the output of publisher is shown on the console.
                                        Default: False
               --ns, --noshutdown=VALUE
-                                     publisher could not be stopped by pressing a key
+                                     publisher can not be stopped by pressing a key
                                        on the console, but will run forever.
                                        Default: False
               --ih, --iothubprotocol=VALUE
@@ -291,6 +499,7 @@ The complete usage of the application can be shown using the `--help` command li
                                        Directory: 'CertificateStores/IoTHub'
           -h, --help                 show this message and exit
 
+
 There are a couple of environment variables which can be used to control the application:
 * _HUB_CS: sets the IoTHub owner connectionstring
 * _GW_LOGP: sets the filename of the log file to use
@@ -318,6 +527,50 @@ Build your own container and then start the container:
 There is a prebuilt container available on DockerHub. To start it, just do:
 
     docker run microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
+
+## Using it as a module in Azure IoT Edge
+[Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge) is now in public preview and OpcPublisher is ready to be used as a module to run in IoT Edge.
+We recommend to take a look on the information available on the beforementioned link and use then the information provided here. You need to install the IoT Edge as
+explained in the Quickstart guides and create an IoTHub to be able to configure the modules to run on IoT Edge.
+
+To add publisher as module to your IoT Edge deployment, you go to the Azure portal and navigate to your IoTHub and:
+* Go to IoT Edge (preview) and select your IoT Edge device.
+* Select `Set Modules`.
+* Select `Add IoT Edge Module`.
+* In the `Name` field, enter `iot-edge-opc-publisher`.
+In the `Image URI` field, enter `microsoft/iot-edge-opc-publisher:latest`
+* Paste the following into the `Container Create Options` field:
+
+        {
+            "Hostname": "publisher",
+            "Cmd": [
+                "dotnet", "/build/out/OpcPublisher.dll", "publisher", "--pf", "/docker/publishednodes.json", "--lf", "/docker/publisher.log.txt", "--si", "1", "--ms", "0", "--di", "5", "--fd", "true", "--tm", "true", "--as", "true", "--vc", "true", "--ih", "Mqtt_Tcp_Only"
+            ],
+            "HostConfig": {
+                    "Binds": [
+                        "//d/docker/docker:/docker"
+                    ]
+            }
+        }
+
+* Adjust the command line parameters in `Cmd` as needed
+* Adjust the `Binds` source, which is set in the example to `//d/docker/docker`, which means that the publishednodes.json and the publisher.log.txt are put into
+  folder d:\docker\docker on the Windows host IoT Edge is running (Note: you need to apply the the appropriate Settings to allow Docker for Windows accessing the drives.)
+* Leave the other settings unchanged and select `Save`.
+* Back in the `Set Modules` page, select `Next`
+* Add the following route in the `Specify Routes` page:
+
+        {
+           "routes":{
+              "upstream":"FROM /* INTO $upstream"
+           }
+        }
+
+* Select `Next`
+* Update your publishednodes.json file on your system IoT Edge is running as needed.
+* Select `Submit` to send your configuration down to IoT Edge
+
+
 
 ## Important when using a container
 
@@ -364,7 +617,7 @@ Since both are interdependent and both depend on the configuration of how many n
 do meet your requirements.
 
 The `--mq` parameter controls the upper bound of the capacity of the internal queue, which buffers all notifications if a value of an OPC node changes. If Publisher is not able to send messages to IoTHub fast enough,
-then this queue buffers those notifications. The parameter sets the number of notifications which could be buffered. If you seen the number of items in this queue increasing in your test runs, you need to:
+then this queue buffers those notifications. The parameter sets the number of notifications which can be buffered. If you seen the number of items in this queue increasing in your test runs, you need to:
 * decrease the IoTHub send interval (`--si`)
 * increase the IoTHub message size (`--ms`)
 otherwise you will loose the data values of those OPC node changes. The `--mq` parameter at the same time allows to prevent controlling the upper bound of the memory resources used by Publisher.
@@ -376,7 +629,7 @@ uses the maximal possible IoTHub message size of 256 kB to batch data.
 The `--ms` parameter allows you to enable batching of messages sent to IoTHub. Depending on the protocol you are using, the overhead to send a message to IoTHub is high compared to the actual time of sending the payload.
 If your scenario allows latency for the data ingested, you should configure Publisher to use the maximal message size of 256 kB.
 
-Before you use Publisher in production scenarios, you need to test the performance and memory under production conditions. You could use the `--di` commandline parameter to specify a interval in seconds,
+Before you use Publisher in production scenarios, you need to test the performance and memory under production conditions. You can use the `--di` commandline parameter to specify a interval in seconds,
 which will trigger the output of diagnostic information at this interval.
 
 ### Test measurements
@@ -513,7 +766,7 @@ lost OPC node value updates (`monitored item notifications enqueue failure: 4462
         ==========================================================================
 
 This configuration batches as much OPC node value udpates as possible. The maximum IoTHub message size is 256 kB, which is configured here. There is no send interval requested, which makes the time when data is ingested
-completely controlled by the data itself. This configuration has the least probability of loosing any OPC node values and could be used for publishing a high number of nodes.
+completely controlled by the data itself. This configuration has the least probability of loosing any OPC node values and can be used for publishing a high number of nodes.
 When using this configuration you need to ensure, that your scenario does not have conditions where high latency is introduced (because the message size of 256 kB is not reached).
 
 # Debugging the Application
@@ -576,7 +829,7 @@ Build your project and publish it to a directory of your choice.
 
 Use a tool like WinSCP to copy over the published files to the container into the directory `/root/publisher` (this can be also a different directory, but needs to be in sync with the `cdw` property of launch.json.
 
-Now you could start debugging with the following command in Visual Studio's Command Window (View->Other Windows->Command Window):
+Now you can start debugging with the following command in Visual Studio's Command Window (View->Other Windows->Command Window):
 DebugAdapterHost.Launch /LaunchJson:"<path-to-the-launch.json-file-you-saved>"
 
 

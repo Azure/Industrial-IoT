@@ -474,7 +474,7 @@ namespace OpcPublisher
                 if (opcSession == null)
                 {
                     // create new session info.
-                    opcSession = new OpcSession(endpointUri, OpcSessionCreationTimeout);
+                    opcSession = new OpcSession(endpointUri, true, OpcSessionCreationTimeout);
                     OpcSessions.Add(opcSession);
                     Trace($"PublishNode: No matching session found for endpoint '{endpointUri.OriginalString}'. Requested to create a new one.");
                 }

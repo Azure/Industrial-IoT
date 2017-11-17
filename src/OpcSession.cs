@@ -10,6 +10,7 @@ namespace OpcPublisher
     using System.Threading;
     using System.Threading.Tasks;
     using static OpcPublisher.OpcMonitoredItem;
+    using static OpcPublisher.PublisherTelemetryConfiguration;
     using static OpcPublisher.Workarounds.TraceWorkaround;
     using static OpcStackConfiguration;
     using static Program;
@@ -47,6 +48,7 @@ namespace OpcPublisher
         public MonitoredItem OpcUaClientMonitoredItem;
         public NodeId ConfigNodeId;
         public ExpandedNodeId ConfigExpandedNodeId;
+        public ExpandedNodeId ConfigExpandedNodeIdOriginal;
         public OpcMonitoredItemConfigurationType ConfigType;
 
         /// <summary>
@@ -56,6 +58,7 @@ namespace OpcPublisher
         {
             ConfigNodeId = nodeId;
             ConfigExpandedNodeId = null;
+            ConfigExpandedNodeIdOriginal = null;
             ConfigType = OpcMonitoredItemConfigurationType.NodeId;
             Init(sessionEndpointUri);
             if (requestNamespaceUpdate)
@@ -71,6 +74,7 @@ namespace OpcPublisher
         {
             ConfigNodeId = null;
             ConfigExpandedNodeId = expandedNodeId;
+            ConfigExpandedNodeIdOriginal = expandedNodeId;
             ConfigType = OpcMonitoredItemConfigurationType.ExpandedNodeId;
             Init(sessionEndpointUri);
             if (requestNamespaceUpdate)
@@ -136,6 +140,74 @@ namespace OpcPublisher
         }
 
         /// <summary>
+        /// Class used to pass data from the MonitoredItem notification to the IoTHub message processing.
+        /// </summary>
+        public class MessageData
+        {
+            public string EndpointUrl;
+            public string NodeId;
+            public string ApplicationUri;
+            public string DisplayName;
+            public string Value;
+            public string SourceTimestamp;
+            public uint? StatusCode;
+            public string Status;
+            public bool PreserveValueQuotes;
+
+            public MessageData()
+            {
+                EndpointUrl = null;
+                NodeId = null;
+                ApplicationUri = null;
+                DisplayName = null;
+                Value = null;
+                StatusCode = null;
+                SourceTimestamp = null;
+                Status = null;
+                PreserveValueQuotes = false;
+            }
+
+            public void ApplyPatterns(EndpointTelemetryConfiguration telemetryConfiguration)
+            {
+                if (telemetryConfiguration.EndpointUrl.Publish == true)
+                {
+                    EndpointUrl = telemetryConfiguration.EndpointUrl.PatternMatch(EndpointUrl);
+                }
+                if (telemetryConfiguration.NodeId.Publish == true)
+                {
+                    NodeId = telemetryConfiguration.NodeId.PatternMatch(NodeId);
+                }
+                if (telemetryConfiguration.MonitoredItem.ApplicationUri.Publish == true)
+                {
+                    ApplicationUri = telemetryConfiguration.MonitoredItem.ApplicationUri.PatternMatch(ApplicationUri);
+                }
+                if (telemetryConfiguration.MonitoredItem.DisplayName.Publish == true)
+                {
+                    DisplayName = telemetryConfiguration.MonitoredItem.DisplayName.PatternMatch(DisplayName);
+                }
+                if (telemetryConfiguration.Value.Value.Publish == true)
+                {
+                    Value = telemetryConfiguration.Value.Value.PatternMatch(Value);
+                }
+                if (telemetryConfiguration.Value.SourceTimestamp.Publish == true)
+                {
+                    SourceTimestamp = telemetryConfiguration.Value.SourceTimestamp.PatternMatch(SourceTimestamp);
+                }
+                if (telemetryConfiguration.Value.StatusCode.Publish == true && StatusCode != null)
+                {
+                    if (!string.IsNullOrEmpty(telemetryConfiguration.Value.StatusCode.Pattern))
+                    {
+                        Trace($"'Pattern' settngs for StatusCode are ignored.");
+                    }
+                }
+                if (telemetryConfiguration.Value.Status.Publish == true)
+                {
+                    Status = telemetryConfiguration.Value.Status.PatternMatch(Status);
+                }
+            }
+        }
+
+        /// <summary>
         /// The notification that the data for a monitored item has changed on an OPC UA server.
         /// </summary>
         public void MonitoredItem_Notification(MonitoredItem monitoredItem, MonitoredItemNotificationEventArgs args)
@@ -159,27 +231,88 @@ namespace OpcPublisher
                     return;
                 }
 
-                JsonEncoder encoder = new JsonEncoder(monitoredItem.Subscription.Session.MessageContext, false);
-                
-                string applicationURI = monitoredItem.Subscription.Session.Endpoint.Server.ApplicationUri;
-                encoder.WriteString("ApplicationUri", (applicationURI + (string.IsNullOrEmpty(OpcSession.ShopfloorDomain) ? "" : $":{OpcSession.ShopfloorDomain}")));
-                encoder.WriteString("DisplayName", monitoredItem.DisplayName);
+                // update the required message data to pass only the required data to IotHubMessaging
+                MessageData messageData = new MessageData();
+                EndpointTelemetryConfiguration telemetryConfiguration = GetEndpointTelemetryConfiguration(EndpointUri.AbsoluteUri);
 
-                // use the node Id as configured, to also have the namespace URI in case of a ExpandedNodeId.
-                encoder.WriteString("NodeId", ConfigType == OpcMonitoredItemConfigurationType.NodeId ? ConfigNodeId.ToString() : ConfigExpandedNodeId.ToString());
+                // the endpoint URL is required to allow IotHubMessaging lookup the telemetry configuration
+                messageData.EndpointUrl = EndpointUri.AbsoluteUri;
+                if (telemetryConfiguration.NodeId.Publish == true)
+                {
+                    messageData.NodeId = ConfigType == OpcMonitoredItemConfigurationType.NodeId ? ConfigNodeId.ToString() : ConfigExpandedNodeIdOriginal.ToString();
+                }
+                if (telemetryConfiguration.MonitoredItem.ApplicationUri.Publish == true)
+                {
+                    messageData.ApplicationUri = (monitoredItem.Subscription.Session.Endpoint.Server.ApplicationUri + (string.IsNullOrEmpty(OpcSession.ShopfloorDomain) ? "" : $":{OpcSession.ShopfloorDomain}"));
+                }
+                if (telemetryConfiguration.MonitoredItem.DisplayName.Publish == true && monitoredItem.DisplayName != null)
+                {
+                    // use the DisplayName as reported in the MonitoredItem
+                    messageData.DisplayName = monitoredItem.DisplayName;
+                }
+                if (telemetryConfiguration.Value.SourceTimestamp.Publish == true && value.SourceTimestamp != null)
+                {
+                    // use the SourceTimestamp as reported in the notification event argument in ISO8601 format
+                    messageData.SourceTimestamp = value.SourceTimestamp.ToString("o");
+                }
+                if (telemetryConfiguration.Value.StatusCode.Publish == true && value.StatusCode != null)
+                {
+                    // use the StatusCode as reported in the notification event argument
+                    messageData.StatusCode = value.StatusCode.Code;
+                }
+                if (telemetryConfiguration.Value.Status.Publish == true && value.StatusCode != null)
+                {
+                    // use the StatusCode as reported in the notification event argument to lookup the symbolic name
+                    messageData.Status = StatusCode.LookupSymbolicId(value.StatusCode.Code);
+                }
+                if (telemetryConfiguration.Value.Value.Publish == true && value.Value != null)
+                {
+                    // use the Value as reported in the notification event argument encoded with the OPC UA JSON endcoder
+                    JsonEncoder encoder = new JsonEncoder(monitoredItem.Subscription.Session.MessageContext, false);
+                    value.ServerTimestamp = DateTime.MinValue;
+                    value.SourceTimestamp = DateTime.MinValue;
+                    value.StatusCode = StatusCodes.Good;
+                    encoder.WriteDataValue("Value", value);
+                    string valueString = encoder.CloseAndReturnText();
+                    // we only want the value string, search for everything till the real value starts
+                    // and get it
+                    string marker = "{\"Value\":{\"Value\":";
+                    int markerStart = valueString.IndexOf(marker);
+                    messageData.PreserveValueQuotes = true;
+                    if (markerStart >= 0)
+                    {
+                        // we either have a value in quotes or just a value
+                        int valueLength;
+                        int valueStart = marker.Length;
+                        if (valueString.IndexOf("\"", valueStart) >= 0)
+                        {
+                            // value is in quotes and two closing curly brackets at the end
+                            valueStart++;
+                            valueLength = valueString.Length - valueStart - 3;
+                        }
+                        else
+                        {
+                            // value is without quotes with two curly brackets at the end
+                            valueLength = valueString.Length - marker.Length - 2;
+                            messageData.PreserveValueQuotes = false;
+                        }
+                        messageData.Value = valueString.Substring(valueStart, valueLength);
+                    }
+                }
 
-                // suppress output of server timestamp in json by setting it to minvalue
-                value.ServerTimestamp = DateTime.MinValue;
-                encoder.WriteDataValue("Value", value);
+                // currently the pattern processing is done here, which adds runtime to the notification processing.
+                // In case of perf issues it could be also done in CreateJsonMessage of IoTHubMessaging.cs.
 
-                string json = encoder.CloseAndReturnText();
+                // apply patterns
+                messageData.ApplyPatterns(telemetryConfiguration);
 
                 // add message to fifo send queue
-                Trace(Utils.TraceMasks.OperationDetail, $"Enqueue a new message from subscription {monitoredItem.Subscription.Id} (publishing interval: {monitoredItem.Subscription.PublishingInterval}, sampling interval: {monitoredItem.SamplingInterval}):");
-                Trace(Utils.TraceMasks.OperationDetail,  "   ApplicationUri: " + (applicationURI + (string.IsNullOrEmpty(OpcSession.ShopfloorDomain) ? "" : $":{OpcSession.ShopfloorDomain}")));
-                Trace(Utils.TraceMasks.OperationDetail, $"   DisplayName: {monitoredItem.DisplayName}");
-                Trace(Utils.TraceMasks.OperationDetail, $"   Value: {value}");
-                IotHubCommunication.Enqueue(json);
+                Trace(Utils.TraceMasks.OperationDetail, $"Enqueue a new message from subscription {monitoredItem.Subscription.Id}");
+                Trace(Utils.TraceMasks.OperationDetail, $" with publishing interval: {monitoredItem.Subscription.PublishingInterval} and sampling interval: {monitoredItem.SamplingInterval}):");
+                Trace(Utils.TraceMasks.OperationDetail, $"   EndpointUrl: {messageData.EndpointUrl}");
+                Trace(Utils.TraceMasks.OperationDetail, $"   DisplayName: {messageData.DisplayName}");
+                Trace(Utils.TraceMasks.OperationDetail, $"   Value: {messageData.Value}");
+                IotHubCommunication.Enqueue(messageData);
             }
             catch (Exception e)
             {
@@ -258,6 +391,12 @@ namespace OpcPublisher
             set => _shopfloorDomain = value;
         }
 
+        public bool UseSecurity
+        {
+            get => _useSecurity;
+            set => _useSecurity = value;
+        }
+
         public int GetNumberOfOpcSubscriptions()
         {
             int result = 0;
@@ -295,7 +434,7 @@ namespace OpcPublisher
         /// <summary>
         /// Ctor for the session.
         /// </summary>
-        public OpcSession(Uri endpointUri, uint sessionTimeout)
+        public OpcSession(Uri endpointUri, bool useSecurity, uint sessionTimeout)
         {
             State = SessionState.Disconnected;
             EndpointUri = endpointUri;
@@ -304,8 +443,10 @@ namespace OpcPublisher
             UnsuccessfulConnectionCount = 0;
             MissedKeepAlives = 0;
             PublishingInterval = OpcPublishingInterval;
+            _useSecurity = useSecurity;
             _opcSessionSemaphore = new SemaphoreSlim(1);
             _namespaceTable = new NamespaceTable();
+            _telemetryConfiguration = GetEndpointTelemetryConfiguration(endpointUri.AbsoluteUri);
         }
 
         /// <summary>
@@ -366,10 +507,10 @@ namespace OpcPublisher
                     _opcSessionSemaphore.Release();
 
                     // start connecting
-                    EndpointDescription selectedEndpoint = CoreClientUtils.SelectEndpoint(EndpointUri.AbsoluteUri, true);
+                    EndpointDescription selectedEndpoint = CoreClientUtils.SelectEndpoint(EndpointUri.AbsoluteUri, _useSecurity);
                     ConfiguredEndpoint configuredEndpoint = new ConfiguredEndpoint(null, selectedEndpoint, EndpointConfiguration.Create(PublisherOpcApplicationConfiguration));
                     uint timeout = SessionTimeout * ((UnsuccessfulConnectionCount >= OpcSessionCreationBackoffMax) ? OpcSessionCreationBackoffMax : UnsuccessfulConnectionCount + 1);
-                    Trace($"Create session for endpoint URI '{EndpointUri.AbsoluteUri}' with timeout of {timeout} ms.");
+                    Trace($"Create {(_useSecurity ? "secured" : "unsecured")} session for endpoint URI '{EndpointUri.AbsoluteUri}' with timeout of {timeout} ms.");
                     OpcUaClientSession = await Session.Create(
                             PublisherOpcApplicationConfiguration,
                             configuredEndpoint,
@@ -1134,8 +1275,10 @@ namespace OpcPublisher
 
         private static string _shopfloorDomain;
         private static bool _fetchOpcNodeDisplayName = false;
+        private bool _useSecurity = true;
         private SemaphoreSlim _opcSessionSemaphore;
         private NamespaceTable _namespaceTable;
+        private EndpointTelemetryConfiguration _telemetryConfiguration;
         private double _minSupportedSamplingInterval;
     }
 }
