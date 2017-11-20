@@ -219,6 +219,7 @@ namespace OpcPublisher
                     {
                         Trace($"Create Publisher IoTHub client with device connection string: '{deviceConnectionString}' using '{IotHubProtocol}' for communication.");
                         _iotHubClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, IotHubProtocol);
+                        _iotHubClient.ProductInfo = "OpcPublisher";
                         ExponentialBackoff exponentialRetryPolicy = new ExponentialBackoff(int.MaxValue, TimeSpan.FromMilliseconds(2), TimeSpan.FromMilliseconds(1024), TimeSpan.FromMilliseconds(3));
                         _iotHubClient.SetRetryPolicy(exponentialRetryPolicy);
                         await _iotHubClient.OpenAsync();
