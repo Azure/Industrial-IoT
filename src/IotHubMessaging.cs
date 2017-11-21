@@ -181,7 +181,7 @@ namespace OpcPublisher
                     }
                     else
                     {
-                        Trace($"Attempting to register ourselves with IoT Hub using owner connection string: {_iotHubOwnerConnectionString}");
+                        Trace($"Attempting to register ourselves with IoT Hub using owner connection string.");
                         RegistryManager manager = RegistryManager.CreateFromConnectionString(_iotHubOwnerConnectionString);
 
                         // remove any existing device
@@ -198,13 +198,13 @@ namespace OpcPublisher
                         {
                             string hostname = _iotHubOwnerConnectionString.Substring(0, _iotHubOwnerConnectionString.IndexOf(";"));
                             deviceConnectionString = hostname + ";DeviceId=" + ApplicationName + ";SharedAccessKey=" + newDevice.Authentication.SymmetricKey.PrimaryKey;
-                            Trace($"Device connection string is: {deviceConnectionString}");
+                            Trace($"Generated device connection string.");
                             Trace($"Adding it to device cert store.");
                             await SecureIoTHubToken.WriteAsync(ApplicationName, deviceConnectionString, IotDeviceCertStoreType, IotDeviceCertStorePath);
                         }
                         else
                         {
-                            Trace($"Could not register ourselves with IoT Hub using owner connection string: {_iotHubOwnerConnectionString}");
+                            Trace($"Could not register ourselves with IoT Hub using owner connection string.");
                             Trace("exiting...");
                             return false;
                         }
@@ -217,7 +217,7 @@ namespace OpcPublisher
                     // connect to IoTHub
                     if (!string.IsNullOrEmpty(deviceConnectionString))
                     {
-                        Trace($"Create Publisher IoTHub client with device connection string: '{deviceConnectionString}' using '{IotHubProtocol}' for communication.");
+                        Trace($"Create Publisher IoTHub client with device connection string using '{IotHubProtocol}' for communication.");
                         _iotHubClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, IotHubProtocol);
                         _iotHubClient.ProductInfo = "OpcPublisher";
                         ExponentialBackoff exponentialRetryPolicy = new ExponentialBackoff(int.MaxValue, TimeSpan.FromMilliseconds(2), TimeSpan.FromMilliseconds(1024), TimeSpan.FromMilliseconds(3));
@@ -251,7 +251,7 @@ namespace OpcPublisher
                     ITransportSettings[] transportSettings = { mqttSettings };
 
                     // connect to EdgeHub
-                    Trace($"Create Publisher EdgeHub client with connection string: '{_edgeHubConnectionString}' using '{IotHubProtocol}' for communication.");
+                    Trace($"Create Publisher EdgeHub client with connection string using '{IotHubProtocol}' for communication.");
                     _iotHubClient = DeviceClient.CreateFromConnectionString(_edgeHubConnectionString, transportSettings);
                     ExponentialBackoff exponentialRetryPolicy = new ExponentialBackoff(int.MaxValue, TimeSpan.FromMilliseconds(2), TimeSpan.FromMilliseconds(1024), TimeSpan.FromMilliseconds(3));
                     _iotHubClient.SetRetryPolicy(exponentialRetryPolicy);
