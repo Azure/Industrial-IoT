@@ -214,8 +214,13 @@ namespace OpcPublisher
                                 return false;
                             }
                         }
+                        else
+                        {
+                            Trace($"There have been a device connectionstring specified on command line. Skipping device creation in IoTHub. Please ensure you created a device with name '{ApplicationName}' manually.");
+                        }
                     }
 
+                    // save the device connectionstring, if we have one
                     if (!string.IsNullOrEmpty(_deviceConnectionString))
                     {
                         Trace($"Adding device connectionstring to secure store.");
