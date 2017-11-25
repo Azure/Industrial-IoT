@@ -130,7 +130,7 @@ namespace OpcPublisher
                 else
                 {
                     rsa.Dispose();
-                    throw new CryptographicException("Could not encrypt IoTHub security token using generated public key!");
+                    throw new CryptographicException("Can not encrypt IoTHub security token using generated public key!");
                 }
             }
             rsa.Dispose();

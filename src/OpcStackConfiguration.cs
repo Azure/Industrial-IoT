@@ -225,7 +225,7 @@ namespace OpcPublisher
                     null,
                     null
                     );
-                _configuration.SecurityConfiguration.ApplicationCertificate.Certificate = certificate ?? throw new Exception("OPC UA application certificate could not be created! Cannot continue without it!");
+                _configuration.SecurityConfiguration.ApplicationCertificate.Certificate = certificate ?? throw new Exception("OPC UA application certificate can not be created! Cannot continue without it!");
             }
             else
             {
@@ -291,7 +291,7 @@ namespace OpcPublisher
                     ICertificateStore store = _configuration.SecurityConfiguration.TrustedPeerCertificates.OpenStore();
                     if (store == null)
                     {
-                        Trace($"Could not open trusted peer store. StorePath={_configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
+                        Trace($"Can not open trusted peer store. StorePath={_configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
                     }
                     else
                     {
@@ -309,7 +309,7 @@ namespace OpcPublisher
                 }
                 catch (Exception e)
                 {
-                    Trace(e, $"Could not add publisher certificate to trusted peer store. StorePath={_configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
+                    Trace(e, $"Can not add publisher certificate to trusted peer store. StorePath={_configuration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
                 }
             }
             else

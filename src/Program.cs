@@ -129,6 +129,9 @@ namespace OpcPublisher
                             }
                         }
                     },
+                    { "dc|deviceconnectionstring=", $"if publisher is not able to register itself with IoTHub, you can create a device with name <applicationname> manually and pass in the connectionstring of this device.\nDefault: none",
+                        (string dc) => DeviceConnectionString = dc
+                    },
 
                     // opc server configuration options
                     { "lf|logfile=", $"the filename of the logfile to use.\nDefault: './Logs/<applicationname>.log.txt'", (string l) => LogFileName = l },

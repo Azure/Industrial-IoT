@@ -301,7 +301,7 @@ namespace OpcPublisher
                 }
 
                 // currently the pattern processing is done here, which adds runtime to the notification processing.
-                // In case of perf issues it could be also done in CreateJsonMessage of IoTHubMessaging.cs.
+                // In case of perf issues it can be also done in CreateJsonMessage of IoTHubMessaging.cs.
 
                 // apply patterns
                 messageData.ApplyPatterns(telemetryConfiguration);
@@ -646,7 +646,7 @@ namespace OpcPublisher
                                     int namespaceIndex = GetNamespaceIndex(item.ConfigExpandedNodeId?.NamespaceUri);
                                     if (namespaceIndex < 0)
                                     {
-                                        Trace($"The namespace URI of node '{item.ConfigExpandedNodeId.ToString()}' could be not mapped to a namespace index.");
+                                        Trace($"The namespace URI of node '{item.ConfigExpandedNodeId.ToString()}' can be not mapped to a namespace index.");
                                     }
                                     else
                                     {
@@ -658,7 +658,7 @@ namespace OpcPublisher
                                     string namespaceUri = GetNamespaceUri(item.ConfigNodeId.NamespaceIndex);
                                     if (string.IsNullOrEmpty(namespaceUri))
                                     {
-                                        Trace($"The namespace index of node '{item.ConfigNodeId.ToString()}' is invalid and the node format could not be updated.");
+                                        Trace($"The namespace index of node '{item.ConfigNodeId.ToString()}' is invalid and the node format can not be updated.");
                                     }
                                     else
                                     {
@@ -1005,7 +1005,7 @@ namespace OpcPublisher
                     return;
                 }
 
-                // check if there is already a subscription with the same publishing interval, which could be used to monitor the node
+                // check if there is already a subscription with the same publishing interval, which can be used to monitor the node
                 OpcSubscription opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == opcPublishingInterval);
                 
                 // if there was none found, create one

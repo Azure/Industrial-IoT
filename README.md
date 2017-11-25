@@ -261,7 +261,7 @@ The syntax of the configuration file is as follows:
                     "MonitoredItem": {
                         "ApplicationUri": {
                             // We already publish the endpoint URL, so we do not want
-                            //the ApplicationUri of the MonitoredItem to be published.
+                            // the ApplicationUri of the MonitoredItem to be published.
                             "Publish": false
                         },
                         "DisplayName": {
@@ -373,6 +373,12 @@ The complete usage of the application can be shown using the `--help` command li
                                        iothubmessagesize parameter controls when
                                        telemetry is sent.
                                        Default: '10'
+              --dc, --deviceconnectionstring=VALUE
+                                     if publisher is not able to register itself with
+                                       IoTHub, you could create a device with name <
+                                       applicationname> manually and pass in the
+                                       connectionstring of this device.
+                                       Default: none
               --lf, --logfile=VALUE  the filename of the logfile to use.
                                        Default: './Logs/<applicationname>.log.txt'
               --pn, --portnum=VALUE  the server port of the publisher OPC server

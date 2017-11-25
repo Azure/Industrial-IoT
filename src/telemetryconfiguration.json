@@ -53,7 +53,7 @@
             // Name allows you to use a shorter string as property name in the JSON message
             // sent by publisher. By default the property name is unchanged and will be
             // here 'EndpointUrl'.
-            // The 'Name' property could only be set in the 'Defaults' object to ensure
+            // The 'Name' property can only be set in the 'Defaults' object to ensure
             // all messages from publisher sent to IoTHub have a similar layout.
             "Name": "EndpointUrl"
 
@@ -79,7 +79,7 @@
             //          "ApplicationUri": "urn:myopcserver",
             //          "DisplayName": "CurrentTime",
             //      }
-            // The 'Flat' property could only be used for the 'MonitoredItem' and
+            // The 'Flat' property can only be used for the 'MonitoredItem' and
             // 'Value' configuratíon settings of the 'Defaults' objet and will be used
             // for all JSON messages sent by publisher.
             "Flat": true,
@@ -102,7 +102,7 @@
             //      "DisplayName": "CurrentTime",
             //      "Value": "10.11.2017 14:03:17",
             //      "SourceTimestamp": "2017-11-10T14:03:17Z"
-            // The 'Flat' property could only be used for the 'MonitoredItem' and 'Value'
+            // The 'Flat' property can only be used for the 'MonitoredItem' and 'Value'
             // configuratíon settings of the 'Defaults' objet and will be used for all JSON
             // messages sent by publisher.
             "Flat": false,
@@ -134,7 +134,7 @@
     // or the default settings used by publisher.
     // It is not allowed to specify 'Name' and 'Flat' properties in this object.
     "EndpointSpecific": [
-        // The following shows how a endpoint specific configuration could look like:
+        // The following shows how a endpoint specific configuration can look like:
         {
             // 'ForEndpointUrl' allows to configure for which OPC UA server this
             // object applies and is a required property for all objects in the
@@ -151,7 +151,7 @@
                 "Pattern": "opc.tcp://(.*)"
             },
             "NodeId": {
-                // We are not interested in the configured 'NodeId' value, 
+                // We are not interested in the configured 'NodeId' value,
                 // so we do not publish it.
                 "Publish": false
                 // No 'Pattern' key is specified here, so the 'NodeId' value will be
@@ -160,7 +160,7 @@
             "MonitoredItem": {
                 "ApplicationUri": {
                     // We already publish the endpoint URL, so we do not want
-                    //the ApplicationUri of the MonitoredItem to be published.
+                    // the ApplicationUri of the MonitoredItem to be published.
                     "Publish": false
                 },
                 "DisplayName": {
@@ -170,7 +170,7 @@
             "Value": {
                 "Value": {
                     // The value of the node is important for us, everything else we
-                    //are not interested in to keep the data ingest as small as possible.
+                    // are not interested in to keep the data ingest as small as possible.
                     "Publish": true
                 },
                 "SourceTimestamp": {
