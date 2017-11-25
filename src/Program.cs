@@ -129,7 +129,7 @@ namespace OpcPublisher
                             }
                         }
                     },
-                    { "dc|deviceconnectionstring=", $"if publisher is not able to register itself with IoTHub, you could create a device with name <applicationname> manually and pass in the connectionstring of this device.\nDefault: none",
+                    { "dc|deviceconnectionstring=", $"if publisher is not able to register itself with IoTHub, you can create a device with name <applicationname> manually and pass in the connectionstring of this device.\nDefault: none",
                         (string dc) => DeviceConnectionString = dc
                     },
 

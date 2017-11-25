@@ -261,7 +261,7 @@ The syntax of the configuration file is as follows:
                     "MonitoredItem": {
                         "ApplicationUri": {
                             // We already publish the endpoint URL, so we do not want
-                            //the ApplicationUri of the MonitoredItem to be published.
+                            // the ApplicationUri of the MonitoredItem to be published.
                             "Publish": false
                         },
                         "DisplayName": {

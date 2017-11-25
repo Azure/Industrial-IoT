@@ -209,7 +209,7 @@ namespace OpcPublisher
                             }
                             else
                             {
-                                Trace($"Could not register ourselves with IoT Hub.");
+                                Trace($"Can not register ourselves with IoT Hub.");
                                 Trace("exiting...");
                                 return false;
                             }
@@ -243,7 +243,7 @@ namespace OpcPublisher
                     }
                     else
                     {
-                        Trace("Device connection string not found in secure store. Please pass it in at least once via command line option. Could not connect to IoTHub.");
+                        Trace("Device connection string not found in secure store. Please pass it in at least once via command line option. Can not connect to IoTHub.");
                         Trace("exiting...");
                         return false;
                     }
@@ -367,7 +367,7 @@ namespace OpcPublisher
                 EndpointTelemetryConfiguration telemetryConfiguration = GetEndpointTelemetryConfiguration(messageData.EndpointUrl);
 
                 // currently the pattern processing is done in MonitoredItem_Notification of OpcSession.cs. In case of perf issues
-                // it could be also done here, the risk is then to lose messages in the communication queue.
+                // it can be also done here, the risk is then to lose messages in the communication queue.
 
                 // apply configured patterns to message data
                 // messageData.ApplyPatterns(telemetryConfiguration);
