@@ -13,7 +13,7 @@ For each distinct publishing interval to an OPC UA server it creates a separate 
 
 Publisher supports batching of the data sent to IoTHub, to reduce network load. This batching is sending a packet to IoTHub only if the configured package size is reached.
 
-This application uses the OPC Foundations's OPC UA reference stack and therefore licensing restrictions apply. Visit http://opcfoundation.github.io/UA-.NETStandardLibrary/ for OPC UA documentation and licensing terms.
+This application uses the OPC Foundations's OPC UA reference stack and therefore licensing restrictions apply. Visit http://opcfoundation.github.io/UA-.NETStandard/ for OPC UA documentation and licensing terms.
 
 |Branch|Status|
 |------|-------------|
