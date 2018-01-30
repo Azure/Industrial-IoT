@@ -1,0 +1,282 @@
+﻿@import "../../variables.less";
+@import "../../bootstrap/variables.less";
+@import "../../bootstrap/mixins/vendor-prefixes.less";
+@import "../root_styles.less";
+
+/* 
+ *  browser connect area
+*/
+.browser_connect_container, .browser_error_container {
+    background-color: @secondary-color;
+    margin-left: @navigation-width;
+    margin-right: @navigation-width;
+    padding-top: 12px;
+    padding-left: 5*@gutter;
+}
+.browser_connect_selection_preconfigured_container {
+    padding-top: 20px;
+    margin-left: -30px;
+}
+.browser_connect_selection_dropdown {
+    margin-right: @gutter;
+    margin-left: 16px;
+    margin-top: 4px;
+    font-size: @browser-text-size;
+    word-wrap: break-word;
+    color: @lightest-gray;
+}
+.browser_connect_selection_textbox {
+    margin-right: @gutter;
+    margin-left: 16px;
+    margin-top: 11px;
+    font-size: @browser-text-size;
+    word-wrap: break-word;
+    color: @lightest-gray;
+}
+.browser_connect_selection_label {
+    margin-right: @gutter;
+    margin-left: 16px;
+    margin-top: 0px;
+    font-size: @browser-text-size;
+    word-wrap: break-word;
+    color: @lightest-gray;
+}
+
+.browser_connect_selection_dropdown .bootstrap-select {
+    max-width: unset;
+}
+
+.browser_connect_button {
+    height: 35px;
+    padding-top: @gutter/2;
+    max-width: 200px;
+}
+.browser_top_container {
+    background-color: @content-background-color;
+    margin-bottom: 10px;
+    color: @lightest-gray;
+}
+.browser_container_header, .browser_connect_header, .browser_error_header {
+    background-color: @list-header-background-color;
+}
+.browser_container_header_text, .browser_connect_header_text, .browser_error_header_text {
+    font-size: @browser-header-text-size;
+    color: white;
+    margin-right: 0px;
+    margin-left: 16px;
+    height: 48px;
+    padding-top: 12px;
+    padding-left: 1px;
+}
+.browser_image_container {
+    border: none;
+    border-top: none;
+}
+.browser_browse_connect_button {
+    margin-left: 16px;
+    padding-top: 48px;
+    padding-bottom: 10px;
+}
+
+.browser_rdxlink_container {
+    position: relative;
+    padding-top: 10px;
+    margin-top: 70px;
+    margin-left: 25px;
+    text-align: left;
+    font-size: @browser-text-size;
+    color: @lightest-gray;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover, :focus {
+        color: white;
+    }
+}
+
+/* 
+ *  Cert error
+*/
+.browser_cert_proceed_button {
+    left: 10px;
+    top: 20px;
+}
+.browser_cert_cancel_button {
+    left: 100px;
+    top: -16px;
+}
+
+.glyphicon-alert {
+    display: inline-block;
+    color: @error-color;
+    font-size: @browser-header-text-size;
+}
+
+/* 
+ *  browser error area
+*/
+.browser_error_details_container {
+    padding-top: 32px;
+    margin-left: 24px;
+    margin-right: 24px;
+    margin-bottom: 10px;
+    font-size: @browser-header-text-size;
+    word-wrap: break-word;
+    color:@lightest-gray;
+}
+.browser_error_details_line_header {
+    margin-left: 0px;
+    margin-right: 0px;
+    color: @error-color;
+    font-size: @browser-header-text-size;
+    text-align: justify;
+    text-justify: inter-word;
+}
+.browser_error_details_line {
+    margin-left: 0px;
+    margin-right: 0px;
+    padding-top: 20px;
+    font-size: @browser-text-size;
+    text-align: justify;
+    text-justify: inter-word;
+}
+.browser_error_details_label {
+    margin-left: 0px;
+    margin-right: 0px;
+    padding-top: 24px;
+    font-size: @h3-font-size;
+    text-align: justify;
+    text-justify: inter-word;
+}
+
+.browser_error_details_info_black {
+    color: @lightest-gray;
+}
+
+.browser_error_details_info {
+    color: @error-color; 
+    text-align: left;
+}
+.browser_error_disconnect_button {
+    padding-left: 35px;
+    padding-top: 25px;
+    padding-bottom: 10px;
+}
+
+/* 
+ *  browser area
+*/
+.browser_browse_container {
+    background-color: @secondary-color;
+    margin-left: @navigation-width;
+    margin-right: @navigation-width;
+    margin-bottom: 10px;
+    padding-top: 12px;
+    padding-left: 5*@gutter;
+}
+.browser_browse_nodetree_container, .browser_select_connect_container {
+    padding-left: 1px;
+    padding-top: 32px;
+}
+.browser_browse_disconnect_button {
+    padding-left: 16px;
+    padding-top: 32px;
+    padding-bottom: 10px;
+}
+.browser_browse_status_message_container {
+    padding-top: 20px;
+    word-wrap: break-word;
+}
+.browser_browse_communication_error_container {
+    padding-top: 20px;
+}
+.browser_browse_errorlog_line {
+
+}
+.list-group {
+    font-size: @browser-text-size;
+    background-color: @content-background-color;
+    margin-left: 12px !important;
+    width: 335px !important;
+}
+hr {
+    display: block;
+    height: 1px;
+    border-top: 1px solid @background-color;
+    margin-left: 6px;
+    margin-right: 6px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.list-group-item-heading {
+    font-weight: bold;
+    background-color: @content-background-color;
+    color: @lightest-gray;
+}
+.list-group-item {
+    margin-left: 0px;
+    background-color: @content-background-color;
+    color: @lightest-gray;
+    border: none;
+}
+:first-child.list-group-item {
+    border-top-right-radius: 0px;
+    border-top-left-radius: 0px;
+}
+
+.node-contextPanel-button-position {
+    position: relative;
+    margin-top: 15px;
+    margin-bottom: 3px;
+    padding-left: 220px;
+}
+
+.browser_error_contextpanel_container {
+    position: relative;
+    margin-top: 30px;
+    margin-left: 25px;
+    text-align: left;
+    font-size: @browser-text-size;
+    color: @lightest-gray;
+}
+
+.browser_error_contextpanel_header {
+    font-size: @browser-header-text-size;
+    font-weight: bold;
+}
+
+.browser_error_contextpanel_message {
+    font-size: @browser-text-size;
+    font-weight: normal;
+}
+
+.context-panel-data {
+    padding-bottom: 15px;
+} 
+
+
+@media only screen and (max-width: @screen-sm) {
+    .browser_browse_nodetree_container {
+        padding-left: 30px;
+    }
+
+    .browser_browse_container {
+        padding-left: 30px;
+    }
+
+    .browser_browse_disconnect_button {
+        padding-left: 45px;
+    }
+}
+
+@media only screen and (max-device-width: @screen-sm) {
+    .browser_browse_nodetree_container {
+        padding-left: 30px;
+    }
+    .browser_browse_container {
+        padding-left: 30px;
+    }
+    .browser_browse_disconnect_button  {
+        padding-left: 45px;
+    }
+}

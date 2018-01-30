@@ -1,0 +1,33 @@
+﻿@base-image-path: "../wwwroot/img";
+
+/*
+If any of the included files are moved, missing, or contain Less syntax errors,
+the .less compilation will fail. In this case, the request for this file will
+return an HTTP 404 error.
+
+To troubleshoot, use an HTTP debugger (like Fiddler or Charles) and look at the
+raw HTTP 404 response, which will include a detailed error message of the compilation
+error and can be *very* helpful.
+*/
+
+@import "variables.less";
+
+@import "bootstrap/bootstrap.less";
+
+@import "styles/root_styles.less";
+@import "styles/navigation.less";
+
+@import "styles/views/dashboard.less";
+@import "styles/views/browser.less";
+@import "styles/views/addGateway.less";
+
+@import "styles/buttons.less";
+@import "styles/errors.less";
+@import "styles/masthead.less";
+@import "styles/content.less";
+@import "styles/modal.less";
+@import "styles/contextPanel.less";
+@import "styles/c3Graph.less";
+@import "styles/overflow.less";
+@import "styles/tooltip.less";
+@import "styles/loader.less";

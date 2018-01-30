@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>@ViewData["Title"] - @Strings.DefaultSolutionName</title>
+
+    <link rel="stylesheet" href="~/css/main.min.css" asp-append-version="true" />
+</head>
+<body>
+    @Html.AntiForgeryToken();
+    <header>
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="container-fluid">
+                <div id="accountMenu" class="collapse navbar-collapse">
+                    <ul id="title" class="path overflow"></ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="masthead_text overflow">@Strings.MicrosoftAzureIoTSuite - @Strings.DefaultSolutionName</li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle masthead_account_container" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                <span class="masthead_account_avatar"></span>
+                                <span class="masthead_account">
+                                    <span class="masthead_account_name overflow">FOO</span>
+                                    <span class="masthead_account_subtitle overflow">@Strings.AdministratorRole</span>
+                                </span>
+                            </a>
+                            @await Html.PartialAsync("_LoginPartial")
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+    <section class="page">
+        <main class="container-fluid">
+            <div id="pushPanel">
+                @RenderBody()
+            </div>
+        </main>
+        <div id="loadingElement" class="loader_container">
+            <div class="loader_container__loader"></div>
+        </div>
+
+        <div id="dashboardContextPanelLeft" class="overlay"></div>
+    </section>
+
+    <script src="~/js/main.min.js" asp-append-version="true"></script>
+    <script>
+        $("#title").text(title);
+
+        var marginLeft;
+        // The length of the text inside the button (and the button length)
+        // changes with the languages.
+        // Left margin is set accordingly to text length.
+        function checkButtonTextLength() {
+            var textLength = @Strings.BrowserTrustButton.Length;
+            if (textLength > 10) {
+                marginLeft = "110px";
+            } else {
+                marginLeft = "150px";
+            }
+        }
+
+        $(document).ready(function () {
+            checkButtonTextLength();
+        });
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,44 @@
+﻿// Configure bundling and minification for the project.
+// More info at https://go.microsoft.com/fwlink/?LinkId=808241
+[
+    {
+        "outputFileName": "wwwroot/css/main.min.css",
+        "inputFiles": [
+            "wwwroot/themes/base/core.css",
+            "wwwroot/themes/base/dialog.css",
+            "wwwroot/themes/PCS/style.css",
+            "wwwroot/css/bootstrap.css",
+            "wwwroot/css/bootstrap-select.min.css",
+            "wwwroot/css/jquery.scrollbar.css",
+            "wwwroot/css/scalize/scalize.css",
+            "wwwroot/css/main.css"
+        ],
+        "minify": {
+            "enabled": false
+        }
+    },
+    {
+        "outputFileName": "wwwroot/js/main.min.js",
+        "inputFiles": [
+            "wwwroot/lib/jquery-2.2.4.js",
+            "wwwroot/lib/bootstrap.min.js",
+            "wwwroot/lib/jquery.validate.js",
+            "wwwroot/lib/jquery.unobtrusive-ajax.js",
+            "wwwroot/lib/jquery.datatables*",
+            "wwwroot/lib/jquery-ui-1.12.1.js",
+            "wwwroot/lib/jquery-ui-i18n.js",
+            "wwwroot/lib/jquery.signalR-2.2.2.js",
+            "wwwroot/lib/globalize.js",
+            "wwwroot/lib/js.cookie-1.5.1.js",
+            "wwwroot/lib/moment-with-locales.js",
+            "wwwroot/lib/bootstrap-select-1.12.2.js",
+            "wwwroot/lib/jquery.scrollbar.min.js",
+            "wwwroot/lib/scalize.min.js"
+        ],
+        "minify": {
+            "enabled": false,
+            "renameLocals": true
+        },
+        "sourceMap": true
+    }
+]

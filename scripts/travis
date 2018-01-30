@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Example usage (see "travis help" for more information):
+#  travis help
+#  travis login --pro
+#  travis whoami --pro
+#  travis accounts --pro
+#  travis history
+#  travis monitor --pro
+#  travis settings
+#  travis show
+#  travis status
+#  travis token --pro
+#  travis whatsup --pro
+
+set -e
+APP_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )/"
+cd $APP_HOME
+
+mkdir -p .travis
+
+docker run -it \
+    -v $APP_HOME/.travis:/root/.travis \
+    -v $APP_HOME:/opt/code \
+    azureiotpcs/travis-cli:1.8.8 /root/bin/travis.sh $*
+
+set +e

@@ -1,0 +1,56 @@
+﻿@import "../../variables.less";
+@import "../../bootstrap/variables.less";
+
+
+.add_gateway_instruction_textbox {
+    margin-right: @gutter;
+    margin-left: 1px;
+    margin-top: -27px;
+    padding-bottom: @gutter/2;
+    font-size: 14px;
+    text-align: justify;
+    text-justify: inter-word;
+    line-height: 300%;
+}
+
+.add_gateway_instruction_header {
+    font-weight: 600;
+}
+
+.add_gateway_instruction_body {
+    font-weight: normal;
+    padding-left: 10px;
+}
+
+ul.add_gateway_letter_list {
+    list-style-type: lower-alpha;
+    padding-left: 20px;
+}
+
+a {
+    color: @lightest-gray;
+    
+    &:hover {
+        color: white;
+    }
+    
+}
+
+ul.add_gateway_point_list {
+    list-style-type: circle;
+    padding-left: 20px;
+}
+
+input, button, select, textarea {
+    height: 24px;
+    color: white;
+    background-color: @content-background-color;
+    border: 1px solid @border-dark-gray;
+}
+
+.ui-autocomplete {
+    color: red !important;
+    background-color: #ffffff !important;
+    -moz-border-radius: 15px;
+    border-radius: 15px;
+}

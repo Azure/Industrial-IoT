@@ -1,0 +1,156 @@
+﻿/*
+    Configuration variables
+*/
+
+// Colors           
+@primary-color: #242628;            // Color - header, navigation         
+@secondary-color: #121416;          // Background color - header, navigation
+@background-color: #121416;
+@background-loader-color: #f3f3f3;
+
+@content-background-color: #1B1D1F; // Content area background color
+@body-background-color: @secondary-color;
+@gauges-background-color: #30404D;
+
+@text-mainhead-color: #afb9c3;
+@text-hover-color: #ffffff;
+@h3-color: @primary-color;
+@h4-color: @primary-color;
+
+@anchor-color: @primary-color;
+@border-dark-gray: #6A737C;
+@grid-tile-light: #242628;
+@lightest-gray: #AFB9C3;
+@icon-dark-gray: #3E4145;
+
+// Errors
+@error-color: #FC540A;
+@error-pending-color: #ff9900;
+@error-validate-color: #39b54a;
+
+// Fonts
+@font-face {
+    font-family: "Selawik";
+    src: url("../wwwroot/fonts/selawk.ttf") format('truetype');
+}
+@font-face {
+    font-family: "selawkb";
+    src: url("../wwwroot/fonts/selawkb.ttf") format('truetype');
+}
+@font-face {
+    font-family: "Selawik Light";
+    src: url("../wwwroot/fonts/selawkl.ttf") format('truetype');
+}
+
+@font-face {
+    font-family: "Selawik Semibold";
+    src: url("../wwwroot/fonts/selawksb.ttf") format('truetype');
+}
+
+@font-face {
+    font-family: "Selawik Semilight";
+    src: url("../wwwroot/fonts/selawksl.ttf") format('truetype');
+}
+
+@common-font-stack: Selawik, selawkb, "Selawik Light", "Selawik Semibold", "Selawik Semilight";
+
+@font-family-base: @common-font-stack;
+@font-size-text: 14px;                      // general text font
+@headings-font-family: @font-family-base;   // header font settings
+@headings-font-weight: normal;
+@headings-line-height: 1.5;
+@h1-font-size: 36px;
+@h2-font-size: 20px;
+@h3-font-size: 18px;
+@h4-font-size: 16px;
+@font-size-button: 14px;
+
+// Layout
+@gutter: 10px;
+@navigation-width: 48px;
+
+// Masthead
+@masthead-height: 48px;
+@masthead-color: #ffffff;             
+@masthead-background-color: @primary-color;    
+@masthead-hover-color: #1B1D1F; 
+@masthead-separator-color: #373b3d;
+@masthead-suitename-size: 22px;
+@masthead-solutionname-size: 14px;
+
+// Navigation
+@navigation-link-color: @primary-color;
+@navigation-background-color: #242628;
+@navigation-link-hover-background-color: #3BB18F;   
+@navigation-link-selected-background-color: black;
+
+// Dashboard
+@list-background-color: @secondary-color;
+@list-header-background-color: @primary-color;
+@list-header-color: #ffffff;
+@list-header-text-size: 22px;
+@list-subheader-text-size: 16px;
+@children-subheader-background-color: #383B3E;
+@children-subheader-color: #AFB9C3;
+@children-subheader-text-size: 12px;
+@children-listitem-text-size: 14px;
+@children-listitem-text-color: #474747;
+@alerts-listitem-text-size: 14px;
+@alerts-listitem-source-details-text-size: 14px;
+@list-box-shadow-color: #B0B7BD;
+@list-status-severity0-color: #7065FD;
+@list-status-severity1-color: #FFEE91;
+@list-status-severity2-color: #FC540A;
+
+//Browse
+@browser-header-color: #fff; 
+@browser-header-text-size: 16px;
+@browser-text-size: 14px; 
+@gauge-background-color: #5A6672; 
+@gauge-value-color: #D7D7D7; 
+@gauge-value-font-size: 30px; 
+@border-dropdown-selector-color: black; 
+@text-color: black; 
+@screen-dim-filter-alert: 850px; 
+@screen-dim-filter: 600px;
+
+// Button colors
+@button-account-color: @list-header-color; 
+@button-account-background-color: @children-subheader-background-color; 
+@button-account-background-hover-color: darken(@children-subheader-background-color, 20%); 
+@button-browser-background-color: #e2e3e3; 
+@button-browser-background-hover-color: #e7f4f9; 
+@button-dashboard-color: @list-header-color; 
+@button-dashboard-background-color: @children-subheader-background-color; 
+@button-dashboard-background-hover-color: darken(@children-subheader-background-color, 20%); 
+@button-dashboard-disabled-color: @list-header-color; 
+@button-dashboard-disabled-background-color: darken(@children-subheader-background-color, 10%); 
+@button-dashboard-disabled-background-hover-color: darken(@children-subheader-background-color, 10%); 
+@close-contextpanel-button-color: black;
+
+//== Fixed container height to enable scrollbars on them.
+//
+//##
+@container-height: 450px; 
+@container-height-large-screen: 600px; 
+@container-height-small-screen: 300px; 
+@container-height-alerts: @container-height + 46px; 
+@container-height-large-screen-alerts: @container-height-large-screen + 46px; 
+@container-height-small-screen-alerts: @container-height-small-screen + 46px; 
+@map-container-height: @container-height + 111px; 
+@map-container-height-large-screen: @container-height-large-screen + 111px; 
+@map-container-height-small-screen: @container-height-small-screen + 111px;
+
+//== ContextPanel
+//
+//##
+@contextpanel-right-width: 400px; 
+@contextpanel-right-width-big: 450px; 
+@contextpanel-left-width: 230px;
+
+//== c3 Graph
+//
+//##
+@graph-text-color: #f2f2f7; 
+@graph1-line-color: #65CB99; 
+@graph-threshold-color: #f2f2f7;

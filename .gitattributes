@@ -1,0 +1,16 @@
+# Auto-detect text files, ensure they use LF.
+* text=auto eol=lf
+
+# Bash scripts
+*.sh text eol=lf
+scripts/build text eol=lf
+scripts/clean-up text eol=lf
+scripts/compile text eol=lf
+scripts/env-vars-check text eol=lf
+scripts/env-vars-setup text eol=lf
+scripts/run text eol=lf
+scripts/travis text eol=lf
+scripts/docker/build text eol=lf
+scripts/docker/publish text eol=lf
+scripts/docker/run text eol=lf
+scripts/git/setup text eol=lf

@@ -1,0 +1,114 @@
+﻿/*
+    ContextPanel  
+*/
+
+@import "../variables.less";
+@import "../bootstrap/variables.less";
+
+
+.overlay {
+    height: 100%;
+    width: 0%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    left: auto;
+    background-color: @secondary-color;
+    border: 1px solid rgba(0, 0, 0, .5);
+    box-shadow: 0px 0px 4px 4px rgba(0,0,0,0.8);
+    -webkit-box-shadow: 0px 0px 4px 4px rgba(0,0,0,0.8);
+    transition: 0.2s; /* overlay transition speed */
+}
+
+.overlay.overlay-right-open {
+    width: @contextpanel-right-width;
+    background-color: @secondary-color;
+    right: 0;
+    left: auto;
+    z-index: 1002;
+}
+
+.overlay.overlay-right-open-big {
+    width: @contextpanel-right-width-big;
+    background-color: @secondary-color;
+    right: 0;
+    left: auto;
+    z-index: 1002;
+}
+.overlay.overlay-left-open {
+    width: @contextpanel-left-width;
+    background-color: @navigation-background-color;
+    right: auto;
+    left: 0;
+}
+.overlay-scroll {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.push_left {
+    margin-left: @contextpanel-left-width - 30px;
+}
+
+.overlay.overlay-close {
+    width: 0%;
+    visibility: hidden;
+}
+
+.overlay.overlay-extend {
+    width: 100%;
+}
+
+/* Content inside the overlay */
+.overlay-content {
+    position: relative;
+    top: 5%;
+    width: 80%;
+    text-align: center;
+    margin-left: 10px;
+}
+
+/* Links inside the overlay */
+.overlay a {
+    padding: 8px;
+    text-decoration: none;
+    color: white;
+    display: block;
+    transition: 0.3s;
+}
+
+/* Position of the close button */
+.overlay .closebtn {
+    position: absolute;
+    top: 42px;
+    right: 5px;
+    font-size: 28px;
+    font-weight: 100;
+    color: white;
+}
+
+/* Position of the expand button */
+.overlay .button {
+    position: absolute;
+    top: 55px;
+    right: 85px;
+    font-size: 30px;
+}
+
+/* When the height of the screen is less than @screen-sm-min pixels, 
+   change the font-size of the links and position the 
+   close button again, so they don't overlap */
+@media screen and (max-height: @screen-sm-min) {
+    .overlay a {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: @screen-xs-min) {
+    .overlay.overlay-right-open, 
+    .overlay.overlay-right-open-big {
+        width: 100%;
+    }
+}

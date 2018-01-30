@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+# Usage:
+# Compile the project in the local environment:  ./scripts/compile
+# Compile the project inside a Docker container: ./scripts/compile -s
+# Compile the project inside a Docker container: ./scripts/compile --in-sandbox
+
+set -e
+APP_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )/"
+source "$APP_HOME/scripts/.functions.sh"
+
+# Folder where PCS sandboxes cache data. Reuse the same folder to speed up the
+# sandbox and to save disk space.
+# Use PCS_CACHE="$APP_HOME/.cache" to cache inside the project folder
+PCS_CACHE="/tmp/azure/iotpcs/.cache"
+
+compile() {
+    check_dependency_dotnet
+
+    cd $APP_HOME
+    dotnet restore
+    dotnet build --configuration Debug
+    dotnet build --configuration Release
+}
+
+setup_sandbox_cache() {
+    mkdir -p $PCS_CACHE/sandbox/.config
+    mkdir -p $PCS_CACHE/sandbox/.dotnet
+    mkdir -p $PCS_CACHE/sandbox/.nuget
+    echo "Note: caching build files in $PCS_CACHE"
+}
+
+compile_in_sandbox() {
+
+    setup_sandbox_cache
+
+    cd $APP_HOME
+
+    # In Windows this script should use docker.exe, in which case
+    # the parameters syntax is different, e.g. volumes path
+    # (i.e. C:\path\path\... vs /c/path/path/...).
+    set +e
+    IS_WINDOWS=$(which cmd.exe)
+    set -e
+    if [[ -z "$IS_WINDOWS" ]]; then
+        check_dependency_docker
+        docker run -it \
+            -v "$PCS_CACHE/sandbox/.config:/root/.config" \
+            -v "$PCS_CACHE/sandbox/.dotnet:/root/.dotnet" \
+            -v "$PCS_CACHE/sandbox/.nuget:/root/.nuget" \
+            -v "$APP_HOME:/opt/code" \
+            azureiotpcs/code-builder-dotnet:1.0-dotnetcore /opt/scripts/compile
+    else
+        # Note 'winpty' is required to provide a TTY to Docker
+        echo "Launching cmd.exe /c winpty ..."
+        cmd.exe /c "winpty .\scripts\compile.cmd" --in-sandbox
+    fi
+}
+
+if [[ "$1" == "--in-sandbox" || "$1" == "-s" ]]; then
+    compile_in_sandbox
+else
+    compile
+fi
+
+set +e

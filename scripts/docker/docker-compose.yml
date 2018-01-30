@@ -1,0 +1,15 @@
+# Usage:
+# - install Docker Compose, see https://docs.docker.com/compose/install
+# - open a console and `cd` into the folder that contains this file
+# - run `docker-compose up`
+
+version: "3"
+
+services:
+  opcuaexplorer:
+    image: azureiotpcs/iot-pcs-cf-opc-ua-explorer
+    ports:
+      - "9002:9002"
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_CONFIG_WEBSERVICE_URL

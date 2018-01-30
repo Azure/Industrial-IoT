@@ -1,0 +1,116 @@
+﻿/*
+    Navigation styles
+*/
+
+@import "../variables.less";
+
+
+.navigation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: @navigation-width;
+  height: 100%;
+  z-index: 300;
+  background-color:  @navigation-background-color;
+}
+
+.navigation_link {
+  display: block;
+  width: @navigation-width;
+  height: 48px;
+  font-size: 1.1em;
+  color: @navigation-link-color;
+  text-align: right;
+  line-height: 110px;
+  background-repeat: no-repeat;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+  background-position: 16px 16px;
+}
+
+.navigation_link:hover {
+  background-color: @masthead-hover-color;
+  text-decoration: none;
+  color: white;
+}
+
+.navigation_link_selected {
+  background-color: @navigation-link-selected-background-color;
+}
+
+.navigation_link_text {
+    line-height: 48px;
+    text-align: left;
+    text-indent: 48px;
+    color: @text-mainhead-color;
+    width: @contextpanel-left-width;
+}
+
+/**
+ * @src          The path to your SVG file
+ * @fill-default The default fill value of your referenced SVG
+ * @fill-new     The fill value you would like to replace it with
+ */
+.icon-replace-fill(@src, @fill-default, @fill-new) {
+    @escape-fill-default: escape(@fill-default);
+    @escape-fill-new: escape(@fill-new);
+    @data-uri: data-uri('image/svg+xml;charset=UTF-8', "@{src}");
+    @replace-src: replace("@{data-uri}", "@{escape-fill-default}", "@{escape-fill-new}","mgi");
+    background-image: e(@replace-src);
+}
+
+.navigation_link_hamburger {
+    background-image: url("/img/hamburger.svg");
+
+    &:hover {
+        .icon-replace-fill("../wwwroot/img/hamburger.svg", @text-mainhead-color, @text-hover-color);
+    }
+}
+
+.navigation_link_home {
+    background-image: url("/img/dashboard.svg");
+
+    &:hover {
+        .icon-replace-fill("../wwwroot/img/dashboard.svg", @text-mainhead-color, @text-hover-color);
+        font-family: "Selawik Semibold";
+    }
+}
+
+.navigation_link_browser {
+    background-image: url("/img/icon_server.svg");
+
+    &:hover {
+        .icon-replace-fill("../wwwroot/img/icon_server.svg", @text-mainhead-color, @text-hover-color);
+        font-family: "Selawik Semibold";
+    }
+}
+
+.navigation_link_add_opc_server {
+    background-image: url("/img/icon_addserver.svg");
+
+    &:hover {
+        .icon-replace-fill("../wwwroot/img/icon_addserver.svg", @text-mainhead-color, @text-hover-color);
+        font-family: "Selawik Semibold";
+    }
+}
+
+.navigation_link_addgateway {
+    background-image: url("/img/icon_addgateway.svg");
+
+    &:hover {
+        .icon-replace-fill("../wwwroot/img/icon_addgateway.svg", @text-mainhead-color, @text-hover-color);
+        font-family: "Selawik Semibold";
+    }
+}
+
+.navigation_link_contoso {
+    background-image: url("/img/contosoLogo.svg");
+
+    &:hover {
+        .icon-replace-fill("../wwwroot/img/contosoLogo.svg", @text-mainhead-color, @text-hover-color);
+        font-family: "Selawik Semibold";
+    }
+}

@@ -1,0 +1,13 @@
+﻿@model DateTime?
+@{
+    string appliedClass = this.ViewData["class"] as string;
+
+    if (Model.HasValue) {
+        if (string.IsNullOrEmpty(appliedClass)) {
+            <span data-date="@Model.Value.ToString("R")"></span>
+        }
+        else {
+            <span class="@appliedClass" data-date="@Model.Value.ToString("R")"></span>
+        }
+    }
+}

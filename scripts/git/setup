@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+set -e
+APP_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && cd .. && pwd )/"
+
+usage() {
+    echo "ERROR: sandboxing mode not specified."
+    echo ""
+    echo "The pre-commit hook can run in two different modes:"
+    echo "  With sandbox: the build process runs inside a Docker container so you don't need to install .NET Core and other dependencies"
+    echo "  Without sandbox: the build process runs using .NET Core and other dependencies from your workstation"
+    echo ""
+    echo "Usage:"
+    echo "./scripts/git/setup --with-sandbox"
+    echo "./scripts/git/setup --no-sandbox"
+}
+
+failed() {
+    echo "Git hooks setup failed"
+    exit 1
+}
+
+install_precommit_hook() {
+    echo "Adding pre-commit hook..."
+
+    cd $APP_HOME/.git || failed
+    mkdir -p hooks || failed
+    cd hooks || failed
+    rm -f pre-commit
+
+    if [[ "$SANDBOX_MODE" == "" || "$SANDBOX_MODE" == "--no-sandbox" ]]; then
+        cp -p $APP_HOME/scripts/git/pre-commit-runner-no-sandbox.sh ./pre-commit || failed
+    fi
+
+    if [[ "$SANDBOX_MODE" == "--with-sandbox" ]]; then
+        cp -p $APP_HOME/scripts/git/pre-commit-runner-with-sandbox.sh ./pre-commit || failed
+    fi
+
+    chmod 755 ./pre-commit
+    echo "Done."
+}
+
+git_setup() {
+    git config --local core.whitespace trailing-space,space-before-tab
+    git config --local core.autocrlf false
+    git config --local core.eol lf
+    git config --local apply.whitespace fix
+
+    git config --local alias.st status
+    git config --local alias.co checkout
+    git config --local alias.ci commit
+
+    git config --local alias.branches 'branch -v -a'
+    git config --local alias.lg 'log --graph --pretty=format:'\''%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'\'' --abbrev-commit --date=relative'
+    git config --local alias.lg1 'log --pretty=oneline'
+    git config --local alias.lgx 'log --stat'
+    git config --local alias.lgt 'log --graph --pretty=oneline --oneline --all'
+    git config --local alias.stashdiff 'stash show --patience'
+}
+
+SANDBOX_MODE="$1"
+if [[ "$SANDBOX_MODE" == "" || "$SANDBOX_MODE" == "--no-sandbox" || "$SANDBOX_MODE" == "--with-sandbox" ]]; then
+    install_precommit_hook
+else
+    usage
+fi
+
+git_setup
+
+set +e

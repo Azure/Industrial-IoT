@@ -1,0 +1,151 @@
+﻿/*
+    Basic HTML styles and other common styles and mixins
+*/
+
+@import "../variables.less";
+
+// Reset styles
+html {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+main {
+    display: block;
+    margin-left: 95px;
+    padding-top: 60px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    padding: 0;
+}
+
+ul, ol {
+    margin: 0;
+    padding: 0;
+}
+
+p {
+    margin: 0;
+    padding: 0;
+}
+
+div {
+    position: relative;
+}
+
+section {
+    clear: both;
+}
+
+fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: auto;
+}
+
+
+// Typography
+
+body {
+    font-family: @common-font-stack;
+    font-size: @font-size-text;
+    color: @primary-color;
+}
+
+h1, h2, h3, h4 {
+    font-weight: @headings-font-weight;
+}
+
+h2 {
+    font-size: @h2-font-size;
+    margin-bottom: .4em;
+}
+
+h3 {
+    color: @h3-color;
+    font-size: @h3-font-size;
+    margin-bottom: .4em;
+}
+
+h4 {
+    color: @h4-color;
+    font-size: @h4-font-size;
+    margin-bottom: .4em;
+}
+
+a {
+    text-decoration: none;
+    color: @anchor-color;
+    cursor: pointer;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+
+body {
+    background-color: @body-background-color;
+}
+
+main {
+    background-color: @body-background-color;
+}
+
+
+/* ##### Prefix functions ##### */
+
+.transform(@string) {
+    -webkit-transform: @string;
+    -moz-transform: @string;
+    -ms-transform: @string;
+    -o-transform: @string;
+    transform: @string;
+}
+
+.display-flex() {
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flex;
+    display: -o-flex;
+    display: flex;
+}
+
+/*
+.display-inline-flex() {
+    display: -webkit-inline-flex;
+    display: -moz-inline-flex;
+    display: -ms-inline-flex;
+    display: -o-inline-flex;
+    display: inline-flex;
+}
+
+::-webkit-input-placeholder { // WebKit browsers 
+    color: @form-textbox-disabled-color;
+    background-color: @form-textbox-disabled-background;
+    border-color: @form-textbox-disabled-border;
+    font-style: italic;
+}
+
+::-moz-placeholder { // Mozilla Firefox 19+ 
+    color: @form-textbox-disabled-color;
+    background-color: @form-textbox-disabled-background;
+    border-color: @form-textbox-disabled-border;
+    font-style: italic;
+}
+    */
+
+// Bug in bootstrap less prevents output from original mixin
+.text-overflow {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

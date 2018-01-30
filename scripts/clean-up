@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -e
+APP_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )/"
+source "$APP_HOME/scripts/.functions.sh"
+
+if [[ ${#APP_HOME} -lt 20 ]]; then
+    error "Unable to detect current folder. Aborting."
+    exit 1
+fi
+
+cleanup_tmp_files() {
+    check_dependency_dotnet
+
+    cd $APP_HOME
+    header "Removing temporary folders and files..."
+
+    rm -fR packages
+    rm -fR target
+    rm -fR out
+
+    PROJECTS=$(dotnet sln list | grep 'csproj$')
+    for PROJ in $PROJECTS; do
+        PROJ=$(dirname "$PROJ")
+        cd $PROJ
+        rm -fR bin/
+        rm -fR obj/
+        cd $APP_HOME
+    done
+
+    echo -e "\nDone"
+}
+
+cleanup_tmp_files
+
+set +e

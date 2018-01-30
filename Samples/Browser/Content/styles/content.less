@@ -1,0 +1,27 @@
+﻿/*
+    Content area
+*/
+@import "../variables.less";
+
+.content_container {
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: @secondary-color;
+}
+.content_inner {
+  width: auto;
+}
+.content_inner_container {
+  background-color: @content-background-color;
+  margin-right: @navigation-width;
+  margin-bottom: @gutter;
+  padding: 3 * @gutter;
+  color: @lightest-gray;
+}
+.content_inner_message {
+  margin-bottom: 1.4em;
+}
+.content_inner_message:last-child {
+  margin-bottom: 0;
+}

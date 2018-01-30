@@ -1,0 +1,85 @@
+﻿/*
+    Button styles
+*/
+
+@import "../variables.less";
+
+.dashboard-contextpanel-button-base, .account-button-base {
+    min-width: 92px;
+    color: white !important;
+    font-size: @font-size-button;
+    border: 0px;
+    background: @secondary-color !important;
+}
+
+.dashboard-contextpanel-button-color {
+    color: @button-dashboard-color;
+    background: @button-dashboard-background-color;
+    &:hover {
+        background: @button-dashboard-background-hover-color;
+    }
+}
+
+.dashboard-contextpanel-button-color-disabled {
+    &:hover {
+        border: 1px dashed @lightest-gray !important;
+    }
+}
+
+.btn.btn-default.btn_dashboard_contextpanel {
+    .dashboard-contextpanel-button-base;
+    .dashboard-contextpanel-button-color;
+    &:hover {
+        border: 1px dashed @lightest-gray !important;
+    }
+}
+
+.btn.btn-default.btn_browser_contextpanel {
+    .dashboard-contextpanel-button-base;
+    .dashboard-contextpanel-button-color;
+    background: @content-background-color !important;
+
+    &:hover {
+        border: 1px dashed @lightest-gray !important;
+    }
+}
+
+.btn::after .btn-default.btn_dashboard_contextpanel.disabled {
+    .dashboard-contextpanel-button-base;
+    .dashboard-contextpanel-button-color-disabled;
+}
+
+.btn.btn_browser {
+    background: @lightest-gray;
+    font-size: @font-size-button;
+    min-width: 92px;
+
+    &:hover {
+        background: @icon-dark-gray;
+        color: white;
+        border: none;
+    }
+}
+
+.btn.btn_account {
+    .account-button-base;
+    color: @button-account-color;
+    background: @button-account-background-color;
+    &:hover {
+        background: @button-account-background-hover-color;
+    }
+}
+
+.btn-default {
+    border-color: @border-dark-gray;
+    padding-top: 0px;
+}
+
+.btn {
+    border-radius: 0px;
+    height: 24px;
+}
+
+.caret {
+    color: @icon-dark-gray;
+}

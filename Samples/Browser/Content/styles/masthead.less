@@ -1,0 +1,195 @@
+﻿/*
+    Masthead styles
+*/
+
+@import "../variables.less";
+
+.navbar {
+    height: @masthead-height;
+    background-color: @masthead-background-color;
+    left: 48px;
+    border-top: 1px solid @border-dark-gray;
+    border-bottom: 1px solid @border-dark-gray;
+}
+
+.navbar-left {
+    left: @contextpanel-left-width;
+}
+
+.navbar-right {
+    margin-top: -39px;
+}
+
+.dropdown {
+    border-left: 1px solid @border-dark-gray;
+    background-color: @masthead-background-color;
+    height: @masthead-height;
+
+    .dropdown-toggle {
+        overflow: hidden;
+    }
+
+    &:hover, &:focus {
+        background-color: @masthead-hover-color;
+    }
+}
+
+.navbar-header {
+    position: initial;
+}
+
+.navbar-header > .navbar-brand {
+    color: @text-mainhead-color;
+    font-size: @masthead-suitename-size;
+    padding-left: 2 * @gutter;
+}
+
+.navbar-inverse .navbar-nav > .open > a {
+    color: @text-mainhead-color;
+    height: @masthead-height;
+    &:hover,
+    &:focus {
+        background-color: @masthead-hover-color;
+      }
+}
+
+.navbar-inverse .navbar-nav > li > a {
+    color: @text-mainhead-color;
+}
+
+.navbar-toggle {
+    overflow: hidden;
+    border: 0px;
+    margin-top: 0px;
+    border-radius: 0px;
+    height: @masthead-height;
+}
+
+.navbar-nav > li > .dropdown-menu {
+    background-color: @background-color;
+}
+
+.dropdown-menu > li > a {
+    color: @lightest-gray;
+    &:hover {
+        color: white;
+    }
+}
+
+.dropdown-menu .divider {
+    background-color: @border-dark-gray;
+}
+
+.dropdown > .masthead_account_container {
+    padding-bottom: 0;
+    height: @masthead-height;
+}
+
+.masthead_account {
+    display: block;
+    text-align: right;
+    position: relative;
+    float: right;
+    font-size: @font-size-text;
+}
+
+.masthead_account_name {
+    display: block;
+    position: relative;
+    top: -8px;
+}
+
+.masthead_account_subtitle {
+    text-transform: uppercase;
+    display: block;
+    position: relative;
+    top: -10px;
+}
+
+.masthead_account_avatar {
+    border-radius: 50%;
+    background-image: url(../wwwroot/img/icon-account.png);
+    background-position: center;
+    background-repeat: no-repeat;
+    width: @masthead-height/2;
+    height: @masthead-height/2;
+    float: right;
+    margin-left: @gutter;
+}
+
+.masthead_language_icon {
+    background-image: url(../wwwroot/img/icon-globe.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    width: @masthead-height/2;
+    height: 20px;
+    float: right;
+
+    &:hover {
+        filter: brightness(0) invert(1);
+        -webkit-filter: brightness(0) invert(1);
+    }
+}
+
+.masthead_text {
+    text-align: right;
+    color: @text-mainhead-color;
+    font-size: @masthead-suitename-size; 
+    color: @text-mainhead-color;
+    margin-top: 8px;
+    margin-right: 24px;
+}
+
+.path {
+    text-align: left;
+    color: @text-mainhead-color;
+    font-size: @masthead-suitename-size;
+    color: @text-mainhead-color;
+    margin-top: 8px;
+    margin-left: 16px;
+}
+
+/*
+    Signin Masthead
+*/
+.signin_masthead_container {
+    min-width: 800px;
+    height: @masthead-height;
+    width: 100%;
+    background-color: @masthead-background-color;
+    color: @masthead-color;
+
+    &:hover {
+        background-color: @masthead-hover-color;
+    }
+}
+.signin_masthead_suitename {
+    font-size: @masthead-suitename-size;
+    float: left;
+    padding-left: 10px;
+    padding-right: 5px;
+    line-height: @masthead-height;
+}
+.signin_masthead_infoimage {
+    width: 17px;
+    margin-left: 7px;
+    margin-right: 20px;
+}
+.signin_masthead_solutionname {
+    font-size: @masthead-solutionname-size;
+    line-height: @masthead-height;
+    padding-left: 20px;
+    padding-top: @masthead-height/2 - @masthead-solutionname-size/2 - 2;
+    padding-bottom: @masthead-height/2 - @masthead-solutionname-size/2 - 2;
+    border-left: 2px solid @masthead-separator-color;
+
+}
+
+.container-fluid {
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+main {
+    padding-top: 36px;
+}

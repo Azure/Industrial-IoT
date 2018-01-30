@@ -1,0 +1,59 @@
+﻿/*
+    c3Graph
+*/
+
+@import "../variables.less";
+
+path { 
+    fill: none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    shape-rendering: crispEdges;
+}
+
+.c3 .c3-axis-x path, .c3 .c3-axis-x line {
+    stroke: @background-color;
+    stroke-width: 0.5px;
+}
+.c3 .c3-axis-y path, .c3 .c3-axis-y line { 
+    stroke: @background-color;
+    stroke-width: 0.5px;
+}
+.c3-axis-y .tick line {
+    stroke: @lightest-gray;
+    stroke-width: 0.5px;
+}
+.c3-axis-x .tick line {
+    stroke: @lightest-gray;
+    stroke-width: 0.5px;
+}
+
+.c3-ygrid-line line {
+    stroke: @graph-threshold-color;
+    stroke-width: 1.0px;
+}
+
+.c3-ygrid-line {
+    fill: @lightest-gray;
+    font-size: 12px;
+    stroke-width: 0.2px;
+}
+
+.c3-axis-y text {
+   fill: @lightest-gray;
+   font-size: 12px;
+}
+.c3-axis-x text {
+    font-size: 12px;
+    fill: @lightest-gray;
+}
+
+.c3-tooltip td {
+    color: @lightest-gray;
+}
+.c3-tooltip th {
+    color: @lightest-gray;
+}
