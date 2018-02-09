@@ -34,7 +34,7 @@ namespace OpcPublisher
                 int result = 0;
                 try
                 {
-                    OpcSessionsListSemaphore.WaitAsync();
+                    OpcSessionsListSemaphore.Wait();
                     result = OpcSessions.Count();
                 }
                 finally
@@ -52,7 +52,7 @@ namespace OpcPublisher
                 int result = 0;
                 try
                 {
-                    OpcSessionsListSemaphore.WaitAsync();
+                    OpcSessionsListSemaphore.Wait();
                     result = OpcSessions.Count(s => s.State == OpcSession.SessionState.Connected);
                 }
                 finally
@@ -70,7 +70,7 @@ namespace OpcPublisher
                 int result = 0;
                 try
                 {
-                    OpcSessionsListSemaphore.WaitAsync();
+                    OpcSessionsListSemaphore.Wait();
                     var opcSessions = OpcSessions.Where(s => s.State == OpcSession.SessionState.Connected);
                     foreach (var opcSession in opcSessions)
                     {
@@ -92,7 +92,7 @@ namespace OpcPublisher
                 int result = 0;
                 try
                 {
-                    OpcSessionsListSemaphore.WaitAsync();
+                    OpcSessionsListSemaphore.Wait();
                     var opcSessions = OpcSessions.Where(s => s.State == OpcSession.SessionState.Connected);
                     foreach (var opcSession in opcSessions)
                     {
@@ -275,7 +275,7 @@ namespace OpcPublisher
         /// Returns a list of all published nodes for a specific endpoint in config file format.
         /// </summary>
         /// <returns></returns>
-        public static async Task<List<PublisherConfigurationFileEntry>> GetPublisherConfigurationFileEntries(Uri endpointUri, OpcMonitoredItemConfigurationType? requestedType, bool getAll)
+        public static async Task<List<PublisherConfigurationFileEntry>> GetPublisherConfigurationFileEntriesAsync(Uri endpointUri, OpcMonitoredItemConfigurationType? requestedType, bool getAll)
         {
             List<PublisherConfigurationFileEntry> publisherConfigurationFileEntries = new List<PublisherConfigurationFileEntry>();
             try
@@ -310,7 +310,7 @@ namespace OpcPublisher
                                             PublisherConfigurationFileEntry legacyPublisherConfigFileEntry = new PublisherConfigurationFileEntry();
                                             legacyPublisherConfigFileEntry.EndpointUri = session.EndpointUri;
                                             legacyPublisherConfigFileEntry.UseSecurity = session.UseSecurity;
-                                            legacyPublisherConfigFileEntry.NodeId = new NodeId(monitoredItem.ConfigExpandedNodeId.Identifier, (ushort)session.GetNamespaceIndex(monitoredItem.ConfigExpandedNodeId?.NamespaceUri));
+                                            legacyPublisherConfigFileEntry.NodeId = new NodeId(monitoredItem.ConfigExpandedNodeId.Identifier, (ushort)(await session.GetNamespaceIndexAsync(monitoredItem.ConfigExpandedNodeId?.NamespaceUri)));
                                             publisherConfigurationFileEntries.Add(legacyPublisherConfigFileEntry);
                                         }
                                         else
@@ -361,15 +361,15 @@ namespace OpcPublisher
         /// <summary>
         /// Updates the configuration file to persist all currently published nodes
         /// </summary>
-        public static async Task UpdateNodeConfigurationFile()
+        public static async Task UpdateNodeConfigurationFileAsync()
         {
             try
             {
                 // itereate through all sessions, subscriptions and monitored items and create config file entries
-                List<PublisherConfigurationFileEntry> publisherNodeConfiguration = await GetPublisherConfigurationFileEntries(null, null, true);
+                List<PublisherConfigurationFileEntry> publisherNodeConfiguration = await GetPublisherConfigurationFileEntriesAsync(null, null, true);
 
                 // update the config file
-                File.WriteAllText(PublisherNodeConfigurationFilename, JsonConvert.SerializeObject(publisherNodeConfiguration, Formatting.Indented));
+                await File.WriteAllTextAsync(PublisherNodeConfigurationFilename, JsonConvert.SerializeObject(publisherNodeConfiguration, Formatting.Indented));
             }
             catch (Exception e)
             {

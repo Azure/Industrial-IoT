@@ -22,14 +22,12 @@ namespace OpcPublisher
         }
 
         public static int IotHubMessagingMessagesSentCount => _messagesSentCount;
-        public static SemaphoreSlim DiagnosticsSemaphore;
 
         public static void Init()
         {
             // init data
             _showDiagnosticsInfoTask = null;
             _shutdownTokenSource = new CancellationTokenSource();
-            DiagnosticsSemaphore = new SemaphoreSlim(1);
 
             // kick off the task to show diagnostic info
             if (_diagnosticsInterval > 0)
@@ -39,7 +37,7 @@ namespace OpcPublisher
 
 
         }
-        public async static Task Shutdown()
+        public async static Task ShutdownAsync()
         {
             // wait for diagnostic task completion if it is enabled
             if (_showDiagnosticsInfoTask != null)
@@ -48,8 +46,6 @@ namespace OpcPublisher
                 await _showDiagnosticsInfoTask;
             }
 
-            DiagnosticsSemaphore.Dispose();
-            DiagnosticsSemaphore = null;
             _shutdownTokenSource = null;
             _showDiagnosticsInfoTask = null;
         }

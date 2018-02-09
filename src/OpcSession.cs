@@ -301,7 +301,7 @@ namespace OpcPublisher
                 }
 
                 // currently the pattern processing is done here, which adds runtime to the notification processing.
-                // In case of perf issues it can be also done in CreateJsonMessage of IoTHubMessaging.cs.
+                // In case of perf issues it can be also done in CreateJsonMessageAsync of IoTHubMessaging.cs.
 
                 // apply patterns
                 messageData.ApplyPatterns(telemetryConfiguration);
@@ -402,7 +402,7 @@ namespace OpcPublisher
             int result = 0;
             try
             {
-                _opcSessionSemaphore.WaitAsync();
+                _opcSessionSemaphore.Wait();
                 result = OpcSubscriptions.Count();
             }
             finally
@@ -417,7 +417,7 @@ namespace OpcPublisher
             int result = 0;
             try
             {
-                _opcSessionSemaphore.WaitAsync();
+                _opcSessionSemaphore.Wait();
                 var subscriptions = OpcSessions.SelectMany(s => s.OpcSubscriptions);
                 foreach (var subscription in subscriptions)
                 {
@@ -462,20 +462,20 @@ namespace OpcPublisher
             bool updateConfigFileRequired = false;
             try
             {
-                await ConnectSession(ct);
+                await ConnectSessionAsync(ct);
 
-                updateConfigFileRequired = await MonitorNodes(ct);
+                updateConfigFileRequired = await MonitorNodesAsync(ct);
 
-                updateConfigFileRequired |= await StopMonitoringNodes(ct);
+                updateConfigFileRequired |= await StopMonitoringNodesAsync(ct);
 
-                await RemoveUnusedSubscriptions(ct);
+                await RemoveUnusedSubscriptionsAsync(ct);
 
-                await RemoveUnusedSessions(ct);
+                await RemoveUnusedSessionsAsync(ct);
 
                 // update the config file if required
                 if (updateConfigFileRequired)
                 {
-                    await UpdateNodeConfigurationFile();
+                    await UpdateNodeConfigurationFileAsync();
                 }
             }
             catch (Exception e)
@@ -487,7 +487,7 @@ namespace OpcPublisher
         /// <summary>
         /// Connects the session if it is disconnected.
         /// </summary>
-        public async Task ConnectSession(CancellationToken ct)
+        public async Task ConnectSessionAsync(CancellationToken ct)
         {
             try
             {
@@ -532,7 +532,7 @@ namespace OpcPublisher
                         // init object state and install keep alive
                         UnsuccessfulConnectionCount = 0;
                         OpcUaClientSession.KeepAliveInterval = OpcKeepAliveIntervalInSec * 1000;
-                        StandardKeepAliveEventHandlerAsync = async (session, keepAliveEventArgs) => await StandardClient_KeepAlive(session, keepAliveEventArgs);
+                        StandardKeepAliveEventHandlerAsync = async (session, keepAliveEventArgs) => await StandardClient_KeepAliveAsync(session, keepAliveEventArgs);
                         OpcUaClientSession.KeepAlive += StandardKeepAliveEventHandlerAsync;
 
                         // fetch the namespace array and cache it. it will not change as long the session exists.
@@ -586,7 +586,7 @@ namespace OpcPublisher
         /// <summary>
         /// Monitoring for a node starts if it is required.
         /// </summary>
-        public async Task<bool> MonitorNodes(CancellationToken ct)
+        public async Task<bool> MonitorNodesAsync(CancellationToken ct)
         {
             bool requestConfigFileUpdate = false;
             try
@@ -643,7 +643,7 @@ namespace OpcPublisher
                             {
                                 if (item.ConfigType == OpcMonitoredItemConfigurationType.ExpandedNodeId)
                                 {
-                                    int namespaceIndex = GetNamespaceIndex(item.ConfigExpandedNodeId?.NamespaceUri);
+                                    int namespaceIndex = _namespaceTable.GetIndex(item.ConfigExpandedNodeId?.NamespaceUri);
                                     if (namespaceIndex < 0)
                                     {
                                         Trace($"The namespace URI of node '{item.ConfigExpandedNodeId.ToString()}' can be not mapped to a namespace index.");
@@ -655,7 +655,7 @@ namespace OpcPublisher
                                 }
                                 if (item.ConfigType == OpcMonitoredItemConfigurationType.NodeId)
                                 {
-                                    string namespaceUri = GetNamespaceUri(item.ConfigNodeId.NamespaceIndex);
+                                    string namespaceUri = _namespaceTable.ToArray().ElementAtOrDefault(item.ConfigNodeId.NamespaceIndex);
                                     if (string.IsNullOrEmpty(namespaceUri))
                                     {
                                         Trace($"The namespace index of node '{item.ConfigNodeId.ToString()}' is invalid and the node format can not be updated.");
@@ -672,7 +672,7 @@ namespace OpcPublisher
                             // lookup namespace index if ExpandedNodeId format has been used and build NodeId identifier.
                             if (item.ConfigType == OpcMonitoredItemConfigurationType.ExpandedNodeId)
                             {
-                                int namespaceIndex = GetNamespaceIndex(item.ConfigExpandedNodeId?.NamespaceUri);
+                                int namespaceIndex = _namespaceTable.GetIndex(item.ConfigExpandedNodeId?.NamespaceUri);
                                 if (namespaceIndex < 0)
                                 {
                                     Trace($"Syntax or namespace URI of ExpandedNodeId '{item.ConfigExpandedNodeId.ToString()}' is invalid and will be ignored.");
@@ -735,7 +735,7 @@ namespace OpcPublisher
                                     {
                                         Trace($"Session with Id {OpcUaClientSession.SessionId} is no longer available on endpoint '{EndpointUri}'. Cleaning up.");
                                         // clean up the session
-                                        InternalDisconnectAsync();
+                                        await InternalDisconnectAsync();
                                         break;
                                     }
                                 case StatusCodes.BadNodeIdInvalid:
@@ -780,7 +780,7 @@ namespace OpcPublisher
         /// <summary>
         /// Checks if there are monitored nodes tagged to stop monitoring.
         /// </summary>
-        public async Task<bool> StopMonitoringNodes(CancellationToken ct)
+        public async Task<bool> StopMonitoringNodesAsync(CancellationToken ct)
         {
             bool requestConfigFileUpdate = false;
             try
@@ -826,7 +826,7 @@ namespace OpcPublisher
         /// <summary>
         /// Checks if there are subscriptions without any monitored items and remove them.
         /// </summary>
-        public async Task RemoveUnusedSubscriptions(CancellationToken ct)
+        public async Task RemoveUnusedSubscriptionsAsync(CancellationToken ct)
         {
             try
             {
@@ -859,7 +859,7 @@ namespace OpcPublisher
         /// <summary>
         /// Checks if there are session without any subscriptions and remove them.
         /// </summary>
-        public async Task RemoveUnusedSessions(CancellationToken ct)
+        public async Task RemoveUnusedSessionsAsync(CancellationToken ct)
         {
             try
             {
@@ -895,7 +895,7 @@ namespace OpcPublisher
         {
             await _opcSessionSemaphore.WaitAsync();
 
-            InternalDisconnectAsync();
+            await InternalDisconnectAsync();
 
             _opcSessionSemaphore.Release();
         }
@@ -907,7 +907,7 @@ namespace OpcPublisher
         {
             try
             {
-                _opcSessionSemaphore.WaitAsync();
+                _opcSessionSemaphore.Wait();
 
                 return _namespaceTable.ToArray().ElementAtOrDefault(namespaceIndex);
             }
@@ -920,11 +920,11 @@ namespace OpcPublisher
         /// <summary>
         /// Returns the namespace index for a namespace URI.
         /// </summary>
-        public int GetNamespaceIndex(string namespaceUri)
+        public async Task<int> GetNamespaceIndexAsync(string namespaceUri)
         {
             try
             {
-                _opcSessionSemaphore.WaitAsync();
+                await _opcSessionSemaphore.WaitAsync();
 
                 return _namespaceTable.GetIndex(namespaceUri);
             }
@@ -938,7 +938,7 @@ namespace OpcPublisher
         /// <summary>
         /// Internal disconnect method. Caller must have taken the _opcSessionSemaphore.
         /// </summary>
-        private void InternalDisconnectAsync()
+        private async Task InternalDisconnectAsync()
         {
             try
             {
@@ -994,7 +994,7 @@ namespace OpcPublisher
         /// Adds a node to be monitored. If there is no subscription with the requested publishing interval,
         /// one is created.
         /// </summary>
-        public async Task AddNodeForMonitoring(NodeId nodeId, ExpandedNodeId expandedNodeId, int opcPublishingInterval, int opcSamplingInterval, CancellationToken ct)
+        public async Task AddNodeForMonitoringAsync(NodeId nodeId, ExpandedNodeId expandedNodeId, int opcPublishingInterval, int opcSamplingInterval, CancellationToken ct)
         {
             try
             {
@@ -1017,7 +1017,7 @@ namespace OpcPublisher
                 }
 
                 // if it is already published, we do nothing, else we create a new monitored item
-                if (!IsNodePublishedInSession(nodeId, expandedNodeId))
+                if (!(await IsNodePublishedInSessionAsync(nodeId, expandedNodeId)))
                 {
                     OpcMonitoredItem opcMonitoredItem = null;
                     // add a new item to monitor
@@ -1050,7 +1050,7 @@ namespace OpcPublisher
         /// <summary>
         /// Tags a monitored node to stop monitoring and remove it.
         /// </summary>
-        public async Task RequestMonitorItemRemoval(NodeId nodeId, ExpandedNodeId expandedNodeId, CancellationToken ct)
+        public async Task RequestMonitorItemRemovalAsync(NodeId nodeId, ExpandedNodeId expandedNodeId, CancellationToken ct)
         {
             try
             {
@@ -1092,11 +1092,11 @@ namespace OpcPublisher
         /// <summary>
         /// Checks if the node specified by either the given NodeId or ExpandedNodeId on the given endpoint is published in the session.
         /// </summary>
-        private bool IsNodePublishedInSession(NodeId nodeId, ExpandedNodeId expandedNodeId)
+        private async Task<bool> IsNodePublishedInSessionAsync(NodeId nodeId, ExpandedNodeId expandedNodeId)
         {
             try
             {
-                _opcSessionSemaphore.WaitAsync();
+                await _opcSessionSemaphore.WaitAsync();
 
                 foreach (var opcSubscription in OpcSubscriptions)
                 {
@@ -1120,18 +1120,18 @@ namespace OpcPublisher
         /// <summary>
         /// Checks if the node specified by either the given NodeId or ExpandedNodeId on the given endpoint is published.
         /// </summary>
-        public static bool IsNodePublished(NodeId nodeId, ExpandedNodeId expandedNodeId, Uri endpointUri)
+        public static async Task<bool> IsNodePublishedAsync(NodeId nodeId, ExpandedNodeId expandedNodeId, Uri endpointUri)
         {
             try
             {
-                OpcSessionsListSemaphore.WaitAsync();
+                await OpcSessionsListSemaphore.WaitAsync();
 
                 // itereate through all sessions, subscriptions and monitored items and create config file entries
                 foreach (var opcSession in OpcSessions)
                 {
                     if (opcSession.EndpointUri.AbsoluteUri.Equals(endpointUri.AbsoluteUri, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (opcSession.IsNodePublishedInSession(nodeId, expandedNodeId))
+                        if (await opcSession.IsNodePublishedInSessionAsync(nodeId, expandedNodeId))
                         {
                             return true;
                         }
@@ -1221,7 +1221,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handler for the standard "keep alive" event sent by all OPC UA servers
         /// </summary>
-        private async Task StandardClient_KeepAlive(Session session, KeepAliveEventArgs e)
+        private async Task StandardClient_KeepAliveAsync(Session session, KeepAliveEventArgs e)
         {
             // Ignore if we are shutting down.
             if (ShutdownTokenSource.IsCancellationRequested == true)

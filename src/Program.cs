@@ -499,11 +499,11 @@ namespace OpcPublisher
                 await SessionShutdownAsync();
 
                 // shutdown the IoTHub messaging
-                await IotHubCommunication.Shutdown();
+                await IotHubCommunication.ShutdownAsync();
                 IotHubCommunication = null;
 
                 // shutdown diagnostics
-                await Diagnostics.Shutdown();
+                await ShutdownAsync();
 
                 // free resources
                 PublisherTelemetryConfiguration.Deinit();

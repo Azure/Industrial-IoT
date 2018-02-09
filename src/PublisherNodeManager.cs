@@ -457,7 +457,7 @@ namespace OpcPublisher
             try
             {
                 // lock the publishing configuration till we are done
-                OpcSessionsListSemaphore.WaitAsync();
+                OpcSessionsListSemaphore.Wait();
 
                 if (ShutdownTokenSource.IsCancellationRequested)
                 {
@@ -492,7 +492,7 @@ namespace OpcPublisher
                 }
 
                 // add the node info to the subscription with the default publishing interval, execute syncronously
-                opcSession.AddNodeForMonitoring(nodeId, expandedNodeId, OpcPublishingInterval, OpcSamplingInterval, ShutdownTokenSource.Token).Wait();
+                opcSession.AddNodeForMonitoringAsync(nodeId, expandedNodeId, OpcPublishingInterval, OpcSamplingInterval, ShutdownTokenSource.Token).Wait();
                 Trace($"PublishNode: Requested to monitor item with NodeId '{nodeId.ToString()}' (PublishingInterval: {OpcPublishingInterval}, SamplingInterval: {OpcSamplingInterval})");
             }
             catch (Exception e)
@@ -543,7 +543,7 @@ namespace OpcPublisher
                 OpcSession opcSession = null;
                 try
                 {
-                    OpcSessionsListSemaphore.WaitAsync();
+                    OpcSessionsListSemaphore.Wait();
                     opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri.AbsoluteUri.Equals(endpointUri.AbsoluteUri, StringComparison.OrdinalIgnoreCase));
                 }
                 catch
@@ -573,7 +573,7 @@ namespace OpcPublisher
                         return ServiceResult.Create(StatusCodes.BadUnexpectedError, $"The namespace index of the node id is invalid.");
                     }
                     expandedNodeId = new ExpandedNodeId(nodeId.Identifier, nodeId.NamespaceIndex, namespaceUri, 0);
-                    if (!OpcSession.IsNodePublished(nodeId, expandedNodeId, endpointUri))
+                    if (!OpcSession.IsNodePublishedAsync(nodeId, expandedNodeId, endpointUri).Result)
                     {
                         Trace($"UnpublishNode: Node with id '{nodeId.Identifier.ToString()}' on endpoint '{endpointUri.OriginalString}' is not published.");
                         return ServiceResult.Good;
@@ -581,7 +581,7 @@ namespace OpcPublisher
                 }
 
                 // remove the node from the sessions monitored items list.
-                opcSession.RequestMonitorItemRemoval(nodeId, expandedNodeId, ShutdownTokenSource.Token).Wait();
+                opcSession.RequestMonitorItemRemovalAsync(nodeId, expandedNodeId, ShutdownTokenSource.Token).Wait();
                 Trace("UnpublishNode: Requested to stop monitoring of node.");
             }
             catch (Exception e)
@@ -620,7 +620,7 @@ namespace OpcPublisher
             }
 
             // get the list of published nodes in NodeId format
-            outputArguments[0] = JsonConvert.SerializeObject(GetPublisherConfigurationFileEntries(endpointUri, OpcMonitoredItemConfigurationType.NodeId, false));
+            outputArguments[0] = JsonConvert.SerializeObject(GetPublisherConfigurationFileEntriesAsync(endpointUri, OpcMonitoredItemConfigurationType.NodeId, false).Result);
             Trace("GetPublishedNodes: Success!");
 
             return ServiceResult.Good;
