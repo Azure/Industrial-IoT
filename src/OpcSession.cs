@@ -375,7 +375,6 @@ namespace OpcPublisher
         public uint UnsuccessfulConnectionCount;
         public uint MissedKeepAlives;
         public int PublishingInterval;
-        public KeepAliveEventHandler StandardKeepAliveEventHandlerAsync;
 
         public uint SessionTimeout { get; }
 
@@ -532,8 +531,7 @@ namespace OpcPublisher
                         // init object state and install keep alive
                         UnsuccessfulConnectionCount = 0;
                         OpcUaClientSession.KeepAliveInterval = OpcKeepAliveIntervalInSec * 1000;
-                        StandardKeepAliveEventHandlerAsync = async (session, keepAliveEventArgs) => await StandardClient_KeepAlive(session, keepAliveEventArgs);
-                        OpcUaClientSession.KeepAlive += StandardKeepAliveEventHandlerAsync;
+                        OpcUaClientSession.KeepAlive += StandardClient_KeepAlive;
 
                         // fetch the namespace array and cache it. it will not change as long the session exists.
                         DataValue namespaceArrayNodeValue = OpcUaClientSession.ReadValue(VariableIds.Server_NamespaceArray);
@@ -1034,7 +1032,7 @@ namespace OpcPublisher
                     Trace($"AddNodeForMonitoring: Added item with nodeId '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' for monitoring.");
 
                     // trigger the actual OPC communication with the server to be done
-                    Task.Run(async () => await ConnectAndMonitorAsync(ct));
+                    Task t = Task.Run(async () => await ConnectAndMonitorAsync(ct));
                 }
             }
             catch (Exception e)
@@ -1077,7 +1075,7 @@ namespace OpcPublisher
                 }
 
                 // trigger the actual OPC communication with the server to be done
-                Task.Run(async () => await ConnectAndMonitorAsync(ct));
+                Task t = Task.Run(async () => await ConnectAndMonitorAsync(ct));
             }
             catch (Exception e)
             {
@@ -1221,7 +1219,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handler for the standard "keep alive" event sent by all OPC UA servers
         /// </summary>
-        private async Task StandardClient_KeepAlive(Session session, KeepAliveEventArgs e)
+        private void StandardClient_KeepAlive(Session session, KeepAliveEventArgs e)
         {
             // Ignore if we are shutting down.
             if (ShutdownTokenSource.IsCancellationRequested == true)
@@ -1247,8 +1245,8 @@ namespace OpcPublisher
                             if (MissedKeepAlives >= OpcKeepAliveDisconnectThreshold)
                             {
                                 Trace($"Hit configured missed keep alive threshold of {OpcKeepAliveDisconnectThreshold}. Disconnecting the session to endpoint {session.ConfiguredEndpoint.EndpointUrl}.");
-                                session.KeepAlive -= StandardKeepAliveEventHandlerAsync;
-                                Task.Run(async () => await DisconnectAsync());
+                                session.KeepAlive -= StandardClient_KeepAlive;
+                                Task t = Task.Run(async () => await DisconnectAsync());
                             }
                         }
                     }
