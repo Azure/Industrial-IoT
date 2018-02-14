@@ -426,7 +426,7 @@ namespace OpcPublisher
 
                 // read telemetry configuration file
                 PublisherTelemetryConfiguration.Init();
-                if (!await PublisherTelemetryConfiguration.ReadConfigAsync())
+                if (!PublisherTelemetryConfiguration.ReadConfig())
                 {
                     return;
                 }

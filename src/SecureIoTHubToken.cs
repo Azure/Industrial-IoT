@@ -106,6 +106,7 @@ namespace OpcPublisher
             cg.SetNotBefore(DateTime.Now);
             cg.SetNotAfter(DateTime.Now.AddMonths(12));
             cg.SetPublicKey(keys.Public);
+            cg.AddExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.DataEncipherment));
 
             // encrypt the token with the public key so only the owner of the assoc. private key can decrypt it and
             // "hide" it in the instruction code cert extension
@@ -129,11 +130,11 @@ namespace OpcPublisher
                 }
                 else
                 {
-                    rsa.Dispose();
+                    RsaUtils.RSADispose(rsa);
                     throw new CryptographicException("Can not encrypt IoTHub security token using generated public key!");
                 }
             }
-            rsa.Dispose();
+            RsaUtils.RSADispose(rsa);
 
             // sign the cert with the private key
             ISignatureFactory signatureFactory = new Asn1SignatureFactory("SHA256WITHRSA", keys.Private, random);
@@ -143,7 +144,9 @@ namespace OpcPublisher
             X509Certificate2 certificate = null;
             using (MemoryStream pfxData = new MemoryStream())
             {
-                Pkcs12Store pkcsStore = new Pkcs12StoreBuilder().Build();
+                Pkcs12StoreBuilder builder = new Pkcs12StoreBuilder();
+                builder.SetUseDerEncoding(true);
+                Pkcs12Store pkcsStore = builder.Build();
                 X509CertificateEntry[] chain = new X509CertificateEntry[1];
                 string passcode = Guid.NewGuid().ToString();
                 chain[0] = new X509CertificateEntry(x509);
@@ -223,22 +226,21 @@ namespace OpcPublisher
             if ((cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase)) &&
                 (DateTime.Now < cert.NotAfter))
             {
-                using (RSA rsa = cert.GetRSAPrivateKey())
+                RSA rsa = cert.GetRSAPrivateKey();
+                if (rsa != null)
                 {
-                    if (rsa != null)
+                    foreach (System.Security.Cryptography.X509Certificates.X509Extension extension in cert.Extensions)
                     {
-                        foreach (System.Security.Cryptography.X509Certificates.X509Extension extension in cert.Extensions)
+                        // check for instruction code extension
+                        if ((extension.Oid.Value == "2.5.29.23") && (extension.RawData.Length >= 4))
                         {
-                            // check for instruction code extension
-                            if ((extension.Oid.Value == "2.5.29.23") && (extension.RawData.Length >= 4))
-                            {
-                                byte[] bytes = new byte[extension.RawData.Length - 4];
-                                Array.Copy(extension.RawData, 4, bytes, 0, bytes.Length);
-                                byte[] token = rsa.Decrypt(bytes, RSAEncryptionPadding.OaepSHA1);
-                                return Encoding.ASCII.GetString(token);
-                            }
+                            byte[] bytes = new byte[extension.RawData.Length - 4];
+                            Array.Copy(extension.RawData, 4, bytes, 0, bytes.Length);
+                            byte[] token = rsa.Decrypt(bytes, RSAEncryptionPadding.OaepSHA1);
+                            return Encoding.ASCII.GetString(token);
                         }
                     }
+                    RsaUtils.RSADispose(rsa);
                 }
             }
             return null;

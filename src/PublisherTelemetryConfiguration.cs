@@ -504,7 +504,7 @@ namespace OpcPublisher
         /// <summary>
         /// Read and parse the publisher telemetry configuration file.
         /// </summary>
-        public static async Task<bool> ReadConfigAsync()
+        public static bool ReadConfig()
         {
             // initialize with the default server telemetry configuration
            InitializePublisherDefaultEndpointTelemetryConfiguration();
