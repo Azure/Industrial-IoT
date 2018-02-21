@@ -549,17 +549,17 @@ namespace OpcPublisher
                 try
                 {
                     // get tasks for all disconnected sessions and start them
-                    IEnumerable<Task> singleSessionHandlerTaskList;
+                    Task[] singleSessionHandlerTaskList;
                     try
                     {
                         await OpcSessionsListSemaphore.WaitAsync();
-                        singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitorAsync(ct));
+                        singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitorAsync(ct)).ToArray();
                     }
                     finally
                     {
                         OpcSessionsListSemaphore.Release();
                     }
-                    await Task.WhenAll(singleSessionHandlerTaskList);
+                    Task.WaitAll(singleSessionHandlerTaskList);
                 }
                 catch (Exception e)
                 {

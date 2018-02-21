@@ -559,6 +559,7 @@ namespace OpcPublisher
             // find the session and stop monitoring the node.
             try
             {
+                OpcSessionsListSemaphore.Wait();
                 if (ShutdownTokenSource.IsCancellationRequested)
                 {
                     return ServiceResult.Create(StatusCodes.BadUnexpectedError, $"Publisher shutdown in progress.");
@@ -568,16 +569,11 @@ namespace OpcPublisher
                 OpcSession opcSession = null;
                 try
                 {
-                    OpcSessionsListSemaphore.Wait();
                     opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUri.AbsoluteUri.Equals(endpointUri.AbsoluteUri, StringComparison.OrdinalIgnoreCase));
                 }
                 catch
                 {
                     opcSession = null;
-                }
-                finally
-                {
-                    OpcSessionsListSemaphore.Release();
                 }
 
                 if (opcSession == null)
@@ -606,6 +602,10 @@ namespace OpcPublisher
             {
                 Trace(e, $"UnpublishNode: Exception while trying to configure publishing node '{nodeId.ToString()}'");
                 return ServiceResult.Create(e, StatusCodes.BadUnexpectedError, $"Unexpected error unpublishing node: {e.Message}");
+            }
+            finally
+            {
+                OpcSessionsListSemaphore.Release();
             }
             return (result ? ServiceResult.Good : ServiceResult.Create(StatusCodes.Bad, "Can not stop monitoring node!"));
         }

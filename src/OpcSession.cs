@@ -841,7 +841,7 @@ namespace OpcPublisher
                 {
                     Trace($"Remove unused subscriptions on endpoint '{EndpointUri}'.");
                     OpcUaClientSession.RemoveSubscriptions(subscriptionsToRemove.Select(s => s.OpcUaClientSubscription));
-                    Trace($"There are now {OpcUaClientSession.SubscriptionCount} subscriptions in this sessopm.");
+                    Trace($"There are now {OpcUaClientSession.SubscriptionCount} subscriptions in this session.");
                 }
                 // remove them in our data structures
                 OpcSubscriptions.RemoveAll(s => s.OpcMonitoredItems.Count == 0);
