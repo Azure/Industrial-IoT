@@ -278,7 +278,7 @@ namespace OpcPublisher
             }
             catch (Exception e)
             {
-                Trace(e, $"Error in InitAsync. (message: {e.Message})");
+                Trace(e, "Error in InitAsync.)");
                 return false;
             }
             return true;
@@ -461,7 +461,7 @@ namespace OpcPublisher
             }
             catch (Exception e)
             {
-                Trace(e, $"Generation of JSON message failed ({e.Message})");
+                Trace(e, "Generation of JSON message failed.");
             }
             return string.Empty;
         }
