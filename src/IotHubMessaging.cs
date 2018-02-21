@@ -91,24 +91,12 @@ namespace OpcPublisher
 
         public static long EnqueueCount
         {
-            get
-            {
-                DiagnosticsSemaphore.WaitAsync();
-                long result = _enqueueCount;
-                DiagnosticsSemaphore.Release();
-                return result;
-            }
+            get => _enqueueCount;
         }
 
         public static long EnqueueFailureCount
         {
-            get
-            {
-                DiagnosticsSemaphore.WaitAsync();
-                long result = _enqueueFailureCount;
-                DiagnosticsSemaphore.Release();
-                return result;
-            }
+            get => _enqueueFailureCount;
         }
 
         public static string DeviceConnectionString
@@ -286,11 +274,11 @@ namespace OpcPublisher
                 _tokenSource = new CancellationTokenSource();
 
                 Trace("Creating task process and batch monitored item data updates...");
-                _monitoredItemsProcessorTask = Task.Run(async () => await MonitoredItemsProcessor(_tokenSource.Token), _tokenSource.Token);
+                _monitoredItemsProcessorTask = Task.Run(async () => await MonitoredItemsProcessorAsync(_tokenSource.Token), _tokenSource.Token);
             }
             catch (Exception e)
             {
-                Trace(e, $"Error in InitAsync. (message: {e.Message})");
+                Trace(e, "Error in InitAsync.)");
                 return false;
             }
             return true;
@@ -310,7 +298,7 @@ namespace OpcPublisher
         /// <summary>
         /// Shuts down the IoTHub communication.
         /// </summary>
-        public async Task Shutdown()
+        public async Task ShutdownAsync()
         {
             // send cancellation token and wait for last IoT Hub message to be sent.
             try
@@ -341,17 +329,13 @@ namespace OpcPublisher
         public void Enqueue(MessageData json)
         {
             // Try to add the message.
-            DiagnosticsSemaphore.WaitAsync();
-            _enqueueCount++;
-            DiagnosticsSemaphore.Release();
+            Interlocked.Increment(ref _enqueueCount);
             if (_monitoredItemsDataQueue.TryAdd(json) == false)
             {
-                DiagnosticsSemaphore.WaitAsync();
-                long failureCount = ++_enqueueFailureCount;
-                DiagnosticsSemaphore.Release();
-                if (failureCount % 10000 == 0)
+                Interlocked.Increment(ref _enqueueFailureCount);
+                if (_enqueueFailureCount % 10000 == 0)
                 {
-                    Trace(Utils.TraceMasks.Error, $"The internal monitored item message queue is above its capacity of {_monitoredItemsDataQueue.BoundedCapacity}. We have already lost {failureCount} monitored item notifications:(");
+                    Trace(Utils.TraceMasks.Error, $"The internal monitored item message queue is above its capacity of {_monitoredItemsDataQueue.BoundedCapacity}. We have already lost {_enqueueFailureCount} monitored item notifications:(");
                 }
             }
         }
@@ -359,7 +343,7 @@ namespace OpcPublisher
         /// <summary>
         /// Creates a JSON message to be sent to IoTHub, based on the telemetry configuration for the endpoint.
         /// </summary>
-        private async Task<string> CreateJsonMessage(MessageData messageData)
+        private async Task<string> CreateJsonMessageAsync(MessageData messageData)
         {
             try
             {
@@ -477,7 +461,7 @@ namespace OpcPublisher
             }
             catch (Exception e)
             {
-                Trace(e, $"Generation of JSON message failed ({e.Message})");
+                Trace(e, "Generation of JSON message failed.");
             }
             return string.Empty;
         }
@@ -485,7 +469,7 @@ namespace OpcPublisher
         /// <summary>
         /// Dequeue monitored item notification messages, batch them for send (if needed) and send them to IoTHub.
         /// </summary>
-        private async Task MonitoredItemsProcessor(CancellationToken ct)
+        private async Task MonitoredItemsProcessorAsync(CancellationToken ct)
         {
             uint jsonSquareBracketLength = 2;
             Microsoft.Azure.Devices.Client.Message tempMsg = new Microsoft.Azure.Devices.Client.Message();
@@ -537,7 +521,7 @@ namespace OpcPublisher
                         if (gotItem)
                         {
                             // create a JSON message from the messageData object
-                            jsonMessage = await CreateJsonMessage(messageData);
+                            jsonMessage = await CreateJsonMessageAsync(messageData);
 
                             _dequeueCount++;
                             jsonMessageSize = Encoding.UTF8.GetByteCount(jsonMessage.ToString());
@@ -676,11 +660,7 @@ namespace OpcPublisher
         private static long _sentBytes;
         private static long _sentMessages;
         private static DateTime _sentLastTime;
-        private static long _sendDuration;
-        private static long _minSendDuration = long.MaxValue;
-        private static long _maxSendDuration;
         private static long _failedMessages;
-        private static long _failedTime;
         private static BlockingCollection<MessageData> _monitoredItemsDataQueue;
         private static CancellationTokenSource _tokenSource;
         private static Task _monitoredItemsProcessorTask;

@@ -419,14 +419,14 @@ namespace OpcPublisher
                 }
                 catch (Exception e)
                 {
-                    Trace(e, $"Failed to start Publisher OPC UA server.");
+                    Trace(e, "Failed to start Publisher OPC UA server.");
                     Trace("exiting...");
                     return;
                 }
 
                 // read telemetry configuration file
                 PublisherTelemetryConfiguration.Init();
-                if (!PublisherTelemetryConfiguration.ReadConfig())
+                if (!await PublisherTelemetryConfiguration.ReadConfigAsync())
                 {
                     return;
                 }
@@ -499,11 +499,11 @@ namespace OpcPublisher
                 await SessionShutdownAsync();
 
                 // shutdown the IoTHub messaging
-                await IotHubCommunication.Shutdown();
+                await IotHubCommunication.ShutdownAsync();
                 IotHubCommunication = null;
 
                 // shutdown diagnostics
-                await Diagnostics.Shutdown();
+                await ShutdownAsync();
 
                 // free resources
                 PublisherTelemetryConfiguration.Deinit();
@@ -549,9 +549,16 @@ namespace OpcPublisher
                 try
                 {
                     // get tasks for all disconnected sessions and start them
-                    await OpcSessionsListSemaphore.WaitAsync();
-                    var singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitorAsync(ct));
-                    OpcSessionsListSemaphore.Release();
+                    IEnumerable<Task> singleSessionHandlerTaskList;
+                    try
+                    {
+                        await OpcSessionsListSemaphore.WaitAsync();
+                        singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitorAsync(ct));
+                    }
+                    finally
+                    {
+                        OpcSessionsListSemaphore.Release();
+                    }
                     await Task.WhenAll(singleSessionHandlerTaskList);
                 }
                 catch (Exception e)
@@ -579,16 +586,23 @@ namespace OpcPublisher
             {
                 while (OpcSessions.Count > 0)
                 {
-                    await OpcSessionsListSemaphore.WaitAsync();
-                    OpcSession opcSession = OpcSessions.ElementAt(0);
-                    OpcSessions.RemoveAt(0);
-                    OpcSessionsListSemaphore.Release();
-                    await opcSession.ShutdownAsync();
+                    OpcSession opcSession = null;
+                    try
+                    {
+                        await OpcSessionsListSemaphore.WaitAsync();
+                        opcSession = OpcSessions.ElementAt(0);
+                        OpcSessions.RemoveAt(0);
+                    }
+                    finally
+                    {
+                        OpcSessionsListSemaphore.Release();
+                    }
+                    await opcSession?.ShutdownAsync();
                 }
             }
             catch (Exception e)
             {
-                Trace(e, $"Failed to shutdown all sessions. (message: {e.Message}");
+                Trace(e, "Failed to shutdown all sessions.");
             }
 
             // Wait and continue after a while.

@@ -49,8 +49,9 @@ namespace OpcPublisher.Workarounds
         public static void Trace(Exception e, string format, params object[] args)
         {
             Utils.Trace(e, format, args);
-            WriteLine(DateTime.Now.ToString() + ": " + e.Message.ToString());
             WriteLine(DateTime.Now.ToString() + ": " + format, args);
+            WriteLine(DateTime.Now.ToString() + ": " + e.Message.ToString());
+            WriteLine(DateTime.Now.ToString() + ": " + e.StackTrace);
         }
 
         private static bool _verboseConsole = false;

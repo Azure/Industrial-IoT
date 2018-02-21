@@ -504,7 +504,7 @@ namespace OpcPublisher
         /// <summary>
         /// Read and parse the publisher telemetry configuration file.
         /// </summary>
-        public static bool ReadConfig()
+        public static async Task<bool> ReadConfigAsync()
         {
             // initialize with the default server telemetry configuration
            InitializePublisherDefaultEndpointTelemetryConfiguration();
@@ -520,7 +520,7 @@ namespace OpcPublisher
             try
             {
                 Trace($"Attempting to load telemetry configuration file from: {_publisherTelemetryConfigurationFilename}");
-                _telemetryConfiguration = JsonConvert.DeserializeObject<TelemetryConfiguration>(File.ReadAllText(_publisherTelemetryConfigurationFilename));
+                _telemetryConfiguration = JsonConvert.DeserializeObject<TelemetryConfiguration>(await File.ReadAllTextAsync(_publisherTelemetryConfigurationFilename));
 
                 // update the default configuration with the 'Defaults' settings from the configuration file
                 if (UpdateDefaultEndpointTelemetryConfiguration() == false)
