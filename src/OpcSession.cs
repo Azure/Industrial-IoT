@@ -400,14 +400,21 @@ namespace OpcPublisher
         public int GetNumberOfOpcSubscriptions()
         {
             int result = 0;
+            bool sessionLocked = false;
             try
             {
-                _opcSessionSemaphore.Wait();
-                result = OpcSubscriptions.Count();
+                sessionLocked = LockSessionAsync().Result;
+                if (sessionLocked)
+                {
+                    result = OpcSubscriptions.Count();
+                }
             }
             finally
             {
-                _opcSessionSemaphore.Release();
+                if (sessionLocked)
+                {
+                    ReleaseSession();
+                }
             }
             return result;
         }
@@ -415,18 +422,25 @@ namespace OpcPublisher
         public int GetNumberOfOpcMonitoredItems()
         {
             int result = 0;
+            bool sessionLocked = false;
             try
             {
-                _opcSessionSemaphore.Wait();
-                var subscriptions = OpcSessions.SelectMany(s => s.OpcSubscriptions);
-                foreach (var subscription in subscriptions)
+                sessionLocked = LockSessionAsync().Result;
+                if (sessionLocked)
                 {
-                    result += subscription.OpcMonitoredItems.Count(i => i.State == OpcMonitoredItemState.Monitored);
+                    var subscriptions = OpcSessions.SelectMany(s => s.OpcSubscriptions);
+                    foreach (var subscription in subscriptions)
+                    {
+                        result += subscription.OpcMonitoredItems.Count(i => i.State == OpcMonitoredItemState.Monitored);
+                    }
                 }
             }
             finally
             {
-                _opcSessionSemaphore.Release();
+                if (sessionLocked)
+                {
+                    ReleaseSession();
+                }
             }
             return result;
         }
@@ -445,6 +459,8 @@ namespace OpcPublisher
             PublishingInterval = OpcPublishingInterval;
             _useSecurity = useSecurity;
             _opcSessionSemaphore = new SemaphoreSlim(1);
+            _sessionCancelationTokenSource = new CancellationTokenSource();
+            _sessionCancelationToken = _sessionCancelationTokenSource.Token;
             _namespaceTable = new NamespaceTable();
             _telemetryConfiguration = GetEndpointTelemetryConfiguration(endpointUri.AbsoluteUri);
         }
@@ -489,14 +505,15 @@ namespace OpcPublisher
         /// </summary>
         public async Task ConnectSessionAsync(CancellationToken ct)
         {
+            bool sessionLocked = false;
             try
             {
                 EndpointDescription selectedEndpoint = null;
                 ConfiguredEndpoint configuredEndpoint = null;
-                await _opcSessionSemaphore.WaitAsync();
+                sessionLocked = await LockSessionAsync();
 
                 // if the session is already connected or connecting or shutdown in progress, return
-                if (State == SessionState.Connected || State == SessionState.Connecting || ct.IsCancellationRequested)
+                if (!sessionLocked || ct.IsCancellationRequested || State == SessionState.Connected || State == SessionState.Connecting)
                 {
                     return;
                 }
@@ -506,7 +523,8 @@ namespace OpcPublisher
                 try
                 {
                     // release the session to not block for high network timeouts.
-                    _opcSessionSemaphore.Release();
+                    ReleaseSession();
+                    sessionLocked = false;
 
                     // start connecting
                     selectedEndpoint = CoreClientUtils.SelectEndpoint(EndpointUri.AbsoluteUri, _useSecurity);
@@ -532,41 +550,44 @@ namespace OpcPublisher
                 }
                 finally
                 {
-                    await _opcSessionSemaphore.WaitAsync();
                     if (OpcUaClientSession != null)
                     {
-                        Trace($"Session successfully created with Id {OpcUaClientSession.SessionId}.");
-                        if (!selectedEndpoint.EndpointUrl.Equals(configuredEndpoint.EndpointUrl.AbsoluteUri, StringComparison.OrdinalIgnoreCase))
+                        sessionLocked = await LockSessionAsync();
+                        if (sessionLocked)
                         {
-                            Trace($"the Server has updated the EndpointUrl to '{selectedEndpoint.EndpointUrl}'");
+                            Trace($"Session successfully created with Id {OpcUaClientSession.SessionId}.");
+                            if (!selectedEndpoint.EndpointUrl.Equals(configuredEndpoint.EndpointUrl.AbsoluteUri, StringComparison.OrdinalIgnoreCase))
+                            {
+                                Trace($"the Server has updated the EndpointUrl to '{selectedEndpoint.EndpointUrl}'");
+                            }
+
+                            // init object state and install keep alive
+                            UnsuccessfulConnectionCount = 0;
+                            OpcUaClientSession.KeepAliveInterval = OpcKeepAliveIntervalInSec * 1000;
+                            OpcUaClientSession.KeepAlive += StandardClient_KeepAlive;
+
+                            // fetch the namespace array and cache it. it will not change as long the session exists.
+                            DataValue namespaceArrayNodeValue = OpcUaClientSession.ReadValue(VariableIds.Server_NamespaceArray);
+                            _namespaceTable.Update(namespaceArrayNodeValue.GetValue<string[]>(null));
+
+                            // show the available namespaces
+                            Trace($"The session to endpoint '{selectedEndpoint.EndpointUrl}' has {_namespaceTable.Count} entries in its namespace array:");
+                            int i = 0;
+                            foreach (var ns in _namespaceTable.ToArray())
+                            {
+                                Trace($"Namespace index {i++}: {ns}");
+                            }
+
+                            // fetch the minimum supported item sampling interval from the server.
+                            DataValue minSupportedSamplingInterval = OpcUaClientSession.ReadValue(VariableIds.Server_ServerCapabilities_MinSupportedSampleRate);
+                            _minSupportedSamplingInterval = minSupportedSamplingInterval.GetValue(0);
+                            Trace($"The server on endpoint '{selectedEndpoint.EndpointUrl}' supports a minimal sampling interval of {_minSupportedSamplingInterval} ms.");
+                            State = SessionState.Connected;
                         }
-
-                        // init object state and install keep alive
-                        UnsuccessfulConnectionCount = 0;
-                        OpcUaClientSession.KeepAliveInterval = OpcKeepAliveIntervalInSec * 1000;
-                        OpcUaClientSession.KeepAlive += StandardClient_KeepAlive;
-
-                        // fetch the namespace array and cache it. it will not change as long the session exists.
-                        DataValue namespaceArrayNodeValue = OpcUaClientSession.ReadValue(VariableIds.Server_NamespaceArray);
-                        _namespaceTable.Update(namespaceArrayNodeValue.GetValue<string[]>(null));
-
-                        // show the available namespaces
-                        Trace($"The session to endpoint '{selectedEndpoint.EndpointUrl}' has {_namespaceTable.Count} entries in its namespace array:");
-                        int i = 0;
-                        foreach (var ns in _namespaceTable.ToArray())
+                        else
                         {
-                            Trace($"Namespace index {i++}: {ns}");
+                            State = SessionState.Disconnected;
                         }
-
-                        // fetch the minimum supported item sampling interval from the server.
-                        DataValue minSupportedSamplingInterval = OpcUaClientSession.ReadValue(VariableIds.Server_ServerCapabilities_MinSupportedSampleRate);
-                        _minSupportedSamplingInterval = minSupportedSamplingInterval.GetValue(0);
-                        Trace($"The server on endpoint '{selectedEndpoint.EndpointUrl}' supports a minimal sampling interval of {_minSupportedSamplingInterval} ms.");
-                        State = SessionState.Connected;
-                    }
-                    else
-                    {
-                        State = SessionState.Disconnected;
                     }
                 }
             }
@@ -576,7 +597,10 @@ namespace OpcPublisher
             }
             finally
             {
-                _opcSessionSemaphore.Release();
+                if (sessionLocked)
+                {
+                    ReleaseSession();
+                }
             }
         }
 
@@ -586,12 +610,13 @@ namespace OpcPublisher
         public async Task<bool> MonitorNodesAsync(CancellationToken ct)
         {
             bool requestConfigFileUpdate = false;
+            bool sessionLocked = false;
             try
             {
-                await _opcSessionSemaphore.WaitAsync();
+                sessionLocked = await LockSessionAsync();
 
                 // if the session is not connected or shutdown in progress, return
-                if (State != SessionState.Connected || ct.IsCancellationRequested)
+                if (!sessionLocked || ct.IsCancellationRequested || State != SessionState.Connected)
                 {
                     return requestConfigFileUpdate;
                 }
@@ -622,8 +647,8 @@ namespace OpcPublisher
                     }
                     foreach (var item in unmonitoredItems)
                     {
-                        // if the session is disconnected or a shutdown is in progress, we stop trying and wait for the next cycle
-                        if (State == SessionState.Disconnected || ct.IsCancellationRequested)
+                        // if the session is not connected or a shutdown is in progress, we stop trying and wait for the next cycle
+                        if (ct.IsCancellationRequested || State != SessionState.Connected)
                         {
                             break;
                         }
@@ -769,7 +794,10 @@ namespace OpcPublisher
             }
             finally
             {
-                _opcSessionSemaphore.Release();
+                if (sessionLocked)
+                {
+                    ReleaseSession();
+                }
             }
             return requestConfigFileUpdate;
         }
@@ -780,12 +808,13 @@ namespace OpcPublisher
         public async Task<bool> StopMonitoringNodesAsync(CancellationToken ct)
         {
             bool requestConfigFileUpdate = false;
+            bool sessionLocked = false;
             try
             {
-                await _opcSessionSemaphore.WaitAsync();
+                sessionLocked = await LockSessionAsync();
 
                 // if session is not connected or shutdown is in progress, return
-                if (State != SessionState.Connected || ct.IsCancellationRequested)
+                if (!sessionLocked || ct.IsCancellationRequested || State != SessionState.Connected)
                 {
                     return requestConfigFileUpdate;
                 }
@@ -815,7 +844,10 @@ namespace OpcPublisher
             }
             finally
             {
-                _opcSessionSemaphore.Release();
+                if (sessionLocked)
+                {
+                    ReleaseSession();
+                }
             }
             return requestConfigFileUpdate;
         }
@@ -825,12 +857,13 @@ namespace OpcPublisher
         /// </summary>
         public async Task RemoveUnusedSubscriptionsAsync(CancellationToken ct)
         {
+            bool sessionLocked = false;
             try
             {
-                await _opcSessionSemaphore.WaitAsync();
+                sessionLocked = await LockSessionAsync();
 
                 // if session is not connected or shutdown is in progress, return
-                if (State != SessionState.Connected || ct.IsCancellationRequested)
+                if (!sessionLocked || ct.IsCancellationRequested || State != SessionState.Connected)
                 {
                     return;
                 }
@@ -848,7 +881,10 @@ namespace OpcPublisher
             }
             finally
             {
-                _opcSessionSemaphore.Release();
+                if (sessionLocked)
+                {
+                    ReleaseSession();
+                }
             }
 
         }
@@ -863,12 +899,12 @@ namespace OpcPublisher
                 await OpcSessionsListSemaphore.WaitAsync();
 
                 // if session is not connected or shutdown is in progress, return
-                if (State != SessionState.Connected || ct.IsCancellationRequested)
+                if (ct.IsCancellationRequested || State != SessionState.Connected)
                 {
                     return;
                 }
 
-                // remove sssions in the stack
+                // remove sessions in the stack
                 var sessionsToRemove = OpcSessions.Where(s => s.OpcSubscriptions.Count == 0);
                 foreach (var sessionToRemove in sessionsToRemove)
                 {
@@ -890,30 +926,20 @@ namespace OpcPublisher
         /// </summary>
         public async Task DisconnectAsync()
         {
-            await _opcSessionSemaphore.WaitAsync();
-
-            InternalDisconnect();
-
-            _opcSessionSemaphore.Release();
-        }
-
-        /// <summary>
-        /// Returns the namespace index for a namespace URI.
-        /// </summary>
-        public async Task<int> GetNamespaceIndexAsync(string namespaceUri)
-        {
-            try
+            bool sessionLocked = await LockSessionAsync();
+            if (sessionLocked)
             {
-                await _opcSessionSemaphore.WaitAsync();
-
-                return _namespaceTable.GetIndex(namespaceUri);
-            }
-            finally
-            {
-                _opcSessionSemaphore.Release();
+                try
+                {
+                    InternalDisconnect();
+                }
+                catch (Exception e)
+                {
+                    Trace(e, $"Error while disconnecting '{EndpointUri}'.");
+                }
+                ReleaseSession();
             }
         }
-
 
         /// <summary>
         /// Returns the namespace index for a namespace URI.
@@ -922,7 +948,6 @@ namespace OpcPublisher
         {
             return _namespaceTable.GetIndex(namespaceUri);
         }
-
 
         /// <summary>
         /// Internal disconnect method. Caller must have taken the _opcSessionSemaphore.
@@ -985,11 +1010,11 @@ namespace OpcPublisher
         /// </summary>
         public async Task AddNodeForMonitoringAsync(NodeId nodeId, ExpandedNodeId expandedNodeId, int opcPublishingInterval, int opcSamplingInterval, CancellationToken ct)
         {
+            bool sessionLocked = false;
             try
             {
-                await _opcSessionSemaphore.WaitAsync();
-
-                if (ct.IsCancellationRequested)
+                sessionLocked = await LockSessionAsync();
+                if (!sessionLocked || ct.IsCancellationRequested)
                 {
                     return;
                 }
@@ -1052,7 +1077,10 @@ namespace OpcPublisher
             }
             finally
             {
-                _opcSessionSemaphore.Release();
+                if (sessionLocked)
+                {
+                    ReleaseSession();
+                }
             }
         }
 
@@ -1062,11 +1090,12 @@ namespace OpcPublisher
         public async Task<bool> RequestMonitorItemRemovalAsync(NodeId nodeId, ExpandedNodeId expandedNodeId, int opcPublishingInterval, int opcSamplingInterval, CancellationToken ct)
         {
             bool result = false;
+            bool sessionLocked = false;
             try
             {
-                await _opcSessionSemaphore.WaitAsync();
+                sessionLocked = await LockSessionAsync();
 
-                if (ct.IsCancellationRequested)
+                if (!sessionLocked || ct.IsCancellationRequested)
                 {
                     return false;
                 }
@@ -1118,7 +1147,10 @@ namespace OpcPublisher
             }
             finally
             {
-                _opcSessionSemaphore.Release();
+                if (sessionLocked)
+                {
+                    ReleaseSession();
+                }
             }
             return result;
         }
@@ -1151,11 +1183,15 @@ namespace OpcPublisher
         private bool IsNodePublishedInSession(NodeId nodeId, ExpandedNodeId expandedNodeId)
         {
             bool result = false;
+            bool sessionLocked = false;
             try
             {
-                _opcSessionSemaphore.Wait();
+                sessionLocked = LockSessionAsync().Result;
 
-                result = IsNodePublishedInSessionInternal(nodeId, expandedNodeId);
+                if (sessionLocked && !_sessionCancelationToken.IsCancellationRequested)
+                {
+                    result = IsNodePublishedInSessionInternal(nodeId, expandedNodeId);
+                }
             }
             catch (Exception e)
             {
@@ -1163,7 +1199,10 @@ namespace OpcPublisher
             }
             finally
             {
-                _opcSessionSemaphore.Release();
+                if (sessionLocked)
+                {
+                    ReleaseSession();
+                }
             }
             return result;
         }
@@ -1205,12 +1244,13 @@ namespace OpcPublisher
     /// </summary>
     public async Task ShutdownAsync()
         {
+            bool sessionLocked = false;
             try
             {
-                await _opcSessionSemaphore.WaitAsync();
+                sessionLocked = await LockSessionAsync();
 
                 // if the session is connected, close it.
-                if (State == SessionState.Connected)
+                if (sessionLocked && (State == SessionState.Connecting || State == SessionState.Connected))
                 {
                     try
                     {
@@ -1242,9 +1282,13 @@ namespace OpcPublisher
             }
             finally
             {
-                _opcSessionSemaphore.Release();
-                _opcSessionSemaphore.Dispose();
-                _opcSessionSemaphore = null;
+                if (sessionLocked)
+                {
+                    // cancel all threads waiting on the session semaphore
+                    _sessionCancelationTokenSource.Cancel();
+                    _opcSessionSemaphore.Dispose();
+                    _opcSessionSemaphore = null;
+                }
             }
         }
 
@@ -1327,9 +1371,14 @@ namespace OpcPublisher
         /// <summary>
         /// Take the session semaphore.
         /// </summary>
-        public async Task LockSessionAsync()
+        public async Task<bool> LockSessionAsync()
         {
-            await _opcSessionSemaphore.WaitAsync();
+            await _opcSessionSemaphore.WaitAsync(_sessionCancelationToken);
+            if (_sessionCancelationToken.IsCancellationRequested)
+            {
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
@@ -1344,6 +1393,8 @@ namespace OpcPublisher
         private static bool _fetchOpcNodeDisplayName = false;
         private bool _useSecurity = true;
         private SemaphoreSlim _opcSessionSemaphore;
+        private CancellationTokenSource _sessionCancelationTokenSource;
+        private CancellationToken _sessionCancelationToken;
         private NamespaceTable _namespaceTable;
         private EndpointTelemetryConfiguration _telemetryConfiguration;
         private double _minSupportedSamplingInterval;

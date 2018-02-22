@@ -301,10 +301,11 @@ namespace OpcPublisher
                     // itereate through all sessions, subscriptions and monitored items and create config file entries
                     foreach (var session in OpcSessions)
                     {
+                        bool sessionLocked = false;
                         try
                         {
-                            await session.LockSessionAsync();
-                            if (endpointUri == null || session.EndpointUri.AbsoluteUri.Equals(endpointUri.AbsoluteUri, StringComparison.OrdinalIgnoreCase))
+                            sessionLocked = await session.LockSessionAsync();
+                            if (sessionLocked && (endpointUri == null || session.EndpointUri.AbsoluteUri.Equals(endpointUri.AbsoluteUri, StringComparison.OrdinalIgnoreCase)))
                             {
                                 PublisherConfigurationFileEntry publisherConfigurationFileEntry = new PublisherConfigurationFileEntry();
 
@@ -368,7 +369,10 @@ namespace OpcPublisher
                         }
                         finally
                         {
-                            session.ReleaseSession();
+                            if (sessionLocked)
+                            {
+                                session.ReleaseSession();
+                            }
                         }
                     }
                 }
