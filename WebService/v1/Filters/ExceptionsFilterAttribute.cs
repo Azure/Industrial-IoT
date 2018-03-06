@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Filters {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Filters {
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Filters;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Exceptions;
+    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Exceptions;
     using System;
     using System.Net;
     using System.Threading.Tasks;
@@ -28,31 +29,31 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Filters {
                 return;
             }
             switch(context.Exception) {
-                case ServerBusyException se:
-                    context.Result = GetResponse((HttpStatusCode)429,
-                        context.Exception);
-                    break;
                 case ResourceNotFoundException re:
                     context.Result = GetResponse(HttpStatusCode.NotFound,
                         context.Exception);
                     break;
-                case ResourceOutOfDateException re:
-                    context.Result = GetResponse(HttpStatusCode.PreconditionFailed,
-                        context.Exception);
-                    break;
                 case ConflictingResourceException ce:
-                    context.Result = GetResponse(HttpStatusCode.Conflict, 
+                    context.Result = GetResponse(HttpStatusCode.Conflict,
                         context.Exception);
                     break;
                 case CertificateInvalidException ci:
                 case CertificateUntrustedException cu:
                 case UnauthorizedAccessException ue:
-                    context.Result = GetResponse(HttpStatusCode.Unauthorized, 
+                    context.Result = GetResponse(HttpStatusCode.Unauthorized,
+                        context.Exception);
+                    break;
+                case MethodCallException mce:
+                    context.Result = GetResponse(HttpStatusCode.BadRequest,
+                       context.Exception);
+                    break;
+                case MethodCallStatusException mcs:
+                    context.Result = GetResponse((HttpStatusCode)mcs.Result,
                         context.Exception);
                     break;
                 case BadRequestException br:
                 case ArgumentException ae:
-                    context.Result = GetResponse(HttpStatusCode.BadRequest, 
+                    context.Result = GetResponse(HttpStatusCode.BadRequest,
                         context.Exception);
                     break;
                 case NotImplementedException ne:
@@ -64,12 +65,39 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Filters {
                     context.Result = GetResponse(HttpStatusCode.RequestTimeout,
                         context.Exception);
                     break;
+
+                //
+                // The following will most certainly be retried by our
+                // service client implementations and thus dependent
+                // services:
+                //
+                //      InternalServerError
+                //      BadGateway
+                //      ServiceUnavailable
+                //      GatewayTimeout
+                //      PreconditionFailed
+                //      TemporaryRedirect
+                //      429 (IoT Hub throttle)
+                //
+                // As such, if you want to terminate make sure exception
+                // is caught ahead of here and returns a status other than
+                // one of the above.
+                //
+
+                case ServerBusyException se:
+                    context.Result = GetResponse((HttpStatusCode)429,
+                        context.Exception);
+                    break;
+                case ResourceOutOfDateException re:
+                    context.Result = GetResponse(HttpStatusCode.PreconditionFailed,
+                        context.Exception);
+                    break;
                 case ExternalDependencyException ex:
                     context.Result = GetResponse(HttpStatusCode.ServiceUnavailable,
                         context.Exception);
                     break;
                 default:
-                    context.Result = GetResponse(HttpStatusCode.InternalServerError, 
+                    context.Result = GetResponse(HttpStatusCode.InternalServerError,
                         context.Exception);
                     break;
             }

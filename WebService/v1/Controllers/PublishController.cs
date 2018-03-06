@@ -3,16 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Controllers {
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Auth;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Filters;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Exceptions;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Auth;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Filters;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Models;
     using System;
     using System.Threading.Tasks;
+    using System.Linq;
 
     /// <summary>
     /// Browse controller
@@ -20,18 +20,18 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
     [Route(ServiceInfo.PATH + "/[controller]")]
     [ExceptionsFilter]
     [Produces("application/json")]
-    [Authorize(Policy = Policy.ControlOpcServer)]
+    [Authorize(Policy = Policy.ControlTwins)]
     public class PublishController : Controller {
 
         /// <summary>
         /// Create controller with service
         /// </summary>
-        /// <param name="publishServices"></param>
-        /// <param name="endpointServices"></param>
-        public PublishController(IOpcUaPublishServices publishServices,
-            IOpcUaEndpointServices endpointServices) {
-            _publish = publishServices;
-            _endpoints = endpointServices;
+        /// <param name="twin"></param>
+        /// <param name="adhoc"></param>
+        public PublishController(IOpcUaTwinPublishServices twin, 
+            IOpcUaAdhocPublishServices adhoc) {
+            _adhoc = adhoc;
+            _twin = twin;
         }
 
         /// <summary>
@@ -49,35 +49,70 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
 
             // TODO: if token type is not "none", but user/token not, take from current claims
 
-            var publishresult = await _publish.NodePublishAsync(
+            var result = await _adhoc.NodePublishAsync(
                 request.Endpoint.ToServiceModel(),
                 request.Content.ToServiceModel());
-            return new PublishResponseApiModel(publishresult);
+            return new PublishResponseApiModel(result);
         }
 
         /// <summary>
         /// Publish node value as specified in the publish value request on the
         /// server specified by the endpoint id.
         /// </summary>
-        /// <param name="id">The (twin) identifier of the endpoint.</param>
+        /// <param name="id">The identifier of the twin.</param>
         /// <param name="request">The publish request</param>
         /// <returns>The publish response</returns>
         [HttpPost("{id}")]
-        public async Task<PublishResponseApiModel> PublishAsync(string id,
+        public async Task<PublishResponseApiModel> PublishByIdAsync(string id,
             [FromBody] PublishRequestApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var endpoint = await _endpoints.GetAsync(id);
-            if (endpoint == null) {
-                throw new ResourceNotFoundException($"Endpoint {id} not found.");
-            }
-            var publishresult = await _publish.NodePublishAsync(
-                endpoint, request.ToServiceModel());
-            return new PublishResponseApiModel(publishresult);
+            var result = await _twin.NodePublishAsync(
+                id, request.ToServiceModel());
+            return new PublishResponseApiModel(result);
         }
 
-        private readonly IOpcUaPublishServices _publish;
-        private readonly IOpcUaEndpointServices _endpoints;
+        /// <summary>
+        /// Returns currently published node ids.
+        /// </summary>
+        /// <param name="endpoint">The endpoint to get published nodes for.</param>
+        /// <returns>The list of published nodes</returns>
+        [HttpPost("state")]
+        public async Task<PublishedNodeListApiModel> ListPublishedNodesAsync(
+            [FromBody] EndpointApiModel endpoint) {
+            if (endpoint == null) {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+
+            // TODO: if token type is not "none", but user/token not, take from current claims
+
+            string continuationToken = null;
+            if (Request.Headers.ContainsKey(CONTINUATION_TOKEN_NAME)) {
+                continuationToken = Request.Headers[CONTINUATION_TOKEN_NAME].FirstOrDefault();
+            }
+            var result = await _adhoc.ListPublishedNodesAsync(continuationToken, 
+                endpoint.ToServiceModel());
+            return new PublishedNodeListApiModel(result);
+        }
+
+        /// <summary>
+        /// Returns currently published node ids.
+        /// </summary>
+        /// <param name="id">The identifier of the twin.</param>
+        /// <returns>The list of published nodes</returns>
+        [HttpGet("{id}/state")]
+        public async Task<PublishedNodeListApiModel> ListPublishedNodesByIdAsync(string id) {
+            string continuationToken = null;
+            if (Request.Headers.ContainsKey(CONTINUATION_TOKEN_NAME)) {
+                continuationToken = Request.Headers[CONTINUATION_TOKEN_NAME].FirstOrDefault();
+            }
+            var result = await _twin.ListPublishedNodesAsync(continuationToken, id);
+            return new PublishedNodeListApiModel(result);
+        }
+
+        private const string CONTINUATION_TOKEN_NAME = "x-ms-continuation";
+        private readonly IOpcUaTwinPublishServices _twin;
+        private readonly IOpcUaAdhocPublishServices _adhoc;
     }
 }

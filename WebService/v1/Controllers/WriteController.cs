@@ -3,14 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Controllers {
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Auth;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Filters;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Exceptions;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Auth;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Filters;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Models;
     using System;
     using System.Threading.Tasks;
 
@@ -20,18 +19,17 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
     [Route(ServiceInfo.PATH + "/[controller]")]
     [ExceptionsFilter]
     [Produces("application/json")]
-    [Authorize(Policy = Policy.ControlOpcServer)]
+    [Authorize(Policy = Policy.ControlTwins)]
     public class WriteController : Controller {
 
         /// <summary>
         /// Create controller with service
         /// </summary>
-        /// <param name="nodeServices"></param>
-        /// <param name="endpointServices"></param>
-        public WriteController(IOpcUaNodeServices nodeServices,
-            IOpcUaEndpointServices endpointServices) {
-            _nodes = nodeServices;
-            _endpoints = endpointServices;
+        /// <param name="twin"></param>
+        /// <param name="adhoc"></param>
+        public WriteController(IOpcUaTwinNodeServices twin, IOpcUaAdhocNodeServices adhoc) {
+            _twin = twin;
+            _adhoc = adhoc;
         }
 
         /// <summary>
@@ -49,7 +47,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
 
             // TODO: if token type is not "none", but user/token not, take from current claims
 
-            var writeResult = await _nodes.NodeValueWriteAsync(
+            var writeResult = await _adhoc.NodeValueWriteAsync(
                 request.Endpoint.ToServiceModel(),
                 request.Content.ToServiceModel());
             return new ValueWriteResponseApiModel(writeResult);
@@ -57,9 +55,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
 
         /// <summary>
         /// Write node value as specified in the write value request on the
-        /// server specified by the endpoint id.
+        /// server specified by the twin id.
         /// </summary>
-        /// <param name="id">The (twin) identifier of the endpoint.</param>
+        /// <param name="id">The identifier of the twin.</param>
         /// <param name="request">The write value request</param>
         /// <returns>The write value response</returns>
         [HttpPost("{id}")]
@@ -68,16 +66,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var endpoint = await _endpoints.GetAsync(id);
-            if (endpoint == null) {
-                throw new ResourceNotFoundException($"Endpoint {id} not found.");
-            }
-            var writeResult = await _nodes.NodeValueWriteAsync(
-                endpoint, request.ToServiceModel());
+            var writeResult = await _twin.NodeValueWriteAsync(
+                id, request.ToServiceModel());
             return new ValueWriteResponseApiModel(writeResult);
         }
 
-        private readonly IOpcUaNodeServices _nodes;
-        private readonly IOpcUaEndpointServices _endpoints;
+        private readonly IOpcUaTwinNodeServices _twin;
+        private readonly IOpcUaAdhocNodeServices _adhoc;
     }
 }

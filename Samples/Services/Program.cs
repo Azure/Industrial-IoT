@@ -4,16 +4,23 @@
 // ------------------------------------------------------------
 
 namespace Cli {
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Client;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Models;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Runtime;
+    using Microsoft.Azure.Devices.Edge;
+    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using Microsoft.Azure.IoTSolutions.Common.Http;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Client;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Direct;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Runtime;
     using Microsoft.Extensions.Configuration;
+    using Newtonsoft.Json;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Text;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -32,7 +39,9 @@ namespace Cli {
 
         enum Op {
             None,
-            TestOpcUaServerClient
+            TestOpcUaServerClient,
+            TestOpcUaDiscoveryService,
+            ClearDeviceRegistry
         }
 
         /// <summary>
@@ -42,7 +51,7 @@ namespace Cli {
         public static void Main(string[] args) {
             var op = Op.None;
             var proxy = false;
-            var endpoint = new ServerEndpointModel { IsTrusted = true };
+            var endpoint = new EndpointModel { IsTrusted = true };
 
             var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
             try {
@@ -50,11 +59,11 @@ namespace Cli {
                     switch (args[i]) {
                         case "-s":
                         case "--server":
-                            i++;
                             if (op != Op.None) {
                                 throw new ArgumentException("Operations are mutually exclusive");
                             }
                             op = Op.TestOpcUaServerClient;
+                            i++;
                             if (i < args.Length) {
                                 endpoint.Url = args[i];
                             }
@@ -65,6 +74,20 @@ namespace Cli {
                         case "-p":
                         case "--proxy":
                             proxy = true;
+                            break;
+                        case "-c":
+                        case "--clear":
+                            if (op != Op.None) {
+                                throw new ArgumentException("Operations are mutually exclusive");
+                            }
+                            op = Op.ClearDeviceRegistry;
+                            break;
+                        case "-d":
+                        case "--discover":
+                            if (op != Op.None) {
+                                throw new ArgumentException("Operations are mutually exclusive");
+                            }
+                            op = Op.TestOpcUaDiscoveryService;
                             break;
                         case "-?":
                         case "-h":
@@ -94,11 +117,16 @@ Options:
 Target (Mutually exclusive):
 
      -p
-    --proxy 
+    --proxy
              Use proxy
 
 Operations (Mutually exclusive):
-
+     -d
+    --discover
+             Tests discovery stuff.
+     -c
+    --clear
+             Clear device registry content.
      -s
     --server
              Tests server stuff with passed endpoint url.  The server is queried 
@@ -114,6 +142,12 @@ Operations (Mutually exclusive):
                     case Op.TestOpcUaServerClient:
                         TestOpcUaServerClient(endpoint, proxy).Wait();
                         break;
+                    case Op.TestOpcUaDiscoveryService:
+                        TestOpcUaDiscoveryService().Wait();
+                        break;
+                    case Op.ClearDeviceRegistry:
+                        ClearDeviceRegistry().Wait();
+                        break;
                     default:
                         throw new ArgumentException("Unknown.");
                 }
@@ -126,16 +160,59 @@ Operations (Mutually exclusive):
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Clear device registry
+        /// </summary>
+        /// <returns></returns>
+        private static async Task ClearDeviceRegistry() {
+            var logger = new Logger("test", LogLevel.Debug);
+            var registry = new IoTHubServiceHttpClient(
+                new HttpClient(logger),
+                new OpcUaTestConfig {
+                    BypassProxy = true,
+                    IoTHubManagerV1ApiUrl = null
+                }, logger);
+
+            string continuation = null;
+            do {
+                var result = await registry.QueryAsync("SELECT * from devices", continuation);
+                foreach (var item in result.Items) {
+                    await registry.DeleteAsync(item.Id);
+                }
+                continuation = result.ContinuationToken;
+            }
+            while (continuation != null);
+        }
+
+        /// <summary>
+        /// Test discovery
+        /// </summary>
+        /// <returns></returns>
+        private static async Task TestOpcUaDiscoveryService() {
+            var logger = new Logger("test", LogLevel.Debug);
+            var client = new OpcUaClient(logger, new OpcUaTestConfig {
+                BypassProxy = true,
+                IoTHubManagerV1ApiUrl = null
+            });
+
+            var discovery = new OpcUaDiscoveryServices(client, new ConsoleEmitter(), logger) {
+                DiscoverIdleTime = TimeSpan.FromMilliseconds(1),
+                MaxDegreeOfParallism = Environment.ProcessorCount * 2
+            };
+            await discovery.StartDiscoveryAsync();
+            await Task.Delay(TimeSpan.FromMinutes(10));
+            await discovery.StopDiscoveryAsync();
+        }
 
         /// <summary>
         /// Test client stuff
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="useProxy"></param>
-        private static async Task TestOpcUaServerClient(ServerEndpointModel endpoint, 
+        private static async Task TestOpcUaServerClient(EndpointModel endpoint,
             bool useProxy) {
             var logger = new Logger("test", LogLevel.Debug);
-            var client = new OpcUaServerClient(logger, new OpcUaTestConfig {
+            var client = new OpcUaClient(logger, new OpcUaTestConfig {
                 BypassProxy = !useProxy,
                 IoTHubManagerV1ApiUrl = null
             });
@@ -155,7 +232,7 @@ Operations (Mutually exclusive):
                 }
                 while (stack.Count > 0) {
                     var browsed = stack.Pop();
-                    session.Browse(null, null, 
+                    session.Browse(null, null,
                         ExpandedNodeId.ToNodeId(browsed.Item2.NodeId, session.NamespaceUris),
                         0u, BrowseDirection.Forward, ReferenceTypeIds.HierarchicalReferences,
                         true, (uint)NodeClass.Variable | (uint)NodeClass.Object | (uint)NodeClass.Method,
@@ -193,6 +270,37 @@ Operations (Mutually exclusive):
                 subscription.Dispose();
                 return true;
             });
+        }
+
+        private class ConsoleEmitter : IEventEmitter {
+
+            public string DeviceId { get; } = "";
+
+            public Task SendAsync(byte[] data, string contentType) {
+                var json = Encoding.UTF8.GetString(data);
+                var o = JsonConvert.DeserializeObject(json);
+                Console.WriteLine(contentType);
+                Console.WriteLine(JsonConvertEx.SerializeObjectPretty(o));
+                return Task.CompletedTask;
+            }
+
+            public async Task SendAsync(IEnumerable<byte[]> batch, string contentType) {
+                foreach (var data in batch) {
+                    await SendAsync(data, contentType);
+                }
+            }
+
+            public Task SendAsync(string propertyId, dynamic value) {
+                Console.WriteLine($"{propertyId}={value}");
+                return Task.CompletedTask;
+            }
+
+            public Task SendAsync(IEnumerable<KeyValuePair<string, dynamic>> properties) {
+                foreach (var prop in properties) {
+                    Console.WriteLine($"{prop.Key}={prop.Value}");
+                }
+                return Task.CompletedTask;
+            }
         }
     }
 }

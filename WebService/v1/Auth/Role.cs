@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Auth {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Auth {
     using System.Collections.Generic;
 
     /// <summary>

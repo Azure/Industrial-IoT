@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Exceptions {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Exceptions {
+    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
     using System;
 
     /// <summary>
@@ -11,11 +12,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Exceptions {
     /// </summary>
     public class CertificateInvalidException : ExternalDependencyException {
 
-        public CertificateInvalidException(string message) : 
+        public CertificateInvalidException(string message) :
             base(message) {
         }
 
-        public CertificateInvalidException(string message, Exception innerException) : 
+        public CertificateInvalidException(string message, Exception innerException) :
             base(message, innerException) {
         }
     }

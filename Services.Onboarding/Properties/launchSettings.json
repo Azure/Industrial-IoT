@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Services.Onboarding": {
+      "commandName": "Project",
+      "environmentVariables":   {
+        "_WS": "true"
+      }
+    }
+  }
+}

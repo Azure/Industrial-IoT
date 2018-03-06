@@ -3,14 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Controllers {
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Auth;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Filters;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Exceptions;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Auth;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Filters;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Models;
     using System;
     using System.Threading.Tasks;
 
@@ -20,22 +19,21 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
     [Route(ServiceInfo.PATH + "/[controller]")]
     [ExceptionsFilter]
     [Produces("application/json")]
-    [Authorize(Policy = Policy.ControlOpcServer)]
+    [Authorize(Policy = Policy.ControlTwins)]
     public class CallController : Controller {
 
         /// <summary>
         /// Create controller with service
         /// </summary>
-        /// <param name="nodeServices"></param>
-        /// <param name="endpointServices"></param>
-        public CallController(IOpcUaNodeServices nodeServices,
-            IOpcUaEndpointServices endpointServices) {
-            _nodes = nodeServices;
-            _endpoints = endpointServices;
+        /// <param name="twin"></param>
+        /// <param name="adhoc"></param>
+        public CallController(IOpcUaTwinNodeServices twin, IOpcUaAdhocNodeServices adhoc) {
+            _twin = twin;
+            _adhoc = adhoc;
         }
 
         /// <summary>
-        /// Return method meta data as specified in the method metadata request 
+        /// Return method meta data as specified in the method metadata request
         /// on the server specified in the endpoint object of the service request.
         /// </summary>
         /// <param name="request">The service request</param>
@@ -49,17 +47,16 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
 
             // TODO: if token type is not "none", but user/token not, take from current claims
 
-            var metadataresult = await _nodes.NodeMethodGetMetadataAsync(
-                request.Endpoint.ToServiceModel(),
-                request.Content.ToServiceModel());
+            var metadataresult = await _adhoc.NodeMethodGetMetadataAsync(
+                request.Endpoint.ToServiceModel(), request.Content.ToServiceModel());
             return new MethodMetadataResponseApiModel(metadataresult);
         }
 
         /// <summary>
-        /// Return method meta data as specified in the method metadata request 
-        /// on the server specified by the endpoint id.
+        /// Return method meta data as specified in the method metadata request
+        /// on the server specified by the twin id.
         /// </summary>
-        /// <param name="id">The (twin) identifier of the endpoint.</param>
+        /// <param name="id">The identifier of the twin.</param>
         /// <param name="request">The method metadata request</param>
         /// <returns>The method metadata response</returns>
         [HttpPost("{id}/$metadata")]
@@ -68,12 +65,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var endpoint = await _endpoints.GetAsync(id);
-            if (endpoint == null) {
-                throw new ResourceNotFoundException($"Endpoint {id} not found.");
-            }
-            var metadataresult = await _nodes.NodeMethodGetMetadataAsync(
-                endpoint, request.ToServiceModel());
+            var metadataresult = await _twin.NodeMethodGetMetadataAsync(
+                id, request.ToServiceModel());
             return new MethodMetadataResponseApiModel(metadataresult);
         }
 
@@ -93,7 +86,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
             // TODO: Permissions
             // TODO: if token type is not "none", but user/token not, take from current claims
 
-            var callresult = await _nodes.NodeMethodCallAsync(
+            var callresult = await _adhoc.NodeMethodCallAsync(
                 request.Endpoint.ToServiceModel(),
                 request.Content.ToServiceModel());
             return new MethodCallResponseApiModel(callresult);
@@ -101,9 +94,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
 
         /// <summary>
         /// Invoke method node as specified in the method call request on the
-        /// server specified by the endpoint id.
+        /// server specified by the twin id.
         /// </summary>
-        /// <param name="id">The (twin) identifier of the endpoint.</param>
+        /// <param name="id">The identifier of the twin.</param>
         /// <param name="request">The method call request</param>
         /// <returns>The method call response</returns>
         [HttpPost("{id}")]
@@ -115,16 +108,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Controllers {
 
             // TODO: Permissions
 
-            var endpoint = await _endpoints.GetAsync(id);
-            if (endpoint == null) {
-                throw new ResourceNotFoundException($"Endpoint {id} not found.");
-            }
-            var callresult = await _nodes.NodeMethodCallAsync(
-                endpoint, request.ToServiceModel());
+            var callresult = await _twin.NodeMethodCallAsync(
+                id, request.ToServiceModel());
             return new MethodCallResponseApiModel(callresult);
         }
 
-        private readonly IOpcUaNodeServices _nodes;
-        private readonly IOpcUaEndpointServices _endpoints;
+        private readonly IOpcUaTwinNodeServices _twin;
+        private readonly IOpcUaAdhocNodeServices _adhoc;
     }
 }

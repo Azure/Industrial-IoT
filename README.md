@@ -2,10 +2,10 @@
 [![Issues][issues-badge]][issues-url]
 [![Gitter][gitter-badge]][gitter-url]
 
-OPC UA Explorer
-=====================
+OPC Twin Service
+================
 
-Handles communication with shop floor via OPC UA.
+Handles communication with shop floor edge service via OPC UA.
 
 Overview
 ========
@@ -86,9 +86,9 @@ Other documents
 * [Contributing and Development setup](CONTRIBUTING.md)
 * [Development setup, scripts and tools](DEVELOPMENT.md)
 
-[build-badge]: https://img.shields.io/travis/Azure/iot-pcs-cf-opc-ua-explorer.svg
-[build-url]: https://travis-ci.org/Azure/iot-pcs-cf-opc-ua-explorer
-[issues-badge]: https://img.shields.io/github/issues/azure/iot-pcs-cf-opc-ua-explorer.svg
-[issues-url]: https://github.com/Azure/iot-pcs-cf-opc-ua-explorer/issues
+[build-badge]: https://img.shields.io/travis/Azure/iot-opc-twin-service.svg
+[build-url]: https://travis-ci.org/Azure/iot-opc-twin-service
+[issues-badge]: https://img.shields.io/github/issues/azure/iot-opc-twin-service.svg
+[issues-url]: https://github.com/Azure/iot-opc-twin-service/issues
 [gitter-badge]: https://img.shields.io/gitter/room/azure/iot-solutions.js.svg
 [gitter-url]: https://gitter.im/azure/iot-solutions

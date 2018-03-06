@@ -6,10 +6,10 @@
 version: "3"
 
 services:
-  opcuaexplorer:
-    image: azureiotpcs/iot-pcs-cf-opc-ua-explorer
+  opctwin:
+    image: microsoft/iot-opc-twin-service
     ports:
-      - "9002:9002"
+      - "9042:9042"
     environment:
       - PCS_IOTHUB_CONNSTRING
-      - PCS_CONFIG_WEBSERVICE_URL
+      - PCS_IOTHUBMANAGER_WEBSERVICE_URL

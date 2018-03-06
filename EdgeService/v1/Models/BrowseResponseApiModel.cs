@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.EdgeService.v1.Models {
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Models;
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
     using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
     using System.Linq;
@@ -30,6 +30,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.EdgeService.v1.Models {
                 References = model.References
                     .Select(r => new NodeReferenceApiModel(r))
                     .ToList();
+            }
+            else {
+                model.References = new List<NodeReferenceModel>();
             }
         }
 

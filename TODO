@@ -3,50 +3,32 @@ TODO
 
 * More unit tests (P1)
 * REST API
-    * (done) Simple variants of read/browse (GET) that take nodeId (P2)
+    * CLI:
+        * Add way to save id, etc in interactive mode
     * Misc
-        (done) * Swagger
-        (done) * Serialize diagnostics to JToken, not string (P0)
-        (done) * Do not leak opc ua exceptions from OPC Client (P0)
-        (partial) * Adapt exception filters - serialize exception as json, not string (P0)
         * Variant codec improvements (array, string quoting, etc.) (P2)
+        * Split out parts into seperate repos (browse, shared, edge, webservice)
+        * Endpoint caching (see proxy code) since iot hub registry access is slow/throttled (P4)
     * Permissions
         (partial) * Webservice Permissions based on JWT bearer tokens (P0)
         (partial) * Swagger: Add bearer key option (P1)
         * Filter service responses and update based on permissions (nodes, writes, execute, add, etc.) (P0/P1)
         * Swagger: investigate implicit outh token retrieval (P3)
     * Add/Remove/Discover endpoints controller
-        (done) * Add server public cert to endpoint model for to enable download/validation
-        (done) * should be able to download server cert for endpoint for validation (i.e.to set trusted = true)
-        (done) * Add ability to lookup / add endpoints using iot hub directly
-        (done) * Add ability to lookup / add endpoints using iot hub manager service
-        (done) * Onboarding / add new endpoints (maps to legacy Connect/Disconnect) 
         * should be able to get client cert from opc edge service
         * should be able to upload client cert for endpoint
-        * Investigate: Add external keyvault service as option for certificate management 
+        * Investigate: Add external keyvault service as option for certificate management
         * Lookup publisher from endpoint connection, not static. (P2)
         * Additional user auth options (E.g. x509) (P3)
     * Add/Delete/Update (patch) nodes (P3)
     * Add/Delete/Update (patch) references (P3)
-* Better diagnostics for all areas (E.g. published nodes lookup failures...) (P1)
-* Performance
+* Edgeservice Integration
+    * Provision edge client with client certificate from security service. (P0)
+    * Implement publish interface (P0)
+    * Add security profile support in validate/client (P0)
+    * Add publish status to browse response in cloud (P1)
     * Misc
-        (done) * Session checkout/return 
-        (partial) * Look up proxy address entry in iot hub for endpoint and subsume it if no device id is provided. (P1)
         * Limit session to x per server and return Busy / Throttle (P2)
         * Session cache cleanup (P2)
-    * Endpoint caching (see proxy code) since iot hub registry access is slow/throttled (P0)
-    * (Publisher 1) Prevent publisher lookup in browse API when no publisher found (P1)
-    * (Publisher 2) Cache publisher host name / Endpoint relationship in proxy service (P2)
-* UX
-    * CLI for service 
-    * Connect pcsv1 UX - Extract browser UX into asp.net core MVC micro service
-        * Update from asp.net to asp.net core 2.0
-        * Update browse adapter
-        * Legacy connect/disconnect . cache id in session or elsewhere
-    * New React based UI - tree components, etc.
-    * Integrate into PCSv2 remote monitoring
-* Edgeservice Integration
-    * Create simple Edge micro service (sample?) (P2)
-    * Implement publish interface (P2)
-    * Integrate Publisher device method control (P2)
+* Proxy
+    * Cache publisher host name / Endpoint relationship in proxy service (P4)

@@ -29,14 +29,14 @@
           }
         },
         "modules": {
-          "FilterModule": {
+          "OpcTwinModule": {
             "version": "1.0",
             "type": "docker",
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "<registry>/<image>:<tag>",
-              "createOptions": "{}"
+              "image": "microsoft/iot-opc-twin-service:1.0.0",
+              "createOptions": ""
             }
           }
         }

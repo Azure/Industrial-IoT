@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using System.IO;

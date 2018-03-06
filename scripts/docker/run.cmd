@@ -1,7 +1,7 @@
 @ECHO off & setlocal enableextensions enabledelayedexpansion
 
 :: Note: use lowercase names for the Docker images
-SET DOCKER_IMAGE="azureiotpcs/iot-pcs-cf-opc-ua-explorer"
+SET DOCKER_IMAGE="microsoft/iot-opc-twin-service"
 
 :: strlen("\scripts\docker\") => 16
 SET APP_HOME=%~dp0
@@ -17,7 +17,7 @@ call .\scripts\env-vars-check.cmd
 IF %ERRORLEVEL% NEQ 0 GOTO FAIL
 
 :: Start the application
-echo Starting OPC UA Explorer ...
+echo Starting OPC Twin ...
 docker run -it -p 9002:9002 ^
     -e PCS_IOTHUB_CONNSTRING ^
     -e PCS_CONFIG_WEBSERVICE_URL ^

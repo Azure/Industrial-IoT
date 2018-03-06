@@ -3,53 +3,21 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Models {
-    using System.Security.Cryptography.X509Certificates;
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
 
     /// <summary>
-    /// Endpoint to talk to
+    /// Endpoint with server info
     /// </summary>
     public class ServerEndpointModel {
 
         /// <summary>
-        /// Endoint url for direct server access
+        /// Server info for the endpoint
         /// </summary>
-        public string Url { get; set; }
+        public ServerInfoModel Server { get; set; }
 
         /// <summary>
-        /// User name to use
+        /// Endoint validated
         /// </summary>
-        public string User { get; set; }
-
-        /// <summary>
-        /// User token to pass to server
-        /// </summary>
-        public object Token { get; set; }
-
-        /// <summary>
-        /// Type of token
-        /// </summary>
-        public TokenType Type { get; set; }
-
-        /// <summary>
-        /// Implict trust of the other side
-        /// </summary>
-        public bool? IsTrusted { get; set; }
-
-        /// <summary>
-        /// Returns the public certificate presented by the server
-        /// </summary>
-        public X509Certificate2 ServerCertificate { get; set; }
-
-        /// <summary>
-        /// Returns the public certificate to present to the server.
-        /// </summary>
-        public X509Certificate2 ClientCertificate { get; set; }
-
-        /// <summary>
-        /// Edge controller device to use - if not set, uses
-        /// proxy to access.
-        /// </summary>
-        public string EdgeController { get; set; }
+        public EndpointModel Endpoint { get; set; }
     }
 }

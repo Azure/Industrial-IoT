@@ -3,17 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService {
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Auth;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Runtime;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Client;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Cloud;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Codec;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.External.Direct;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.External.Manager;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Http;
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService {
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Auth;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Runtime;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Direct;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Manager;
+    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using Microsoft.Azure.IoTSolutions.Common.Http;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -25,7 +23,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService {
     using Swashbuckle.AspNetCore.Swagger;
     using System;
     using System.IO;
-    using ILogger = Services.Diagnostics.ILogger;
+    using ILogger = Common.Diagnostics.ILogger;
 
     /// <summary>
     /// Webservice startup
@@ -53,7 +51,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService {
         /// <param name="env"></param>
         public Startup(IHostingEnvironment env) {
             Environment = env;
-            
+
             var config = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile(
@@ -79,7 +77,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService {
             services.AddCors();
 
             // Add authentication
-            services.AddJwtBearerAuthentication(Config, 
+            services.AddJwtBearerAuthentication(Config,
                 Environment.IsDevelopment());
 
             // Add authorization
@@ -93,7 +91,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService {
                 options.SerializerSettings.Converters.Add(new ExceptionConverter(
                     Environment.IsDevelopment()));
                 options.SerializerSettings.MaxDepth = 10;
-            }); 
+            });
 
             // Generate swagger documentation
             services.AddSwaggerGen(options => {
@@ -105,7 +103,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService {
                 });
 
                 // Add help
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, 
+                var xmlPath = Path.Combine(AppContext.BaseDirectory,
                     ServiceInfo.NAME + ".WebService.xml");
                 options.IncludeXmlComments(xmlPath);
 
@@ -200,8 +198,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService {
             builder.RegisterType<HttpClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Register twin services and ...
-            builder.RegisterType<OpcUaTwinServices>()
+            // Register endpoint services and ...
+            builder.RegisterType<OpcUaRegistryServices>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // ... use iot hub manager micro service ...
@@ -212,21 +210,23 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService {
             }
             else {
                 // ... or if not, for testing, use direct services
-                builder.RegisterType<IoTHubTwinServicesDirect>()
+                builder.RegisterType<IoTHubServiceHttpClient>()
                     .AsImplementedInterfaces().SingleInstance();
             }
 
-            // Register service call cloud router
-            builder.RegisterType<OpcUaCloudRouter>()
-                .AsImplementedInterfaces().SingleInstance();
-
             // Register opc ua proxy stack stack
-            builder.RegisterType<OpcUaServerClient>()
+            builder.RegisterType<Services.External.Client.OpcUaClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            // Register misc opc services, such as variant codec
+            builder.RegisterType<Services.External.Codec.OpcUaJsonCodec>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Register misc opc services, such as variant codec
-            builder.RegisterType<OpcUaVariantJsonCodec>()
+            // Register edge/proxy routed services
+            builder.RegisterType<OpcUaCompositeClient>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<OpcUaCompositeValidator>()
+                .AsImplementedInterfaces().SingleInstance();
+
 
             return builder.Build();
         }

@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Runtime {
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Exceptions;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Runtime;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Auth;
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Runtime {
+    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Runtime;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Auth;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;
@@ -37,19 +37,19 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Runtime {
         private const string DEPENDENCIES_KEY = "Dependencies:";
         private const string IOTHUBMANAGER_SERVICE_KEY = DEPENDENCIES_KEY + "IoTHubManager:";
         /// <summary>IoT hub connection string</summary>
-        public string IoTHubConnString =>
-            GetConnectionString(IOTHUB_CONNSTRING_KEY);
+        public string IoTHubConnString => GetConnectionString(IOTHUB_CONNSTRING_KEY,
+            GetConnectionString("_HUB_CS", null));
         /// <summary>Whether to bypass proxy</summary>
         public bool BypassProxy =>
             GetBool(BYPASS_PROXY, false);
         /// <summary>IoT hub manager endpoint url</summary>
-        public string IoTHubManagerV1ApiUrl => 
+        public string IoTHubManagerV1ApiUrl =>
             GetString(IOTHUBMANAGER_SERVICE_KEY + "webservice_url");
 
         /// <summary>
         /// Auth configuration
         /// </summary>
-        /// 
+        ///
         private const string AUTH_KEY = "Auth:";
         private const string CORS_WHITELIST_KEY = AUTH_KEY + "cors_whitelist";
         private const string AUTH_TYPE_KEY = AUTH_KEY + "auth_type";
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Runtime {
         public string CorsWhitelist =>
             GetString(CORS_WHITELIST_KEY, string.Empty);
         /// <summary>Whether enabled</summary>
-        public bool CorsEnabled => 
+        public bool CorsEnabled =>
             !string.IsNullOrEmpty(CorsWhitelist.Trim());
         /// <summary>Auth needed?</summary>
         public bool AuthRequired =>
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Runtime {
         public Config(IConfigurationRoot configuration) {
             Configuration = configuration;
             Logger = new Logger(Uptime.ProcessId,
-                GetLogLevel("Logging:LogLevel:Default", LogLevel.Debug)); 
+                GetLogLevel("Logging:LogLevel:Default", LogLevel.Debug));
         }
 
         /// <summary>
@@ -100,18 +100,18 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Runtime {
         /// string. The value can be found in the Azure Portal. For more information see
         /// https://docs.microsoft.com/azure/iot-hub/iot-hub-csharp-csharp-getstarted
         /// to find the connection string value.
-        /// 
+        ///
         /// The connection string can be stored in the 'appsettings.json' configuration
-        /// file, or in the PCS_IOTHUB_CONNSTRING environment variable. 
-        /// 
+        /// file, or in the PCS_IOTHUB_CONNSTRING environment variable.
+        ///
         /// When working with VisualStudio, the environment variable can be set in the
         /// WebService project settings, under the "Debug" tab.
         /// </summary>
         /// <returns></returns>
-        private string GetConnectionString(string key) {
+        private string GetConnectionString(string key, string defaultValue) {
             var connstring = GetString(key);
             if (string.IsNullOrEmpty(connstring)) {
-                return null;
+                return defaultValue;
             }
             if (connstring.ToLowerInvariant().Contains("your azure iot hub")) {
                 Logger.Warn(
@@ -120,7 +120,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Runtime {
                     "string. For more information, see the environment variables " +
                     "used in project properties and the 'iothub_connstring' " +
                     "value in the 'appsettings.json' configuration file.", () => { });
-                return null;
+                return defaultValue;
             }
             return connstring;
         }

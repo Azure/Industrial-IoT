@@ -1,8 +1,7 @@
 {
   "profiles": {
-    "Services.Client": {
-      "commandName": "Project",
-      "commandLineArgs": "-p -s"
+    "Services.Client":  {
+      "commandName": "Project"
     }
   }
 }

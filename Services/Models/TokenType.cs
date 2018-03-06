@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Models {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
 
@@ -13,8 +13,20 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Models {
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
     public enum TokenType {
+
+        /// <summary>
+        /// Anonymous
+        /// </summary>
         None,
+
+        /// <summary>
+        /// User name password
+        /// </summary>
         UserNamePassword,
+
+        /// <summary>
+        /// Token is a x509 cert
+        /// </summary>
         X509Certificate
     }
 }

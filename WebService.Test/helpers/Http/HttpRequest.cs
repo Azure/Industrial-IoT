@@ -138,7 +138,7 @@ namespace WebService.Test.helpers.Http
 
         public void SetContent<T>(T sourceObject, Encoding encoding, MediaTypeHeaderValue mediaType)
         {
-            var content = JsonConvert.SerializeObject(sourceObject, Formatting.None);
+            var content = JsonConvertEx.SerializeObject(sourceObject);
             this.requestContent.Content = new StringContent(content, encoding, mediaType.MediaType);
             this.ContentType = mediaType;
         }

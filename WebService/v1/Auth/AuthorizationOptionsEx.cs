@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1 {
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Auth;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Auth;
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1 {
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Auth;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Auth;
     using Microsoft.AspNetCore.Authorization;
 
     /// <summary>
@@ -30,13 +30,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1 {
             }
 
             // Otherwise, configure policies here to your liking
-            options.AddPolicy(Policy.BrowseOpcServer, policy =>
+            options.AddPolicy(Policy.BrowseTwins, policy =>
                 policy.RequireAuthenticatedUser());
-            options.AddPolicy(Policy.AddOpcServer, policy =>
+            options.AddPolicy(Policy.RegisterTwins, policy =>
                 policy.RequireRole(Role.Admin));
-            options.AddPolicy(Policy.ControlOpcServer, policy =>
+            options.AddPolicy(Policy.ControlTwins, policy =>
                 policy.RequireRole(Role.Admin));
-            options.AddPolicy(Policy.PublishOpcNode, policy =>
+            options.AddPolicy(Policy.PublishNodes, policy =>
                 policy.RequireRole(Role.Admin));
             options.AddPolicy(Policy.DownloadCertificate, policy =>
                 policy.RequireRole(Role.Admin));

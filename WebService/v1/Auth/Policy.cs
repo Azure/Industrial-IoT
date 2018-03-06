@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Auth {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Auth {
     using System.Collections.Generic;
 
     /// <summary>
@@ -17,26 +17,26 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Auth {
         /// <summary>
         /// Allowed to add new endpoint
         /// </summary>
-        public const string AddOpcServer = 
-            nameof(AddOpcServer);
+        public const string RegisterTwins = 
+            nameof(RegisterTwins);
 
         /// <summary>
         /// Allowed to browse
         /// </summary>
-        public const string BrowseOpcServer =
-            nameof(BrowseOpcServer);
+        public const string BrowseTwins =
+            nameof(BrowseTwins);
 
         /// <summary>
         /// Allowed to write or execute
         /// </summary>
-        public const string ControlOpcServer = 
-            nameof(ControlOpcServer);
+        public const string ControlTwins = 
+            nameof(ControlTwins);
 
         /// <summary>
         /// Allowed to request publish
         /// </summary>
-        public const string PublishOpcNode = 
-            nameof(PublishOpcNode);
+        public const string PublishNodes = 
+            nameof(PublishNodes);
 
         /// <summary>
         /// Allowed to download certificate
@@ -49,10 +49,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Auth {
         /// </summary>
         /// <returns></returns>
         public static IEnumerable<string> All() {
-            yield return AddOpcServer;
-            yield return BrowseOpcServer;
-            yield return ControlOpcServer;
-            yield return PublishOpcNode;
+            yield return RegisterTwins;
+            yield return BrowseTwins;
+            yield return ControlTwins;
+            yield return PublishNodes;
             yield return DownloadCertificate;
         }
     }

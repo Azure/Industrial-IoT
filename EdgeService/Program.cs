@@ -3,19 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.EdgeService {
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.EdgeService.Runtime;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Client;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Codec;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Http;
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService {
+    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Runtime;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Supervisor;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Client;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Codec;
+    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
+    using Microsoft.Azure.Devices.Edge;
+    using Microsoft.Azure.Devices.Edge.Services;
     using Microsoft.Extensions.Configuration;
+    using Autofac;
     using System;
     using System.IO;
     using System.Runtime.Loader;
-    using System.Threading;
-    using Autofac;
-
-    using DeviceMethodControllerV1 = v1.Controllers.DeviceMethodController;
+    using System.Threading.Tasks;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery;
 
     /// <summary>
     /// Main entry point
@@ -25,7 +29,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.EdgeService {
         /// <summary>
         /// Main entry point to run the micro service process
         /// </summary>
-        static void Main(string[] args) {
+        public static void Main(string[] args) {
 
             // Load hosting configuration
             var config = new ConfigurationBuilder()
@@ -38,15 +42,38 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.EdgeService {
             // Set up dependency injection for the module host
             var container = ConfigureContainer(config);
 
+            // Check client configuration
+            var client = container.Resolve<IOpcUaClient>();
+            if (client.UsesProxy) {
+                throw new InvalidConfigurationException(
+                    "Bad configuration - client should not be in proxy mode. " +
+                    "this is likely the result of a bad services configuration. " +
+                    "Update your configuration and restart.");
+            }
+
+            RunAsync(container).Wait();
+        }
+
+        /// <summary>
+        /// Run
+        /// </summary>
+        /// <param name="container"></param>
+        /// <returns></returns>
+        public static async Task RunAsync(IContainer container) {
             // Wait until the module unloads or is cancelled
-            var cts = new CancellationTokenSource();
-            AssemblyLoadContext.Default.Unloading += _ => cts.Cancel();
+            var tcs = new TaskCompletionSource<bool>();
+            AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
 
-            using (var module = container.Resolve<IEdgeService>()) {
-                cts.Token.Register(module.Stop);
-                module.Start();
+            using (var hostScope = container.BeginLifetimeScope()) {
+                var module = hostScope.Resolve<IEdgeHost>();
+                await module.StartAsync();
+                var events = hostScope.Resolve<IEventEmitter>();
 
-                Console.ReadKey();
+                // Report type of service
+                await events.SendAsync("type", "supervisor");
+                Console.TreatControlCAsInput = true;
+                await Task.WhenAny(tcs.Task, Task.Run(() => Console.ReadKey()));
+                await events.SendAsync("type", null);
             }
         }
 
@@ -56,45 +83,45 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.EdgeService {
         /// </summary>
         public static IContainer ConfigureContainer(IConfigurationRoot configuration) {
 
-            var config = new EdgeConfig(configuration);
+            var config = new Config(configuration);
             var builder = new ContainerBuilder();
 
             // Register logger
             builder.RegisterInstance(config.Logger)
                 .AsImplementedInterfaces().SingleInstance();
-
             // Register configuration interfaces
             builder.RegisterInstance(config)
                 .AsImplementedInterfaces().SingleInstance();
 
-            builder.RegisterType<EdgeService>()
+            // Register edge framework
+            builder.RegisterModule<EdgeHostModule>();
+
+            // Register opc ua client
+            builder.RegisterType<OpcUaClient>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // Register opc ua services
+            builder.RegisterType<OpcUaNodeServices>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<OpcUaEndpointValidator>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<OpcUaJsonCodec>()
                 .AsImplementedInterfaces();
 
-            builder.RegisterType<DeviceMethodControllerV1>()
+            // Register discovery services
+            builder.RegisterType<OpcUaDiscoveryServices>()
+                .AsImplementedInterfaces();
+
+            // Register controllers
+            builder.RegisterType<v1.Controllers.OpcUaSupervisorMethods>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<v1.Controllers.OpcUaSupervisorSettings>()
                 .AsImplementedInterfaces();
             // ...
 
-            builder.RegisterType<EdgeRequestRouter>()
-                .AsImplementedInterfaces();
-
-            // Register http client implementation
-            builder.RegisterType<HttpClient>()
-                .AsImplementedInterfaces();
-
-            // Register local publisher and node services
-            builder.RegisterType<OpcUaEdgeProxy>()
-                .AsImplementedInterfaces();
-
-            builder.RegisterType<OpcUaServerNodes>()
-                .AsImplementedInterfaces();
-
-            // Register opc ua proxy stack stack
-            builder.RegisterType<OpcUaServerClient>()
-                .AsImplementedInterfaces();
-
-            // Register misc opc services, such as variant codec
-            builder.RegisterType<OpcUaVariantJsonCodec>()
-                .AsImplementedInterfaces();
+            // Register supervisor services
+            builder.RegisterType<OpcUaSupervisorServices>()
+                .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
         }

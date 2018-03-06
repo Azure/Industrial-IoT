@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <AssemblyName>Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService</AssemblyName>
-    <RootNamespace>Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService</RootNamespace>
+    <AssemblyName>Microsoft.Azure.IoTSolutions.OpcTwin.WebService</AssemblyName>
+    <RootNamespace>Microsoft.Azure.IoTSolutions.OpcTwin.WebService</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.0\OpcUaExplorer.WebService.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp2.0\OpcTwin.WebService.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="OPC Foundation\**" />

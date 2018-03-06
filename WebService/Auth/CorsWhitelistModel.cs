@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Auth
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Auth
 {
     class CorsWhitelistModel
     {

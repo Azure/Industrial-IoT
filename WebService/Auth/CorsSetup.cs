@@ -4,10 +4,10 @@ using System;
 using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors.Infrastructure;
-using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Diagnostics;
+using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
 using Newtonsoft.Json;
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Auth {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Auth {
 
     /// <summary>
     /// Cors setup implementation

@@ -34,7 +34,7 @@ run() {
 
     dotnet restore --verbosity=quiet
 
-    echo "Starting OPC UA Explorer..."
+    echo "Starting OPC Twin..."
     dotnet run --configuration $CONFIGURATION --project WebService/*.csproj
 }
 

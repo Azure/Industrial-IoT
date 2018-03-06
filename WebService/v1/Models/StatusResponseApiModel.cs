@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Models {
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1;
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Runtime;
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Runtime;
     using Newtonsoft.Json;
     using System.Collections.Generic;
 

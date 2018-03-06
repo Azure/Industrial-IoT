@@ -2,5 +2,5 @@
 
 cd /app/
 
-cd webservice && dotnet Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.dll && \
+cd webservice && dotnet Microsoft.Azure.IoTSolutions.OpcTwin.WebService.dll && \
     fg

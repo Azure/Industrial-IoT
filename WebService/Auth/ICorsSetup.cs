@@ -2,7 +2,7 @@
 
 using Microsoft.AspNetCore.Builder;
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.Auth {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Auth {
 
     /// <summary>
     /// Cors setup

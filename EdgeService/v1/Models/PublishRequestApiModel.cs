@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.EdgeService.v1.Models {
-    using Microsoft.Azure.IoTSolutions.OpcUaExplorer.Services.Models;
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
 
     /// <summary>
     /// Node publis request webservice api model
@@ -23,6 +23,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.EdgeService.v1.Models {
         public PublishRequestApiModel(PublishRequestModel model) {
             NodeId = model.NodeId;
             Enabled = model.Enabled;
+            DisplayName = model.DisplayName;
+            PublishingInterval = model.PublishingInterval;
         }
 
         /// <summary>
@@ -32,7 +34,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.EdgeService.v1.Models {
         public PublishRequestModel ToServiceModel() {
             return new PublishRequestModel {
                 NodeId = NodeId,
-                Enabled = Enabled
+                Enabled = Enabled,
+                DisplayName = DisplayName,
+                PublishingInterval = PublishingInterval
             };
         }
 
@@ -42,8 +46,18 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.EdgeService.v1.Models {
         public string NodeId { get; set; }
 
         /// <summary>
+        /// Publishing interval of the item
+        /// </summary>
+        public int? PublishingInterval { get; set; }
+
+        /// <summary>
         /// Whether to enable or disable
         /// </summary>
-        public bool Enabled { get; set; }
+        public bool? Enabled { get; set; }
+
+        /// <summary>
+        /// Display name to use for publishing
+        /// </summary>
+        public string DisplayName { get; set; }
     }
 }

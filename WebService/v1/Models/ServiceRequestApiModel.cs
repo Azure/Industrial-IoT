@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Models {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
     using Newtonsoft.Json;
     using System.ComponentModel.DataAnnotations;
 
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Models {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="content"></param>
-        public ServiceRequestApiModel(ServerEndpointApiModel endpoint, T content) {
+        public ServiceRequestApiModel(EndpointApiModel endpoint, T content) {
             Endpoint = endpoint;
             Content = content;
         }
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1.Models {
         /// </summary>
         [JsonProperty(PropertyName = "endpoint")]
         [Required]
-        public ServerEndpointApiModel Endpoint { get; set; }
+        public EndpointApiModel Endpoint { get; set; }
 
         /// <summary>
         /// Request

@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1 {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1 {
 
     /// <summary>
     /// Web service API version 1 information
@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1 {
         /// <summary>
         /// Name of service
         /// </summary>
-        public const string NAME = "OpcUaExplorer";
+        public const string NAME = "OpcTwin";
 
         /// <summary>
         /// Number used for routing HTTP requests
@@ -33,6 +33,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcUaExplorer.WebService.v1 {
         /// <summary>
         /// Description of service
         /// </summary>
-        public const string DESCRIPTION = "Opc UA Explorer Micro Service";
+        public const string DESCRIPTION = "Opc Twin Micro Service";
     }
 }
