@@ -71,6 +71,22 @@ namespace Newtonsoft.Json.Linq {
         }
 
         /// <summary>
+        /// Helper to get values from token dictionary
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dict"></param>
+        /// <param name="key"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static T? Get<T>(this Dictionary<string, JToken> dict,
+            string key, T? defaultValue) where T : struct {
+            if (dict.TryGetValue(key, out var token)) {
+                return token.ToObject<T>();
+            }
+            return defaultValue;
+        }
+
+        /// <summary>
         /// Helper to get values from object
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -80,6 +96,22 @@ namespace Newtonsoft.Json.Linq {
         /// <returns></returns>
         public static T Get<T>(this JObject o,
             string key, T defaultValue) {
+            if (o.TryGetValue(key, out var token)) {
+                return token.ToObject<T>();
+            }
+            return defaultValue;
+        }
+
+        /// <summary>
+        /// Helper to get values from object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="o"></param>
+        /// <param name="key"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static T? Get<T>(this JObject o,
+            string key, T? defaultValue) where T : struct {
             if (o.TryGetValue(key, out var token)) {
                 return token.ToObject<T>();
             }

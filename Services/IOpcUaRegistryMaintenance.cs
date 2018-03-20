@@ -21,6 +21,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services {
         /// <param name="servers"></param>
         /// <returns></returns>
         Task ProcessSupervisorDiscoveryAsync(string supervisorId,
-            IEnumerable<ServerEndpointModel> servers);
+            IEnumerable<DiscoveryEventModel> servers);
     }
 }

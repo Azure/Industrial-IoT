@@ -26,18 +26,21 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public SupervisorUpdateApiModel(SupervisorUpdateModel model) {
             Id = model.Id;
             Domain = model.Domain;
-            Discovering = model.Discovering;
-        }
+            Discovery = model.Discovery;
+            Configuration = model.Configuration == null ? null :
+                new SupervisorConfigApiModel(model.Configuration);
+    }
 
         /// <summary>
-        /// Convert back to service node model
+        /// Convert back to service model
         /// </summary>
         /// <returns></returns>
         public SupervisorUpdateModel ToServiceModel() {
             return new SupervisorUpdateModel {
                 Id = Id,
                 Domain = Domain,
-                Discovering = Discovering
+                Discovery = Discovery,
+                Configuration = Configuration?.ToServiceModel()
             };
         }
 
@@ -61,9 +64,16 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         /// Whether the supervisor is in discovery mode.
         /// If null, does not change.
         /// </summary>
-        [JsonProperty(PropertyName = "discovering",
+        [JsonProperty(PropertyName = "discovery",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public bool? Discovering { get; set; }
+        [DefaultValue(DiscoveryMode.Off)]
+        public DiscoveryMode? Discovery { get; set; }
+
+        /// <summary>
+        /// Supervisor configuration
+        /// </summary>
+        [JsonProperty(PropertyName = "configuration",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public SupervisorConfigApiModel Configuration { get; set; }
     }
 }

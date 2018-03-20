@@ -104,21 +104,45 @@ namespace WebService.Client {
                         case "status":
                             await GetStatusAsync(service, options);
                             break;
+
                         case "register":
-                            await RegisterTwinAsync(service, options);
+                            await RegisterApplicationAsync(service, options);
                             break;
                         case "update":
-                            await UpdateTwinAsync(service, options);
+                            await UpdateApplicationAsync(service, options);
                             break;
                         case "unregister":
-                            await DeleteTwinAsync(service, options);
-                            break;
-                        case "get":
-                            await GetTwinAsync(service, options);
+                            await UnregisterApplicationAsync(service, options);
                             break;
                         case "list":
+                            await ListApplicationsAsync(service, options);
+                            break;
+                        case "find":
+                            await FindApplicationsAsync(service, options);
+                            break;
+                        case "get":
+                            await GetApplicationAsync(service, options);
+                            break;
+
+                        case "tupdate":
+                            await UpdateTwinAsync(service, options);
+                            break;
+                        case "tget":
+                            await GetTwinAsync(service, options);
+                            break;
+                        case "tlist":
                             await ListTwinsAsync(service, options);
                             break;
+                        case "sget":
+                            await GetSupervisorAsync(service, options);
+                            break;
+                        case "supdate":
+                            await UpdateSupervisorAsync(service, options);
+                            break;
+                        case "slist":
+                            await ListSupervisorsAsync(service, options);
+                            break;
+
                         case "browse":
                             await BrowseAsync(service, options);
                             break;
@@ -140,24 +164,7 @@ namespace WebService.Client {
                         case "call":
                             await MethodCallAsync(service, options);
                             break;
-                        case "mget":
-                            await GetSupervisorAsync(service, options);
-                            break;
-                        case "mupdate":
-                            await UpdateSupervisorAsync(service, options);
-                            break;
-                        case "mlist":
-                            await ListSupervisorsAsync(service, options);
-                            break;
-                        case "slist":
-                            await ListServersAsync(service, options);
-                            break;
-                        case "sfind":
-                            await FindServerAsync(service, options);
-                            break;
-                        case "sget":
-                            await GetServerAsync(service, options);
-                            break;
+
                         case "-?":
                         case "-h":
                         case "--help":
@@ -322,7 +329,7 @@ namespace WebService.Client {
         private static async Task ListSupervisorsAsync(IOpcTwinService service,
             Dictionary<string, string> options) {
             if (GetOption(options, "-a", "--all", false)) {
-                var result = await service.ListSupervisorsAsync();
+                var result = await service.ListAllSupervisorsAsync();
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
@@ -358,56 +365,107 @@ namespace WebService.Client {
                 new SupervisorUpdateApiModel {
                     Id = GetOption<string>(options, "-i", "--id"),
                     Domain = GetOption<string>(options, "-n", "--domain", null),
-                    Discovering = GetOption<bool>(options, "-d", "--discover", null)
+                    Discovery = GetOption<DiscoveryMode>(options, "-d", "--discovery", null)
                 });
         }
 
         /// <summary>
-        /// List servers
+        /// Registers application
         /// </summary>
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task ListServersAsync(IOpcTwinService service,
+        private static async Task RegisterApplicationAsync(IOpcTwinService service,
+            Dictionary<string, string> options) {
+            var result = await service.RegisterApplicationAsync(
+                new ApplicationRegistrationRequestApiModel {
+                    DiscoveryUrl = GetOption<string>(options, "-u", "--url")
+                });
+            PrintResult(options, result);
+        }
+
+        /// <summary>
+        /// Update application
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static async Task UpdateApplicationAsync(IOpcTwinService service,
+            Dictionary<string, string> options) {
+            await service.UpdateApplicationAsync(
+                new ApplicationRegistrationUpdateApiModel {
+                    Id = GetOption<string>(options, "-i", "--id"),
+                    // ...
+                    ApplicationName = GetOption<string>(options, "-n", "--name", null)
+                });
+        }
+
+        /// <summary>
+        /// Unregister application
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static Task UnregisterApplicationAsync(IOpcTwinService service,
+            Dictionary<string, string> options) {
+            return service.UnregisterApplicationAsync(
+                GetOption<string>(options, "-i", "--id"));
+        }
+
+        /// <summary>
+        /// List applications
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static async Task ListApplicationsAsync(IOpcTwinService service,
             Dictionary<string, string> options) {
             if (GetOption(options, "-a", "--all", false)) {
-                var result = await service.ListServersAsync();
+                var result = await service.ListAllApplicationsAsync();
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await service.ListServersAsync(
+                var result = await service.ListApplicationsAsync(
                     GetOption<string>(options, "-c", "--continuation", null));
                 PrintResult(options, result);
             }
         }
 
         /// <summary>
-        /// Find server
+        /// Find applications
         /// </summary>
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task FindServerAsync(IOpcTwinService service,
+        private static async Task FindApplicationsAsync(IOpcTwinService service,
             Dictionary<string, string> options) {
-            var result = await service.FindServerAsync(
-                new ServerInfoApiModel {
-                    ApplicationUri = GetOption<string>(options, "-u", "--uri"),
-                    SupervisorId = GetOption<string>(options, "-i", "--id", null),
-                    ApplicationName = GetOption<string>(options, "-n", "--name", null)
-                });
-            PrintResult(options, result);
+            var query = new ApplicationRegistrationQueryApiModel {
+                ApplicationUri = GetOption<string>(options, "-u", "--uri", null),
+                ProductUri = GetOption<string>(options, "-p", "--product", null),
+                ApplicationType = GetOption<ApplicationType>(options, "-t", "--type", null),
+                ApplicationName = GetOption<string>(options, "-n", "--name", null)
+            };
+            if (GetOption(options, "-a", "--all", false)) {
+                var result = await service.FindAllApplicationsAsync(query);
+                PrintResult(options, result);
+                Console.WriteLine($"{result.Count()} item(s) found...");
+            }
+            else {
+                var result = await service.FindApplicationsAsync(query);
+                PrintResult(options, result);
+            }
         }
 
         /// <summary>
-        /// Get server
+        /// Get application
         /// </summary>
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task GetServerAsync(IOpcTwinService service,
+        private static async Task GetApplicationAsync(IOpcTwinService service,
             Dictionary<string, string> options) {
-            var result = await service.GetServerAsync(
+            var result = await service.GetApplicationAsync(
                 GetOption<string>(options, "-i", "--id"));
             PrintResult(options, result);
         }
@@ -421,7 +479,7 @@ namespace WebService.Client {
         private static async Task ListTwinsAsync(IOpcTwinService service,
             Dictionary<string, string> options) {
             if (GetOption(options, "-a", "--all", false)) {
-                var result = await service.ListTwinsAsync(
+                var result = await service.ListAllTwinsAsync(
                     GetOption<bool>(options, "-s", "--server", null));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
@@ -449,26 +507,6 @@ namespace WebService.Client {
         }
 
         /// <summary>
-        /// Registers twin
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        private static async Task RegisterTwinAsync(IOpcTwinService service,
-            Dictionary<string, string> options) {
-            var result = await service.RegisterTwinAsync(
-                new TwinRegistrationRequestApiModel {
-                    Id = GetOption<string>(options, "-i", "--id", null),
-                    Endpoint = new EndpointApiModel {
-                        Url = GetOption<string>(options, "-u", "--url"),
-                        // ...
-                        IsTrusted = GetOption<bool>(options, "-t", "--trusted", null)
-                    }
-                });
-            PrintResult(options, result);
-        }
-
-        /// <summary>
         /// Update twin
         /// </summary>
         /// <param name="service"></param>
@@ -482,18 +520,6 @@ namespace WebService.Client {
                     // ...
                     IsTrusted = GetOption<bool>(options, "-t", "--trusted", null)
                 });
-        }
-
-        /// <summary>
-        /// Delete twin
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        private static Task DeleteTwinAsync(IOpcTwinService service,
-            Dictionary<string, string> options) {
-            return service.DeleteTwinAsync(
-                GetOption<string>(options, "-i", "--id"));
         }
 
         /// <summary>
@@ -567,6 +593,9 @@ namespace WebService.Client {
                 !options.TryGetValue(key2, out value)) {
                 return defaultValue;
             }
+            if (typeof(T).IsEnum) {
+                return Enum.Parse<T>(value, true);
+            }
             return (T)Convert.ChangeType(value, typeof(T));
         }
 
@@ -611,32 +640,77 @@ usage:      WebService.Client command [options]
 
 Commands and Options
 
-     console    Run in interactive mode. Enter commands after the >
-     exit       Exit interactive mode and thus the cli.
+     console     Run in interactive mode. Enter commands after the >
+     exit        Exit interactive mode and thus the cli.
 
-     status     Print service status
+     status      Print service status
         with ...
         -f, --format    Json format for result
 
-     register   Register twin
+     sget        Get supervisor
         with ...
-        -u, --url       Url of the server endpoint (mandatory)
-        -t, --trusted   Whether the server endpoint is trusted
-        -i, --id        Endpoint id to use or none for auto gen.
+        -i, --id        Id of supervisor to retrieve (mandatory)
         -f, --format    Json format for result
 
-     update     Update twin
+     supdate     Update supervisor
+        with ...
+        -i, --id        Id of twin to update (mandatory)
+        -d, --discovery Set supervisor discovery mode
+        -n, --domain    Domain of supervisor
+
+     slist       List supervisors
+        with ...
+        -c, --continuation
+                        Continuation from previous result.
+        -a, --all       Return all supervisors (unpaged)
+        -f, --format    Json format for result
+
+     register    Register Application
+        with ...
+        -u, --url       Url of the discovery endpoint (mandatory)
+        -f, --format    Json format for result
+
+     update      Update application
+        with ...
+        -i, --id        Id of application to update (mandatory)
+        -n, --name      Application name
+
+     find        Find application
+        with ...
+        -u, --uri       Application uri of the application 
+        -n  --name      Application name of the application
+        -t, --type      Application type (default to all)
+        -p, --product   Product uri of the application
+        -f, --format    Json format for result
+
+     get         Get application
+        with ...
+        -i, --id        Id of application to get (mandatory)
+        -f, --format    Json format for result
+
+     list        List applications
+        with ...
+        -c, --continuation
+                        Continuation from previous result.
+        -a, --all       Return all application infos (unpaged)
+        -f, --format    Json format for result
+
+     unregister  Unregister application
+        with ...
+        -i, --id        Id of application to unregister (mandatory)
+
+     tupdate     Update twin
         with ...
         -i, --id        Id of twin to update (mandatory)
         -t, --trusted   Whether the server endpoint is trusted
 
-     get        Get twin
+     tget        Get twin
         with ...
         -i, --id        Id of twin to retrieve (mandatory)
         -s, --server    Return only server state (default:false)
         -f, --format    Json format for result
 
-     list       List twins
+     tlist       List twins
         with ...
         -c, --continuation
                         Continuation from previous result.
@@ -644,11 +718,7 @@ Commands and Options
         -s, --server    Return only server state (default:false)
         -f, --format    Json format for result
 
-     unregister Delete twin
-        with ...
-        -i, --id        Id of twin to unregister (mandatory)
-
-     browse     Browse nodes on twin
+     browse      Browse nodes on twin
         with ...
         -i, --id        Id of twin to browse (mandatory)
         -n, --nodeid    Node to browse
@@ -656,14 +726,14 @@ Commands and Options
         -p, --publish   Include publishing status.
         -f, --format    Json format for result
 
-     publish    Publish node values on twin
+     publish     Publish node values on twin
         with ...
         -i, --id        Id of twin to publish value from (mandatory)
         -n, --nodeid    Node to browse (mandatory)
         -d, --disable   Disable (Pause) publishing (default: false)
         -x, --delete    Delete publish state (default: false)
 
-     nodes      List published nodes on twin
+     nodes       List published nodes on twin
         with ...
         -i, --id        Id of twin with published nodes (mandatory)
         -c, --continuation
@@ -671,67 +741,30 @@ Commands and Options
         -a, --all       Return all twins (unpaged)
         -f, --format    Json format for result
 
-     read       Read node value on twin
+     read        Read node value on twin
         with ...
         -i, --id        Id of twin to read value from (mandatory)
         -n, --nodeid    Node to read value from (mandatory)
         -f, --format    Json format for result
 
-     write      Write node value on twin
+     write       Write node value on twin
         with ...
         -i, --id        Id of twin to write value on (mandatory)
         -n, --nodeid    Node to write value to (mandatory)
         -t, --datatype  Datatype of value (mandatory)
         -v, --value     Value to write (mandatory)
 
-     metadata   Get Call meta data
+     metadata    Get Call meta data
         with ...
         -i, --id        Id of twin with meta data (mandatory)
         -n, --nodeid    Method Node to get meta data for (mandatory)
         -f, --format    Json format for result
 
-     call       Call method node on twin
+     call        Call method node on twin
         with ...
         -i, --id        Id of twin to call method on (mandatory)
         -n, --nodeid    Method Node to call (mandatory)
         -o, --objectid  Object context for method
-
-     mget       Get supervisor
-        with ...
-        -i, --id        Id of supervisor to retrieve (mandatory)
-        -f, --format    Json format for result
-
-     mupdate    Update supervisor
-        with ...
-        -i, --id        Id of twin to update (mandatory)
-        -d, --discover  Whether the supervisor should discover
-        -n, --domain    Domain of supervisor
-
-     mlist      List supervisors
-        with ...
-        -c, --continuation
-                        Continuation from previous result.
-        -a, --all       Return all supervisors (unpaged)
-        -f, --format    Json format for result
-
-     sfind      Find server
-        with ...
-        -u, --uri       Application uri of the server (mandatory)
-        -n  --name      Application name of the server
-        -i, --id        Id of supervisor to scope server
-        -f, --format    Json format for result
-
-     sget       Get server
-        with ...
-        -i, --id        Id of server to get (mandatory)
-        -f, --format    Json format for result
-
-     slist      List servers
-        with ...
-        -c, --continuation
-                        Continuation from previous result.
-        -a, --all       Return all server infos (unpaged)
-        -f, --format    Json format for result
 
      help, -h, -? --help
                 Prints out this help.

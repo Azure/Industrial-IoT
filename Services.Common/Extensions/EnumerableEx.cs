@@ -16,7 +16,7 @@ namespace System.Collections.Generic {
         /// Shuffle list
         /// </summary>
         private static readonly Random rng = new Random();
-        public static void Shuffle<T>(this IList<T> list) {
+        public static IList<T> Shuffle<T>(this IList<T> list) {
             var n = list.Count;
             while (n > 1) {
                 n--;
@@ -25,6 +25,7 @@ namespace System.Collections.Generic {
                 list[k] = list[n];
                 list[n] = value;
             }
+            return list;
         }
 
         /// <summary>
@@ -34,7 +35,7 @@ namespace System.Collections.Generic {
         /// <param name="seq"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool SequenceEqualsSafe<T>(this T[] seq, T[] that) {
+        public static bool SequenceEqualsSafe<T>(this IEnumerable<T> seq, IEnumerable<T> that) {
             if (seq == that) {
                 return true;
             }
@@ -400,6 +401,19 @@ namespace System.Collections.Generic {
         public static IEnumerable<T> Repeat<T>(Func<T> factory, int count) {
             for (var i = 0; i < count; i++) {
                 yield return factory();
+            }
+        }
+
+        /// <summary>
+        /// Creates an enumeration with created values
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="factory"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static IEnumerable<T> Repeat<T>(Func<int, T> factory, int count) {
+            for (var i = 0; i < count; i++) {
+                yield return factory(i);
             }
         }
     }

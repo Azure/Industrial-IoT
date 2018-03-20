@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Exceptions {
     /// <summary>
     /// Thrown when failing to connect to resource
     /// </summary>
-    public class CommunicationException : ExternalDependencyException {
+    public class CommunicationException : Exception {
 
         public CommunicationException(string message) :
             base(message) {

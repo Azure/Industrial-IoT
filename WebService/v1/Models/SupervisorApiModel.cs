@@ -25,20 +25,23 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         /// <param name="model"></param>
         public SupervisorApiModel(SupervisorModel model) {
             Id = model.Id;
-            Discovering = model.Discovering;
+            Discovery = model.Discovery;
+            Configuration = model.Configuration == null ? null : 
+                new SupervisorConfigApiModel(model.Configuration);
             Domain = model.Domain;
             OutOfSync = model.OutOfSync;
             Connected = model.Connected;
         }
 
         /// <summary>
-        /// Convert back to service node model
+        /// Convert back to service model
         /// </summary>
         /// <returns></returns>
         public SupervisorModel ToServiceModel() {
             return new SupervisorModel {
                 Id = Id,
-                Discovering = Discovering,
+                Discovery = Discovery,
+                Configuration = Configuration?.ToServiceModel(),
                 OutOfSync = OutOfSync,
                 Domain = Domain,
                 Connected = Connected
@@ -63,10 +66,17 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         /// <summary>
         /// Whether the supervisor is in discovery mode
         /// </summary>
-        [JsonProperty(PropertyName = "discovering",
+        [JsonProperty(PropertyName = "discovery",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public bool? Discovering { get; set; }
+        [DefaultValue(DiscoveryMode.Off)]
+        public DiscoveryMode? Discovery { get; set; }
+
+        /// <summary>
+        /// Supervisor configuration
+        /// </summary>
+        [JsonProperty(PropertyName = "configuration",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public SupervisorConfigApiModel Configuration { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between

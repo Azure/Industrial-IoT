@@ -1,112 +1,94 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.Common.Http {
+    using System;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
+    using System.Text;
+    using Newtonsoft.Json;
 
-    public class HttpRequest : IHttpRequest
-    {
-        private readonly MediaTypeHeaderValue defaultMediaType = new MediaTypeHeaderValue("application/json");
-        private readonly Encoding defaultEncoding = new UTF8Encoding();
+    /// <summary>
+    /// Request object
+    /// </summary>
+    public class HttpRequest : IHttpRequest {
 
-        // Http***Headers classes don't have a public ctor, so we use this class
-        // to hold the headers, this is also used for PUT/POST requests body
-        private readonly HttpRequestMessage requestContent = new HttpRequestMessage();
-
+        /// <summary>
+        /// Uri of the request
+        /// </summary>
         public Uri Uri { get; set; }
 
-        public HttpHeaders Headers => this.requestContent.Headers;
+        /// <summary>
+        /// Headers
+        /// </summary>
+        public HttpHeaders Headers => _requestContent.Headers;
 
+        /// <summary>
+        /// Content type
+        /// </summary>
         public MediaTypeHeaderValue ContentType { get; private set; }
 
+        /// <summary>
+        /// Request options
+        /// </summary>
         public HttpRequestOptions Options { get; } = new HttpRequestOptions();
 
-        public HttpContent Content => this.requestContent.Content;
+        /// <summary>
+        /// Content
+        /// </summary>
+        public HttpContent Content => _requestContent.Content;
 
-        public HttpRequest()
-        {
+        /// <summary>
+        /// Create request
+        /// </summary>
+        public HttpRequest() {
+            _requestContent = new HttpRequestMessage();
         }
 
-        public HttpRequest(Uri uri)
-        {
-            this.Uri = uri;
-        }
-
-        public HttpRequest(string uri)
-        {
-            this.SetUriFromString(uri);
-        }
-
-        public void AddHeader(string name, string value)
-        {
-            if (!this.Headers.TryAddWithoutValidation(name, value))
-            {
-                if (name.ToLowerInvariant() != "content-type")
-                {
+        /// <summary>
+        /// Add header value
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public void AddHeader(string name, string value) {
+            if (!Headers.TryAddWithoutValidation(name, value)) {
+                if (name.ToLowerInvariant() != "content-type") {
                     throw new ArgumentOutOfRangeException(name, "Invalid header name");
                 }
-
-                this.ContentType = new MediaTypeHeaderValue(value);
+                ContentType = new MediaTypeHeaderValue(value);
             }
         }
 
-        public void SetUriFromString(string uri)
-        {
-            this.Uri = new Uri(uri);
+        /// <summary>
+        /// Set content
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="encoding"></param>
+        /// <param name="mediaType"></param>
+        public void SetContent(string content, Encoding encoding,
+            MediaTypeHeaderValue mediaType) {
+            _requestContent.Content = new StringContent(content, encoding,
+                mediaType.MediaType);
+            ContentType = mediaType;
         }
 
-        public void SetContent(string content)
-        {
-            this.SetContent(content, this.defaultEncoding, this.defaultMediaType);
-        }
-
-        public void SetContent(string content, Encoding encoding)
-        {
-            this.SetContent(content, encoding, this.defaultMediaType);
-        }
-
-        public void SetContent(string content, Encoding encoding, string mediaType)
-        {
-            this.SetContent(content, encoding, new MediaTypeHeaderValue(mediaType));
-        }
-
-        public void SetContent(string content, Encoding encoding, MediaTypeHeaderValue mediaType)
-        {
-            this.requestContent.Content = new StringContent(content, encoding, mediaType.MediaType);
-            this.ContentType = mediaType;
-        }
-
-        public void SetContent(StringContent stringContent)
-        {
-            this.requestContent.Content = stringContent;
-            this.ContentType = stringContent.Headers.ContentType;
-        }
-
-        public void SetContent<T>(T sourceObject)
-        {
-            this.SetContent(sourceObject, this.defaultEncoding, this.defaultMediaType);
-        }
-
-        public void SetContent<T>(T sourceObject, Encoding encoding)
-        {
-            this.SetContent(sourceObject, encoding, this.defaultMediaType);
-        }
-
-        public void SetContent<T>(T sourceObject, Encoding encoding, string mediaType)
-        {
-            this.SetContent(sourceObject, encoding, new MediaTypeHeaderValue(mediaType));
-        }
-
-        public void SetContent<T>(T sourceObject, Encoding encoding, MediaTypeHeaderValue mediaType)
-        {
+        /// <summary>
+        /// Set content as type
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="sourceObject"></param>
+        /// <param name="encoding"></param>
+        /// <param name="mediaType"></param>
+        public void SetContent<T>(T sourceObject, Encoding encoding,
+            MediaTypeHeaderValue mediaType) {
             var content = JsonConvertEx.SerializeObject(sourceObject);
-            this.requestContent.Content = new StringContent(content, encoding, mediaType.MediaType);
-            this.ContentType = mediaType;
+            _requestContent.Content = new StringContent(content, encoding,
+                mediaType.MediaType);
+            ContentType = mediaType;
         }
+
+        private readonly HttpRequestMessage _requestContent;
     }
 }

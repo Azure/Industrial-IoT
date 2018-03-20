@@ -4,6 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.Common.Exceptions {
+
+    /// <summary>
+    /// Marks exceptions that are transient in nature, i.e.
+    /// they can be retried with another outcome.
+    /// </summary>
     public interface ITransientException {
     }
 }

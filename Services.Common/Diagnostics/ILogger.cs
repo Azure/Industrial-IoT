@@ -5,25 +5,84 @@
 
 namespace Microsoft.Azure.IoTSolutions.Common.Diagnostics {
     using System;
-    using ITraceLogger = Microsoft.Extensions.Logging.ILogger;
 
     /// <summary>
     /// Logging interface
     /// </summary>
     public interface ILogger {
 
-        // The following 4 methods allow to log a message, capturing the context
-        // (i.e. the method where the log message is generated)
+        /// <summary>
+        /// Capture message and context
+        /// </summary>
+        /// <param name="message">debug message</param>
+        /// <param name="context">
+        /// method where the log message is generated
+        /// </param>
         void Debug(string message, Action context);
+
+        /// <summary>
+        /// Capture message and context
+        /// </summary>
+        /// <param name="message">informational message
+        /// </param>
+        /// <param name="context">
+        /// method where the log message is generated
+        /// </param>
         void Info(string message, Action context);
+
+        /// <summary>
+        /// Capture message and context
+        /// </summary>
+        /// <param name="message">warning message</param>
+        /// <param name="context">
+        /// method where the log message is generated
+        /// </param>
         void Warn(string message, Action context);
+
+        /// <summary>
+        /// Capture message and context
+        /// </summary>
+        /// <param name="message">error message</param>
+        /// <param name="context">
+        /// method where the log message is generated
+        /// </param>
         void Error(string message, Action context);
 
-        // The following 4 methods allow to log a message and some data,
-        // capturing the context (i.e. the method where the log message is generated)
+        /// <summary>
+        /// Capture message and some data
+        /// </summary>
+        /// <param name="message">debug message</param>
+        /// <param name="context">
+        /// method where the log message is generated
+        /// </param>
         void Debug(string message, Func<object> context);
+
+        /// <summary>
+        /// Capture message and some data
+        /// </summary>
+        /// <param name="message">informational message
+        /// </param>
+        /// <param name="context">
+        /// method where the log message is generated
+        /// </param>
         void Info(string message, Func<object> context);
+
+        /// <summary>
+        /// Capture message and some data
+        /// </summary>
+        /// <param name="message">warning message</param>
+        /// <param name="context">
+        /// method where the log message is generated
+        /// </param>
         void Warn(string message, Func<object> context);
+
+        /// <summary>
+        /// Capture message and some data
+        /// </summary>
+        /// <param name="message">error message</param>
+        /// <param name="context">
+        /// method where the log message is generated
+        /// </param>
         void Error(string message, Func<object> context);
     }
 }

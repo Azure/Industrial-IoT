@@ -16,6 +16,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
     using System.Text;
     using System.Threading.Tasks;
     using System.Net;
+    using System.Diagnostics;
 
     /// <summary>
     /// Provides request routing to module controllers
@@ -52,9 +53,11 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
                 _logger.Error($"Unknown controller method called", () => request);
                 return new MethodResponse((int)HttpStatusCode.NotImplemented);
             }
+            var sw = Stopwatch.StartNew();
             _logger.Debug("Invoking controller method... ", () => request);
             var result = await invoker.InvokeAsync(request);
-            _logger.Debug("... method invoked", () => result);
+            _logger.Debug($"... method invoked (took {sw.ElapsedMilliseconds} ms)",
+                () => result);
             return result;
         }
 
@@ -153,6 +156,16 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
         private class MethodInvoker {
 
             /// <summary>
+            /// Default filter implementation if none is specified
+            /// </summary>
+            private class DefaultFilter : ExceptionFilterAttribute {
+                public override string Filter(Exception exception, out int status) {
+                    status = (int)MethodResposeStatusCode.BadRequest;
+                    return JsonConvertEx.SerializeObject(exception);
+                }
+            }
+
+            /// <summary>
             /// Create invoker
             /// </summary>
             /// <param name="controller"></param>
@@ -162,7 +175,9 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
                 _controller = controller;
                 _controllerMethod = controllerMethod;
                 _methodParams = _controllerMethod.GetParameters();
-
+                _ef = _controllerMethod.GetCustomAttribute<ExceptionFilterAttribute>(true) ??
+                    controller.GetType().GetCustomAttribute<ExceptionFilterAttribute>(true) ??
+                    new DefaultFilter();
                 _resultConverter = _methodResponseAsContinuation.MakeGenericMethod(
                     _controllerMethod.ReturnParameter.ParameterType
                         .GetGenericArguments()[0]);
@@ -215,18 +230,18 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
             public Task<MethodResponse> MethodResponseAsContinuation<T>(Task<T> task) {
                 const int kMaxMessageSize = 8192;
                 return task.ContinueWith(tr => {
-                    var response = "{}";
+                    string response = null;
                     var status = 429;
                     if (tr.IsCompletedSuccessfully) {
                         status = 200;
                         response = JsonConvertEx.SerializeObject(tr.Result);
                     }
                     else if (tr.IsFaulted) {
-                        status = (int)MethodResposeStatusCode.BadRequest;
-                        response = JsonConvertEx.SerializeObject(tr.Exception);
+                        response = _ef.Filter(tr.Exception, out status);
                         _logger.Error($"Method call error", () => tr.Exception);
                     }
-                    var result = Encoding.UTF8.GetBytes(response);
+                    var result = Encoding.UTF8.GetBytes(
+                        string.IsNullOrEmpty(response) ? "{}" : response);
                     if (result.Length > kMaxMessageSize) {
                         return new MethodResponse(status);
                     }
@@ -239,6 +254,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
             private readonly ILogger _logger;
             private readonly object _controller;
             private readonly ParameterInfo[] _methodParams;
+            private readonly ExceptionFilterAttribute _ef;
             private readonly MethodInfo _controllerMethod;
             private readonly MethodInfo _resultConverter;
         }

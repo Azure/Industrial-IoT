@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IoTSolutions.Browser.Controllers {
             }
 
             // Retrieve all endpoints to display (TODO: should page here)
-            var registrations = await _twin.ListTwinsAsync();
+            var registrations = await _twin.ListAllTwinsAsync();
             return View("Index", new EndpointsViewModel {
                 PrepopulatedEndpoints = registrations.Select(e => new SelectListItem {
                     Text = e.Endpoint.Url, Value = e.Id

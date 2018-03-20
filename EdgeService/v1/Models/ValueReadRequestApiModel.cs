@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
 
     /// <summary>
-    /// Node value read request webservice api model
+    /// Node value read request edge service api model
     /// </summary>
     public class ValueReadRequestApiModel {
         /// <summary>
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         }
 
         /// <summary>
-        /// Convert back to service node model
+        /// Convert back to service model
         /// </summary>
         /// <returns></returns>
         public ValueReadRequestModel ToServiceModel() {

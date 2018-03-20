@@ -13,13 +13,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Diagnostics;
 
     /// <summary>
     /// Implements node and publish services through edge command control against
     /// the OPC UA edge device module receiving service requests via device method
     /// call.
     /// </summary>
-    public class OpcUaTwinClient : IOpcUaTwinBrowseServices, IOpcUaTwinNodeServices,
+    public sealed class OpcUaTwinClient : IOpcUaTwinBrowseServices, IOpcUaTwinNodeServices,
         IOpcUaTwinPublishServices {
 
         /// <summary>
@@ -188,11 +189,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             if (string.IsNullOrEmpty(twinId)) {
                 throw new ArgumentNullException(nameof(twinId));
             }
+            var sw = Stopwatch.StartNew();
             var result = await _twin.CallMethodAsync(twinId,
                 new MethodParameterModel {
                     Name = service,
                     JsonPayload = JsonConvertEx.SerializeObject(request)
                 });
+            _logger.Debug($"Twin call '{service}' took {sw.ElapsedMilliseconds} ms)!",
+                () => { });
             if (result.Status != 200) {
                 throw new MethodCallStatusException(result.Status, result.JsonPayload);
             }

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService{
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+    using System;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -12,15 +14,19 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService{
     public interface IOpcUaDiscoveryServices {
 
         /// <summary>
-        /// Start discovery 
+        /// Set discovery mode
         /// </summary>
         /// <returns></returns>
-        Task StartDiscoveryAsync();
+        Task SetDiscoveryModeAsync(DiscoveryMode mode);
 
         /// <summary>
-        /// Stop discovery
+        /// Update custom settings of the scanner
         /// </summary>
+        /// <param name="addressRanges"></param>
+        /// <param name="portRanges"></param>
+        /// <param name="discoveryIdleTime"></param>
         /// <returns></returns>
-        Task StopDiscoveryAsync();
+        Task UpdateScanConfigurationAsync(string addressRanges, 
+            string portRanges, TimeSpan? discoveryIdleTime);
     }
 }

@@ -54,12 +54,5 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         [JsonProperty(PropertyName = "tokenType",
             NullValueHandling = NullValueHandling.Ignore)]
         public TokenType? TokenType { get; set; }
-
-        /// <summary>
-        /// Server name - if null, unchanged
-        /// </summary>
-        [JsonProperty(PropertyName = "applicationName",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string ApplicationName { get; set; }
     }
 }

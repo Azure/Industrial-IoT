@@ -5,11 +5,13 @@
 
 namespace Cli {
     using Microsoft.Azure.Devices.Edge;
+    using Microsoft.Azure.Devices.Edge.Hosting;
     using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
     using Microsoft.Azure.IoTSolutions.Common.Http;
     using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Exporter;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Client;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Direct;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Runtime;
@@ -20,8 +22,12 @@ namespace Cli {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Text;
     using System.Threading.Tasks;
+    using System.Net;
+    using System.Threading;
+    using System.Linq;
 
     /// <summary>
     /// Sample program to run imports
@@ -41,6 +47,9 @@ namespace Cli {
             None,
             TestOpcUaServerClient,
             TestOpcUaDiscoveryService,
+            TestOpcUaExportService,
+            TestNetworkScanner,
+            TestPortScanner,
             ClearDeviceRegistry
         }
 
@@ -52,6 +61,7 @@ namespace Cli {
             var op = Op.None;
             var proxy = false;
             var endpoint = new EndpointModel { IsTrusted = true };
+            var host = Utils.GetHostName();
 
             var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
             try {
@@ -68,10 +78,24 @@ namespace Cli {
                                 endpoint.Url = args[i];
                             }
                             else {
-                                endpoint.Url = "opc.tcp://" + Utils.GetHostName() + ":51210/UA/SampleServer";
+                                endpoint.Url = "opc.tcp://" + host + ":51210/UA/SampleServer";
                             }
                             break;
-                        case "-p":
+                        case "-e":
+                        case "--export":
+                            if (op != Op.None) {
+                                throw new ArgumentException("Operations are mutually exclusive");
+                            }
+                            op = Op.TestOpcUaExportService;
+                            i++;
+                            if (i < args.Length) {
+                                endpoint.Url = args[i];
+                            }
+                            else {
+                                endpoint.Url = "opc.tcp://" + host + ":51210/UA/SampleServer";
+                            }
+                            break;
+                        case "-P":
                         case "--proxy":
                             proxy = true;
                             break;
@@ -81,6 +105,24 @@ namespace Cli {
                                 throw new ArgumentException("Operations are mutually exclusive");
                             }
                             op = Op.ClearDeviceRegistry;
+                            break;
+                        case "-p":
+                        case "--ports":
+                            if (op != Op.None) {
+                                throw new ArgumentException("Operations are mutually exclusive");
+                            }
+                            op = Op.TestPortScanner;
+                            i++;
+                            if (i < args.Length) {
+                                host = args[i];
+                            }
+                            break;
+                        case "-n":
+                        case "--net":
+                            if (op != Op.None) {
+                                throw new ArgumentException("Operations are mutually exclusive");
+                            }
+                            op = Op.TestNetworkScanner;
                             break;
                         case "-d":
                         case "--discover":
@@ -116,21 +158,30 @@ Options:
 
 Target (Mutually exclusive):
 
-     -p
+     -P
     --proxy
              Use proxy
 
 Operations (Mutually exclusive):
+     -n
+    --network
+             Tests network scanning.
+     -p
+    --ports
+             Tests port scanning.
      -d
     --discover
              Tests discovery stuff.
      -c
     --clear
              Clear device registry content.
+     -e
+    --export
+             Tests server model export with passed endpoint url.
      -s
     --server
-             Tests server stuff with passed endpoint url.  The server is queried 
-             or browsed to gather all nodes to import.
+             Tests server stuff with passed endpoint url.  The server
+             is queried or browsed to gather all nodes to import.
 "
                     );
                 return;
@@ -142,8 +193,17 @@ Operations (Mutually exclusive):
                     case Op.TestOpcUaServerClient:
                         TestOpcUaServerClient(endpoint, proxy).Wait();
                         break;
+                    case Op.TestNetworkScanner:
+                        TestNetworkScanner().Wait();
+                        break;
+                    case Op.TestPortScanner:
+                        TestPortScanner(host).Wait();
+                        break;
                     case Op.TestOpcUaDiscoveryService:
                         TestOpcUaDiscoveryService().Wait();
+                        break;
+                    case Op.TestOpcUaExportService:
+                        TestOpcUaModelExportService(endpoint).Wait();
                         break;
                     case Op.ClearDeviceRegistry:
                         ClearDeviceRegistry().Wait();
@@ -158,6 +218,41 @@ Operations (Mutually exclusive):
 
             Console.WriteLine("Press key to exit...");
             Console.ReadKey();
+        }
+
+        /// <summary>
+        /// Test port scanning
+        /// </summary>
+        /// <param name="host"></param>
+        /// <returns></returns>
+        private static async Task TestPortScanner(string host) {
+            var logger = new Logger("test", LogLevel.Debug);
+            var addresses = await Dns.GetHostAddressesAsync(host);
+            var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+            var watch = Stopwatch.StartNew();
+            var results = await PortScanner.ScanAsync(logger,
+                PortRange.All.
+                    SelectMany(r => r.GetEndpoints(addresses.First())), cts.Token);
+            foreach(var result in results) {
+                Console.WriteLine($"Found {result} open.");
+            }
+            Console.WriteLine($"Scan took: {watch.Elapsed}");
+        }
+
+        /// <summary>
+        /// Test network scanning
+        /// </summary>
+        /// <returns></returns>
+        private static async Task TestNetworkScanner() {
+            var logger = new Logger("test", LogLevel.Debug);
+            var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+            var watch = Stopwatch.StartNew();
+            var results = await NetworkScanner.ScanAsync(logger, 
+                NetworkClass.Wired, cts.Token);
+            foreach (var result in results) {
+                Console.WriteLine($"Found {result.Address}...");
+            }
+            Console.WriteLine($"Scan took: {watch.Elapsed}");
         }
 
         /// <summary>
@@ -195,13 +290,33 @@ Operations (Mutually exclusive):
                 IoTHubManagerV1ApiUrl = null
             });
 
-            var discovery = new OpcUaDiscoveryServices(client, new ConsoleEmitter(), logger) {
-                DiscoverIdleTime = TimeSpan.FromMilliseconds(1),
-                MaxDegreeOfParallism = Environment.ProcessorCount * 2
+            var discovery = new OpcUaDiscoveryServices(client, new ConsoleEmitter(),
+                    new EdgeScheduler(), logger) {
+                DiscoveryIdleTime = TimeSpan.FromMilliseconds(1)
             };
-            await discovery.StartDiscoveryAsync();
+            await discovery.SetDiscoveryModeAsync(DiscoveryMode.Scan);
             await Task.Delay(TimeSpan.FromMinutes(10));
-            await discovery.StopDiscoveryAsync();
+            await discovery.SetDiscoveryModeAsync(DiscoveryMode.Off);
+        }
+
+        /// <summary>
+        /// Test model browse
+        /// </summary>
+        /// <returns></returns>
+        private static async Task TestOpcUaModelExportService(EndpointModel endpoint) {
+            var logger = new Logger("test", LogLevel.Debug);
+            var client = new OpcUaClient(logger, new OpcUaTestConfig {
+                BypassProxy = true,
+                IoTHubManagerV1ApiUrl = null
+            });
+
+            var exporter = new OpcUaExportServices(client, new ConsoleUploader(),
+                new ConsoleEmitter(), new EdgeScheduler(), logger) {
+                ExportIdleTime = TimeSpan.FromMilliseconds(1)
+            };
+            var id = await exporter.StartModelExportAsync(endpoint, "application/ua-json");
+            await Task.Delay(TimeSpan.FromMinutes(10));
+            await exporter.StopModelExportAsync(id);
         }
 
         /// <summary>
@@ -298,6 +413,15 @@ Operations (Mutually exclusive):
             public Task SendAsync(IEnumerable<KeyValuePair<string, dynamic>> properties) {
                 foreach (var prop in properties) {
                     Console.WriteLine($"{prop.Key}={prop.Value}");
+                }
+                return Task.CompletedTask;
+            }
+        }
+
+        private class ConsoleUploader : IBlobUpload {
+            public Task SendAsync(string fileName, string contentType) {
+                using (var stream = new FileStream(fileName, FileMode.Open)) {
+                    Console.WriteLine(new StringReader(fileName).ReadToEnd());
                 }
                 return Task.CompletedTask;
             }

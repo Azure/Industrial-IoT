@@ -24,7 +24,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         /// <param name="model"></param>
         public TwinRegistrationUpdateApiModel(TwinRegistrationUpdateModel model) {
             Id = model.Id;
-            ApplicationName = model.ApplicationName;
             Duplicate = model.Duplicate;
             IsTrusted = model.IsTrusted;
             Token = model.Token;
@@ -33,13 +32,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         }
 
         /// <summary>
-        /// Convert back to service node model
+        /// Convert back to service model
         /// </summary>
         /// <returns></returns>
         public TwinRegistrationUpdateModel ToServiceModel() {
             return new TwinRegistrationUpdateModel {
                 Id = Id,
-                ApplicationName = ApplicationName,
                 Duplicate = Duplicate,
                 IsTrusted = IsTrusted,
                 Token = Token,
@@ -98,13 +96,5 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public TokenType? TokenType { get; set; }
-
-        /// <summary>
-        /// Server name - if null, unchanged
-        /// </summary>
-        [JsonProperty(PropertyName = "applicationName",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public string ApplicationName { get; set; }
     }
 }

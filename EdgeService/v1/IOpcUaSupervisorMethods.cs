@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1 {
     using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models;
+    using System;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -13,12 +14,21 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1 {
     public interface IOpcUaSupervisorMethods {
 
         /// <summary>
-        /// Validates and and returns validation response.
+        /// Validates and and returns application info 
+        /// for the passed in endpoint.
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        Task<ServerEndpointApiModel> ValidateAsync(
+        Task<ApplicationApiModel> ValidateEndpointAsync(
             EndpointApiModel endpoint);
+
+        /// <summary>
+        /// Discover application using discovery uri.
+        /// </summary>
+        /// <param name="discoveryUri"></param>
+        /// <returns></returns>
+        Task<ApplicationApiModel> DiscoverApplicationAsync(
+            Uri discoveryUri);
 
         /// <summary>
         /// Browse nodes on endpoint

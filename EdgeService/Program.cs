@@ -6,10 +6,10 @@
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService {
     using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Runtime;
     using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Supervisor;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Client;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Codec;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack;
     using Microsoft.Azure.IoTSolutions.Common.Exceptions;
     using Microsoft.Azure.Devices.Edge;
     using Microsoft.Azure.Devices.Edge.Services;
@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery;
 
     /// <summary>
     /// Main entry point
@@ -103,9 +102,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService {
             // Register opc ua services
             builder.RegisterType<OpcUaNodeServices>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<OpcUaEndpointValidator>()
+            builder.RegisterType<OpcUaValidationServices>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<OpcUaJsonCodec>()
+            builder.RegisterType<OpcUaJsonVariantCodec>()
                 .AsImplementedInterfaces();
 
             // Register discovery services

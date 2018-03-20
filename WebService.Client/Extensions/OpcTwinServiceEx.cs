@@ -16,29 +16,29 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
         /// <param name="service"></param>
         /// <param name="endpointId"></param>
         /// <returns></returns>
-        public static Task<TwinRegistrationApiModel> GetEndpointAsync(
+        public static Task<TwinInfoApiModel> GetEndpointAsync(
             this IOpcTwinService service, string endpointId) =>
             service.GetTwinAsync(endpointId, null);
 
         /// <summary>
-        /// List all registrations
+        /// List twins 
         /// </summary>
         /// <param name="service"></param>
         /// <param name="continuation"></param>
         /// <returns></returns>
-        public static Task<TwinRegistrationListApiModel> ListTwinsAsync(
+        public static Task<TwinInfoListApiModel> ListTwinsAsync(
             this IOpcTwinService service, string continuation) =>
             service.ListTwinsAsync(continuation, null);
 
         /// <summary>
-        /// List all registrations
+        /// List all twins
         /// </summary>
         /// <param name="service"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<TwinRegistrationApiModel>> ListTwinsAsync(
+        public static async Task<IEnumerable<TwinInfoApiModel>> ListAllTwinsAsync(
             this IOpcTwinService service, bool? onlyServerState = null) {
-            var registrations = new List<TwinRegistrationApiModel>();
+            var registrations = new List<TwinInfoApiModel>();
             var result = await service.ListTwinsAsync(null, onlyServerState);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
@@ -50,31 +50,34 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
         }
 
         /// <summary>
-        /// Get server by server info
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="applicationUri"></param>
-        /// <param name="supervisorId"></param>
-        /// <returns></returns>
-        public static Task<ServerApiModel> FindServerAsync(this IOpcTwinService service,
-            string applicationUri, string supervisorId = null) =>
-            service.FindServerAsync(new ServerInfoApiModel {
-                ApplicationUri = applicationUri,
-                SupervisorId = supervisorId
-            });
-
-        /// <summary>
-        /// List all servers
+        /// Find applications
         /// </summary>
         /// <param name="service"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<ServerInfoApiModel>> ListServersAsync(
-            this IOpcTwinService service) {
-            var registrations = new List<ServerInfoApiModel>();
-            var result = await service.ListServersAsync(null);
+        public static async Task<IEnumerable<ApplicationInfoApiModel>> FindAllApplicationsAsync(
+            this IOpcTwinService service, ApplicationRegistrationQueryApiModel query) {
+            var registrations = new List<ApplicationInfoApiModel>();
+            var result = await service.FindApplicationsAsync(query);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
-                result = await service.ListServersAsync(result.ContinuationToken);
+                result = await service.ListApplicationsAsync(result.ContinuationToken);
+                registrations.AddRange(result.Items);
+            }
+            return registrations;
+        }
+
+        /// <summary>
+        /// List all applications
+        /// </summary>
+        /// <param name="service"></param>
+        /// <returns></returns>
+        public static async Task<IEnumerable<ApplicationInfoApiModel>> ListAllApplicationsAsync(
+            this IOpcTwinService service) {
+            var registrations = new List<ApplicationInfoApiModel>();
+            var result = await service.ListApplicationsAsync(null);
+            registrations.AddRange(result.Items);
+            while (result.ContinuationToken != null) {
+                result = await service.ListApplicationsAsync(result.ContinuationToken);
                 registrations.AddRange(result.Items);
             }
             return registrations;
@@ -85,7 +88,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
         /// </summary>
         /// <param name="service"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<SupervisorApiModel>> ListSupervisorsAsync(
+        public static async Task<IEnumerable<SupervisorApiModel>> ListAllSupervisorsAsync(
             this IOpcTwinService service) {
             var registrations = new List<SupervisorApiModel>();
             var result = await service.ListSupervisorsAsync(null);

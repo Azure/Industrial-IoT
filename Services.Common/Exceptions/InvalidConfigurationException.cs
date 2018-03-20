@@ -12,14 +12,18 @@ namespace Microsoft.Azure.IoTSolutions.Common.Exceptions {
     /// and re-deploy the service.
     /// </summary>
     public class InvalidConfigurationException : Exception {
+
+        /// <inheritdoc />
         public InvalidConfigurationException() {
         }
 
+        /// <inheritdoc />
         public InvalidConfigurationException(string message) :
             base(message) {
         }
 
-        public InvalidConfigurationException(string message, Exception innerException) : 
+        /// <inheritdoc />
+        public InvalidConfigurationException(string message, Exception innerException) :
             base(message, innerException) {
         }
     }

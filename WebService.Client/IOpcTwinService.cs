@@ -19,20 +19,61 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
         Task<StatusResponseApiModel> GetServiceStatusAsync();
 
         /// <summary>
-        /// Register new twin
+        /// Register new application and all twins with it.
         /// </summary>
-        /// <param name="content"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        Task<TwinRegistrationResponseApiModel> RegisterTwinAsync(
-            TwinRegistrationRequestApiModel content);
+        Task<ApplicationRegistrationResponseApiModel> RegisterApplicationAsync(
+            ApplicationRegistrationRequestApiModel request);
 
         /// <summary>
-        /// Update twin registration
+        /// Get application for specified unique application id
         /// </summary>
-        /// <param name="content"></param>
+        /// <param name="applicationId"></param>
         /// <returns></returns>
-        Task UpdateTwinAsync(
-            TwinRegistrationUpdateApiModel content);
+        Task<ApplicationRegistrationApiModel> GetApplicationAsync(
+            string applicationId);
+
+        /// <summary>
+        /// Returns the certificate of the application
+        /// </summary>
+        /// <param name="applicationId"></param>
+        /// <returns></returns>
+        Task<string> GetCertificateAsync(string applicationId);
+
+        /// <summary>
+        /// Register new application and all twins with it.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task UpdateApplicationAsync(
+            ApplicationRegistrationUpdateApiModel request);
+
+        /// <summary>
+        /// List all applications or continue a FindApplications
+        /// call.
+        /// </summary>
+        /// <param name="continuation"></param>
+        /// <returns></returns>
+        Task<ApplicationInfoListApiModel> ListApplicationsAsync(
+            string continuation);
+
+        /// <summary>
+        /// Find applications based on info criteria. Pass
+        /// continuation token if any to ListApplications to
+        /// retrieve remaining items.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        Task<ApplicationInfoListApiModel> FindApplicationsAsync(
+            ApplicationRegistrationQueryApiModel query);
+
+        /// <summary>
+        /// Unregister and delete application and all twins.
+        /// </summary>
+        /// <param name="applicationId"></param>
+        /// <returns></returns>
+        Task UnregisterApplicationAsync(string applicationId);
 
         /// <summary>
         /// Get twin
@@ -40,8 +81,16 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
         /// <param name="twinId"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        Task<TwinRegistrationApiModel> GetTwinAsync(
+        Task<TwinInfoApiModel> GetTwinAsync(
             string twinId, bool? onlyServerState);
+
+        /// <summary>
+        /// Update twin registration
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task UpdateTwinAsync(
+            TwinRegistrationUpdateApiModel request);
 
         /// <summary>
         /// List all twins
@@ -49,38 +98,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
         /// <param name="continuation"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        Task<TwinRegistrationListApiModel> ListTwinsAsync(
+        Task<TwinInfoListApiModel> ListTwinsAsync(
             string continuation, bool? onlyServerState);
-
-        /// <summary>
-        /// Delete twin
-        /// </summary>
-        /// <param name="twinId"></param>
-        /// <returns></returns>
-        Task DeleteTwinAsync(string twinId);
-
-        /// <summary>
-        /// Find server based on info criteria
-        /// </summary>
-        /// <param name="info"></param>
-        /// <returns></returns>
-        Task<ServerApiModel> FindServerAsync(
-            ServerInfoApiModel info);
-
-        /// <summary>
-        /// Get server for specified unique server id
-        /// </summary>
-        /// <param name="serverId"></param>
-        /// <returns></returns>
-        Task<ServerApiModel> GetServerAsync(string serverId);
-
-        /// <summary>
-        /// List all servers
-        /// </summary>
-        /// <param name="continuation"></param>
-        /// <returns></returns>
-        Task<ServerInfoListApiModel> ListServersAsync(
-            string continuation);
 
         /// <summary>
         /// Get supervisor
@@ -91,12 +110,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
             string supervisorId);
 
         /// <summary>
-        /// Update supervisor registration
+        /// Update supervisor including configuration updates.
         /// </summary>
-        /// <param name="content"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         Task UpdateSupervisorAsync(
-            SupervisorUpdateApiModel content);
+            SupervisorUpdateApiModel request);
 
         /// <summary>
         /// List all sueprvisors
@@ -110,37 +129,37 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
         /// Browse node on twin
         /// </summary>
         /// <param name="twinId"></param>
-        /// <param name="content"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         Task<BrowseResponseApiModel> NodeBrowseAsync(string twinId,
-            BrowseRequestApiModel content);
+            BrowseRequestApiModel request);
 
         /// <summary>
         /// Call method on twin
         /// </summary>
         /// <param name="twinId"></param>
-        /// <param name="content"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         Task<MethodCallResponseApiModel> NodeMethodCallAsync(string twinId,
-            MethodCallRequestApiModel content);
+            MethodCallRequestApiModel request);
 
         /// <summary>
         /// Get meta data for method call on twin
         /// </summary>
         /// <param name="twinId"></param>
-        /// <param name="content"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         Task<MethodMetadataResponseApiModel> NodeMethodGetMetadataAsync(
-            string twinId, MethodMetadataRequestApiModel content);
+            string twinId, MethodMetadataRequestApiModel request);
 
         /// <summary>
         /// Publish or unpublish node on twin
         /// </summary>
         /// <param name="twinId"></param>
-        /// <param name="content"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         Task<PublishResponseApiModel> NodePublishAsync(string twinId,
-            PublishRequestApiModel content);
+            PublishRequestApiModel request);
 
         /// <summary>
         /// Get list of published nodes on twin
@@ -155,25 +174,18 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
         /// Read node value on twin
         /// </summary>
         /// <param name="twinId"></param>
-        /// <param name="content"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         Task<ValueReadResponseApiModel> NodeValueReadAsync(string twinId,
-            ValueReadRequestApiModel content);
+            ValueReadRequestApiModel request);
 
         /// <summary>
         /// Write node value on twin
         /// </summary>
         /// <param name="twinId"></param>
-        /// <param name="content"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         Task<ValueWriteResponseApiModel> NodeValueWriteAsync(string twinId,
-            ValueWriteRequestApiModel content);
-
-        /// <summary>
-        /// Returns the server certificate of the twin
-        /// </summary>
-        /// <param name="twinId"></param>
-        /// <returns></returns>
-        Task<string> GetServerCertificateAsync(string twinId);
+            ValueWriteRequestApiModel request);
     }
 }

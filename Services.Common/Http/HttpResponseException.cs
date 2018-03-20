@@ -11,15 +11,28 @@ namespace Microsoft.Azure.IoTSolutions.Common.Http {
     /// Http request exception
     /// </summary>
     public class HttpResponseException : Exception {
+
+        /// <summary>
+        /// Create response exception
+        /// </summary>
+        /// <param name="statusCode"></param>
         public HttpResponseException(HttpStatusCode statusCode) {
             StatusCode = statusCode;
         }
 
+        /// <summary>
+        /// Create response exception
+        /// </summary>
+        /// <param name="statusCode"></param>
+        /// <param name="message"></param>
         public HttpResponseException(HttpStatusCode statusCode, string message) :
             base(message) {
             StatusCode = statusCode;
         }
 
+        /// <summary>
+        /// Response status code
+        /// </summary>
         public HttpStatusCode StatusCode { get; }
     }
 }

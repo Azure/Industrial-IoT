@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Supervisor {
     using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Twin;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Codec;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Runtime;
     using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
     using Microsoft.Azure.Devices.Edge;
@@ -171,7 +171,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Supervisor {
             // Register opc ua services
             builder.RegisterType<OpcUaNodeServices>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<OpcUaJsonCodec>()
+            builder.RegisterType<OpcUaJsonVariantCodec>()
                 .AsImplementedInterfaces();
 
             // Register twin controllers for scoped host instance

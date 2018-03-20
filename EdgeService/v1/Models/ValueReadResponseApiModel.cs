@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     using System;
 
     /// <summary>
-    /// Value read response model for webservice api
+    /// Value read response model for edge service api
     /// </summary>
     public class ValueReadResponseApiModel {
 

@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Value write response model for webservice api
+    /// Value write response model for edge service api
     /// </summary>
     public class ValueWriteResponseApiModel {
 

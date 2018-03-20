@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
 
     /// <summary>
-    /// method arg model for webservice api
+    /// method arg model for edge service api
     /// </summary>
     public class MethodArgumentApiModel {
 
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         }
 
         /// <summary>
-        /// Convert back to service node model
+        /// Convert back to service model
         /// </summary>
         /// <returns></returns>
         public MethodArgumentModel ToServiceModel() {

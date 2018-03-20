@@ -18,7 +18,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// <summary>
         /// Whether supervisor is in discovery mode
         /// </summary>
-        public bool? Discovering { get; set; }
+        public DiscoveryMode? Discovery { get; set; }
+
+        /// <summary>
+        /// Supervisor configuration
+        /// </summary>
+        public SupervisorConfigModel Configuration { get; set; }
 
         /// <summary>
         /// Domain of supervisor

@@ -5,9 +5,7 @@
 
 namespace Microsoft.Azure.IoTSolutions.Common.Diagnostics {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Serialization;
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
 
@@ -15,6 +13,7 @@ namespace Microsoft.Azure.IoTSolutions.Common.Diagnostics {
     /// Logger implementation
     /// </summary>
     public class Logger : ILogger {
+
         /// <summary>
         /// Create logger
         /// </summary>

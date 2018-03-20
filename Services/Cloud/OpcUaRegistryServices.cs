@@ -7,10 +7,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Models;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
-    using Microsoft.Azure.IoTSolutions.Common;
     using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
     using Microsoft.Azure.IoTSolutions.Common.Exceptions;
-    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -20,19 +18,408 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
     /// Endpoint services using the IoT Hub twin services for endpoint
     /// identity registration/retrieval.
     /// </summary>
-    public class OpcUaRegistryServices : IOpcUaTwinRegistry, IOpcUaSupervisorRegistry,
-        IOpcUaServerRegistry, IOpcUaRegistryMaintenance {
+    public sealed class OpcUaRegistryServices : IOpcUaTwinRegistry, IOpcUaSupervisorRegistry,
+        IOpcUaApplicationRegistry, IOpcUaRegistryMaintenance {
 
         /// <summary>
         /// Create using iot hub twin registry service client
         /// </summary>
         /// <param name="registry"></param>
         public OpcUaRegistryServices(IIoTHubTwinServices registry,
-            IOpcUaEndpointValidator validator, ILogger logger) {
+            IOpcUaValidationServices validator, ILogger logger) {
 
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
             _validator = validator ?? throw new ArgumentNullException(nameof(validator));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        /// <summary>
+        /// Read specific twin registration by twin id.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="onlyServerState"></param>
+        /// <returns></returns>
+        public async Task<TwinInfoModel> GetTwinAsync(string id,
+            bool onlyServerState) {
+            if (string.IsNullOrEmpty(id)) {
+                throw new ArgumentException(nameof(id));
+            }
+            var device = await _registry.GetAsync(id);
+            return TwinModelToTwinRegistrationModel(device, onlyServerState, false);
+        }
+
+        /// <summary>
+        /// List all twin registrations
+        /// </summary>
+        /// <param name="continuation"></param>
+        /// <param name="onlyServerState"></param>
+        /// <returns></returns>
+        public async Task<TwinInfoListModel> ListTwinsAsync(string continuation,
+            bool onlyServerState) {
+            // Find all devices where endpoint information is configured
+            var query = $"SELECT * FROM devices WHERE " +
+                $"IS_OBJECT(properties.desired.{k_endpointProperty})";
+            var devices = await _registry.QueryAsync(query, continuation);
+            return new TwinInfoListModel {
+                ContinuationToken = devices.ContinuationToken,
+                Items = devices.Items
+                    .Select(d => TwinModelToTwinRegistrationModel(d, onlyServerState, true))
+                    .Where(x => x != null)
+                    .ToList()
+            };
+        }
+
+        /// <summary>
+        /// Find registration for the endpoint
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <returns></returns>
+        public async Task<TwinInfoModel> FindTwinAsync(EndpointModel endpoint,
+            bool onlyServerState) {
+            if (endpoint == null) {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+            if (string.IsNullOrEmpty(endpoint.Url)) {
+                throw new ArgumentNullException(nameof(endpoint.Url));
+            }
+            var results = await _registry.QueryAsync("SELECT * FROM devices WHERE " +
+                $"IS_OBJECT(properties.desired.{k_endpointProperty}) AND " +
+                    $"tags.{nameof(OpcUaEndpointRegistration.EndpointUrlLC)} = " +
+                        $"'{endpoint.Url.ToLowerInvariant()}'");
+            foreach (var candidate in results) {
+                var registration = OpcUaEndpointRegistration.FromTwin(candidate,
+                    onlyServerState);
+                if (registration.Matches(endpoint)) {
+                    return registration.ToServiceModel();
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Find registration of endpoints using query specification
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="onlyServerState">Whether only
+        /// desired twin state should be returned.
+        /// </param>
+        /// <returns></returns>
+        public async Task<TwinInfoListModel> FindTwinAsync(
+            TwinRegistrationQueryModel model, bool onlyServerState) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
+            var query = "SELECT * FROM devices WHERE " +
+                $"tags.{nameof(OpcUaEndpointRegistration.DeviceType)} = 'Endpoint' ";
+
+            if (model.IsTrusted != null) {
+                // If application name provided, include it in search
+                query += $"AND tags.{nameof(OpcUaEndpointRegistration.IsEnabled)} = " +
+                    $"{model.IsTrusted} ";
+            }
+            if (model.SecurityMode != null) {
+                // If SecurityMode provided, include it in search
+                query += $"AND tags.{nameof(OpcUaEndpointRegistration.SecurityMode)} = " +
+                    $"'{model.SecurityMode}' ";
+            }
+            if (model.SecurityPolicy != null) {
+                // If SecurityPolicy uri provided, include it in search
+                query += $"AND tags.{nameof(OpcUaEndpointRegistration.SecurityPolicy)} = " +
+                    $"'{model.SecurityPolicy}' ";
+            }
+            if (model.Url != null) {
+                // If Url provided, include it in search
+                query += $"AND tags.{nameof(OpcUaEndpointRegistration.EndpointUrlLC)} = " +
+                    $"'{model.Url.ToLowerInvariant()}' ";
+            }
+            if (model.TokenType != null) {
+                // If TokenType provided, include it in search
+                query += $"AND tags.{nameof(OpcUaEndpointRegistration.TokenType)} = " +
+                    $"'{model.TokenType}' ";
+            }
+            if (model.User != null) {
+                // If User provided, include it in search
+                query += $"AND tags.{nameof(OpcUaEndpointRegistration.User)} = " +
+                    $"'{model.User}' ";
+            }
+            var result = await _registry.QueryAsync(query, null);
+            return new TwinInfoListModel {
+                ContinuationToken = result.ContinuationToken,
+                Items = result.Items
+                    .Select(t => OpcUaEndpointRegistration.FromTwin(t, onlyServerState))
+                    .Select(s => s.ToServiceModel())
+                    .ToList()
+            };
+        }
+
+        /// <summary>
+        /// Update twin registration
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task UpdateTwinAsync(TwinRegistrationUpdateModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (string.IsNullOrEmpty(request.Id)) {
+                throw new ArgumentException(nameof(request.Id));
+            }
+
+            // Get existing endpoint and compare to see if we need to patch.
+            var twin = await _registry.GetAsync(request.Id);
+            if (twin.Id != request.Id) {
+                throw new ArgumentException("Id must be same as twin to patch",
+                    nameof(request.Id));
+            }
+
+            // Convert to twin registration
+            var registration = OpcUaEndpointRegistration.FromTwin(twin, true);
+
+            // Update registration from update request
+            var patched = registration.ToServiceModel();
+            if (request.User != null) {
+                patched.Endpoint.User = string.IsNullOrEmpty(request.User) ?
+                    null : request.User;
+            }
+            if (request.TokenType != null) {
+                patched.Endpoint.TokenType = (TokenType)request.TokenType;
+            }
+            if ((patched.Endpoint.TokenType ?? TokenType.None) != TokenType.None) {
+                patched.Endpoint.Token = request.Token;
+            }
+            else {
+                patched.Endpoint.Token = null;
+            }
+            var isEnabled = (patched.Endpoint.IsTrusted ?? false);
+            var enable = (request.IsTrusted ?? isEnabled);
+            patched.Endpoint.IsTrusted = request.IsTrusted;
+
+            // Patch
+            await _registry.CreateOrUpdateAsync(registration.Patch(patched));
+
+            // Enable/disable twin if needed
+            if (isEnabled != enable) {
+                await EnableTwinAsync(registration.SupervisorId, twin.Id, !enable);
+            }
+        }
+
+        /// <summary>
+        /// Register application in device twin registry and any endpoints
+        /// associated with it.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<ApplicationRegistrationResultModel> RegisterApplicationAsync(
+            ApplicationRegistrationRequestModel request) {
+
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.DiscoveryUrl == null) {
+                throw new ArgumentNullException(nameof(request.DiscoveryUrl));
+            }
+
+            var endpoints = Enumerable.Empty<OpcUaEndpointRegistration>();
+            var application = new OpcUaApplicationRegistration();
+
+            //
+            // Read application from remote using the passed in discovery url
+            //
+            var discovered = await _validator.DiscoverApplicationAsync(
+                new Uri(request.DiscoveryUrl));
+
+            //
+            // See if already something registered in this form
+            //
+            var existing = await _registry.QueryAsync("SELECT * FROM devices WHERE " +
+                $"tags.{nameof(OpcUaTwinRegistration.ApplicationId)} = " +
+                    $"'{discovered.Application.ApplicationId}'");
+
+            if (existing.Any()) {
+                // if so, get existing twins
+                var twins = existing.Select(OpcUaTwinRegistration.ToRegistration);
+
+                // Select endpoints and application to be patched below.
+                endpoints = twins.OfType<OpcUaEndpointRegistration>();
+                application = twins.OfType<OpcUaApplicationRegistration>().SingleOrDefault();
+                if (application == null) {
+                    throw new InvalidOperationException("No or more than one application " +
+                        $"registered for id {discovered.Application.ApplicationId}");
+                }
+            }
+
+            //
+            // Create or patch existing application and update all endpoint twins
+            //
+            await _registry.CreateOrUpdateAsync(application.Patch(discovered.Application));
+            await MergeEndpointsAsync(discovered.Endpoints.Select(e =>
+                OpcUaEndpointRegistration.FromServiceModel(new TwinInfoModel {
+                    ApplicationId = discovered.Application.ApplicationId,
+                    Endpoint = e
+                })), endpoints);
+            _logger.Debug("Application registered.", () => discovered);
+
+            return new ApplicationRegistrationResultModel {
+                Id = discovered.Application.ApplicationId
+            };
+        }
+
+        /// <summary>
+        /// Update application
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task UpdateApplicationAsync(ApplicationRegistrationUpdateModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (string.IsNullOrEmpty(request.Id)) {
+                throw new ArgumentException(nameof(request.Id));
+            }
+
+            // Get existing application and compare to see if we need to patch.
+            var application = await _registry.GetAsync(request.Id);
+            if (application.Id != request.Id) {
+                throw new ArgumentException("Id must be same as application to patch",
+                    nameof(request.Id));
+            }
+
+            // Convert to application registration
+            var registration = OpcUaApplicationRegistration.FromTwin(application);
+
+            // Update registration from update request
+            var patched = registration.ToServiceModel();
+            if (request.ApplicationName != null) {
+                patched.ApplicationName = string.IsNullOrEmpty(request.ApplicationName) ?
+                    null : request.ApplicationName;
+            }
+            if (request.Capabilities != null) {
+                patched.Capabilities = request.Capabilities;
+            }
+
+            // ...
+
+            // Patch
+            await _registry.CreateOrUpdateAsync(registration.Patch(patched));
+        }
+
+        /// <summary>
+        /// List all servers with endpoints == twins
+        /// </summary>
+        /// <param name="continuation"></param>
+        /// <returns></returns>
+        public async Task<ApplicationInfoListModel> ListApplicationsAsync(
+            string continuation) {
+            string query = null;
+            if (continuation == null) {
+                query = "SELECT * FROM devices WHERE IS_DEFINED" +
+                    $"(tags.{nameof(OpcUaApplicationRegistration.ApplicationUriLC)})";
+            }
+            var result = await _registry.QueryAsync(query, continuation);
+            return new ApplicationInfoListModel {
+                ContinuationToken = result.ContinuationToken,
+                Items = result.Items
+                    .Select(OpcUaApplicationRegistration.FromTwin)
+                    .Select(s => s.ToServiceModel())
+                    .ToList()
+            };
+        }
+
+        /// <summary>
+        /// Get full application model for specified application id
+        /// </summary>
+        /// <param name="applicationId"></param>
+        /// <returns></returns>
+        public async Task<ApplicationRegistrationModel> GetApplicationAsync(string applicationId) {
+            if (string.IsNullOrEmpty(applicationId)) {
+                throw new ArgumentException(nameof(applicationId));
+            }
+            var device = await _registry.GetAsync(applicationId);
+            var endpoints = await ListEndpointsForApplicationAsync(applicationId);
+            return new ApplicationRegistrationModel {
+                Application = OpcUaApplicationRegistration.FromTwin(device).ToServiceModel(),
+                Endpoints = endpoints.Select(t => new TwinRegistrationModel {
+                    Endpoint = t.Endpoint,
+                    Id = t.Id,
+                    Connected = t.Connected
+                }).ToList()
+            };
+        }
+
+        /// <summary>
+        /// Read full server model for specified server
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public async Task<ApplicationInfoListModel> FindApplicationsAsync(
+            ApplicationRegistrationQueryModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
+            var query = "SELECT * FROM devices WHERE " +
+                $"tags.{nameof(OpcUaApplicationRegistration.DeviceType)} = 'Application' ";
+
+            if (model.ApplicationName != null) {
+                // If application name provided, include it in search
+                query += $"AND tags.{nameof(OpcUaApplicationRegistration.ApplicationName)} = " +
+                    $"'{model.ApplicationName}' ";
+            }
+            if (model.ProductUri != null) {
+                // If product uri provided, include it in search
+                query += $"AND tags.{nameof(OpcUaApplicationRegistration.ProductUri)} = " +
+                    $"'{model.ProductUri}' ";
+            }
+            if (model.ApplicationUri != null) {
+                // If ApplicationUri provided, include it in search
+                query += $"AND tags.{nameof(OpcUaApplicationRegistration.ApplicationUriLC)} = " +
+                    $"'{model.ApplicationUri.ToLowerInvariant()}' ";
+            }
+            if (model.ApplicationType != null) {
+                // If ApplicationType provided, include it in search
+                query += $"AND tags.{nameof(OpcUaApplicationRegistration.ApplicationType)} = " +
+                    $"'{model.ApplicationType}' ";
+            }
+            if (model.Capabilities != null) {
+                // If Capabilities provided, include it in search
+                query += $"AND tags.{nameof(OpcUaApplicationRegistration.Capabilities)} = " +
+                    $"'{model.Capabilities.EncodeAsString()}' ";
+            }
+            var result = await _registry.QueryAsync(query, null);
+            return new ApplicationInfoListModel {
+                ContinuationToken = result.ContinuationToken,
+                Items = result.Items
+                    .Select(OpcUaApplicationRegistration.FromTwin)
+                    .Select(s => s.ToServiceModel())
+                    .ToList()
+            };
+        }
+
+        /// <summary>
+        /// Delete application
+        /// </summary>
+        /// <param name="applicationId"></param>
+        /// <returns></returns>
+        public async Task UnregisterApplicationAsync(string applicationId) {
+            if (string.IsNullOrEmpty(applicationId)) {
+                throw new ArgumentException(nameof(applicationId));
+            }
+
+            // Get all twin registrations and for each one, call delete, if failure,
+            // stop half way and throw and do not complete.
+            var endpoints = await ListEndpointsForApplicationAsync(applicationId);
+            foreach(var twin in endpoints) {
+                try {
+                    if (!string.IsNullOrEmpty(twin.Endpoint.SupervisorId)) {
+                        await _registry.UpdatePropertyAsync(twin.Endpoint.SupervisorId,
+                            twin.Id, null);
+                    }
+                }
+                catch (Exception ex) {
+                    _logger.Debug($"Failed unregistration of twin {twin.Id}", () => ex);
+                }
+                await _registry.DeleteAsync(twin.Id);
+            }
+            await _registry.DeleteAsync(applicationId);
         }
 
         /// <summary>
@@ -74,8 +461,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
             // Update registration from update request
             var patched = registration.ToServiceModel();
-            if (request.Discovering != null) {
-                patched.Discovering = (bool)request.Discovering;
+            if (request.Discovery != null) {
+                patched.Discovery = (DiscoveryMode)request.Discovery;
+            }
+            if (request.Configuration != null) {
+                patched.Configuration = request.Configuration;
             }
             if (request.Domain != null) {
                 patched.Domain = string.IsNullOrEmpty(
@@ -105,181 +495,126 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         }
 
         /// <summary>
-        /// Read specific twin registration by twin id.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="onlyServerState"></param>
-        /// <returns></returns>
-        public async Task<TwinRegistrationModel> GetTwinAsync(string id,
-            bool onlyServerState) {
-            if (string.IsNullOrEmpty(id)) {
-                throw new ArgumentException(nameof(id));
-            }
-            var device = await _registry.GetAsync(id);
-            return TwinModelToTwinRegistrationModel(device, onlyServerState);
-        }
-
-        /// <summary>
-        /// List all twin registrations
-        /// </summary>
-        /// <param name="continuation"></param>
-        /// <param name="onlyServerState"></param>
-        /// <returns></returns>
-        public async Task<TwinRegistrationListModel> ListTwinsAsync(string continuation,
-            bool onlyServerState) {
-            // Find all devices where endpoint information is configured
-            var query = $"SELECT * FROM devices WHERE " +
-                $"IS_OBJECT(properties.desired.{k_endpointProperty})";
-            var devices = await _registry.QueryAsync(query, continuation);
-            return new TwinRegistrationListModel {
-                ContinuationToken = devices.ContinuationToken,
-                Items = devices.Items
-                    .Select(d => TwinModelToTwinRegistrationModel(d, onlyServerState))
-                    .ToList()
-            };
-        }
-
-        /// <summary>
-        /// Register opc ua endpoint in device twin registry and with edge
-        /// controllers out there.  If id is provided, it must not be used,
-        /// however, if the provided endpoint info is the same as the one
-        /// registered under the id, we do not throw, but suceeed without
-        /// doing anything.
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public async Task<TwinRegistrationResultModel> RegisterTwinAsync(
-            TwinRegistrationRequestModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (request.Endpoint == null) {
-                throw new ArgumentNullException(nameof(request.Endpoint));
-            }
-            if (string.IsNullOrEmpty(request.Endpoint.Url)) {
-                throw new ArgumentException(nameof(request.Endpoint.Url));
-            }
-
-            //
-            // If id was passed, look up id to see if we already have a
-            // registration of this endpoint.  If the endpoint exists, but is
-            // not the same, throw exception.  User should rather call patch,
-            // or first delete.
-            //
-            if (!string.IsNullOrEmpty(request.Id)) {
-                try {
-                    var existing = await _registry.GetAsync(request.Id);
-                    if (OpcUaTwinRegistration.FromTwin(existing, true, out var tmp).Matches(
-                        request.Endpoint)) {
-                        _logger.Info($"Endpoint already registered as {existing.Id}!",
-                            () => existing);
-                        return new TwinRegistrationResultModel {
-                            Id = existing.Id
-                        };
-                    }
-                    throw new ConflictingResourceException(
-                        $"Endpoint {nameof(request.Id)} must be updated.");
-                }
-                catch (ResourceNotFoundException) {
-                    // Expected, now create new
-                }
-            }
-
-            //
-            // Validate the endpoint at the edge which will fill in missing
-            // information.
-            //
-            var validationResult = await _validator.ValidateAsync(request.Endpoint);
-
-            //
-            // If no id was provided, we look up all entries with the same
-            // endpoint url. If there is one that matches, we return that
-            // one instead.  This is not atomic, so multple registration could
-            // end up with the same endpoint registered, however, this avoids
-            // having too many duplicates.
-            //
-            if (string.IsNullOrEmpty(request.Id)) {
-                var results = await _registry.QueryAsync("SELECT * FROM devices WHERE " +
-                    $"IS_OBJECT(properties.desired.{ k_endpointProperty}) AND " +
-                    $"tags.EndpointId = " +
-                        $"'{validationResult.Endpoint.Url.ToLowerInvariant()}' AND " +
-                    $"tags.ApplicationId = " +
-                        $"'{validationResult.Server.ApplicationUri.ToLowerInvariant()}'");
-                foreach (var candidate in results) {
-                    if (OpcUaTwinRegistration.FromTwin(candidate, false, out var tmp)?.Matches(
-                        validationResult.Endpoint) ?? false) {
-                        _logger.Info(
-                            $"Endpoint already registered under device {candidate.Id}",
-                                () => candidate);
-                        return new TwinRegistrationResultModel {
-                            Id = candidate.Id
-                        };
-                    }
-                }
-            }
-
-            var twin = new OpcUaTwinRegistration { DeviceId = request.Id }
-                .Patch(validationResult);
-            _logger.Debug($"Register new server endpoint twin", () => twin);
-            twin = await _registry.CreateOrUpdateAsync(twin);
-
-            if (validationResult.Endpoint.IsTrusted ?? false) {
-                try {
-                    // Enable twin
-                    await EnableTwinAsync(validationResult.Endpoint.SupervisorId,
-                        twin.Id, false);
-                }
-                catch (Exception e) {
-                    // ouch - try to unroll registration and throw.
-                    _logger.Error(
-                        "Error during supervisor registration, delete device.", () => e);
-                    await _registry.DeleteAsync(twin.Id);
-                    throw e;
-                }
-            }
-            return new TwinRegistrationResultModel {
-                Id = twin.Id
-            };
-        }
-
-        /// <summary>
         /// Process discovery sweep results from supervisor
         /// </summary>
         /// <param name="supervisorId"></param>
-        /// <param name="servers"></param>
+        /// <param name="events"></param>
         /// <returns></returns>
         public async Task ProcessSupervisorDiscoveryAsync(string supervisorId,
-            IEnumerable<ServerEndpointModel> servers) {
+            IEnumerable<DiscoveryEventModel> events) {
 
             if (string.IsNullOrEmpty(supervisorId)) {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
-            if (servers == null) {
-                throw new ArgumentNullException(nameof(servers));
+            if (events == null) {
+                throw new ArgumentNullException(nameof(events));
             }
 
-            // Get all endpoints for the supervisor
+            // Get all applications for the supervisor
             var results = await _registry.QueryAsync("SELECT * FROM devices WHERE " +
-                $"IS_OBJECT(properties.desired.{k_endpointProperty}) AND " +
-                    $"tags.SupervisorId = '{supervisorId}'");
-            var remove = new HashSet<OpcUaTwinRegistration>(
-                results.Select(t => OpcUaTwinRegistration.FromTwin(t)));
-            var add = new HashSet<OpcUaTwinRegistration>(
-                servers.Select(s => OpcUaTwinRegistration.FromServiceModel(s)));
+                $"tags.{nameof(OpcUaTwinRegistration.DeviceType)} = 'Application' AND " +
+                $"tags.{nameof(OpcUaTwinRegistration.SupervisorId)} = '{supervisorId}'");
 
-            // Calculate unchanged items
+            var remove = new HashSet<OpcUaApplicationRegistration>(
+                results.Select(t => OpcUaApplicationRegistration.FromTwin(t)));
+            var add = new HashSet<OpcUaApplicationRegistration>(
+                events.Select(ev => OpcUaApplicationRegistration.FromServiceModel(
+                    ev.Application)));
+
+            var unchanged = 0;
+            var added = 0;
+            var removed = 0;
+
+            // Remove applications
+            foreach (var item in remove) {
+                if (add.Contains(item)) {
+                    continue;
+                }
+                try {
+                    // TODO: Soft delete here...
+                    await UnregisterApplicationAsync(item.ApplicationId);
+                    removed++;
+                }
+                catch (Exception ex) {
+                    _logger.Error("Exception during discovery removal.", () => ex);
+                }
+            }
+
+            // Add applications
+            foreach (var item in add) {
+                if (remove.Contains(item)) {
+                    unchanged++;
+                    continue;
+                }
+
+                // TODO: Check if same server owned by someone already...
+
+                var twin = new OpcUaApplicationRegistration().Patch(item.ToServiceModel());
+                try {
+                    await _registry.CreateOrUpdateAsync(twin);
+                    added++;
+                }
+                catch (Exception ex) {
+                    _logger.Error("Exception during discovery addition.", () => ex);
+                }
+            }
+
+            // Update endpoints of all existing applications
+            foreach (var ev in events.GroupBy(k => k.Application.ApplicationId)) {
+
+                var endpoints = await _registry.QueryAsync("SELECT * FROM devices WHERE " +
+                    $"tags.{nameof(OpcUaTwinRegistration.DeviceType)} = 'Endpoint' AND " +
+                    $"tags.{nameof(OpcUaTwinRegistration.SupervisorId)} = " +
+                        $"'{supervisorId}' AND " +
+                    $"tags.{nameof(OpcUaTwinRegistration.ApplicationId)} = " +
+                        $"'{ev.Key}'");
+
+                var existingEndpoints = endpoints
+                    .Select(t => OpcUaEndpointRegistration.FromTwin(t, false));
+                var discoveredEndpoints = ev.Select(e => e.Endpoint)
+                    .Select(e => new TwinInfoModel { Endpoint = e, ApplicationId = ev.Key })
+                    .Select(OpcUaEndpointRegistration.FromServiceModel);
+
+                await MergeEndpointsAsync(discoveredEndpoints, existingEndpoints);
+            }
+
+            if (add.Count != 0 || remove.Count != 0) {
+                _logger.Info($"processed {supervisorId} discovery results: {added} " +
+                    $"applications added, {removed} removed, and {unchanged} " +
+                    "unchanged.", () => { });
+            }
+        }
+
+        /// <summary>
+        /// Merge existing and newly found endpoints
+        /// </summary>
+        /// <param name="found"></param>
+        /// <param name="existing"></param>
+        /// <returns></returns>
+        private async Task MergeEndpointsAsync(IEnumerable<OpcUaEndpointRegistration> found,
+            IEnumerable<OpcUaEndpointRegistration> existing) {
+            var remove = new HashSet<OpcUaEndpointRegistration>(existing);
+            var add = new HashSet<OpcUaEndpointRegistration>(found);
+
             var unchanged = 0;
             var added = 0;
             var removed = 0;
 
             // Remove items
-            foreach(var item in remove) {
+            foreach (var item in remove) {
                 if (add.Contains(item)) {
                     unchanged++;
                     continue;
                 }
                 try {
-                    await DeleteTwinAsync(item.DeviceId); // TODO: Soft delete here...
+                    var twin = await _registry.GetAsync(item.DeviceId);
+                    // Now we need to update any supervisor registration
+                    var existingEndpoint = OpcUaEndpointRegistration.FromTwin(twin, false);
+                    if (!string.IsNullOrEmpty(existingEndpoint.SupervisorId)) {
+                        await _registry.UpdatePropertyAsync(existingEndpoint.SupervisorId,
+                            item.DeviceId, null);
+                    }
+                    await _registry.DeleteAsync(item.DeviceId); // TODO: Soft delete here...
                     removed++;
                 }
                 catch (Exception ex) {
@@ -296,7 +631,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
                 // TODO: Check if same server owned by someone already...
 
-                var twin = new OpcUaTwinRegistration().Patch(item.ToServiceModel());
+                var twin = new OpcUaEndpointRegistration().Patch(item.ToServiceModel());
                 try {
                     await _registry.CreateOrUpdateAsync(twin);
                     added++;
@@ -307,193 +642,47 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             }
 
             if (add.Count != 0 || remove.Count != 0) {
-                _logger.Info($"processed {supervisorId} discovery results: {added} " +
-                    $"endpoints added, {removed} removed, and {unchanged} " +
-                    "unchanged.", () => { });
+                _logger.Info($"processed endpoint results: {added} endpoints added, " +
+                    $"{removed} removed, and {unchanged} unchanged.", () => { });
             }
         }
 
         /// <summary>
-        /// Find registration for the endpoint
+        /// List all endpoints for application id
         /// </summary>
-        /// <param name="endpoint"></param>
+        /// <param name="applicationId"></param>
         /// <returns></returns>
-        public async Task<TwinRegistrationModel> FindTwinAsync(EndpointModel endpoint) {
-            if (endpoint == null) {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
-            if (string.IsNullOrEmpty(endpoint.Url)) {
-                throw new ArgumentNullException(nameof(endpoint.Url));
-            }
-            var results = await _registry.QueryAsync("SELECT * FROM devices WHERE " +
-                $"IS_OBJECT(properties.desired.{k_endpointProperty}) AND " +
-                    $"tags.EndpointId = '{endpoint.Url.ToLowerInvariant()}'");
-            foreach (var candidate in results) {
-                if (OpcUaTwinRegistration.FromTwin(candidate, false, out var tmp)
-                    .Matches(endpoint)) {
-                    return TwinModelToTwinRegistrationModel(candidate, false);
-                }
-            }
-            return null;
-        }
+        private async Task<IEnumerable<TwinInfoModel>> ListEndpointsForApplicationAsync(
+            string applicationId) {
+            // Find all devices where endpoint information is configured
+            var query = $"SELECT * FROM devices WHERE " +
+                $"tags.{nameof(OpcUaEndpointRegistration.ApplicationId)} = '{applicationId}' " +
+                $"AND IS_OBJECT(properties.desired.{k_endpointProperty})";
 
-        /// <summary>
-        /// Update twin registration
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public async Task UpdateTwinAsync(TwinRegistrationUpdateModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
+            var result = new List<DeviceTwinModel>();
+            string continuation = null;
+            do {
+                var devices = await _registry.QueryAsync(query, null);
+                result.AddRange(devices.Items);
+                continuation = devices.ContinuationToken;
             }
-            if (string.IsNullOrEmpty(request.Id)) {
-                throw new ArgumentException(nameof(request.Id));
-            }
-
-            // Get existing endpoint and compare to see if we need to patch.
-            var twin = await _registry.GetAsync(request.Id);
-            if (twin.Id != request.Id) {
-                throw new ArgumentException("Id must be same as twin to patch",
-                    nameof(request.Id));
-            }
-
-            // Convert to twin registration
-            var registration = OpcUaTwinRegistration.FromTwin(twin, true,
-                out var tmp);
-
-            // Update registration from update request
-            var patched = registration.ToServiceModel();
-            if (request.User != null) {
-                patched.Endpoint.User = string.IsNullOrEmpty(request.User) ?
-                    null : request.User;
-            }
-            if (request.TokenType != null) {
-                patched.Endpoint.TokenType = (TokenType)request.TokenType;
-            }
-            if ((patched.Endpoint.TokenType ?? TokenType.None) != TokenType.None) {
-                patched.Endpoint.Token = request.Token;
-            }
-            else {
-                patched.Endpoint.Token = null;
-            }
-            if (request.ApplicationName != null) {
-                patched.Server.ApplicationName = string.IsNullOrEmpty(
-                    request.ApplicationName) ? null : request.ApplicationName;
-            }
-            var isEnabled = (patched.Endpoint.IsTrusted ?? false);
-            var enable = (request.IsTrusted ?? isEnabled);
-            patched.Endpoint.IsTrusted = request.IsTrusted;
-
-            // Patch
-            await _registry.CreateOrUpdateAsync(registration.Patch(patched));
-
-            // Enable/disable twin if needed
-            if (isEnabled != enable) {
-                await EnableTwinAsync(registration.SupervisorId, twin.Id, !enable);
-            }
-        }
-
-        /// <summary>
-        /// Delete twin
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task DeleteTwinAsync(string id) {
-            if (string.IsNullOrEmpty(id)) {
-                throw new ArgumentException(nameof(id));
-            }
-            var twin = await _registry.GetAsync(id);
-            // Now we need to update any supervisor registration
-            var existingEndpoint = OpcUaTwinRegistration.FromTwin(twin, false,
-                out var tmp);
-            if (!string.IsNullOrEmpty(existingEndpoint.SupervisorId)) {
-                await _registry.UpdatePropertyAsync(existingEndpoint.SupervisorId,
-                    id, null);
-            }
-            await _registry.DeleteAsync(id);
-        }
-
-        /// <summary>
-        /// List all servers with endpoints == twins
-        /// </summary>
-        /// <param name="continuation"></param>
-        /// <returns></returns>
-        public async Task<ServerInfoListModel> ListServerInfosAsync(string continuation) {
-            var tags = "tags.ApplicationId, tags.SupervisorId, tags.ServerCertificate";
-            var query = $"SELECT {tags}, COUNT() FROM devices GROUP BY {tags}";
-            var result = await _registry.QueryRawAsync(query, continuation);
-            var items = JsonConvertEx.DeserializeObject<List<OpcUaTwinRegistration>>(
-                result.Item2);
-            return new ServerInfoListModel {
-                ContinuationToken = result.Item1,
-                Items = items
-                    .Where(s => s.ApplicationId != null)
-                    .Select(s => s.ToServiceModel().Server)
-                    .ToList()
-            };
+            while (continuation != null);
+            return result
+                .Select(d => TwinModelToTwinRegistrationModel(d, false, true))
+                .Where(x => x != null);
         }
 
         /// <summary>
         /// Get full server model for specified server
         /// </summary>
-        /// <param name="serverId"></param>
+        /// <param name="applicationId"></param>
         /// <returns></returns>
-        public async Task<ServerModel> GetServerAsync(string serverId) {
-            if (string.IsNullOrEmpty(serverId)) {
-                throw new ArgumentNullException(nameof(serverId));
+        public async Task<ApplicationInfoModel> GetApplicationInfoAsync(string applicationId) {
+            if (string.IsNullOrEmpty(applicationId)) {
+                throw new ArgumentException(nameof(applicationId));
             }
-            var query = $"SELECT * FROM devices WHERE tags.ServerId = '{serverId}'";
-            var result = await _registry.QueryAsync(query);
-            var endpoints = result
-                .Select(t => OpcUaTwinRegistration.FromTwin(t))
-                .Select(s => s.ToServiceModel());
-            if (!endpoints.Any()) {
-                throw new ResourceNotFoundException("Server not found");
-            }
-            return new ServerModel {
-                Server = endpoints.First().Server,
-                Endpoints = endpoints.Select(s => s.Endpoint).ToList()
-            };
-        }
-
-        /// <summary>
-        /// Read full server model for specified server
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public async Task<ServerModel> FindServerAsync(ServerInfoModel model) {
-            if (model == null) {
-                throw new ArgumentNullException(nameof(model));
-            }
-            if (string.IsNullOrEmpty(model.ApplicationUri)) {
-                throw new ArgumentNullException(nameof(model.ApplicationUri));
-            }
-            var query = "SELECT * FROM devices WHERE " +
-                $"tags.ApplicationId = '{model.ApplicationUri.ToLowerInvariant()}' ";
-
-            if (model.ApplicationName != null) {
-                // If application name provided, include it in search
-                query += $"AND tags.ApplicationName = '{model.ApplicationName}' ";
-            }
-            if (model.ServerCertificate != null) {
-                // If server cerfificate provided, include it in search
-                query += $"AND tags.Thumbprint = '{model.ServerCertificate.ToSha1Hash()}' ";
-            }
-            if (!string.IsNullOrEmpty(model.SupervisorId)) {
-                // If supervisor id provided, include it in search
-                query += $"AND tags.SupervisorId = '{model.SupervisorId}' ";
-            }
-            var result = await _registry.QueryAsync(query);
-            var endpoints = result
-                .Select(t => OpcUaTwinRegistration.FromTwin(t))
-                .Select(s => s.ToServiceModel());
-            if (!endpoints.Any()) {
-                throw new ResourceNotFoundException("Server not found");
-            }
-            return new ServerModel {
-                Server = endpoints.First().Server,
-                Endpoints = endpoints.Select(s => s.Endpoint).ToList()
-            };
+            var device = await _registry.GetAsync(applicationId);
+            return OpcUaApplicationRegistration.FromTwin(device).ToServiceModel();
         }
 
         /// <summary>
@@ -532,27 +721,22 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// <param name="onlyServerState">Only desired should be returned
         /// this means that you will look at stale information.</param>
         /// <returns></returns>
-        private static TwinRegistrationModel TwinModelToTwinRegistrationModel(
-            TwinModel twin, bool onlyServerState) {
-            var registration = OpcUaTwinRegistration.FromTwin(twin, onlyServerState,
-                out var connected);
+        private static TwinInfoModel TwinModelToTwinRegistrationModel(
+            DeviceTwinModel twin, bool onlyServerState, bool skipInvalid) {
+            var registration = OpcUaEndpointRegistration.FromTwin(twin, onlyServerState);
             if (registration == null) {
+                if (skipInvalid) {
+                    return null;
+                }
                 throw new ResourceNotFoundException(
                     $"{twin.Id} is not a registered opc ua twin");
             }
-            var model = registration.ToServiceModel();
-            return new TwinRegistrationModel {
-                Endpoint = model.Endpoint,
-                Server = model.Server,
-                Id = twin.Id,
-                OutOfSync = connected && !registration.IsInSync() ? true : (bool?)null,
-                Connected = connected
-            };
+            return registration.ToServiceModel();
         }
 
         private const string k_endpointProperty = "endpoint";
         private readonly IIoTHubTwinServices _registry;
-        private readonly IOpcUaEndpointValidator _validator;
+        private readonly IOpcUaValidationServices _validator;
         private readonly ILogger _logger;
     }
 }

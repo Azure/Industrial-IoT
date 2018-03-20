@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
+    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Filters;
     using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Models;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;

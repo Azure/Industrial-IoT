@@ -8,8 +8,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Filters {
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.Azure.IoTSolutions.Common.Exceptions;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Exceptions;
+    using Newtonsoft.Json;
     using System;
+    using System.Linq;
     using System.Net;
+    using System.Net.Sockets;
+    using System.Security;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -28,7 +32,16 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Filters {
                 base.OnException(context);
                 return;
             }
-            switch(context.Exception) {
+            if (context.Exception is AggregateException ae) {
+                var root = ae.GetBaseException();
+                if (root is AggregateException) {
+                    context.Exception = ae.InnerExceptions.First();
+                }
+                else {
+                    context.Exception = root;
+                }
+            }
+            switch (context.Exception) {
                 case ResourceNotFoundException re:
                     context.Result = GetResponse(HttpStatusCode.NotFound,
                         context.Exception);
@@ -37,22 +50,19 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Filters {
                     context.Result = GetResponse(HttpStatusCode.Conflict,
                         context.Exception);
                     break;
-                case CertificateInvalidException ci:
-                case CertificateUntrustedException cu:
                 case UnauthorizedAccessException ue:
+                case SecurityException se:
                     context.Result = GetResponse(HttpStatusCode.Unauthorized,
                         context.Exception);
-                    break;
-                case MethodCallException mce:
-                    context.Result = GetResponse(HttpStatusCode.BadRequest,
-                       context.Exception);
                     break;
                 case MethodCallStatusException mcs:
                     context.Result = GetResponse((HttpStatusCode)mcs.Result,
                         context.Exception);
                     break;
+                case JsonReaderException jre:
+                case MethodCallException mce:
                 case BadRequestException br:
-                case ArgumentException ae:
+                case ArgumentException are:
                     context.Result = GetResponse(HttpStatusCode.BadRequest,
                         context.Exception);
                     break;
@@ -63,6 +73,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Filters {
                     break;
                 case TimeoutException te:
                     context.Result = GetResponse(HttpStatusCode.RequestTimeout,
+                        context.Exception);
+                    break;
+                case SocketException sex:
+                case CommunicationException ce:
+                    context.Result = GetResponse(HttpStatusCode.BadGateway,
                         context.Exception);
                     break;
 

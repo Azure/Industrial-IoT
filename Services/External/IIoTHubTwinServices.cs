@@ -20,14 +20,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External {
         /// </summary>
         /// <param name="device"></param>
         /// <returns></returns>
-        Task<TwinModel> CreateOrUpdateAsync(TwinModel device);
+        Task<DeviceTwinModel> CreateOrUpdateAsync(DeviceTwinModel device);
 
         /// <summary>
         /// Returns twin
         /// </summary>
         /// <param name="twinId"></param>
         /// <returns></returns>
-        Task<TwinModel> GetAsync(string twinId);
+        Task<DeviceTwinModel> GetAsync(string twinId);
 
         /// <summary>
         /// Returns registration info
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External {
         /// <param name="query"></param>
         /// <param name="continuation"></param>
         /// <returns></returns>
-        Task<TwinListModel> QueryAsync(string query,
+        Task<DeviceTwinListModel> QueryAsync(string query,
             string continuation);
 
         /// <summary>

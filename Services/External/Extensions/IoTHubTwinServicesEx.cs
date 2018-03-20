@@ -17,9 +17,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External {
         /// <param name="service"></param>
         /// <param name="query"></param>
         /// <returns></returns>
-        public static async Task<List<TwinModel>> QueryAsync(
+        public static async Task<List<DeviceTwinModel>> QueryAsync(
             this IIoTHubTwinServices service, string query) {
-            var result = new List<TwinModel>();
+            var result = new List<DeviceTwinModel>();
             string continuation = null;
             do {
                 var response = await service.QueryAsync(query, continuation);

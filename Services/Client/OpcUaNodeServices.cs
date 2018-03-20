@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
     using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -47,8 +48,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
 
             // browse child nodes
             return await _client.ExecuteServiceAsync(endpoint, async session => {
-                var rootId = request?.NodeId != null ? new NodeId(request.NodeId) :
-                    ObjectIds.ObjectsFolder.ToString();
+                var rootId = request?.NodeId?.ToNodeId(session.MessageContext) ??
+                ObjectIds.ObjectsFolder;
 
                 var excludeReferences = request?.ExcludeReferences ?? false;
                 var result = new BrowseResultModel();
@@ -60,8 +61,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
                         true, 0, out var continuationPoint, out var references);
                     if (references != null) {
                         foreach (var nodeReference in references) {
-                            var nodeId = ExpandedNodeId.ToNodeId(
-                                nodeReference.NodeId, session.NamespaceUris);
+                            var nodeId = nodeReference.NodeId.ToNodeId(session.NamespaceUris);
                             try {
                                 response = session.Browse(null, null, nodeId, 0,
                                     BrowseDirection.Forward,
@@ -73,7 +73,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
                                     nodeId, request?.NodeId, (childReferences.Count != 0));
                                 result.References.Add(new NodeReferenceModel {
                                     BrowseName = nodeReference.BrowseName.ToString(),
-                                    Id = nodeReference.ReferenceTypeId.ToString(),
+                                    Id = nodeReference.ReferenceTypeId.AsString(
+                                        session.MessageContext),
                                     Target = model
                                 });
                             }
@@ -120,10 +121,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
                     if (!isInput && nodeReference.BrowseName != BrowseNames.OutputArguments) {
                         continue;
                     }
-                    var node = ExpandedNodeId.ToNodeId(nodeReference.NodeId, session.NamespaceUris);
+                    var node = nodeReference.NodeId.ToNodeId(session.NamespaceUris);
                     var argumentsNode = session.ReadNode(
-                         ExpandedNodeId.ToNodeId(nodeReference.NodeId, session.NamespaceUris))
-                            as VariableNode;
+                         nodeReference.NodeId.ToNodeId(session.NamespaceUris)) as VariableNode;
                     if (argumentsNode == null) {
                         continue;
                     }
@@ -141,7 +141,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
                             ValueRank = argument.ValueRank,
                             ArrayDimensions = argument.ArrayDimensions.ToArray(),
                             Description = argument.Description.ToString(),
-                            TypeId = argument.DataType.ToString(),
+                            TypeId = argument.DataType.AsString(session.MessageContext),
                             TypeName = dataTypeIdNode.DisplayName.Text,
                         };
                         argList.Add(arg);
@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
             return _client.ExecuteServiceAsync(endpoint, session => {
                 var nodesToRead = new ReadValueIdCollection {
                     new ReadValueId {
-                        NodeId = new NodeId(request.NodeId),
+                        NodeId = request.NodeId.ToNodeId(session.MessageContext),
                         AttributeId = Attributes.Value,
                         IndexRange = null,
                         DataEncoding = null
@@ -228,7 +228,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
                     session.TypeTree);
                 var nodesToWrite = new WriteValueCollection{
                     new WriteValue {
-                        NodeId = new NodeId(request.Node.Id),
+                        NodeId = request.Node.Id.ToNodeId(session.MessageContext),
                         AttributeId = Attributes.Value,
                         Value = new DataValue(_codec.Decode(
                             request.Value, builtinType, request.Node.ValueRank)),
@@ -270,15 +270,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
                 if (request.InputArguments != null) {
                     foreach (var arg in request.InputArguments) {
                         var builtinType = TypeInfo.GetBuiltInType(
-                            new NodeId(arg.TypeId), session.TypeTree);
+                            arg.TypeId.ToNodeId(session.MessageContext), session.TypeTree);
                         args.Add(_codec.Decode(arg.Value, builtinType, arg.ValueRank));
                     }
                 }
                 var requests = new CallMethodRequestCollection {
                     new CallMethodRequest {
-                        ObjectId = request.ObjectId != null ?
-                            new NodeId(request.ObjectId) : null,
-                        MethodId = new NodeId(request.MethodId),
+                        ObjectId = request.ObjectId?.ToNodeId(session.MessageContext),
+                        MethodId = request.MethodId.ToNodeId(session.MessageContext),
                         InputArguments = args
                     }
                 };
@@ -311,7 +310,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
 
             var currentNode = session.ReadNode(nodeId);
             var model = new NodeModel {
-                Id = nodeId.ToString(),
+                Id = nodeId.AsString(session.MessageContext),
                 ParentNode = parentNode,
                 Text = currentNode.DisplayName.ToString(),
                 NodeClass = currentNode.NodeClass.ToString(),
@@ -320,7 +319,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
             if (currentNode is VariableNode variableNode) {
                 model.AccessLevel = variableNode.UserAccessLevel.ToString();
                 model.ValueRank = variableNode.ValueRank;
-                model.DataType = variableNode.DataType.ToString();
+                model.DataType =
+                    variableNode.DataType.AsString(session.MessageContext);
             }
             if (currentNode is ObjectNode objectNode) {
                 model.EventNotifier = objectNode.EventNotifier.ToString();

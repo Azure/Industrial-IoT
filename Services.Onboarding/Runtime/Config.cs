@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.Runtime {
     using Microsoft.Azure.Devices;
-    using Microsoft.Azure.EventHubs;
     using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
     using Microsoft.Azure.IoTSolutions.Common.Exceptions;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.EventHub;
@@ -141,16 +140,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.Runtime {
         /// <param name="key"></param>
         /// <returns></returns>
         public TimeSpan GetTimeSpan(string key, TimeSpan? defaultValue = null) {
-            try {
-                return TimeSpan.Parse(GetString(key));
-            }
-            catch (Exception e) {
+            if (!TimeSpan.TryParse(GetString(key), out var result)) {
                 if (defaultValue != null) {
                     return (TimeSpan)defaultValue;
                 }
                 throw new InvalidConfigurationException(
-                    $"Unable to load configuration value for '{key}'", e);
+                    $"Unable to load timespan value for '{key}' from configuration.");
             }
+            return result;
         }
 
         /// <summary>

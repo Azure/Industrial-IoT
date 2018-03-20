@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
 
     /// <summary>
-    /// Method metadata request model for webservice api
+    /// Method metadata request model for edge service api
     /// </summary>
     public class MethodMetadataRequestApiModel {
 
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         }
 
         /// <summary>
-        /// Convert back to service node model
+        /// Convert back to service model
         /// </summary>
         /// <returns></returns>
         public MethodMetadataRequestModel ToServiceModel() {

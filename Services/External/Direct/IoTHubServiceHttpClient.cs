@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Direct {
         /// </summary>
         /// <param name="twin">Device information</param>
         /// <returns>Device information</returns>
-        public Task<TwinModel> CreateOrUpdateAsync(TwinModel twin) {
+        public Task<DeviceTwinModel> CreateOrUpdateAsync(DeviceTwinModel twin) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 // First try create
                 try {
@@ -138,7 +138,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Direct {
         /// </summary>
         /// <param name="twinId"></param>
         /// <returns>Device information</returns>
-        public Task<TwinModel> GetAsync(string twinId) {
+        public Task<DeviceTwinModel> GetAsync(string twinId) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"/twins/{twinId}");
                 var response = await _httpClient.GetAsync(request);
@@ -167,11 +167,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Direct {
         /// <param name="query"></param>
         /// <param name="continuation"></param>
         /// <returns></returns>
-        public async Task<TwinListModel> QueryAsync(string query,
+        public async Task<DeviceTwinListModel> QueryAsync(string query,
             string continuation) {
             var response = await QueryRawAsync(query, continuation);
             var result = (JArray)JToken.Parse(response.Item2);
-            return new TwinListModel {
+            return new DeviceTwinListModel {
                 ContinuationToken = response.Item1,
                 Items = result.Select(ToDeviceTwinModel).ToList()
             };
@@ -397,8 +397,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Direct {
         /// </summary>
         /// <param name="result"></param>
         /// <returns></returns>
-        private static TwinModel ToDeviceTwinModel(dynamic result) {
-            return new TwinModel {
+        private static DeviceTwinModel ToDeviceTwinModel(dynamic result) {
+            return new DeviceTwinModel {
                 Etag = result.etag,
                 Id = result.deviceId,
                 Tags = ((JObject)result.tags)?.Children().ToDictionary(

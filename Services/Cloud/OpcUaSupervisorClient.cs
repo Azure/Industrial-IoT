@@ -12,13 +12,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
     using Newtonsoft.Json;
     using System;
     using System.Threading.Tasks;
+    using System.Diagnostics;
 
     /// <summary>
     /// Implements node and publish services through edge command control against
     /// the OPC UA edge device module receiving service requests via device method
     /// call.
     /// </summary>
-    public class OpcUaSupervisorClient : IOpcUaAdhocBrowseServices, IOpcUaAdhocNodeServices {
+    public sealed class OpcUaSupervisorClient : IOpcUaAdhocBrowseServices, IOpcUaAdhocNodeServices {
 
         /// <summary>
         /// Create service
@@ -136,6 +137,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             if (string.IsNullOrEmpty(endpoint.SupervisorId)) {
                 throw new ArgumentNullException(nameof(endpoint.SupervisorId));
             }
+            var sw = Stopwatch.StartNew();
             var result = await _twin.CallMethodAsync(endpoint.SupervisorId,
                 new MethodParameterModel {
                     Name = service,
@@ -144,6 +146,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                         request
                     })
                 });
+            _logger.Debug($"Supervisor call '{service}' took {sw.ElapsedMilliseconds} ms)!",
+                () => { });
             if (result.Status != 200) {
                 throw new MethodCallStatusException(result.Status, result.JsonPayload);
             }

@@ -4,11 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
+    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Filters;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
     using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
     using Microsoft.Azure.Devices.Edge;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models;
 
     /// <summary>
     /// Supervisor settings controller
@@ -67,13 +70,41 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
         /// <summary>
         /// Called to enable or disable discovery
         /// </summary>
-        /// <param name="enable"></param>
+        /// <param name="modeToken"></param>
         /// <returns></returns>
-        public Task SetDiscoveringAsync(bool enable) {
-            if (enable) {
-                return _discovery.StartDiscoveryAsync();
+        public Task SetDiscoveryAsync(JToken modeToken) {
+            DiscoveryMode mode;
+            switch (modeToken.Type) {
+                case JTokenType.Null:
+                    mode = DiscoveryMode.Off;
+                    break;
+                case JTokenType.Boolean:
+                    mode = (bool)modeToken ?
+                        DiscoveryMode.Local : DiscoveryMode.Off;
+                    break;
+                case JTokenType.String:
+                    if (Enum.TryParse((string)modeToken, true, out mode)) {
+                        break;
+                    }
+                    throw new ArgumentException("bad mode value");
+                default:
+                    throw new NotSupportedException("bad key value");
             }
-            return _discovery.StopDiscoveryAsync();
+            return _discovery.SetDiscoveryModeAsync(mode);
+        }
+
+        /// <summary>
+        /// Called to update supervisor configuration
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public async Task SetConfigurationAsync(JToken config) {
+            var model = config.ToObject<SupervisorConfigApiModel>();
+
+            await _discovery.UpdateScanConfigurationAsync(model.AddressRangesToScan, 
+                model.PortRangesToScan, model.IdleTimeBetweenScans);
+
+            // ...
         }
 
         private readonly IOpcUaDiscoveryServices _discovery;

@@ -3,9 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.Common {
+namespace System {
     using Newtonsoft.Json.Linq;
-    using System;
     using System.Linq;
     using System.Security.Cryptography;
     using System.Text;
@@ -136,8 +135,8 @@ namespace Microsoft.Azure.IoTSolutions.Common {
             if (ex is T) {
                 return (T)ex;
             }
-            if (ex is AggregateException) {
-                var ae = ((AggregateException)ex).Flatten();
+            if (ex is AggregateException ae) {
+                ae = ae.Flatten();
                 foreach (var e in ae.InnerExceptions) {
                     var found = GetFirstOf<T>(e);
                     if (found != null) {

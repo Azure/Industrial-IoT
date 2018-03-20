@@ -4,9 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
-    using Microsoft.Azure.Devices.Edge;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Filters;
     using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services;
+    using Microsoft.Azure.Devices.Edge;
     using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
     using System;
     using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
     /// Supervisor method controller
     /// </summary>
     [Version(1)]
+    [ExceptionsFilter]
     public class OpcUaSupervisorMethods : IOpcUaSupervisorMethods, IMethodController {
 
         /// <summary>
@@ -24,7 +26,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
         /// <param name="validate"></param>
         /// <param name="nodes"></param>
         /// <param name="logger"></param>
-        public OpcUaSupervisorMethods(IOpcUaEndpointValidator validate,
+        public OpcUaSupervisorMethods(IOpcUaValidationServices validate,
             IOpcUaDiscoveryServices discovery, IOpcUaAdhocBrowseServices browse,
             IOpcUaAdhocNodeServices nodes, ILogger logger) {
             _discovery = discovery ?? throw new ArgumentNullException(nameof(discovery));
@@ -39,10 +41,21 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        public async Task<ServerEndpointApiModel> ValidateAsync(
+        public async Task<ApplicationApiModel> ValidateEndpointAsync(
             EndpointApiModel endpoint) {
-            var result = await _validate.ValidateAsync(endpoint.ToServiceModel());
-            return new ServerEndpointApiModel(result);
+            var result = await _validate.ValidateEndpointAsync(endpoint.ToServiceModel());
+            return new ApplicationApiModel(result);
+        }
+
+        /// <summary>
+        /// Validate application
+        /// </summary>
+        /// <param name="discoveryUri"></param>
+        /// <returns></returns>
+        public async Task<ApplicationApiModel> DiscoverApplicationAsync(
+            Uri discoveryUri) {
+            var result = await _validate.DiscoverApplicationAsync(discoveryUri);
+            return new ApplicationApiModel(result);
         }
 
         /// <summary>
@@ -110,25 +123,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
             return new MethodCallResponseApiModel(result);
         }
 
-        /// <summary>
-        /// Called to enable or disable discovery
-        /// </summary>
-        /// <param name="enable"></param>
-        /// <returns></returns>
-        public async Task<bool> DiscoverAsync(bool enable) {
-            if (enable) {
-                await _discovery.StartDiscoveryAsync();
-            }
-            else {
-                await _discovery.StopDiscoveryAsync();
-            }
-            return enable;
-        }
-
         private readonly ILogger _logger;
-        private readonly IOpcUaDiscoveryServices _discovery;
+        private readonly EdgeService.IOpcUaDiscoveryServices _discovery;
         private readonly IOpcUaAdhocBrowseServices _browse;
         private readonly IOpcUaAdhocNodeServices _nodes;
-        private readonly IOpcUaEndpointValidator _validate;
+        private readonly IOpcUaValidationServices _validate;
     }
 }

@@ -13,13 +13,17 @@ namespace Microsoft.Azure.IoTSolutions.Common.Exceptions {
     /// resource has already been created.
     /// </summary>
     public class ConflictingResourceException : Exception {
+
+        /// <inheritdoc />
         public ConflictingResourceException() {
         }
 
-        public ConflictingResourceException(string message) : 
+        /// <inheritdoc />
+        public ConflictingResourceException(string message) :
             base(message) {
         }
 
+        /// <inheritdoc />
         public ConflictingResourceException(string message, Exception innerException) :
             base(message, innerException) {
         }

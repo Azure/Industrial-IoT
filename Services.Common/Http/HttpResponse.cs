@@ -1,34 +1,27 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-using System.Net;
-using System.Net.Http.Headers;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.Common.Http {
+    using System.Net;
+    using System.Net.Http.Headers;
 
-    public class HttpResponse : IHttpResponse
-    {
-        private const int TOO_MANY_REQUESTS = 429;
+    public class HttpResponse : IHttpResponse {
 
-        public HttpResponse()
-        {
-        }
-
-        public HttpResponse(
-            HttpStatusCode statusCode,
-            string content,
-            HttpResponseHeaders headers)
-        {
-            this.StatusCode = statusCode;
-            this.Headers = headers;
-            this.Content = content;
-        }
-
+        /// <summary>
+        /// Status code
+        /// </summary>
         public HttpStatusCode StatusCode { get; internal set; }
-        public HttpResponseHeaders Headers { get; internal set; }
-        public string Content { get; internal set; }
 
-        public bool IsRetriableError => this.StatusCode == HttpStatusCode.NotFound ||
-                                        this.StatusCode == HttpStatusCode.RequestTimeout ||
-                                        (int) this.StatusCode == TOO_MANY_REQUESTS;
+        /// <summary>
+        /// Headers
+        /// </summary>
+        public HttpResponseHeaders Headers { get; internal set; }
+
+        /// <summary>
+        /// Content
+        /// </summary>
+        public string Content { get; internal set; }
     }
 }

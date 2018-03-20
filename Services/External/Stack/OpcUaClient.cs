@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Client {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
     using Microsoft.Azure.Devices.Proxy;
     using Microsoft.Azure.Devices.Proxy.Provider;
     using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
@@ -216,15 +216,15 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Client {
                     // Get endpoints from current discovery server
                     //
                     var endpoints = client.GetEndpoints(null);
-                    _logger.Debug($"Browsed {discoveryUrl} ({endpoints.Count()})...",
-                        () => { });
                     // ReplaceLocalHostWithRemoteHost(endpoints, discoveryUrl);
                     if (!endpoints.Any()) {
                         continue;
                     }
 
                     foreach (var ep in endpoints.Where(ep =>
-                        ep.Server.ApplicationType != ApplicationType.DiscoveryServer)) {
+                        ep.Server.ApplicationType != Opc.Ua.ApplicationType.DiscoveryServer)) {
+                        _logger.Debug($"Found endpoint {ep.EndpointUrl} at {discoveryUrl}...",
+                            () => { });
                         result.Add(new OpcUaDiscoveryResult {
                             Description = ep,
                             Capabilities = nextServer.Item2
@@ -247,13 +247,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Client {
                                     server.ServerCapabilities.ToList()));
                                 visitedUris.Add(url);
                             }
-                            else {
-                                _logger.Debug($"Skipping {url} from LDS-ME.", () => { });
-                            }
                         }
                     }
                     catch {
                         // Old lds, just continue...
+                        _logger.Debug($"{discoveryUrl} does not support ME extension...",
+                            () => { });
                     }
 
                     //
@@ -266,9 +265,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Client {
                         if (!visitedUris.Contains(url)) {
                             queue.Enqueue(Tuple.Create(discoveryUrl, new List<string>()));
                             visitedUris.Add(url);
-                        }
-                        else {
-                            _logger.Debug($"Skipping {url} from LDS we have.", () => { });
                         }
                     }
                 }
@@ -496,7 +492,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Client {
         /// </summary>
         private async Task<ServerSession> CreateSessionAsync(SessionKey key) {
             var entry = new ServerSession { Endpoint = key.Endpoint };
-            await entry.Config.Validate(ApplicationType.Client);
+            await entry.Config.Validate(Opc.Ua.ApplicationType.Client);
             var noValidation = (entry.Endpoint.IsTrusted ?? false) ||
                 entry.Endpoint.SecurityMode == SecurityMode.None;
             if (_clientCert != null) {
@@ -623,7 +619,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Client {
         private static ApplicationConfiguration CreateApplicationConfiguration() {
             return new ApplicationConfiguration {
                 ApplicationName = "UA Core Sample Client",
-                ApplicationType = ApplicationType.Client,
+                ApplicationType = Opc.Ua.ApplicationType.Client,
                 ApplicationUri = "urn:" + Utils.GetHostName() + ":OPCFoundation:CoreSampleClient",
                 SecurityConfiguration = new SecurityConfiguration {
                     ApplicationCertificate = new CertificateIdentifier {

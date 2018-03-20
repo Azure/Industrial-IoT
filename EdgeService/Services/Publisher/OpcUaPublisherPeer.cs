@@ -8,9 +8,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Twin {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
     using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using Microsoft.Azure.Devices.Edge;
     using System;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Devices.Edge;
 
     /// <summary>
     /// Twin as peer of publisher module
@@ -26,8 +26,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Twin {
         /// Create publisher peer service
         /// </summary>
         /// <param name="publisher"></param>
-        public OpcUaPublisherPeer(IOpcUaAdhocPublishServices publisher, IEventEmitter events, 
-            ILogger logger) {
+        public OpcUaPublisherPeer(IOpcUaAdhocPublishServices publisher,
+            IEventEmitter events, ILogger logger) {
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -40,7 +40,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Twin {
         /// <returns></returns>
         public Task SetEndpointAsync(TwinEndpointModel endpoint) {
             if (Endpoint != endpoint) {
-                _logger.Info("Updating endpoint", () => new { Old = Endpoint, New = endpoint });
+                _logger.Info("Updating endpoint", () => new {
+                    Old = Endpoint,
+                    New = endpoint
+                });
                 Endpoint = endpoint;
             }
             return Task.CompletedTask;
@@ -54,7 +57,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Twin {
         public async Task<PublishResultModel> NodePublishAsync(
             PublishRequestModel request) {
 
-            var result = await _publisher.NodePublishAsync(Endpoint.ToServiceModel(), request);
+            var result = await _publisher.NodePublishAsync(
+                Endpoint.ToServiceModel(), request);
             // Update reported property
             await _events.SendAsync(request.NodeId, request.Enabled);
             return result;
@@ -66,10 +70,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Twin {
         /// <param name="nodeId"></param>
         /// <returns></returns>
         public Task NodePublishAsync(string nodeId, bool? enable) {
-            return _publisher.NodePublishAsync(Endpoint.ToServiceModel(), new PublishRequestModel {
-                NodeId = nodeId,
-                Enabled = enable
-            });
+            return _publisher.NodePublishAsync(Endpoint.ToServiceModel(),
+                new PublishRequestModel {
+                    NodeId = nodeId,
+                    Enabled = enable
+                });
         }
 
         private readonly IOpcUaAdhocPublishServices _publisher;

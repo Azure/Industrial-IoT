@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// call request model for webservice api
+    /// call request model for edge service api
     /// </summary>
     public class MethodCallRequestApiModel {
         /// <summary>
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         }
 
         /// <summary>
-        /// Convert back to service node model
+        /// Convert back to service model
         /// </summary>
         /// <returns></returns>
         public MethodCallRequestModel ToServiceModel() {

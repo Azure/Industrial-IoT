@@ -30,8 +30,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1 {
         /// <summary>
         /// Enable or disable discovery on supervisor
         /// </summary>
-        /// <param name="enable"></param>
+        /// <param name="modeToken"></param>
         /// <returns></returns>
-        Task SetDiscoveringAsync(bool enable);
+        Task SetDiscoveryAsync(JToken modeToken);
     }
 }

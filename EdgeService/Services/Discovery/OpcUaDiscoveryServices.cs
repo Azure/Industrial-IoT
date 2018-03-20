@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
     using System.Linq;
     using System.Net;
     using System.Net.NetworkInformation;
-    using System.Net.Sockets;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -29,43 +28,90 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <summary>
         /// Delay time between discovery sweeps
         /// </summary>
-        public TimeSpan DiscoverIdleTime { get; set; } = TimeSpan.FromMinutes(1);
+        public TimeSpan? DiscoveryIdleTime { get; set; }
 
         /// <summary>
-        /// Max parallel threads to execute discovery process
+        /// Discovery configuration
         /// </summary>
-        public int MaxDegreeOfParallism { get; set; } = Environment.ProcessorCount / 4;
+        public OpcUaDiscoveryOptions Options { get; set; } = OpcUaDiscoveryOptions.Default;
 
         /// <summary>
         /// Create service
         /// </summary>
         /// <param name="logger"></param>
         public OpcUaDiscoveryServices(IOpcUaClient client, IEventEmitter events,
-            ILogger logger) {
+            ITaskScheduler scheduler, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _events = events ?? throw new ArgumentNullException(nameof(events));
-            _discovered = new SortedDictionary<DateTime, List<ServerModel>>();
+            _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
+            _discovered = new SortedDictionary<DateTime, List<ApplicationModel>>();
             _lock = new SemaphoreSlim(1);
+        }
+
+        /// <summary>
+        /// Update discovery mode
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public async Task SetDiscoveryModeAsync(DiscoveryMode mode) {
+            try {
+                await _lock.WaitAsync();
+                if (Options.Mode != mode) {
+                    Options.Mode = mode;
+                    await RestartAsync();
+                }
+            }
+            finally {
+                _lock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Update scan configuration
+        /// </summary>
+        /// <param name="addressRanges"></param>
+        /// <param name="portRanges"></param>
+        /// <param name="discoveryIdleTime"></param>
+        /// <returns></returns>
+        public async Task UpdateScanConfigurationAsync(string addressRanges,
+            string portRanges, TimeSpan? discoveryIdleTime) {
+            try {
+                await _lock.WaitAsync();
+                DiscoveryIdleTime = discoveryIdleTime;
+                var restart = Options.Update(addressRanges, portRanges);
+                if (restart) {
+                    await RestartAsync();
+                }
+            }
+            finally {
+                _lock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Dispose discovery services
+        /// </summary>
+        public void Dispose() {
+            _lock.Wait();
+            try {
+                StopAsync().Wait();
+            }
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <summary>
         /// Start discovery
         /// </summary>
         /// <returns></returns>
-        public async Task StartDiscoveryAsync() {
-            if (_completed != null) {
-                return;
-            }
-            try {
-                await _lock.WaitAsync();
-                if (_completed == null) {
-                    _discovery = new CancellationTokenSource();
-                    _completed = Task.Run(() => RunAsync(_discovery.Token));
-                }
-            }
-            finally {
-                _lock.Release();
+        private async Task RestartAsync() {
+            await StopAsync();
+            if (Options.Mode != DiscoveryMode.Off) {
+                _discovery = new CancellationTokenSource();
+                _completed = _scheduler.Run(() =>
+                    RunAsync(Options.Clone(), _discovery.Token));
             }
         }
 
@@ -73,49 +119,32 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// Stop discovery
         /// </summary>
         /// <returns></returns>
-        public async Task StopDiscoveryAsync() {
+        private async Task StopAsync() {
             if (_completed == null) {
                 return;
             }
-            Task completed;
-            try {
-                await _lock.WaitAsync();
-                if (_completed == null) {
-                    return;
-                }
-                completed = _completed;
-                _discovery.Cancel();
-                _completed = null;
-                _discovery = null;
-                _discovered.Clear();
-            }
-            finally {
-                _lock.Release();
-            }
+            var completed = _completed;
+            _discovery.Cancel();
+            _completed = null;
+            _discovery = null;
+            _discovered.Clear();
             await completed;
-        }
-
-        /// <summary>
-        /// Dispose discovery services
-        /// </summary>
-        public void Dispose() {
-            StopDiscoveryAsync().Wait();
         }
 
         /// <summary>
         /// Scan and discover in continuous loop
         /// </summary>
         /// <param name="ct"></param>
-        private async Task RunAsync(CancellationToken ct) {
+        private async Task RunAsync(OpcUaDiscoveryOptions options, CancellationToken ct) {
             // Run scans until cancelled
             while (!ct.IsCancellationRequested) {
                 try {
-                    var timestamp = DateTime.UtcNow;
 
                     //
                     // Discover
                     //
-                    var discovered = await RunNetworkDiscoveryAsync(ct);
+                    var discovered = await DiscoverServersAsync(options, ct);
+                    var timestamp = DateTime.UtcNow;
 
                     //
                     // Update cache
@@ -137,15 +166,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                     try {
                         var messages = discovered
                             .SelectMany(server => server.Endpoints
-                                .Select(endpoint => new ServerEndpointDiscoveryModel {
-                                    ServerEndpoint = new ServerEndpointModel {
-                                        Server = server.Server,
-                                        Endpoint = endpoint
-                                    },
+                                .Select(endpoint => new DiscoveryEventModel {
+                                    Application = server.Application,
+                                    Endpoint = endpoint,
                                     TimeStamp = timestamp
                                 }))
-                            .Append(new ServerEndpointDiscoveryModel {
-                                ServerEndpoint = null, // last
+                            .Append(new DiscoveryEventModel {
+                                Endpoint = null, // last
                                 TimeStamp = timestamp
                             })
                             .Select((discovery, i) => {
@@ -172,7 +199,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                 //
                 try {
                     if (!ct.IsCancellationRequested) {
-                        await Task.Delay(DiscoverIdleTime, ct);
+                        await Task.Delay(DiscoveryIdleTime ?? TimeSpan.FromMinutes(3), ct);
                     }
                 }
                 catch (TaskCanceledException) {
@@ -186,116 +213,180 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<List<ServerModel>> RunNetworkDiscoveryAsync(
-            CancellationToken ct) {
-            var discovered = new List<ServerModel>();
+        private async Task<List<ApplicationModel>> DiscoverServersAsync(
+            OpcUaDiscoveryOptions options, CancellationToken ct) {
+            var discovered = new List<ApplicationModel>();
+            if (options.Mode == DiscoveryMode.Off) {
+                return discovered;
+            }
+
             var watch = Stopwatch.StartNew();
 
             //
-            // Scan for well known opc ports
+            // Select ports to scan from opc ua range and unassigned
             //
-            var portscan = new TransformManyBlock<PingReply, Uri>(async ping => {
-                var args = WellKnownEndpoints(ping.Address)
-                    .Select(ep => {
-                        var tcs = new TaskCompletionSource<IPEndPoint>();
-                        var arg = new SocketAsyncEventArgs { RemoteEndPoint = ep };
-                        arg.Completed += (s, e) => {
-                            if (e.SocketError == SocketError.Success) {
-                                tcs.TrySetResult((IPEndPoint)e.RemoteEndPoint);
-                            }
-                            else {
-                                tcs.TrySetResult(null);
-                            }
-                        };
-                        if (!Socket.ConnectAsync(SocketType.Stream,
-                            ProtocolType.IP, arg)) {
-                            tcs.TrySetResult(null);
-                        }
-                        return Tuple.Create(arg, tcs.Task);
-                    });
-                var cts = new CancellationTokenSource(3000);
-                cts.Token.Register(() => {
-                    foreach (var arg in args.Where(t => !t.Item2.IsCompleted)) {
-                        Socket.CancelConnectAsync(arg.Item1);
+            var portranges = new TransformManyBlock<PingReply, IEnumerable<IPEndPoint>>(
+                reply => {
+                    Console.WriteLine(reply.Address);
+                    var ranges = PortRange.OpcUa;
+                    if (options.Mode == DiscoveryMode.Scan) {
+                        ranges = ranges.Concat(PortRange.Unassigned);
                     }
+                    else if (options.PortRanges != null) {
+                        ranges = ranges.Concat(options.PortRanges);
+                    }
+                    return ranges.SelectMany(x => x.GetEndpoints(reply.Address))
+#if FALSE
+                        .Distinct()
+#endif
+#if TRUE
+                        .Batch(kPortScanBatchSize);
+#else
+                        .YieldReturn();
+#endif
+                }, new ExecutionDataflowBlockOptions {
+                    MaxDegreeOfParallelism = options.MaxDegreeOfParallelism,
+                    BoundedCapacity = options.MaxDegreeOfParallelism,
+                    CancellationToken = ct
                 });
-                var results = await Task.WhenAll(args.Select(t => t.Item2));
-                cts.Dispose();
-                foreach (var arg in args) { arg.Item1.ConnectSocket?.Dispose(); }
-                var ports = results.Where(ep => ep != null).Select(ep => ep.Port);
-                if (!ports.Any()) {
-                    // No ports open
-                    return Enumerable.Empty<Uri>();
-                }
-                // Get host
-                string host;
-                try {
-                    var entry = await Dns.GetHostEntryAsync(ping.Address);
-                    host = entry.HostName ?? ping.Address.ToString();
-                }
-                catch {
-                    host = ping.Address.ToString();
-                }
-                return ports.Select(port => new Uri($"opc.tcp://{host}:{port}"));
-            }, new ExecutionDataflowBlockOptions {
-                MaxDegreeOfParallelism = MaxDegreeOfParallism,
-                CancellationToken = ct
-            });
 
             //
-            // Discover on discovery url
+            // Search discovery endpoint on endpoint address
             //
-            var discover = new ActionBlock<Uri>(async url => {
-                var results = await _client.DiscoverAsync(url, ct);
-                if (results.Any()) {
-                    _logger.Info($"Found {results.Count()} endpoints on {url}.",
-                        () => { });
-                }
+            var discovery = new ActionBlock<IPEndPoint>(
+                async ep => {
+                    // Get host
+                    string host;
+                    try {
+                        var entry = await Dns.GetHostEntryAsync(ep.Address);
+                        host = entry.HostName ?? ep.Address.ToString();
+                    }
+                    catch {
+                      host = ep.Address.ToString();
+                    }
 
-                // Merge results...
-                foreach (var result in results) {
-                    discovered.AddOrUpdate(result.ToServiceModel(_events.DeviceId));
-                }
+                    // Connect to endpoint
+                    var url = new Uri($"opc.tcp://{host}:{ep.Port}");
+#if TRACE
+                    _logger.Debug($"Try discovery on {url}...", () => { });
+#endif
+                    var results = await _client.DiscoverAsync(url, ct);
+                    if (results.Any()) {
+                        _logger.Info($"Found {results.Count()} endpoints on {url}.",
+                            () => { });
+                    }
 
-            }, new ExecutionDataflowBlockOptions {
-                MaxDegreeOfParallelism = MaxDegreeOfParallism,
-                CancellationToken = ct
-            });
+                    // Merge results...
+                    foreach (var result in results) {
+                        discovered.AddOrUpdate(result.ToServiceModel(_events.DeviceId));
+                    }
+
+                }, new ExecutionDataflowBlockOptions {
+                    MaxDegreeOfParallelism = options.MaxDegreeOfParallelism,
+                    CancellationToken = ct
+                });
 
             //
             // Set up scanner pipeline and start discovery
             //
-            portscan.LinkTo(discover, new DataflowLinkOptions { PropagateCompletion = true });
-            using (var scanner = new NetworkScanner(_logger, portscan, 3000, ct)) {
-                await discover.Completion;
+            var local = options.Mode == DiscoveryMode.Local;
+            using (var portscan = new PortScanner(_logger, portranges, discovery, ct))
+            using (var netscanner = new NetworkScanner(_logger, portranges,
+                local, local ? null : options.AddressRanges, NetworkClass.Wired, ct)) {
+                await discovery.Completion;
             }
             ct.ThrowIfCancellationRequested();
-            _logger.Info($"Discovery took {watch.Elapsed} and " +
-                $"found {discovered.Count} servers.", () => { });
+            _logger.Info($"Discovery took {watch.Elapsed} and found {discovered.Count} " +
+                $"servers.", () => { });
             return discovered;
         }
 
         /// <summary>
-        /// Helper to yield well known ports
+        /// Server discovery run configuration
         /// </summary>
-        /// <param name="address"></param>
-        /// <returns></returns>
-        private static IEnumerable<IPEndPoint> WellKnownEndpoints(
-            IPAddress address) {
-            yield return new IPEndPoint(address, 4840);
-            yield return new IPEndPoint(address, 4841);
-            yield return new IPEndPoint(address, 51210);
-            yield return new IPEndPoint(address, 61210);
-            yield return new IPEndPoint(address, 443);
+        public class OpcUaDiscoveryOptions {
+
+            public static OpcUaDiscoveryOptions Default => new OpcUaDiscoveryOptions();
+
+            internal OpcUaDiscoveryOptions Clone() => new OpcUaDiscoveryOptions {
+                Mode = Mode,
+                MaxDegreeOfParallelism = MaxDegreeOfParallelism,
+                AddressRanges = AddressRanges,
+                PortRanges = PortRanges
+            };
+
+            /// <summary>
+            /// Discovery mode
+            /// </summary>
+            public DiscoveryMode Mode { get; set; } = DiscoveryMode.Off;
+
+            /// <summary>
+            /// Max parallel threads to execute discovery process
+            /// </summary>
+            public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount;
+
+            /// <summary>
+            /// Address ranges to use or null to use from network info
+            /// </summary>
+            public IEnumerable<AddressRange> AddressRanges { get; set; }
+
+            /// <summary>
+            /// Network class
+            /// </summary>
+            public NetworkClass NetworkClass { get; set; } = NetworkClass.Wired;
+
+            /// <summary>
+            /// Port ranges to use if not from discovery mode
+            /// </summary>
+            public IEnumerable<PortRange> PortRanges { get; set; }
+
+            /// <summary>
+            /// Update ranges
+            /// </summary>
+            /// <param name="addressRanges"></param>
+            /// <param name="portRanges"></param>
+            /// <returns></returns>
+            internal bool Update(string addressRanges, string portRanges) {
+                var restart = false;
+                if (!string.IsNullOrEmpty(addressRanges)) {
+                    if (AddressRange.TryParse(addressRanges, out var addresses)) {
+                        AddressRanges = addresses;
+                        restart = true;
+                    }
+                }
+                else {
+                    if (AddressRanges != null) {
+                        AddressRanges = null;
+                        restart = true;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(portRanges)) {
+                    if (PortRange.TryParse(portRanges, out var ports)) {
+                        PortRanges = ports;
+                        restart = true;
+                    }
+                }
+                else {
+                    if (PortRanges != null) {
+                        PortRanges = null;
+                        restart = true;
+                    }
+                }
+                return restart;
+            }
         }
 
         private CancellationTokenSource _discovery;
-        private SortedDictionary<DateTime, List<ServerModel>> _discovered;
         private Task _completed;
 
+        private readonly SortedDictionary<DateTime, List<ApplicationModel>> _discovered;
         private readonly SemaphoreSlim _lock;
         private readonly ILogger _logger;
         private readonly IEventEmitter _events;
+        private readonly ITaskScheduler _scheduler;
         private readonly IOpcUaClient _client;
+
+        private const int kPortScanBatchSize = 10000;
     }
 }

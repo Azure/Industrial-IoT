@@ -10,14 +10,18 @@ namespace Microsoft.Azure.IoTSolutions.Common.Exceptions {
     /// This exception is thrown when an external dependency returns any error
     /// </summary>
     public class ExternalDependencyException : Exception {
+
+        /// <inheritdoc />
         public ExternalDependencyException() {
         }
 
-        public ExternalDependencyException(string message) : 
+        /// <inheritdoc />
+        public ExternalDependencyException(string message) :
             base(message) {
         }
 
-        public ExternalDependencyException(string message, Exception innerException) : 
+        /// <inheritdoc />
+        public ExternalDependencyException(string message, Exception innerException) :
             base(message, innerException) {
         }
     }

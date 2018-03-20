@@ -11,13 +11,17 @@ namespace Microsoft.Azure.IoTSolutions.Common.Exceptions {
     /// doesn't exist.
     /// </summary>
     public class ResourceNotFoundException : Exception {
+
+        /// <inheritdoc />
         public ResourceNotFoundException() {
         }
 
+        /// <inheritdoc />
         public ResourceNotFoundException(string message) :
             base(message) {
         }
 
+        /// <inheritdoc />
         public ResourceNotFoundException(string message, Exception innerException) :
             base(message, innerException) {
         }

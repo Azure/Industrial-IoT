@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// method metadata query model for webservice api
+    /// method metadata query model for edge service api
     /// </summary>
     public class MethodMetadataResponseApiModel {
 

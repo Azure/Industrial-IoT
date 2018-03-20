@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Opc.Ua.Extensions;
 
     /// <summary>
     /// Access the edge publisher via proxy and configures it to publish to its
@@ -63,7 +64,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
                                     JsonConvertEx.DeserializeObject<PublishedNodesCollection>(json);
                                 return Task.FromResult(new PublishedNodeListModel {
                                     Items = nodelist.Select(s => new PublishedNodeModel {
-                                        NodeId = s.NodeID.ToString(),
+                                        NodeId = s.NodeID.AsString(session.MessageContext),
                                         Enabled = true
                                     }).ToList()
                                 });
@@ -105,7 +106,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
                             new NodeId("PublishNode", 2) :
                             new NodeId("UnpublishNode", 2),
                         InputArguments = new VariantCollection {
-                            new Variant(new NodeId(request.NodeId)),
+                            new Variant(request.NodeId.ToNodeId(session.MessageContext)),
                             new Variant(endpoint.Url)
                         }
                     }

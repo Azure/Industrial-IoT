@@ -39,13 +39,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Manager {
         /// </summary>
         /// <param name="twin">Device information</param>
         /// <returns>Device information</returns>
-        public Task<TwinModel> CreateOrUpdateAsync(TwinModel twin) {
+        public Task<DeviceTwinModel> CreateOrUpdateAsync(DeviceTwinModel twin) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"{_serviceUri}/devices/{twin.Id}");
                 request.SetContent(twin);
                 var response = await _httpClient.PutAsync(request);
                 response.Validate();
-                return JsonConvertEx.DeserializeObject<TwinModel>(response.Content);
+                return JsonConvertEx.DeserializeObject<DeviceTwinModel>(response.Content);
             });
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Manager {
             Dictionary<string, JToken> properties) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"{_serviceUri}/devices/{twinId}");
-                request.SetContent(new TwinModel {
+                request.SetContent(new DeviceTwinModel {
                     Id = twinId,
                     Properties = new TwinPropertiesModel {
                         Desired = properties
@@ -92,12 +92,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Manager {
         /// </summary>
         /// <param name="twinId"></param>
         /// <returns>Device information</returns>
-        public Task<TwinModel> GetAsync(string twinId) {
+        public Task<DeviceTwinModel> GetAsync(string twinId) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"{_serviceUri}/devices/{twinId}");
                 var response = await _httpClient.GetAsync(request);
                 response.Validate();
-                return JsonConvertEx.DeserializeObject<TwinModel>(response.Content);
+                return JsonConvertEx.DeserializeObject<DeviceTwinModel>(response.Content);
             });
         }
 
@@ -133,7 +133,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Manager {
         /// <param name="query"></param>
         /// <param name="continuation"></param>
         /// <returns></returns>
-        public Task<TwinListModel> QueryAsync(string query,
+        public Task<DeviceTwinListModel> QueryAsync(string query,
             string continuation) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"{_serviceUri}/devices/query");
@@ -143,7 +143,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Manager {
                 }
                 var response = await _httpClient.PostAsync(request);
                 response.Validate();
-                return JsonConvertEx.DeserializeObject<TwinListModel>(
+                return JsonConvertEx.DeserializeObject<DeviceTwinListModel>(
                     response.Content);
             });
         }

@@ -12,16 +12,17 @@ namespace Microsoft.Azure.IoTSolutions.Common.Exceptions {
     /// </summary>
     public class BadRequestException : Exception {
 
+        /// <inheritdoc />
         public BadRequestException() {
         }
 
         /// <inheritdoc />
-        public BadRequestException(string message) : 
+        public BadRequestException(string message) :
             base(message) {
         }
 
         /// <inheritdoc />
-        public BadRequestException(string message, Exception innerException) : 
+        public BadRequestException(string message, Exception innerException) :
             base(message, innerException) {
         }
     }

@@ -13,12 +13,17 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
     /// <summary>
     /// Endpoint persisted in twin and comparable
     /// </summary>
-    public class OpcUaSupervisorRegistration {
+    public sealed class OpcUaSupervisorRegistration {
 
         /// <summary>
         /// Device id for registration
         /// </summary>
         public string DeviceId { get; set; }
+
+        /// <summary>
+        /// Etag id
+        /// </summary>
+        public string Etag { get; set; }
 
         #region Twin Tags
 
@@ -32,9 +37,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         #region Twin Properties
 
         /// <summary>
-        /// Discovering state
+        /// Discovery state
         /// </summary>
-        public bool Discovering { get; set; }
+        public DiscoveryMode Discovery { get; set; }
+
+        /// <summary>
+        /// Configuration
+        /// </summary>
+        public SupervisorConfigModel Configuration { get; set; }
 
         /// <summary>
         /// Type
@@ -47,18 +57,20 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// Patch this registration and create patch twin model to upload
         /// </summary>
         /// <param name="model"></param>
-        public TwinModel Patch(SupervisorModel model) {
+        public DeviceTwinModel Patch(SupervisorModel model) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
 
-            var twin = new TwinModel {
-                Id = model.Id,
+            var twin = new DeviceTwinModel {
+                Etag = Etag,
                 Tags = new Dictionary<string, JToken>(),
                 Properties = new TwinPropertiesModel {
                     Desired = new Dictionary<string, JToken> ()
                 }
             };
+
+            DeviceId = model.Id;
 
             // Tags
 
@@ -69,26 +81,37 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
             // Settings
 
-            if (Discovering != (model.Discovering ?? false)) {
-                Discovering = (model.Discovering ?? false);
-                twin.Properties.Desired.Add(nameof(Discovering), Discovering);
+            if (Discovery != (model.Discovery ?? DiscoveryMode.Off)) {
+                Discovery = (model.Discovery ?? DiscoveryMode.Off);
+                twin.Properties.Desired.Add(nameof(Discovery),
+                    JToken.FromObject(Discovery));
             }
 
+            if (!IsConfigEqual(Configuration, model.Configuration)) {
+                Configuration = model.Configuration;
+                twin.Properties.Desired.Add(nameof(Configuration),
+                    JToken.FromObject(Configuration));
+            }
+
+            twin.Id = DeviceId;
             return twin;
         }
 
         /// <summary>
         /// Decode tags and property into registration object
         /// </summary>
+        /// <param name="id"></param>
+        /// <param name="etag"></param>
         /// <param name="tags"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
-        public static OpcUaSupervisorRegistration FromTwin(string id,
+        public static OpcUaSupervisorRegistration FromTwin(string id, string etag,
             Dictionary<string, JToken> tags, Dictionary<string, JToken> properties) {
             return new OpcUaSupervisorRegistration {
                 // Device
 
                 DeviceId = id,
+                Etag = etag,
 
                 // Tags
 
@@ -97,8 +120,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
                 // Properties
 
-                Discovering =
-                    properties.Get(nameof(Discovering), false),
+                Discovery =
+                    properties.Get(nameof(Discovery), DiscoveryMode.Off),
+                Configuration =
+                    properties.Get(nameof(Configuration), new SupervisorConfigModel()),
                 Type =
                     properties.Get<string>("type", null)
             };
@@ -109,7 +134,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
-        public static OpcUaSupervisorRegistration FromTwin(TwinModel twin) =>
+        public static OpcUaSupervisorRegistration FromTwin(DeviceTwinModel twin) =>
             FromTwin(twin, false, out var tmp);
 
         /// <summary>
@@ -123,7 +148,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// <param name="onlyServerState">Only desired endpoint should be returned
         /// this means that you will look at stale information.</param>
         /// <returns></returns>
-        public static OpcUaSupervisorRegistration FromTwin(TwinModel twin,
+        public static OpcUaSupervisorRegistration FromTwin(DeviceTwinModel twin,
             bool onlyServerState, out bool connected) {
 
             connected = false;
@@ -136,14 +161,16 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
             OpcUaSupervisorRegistration reported = null, desired = null;
             if (twin.Properties?.Reported != null) {
-                reported = FromTwin(twin.Id, twin.Tags, twin.Properties.Reported);
+                reported = FromTwin(twin.Id, twin.Etag, twin.Tags, 
+                    twin.Properties.Reported);
                 if (reported != null) {
                     connected = reported.Type == "supervisor";
                 }
             }
 
             if (twin.Properties?.Desired != null) {
-                desired = FromTwin(twin.Id, twin.Tags, twin.Properties.Desired);
+                desired = FromTwin(twin.Id, twin.Etag, twin.Tags, 
+                    twin.Properties.Desired);
             }
 
             if (!onlyServerState && reported != null) {
@@ -164,38 +191,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// <returns></returns>
         public SupervisorModel ToServiceModel() {
             return new SupervisorModel {
-                Discovering = Discovering ? true : (bool?)null,
+                Discovery = Discovery != DiscoveryMode.Off ? Discovery : (DiscoveryMode?)null,
                 Domain = string.IsNullOrEmpty(Domain) ? null : Domain,
+                Configuration = IsConfigNullOrEmpty(Configuration) ? null : Configuration,
                 Connected = IsConnected() ? true : (bool?)null,
                 OutOfSync = IsConnected() && !_isInSync ? true : (bool?)null,
                 Id = DeviceId
-            };
-        }
-
-        /// <summary>
-        /// Returns true if this registration matches the server endpoint
-        /// model provided.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public bool Matches(SupervisorModel model) {
-            return model != null &&
-                Discovering == (model.Discovering ?? false) &&
-                model.Domain == (string.IsNullOrEmpty(Domain) ? null : Domain) &&
-                DeviceId == model.Id;
-        }
-
-        /// <summary>
-        /// Decode tags and property into registration object
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static OpcUaSupervisorRegistration FromServiceModel(
-            SupervisorModel model) {
-            return new OpcUaSupervisorRegistration {
-                Discovering = model.Discovering ?? false,
-                Domain = model.Domain,
-                DeviceId = model.Id
             };
         }
 
@@ -209,7 +210,35 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         internal void MarkAsInSyncWith(OpcUaSupervisorRegistration other) {
             _isInSync =
                 other != null &&
-                Discovering == other.Discovering;
+                Discovery == other.Discovery;
+        }
+
+        /// <summary>
+        /// Returns true if configuration is null or empty
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        private static bool IsConfigNullOrEmpty(SupervisorConfigModel configuration) =>
+            configuration == null || (
+                string.IsNullOrEmpty(configuration.AddressRangesToScan) &&
+                string.IsNullOrEmpty(configuration.PortRangesToScan) &&
+                configuration.IdleTimeBetweenScans == null);
+
+        /// <summary>
+        /// Returns whether 2 configurations are the same.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        private static bool IsConfigEqual(SupervisorConfigModel configuration,
+            SupervisorConfigModel other) {
+            if (configuration == null) {
+                return other == null;
+            }
+            return
+                configuration.AddressRangesToScan == other?.AddressRangesToScan &&
+                configuration.PortRangesToScan == other?.PortRangesToScan &&
+                configuration.IdleTimeBetweenScans == other?.IdleTimeBetweenScans;
         }
 
         internal bool IsConnected() => Type == "supervisor";

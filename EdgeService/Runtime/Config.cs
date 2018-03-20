@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Runtime {
             GetBool(nameof(BypassCertVerification));
         /// <summary>Transports to use</summary>
         public TransportOption Transport => Enum.Parse<TransportOption>(
-            GetString(nameof(Transport), nameof(TransportOption.Any)), true);
+            GetString(nameof(Transport), nameof(TransportOption.Amqp)), true);
 
         /// <summary>
         /// Dummy Service configuration

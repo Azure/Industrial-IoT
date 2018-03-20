@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
 
     /// <summary>
-    /// Value write request model for webservice api
+    /// Value write request model for edge service api
     /// </summary>
     public class ValueWriteRequestApiModel {
 
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         }
 
         /// <summary>
-        /// Convert back to service node model
+        /// Convert back to service model
         /// </summary>
         /// <returns></returns>
         public ValueWriteRequestModel ToServiceModel() {

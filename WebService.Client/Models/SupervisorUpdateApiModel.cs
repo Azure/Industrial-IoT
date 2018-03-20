@@ -27,8 +27,15 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         /// <summary>
         /// Whether the supervisor is in discovery mode
         /// </summary>
-        [JsonProperty(PropertyName = "discovering",
+        [JsonProperty(PropertyName = "discovery",
             NullValueHandling = NullValueHandling.Ignore)]
-        public bool? Discovering { get; set; }
+        public DiscoveryMode? Discovery { get; set; }
+
+        /// <summary>
+        /// Supervisor configuration
+        /// </summary>
+        [JsonProperty(PropertyName = "configuration",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public SupervisorConfigApiModel Configuration{ get; set; }
     }
 }

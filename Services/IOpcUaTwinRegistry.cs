@@ -20,17 +20,30 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services {
         /// </param>
         /// <param name="continuation"></param>
         /// <returns></returns>
-        Task<TwinRegistrationListModel> ListTwinsAsync(
-            string continuation, bool onlyServerState);
+        Task<TwinInfoListModel> ListTwinsAsync(string continuation, 
+            bool onlyServerState);
 
         /// <summary>
-        /// Register new twin. If exact twin already
-        /// exists, that twin is returned.
+        /// Find registration of the supplied endpoint.
         /// </summary>
-        /// <param name="request"></param>
+        /// <param name="query"></param>
+        /// <param name="onlyServerState">Whether only
+        /// desired twin state should be returned.
+        /// </param>
         /// <returns></returns>
-        Task<TwinRegistrationResultModel> RegisterTwinAsync(
-            TwinRegistrationRequestModel request);
+        Task<TwinInfoListModel> FindTwinAsync(
+            TwinRegistrationQueryModel query, bool onlyServerState);
+
+        /// <summary>
+        /// Find registration of the supplied endpoint.
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="onlyServerState">Whether only
+        /// desired twin state should be returned.
+        /// </param>
+        /// <returns></returns>
+        Task<TwinInfoModel> FindTwinAsync(EndpointModel endpoint,
+            bool onlyServerState);
 
         /// <summary>
         /// Get twin registration by identifer.
@@ -40,16 +53,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services {
         /// desired twin state should be returned.
         /// </param>
         /// <returns></returns>
-        Task<TwinRegistrationModel> GetTwinAsync(string id,
-            bool onlyServerState);
-
-        /// <summary>
-        /// Find registration of the supplied endpoint.
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <returns></returns>
-        Task<TwinRegistrationModel> FindTwinAsync(
-            EndpointModel endpoint);
+        Task<TwinInfoModel> GetTwinAsync(string id, bool onlyServerState);
 
         /// <summary>
         /// Update existing server twin registration. Note that
@@ -59,12 +63,5 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services {
         /// <param name="request"></param>
         /// <returns></returns>
         Task UpdateTwinAsync(TwinRegistrationUpdateModel request);
-
-        /// <summary>
-        /// Delete twin by id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        Task DeleteTwinAsync(string id);
     }
 }

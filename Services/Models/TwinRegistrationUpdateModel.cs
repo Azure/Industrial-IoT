@@ -6,12 +6,12 @@
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
 
     /// <summary>
-    /// Twin registration update request
+    /// Endpoint registration update request
     /// </summary>
     public class TwinRegistrationUpdateModel {
 
         /// <summary>
-        /// Identifier of the twin to patch
+        /// Identifier of the twin to update
         /// </summary>
         public string Id { get; set; }
 
@@ -40,10 +40,5 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// Type of token
         /// </summary>
         public TokenType? TokenType { get; set; }
-
-        /// <summary>
-        /// Server name
-        /// </summary>
-        public string ApplicationName { get; set; }
     }
 }

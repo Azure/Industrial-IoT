@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
 
     /// <summary>
-    /// reference model for webservice api
+    /// reference model for edge service api
     /// </summary>
     public class NodeReferenceApiModel {
         /// <summary>

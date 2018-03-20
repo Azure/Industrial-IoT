@@ -10,6 +10,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
@@ -133,10 +134,6 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
             /// <param name="controller"></param>
             /// <param name="controllerMethod"></param>
             public void Add(object controller, MethodInfo controllerMethod, ulong version) {
-#if LOG_VERBOSE
-                _logger.Debug($"Adding {controller.GetType().Name}.{controllerMethod.Name}({version})" +
-                    " setter to invoker...", () => {});
-#endif
                 _invokers.Add(version, new SetterInvoker(controller, controllerMethod, _logger));
             }
 
@@ -148,10 +145,13 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
             /// <returns></returns>
             public async Task SetAsync(string property, dynamic value) {
                 Exception e = null;
-                foreach(var invoker in _invokers) {
+                var sw = Stopwatch.StartNew();
+                foreach (var invoker in _invokers) {
                     try {
                         await invoker.Value.SetAsync(property, value);
-                        _logger.Debug($"Property '{property}' updated!", () => { });
+                        _logger.Debug(
+                            $"Property '{property}' updated (took {sw.ElapsedMilliseconds} ms)!",
+                                () => { });
                         return;
                     }
                     catch (Exception ex) {
@@ -160,7 +160,9 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
                         e = ex;
                     }
                 }
-                _logger.Error($"Exception during setter invocation.", () => e);
+                _logger.Error(
+                    $"Exception during setter invocation (took {sw.ElapsedMilliseconds} ms).",
+                        () => e);
                 throw e;
             }
 

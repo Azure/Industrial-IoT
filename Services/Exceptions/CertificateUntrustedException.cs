@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Exceptions {
-    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
     using System;
+    using System.Security;
 
     /// <summary>
     /// Thrown when the external resource is busy
     /// </summary>
-    public class CertificateUntrustedException : ExternalDependencyException {
+    public class CertificateUntrustedException : SecurityException {
 
         public CertificateUntrustedException(string message) :
             base(message) {

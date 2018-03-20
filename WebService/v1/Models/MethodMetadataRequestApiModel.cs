@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         }
 
         /// <summary>
-        /// Convert back to service node model
+        /// Convert back to service model
         /// </summary>
         /// <returns></returns>
         public MethodMetadataRequestModel ToServiceModel() {

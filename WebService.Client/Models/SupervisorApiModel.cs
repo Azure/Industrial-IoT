@@ -5,6 +5,18 @@
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+
+    /// <summary>
+    /// Discovery mode to use
+    /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum DiscoveryMode {
+        Off,
+        Local,
+        Network,
+        Scan
+    }
 
     /// <summary>
     /// Supervisor registration model for webservice api
@@ -27,9 +39,16 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         /// <summary>
         /// Whether the supervisor is in discovery mode
         /// </summary>
-        [JsonProperty(PropertyName = "discovering",
+        [JsonProperty(PropertyName = "discovery",
             NullValueHandling = NullValueHandling.Ignore)]
-        public bool? Discovering { get; set; }
+        public DiscoveryMode? Discovery { get; set; }
+
+        /// <summary>
+        /// Supervisor configuration
+        /// </summary>
+        [JsonProperty(PropertyName = "configuration",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public SupervisorConfigApiModel Configuration { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between

@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
     /// <summary>
     /// Edge host implementation
     /// </summary>
-    public class EdgeHost : IEdgeHost, ITwinProperties, IEventEmitter {
+    public class EdgeHost : IEdgeHost, ITwinProperties, IEventEmitter, IBlobUpload {
 
         /// <summary>
         /// Twin tags
@@ -129,7 +129,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
                     }
                     _client.Dispose();
                     DeviceId = null;
-                 }
+                }
             }
             finally {
                 _lock.Release();
@@ -180,7 +180,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
                 await _lock.WaitAsync();
                 if (_client != null) {
                     var collection = new TwinCollection();
-                    foreach(var property in properties) {
+                    foreach (var property in properties) {
                         collection[property.Key] = property.Value;
                     }
                     await _client.UpdateReportedPropertiesAsync(collection);
@@ -224,6 +224,18 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
             }
             finally {
                 _lock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Upload blob
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <param name="contentType"></param>
+        /// <returns></returns>
+        public async Task SendAsync(string fileName, string contentType) {
+            using (var file = new FileStream(fileName, FileMode.Open)) {
+                await _client.UploadToBlobAsync(fileName, file);
             }
         }
 
@@ -297,10 +309,12 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
 
                 // If there are changes, update what should be reported back.
                 foreach (KeyValuePair<string, dynamic> property in processed) {
-                    if (!_twin.Properties.Reported.Contains(property.Key) && property.Value != null) {
-                        reported[property.Key] = property.Value;
+                    if (!_twin.Properties.Reported.Contains(property.Key)) {
+                        if (property.Value != null) {
+                            reported[property.Key] = property.Value;
+                        }
                     }
-                    else if (!_twin.Properties.Reported[property.Key].Equals(property.Value)) {
+                    else if (!_twin.Properties.Reported[property.Key]?.Equals(property.Value)) {
                         reported[property.Key] = property.Value;
                     }
                 }
@@ -322,7 +336,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
                     await _lock.WaitAsync();
                     // Patch existing reported properties
                     var patched = new TwinCollection();
-                    foreach(KeyValuePair<string, dynamic> item in settings) {
+                    foreach (KeyValuePair<string, dynamic> item in settings) {
                         if (!_reported.ContainsKey(item.Key)) {
                             patched[item.Key] = item.Value;
                         }

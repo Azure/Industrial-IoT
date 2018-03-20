@@ -35,8 +35,6 @@ namespace Microsoft.Azure.IoTSolutions.Common.Http {
                 case HttpStatusCode.RequestTimeout:
                     throw new TimeoutException(response.Content);
                 case HttpStatusCode.InternalServerError:
-                case HttpStatusCode.BadGateway:
-                case HttpStatusCode.ServiceUnavailable:
                 case HttpStatusCode.GatewayTimeout:
                 case HttpStatusCode.PreconditionFailed:
                 case HttpStatusCode.TemporaryRedirect:

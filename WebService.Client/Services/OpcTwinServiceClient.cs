@@ -106,58 +106,131 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
         }
 
         /// <summary>
-        /// List servers
+        /// Register application
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public Task<ApplicationRegistrationResponseApiModel> RegisterApplicationAsync(
+            ApplicationRegistrationRequestApiModel content) {
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            if (content.DiscoveryUrl == null) {
+                throw new ArgumentNullException(nameof(content.DiscoveryUrl));
+            }
+            return Retry.WithExponentialBackoff(_logger, async () => {
+                var request = NewRequest($"{_serviceUri}/applications");
+                request.SetContent(content);
+                request.Options.Timeout = 60000;
+                var response = await _httpClient.PostAsync(request);
+                response.Validate();
+                return JsonConvertEx.DeserializeObject<ApplicationRegistrationResponseApiModel>(
+                    response.Content);
+            });
+        }
+
+        /// <summary>
+        /// Update application
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public Task UpdateApplicationAsync(ApplicationRegistrationUpdateApiModel content) {
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            return Retry.WithExponentialBackoff(_logger, async () => {
+                var request = NewRequest($"{_serviceUri}/applications");
+                request.SetContent(content);
+                var response = await _httpClient.PatchAsync(request);
+                response.Validate();
+            });
+        }
+
+        /// <summary>
+        /// Get application
+        /// </summary>
+        /// <param name="applicationId"></param>
+        /// <returns></returns>
+        public Task<ApplicationRegistrationApiModel> GetApplicationAsync(string applicationId) {
+            return Retry.WithExponentialBackoff(_logger, async () => {
+                var request = NewRequest($"{_serviceUri}/applications/{applicationId}");
+                var response = await _httpClient.GetAsync(request);
+                response.Validate();
+                return JsonConvertEx.DeserializeObject<ApplicationRegistrationApiModel>(response.Content);
+            });
+        }
+
+        /// <summary>
+        /// Returns the application certificate
+        /// </summary>
+        /// <param name="applicationId"></param>
+        /// <returns></returns>
+        public Task<string> GetCertificateAsync(string applicationId) {
+            if (string.IsNullOrEmpty(applicationId)) {
+                throw new ArgumentNullException(nameof(applicationId));
+            }
+
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Find applications
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        public Task<ApplicationInfoListApiModel> FindApplicationsAsync(
+            ApplicationRegistrationQueryApiModel query) {
+            return Retry.WithExponentialBackoff(_logger, async () => {
+                var request = NewRequest($"{_serviceUri}/applications/query");
+                request.SetContent(query);
+                var response = await _httpClient.PostAsync(request);
+                response.Validate();
+                return JsonConvertEx.DeserializeObject<ApplicationInfoListApiModel>(
+                    response.Content);
+            });
+        }
+
+        /// <summary>
+        /// List applications
         /// </summary>
         /// <param name="continuation"></param>
         /// <returns></returns>
-        public Task<ServerInfoListApiModel> ListServersAsync(string continuation) {
+        public Task<ApplicationInfoListApiModel> ListApplicationsAsync(string continuation) {
             return Retry.WithExponentialBackoff(_logger, async () => {
-                var request = NewRequest($"{_serviceUri}/servers");
+                var request = NewRequest($"{_serviceUri}/applications");
                 if (continuation != null) {
                     request.AddHeader(CONTINUATION_TOKEN_NAME, continuation);
                 }
                 var response = await _httpClient.GetAsync(request);
                 response.Validate();
-                return JsonConvertEx.DeserializeObject<ServerInfoListApiModel>(response.Content);
+                return JsonConvertEx.DeserializeObject<ApplicationInfoListApiModel>(response.Content);
             });
         }
 
         /// <summary>
-        /// Get server
+        /// Unregister application
         /// </summary>
-        /// <param name="serverId"></param>
+        /// <param name="applicationId"></param>
         /// <returns></returns>
-        public Task<ServerApiModel> GetServerAsync(string serverId) {
+        public Task UnregisterApplicationAsync(string applicationId) {
+            if (string.IsNullOrEmpty(applicationId)) {
+                throw new ArgumentNullException(nameof(applicationId));
+            }
             return Retry.WithExponentialBackoff(_logger, async () => {
-                var request = NewRequest($"{_serviceUri}/servers/{serverId}");
-                var response = await _httpClient.GetAsync(request);
+                var request = NewRequest($"{_serviceUri}/applications/{applicationId}");
+                var response = await _httpClient.DeleteAsync(request);
                 response.Validate();
-                return JsonConvertEx.DeserializeObject<ServerApiModel>(response.Content);
             });
         }
 
         /// <summary>
-        /// Find server
-        /// </summary>
-        /// <param name="info"></param>
-        /// <returns></returns>
-        public Task<ServerApiModel> FindServerAsync(ServerInfoApiModel info) {
-            return Retry.WithExponentialBackoff(_logger, async () => {
-                var request = NewRequest($"{_serviceUri}/servers");
-                request.SetContent(info);
-                var response = await _httpClient.PostAsync(request);
-                response.Validate();
-                return JsonConvertEx.DeserializeObject<ServerApiModel>(response.Content);
-            });
-        }
-
-        /// <summary>
-        /// List registrations
+        /// List twin registrations
         /// </summary>
         /// <param name="continuation"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public Task<TwinRegistrationListApiModel> ListTwinsAsync(string continuation,
+        public Task<TwinInfoListApiModel> ListTwinsAsync(string continuation,
             bool? onlyServerState) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"{_serviceUri}/twins");
@@ -170,7 +243,29 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
                 }
                 var response = await _httpClient.GetAsync(request);
                 response.Validate();
-                return JsonConvertEx.DeserializeObject<TwinRegistrationListApiModel>(response.Content);
+                return JsonConvertEx.DeserializeObject<TwinInfoListApiModel>(response.Content);
+            });
+        }
+
+        /// <summary>
+        /// Find twin registrations
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="onlyServerState"></param>
+        /// <returns></returns>
+        public Task<TwinInfoListApiModel> FindTwinsAsync(
+            TwinRegistrationQueryApiModel query, bool? onlyServerState) {
+            return Retry.WithExponentialBackoff(_logger, async () => {
+                var request = NewRequest($"{_serviceUri}/twins/query");
+                if (onlyServerState ?? false) {
+                    var uri = new UriBuilder(request.Uri) { Query = "onlyServerState=true" };
+                    request.Uri = uri.Uri;
+                }
+                request.SetContent(query);
+                var response = await _httpClient.PostAsync(request);
+                response.Validate();
+                return JsonConvertEx.DeserializeObject<TwinInfoListApiModel>(
+                    response.Content);
             });
         }
 
@@ -180,7 +275,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
         /// <param name="twinId"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public Task<TwinRegistrationApiModel> GetTwinAsync(string twinId,
+        public Task<TwinInfoApiModel> GetTwinAsync(string twinId,
             bool? onlyServerState) {
             if (string.IsNullOrEmpty(twinId)) {
                 throw new ArgumentNullException(nameof(twinId));
@@ -193,33 +288,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
                 }
                 var response = await _httpClient.GetAsync(request);
                 response.Validate();
-                return JsonConvertEx.DeserializeObject<TwinRegistrationApiModel>(response.Content);
-            });
-        }
-
-        /// <summary>
-        /// Register twin
-        /// </summary>
-        /// <param name="content"></param>
-        /// <returns></returns>
-        public Task<TwinRegistrationResponseApiModel> RegisterTwinAsync(
-            TwinRegistrationRequestApiModel content) {
-            if (content == null) {
-                throw new ArgumentNullException(nameof(content));
-            }
-            if (content.Endpoint == null) {
-                throw new ArgumentNullException(nameof(content.Endpoint));
-            }
-            if (content.Endpoint.Url == null) {
-                throw new ArgumentNullException(nameof(content.Endpoint.Url));
-            }
-            return Retry.WithExponentialBackoff(_logger, async () => {
-                var request = NewRequest($"{_serviceUri}/twins");
-                request.SetContent(content);
-                request.Options.Timeout = 60000;
-                var response = await _httpClient.PostAsync(request);
-                response.Validate();
-                return JsonConvertEx.DeserializeObject<TwinRegistrationResponseApiModel>(response.Content);
+                return JsonConvertEx.DeserializeObject<TwinInfoApiModel>(response.Content);
             });
         }
 
@@ -236,22 +305,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
                 var request = NewRequest($"{_serviceUri}/twins");
                 request.SetContent(content);
                 var response = await _httpClient.PatchAsync(request);
-                response.Validate();
-            });
-        }
-
-        /// <summary>
-        /// Delete twin
-        /// </summary>
-        /// <param name="twinId">Server twin to delete</param>
-        /// <returns></returns>
-        public Task DeleteTwinAsync(string twinId) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
-            }
-            return Retry.WithExponentialBackoff(_logger, async () => {
-                var request = NewRequest($"{_serviceUri}/twins/{twinId}");
-                var response = await _httpClient.DeleteAsync(request);
                 response.Validate();
             });
         }
@@ -435,20 +488,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
                 response.Validate();
                 return JsonConvertEx.DeserializeObject<MethodCallResponseApiModel>(response.Content);
             });
-        }
-
-        /// <summary>
-        /// Returns the server certificate
-        /// </summary>
-        /// <param name="twinId"></param>
-        /// <returns></returns>
-        public Task<string> GetServerCertificateAsync(string twinId) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
-            }
-
-            // TODO
-            throw new NotImplementedException();
         }
 
         /// <summary>

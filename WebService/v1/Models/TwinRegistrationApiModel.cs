@@ -10,9 +10,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// Twin registration model for webservice api
+    /// Twin model for webservice api
     /// </summary>
     public class TwinRegistrationApiModel {
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -25,21 +26,17 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public TwinRegistrationApiModel(TwinRegistrationModel model) {
             Id = model.Id;
             Endpoint = new EndpointApiModel(model.Endpoint);
-            Server = new ServerInfoApiModel(model.Server);
-            OutOfSync = model.OutOfSync;
             Connected = model.Connected;
         }
 
         /// <summary>
-        /// Convert back to service node model
+        /// Convert back to service model
         /// </summary>
         /// <returns></returns>
         public TwinRegistrationModel ToServiceModel() {
             return new TwinRegistrationModel {
                 Id = Id,
-                Server = Server.ToServiceModel(),
                 Endpoint = Endpoint.ToServiceModel(),
-                OutOfSync = OutOfSync,
                 Connected = Connected
             };
         }
@@ -52,26 +49,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public string Id { get; set; }
 
         /// <summary>
-        /// Server information of the registration
-        /// </summary>
-        [JsonProperty(PropertyName = "server")]
-        [Required]
-        public ServerInfoApiModel Server { get; set; }
-
-        /// <summary>
         /// Endpoint information of the registration
         /// </summary>
         [JsonProperty(PropertyName = "endpoint")]
         [Required]
         public EndpointApiModel Endpoint { get; set; }
-
-        /// <summary>
-        /// Whether the registration is out of sync
-        /// </summary>
-        [JsonProperty(PropertyName = "outOfSync",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null), ReadOnly(true)]
-        public bool? OutOfSync { get; set; }
 
         /// <summary>
         /// Whether edge is connected on this registration

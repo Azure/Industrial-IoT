@@ -12,14 +12,18 @@ namespace Microsoft.Azure.IoTSolutions.Common.Exceptions {
     /// resource again, to have the new Etag, and retry.
     /// </summary>
     public class ResourceOutOfDateException : Exception {
+
+        /// <inheritdoc />
         public ResourceOutOfDateException() {
         }
 
-        public ResourceOutOfDateException(string message) : 
+        /// <inheritdoc />
+        public ResourceOutOfDateException(string message) :
             base(message) {
         }
 
-        public ResourceOutOfDateException(string message, Exception innerException) : 
+        /// <inheritdoc />
+        public ResourceOutOfDateException(string message, Exception innerException) :
             base(message, innerException) {
         }
     }

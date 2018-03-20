@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// browse response model for webservice api
+    /// browse response model for edge service api
     /// </summary>
     public class BrowseResponseApiModel {
 

@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Runtime {
             GetConnectionString("_HUB_CS", null));
         /// <summary>Whether to bypass proxy</summary>
         public bool BypassProxy =>
-            GetBool(BYPASS_PROXY, false);
+            GetBool(BYPASS_PROXY, true);
         /// <summary>IoT hub manager endpoint url</summary>
         public string IoTHubManagerV1ApiUrl =>
             GetString(IOTHUBMANAGER_SERVICE_KEY + "webservice_url");

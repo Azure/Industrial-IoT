@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Models {
         /// </summary>
         [JsonProperty(PropertyName = "UpdateTwin",
             NullValueHandling = NullValueHandling.Ignore)]
-        public TwinModel UpdateTwin { get; set; }
+        public DeviceTwinModel UpdateTwin { get; set; }
 
         /// <summary>
         /// Scheduled start time

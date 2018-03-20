@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Method metadata request model for webservice api
+    /// Method metadata request model for edge service api
     /// </summary>
     public class MethodCallResponseApiModel {
         /// <summary>

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
+    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Filters;
     using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services;
     using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
@@ -15,6 +16,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
     /// Twin settings controller
     /// </summary>
     [Version(1)]
+    [ExceptionsFilter]
     public class OpcUaTwinMethods : IOpcUaTwinMethods, IMethodController {
 
         /// <summary>

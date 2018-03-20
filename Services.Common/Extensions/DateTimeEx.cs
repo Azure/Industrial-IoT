@@ -3,11 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.Common {
-    using System;
+namespace System {
 
     public static class DateTimeEx {
 
+        /// <summary>
+        /// Convert time to iso string
+        /// </summary>
+        /// <param name="datetime"></param>
+        /// <returns></returns>
         public static string ToIso8601String(this DateTime datetime) {
             return datetime.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFFFFFK");
         }

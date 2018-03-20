@@ -13,10 +13,11 @@ namespace Microsoft.Azure.Devices.Edge {
     public class EdgeHostModule : Autofac.Module {
 
         /// <summary>
-        /// Load module
+        /// Load the module
         /// </summary>
         /// <param name="builder"></param>
         protected override void Load(ContainerBuilder builder) {
+
             // Register edge framework
             builder.RegisterType<EdgeHost>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
@@ -24,10 +25,18 @@ namespace Microsoft.Azure.Devices.Edge {
             // Auto wire property for circular dependency resolution
             builder.RegisterType<MethodRouter>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope()
-                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+                .PropertiesAutowired(
+                    PropertyWiringOptions.AllowCircularDependencies);
             builder.RegisterType<SettingsRouter>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope()
-                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+                .PropertiesAutowired(
+                    PropertyWiringOptions.AllowCircularDependencies);
+
+            // If not already registered, register task scheduler
+            builder.RegisterType<EdgeScheduler>()
+                .AsImplementedInterfaces().SingleInstance()
+                .IfNotRegistered(typeof(ITaskScheduler));
+
             base.Load(builder);
         }
     }

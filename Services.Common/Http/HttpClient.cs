@@ -1,63 +1,94 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.Common.Http {
+    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using System;
+    using System.Net.Http;
+    using System.Threading.Tasks;
 
-    public class HttpClient : IHttpClient
-    {
-        private readonly ILogger log;
+    /// <summary>
+    /// Client implementation
+    /// </summary>
+    public class HttpClient : IHttpClient {
 
-        public HttpClient(ILogger logger)
-        {
-            this.log = logger;
+        /// <summary>
+        /// Create client
+        /// </summary>
+        /// <param name="logger"></param>
+        public HttpClient(ILogger logger) {
+            _logger = logger;
         }
 
-        public async Task<IHttpResponse> GetAsync(IHttpRequest request)
-        {
-            return await this.SendAsync(request, HttpMethod.Get);
-        }
+        /// <summary>
+        /// Perform get
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public Task<IHttpResponse> GetAsync(IHttpRequest request) =>
+            SendAsync(request, HttpMethod.Get);
 
-        public async Task<IHttpResponse> PostAsync(IHttpRequest request)
-        {
-            return await this.SendAsync(request, HttpMethod.Post);
-        }
+        /// <summary>
+        /// Perform post
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public Task<IHttpResponse> PostAsync(IHttpRequest request) =>
+            SendAsync(request, HttpMethod.Post);
 
-        public async Task<IHttpResponse> PutAsync(IHttpRequest request)
-        {
-            return await this.SendAsync(request, HttpMethod.Put);
-        }
+        /// <summary>
+        /// Perform put
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public Task<IHttpResponse> PutAsync(IHttpRequest request) =>
+            SendAsync(request, HttpMethod.Put);
 
-        public async Task<IHttpResponse> PatchAsync(IHttpRequest request)
-        {
-            return await this.SendAsync(request, new HttpMethod("PATCH"));
-        }
+        /// <summary>
+        /// Performs patch
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public Task<IHttpResponse> PatchAsync(IHttpRequest request) =>
+            SendAsync(request, new HttpMethod("PATCH"));
 
-        public async Task<IHttpResponse> DeleteAsync(IHttpRequest request)
-        {
-            return await this.SendAsync(request, HttpMethod.Delete);
-        }
+        /// <summary>
+        /// Performs delete
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public Task<IHttpResponse> DeleteAsync(IHttpRequest request) =>
+            SendAsync(request, HttpMethod.Delete);
 
-        public async Task<IHttpResponse> HeadAsync(IHttpRequest request)
-        {
-            return await this.SendAsync(request, HttpMethod.Head);
-        }
+        /// <summary>
+        /// Performs head
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public Task<IHttpResponse> HeadAsync(IHttpRequest request) =>
+            SendAsync(request, HttpMethod.Head);
 
-        public async Task<IHttpResponse> OptionsAsync(IHttpRequest request)
-        {
-            return await this.SendAsync(request, HttpMethod.Options);
-        }
+        /// <summary>
+        /// Performs option
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public Task<IHttpResponse> OptionsAsync(IHttpRequest request) =>
+            SendAsync(request, HttpMethod.Options);
 
-        private async Task<IHttpResponse> SendAsync(IHttpRequest request, HttpMethod httpMethod)
-        {
+        /// <summary>
+        /// Send request
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="httpMethod"></param>
+        /// <returns></returns>
+        private async Task<IHttpResponse> SendAsync(IHttpRequest request,
+            HttpMethod httpMethod) {
             var clientHandler = new HttpClientHandler();
-            using (var client = new System.Net.Http.HttpClient(clientHandler))
-            {
-                var httpRequest = new HttpRequestMessage
-                {
+            using (var client = new System.Net.Http.HttpClient(clientHandler)) {
+                var httpRequest = new HttpRequestMessage {
                     Method = httpMethod,
                     RequestUri = request.Uri
                 };
@@ -67,40 +98,36 @@ namespace Microsoft.Azure.IoTSolutions.Common.Http {
                 SetContent(request, httpMethod, httpRequest);
                 SetHeaders(request, httpRequest);
 
-                this.log.Debug("Sending request", () => new { httpMethod, request.Uri, request.Options });
+                _logger.Debug("Sending request", () => new {
+                    httpMethod,
+                    request.Uri,
+                    request.Content,
+                    request.Options
+                });
 
-                try
-                {
-                    using (var response = await client.SendAsync(httpRequest))
-                    {
-                        if (request.Options.EnsureSuccess) response.EnsureSuccessStatusCode();
-
-                        return new HttpResponse
-                        {
+                try {
+                    using (var response = await client.SendAsync(httpRequest)) {
+                        return new HttpResponse {
                             StatusCode = response.StatusCode,
                             Headers = response.Headers,
                             Content = await response.Content.ReadAsStringAsync(),
                         };
                     }
                 }
-                catch (HttpRequestException e)
-                {
+                catch (HttpRequestException e) {
                     var errorMessage = e.Message;
-                    if (e.InnerException != null)
-                    {
+                    if (e.InnerException != null) {
                         errorMessage += " - " + e.InnerException.Message;
                     }
 
-                    this.log.Error("Request failed", () => new
-                    {
+                    _logger.Error("Request failed", () => new {
                         ExceptionMessage = e.Message,
-                        InnerExceptionType = e.InnerException != null ? e.InnerException.GetType().FullName : "",
-                        InnerExceptionMessage = e.InnerException != null ? e.InnerException.Message : "",
+                        InnerExceptionType = e.InnerException?.GetType().FullName ?? "",
+                        InnerExceptionMessage = e.InnerException?.Message ?? "",
                         errorMessage
                     });
 
-                    return new HttpResponse
-                    {
+                    return new HttpResponse {
                         StatusCode = 0,
                         Content = errorMessage
                     };
@@ -108,42 +135,65 @@ namespace Microsoft.Azure.IoTSolutions.Common.Http {
             }
         }
 
-        private static void SetContent(IHttpRequest request, HttpMethod httpMethod, HttpRequestMessage httpRequest)
-        {
-            if (httpMethod != HttpMethod.Post && httpMethod != HttpMethod.Put && httpMethod.Method != "PATCH") return;
-
+        /// <summary>
+        /// Pass content
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="httpMethod"></param>
+        /// <param name="httpRequest"></param>
+        private static void SetContent(IHttpRequest request, HttpMethod httpMethod,
+            HttpRequestMessage httpRequest) {
+            if (httpMethod != HttpMethod.Post &&
+                httpMethod != HttpMethod.Put &&
+                httpMethod.Method != "PATCH") {
+                return;
+            }
             httpRequest.Content = request.Content;
-            if (request.ContentType != null && request.Content != null)
-            {
+            if (request.ContentType != null && request.Content != null) {
                 httpRequest.Content.Headers.ContentType = request.ContentType;
             }
         }
 
-        private static void SetHeaders(IHttpRequest request, HttpRequestMessage httpRequest)
-        {
-            foreach (var header in request.Headers)
-            {
+        /// <summary>
+        /// Set headers
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="httpRequest"></param>
+        private static void SetHeaders(IHttpRequest request,
+            HttpRequestMessage httpRequest) {
+            foreach (var header in request.Headers) {
                 httpRequest.Headers.Add(header.Key, header.Value);
             }
         }
 
-        private static void SetServerSSLSecurity(IHttpRequest request, HttpClientHandler clientHandler)
-        {
-            if (request.Options.AllowInsecureSSLServer)
-            {
-                clientHandler.ServerCertificateCustomValidationCallback = delegate { return true; };
+        /// <summary>
+        /// Enable ssl security
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="clientHandler"></param>
+        private static void SetServerSSLSecurity(IHttpRequest request,
+            HttpClientHandler clientHandler) {
+            if (request.Options.AllowInsecureSSLServer) {
+                clientHandler.ServerCertificateCustomValidationCallback =
+                    (a, b, c, d) => true;
             }
         }
 
+        /// <summary>
+        /// Set request timeout
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="client"></param>
         private static void SetTimeout(
             IHttpRequest request,
-            System.Net.Http.HttpClient client)
-        {
+            System.Net.Http.HttpClient client) {
 #if DEBUG
             client.Timeout = TimeSpan.FromMilliseconds(request.Options.Timeout * 100);
 #else
             client.Timeout = TimeSpan.FromMilliseconds(request.Options.Timeout);
 #endif
         }
+
+        private readonly ILogger _logger;
     }
 }

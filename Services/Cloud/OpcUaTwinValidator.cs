@@ -21,8 +21,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
     /// the OPC UA edge device module receiving service requests via device method
     /// call.
     /// </summary>
-    public class OpcUaTwinValidator : IOpcUaEndpointValidator {
-        private static readonly TimeSpan kValidationTimeout = TimeSpan.FromSeconds(30);
+    public sealed class OpcUaTwinValidator : IOpcUaValidationServices {
 
         /// <summary>
         /// Create service
@@ -35,21 +34,44 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         }
 
         /// <summary>
+        /// Discovery application model using the provided discovery url
+        /// </summary>
+        /// <param name="discoveryUrl"></param>
+        /// <returns></returns>
+        public async Task<ApplicationModel> DiscoverApplicationAsync(Uri discoveryUrl) {
+            if (discoveryUrl == null) {
+                throw new ArgumentNullException(nameof(discoveryUrl));
+            }
+
+            var result = await CallServiceOnAllSupervisors<Uri, ApplicationModel>(
+                "DiscoverApplication_V1", discoveryUrl, kValidationTimeout);
+
+            // Update edge supervisor value to the one responding
+            result.Item2.Application.SupervisorId = result.Item1;
+            result.Item2.Application.ApplicationId = ServiceModelExtensions.CreateApplicationId(
+                result.Item1, result.Item2.Application.ApplicationUri);
+            result.Item2.Endpoints.ForEach(e => e.SupervisorId = result.Item1);
+            return result.Item2;
+        }
+
+        /// <summary>
         /// Validate request
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        public async Task<ServerEndpointModel> ValidateAsync(
-            EndpointModel endpoint) {
+        public async Task<ApplicationModel> ValidateEndpointAsync(EndpointModel endpoint) {
             if (endpoint == null) {
                 throw new ArgumentNullException(nameof(endpoint));
             }
 
-            var result = await CallServiceOnAllSupervisors<EndpointModel,
-                ServerEndpointModel>("Validate_V1", endpoint, kValidationTimeout);
+            var result = await CallServiceOnAllSupervisors<EndpointModel, ApplicationModel>(
+                "ValidateEndpoint_V1", endpoint, kValidationTimeout);
 
             // Update edge supervisor value to the one responding
-            result.Item2.Endpoint.SupervisorId = result.Item1;
+            result.Item2.Application.SupervisorId = result.Item1;
+            result.Item2.Application.ApplicationId = ServiceModelExtensions.CreateApplicationId(
+                result.Item1, result.Item2.Application.ApplicationUri);
+            result.Item2.Endpoints.ForEach(e => e.SupervisorId = result.Item1);
             return result.Item2;
         }
 
@@ -135,5 +157,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
         private readonly IIoTHubJobServices _jobs;
         private readonly ILogger _logger;
+
+        private static readonly TimeSpan kValidationTimeout = TimeSpan.FromSeconds(30);
     }
 }

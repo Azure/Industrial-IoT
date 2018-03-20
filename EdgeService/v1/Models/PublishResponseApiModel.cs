@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// publish response model for webservice api
+    /// publish response model for edge service api
     /// </summary>
     public class PublishResponseApiModel {
         /// <summary>

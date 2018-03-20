@@ -214,17 +214,27 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService {
                     .AsImplementedInterfaces().SingleInstance();
             }
 
-            // Register opc ua proxy stack stack
-            builder.RegisterType<Services.External.Client.OpcUaClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            // Register misc opc services, such as variant codec
-            builder.RegisterType<Services.External.Codec.OpcUaJsonCodec>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Register opc ua proxy client if not bypassing
+            if (!Config.BypassProxy) {
+                builder.RegisterType<Services.External.Stack.OpcUaClient>()
+                    .AsImplementedInterfaces().SingleInstance();
 
-            // Register edge/proxy routed services
+                // Register misc opc services, such as variant codec
+                builder.RegisterType<Services.External.Stack.OpcUaJsonVariantCodec>()
+                    .AsImplementedInterfaces().SingleInstance();
+
+                // Register composite validator
+                builder.RegisterType<OpcUaCompositeValidator>()
+                    .AsImplementedInterfaces().SingleInstance();
+            }
+            else {
+                // Validate only through jobs
+                builder.RegisterType<OpcUaTwinValidator>()
+                    .AsImplementedInterfaces().SingleInstance();
+            }
+
+            // Register composite client
             builder.RegisterType<OpcUaCompositeClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<OpcUaCompositeValidator>()
                 .AsImplementedInterfaces().SingleInstance();
 
 
