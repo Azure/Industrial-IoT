@@ -221,6 +221,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             }
 
             var watch = Stopwatch.StartNew();
+            _logger.Info("Start discovery sweep...", () => { });
 
             //
             // Select ports to scan from opc ua range and unassigned
@@ -270,7 +271,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
 #if TRACE
                     _logger.Debug($"Try discovery on {url}...", () => { });
 #endif
-                    var results = await _client.DiscoverAsync(url, ct);
+                    var results = await _client.DiscoverAsync(url, ct)
+                        .ConfigureAwait(false);
                     if (results.Any()) {
                         _logger.Info($"Found {results.Count()} endpoints on {url}.",
                             () => { });

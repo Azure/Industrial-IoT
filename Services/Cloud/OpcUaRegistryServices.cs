@@ -104,7 +104,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// desired twin state should be returned.
         /// </param>
         /// <returns></returns>
-        public async Task<TwinInfoListModel> FindTwinAsync(
+        public async Task<TwinInfoListModel> QueryTwinsAsync(
             TwinRegistrationQueryModel model, bool onlyServerState) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
@@ -194,12 +194,17 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             var enable = (request.IsTrusted ?? isEnabled);
             patched.Endpoint.IsTrusted = request.IsTrusted;
 
+            if (request.Duplicate ?? false) {
+                registration = new OpcUaEndpointRegistration();
+            }
+
             // Patch
             await _registry.CreateOrUpdateAsync(registration.Patch(patched));
 
             // Enable/disable twin if needed
             if (isEnabled != enable) {
-                await EnableTwinAsync(registration.SupervisorId, twin.Id, !enable);
+                await EnableTwinAsync(registration.SupervisorId, 
+                    registration.DeviceId, !enable);
             }
         }
 
@@ -209,8 +214,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<ApplicationRegistrationResultModel> RegisterApplicationAsync(
-            ApplicationRegistrationRequestModel request) {
+        public async Task<ApplicationRegistrationResultModel> RegisterAsync(
+            ServerRegistrationRequestModel request) {
 
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -265,6 +270,37 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         }
 
         /// <summary>
+        /// Register application record
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<ApplicationRegistrationResultModel> RegisterAsync(
+            ApplicationRegistrationRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.ApplicationUri == null) {
+                throw new ArgumentNullException(nameof(request.ApplicationUri));
+            }
+            var registration = new OpcUaApplicationRegistration();
+            await _registry.CreateOrUpdateAsync(registration.Patch(
+                new ApplicationInfoModel {
+                    ApplicationName = request.ApplicationName,
+                    ProductUri = request.ProductUri,
+                    DiscoveryUrls = request.DiscoveryUrls,
+                    DiscoveryProfileUri = request.DiscoveryProfileUri,
+                    ApplicationType = request.ApplicationType ?? ApplicationType.Server,
+                    ApplicationUri = request.ApplicationUri,
+                    Capabilities = request.Capabilities,
+                    Certificate = request.Certificate,
+                    SupervisorId = null
+                }));
+            return new ApplicationRegistrationResultModel {
+                Id = registration.ApplicationId
+            };
+        }
+
+        /// <summary>
         /// Update application
         /// </summary>
         /// <param name="request"></param>
@@ -293,12 +329,26 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 patched.ApplicationName = string.IsNullOrEmpty(request.ApplicationName) ?
                     null : request.ApplicationName;
             }
-            if (request.Capabilities != null) {
-                patched.Capabilities = request.Capabilities;
+            if (request.ProductUri != null) {
+                patched.ProductUri = string.IsNullOrEmpty(request.ProductUri) ?
+                    null : request.ProductUri;
             }
-
-            // ...
-
+            if (request.Certificate != null) {
+                patched.Certificate = request.Certificate.Length == 0 ?
+                    null : request.Certificate;
+            }
+            if (request.Capabilities != null) {
+                patched.Capabilities = request.Capabilities.Count == 0 ?
+                    null : request.Capabilities;
+            }
+            if (request.DiscoveryUrls != null) {
+                patched.DiscoveryUrls = request.DiscoveryUrls.Count == 0 ?
+                    null : request.DiscoveryUrls;
+            }
+            if (request.DiscoveryProfileUri != null) {
+                patched.DiscoveryProfileUri = string.IsNullOrEmpty(request.DiscoveryProfileUri) ?
+                    null : request.ApplicationName;
+            }
             // Patch
             await _registry.CreateOrUpdateAsync(registration.Patch(patched));
         }
@@ -351,7 +401,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public async Task<ApplicationInfoListModel> FindApplicationsAsync(
+        public async Task<ApplicationInfoListModel> QueryApplicationsAsync(
             ApplicationRegistrationQueryModel model) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
@@ -525,6 +575,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             var added = 0;
             var removed = 0;
 
+            //
+            // TODO: Should not patch attributes!!!
+            //
+
             // Remove applications
             foreach (var item in remove) {
                 if (add.Contains(item)) {
@@ -599,6 +653,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             var unchanged = 0;
             var added = 0;
             var removed = 0;
+
+            //
+            // TODO: Should not patch attributes e.g. user, etc. !!!
+            //
 
             // Remove items
             foreach (var item in remove) {

@@ -6,10 +6,12 @@
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
     using Newtonsoft.Json;
+    using System.Collections.Generic;
+    using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// Application registration request
+    /// Application information
     /// </summary>
     public class ApplicationRegistrationRequestApiModel {
 
@@ -19,28 +21,87 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public ApplicationRegistrationRequestApiModel() { }
 
         /// <summary>
-        /// Create from service model
+        /// Create model from service model
         /// </summary>
         /// <param name="model"></param>
         public ApplicationRegistrationRequestApiModel(ApplicationRegistrationRequestModel model) {
-            DiscoveryUrl = model.DiscoveryUrl;
+            ApplicationType = model.ApplicationType;
+            ApplicationUri = model.ApplicationUri;
+            ApplicationName = model.ApplicationName;
+            ProductUri = model.ProductUri;
+            DiscoveryProfileUri = model.DiscoveryProfileUri;
+            DiscoveryUrls = model.DiscoveryUrls;
+            Capabilities = model.Capabilities;
         }
 
         /// <summary>
-        /// Convert back to service model
+        /// Create service model from model
         /// </summary>
-        /// <returns></returns>
         public ApplicationRegistrationRequestModel ToServiceModel() {
             return new ApplicationRegistrationRequestModel {
-                DiscoveryUrl = DiscoveryUrl
+                ApplicationType = ApplicationType,
+                ApplicationUri = ApplicationUri,
+                ApplicationName = ApplicationName,
+                ProductUri = ProductUri,
+                DiscoveryProfileUri = DiscoveryProfileUri,
+                DiscoveryUrls = DiscoveryUrls,
+                Capabilities = Capabilities
             };
         }
 
         /// <summary>
-        /// Discovery url to use for registration
+        /// Unique application uri
         /// </summary>
-        [JsonProperty(PropertyName = "discoveryUrl")]
+        [JsonProperty(PropertyName = "applicationUri")]
         [Required]
-        public string DiscoveryUrl { get; set; }
+        public string ApplicationUri { get; set; }
+
+        /// <summary>
+        /// Type of application
+        /// </summary>
+        [JsonProperty(PropertyName = "applicationType",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public ApplicationType? ApplicationType { get; set; }
+
+        /// <summary>
+        /// Product uri
+        /// </summary>
+        [JsonProperty(PropertyName = "productUri",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string ProductUri { get; set; }
+
+        /// <summary>
+        /// Name of server
+        /// </summary>
+        [JsonProperty(PropertyName = "applicationName",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string ApplicationName { get; set; }
+
+        /// <summary>
+        /// Capabilities
+        /// </summary>
+        [JsonProperty(PropertyName = "capabilities",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public List<string> Capabilities { get; set; }
+
+        /// <summary>
+        /// Discovery urls of the server
+        /// </summary>
+        [JsonProperty(PropertyName = "discoveryUrls",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public List<string> DiscoveryUrls { get; set; }
+
+        /// <summary>
+        /// Discovery profile uri
+        /// </summary>
+        [JsonProperty(PropertyName = "discoveryProfileUri",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string DiscoveryProfileUri { get; set; }
     }
 }

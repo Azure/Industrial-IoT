@@ -21,7 +21,10 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
         /// </summary>
         public TaskFactory Factory => _factory;
 
-
+        /// <summary>
+        /// Initialize factory
+        /// </summary>
+        /// <returns></returns>
         private static TaskFactory InitFactory() {
 #if !USE_DEFAULT_FACTORY
             return Task.Factory;

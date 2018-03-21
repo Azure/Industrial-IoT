@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  edgeservice:
+    image: edgeservice
+    build:
+      context: .
+      dockerfile: EdgeService/Dockerfile
+
+  services.onboarding:
+    image: servicesonboarding
+    build:
+      context: .
+      dockerfile: Services.Onboarding/Dockerfile
+
+  webservice:
+    image: webservice
+    build:
+      context: .
+      dockerfile: WebService/Dockerfile
+
+  opcuatwinctrl:
+    image: opcuatwinctrl
+    build:
+      context: .
+      dockerfile: Samples/OpcUaTwinCtrl/Dockerfile
+

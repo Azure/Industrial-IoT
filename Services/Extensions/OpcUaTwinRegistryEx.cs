@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services {
     using Microsoft.Azure.IoTSolutions.Common.Exceptions;
     using System.Threading.Tasks;
 
-    public static class OpcUaRegistryServicesEx {
+    public static class OpcUaTwinRegistryEx {
 
         /// <summary>
         /// Get endpoint registration by identifer.

@@ -17,13 +17,33 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         public string Id { get; set; }
 
         /// <summary>
-        /// Application name
+        /// Product uri
+        /// </summary>
+        public string ProductUri { get; set; }
+
+        /// <summary>
+        /// Name of application
         /// </summary>
         public string ApplicationName { get; set; }
 
         /// <summary>
-        /// Capabilities of the application
+        /// Application cert
+        /// </summary>
+        public byte[] Certificate { get; set; }
+
+        /// <summary>
+        /// Application capabilities
         /// </summary>
         public List<string> Capabilities { get; set; }
+
+        /// <summary>
+        /// Discovery urls of the application
+        /// </summary>
+        public List<string> DiscoveryUrls { get; set; }
+
+        /// <summary>
+        /// Discovery profile uri
+        /// </summary>
+        public string DiscoveryProfileUri { get; set; }
     }
 }

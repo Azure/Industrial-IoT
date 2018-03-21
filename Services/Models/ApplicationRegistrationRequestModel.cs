@@ -4,15 +4,52 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
+    using System.Collections.Generic;
 
     /// <summary>
-    /// Application registration request
+    /// Application information
     /// </summary>
     public class ApplicationRegistrationRequestModel {
 
         /// <summary>
-        /// Discovery url to use for registration
+        /// Application uri
         /// </summary>
-        public string DiscoveryUrl { get; set; }
+        public string ApplicationUri { get; set; }
+
+        /// <summary>
+        /// Type of application
+        /// </summary>
+        public ApplicationType? ApplicationType { get; set; }
+
+        /// <summary>
+        /// Product uri
+        /// </summary>
+        public string ProductUri { get; set; }
+
+        /// <summary>
+        /// Name of application
+        /// </summary>
+        public string ApplicationName { get; set; }
+
+        /// <summary>
+        /// Application cert
+        /// </summary>
+        public byte[] Certificate { get; set; }
+
+        /// <summary>
+        /// Application capabilities
+        /// </summary>
+        public List<string> Capabilities { get; set; }
+
+        /// <summary>
+        /// Discovery urls of the application
+        /// </summary>
+        public List<string> DiscoveryUrls { get; set; }
+
+        /// <summary>
+        /// Discovery profile uri
+        /// </summary>
+        public string DiscoveryProfileUri { get; set; }
     }
 }
+

@@ -106,12 +106,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
         }
 
         /// <summary>
-        /// Register application
+        /// Register server using discovery url
         /// </summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        public Task<ApplicationRegistrationResponseApiModel> RegisterApplicationAsync(
-            ApplicationRegistrationRequestApiModel content) {
+        public Task<ApplicationRegistrationResponseApiModel> RegisterAsync(
+            ServerRegistrationRequestApiModel content) {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
@@ -123,6 +123,29 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
                 request.SetContent(content);
                 request.Options.Timeout = 60000;
                 var response = await _httpClient.PostAsync(request);
+                response.Validate();
+                return JsonConvertEx.DeserializeObject<ApplicationRegistrationResponseApiModel>(
+                    response.Content);
+            });
+        }
+
+        /// <summary>
+        /// Register raw application record
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public Task<ApplicationRegistrationResponseApiModel> RegisterAsync(
+            ApplicationRegistrationRequestApiModel content) {
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            if (content.ApplicationUri == null) {
+                throw new ArgumentNullException(nameof(content.ApplicationUri));
+            }
+            return Retry.WithExponentialBackoff(_logger, async () => {
+                var request = NewRequest($"{_serviceUri}/applications");
+                request.SetContent(content);
+                var response = await _httpClient.PutAsync(request);
                 response.Validate();
                 return JsonConvertEx.DeserializeObject<ApplicationRegistrationResponseApiModel>(
                     response.Content);
@@ -151,12 +174,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
         /// </summary>
         /// <param name="applicationId"></param>
         /// <returns></returns>
-        public Task<ApplicationRegistrationApiModel> GetApplicationAsync(string applicationId) {
+        public Task<ApplicationRegistrationApiModel> GetApplicationAsync(
+            string applicationId) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"{_serviceUri}/applications/{applicationId}");
                 var response = await _httpClient.GetAsync(request);
                 response.Validate();
-                return JsonConvertEx.DeserializeObject<ApplicationRegistrationApiModel>(response.Content);
+                return JsonConvertEx.DeserializeObject<ApplicationRegistrationApiModel>(
+                    response.Content);
             });
         }
 
@@ -179,7 +204,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        public Task<ApplicationInfoListApiModel> FindApplicationsAsync(
+        public Task<ApplicationInfoListApiModel> QueryApplicationsAsync(
             ApplicationRegistrationQueryApiModel query) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"{_serviceUri}/applications/query");
@@ -196,7 +221,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
         /// </summary>
         /// <param name="continuation"></param>
         /// <returns></returns>
-        public Task<ApplicationInfoListApiModel> ListApplicationsAsync(string continuation) {
+        public Task<ApplicationInfoListApiModel> ListApplicationsAsync(
+            string continuation) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"{_serviceUri}/applications");
                 if (continuation != null) {
@@ -204,7 +230,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
                 }
                 var response = await _httpClient.GetAsync(request);
                 response.Validate();
-                return JsonConvertEx.DeserializeObject<ApplicationInfoListApiModel>(response.Content);
+                return JsonConvertEx.DeserializeObject<ApplicationInfoListApiModel>(
+                    response.Content);
             });
         }
 

@@ -13,11 +13,20 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services {
     public interface IOpcUaApplicationRegistry {
 
         /// <summary>
-        /// Register application.
+        /// Register application from discovery url.
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<ApplicationRegistrationResultModel> RegisterApplicationAsync(
+        Task<ApplicationRegistrationResultModel> RegisterAsync(
+            ServerRegistrationRequestModel request);
+
+        /// <summary>
+        /// Register application using the application info as
+        /// template.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<ApplicationRegistrationResultModel> RegisterAsync(
             ApplicationRegistrationRequestModel request);
 
         /// <summary>
@@ -54,7 +63,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services {
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        Task<ApplicationInfoListModel> FindApplicationsAsync(
+        Task<ApplicationInfoListModel> QueryApplicationsAsync(
             ApplicationRegistrationQueryModel query);
 
         /// <summary>

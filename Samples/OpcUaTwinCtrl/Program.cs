@@ -108,6 +108,9 @@ namespace WebService.Client {
                         case "register":
                             await RegisterApplicationAsync(service, options);
                             break;
+                        case "add":
+                            await AddServerAsync(service, options);
+                            break;
                         case "update":
                             await UpdateApplicationAsync(service, options);
                             break;
@@ -118,7 +121,7 @@ namespace WebService.Client {
                             await ListApplicationsAsync(service, options);
                             break;
                         case "find":
-                            await FindApplicationsAsync(service, options);
+                            await QueryApplicationsAsync(service, options);
                             break;
                         case "get":
                             await GetApplicationAsync(service, options);
@@ -377,8 +380,29 @@ namespace WebService.Client {
         /// <returns></returns>
         private static async Task RegisterApplicationAsync(IOpcTwinService service,
             Dictionary<string, string> options) {
-            var result = await service.RegisterApplicationAsync(
+            var result = await service.RegisterAsync(
                 new ApplicationRegistrationRequestApiModel {
+                    ApplicationUri = GetOption<string>(options, "-u", "--url"),
+                    ApplicationName = GetOption<string>(options, "-n", "--name", null),
+                    ApplicationType = GetOption<ApplicationType>(options, "-t", "--type", null),
+                    ProductUri = GetOption<string>(options, "-p", "--product", null),
+                    DiscoveryUrls = new List<string> {
+                        GetOption<string>(options, "-d", "--discoveryUrl")
+                    }
+                });
+            PrintResult(options, result);
+        }
+
+        /// <summary>
+        /// Registers server
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static async Task AddServerAsync(IOpcTwinService service,
+            Dictionary<string, string> options) {
+            var result = await service.RegisterAsync(
+                new ServerRegistrationRequestApiModel {
                     DiscoveryUrl = GetOption<string>(options, "-u", "--url")
                 });
             PrintResult(options, result);
@@ -438,7 +462,7 @@ namespace WebService.Client {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task FindApplicationsAsync(IOpcTwinService service,
+        private static async Task QueryApplicationsAsync(IOpcTwinService service,
             Dictionary<string, string> options) {
             var query = new ApplicationRegistrationQueryApiModel {
                 ApplicationUri = GetOption<string>(options, "-u", "--uri", null),
@@ -447,12 +471,12 @@ namespace WebService.Client {
                 ApplicationName = GetOption<string>(options, "-n", "--name", null)
             };
             if (GetOption(options, "-a", "--all", false)) {
-                var result = await service.FindAllApplicationsAsync(query);
+                var result = await service.QueryAllApplicationsAsync(query);
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await service.FindApplicationsAsync(query);
+                var result = await service.QueryApplicationsAsync(query);
                 PrintResult(options, result);
             }
         }
@@ -666,6 +690,15 @@ Commands and Options
         -f, --format    Json format for result
 
      register    Register Application
+        with ...
+        -u, --url       Uri of the application (mandatory)
+        -n  --name      Application name of the application
+        -t, --type      Application type (default to Server)
+        -p, --product   Product uri of the application
+        -d, --discovery Url of the discovery endpoint
+        -f, --format    Json format for result
+
+     add         Register server
         with ...
         -u, --url       Url of the discovery endpoint (mandatory)
         -f, --format    Json format for result
