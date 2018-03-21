@@ -4,10 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Exceptions;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client;
+    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
     using System;
     using System.Threading.Tasks;
 
@@ -44,6 +45,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 return await _edge.ValidateEndpointAsync(endpoint);
             }
             catch (Exception e) {
+                FilterException(e);
                 _logger.Error("Failed validation call on all edge services. Trying proxy",
                     () => e);
             }
@@ -63,10 +65,24 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 return await _edge.DiscoverApplicationAsync(discoveryUrl);
             }
             catch (Exception e) {
+                FilterException(e);
                 _logger.Error("Failed validation call on all edge services. Trying proxy",
                     () => e);
             }
             return await _proxy.DiscoverApplicationAsync(discoveryUrl);
+        }
+
+        /// <summary>
+        /// Filter exceptions that should not be continued but thrown
+        /// </summary>
+        /// <param name="exception"></param>
+        private static void FilterException(Exception exception) {
+            switch (exception) {
+                case ArgumentException ae:
+                case MethodCallException mce:
+                case TimeoutException toe:
+                    throw exception;
+            }
         }
 
         private readonly OpcUaTwinValidator _edge;

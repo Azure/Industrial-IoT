@@ -101,10 +101,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Controllers {
         /// <param name="model">Query model to match</param>
         /// <returns>Twin model list</returns>
         [HttpPost("query")]
-        public async Task<TwinInfoListApiModel> FindAsync(
+        public async Task<TwinInfoListApiModel> QueryAsync(
             [FromBody] TwinRegistrationQueryApiModel model,
             [FromQuery] bool? onlyServerState) {
-            var result = await _twins.FindTwinAsync(model.ToServiceModel(),
+            var result = await _twins.QueryTwinsAsync(model.ToServiceModel(),
                 onlyServerState ?? false);
 
             // TODO: Filter twins based on RBAC

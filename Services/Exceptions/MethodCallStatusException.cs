@@ -11,7 +11,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Exceptions {
     /// This exception is thrown when method call returned a
     /// status other than 200
     /// </summary>
-    public class MethodCallStatusException : Exception {
+    public class MethodCallStatusException : MethodCallException {
+
+        /// <summary>
+        /// Result of method call
+        /// </summary>
+        public int Result { get; }
 
         /// <summary>
         /// Create exception
@@ -22,7 +27,5 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Exceptions {
             base ($"Response {result}", new ExternalDependencyException(response)){
             Result = result;
         }
-
-        public int Result { get; }
     }
 }

@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                     if (SupervisorId == null && ApplicationUri == null) {
                         return null;
                     }
-                    _applicationId = ServiceModelExtensions.CreateApplicationId(
+                    _applicationId = ApplicationModelEx.CreateApplicationId(
                         SupervisorId, ApplicationUri);
                 }
                 return _applicationId;

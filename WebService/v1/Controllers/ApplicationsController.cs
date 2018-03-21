@@ -34,18 +34,36 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Controllers {
         }
 
         /// <summary>
-        /// Register new application in the application registry
+        /// Register new server in the application registry
         /// </summary>
-        /// <param name="request">Application registration request</param>
+        /// <param name="request">Server registration request</param>
         /// <returns>Application registration response</returns>
         [HttpPost]
         [Authorize(Policy = Policy.RegisterTwins)]
-        public async Task<ApplicationRegistrationResponseApiModel> RegisterAsync(
-            [FromBody]ApplicationRegistrationRequestApiModel request) {
+        public async Task<ApplicationRegistrationResponseApiModel> PostAsync(
+            [FromBody] ServerRegistrationRequestApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _applications.RegisterApplicationAsync(
+            var result = await _applications.RegisterAsync(
+                request.ToServiceModel());
+            return new ApplicationRegistrationResponseApiModel(result);
+        }
+
+        /// <summary>
+        /// Register new application in the application registry
+        /// using raw information from application info.
+        /// </summary>
+        /// <param name="request">Application registration request</param>
+        /// <returns>Application registration response</returns>
+        [HttpPut]
+        [Authorize(Policy = Policy.RegisterTwins)]
+        public async Task<ApplicationRegistrationResponseApiModel> PutAsync(
+            [FromBody] ApplicationRegistrationRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _applications.RegisterAsync(
                 request.ToServiceModel());
             return new ApplicationRegistrationResponseApiModel(result);
         }
@@ -104,9 +122,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Controllers {
         /// <param name="query">Application info for the server</param>
         /// <returns>Application model</returns>
         [HttpPost("query")]
-        public async Task<ApplicationInfoListApiModel> FindAsync(
+        public async Task<ApplicationInfoListApiModel> QueryAsync(
             ApplicationRegistrationQueryApiModel query) {
-            var result = await _applications.FindApplicationsAsync(
+            var result = await _applications.QueryApplicationsAsync(
                 query.ToServiceModel());
 
             // TODO: Filter results based on RBAC

@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
+    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Exceptions;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Models;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
@@ -42,16 +42,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             if (discoveryUrl == null) {
                 throw new ArgumentNullException(nameof(discoveryUrl));
             }
-
             var result = await CallServiceOnAllSupervisors<Uri, ApplicationModel>(
                 "DiscoverApplication_V1", discoveryUrl, kValidationTimeout);
-
             // Update edge supervisor value to the one responding
-            result.Item2.Application.SupervisorId = result.Item1;
-            result.Item2.Application.ApplicationId = ServiceModelExtensions.CreateApplicationId(
-                result.Item1, result.Item2.Application.ApplicationUri);
-            result.Item2.Endpoints.ForEach(e => e.SupervisorId = result.Item1);
-            return result.Item2;
+            return result.Item2.SetSupervisorId(result.Item1);
         }
 
         /// <summary>
@@ -63,16 +57,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             if (endpoint == null) {
                 throw new ArgumentNullException(nameof(endpoint));
             }
-
             var result = await CallServiceOnAllSupervisors<EndpointModel, ApplicationModel>(
                 "ValidateEndpoint_V1", endpoint, kValidationTimeout);
-
             // Update edge supervisor value to the one responding
-            result.Item2.Application.SupervisorId = result.Item1;
-            result.Item2.Application.ApplicationId = ServiceModelExtensions.CreateApplicationId(
-                result.Item1, result.Item2.Application.ApplicationUri);
-            result.Item2.Endpoints.ForEach(e => e.SupervisorId = result.Item1);
-            return result.Item2;
+            return result.Item2.SetSupervisorId(result.Item1);
         }
 
         /// <summary>

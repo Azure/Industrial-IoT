@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Filters {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Exceptions;
     using Newtonsoft.Json;
     using System;
-    using System.Linq;
     using System.Net;
     using System.Net.Sockets;
     using System.Security;

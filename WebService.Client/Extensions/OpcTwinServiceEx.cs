@@ -54,10 +54,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
         /// </summary>
         /// <param name="service"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<ApplicationInfoApiModel>> FindAllApplicationsAsync(
+        public static async Task<IEnumerable<ApplicationInfoApiModel>> QueryAllApplicationsAsync(
             this IOpcTwinService service, ApplicationRegistrationQueryApiModel query) {
             var registrations = new List<ApplicationInfoApiModel>();
-            var result = await service.FindApplicationsAsync(query);
+            var result = await service.QueryApplicationsAsync(query);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
                 result = await service.ListApplicationsAsync(result.ContinuationToken);

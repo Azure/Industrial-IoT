@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
     /// <summary>
     /// Service model extensions for discovery service
     /// </summary>
-    public static class ServiceModelExtensions {
+    public static class ApplicationModelEx {
 
         /// <summary>
         /// Create unique server id
@@ -58,12 +58,34 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         }
 
         /// <summary>
+        /// Update supervisor id on model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="supervisorId"></param>
+        public static ApplicationModel SetSupervisorId(this ApplicationModel model, 
+            string supervisorId) {
+            if (model == null) {
+                return null;
+            }
+            if (model.Application != null) {
+                model.Application.SupervisorId = supervisorId;
+                model.Application.ApplicationId = CreateApplicationId(
+                    supervisorId, model.Application.ApplicationUri);
+            }
+            if (model.Endpoints != null) {
+                model.Endpoints.ForEach(e => e.SupervisorId = supervisorId);
+            }
+            return model;
+        }
+
+        /// <summary>
         /// Equality comparison
         /// </summary>
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsEqual(this ApplicationInfoModel model, ApplicationInfoModel that) {
+        public static bool IsEqual(this ApplicationInfoModel model, 
+            ApplicationInfoModel that) {
             if (model == that) {
                 return true;
             }
@@ -116,7 +138,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// Create Union with server
         /// </summary>
         /// <param name="server"></param>
-        public static void UnionWith(this ApplicationModel model, ApplicationModel server) {
+        public static void UnionWith(this ApplicationModel model, 
+            ApplicationModel server) {
 
             if (server?.Application?.Capabilities?.Any() ?? false) {
                 if (model.Application == null) {

@@ -19,11 +19,19 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
         Task<StatusResponseApiModel> GetServiceStatusAsync();
 
         /// <summary>
-        /// Register new application and all twins with it.
+        /// Register new server and all twins with it.
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<ApplicationRegistrationResponseApiModel> RegisterApplicationAsync(
+        Task<ApplicationRegistrationResponseApiModel> RegisterAsync(
+            ServerRegistrationRequestApiModel request);
+
+        /// <summary>
+        /// Register new application, does not register twins.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<ApplicationRegistrationResponseApiModel> RegisterAsync(
             ApplicationRegistrationRequestApiModel request);
 
         /// <summary>
@@ -59,13 +67,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
             string continuation);
 
         /// <summary>
-        /// Find applications based on info criteria. Pass
-        /// continuation token if any to ListApplications to
+        /// Find applications based on specified criteria. Pass
+        /// continuation token if any returned to ListApplications to
         /// retrieve remaining items.
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        Task<ApplicationInfoListApiModel> FindApplicationsAsync(
+        Task<ApplicationInfoListApiModel> QueryApplicationsAsync(
             ApplicationRegistrationQueryApiModel query);
 
         /// <summary>

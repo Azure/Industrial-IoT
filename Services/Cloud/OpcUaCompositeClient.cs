@@ -84,10 +84,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _twin.NodeBrowseAsync(endpoint.TwinId, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed browse on edge twin. Trying supervisor",
                         () => e);
                 }
@@ -96,10 +94,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _supervisor.NodeBrowseAsync(endpoint, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed browse on edge supervisor. Trying proxy",
                         () => e);
                 }
@@ -121,10 +117,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             try {
                 return await _twin.NodeBrowseAsync(twinId, request);
             }
-            catch (MethodCallStatusException) {
-                throw;
-            }
             catch (Exception e) {
+                FilterException(e);
                 _logger.Error("Failed browse on edge twin. Trying adhoc",
                     () => e);
             }
@@ -133,10 +127,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _supervisor.NodeBrowseAsync(endpoint, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed browse on edge supervisor. Trying proxy",
                         () => e);
                 }
@@ -163,10 +155,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _twin.NodeMethodCallAsync(endpoint.TwinId, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     // use proxy instead
                     _logger.Error("Failed method call on edge twin. Trying supervisor",
                         () => e);
@@ -176,10 +166,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _supervisor.NodeMethodCallAsync(endpoint, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     // use proxy instead
                     _logger.Error("Failed method call on edge supervisor. Trying proxy",
                         () => e);
@@ -202,10 +190,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             try {
                 return await _twin.NodeMethodCallAsync(twinId, request);
             }
-            catch (MethodCallStatusException) {
-                throw;
-            }
             catch (Exception e) {
+                FilterException(e);
                 _logger.Error("Failed method call on edge twin. Trying adhoc",
                     () => e);
             }
@@ -214,10 +200,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _supervisor.NodeMethodCallAsync(endpoint, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed method call on edge supervisor. Trying proxy",
                         () => e);
                 }
@@ -245,10 +229,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                     return await _twin.NodeMethodGetMetadataAsync(endpoint.TwinId,
                         request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed metadata get on edge twin. Trying supervisor",
                         () => e);
                 }
@@ -257,10 +239,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _supervisor.NodeMethodGetMetadataAsync(endpoint, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed metadata get on edge supervisor. Trying proxy",
                         () => e);
                 }
@@ -282,10 +262,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             try {
                 return await _twin.NodeMethodGetMetadataAsync(twinId, request);
             }
-            catch (MethodCallStatusException) {
-                throw;
-            }
             catch (Exception e) {
+                FilterException(e);
                 _logger.Error("Failed metadata get on edge twin. Trying adhoc",
                     () => e);
             }
@@ -294,10 +272,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _supervisor.NodeMethodGetMetadataAsync(endpoint, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed metadata get on edge supervisor. Trying proxy",
                         () => e);
                 }
@@ -324,10 +300,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _twin.NodePublishAsync(endpoint.TwinId, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed publish call on edge twin. Trying proxy",
                         () => e);
                 }
@@ -349,10 +323,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             try {
                 return await _twin.NodePublishAsync(twinId, request);
             }
-            catch (MethodCallStatusException) {
-                throw;
-            }
             catch (Exception e) {
+                FilterException(e);
                 _logger.Error("Failed public on edge twin. Trying proxy",
                     () => e);
             }
@@ -378,10 +350,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _twin.ListPublishedNodesAsync(continuation, endpoint.TwinId);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed get published node ids from edge twin. Trying proxy",
                         () => e);
                 }
@@ -402,10 +372,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             try {
                 return await _twin.ListPublishedNodesAsync(continuation, twinId);
             }
-            catch (MethodCallStatusException) {
-                throw;
-            }
             catch (Exception e) {
+                FilterException(e);
                 _logger.Error("Failed get published node ids from edge twin. Trying proxy",
                     () => e);
             }
@@ -432,10 +400,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _twin.NodeValueReadAsync(endpoint.TwinId, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed value read call on edge twin. Trying supervisor",
                         () => e);
                 }
@@ -444,10 +410,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _supervisor.NodeValueReadAsync(endpoint, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed value read call on edge supervisor. Trying proxy",
                         () => e);
                 }
@@ -469,10 +433,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             try {
                 return await _twin.NodeValueReadAsync(twinId, request);
             }
-            catch (MethodCallStatusException) {
-                throw;
-            }
             catch (Exception e) {
+                FilterException(e);
                 _logger.Error("Failed value read on edge twin. Trying adhoc",
                     () => e);
             }
@@ -481,10 +443,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _supervisor.NodeValueReadAsync(endpoint, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed value read on edge supervisor. Trying proxy",
                         () => e);
                 }
@@ -511,10 +471,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _twin.NodeValueWriteAsync(endpoint.TwinId, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed value write call on edge twin. Trying supervisor",
                         () => e);
                 }
@@ -523,10 +481,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _supervisor.NodeValueWriteAsync(endpoint, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed value write call on edge supervisor. Trying proxy",
                         () => e);
                 }
@@ -548,10 +504,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             try {
                 return await _twin.NodeValueWriteAsync(twinId, request);
             }
-            catch (MethodCallStatusException) {
-                throw;
-            }
             catch (Exception e) {
+                FilterException(e);
                 _logger.Error("Failed value write on edge twin. Trying adhoc",
                     () => e);
             }
@@ -560,10 +514,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 try {
                     return await _supervisor.NodeValueWriteAsync(endpoint, request);
                 }
-                catch (MethodCallStatusException) {
-                    throw;
-                }
                 catch (Exception e) {
+                    FilterException(e);
                     _logger.Error("Failed value write on edge supervisor. Trying proxy",
                         () => e);
                 }
@@ -572,6 +524,18 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 throw new ConnectionException("Failed to connect to twin.");
             }
             return await _proxy.NodeValueWriteAsync(endpoint, request);
+        }
+
+        /// <summary>
+        /// Filter exceptions that should not be continued but thrown
+        /// </summary>
+        /// <param name="exception"></param>
+        private static void FilterException(Exception exception) {
+            switch (exception) {
+                case ArgumentException ae:
+                case MethodCallException mse:
+                    throw exception;
+            }
         }
 
         private readonly OpcUaTwinClient _twin;

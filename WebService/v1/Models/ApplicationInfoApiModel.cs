@@ -107,6 +107,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         /// </summary>
         [JsonProperty(PropertyName = "discoveryUrls",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public List<string> DiscoveryUrls { get; set; }
 
         /// <summary>
@@ -114,6 +115,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         /// </summary>
         [JsonProperty(PropertyName = "discoveryProfileUri",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string DiscoveryProfileUri { get; set; }
     }
 }

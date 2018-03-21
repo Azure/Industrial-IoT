@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services {
         /// desired twin state should be returned.
         /// </param>
         /// <returns></returns>
-        Task<TwinInfoListModel> FindTwinAsync(
+        Task<TwinInfoListModel> QueryTwinsAsync(
             TwinRegistrationQueryModel query, bool onlyServerState);
 
         /// <summary>

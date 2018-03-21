@@ -93,7 +93,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
                         endpoint
                     },
                     Application = new ApplicationInfoModel {
-                        ApplicationId = ServiceModelExtensions.CreateApplicationId(
+                        ApplicationId = ApplicationModelEx.CreateApplicationId(
                             SupervisorId, ep.Server.ApplicationUri),
                         ApplicationUri = ep.Server.ApplicationUri,
                         DiscoveryUrls = ep.Server.DiscoveryUrls,

@@ -110,7 +110,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
                 else {
                     // Create new session
                     try {
-                        session = await CreateSessionAsync(key);
+                        session = await CreateSessionAsync(key).ConfigureAwait(false); ;
                     }
                     catch(ServiceResultException sre) {
                         _logger.Debug("Failed create session", () => new { sre, endpoint });
@@ -120,7 +120,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
                 }
                 try {
                     // Run service on session and convert
-                    var result = await service(session.Session);
+                    var result = await service(session.Session).ConfigureAwait(false); ;
                     ReturnSession(session);
                     return result;
                 }
@@ -172,7 +172,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
                 (server, endpoints, channel) => {
                     callback(channel, SelectServerEndpoint(server, endpoints, channel, true));
                     return null;
-                });
+                }).ConfigureAwait(false); 
         }
 
         /// <summary>
@@ -180,9 +180,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        public Task<IEnumerable<OpcUaDiscoveryResult>> DiscoverAsync(
+        public async Task<IEnumerable<OpcUaDiscoveryResult>> DiscoverAsync(
             Uri discoveryUrl, CancellationToken ct) =>
-            Task.Run(() => Discover(discoveryUrl, Timeout, ct), ct);
+            await Task.Run(() => Discover(discoveryUrl, Timeout, ct), ct)
+                .ConfigureAwait(false);
 
         /// <summary>
         /// Connect timeout

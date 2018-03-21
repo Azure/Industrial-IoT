@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
     /// Application registration update request
     /// </summary>
     public class ApplicationRegistrationUpdateApiModel {
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -25,8 +26,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         /// <param name="model"></param>
         public ApplicationRegistrationUpdateApiModel(ApplicationRegistrationUpdateModel model) {
             Id = model.Id;
-            Capabilities = model.Capabilities;
+            ProductUri = model.ProductUri;
             ApplicationName = model.ApplicationName;
+            Certificate = model.Certificate;
+            Capabilities = model.Capabilities;
+            DiscoveryUrls = model.DiscoveryUrls;
+            DiscoveryProfileUri = model.DiscoveryProfileUri;
         }
 
         /// <summary>
@@ -37,7 +42,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
             return new ApplicationRegistrationUpdateModel {
                 Id = Id,
                 ApplicationName = ApplicationName,
+                ProductUri = ProductUri,
+                Certificate = Certificate,
                 Capabilities = Capabilities,
+                DiscoveryUrls = DiscoveryUrls,
+                DiscoveryProfileUri = DiscoveryProfileUri
             };
         }
 
@@ -49,6 +58,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public string Id { get; set; }
 
         /// <summary>
+        /// Product uri
+        /// </summary>
+        [JsonProperty(PropertyName = "productUri",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string ProductUri { get; set; }
+
+        /// <summary>
         /// Application name
         /// </summary>
         [JsonProperty(PropertyName = "applicationName",
@@ -57,11 +74,35 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public string ApplicationName { get; set; }
 
         /// <summary>
+        /// Application public cert
+        /// </summary>
+        [JsonProperty(PropertyName = "certificate",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public byte[] Certificate { get; set; }
+
+        /// <summary>
         /// Capabilities of the application
         /// </summary>
         [JsonProperty(PropertyName = "capabilities",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public List<string> Capabilities { get; set; }
+
+        /// <summary>
+        /// Discovery urls of the application
+        /// </summary>
+        [JsonProperty(PropertyName = "discoveryUrls",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public List<string> DiscoveryUrls { get; set; }
+
+        /// <summary>
+        /// Discovery profile uri
+        /// </summary>
+        [JsonProperty(PropertyName = "discoveryProfileUri",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string DiscoveryProfileUri { get; set; }
     }
 }

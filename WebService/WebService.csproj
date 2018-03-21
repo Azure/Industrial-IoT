@@ -3,6 +3,7 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>Microsoft.Azure.IoTSolutions.OpcTwin.WebService</AssemblyName>
     <RootNamespace>Microsoft.Azure.IoTSolutions.OpcTwin.WebService</RootNamespace>
+    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.0\OpcTwin.WebService.xml</DocumentationFile>
