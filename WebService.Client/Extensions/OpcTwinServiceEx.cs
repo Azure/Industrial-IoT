@@ -21,7 +21,36 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
             service.GetTwinAsync(endpointId, null);
 
         /// <summary>
-        /// List twins 
+        /// Find twins
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        public static Task<TwinInfoListApiModel> QueryTwinsAsync(
+            this IOpcTwinService service, TwinRegistrationQueryApiModel query) =>
+            service.QueryTwinsAsync(query, null);
+
+        /// <summary>
+        /// Find twins
+        /// </summary>
+        /// <param name="service"></param>
+        /// <returns></returns>
+        public static async Task<IEnumerable<TwinInfoApiModel>> QueryAllTwinsAsync(
+            this IOpcTwinService service, TwinRegistrationQueryApiModel query,
+            bool? onlyServerState = null) {
+            var registrations = new List<TwinInfoApiModel>();
+            var result = await service.QueryTwinsAsync(query, onlyServerState);
+            registrations.AddRange(result.Items);
+            while (result.ContinuationToken != null) {
+                result = await service.ListTwinsAsync(result.ContinuationToken,
+                    onlyServerState);
+                registrations.AddRange(result.Items);
+            }
+            return registrations;
+        }
+
+        /// <summary>
+        /// List twins
         /// </summary>
         /// <param name="service"></param>
         /// <param name="continuation"></param>

@@ -32,19 +32,18 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Runtime {
         /// <summary>
         /// Service configuration
         /// </summary>
-        private const string BYPASS_PROXY = "NoOpcEdgeProxy";
-        private const string IOTHUB_CONNSTRING_KEY = "IoTHubConnectionString";
-        private const string DEPENDENCIES_KEY = "Dependencies:";
-        private const string IOTHUBMANAGER_SERVICE_KEY = DEPENDENCIES_KEY + "IoTHubManager:";
+        private const string USE_OPC_EDGE_PROXY_KEX = "UseOpcEdgeProxy";
+        private const string IOTHUB_CONNECTION_STRING_KEY = "IoTHubConnectionString";
+        private const string IOTHUB_MANAGER_URL_KEY = "IoTHubManagerUrl";
         /// <summary>IoT hub connection string</summary>
-        public string IoTHubConnString => GetConnectionString(IOTHUB_CONNSTRING_KEY,
-            GetConnectionString("_HUB_CS", null));
+        public string IoTHubConnString => GetString(
+            IOTHUB_CONNECTION_STRING_KEY, GetString("_HUB_CS", null));
         /// <summary>Whether to bypass proxy</summary>
         public bool BypassProxy =>
-            GetBool(BYPASS_PROXY, true);
+            !GetBool(USE_OPC_EDGE_PROXY_KEX, false);
         /// <summary>IoT hub manager endpoint url</summary>
-        public string IoTHubManagerV1ApiUrl =>
-            GetString(IOTHUBMANAGER_SERVICE_KEY + "webservice_url");
+        public string IoTHubManagerV1ApiUrl => GetString(IOTHUB_MANAGER_URL_KEY,
+            GetString("PCS_IOTHUBMANAGER_WEBSERVICE_URL", null));
 
         /// <summary>
         /// Auth configuration
@@ -96,36 +95,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Runtime {
         }
 
         /// <summary>
-        /// In order to connect to Azure IoT Hub, the service requires a connection
-        /// string. The value can be found in the Azure Portal. For more information see
-        /// https://docs.microsoft.com/azure/iot-hub/iot-hub-csharp-csharp-getstarted
-        /// to find the connection string value.
-        ///
-        /// The connection string can be stored in the 'appsettings.json' configuration
-        /// file, or in the PCS_IOTHUB_CONNSTRING environment variable.
-        ///
-        /// When working with VisualStudio, the environment variable can be set in the
-        /// WebService project settings, under the "Debug" tab.
-        /// </summary>
-        /// <returns></returns>
-        private string GetConnectionString(string key, string defaultValue) {
-            var connstring = GetString(key);
-            if (string.IsNullOrEmpty(connstring)) {
-                return defaultValue;
-            }
-            if (connstring.ToLowerInvariant().Contains("your azure iot hub")) {
-                Logger.Warn(
-                    "The service configuration is incomplete.  If you do not intend " +
-                    "a debug configuration, please provide your Azure IoT Hub connection " +
-                    "string. For more information, see the environment variables " +
-                    "used in project properties and the 'iothub_connstring' " +
-                    "value in the 'appsettings.json' configuration file.", () => { });
-                return defaultValue;
-            }
-            return connstring;
-        }
-
-        /// <summary>
         /// Get log level
         /// </summary>
         /// <param name="key"></param>
@@ -151,14 +120,16 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Runtime {
         }
 
         /// <summary>
-        /// Read variable and replace environment variable if needed
+        /// Read string
         /// </summary>
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         private string GetString(string key, string defaultValue = "") {
             var value = Configuration.GetValue(key, defaultValue);
-            ReplaceEnvironmentVariables(ref value, defaultValue);
+            if (string.IsNullOrEmpty(value)) {
+                return defaultValue;
+            }
             return value;
         }
 
@@ -194,51 +165,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Runtime {
             catch (Exception e) {
                 throw new InvalidConfigurationException(
                     $"Unable to load configuration value for '{key}'", e);
-            }
-        }
-
-        /// <summary>
-        /// Replace all placeholders
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="defaultValue"></param>
-        private void ReplaceEnvironmentVariables(ref string value, string defaultValue) {
-            if (string.IsNullOrEmpty(value)) {
-                value = defaultValue;
-                return;
-            }
-            // Search for optional replacements: ${?VAR_NAME}
-            var keys = Regex.Matches(value, @"\${\?([a-zA-Z_][a-zA-Z0-9_]*)}").Cast<Match>()
-                .Select(m => m.Groups[1].Value).Distinct().ToArray();
-            // Replace
-            foreach (var key in keys) {
-                value = value.Replace("${?" + key + "}", GetString(key, string.Empty));
-            }
-
-            // Pattern for mandatory replacements: ${VAR_NAME}
-            const string PATTERN = @"\${([a-zA-Z_][a-zA-Z0-9_]*)}";
-            // Search
-            keys = Regex.Matches(value, PATTERN).Cast<Match>()
-                .Select(m => m.Groups[1].Value).Distinct().ToArray();
-            // Replace
-            foreach (var key in keys) {
-                var replacement = GetString(key, null);
-                if (replacement != null) {
-                    value = value.Replace("${" + key + "}", replacement);
-                }
-            }
-            // Non replaced placeholders cause an exception
-            keys = Regex.Matches(value, PATTERN).Cast<Match>()
-                .Select(m => m.Groups[1].Value).ToArray();
-            if (keys.Length > 0) {
-                var varsNotFound = keys.Aggregate(", ", (current, k) => current + k);
-                Logger.Error("Environment variables not found", () => new { varsNotFound });
-                throw new InvalidConfigurationException(
-                    "Environment variables not found: " + varsNotFound);
-            }
-            value.Trim();
-            if (string.IsNullOrEmpty(value)) {
-                value = defaultValue;
             }
         }
     }

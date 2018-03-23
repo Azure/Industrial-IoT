@@ -110,6 +110,17 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
             string continuation, bool? onlyServerState);
 
         /// <summary>
+        /// Find twins based on specified critiria. Pass continuation
+        /// token if any is returned to ListTwins to retrieve
+        /// the remaining items
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="onlyServerState"></param>
+        /// <returns></returns>
+        Task<TwinInfoListApiModel> QueryTwinsAsync(
+            TwinRegistrationQueryApiModel query, bool? onlyServerState);
+
+        /// <summary>
         /// Get supervisor
         /// </summary>
         /// <param name="supervisorId"></param>

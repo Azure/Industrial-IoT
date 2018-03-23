@@ -110,7 +110,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
             return new MethodCallResponseApiModel(result);
         }
 
-        private const string k_endpointTag = "endpoint";
         private readonly IOpcUaAdhocBrowseServices _browse;
         private readonly IOpcUaAdhocNodeServices _nodes;
         private readonly IOpcUaTwinServices _twin;

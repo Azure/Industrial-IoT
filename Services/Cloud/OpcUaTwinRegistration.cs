@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// <summary>
         /// Whether registration is enabled or not
         /// </summary>
-        public bool IsEnabled { get; set; }
+        public bool? IsEnabled { get; set; }
 
         /// <summary>
         /// Edge supervisor that owns the twin.

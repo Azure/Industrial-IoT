@@ -15,6 +15,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
     /// </summary>
     public sealed class OpcUaEndpointRegistration : OpcUaTwinRegistration {
 
+        public static IEqualityComparer<OpcUaEndpointRegistration> Logical =>
+            new LogicalEquality();
+
         /// <summary>
         /// Device id for registration
         /// </summary>
@@ -49,7 +52,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// <summary>
         /// Whether endpoint is trusted
         /// </summary>
-        public bool IsTrusted => IsEnabled;
+        public bool IsTrusted => IsEnabled ?? false;
 
         /// <summary>
         /// Endoint url for direct server access
@@ -147,7 +150,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 updateEndpoint = true;
             }
 
-            if (TokenType != (twinRegistration.Endpoint.TokenType ?? 
+            if (TokenType != (twinRegistration.Endpoint.TokenType ??
                     Models.TokenType.None)) {
                 TokenType = twinRegistration.Endpoint.TokenType;
                 updateEndpoint = true;
@@ -247,7 +250,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 twin.Properties.Reported.TryGetValue(k_endpointProperty,
                     out var reportedEndpoint)) {
 
-                reported = FromTwin(twin.Id, twin.Etag, twin.Tags, 
+                reported = FromTwin(twin.Id, twin.Etag, twin.Tags,
                     (JObject)reportedEndpoint);
                 connected = !string.IsNullOrEmpty(reported.TwinId);
             }
@@ -255,7 +258,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             if (twin.Properties?.Desired != null &&
                 twin.Properties.Desired.TryGetValue(k_endpointProperty,
                     out var desiredEndpoint)) {
-                desired = FromTwin(twin.Id, twin.Etag, twin.Tags, 
+                desired = FromTwin(twin.Id, twin.Etag, twin.Tags,
                     (JObject)desiredEndpoint);
             }
 
@@ -287,7 +290,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                     User = string.IsNullOrEmpty(User) ?
                         null : User,
                     Token = Token,
-                    TokenType = TokenType == Models.TokenType.None ? 
+                    TokenType = TokenType == Models.TokenType.None ?
                         null : TokenType,
                     SecurityMode = SecurityMode == Models.SecurityMode.Best ?
                         null : SecurityMode,
@@ -410,8 +413,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// </summary>
         /// <returns></returns>
         public override string ToString() {
-            return $"{EndpointUrlLC}-{ApplicationId}-{SupervisorId}-{User}-" +
-                $"{Token?.ToString()}-{TokenType}-{SecurityPolicy}-{SecurityMode}";
+            return
+                $"{EndpointUrlLC}-{ApplicationId}--{SecurityPolicy}-{SecurityMode}-" +
+                $"{Token?.ToString()}-{TokenType}-{User}";
         }
 
         /// <summary>
@@ -447,11 +451,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         public override int GetHashCode() {
             var hashCode = 1200389859;
             hashCode = hashCode * -1521134295 +
-                IsEnabled.GetHashCode();
-            hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(EndpointUrlLC);
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(ApplicationId);
+            hashCode = hashCode * -1521134295 +
+               IsEnabled.GetHashCode();
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(SupervisorId);
             hashCode = hashCode * -1521134295 +
@@ -465,6 +469,34 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(SecurityPolicy);
             return hashCode;
+        }
+
+        /// <summary>
+        /// Compares for logical equality
+        /// </summary>
+        private class LogicalEquality : IEqualityComparer<OpcUaEndpointRegistration> {
+            /// <inheritdoc />
+            public bool Equals(OpcUaEndpointRegistration x, OpcUaEndpointRegistration y) {
+                return
+                    x.EndpointUrlLC == y.EndpointUrlLC &&
+                    x.ApplicationId == y.ApplicationId &&
+                    x.SecurityPolicy == y.SecurityPolicy &&
+                    x.SecurityMode == y.SecurityMode;
+            }
+
+            /// <inheritdoc />
+            public int GetHashCode(OpcUaEndpointRegistration obj) {
+                var hashCode = 1200389859;
+                hashCode = hashCode * -1521134295 +
+                    EqualityComparer<string>.Default.GetHashCode(obj.EndpointUrlLC);
+                hashCode = hashCode * -1521134295 +
+                    EqualityComparer<string>.Default.GetHashCode(obj.ApplicationId);
+                hashCode = hashCode * -1521134295 +
+                    EqualityComparer<SecurityMode?>.Default.GetHashCode(obj.SecurityMode);
+                hashCode = hashCode * -1521134295 +
+                    EqualityComparer<string>.Default.GetHashCode(obj.SecurityPolicy);
+                return hashCode;
+            }
         }
 
         private bool _isInSync;

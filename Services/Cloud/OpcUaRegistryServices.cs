@@ -117,30 +117,30 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 query += $"AND tags.{nameof(OpcUaEndpointRegistration.IsEnabled)} = " +
                     $"{model.IsTrusted} ";
             }
-            if (model.SecurityMode != null) {
-                // If SecurityMode provided, include it in search
-                query += $"AND tags.{nameof(OpcUaEndpointRegistration.SecurityMode)} = " +
-                    $"'{model.SecurityMode}' ";
-            }
-            if (model.SecurityPolicy != null) {
-                // If SecurityPolicy uri provided, include it in search
-                query += $"AND tags.{nameof(OpcUaEndpointRegistration.SecurityPolicy)} = " +
-                    $"'{model.SecurityPolicy}' ";
-            }
             if (model.Url != null) {
                 // If Url provided, include it in search
                 query += $"AND tags.{nameof(OpcUaEndpointRegistration.EndpointUrlLC)} = " +
                     $"'{model.Url.ToLowerInvariant()}' ";
             }
+            if (model.SecurityMode != null) {
+                // If SecurityMode provided, include it in search
+                query += $"AND properties.desired.{k_endpointProperty}." +
+                    $"{nameof(OpcUaEndpointRegistration.SecurityMode)} = '{model.SecurityMode}' ";
+            }
+            if (model.SecurityPolicy != null) {
+                // If SecurityPolicy uri provided, include it in search
+                query += $"AND properties.desired.{k_endpointProperty}." +
+                    $"{nameof(OpcUaEndpointRegistration.SecurityPolicy)} = '{model.SecurityPolicy}' ";
+            }
             if (model.TokenType != null) {
                 // If TokenType provided, include it in search
-                query += $"AND tags.{nameof(OpcUaEndpointRegistration.TokenType)} = " +
-                    $"'{model.TokenType}' ";
+                query += $"AND properties.desired.{k_endpointProperty}." +
+                    $"{nameof(OpcUaEndpointRegistration.TokenType)} = '{model.TokenType}' ";
             }
             if (model.User != null) {
                 // If User provided, include it in search
-                query += $"AND tags.{nameof(OpcUaEndpointRegistration.User)} = " +
-                    $"'{model.User}' ";
+                query += $"AND properties.desired.{k_endpointProperty}." +
+                    $"{nameof(OpcUaEndpointRegistration.User)} = '{model.User}' ";
             }
             var result = await _registry.QueryAsync(query, null);
             return new TwinInfoListModel {
@@ -203,7 +203,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
             // Enable/disable twin if needed
             if (isEnabled != enable) {
-                await EnableTwinAsync(registration.SupervisorId, 
+                await EnableTwinAsync(registration.SupervisorId,
                     registration.DeviceId, !enable);
             }
         }
@@ -575,53 +575,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 $"tags.{nameof(OpcUaTwinRegistration.DeviceType)} = 'Application' AND " +
                 $"tags.{nameof(OpcUaTwinRegistration.SupervisorId)} = '{supervisorId}'");
 
-            var remove = new HashSet<OpcUaApplicationRegistration>(
-                results.Select(t => OpcUaApplicationRegistration.FromTwin(t)));
-            var add = new HashSet<OpcUaApplicationRegistration>(
-                events.Select(ev => OpcUaApplicationRegistration.FromServiceModel(
-                    ev.Application)));
-
-            var unchanged = 0;
-            var added = 0;
-            var removed = 0;
-
-            //
-            // TODO: Should not patch attributes!!!
-            //
-
-            // Remove applications
-            foreach (var item in remove) {
-                if (add.Contains(item)) {
-                    continue;
-                }
-                try {
-                    // TODO: Soft delete here...
-                    await UnregisterApplicationAsync(item.ApplicationId);
-                    removed++;
-                }
-                catch (Exception ex) {
-                    _logger.Error("Exception during discovery removal.", () => ex);
-                }
-            }
-
-            // Add applications
-            foreach (var item in add) {
-                if (remove.Contains(item)) {
-                    unchanged++;
-                    continue;
-                }
-
-                // TODO: Check if same server owned by someone already...
-
-                var twin = new OpcUaApplicationRegistration().Patch(item.ToServiceModel());
-                try {
-                    await _registry.CreateOrUpdateAsync(twin);
-                    added++;
-                }
-                catch (Exception ex) {
-                    _logger.Error("Exception during discovery addition.", () => ex);
-                }
-            }
+            var existingApplications = results.Select(
+                t => OpcUaApplicationRegistration.FromTwin(t));
+            var discoveredApplications = events.Select(
+                ev => OpcUaApplicationRegistration.FromServiceModel(ev.Application));
+            await MergeApplicationsAsync(discoveredApplications, existingApplications);
 
             // Update endpoints of all existing applications
             foreach (var ev in events.GroupBy(k => k.Application.ApplicationId)) {
@@ -641,9 +599,60 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
                 await MergeEndpointsAsync(discoveredEndpoints, existingEndpoints);
             }
+        }
+
+        /// <summary>
+        /// Merge existing and newly found applications
+        /// </summary>
+        /// <param name="found"></param>
+        /// <param name="existing"></param>
+        /// <returns></returns>
+        private async Task MergeApplicationsAsync(
+            IEnumerable<OpcUaApplicationRegistration> found,
+            IEnumerable<OpcUaApplicationRegistration> existing) {
+
+            var remove = new HashSet<OpcUaApplicationRegistration>(existing,
+                OpcUaApplicationRegistration.Logical);
+            var add = new HashSet<OpcUaApplicationRegistration>(found,
+                OpcUaApplicationRegistration.Logical);
+
+            var unchanged = 0;
+            var added = 0;
+            var removed = 0;
+
+            // Remove applications
+            foreach (var item in existing) {
+                if (add.Contains(item)) {
+                    continue;
+                }
+                try {
+                    // TODO: Soft delete here...
+                    await UnregisterApplicationAsync(item.ApplicationId);
+                    removed++;
+                }
+                catch (Exception ex) {
+                    _logger.Error("Exception during discovery removal.", () => ex);
+                }
+            }
+
+            // Add applications
+            foreach (var item in found) {
+                if (remove.Contains(item)) {
+                    unchanged++;
+                    continue;
+                }
+                var twin = new OpcUaApplicationRegistration().Patch(item.ToServiceModel());
+                try {
+                    await _registry.CreateOrUpdateAsync(twin);
+                    added++;
+                }
+                catch (Exception ex) {
+                    _logger.Error("Exception during discovery addition.", () => ex);
+                }
+            }
 
             if (add.Count != 0 || remove.Count != 0) {
-                _logger.Info($"processed {supervisorId} discovery results: {added} " +
+                _logger.Info($"... processed discovery results: {added} " +
                     $"applications added, {removed} removed, and {unchanged} " +
                     "unchanged.", () => { });
             }
@@ -655,21 +664,21 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// <param name="found"></param>
         /// <param name="existing"></param>
         /// <returns></returns>
-        private async Task MergeEndpointsAsync(IEnumerable<OpcUaEndpointRegistration> found,
+        private async Task MergeEndpointsAsync(
+            IEnumerable<OpcUaEndpointRegistration> found,
             IEnumerable<OpcUaEndpointRegistration> existing) {
-            var remove = new HashSet<OpcUaEndpointRegistration>(existing);
-            var add = new HashSet<OpcUaEndpointRegistration>(found);
+
+            var remove = new HashSet<OpcUaEndpointRegistration>(existing,
+                OpcUaEndpointRegistration.Logical);
+            var add = new HashSet<OpcUaEndpointRegistration>(found,
+                OpcUaEndpointRegistration.Logical);
 
             var unchanged = 0;
             var added = 0;
             var removed = 0;
 
-            //
-            // TODO: Should not patch attributes e.g. user, etc. !!!
-            //
-
             // Remove items
-            foreach (var item in remove) {
+            foreach (var item in existing) {
                 if (add.Contains(item)) {
                     unchanged++;
                     continue;
@@ -691,14 +700,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             }
 
             // Add items
-            foreach (var item in add) {
+            foreach (var item in found) {
                 if (remove.Contains(item)) {
                     unchanged++;
                     continue;
                 }
-
-                // TODO: Check if same server owned by someone already...
-
                 var twin = new OpcUaEndpointRegistration().Patch(item.ToServiceModel());
                 try {
                     await _registry.CreateOrUpdateAsync(twin);

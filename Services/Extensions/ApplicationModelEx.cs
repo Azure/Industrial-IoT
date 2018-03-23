@@ -34,6 +34,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
             string supervisorId) {
             return new ApplicationModel {
                 Application = new ApplicationInfoModel {
+                    SupervisorId = supervisorId,
                     ApplicationId = CreateApplicationId(supervisorId,
                         result.Description.Server.ApplicationUri),
                     ApplicationType = result.Description.Server.ApplicationType
@@ -63,7 +64,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <param name="supervisorId"></param>
-        public static ApplicationModel SetSupervisorId(this ApplicationModel model, 
+        public static ApplicationModel SetSupervisorId(this ApplicationModel model,
             string supervisorId) {
             if (model == null) {
                 return null;
@@ -85,7 +86,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsEqual(this ApplicationInfoModel model, 
+        public static bool IsEqual(this ApplicationInfoModel model,
             ApplicationInfoModel that) {
             if (model == that) {
                 return true;
@@ -139,7 +140,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// Create Union with server
         /// </summary>
         /// <param name="server"></param>
-        public static void UnionWith(this ApplicationModel model, 
+        public static void UnionWith(this ApplicationModel model,
             ApplicationModel server) {
 
             if (server?.Application?.Capabilities?.Any() ?? false) {

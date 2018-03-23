@@ -16,6 +16,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
     /// </summary>
     public sealed class OpcUaApplicationRegistration : OpcUaTwinRegistration {
 
+        public static IEqualityComparer<OpcUaApplicationRegistration> Logical =>
+            new LogicalEquality();
+
         /// <summary>
         /// Device id for registration
         /// </summary>
@@ -114,14 +117,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 }
             };
 
-            // Tags + Endpoint Property
+            // Tags
 
             if (IsEnabled != (application.Certificate != null)) {
                 IsEnabled = (application.Certificate != null);
                 twin.Tags.Add(nameof(IsEnabled), IsEnabled);
             }
-
-            // Tags
 
             var updateApplicationId = false;
 
@@ -134,7 +135,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 ApplicationType = application.ApplicationType;
                 twin.Tags.Add(nameof(ApplicationType), JToken.FromObject(ApplicationType));
 
-                twin.Tags.Add(nameof(Models.ApplicationType.Server), 
+                twin.Tags.Add(nameof(Models.ApplicationType.Server),
                     ApplicationType == Models.ApplicationType.Server ||
                     ApplicationType == Models.ApplicationType.ClientAndServer);
                 twin.Tags.Add(nameof(Models.ApplicationType.Client),
@@ -370,6 +371,28 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(Thumbprint);
             return hashCode;
+        }
+
+        /// <summary>
+        /// Compares for logical equality
+        /// </summary>
+        private class LogicalEquality : IEqualityComparer<OpcUaApplicationRegistration> {
+            /// <inheritdoc />
+            public bool Equals(OpcUaApplicationRegistration x, OpcUaApplicationRegistration y) {
+                return
+                    x.ApplicationType == y.ApplicationType &&
+                    x.ApplicationId == y.ApplicationId;
+            }
+
+            /// <inheritdoc />
+            public int GetHashCode(OpcUaApplicationRegistration obj) {
+                var hashCode = 1200389859;
+                hashCode = hashCode * -1521134295 +
+                    EqualityComparer<ApplicationType?>.Default.GetHashCode(obj.ApplicationType);
+                hashCode = hashCode * -1521134295 +
+                    EqualityComparer<string>.Default.GetHashCode(obj.ApplicationId);
+                return hashCode;
+            }
         }
 
         private string _applicationId;

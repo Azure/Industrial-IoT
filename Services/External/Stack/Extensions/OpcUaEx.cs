@@ -374,7 +374,7 @@ namespace Opc.Ua.Extensions {
             }
             catch {
                 // Not a uri
-                nsUri = null;
+                nsUri = Namespaces.OpcUa;
             }
 
             var and = value.IndexOf('&');

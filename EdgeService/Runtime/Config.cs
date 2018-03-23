@@ -89,8 +89,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Runtime {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        private string GetString(string key, string defaultValue = "") =>
-            Configuration.GetValue(key, defaultValue);
+        private string GetString(string key, string defaultValue = "") {
+            var value = Configuration.GetValue(key, defaultValue);
+            if (string.IsNullOrEmpty(value)) {
+                return defaultValue;
+            }
+            return value;
+        }
 
         /// <summary>
         /// Read boolean

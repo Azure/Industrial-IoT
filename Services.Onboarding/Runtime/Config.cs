@@ -34,14 +34,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.Runtime {
         /// </summary>
         private const string IoThubConnStringKey = "IoTHubConnectionString";
         private const string IoTHubEndpointKey = "IoTHubEndpoint";
-        private const string DependenciesKey = "Dependencies:";
-        private const string IoTHubManagerServiceKey = DependenciesKey + "IoTHubManager:";
+        private const string IoTHubManagerV1ApiUrlKey = "IoTHubManagerUrl";
         /// <summary>IoT hub connection string</summary>
-        public string IoTHubConnString => GetConnectionString(IoThubConnStringKey,
-            GetConnectionString("_HUB_CS", null));
+        public string IoTHubConnString => GetString(IoThubConnStringKey,
+            GetString("_HUB_CS", null));
         /// <summary>IoT hub manager endpoint url</summary>
-        public string IoTHubManagerV1ApiUrl =>
-            GetString(IoTHubManagerServiceKey + "webservice_url");
+        public string IoTHubManagerV1ApiUrl => GetString(IoTHubManagerV1ApiUrlKey,
+            GetString("PCS_IOTHUBMANAGER_WEBSERVICE_URL", null));
         /// <summary> Always bypass proxy </summary>
         public bool BypassProxy =>
             true;
@@ -77,10 +76,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.Runtime {
         public bool UseWebsockets =>
             GetBool(UseWebsocketsKey, GetBool("_WS", false));
 
-        private const string CheckpointingKey = DependenciesKey + "checkpointing:";
-        private const string FrequencyKey = CheckpointingKey + "frequency";
-        private const string ReceiveBatchSizeKey = CheckpointingKey + "receiveBatchSize";
-        private const string ReceiveTimeoutKey = CheckpointingKey + "receiveTimeout";
+        private const string ReceiveBatchSizeKey = "ReceiveBatchSize";
+        private const string ReceiveTimeoutKey = "ReceiveTimeout";
         /// <summary> Receive batch size </summary>
         public int ReceiveBatchSize =>
             GetInt(ReceiveBatchSizeKey, 999);
@@ -88,11 +85,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.Runtime {
         public TimeSpan ReceiveTimeout =>
             GetTimeSpan(ReceiveTimeoutKey, TimeSpan.FromSeconds(5));
 
-        private const string StorageKey = CheckpointingKey + "storage:";
-        private const string NamespaceKey = StorageKey + "namespace";
+        private const string NamespaceKey = "StorageNamespace";
         public string Namespace =>
-            GetString(NamespaceKey, "pcs-iothubreact-checkpoints");
-
+            GetString(NamespaceKey, "opc-onboarding-processor-checkpoints");
 
         /// <summary>
         /// Configuration constructor
@@ -102,36 +97,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.Runtime {
             Configuration = configuration;
             Logger = new Logger(Uptime.ProcessId,
                 GetLogLevel("Logging:LogLevel:Default", LogLevel.Debug));
-        }
-
-        /// <summary>
-        /// In order to connect to Azure IoT Hub, the service requires a connection
-        /// string. The value can be found in the Azure Portal. For more information see
-        /// https://docs.microsoft.com/azure/iot-hub/iot-hub-csharp-csharp-getstarted
-        /// to find the connection string value.
-        ///
-        /// The connection string can be stored in the 'appsettings.json' configuration
-        /// file, or in the PCS_IOTHUB_CONNSTRING environment variable.
-        ///
-        /// When working with VisualStudio, the environment variable can be set in the
-        /// WebService project settings, under the "Debug" tab.
-        /// </summary>
-        /// <returns></returns>
-        private string GetConnectionString(string key, string defaultValue) {
-            var connstring = GetString(key);
-            if (string.IsNullOrEmpty(connstring)) {
-                return defaultValue;
-            }
-            if (!connstring.ToLowerInvariant().Contains("your azure iot hub")) {
-                return connstring;
-            }
-            Logger.Warn(
-                "The service configuration is incomplete.  If you do not intend " +
-                "a debug configuration, please provide your Azure IoT Hub connection " +
-                "string. For more information, see the environment variables " +
-                "used in project properties and the 'iothub_connstring' " +
-                "value in the 'appsettings.json' configuration file.", () => { });
-            return defaultValue;
         }
 
         /// <summary>
@@ -176,13 +141,18 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.Runtime {
         }
 
         /// <summary>
-        /// Read variable and replace environment variable if needed
+        /// Read string
         /// </summary>
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        private string GetString(string key, string defaultValue = "") =>
-            Configuration.GetValue(key, defaultValue);
+        private string GetString(string key, string defaultValue = "") {
+            var value = Configuration.GetValue(key, defaultValue);
+            if (string.IsNullOrEmpty(value)) {
+                return defaultValue;
+            }
+            return value;
+        }
 
         /// <summary>
         /// Read boolean

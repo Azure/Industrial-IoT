@@ -31,11 +31,10 @@ namespace Microsoft.Azure.IoTSolutions.Shared.Runtime {
         /// <summary>
         /// Service configuration
         /// </summary>
-        private const string DEPENDENCIES_KEY = "Dependencies:";
-        private const string OPC_TWIN_SERVICE_KEY = DEPENDENCIES_KEY + "OpcTwin:";
+        private const string OPC_TWIN_SERVICE_URL_KEY = "OpcTwinServiceUrl";
         /// <summary>OPC twin endpoint url</summary>
         public string OpcTwinServiceApiUrl =>
-            GetString(OPC_TWIN_SERVICE_KEY + "webservice_url");
+            GetString(OPC_TWIN_SERVICE_URL_KEY);
 
         /// <summary>
         /// Configuration constructor
@@ -73,14 +72,16 @@ namespace Microsoft.Azure.IoTSolutions.Shared.Runtime {
         }
 
         /// <summary>
-        /// Read variable and replace environment variable if needed
+        /// Read string
         /// </summary>
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         private string GetString(string key, string defaultValue = "") {
             var value = Configuration.GetValue(key, defaultValue);
-            ReplaceEnvironmentVariables(ref value, defaultValue);
+            if (string.IsNullOrEmpty(value)) {
+                return defaultValue;
+            }
             return value;
         }
 
@@ -116,52 +117,6 @@ namespace Microsoft.Azure.IoTSolutions.Shared.Runtime {
             catch (Exception e) {
                 throw new InvalidConfigurationException(
                     $"Unable to load configuration value for '{key}'", e);
-            }
-        }
-
-        /// <summary>
-        /// Replace all placeholders
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="defaultValue"></param>
-        private void ReplaceEnvironmentVariables(ref string value, string defaultValue) {
-            if (string.IsNullOrEmpty(value)) {
-                value = defaultValue;
-                return;
-            }
-
-            // Search for optional replacements: ${?VAR_NAME}
-            var keys = Regex.Matches(value, @"\${\?([a-zA-Z_][a-zA-Z0-9_]*)}").Cast<Match>()
-                .Select(m => m.Groups[1].Value).Distinct().ToArray();
-            // Replace
-            foreach (var key in keys) {
-                value = value.Replace("${?" + key + "}", GetString(key, string.Empty));
-            }
-
-            // Pattern for mandatory replacements: ${VAR_NAME}
-            const string PATTERN = @"\${([a-zA-Z_][a-zA-Z0-9_]*)}";
-            // Search
-            keys = Regex.Matches(value, PATTERN).Cast<Match>()
-                .Select(m => m.Groups[1].Value).Distinct().ToArray();
-            // Replace
-            foreach (var key in keys) {
-                var replacement = GetString(key, null);
-                if (replacement != null) {
-                    value = value.Replace("${" + key + "}", replacement);
-                }
-            }
-            // Non replaced placeholders cause an exception
-            keys = Regex.Matches(value, PATTERN).Cast<Match>()
-                .Select(m => m.Groups[1].Value).ToArray();
-            if (keys.Length > 0) {
-                var varsNotFound = keys.Aggregate(", ", (current, k) => current + k);
-                Logger.Error("Environment variables not found", () => new { varsNotFound });
-                throw new InvalidConfigurationException(
-                    "Environment variables not found: " + varsNotFound);
-            }
-            value.Trim();
-            if (string.IsNullOrEmpty(value)) {
-                value = defaultValue;
             }
         }
     }

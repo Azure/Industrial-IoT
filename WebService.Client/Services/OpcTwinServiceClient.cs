@@ -275,12 +275,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
         }
 
         /// <summary>
-        /// Find twin registrations
+        /// Query twin registrations
         /// </summary>
         /// <param name="query"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public Task<TwinInfoListApiModel> FindTwinsAsync(
+        public Task<TwinInfoListApiModel> QueryTwinsAsync(
             TwinRegistrationQueryApiModel query, bool? onlyServerState) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"{_serviceUri}/twins/query");
