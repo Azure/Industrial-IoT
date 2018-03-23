@@ -48,6 +48,7 @@ namespace Cli {
             TestOpcUaServerClient,
             TestOpcUaDiscoveryService,
             TestOpcUaExportService,
+            TestOpcUaServerScanner,
             TestNetworkScanner,
             TestPortScanner,
             ClearDeviceRegistry
@@ -117,6 +118,17 @@ namespace Cli {
                                 host = args[i];
                             }
                             break;
+                        case "-o":
+                        case "--opcservers":
+                            if (op != Op.None) {
+                                throw new ArgumentException("Operations are mutually exclusive");
+                            }
+                            op = Op.TestOpcUaServerScanner;
+                            i++;
+                            if (i < args.Length) {
+                                host = args[i];
+                            }
+                            break;
                         case "-n":
                         case "--net":
                             if (op != Op.None) {
@@ -169,6 +181,9 @@ Operations (Mutually exclusive):
      -p
     --ports
              Tests port scanning.
+     -o
+    --opcservers
+             Tests opc server scanning on single machine.
      -d
     --discover
              Tests discovery stuff.
@@ -197,7 +212,10 @@ Operations (Mutually exclusive):
                         TestNetworkScanner().Wait();
                         break;
                     case Op.TestPortScanner:
-                        TestPortScanner(host).Wait();
+                        TestPortScanner(host, false).Wait();
+                        break;
+                    case Op.TestOpcUaServerScanner:
+                        TestPortScanner(host, true).Wait();
                         break;
                     case Op.TestOpcUaDiscoveryService:
                         TestOpcUaDiscoveryService().Wait();
@@ -225,14 +243,14 @@ Operations (Mutually exclusive):
         /// </summary>
         /// <param name="host"></param>
         /// <returns></returns>
-        private static async Task TestPortScanner(string host) {
+        private static async Task TestPortScanner(string host, bool opc) {
             var logger = new Logger("test", LogLevel.Debug);
             var addresses = await Dns.GetHostAddressesAsync(host);
             var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var watch = Stopwatch.StartNew();
             var results = await PortScanner.ScanAsync(logger,
-                PortRange.All.
-                    SelectMany(r => r.GetEndpoints(addresses.First())), cts.Token);
+                PortRange.All.SelectMany(r => r.GetEndpoints(addresses.First())),
+                opc ? new OpcUaServerProbe(logger) : null, cts.Token);
             foreach(var result in results) {
                 Console.WriteLine($"Found {result} open.");
             }
@@ -247,7 +265,7 @@ Operations (Mutually exclusive):
             var logger = new Logger("test", LogLevel.Debug);
             var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var watch = Stopwatch.StartNew();
-            var results = await NetworkScanner.ScanAsync(logger, 
+            var results = await NetworkScanner.ScanAsync(logger,
                 NetworkClass.Wired, cts.Token);
             foreach (var result in results) {
                 Console.WriteLine($"Found {result.Address}...");

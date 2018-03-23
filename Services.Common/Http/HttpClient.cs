@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IoTSolutions.Common.Http {
     using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
     using System;
+    using System.Diagnostics;
     using System.Net.Http;
     using System.Threading.Tasks;
 
@@ -87,6 +88,14 @@ namespace Microsoft.Azure.IoTSolutions.Common.Http {
         private async Task<IHttpResponse> SendAsync(IHttpRequest request,
             HttpMethod httpMethod) {
             var clientHandler = new HttpClientHandler();
+
+            var sw = Stopwatch.StartNew();
+            _logger.Debug($"Sending {httpMethod} request to {request.Uri}...",
+                () => {
+#if LOG_VERBOSE
+                    return new { request.Headers, request.Content, request.Options };
+#endif
+                });
             using (var client = new System.Net.Http.HttpClient(clientHandler)) {
                 var httpRequest = new HttpRequestMessage {
                     Method = httpMethod,
@@ -97,20 +106,20 @@ namespace Microsoft.Azure.IoTSolutions.Common.Http {
                 SetTimeout(request, client);
                 SetContent(request, httpMethod, httpRequest);
                 SetHeaders(request, httpRequest);
-
-                _logger.Debug("Sending request", () => new {
-                    httpMethod,
-                    request.Uri,
-                    request.Content,
-                    request.Options
-                });
-
                 try {
                     using (var response = await client.SendAsync(httpRequest)) {
+                        var content = await response.Content.ReadAsStringAsync();
+                        _logger.Debug(
+                            $"... {httpMethod} to {request.Uri} returned " +
+                            $"{response.StatusCode} (took {sw.Elapsed}).", () => {
+#if LOG_VERBOSE
+                                return new { response.Headers, content };
+#endif
+                            });
                         return new HttpResponse {
                             StatusCode = response.StatusCode,
                             Headers = response.Headers,
-                            Content = await response.Content.ReadAsStringAsync(),
+                            Content = content
                         };
                     }
                 }
@@ -119,14 +128,14 @@ namespace Microsoft.Azure.IoTSolutions.Common.Http {
                     if (e.InnerException != null) {
                         errorMessage += " - " + e.InnerException.Message;
                     }
-
-                    _logger.Error("Request failed", () => new {
-                        ExceptionMessage = e.Message,
-                        InnerExceptionType = e.InnerException?.GetType().FullName ?? "",
-                        InnerExceptionMessage = e.InnerException?.Message ?? "",
-                        errorMessage
-                    });
-
+                    _logger.Error(
+                        $"... {httpMethod} to {request.Uri} failed (took {sw.Elapsed})!",
+                        () => new {
+                            ExceptionMessage = e.Message,
+                            InnerExceptionType = e.InnerException?.GetType().FullName ?? "",
+                            InnerExceptionMessage = e.InnerException?.Message ?? "",
+                            errorMessage
+                        });
                     return new HttpResponse {
                         StatusCode = 0,
                         Content = errorMessage

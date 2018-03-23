@@ -70,10 +70,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <param name="replies"></param>
         /// <param name="ct"></param>
         public NetworkScanner(ILogger logger, ITargetBlock<PingReply> replies,
-            IEnumerable<AddressRange> addresses, CancellationToken ct) : 
-            this(logger, replies, false, 
-                addresses ?? throw new ArgumentNullException(nameof(addresses)), 
-                NetworkClass.None, ct) { 
+            IEnumerable<AddressRange> addresses, CancellationToken ct) :
+            this(logger, replies, false,
+                addresses ?? throw new ArgumentNullException(nameof(addresses)),
+                NetworkClass.None, ct) {
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <param name="replies"></param>
         /// <param name="ct"></param>
         public NetworkScanner(ILogger logger, ITargetBlock<PingReply> replies,
-            bool local, IEnumerable<AddressRange> addresses, 
+            bool local, IEnumerable<AddressRange> addresses,
             NetworkClass netclass, CancellationToken ct) {
             _logger = logger;
             _replies = replies;
@@ -92,7 +92,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             if (addresses == null) {
                 addresses = NetworkInterface.GetAllNetworkInterfaces()
                     .Where(n =>
-                        !n.IsReceiveOnly &&
                         IsInClass(n.NetworkInterfaceType, netclass) &&
                         !n.Name.Contains("(DockerNAT)") &&
                         n.OperationalStatus == OperationalStatus.Up &&
@@ -210,7 +209,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             return pings;
         }
 
-        private static bool IsInClass(NetworkInterfaceType type, 
+        private static bool IsInClass(NetworkInterfaceType type,
             NetworkClass netclass) {
             switch(type) {
                 case NetworkInterfaceType.Ethernet:

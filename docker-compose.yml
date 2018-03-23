@@ -1,27 +1,23 @@
 version: '3'
 
 services:
-  edgeservice:
-    image: edgeservice
-    build:
-      context: .
-      dockerfile: EdgeService/Dockerfile
 
-  services.onboarding:
-    image: servicesonboarding
+  opc.onboarding.service:
+    image: iot-opc-onboarding-service:1.0.0
     build:
       context: .
       dockerfile: Services.Onboarding/Dockerfile
+    environment:
+      - _HUB_CS
+      - _STORE_CS
+      - _EH_CS
 
-  webservice:
-    image: webservice
+  opc.twin.service:
+    image: iot-opc-twin-service:1.0.0
     build:
       context: .
       dockerfile: WebService/Dockerfile
-
-  opcuatwinctrl:
-    image: opcuatwinctrl
-    build:
-      context: .
-      dockerfile: Samples/OpcUaTwinCtrl/Dockerfile
-
+    ports:
+      - "9042:9042"
+    environment:
+      - _HUB_CS

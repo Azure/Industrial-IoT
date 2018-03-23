@@ -3,6 +3,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <PackageId>Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Cli</PackageId>
+    <Authors>Microsoft</Authors>
+    <Company>Microsoft</Company>
+    <Product>Connected Factory Opc Ua Twin Web Service Command line interface</Product>
+    <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
+    <AssemblyName>OpcUaTwinCtrl</AssemblyName>
+    <RootNamespace>Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Cli</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

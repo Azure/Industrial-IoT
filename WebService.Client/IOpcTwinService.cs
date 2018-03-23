@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
             ApplicationRegistrationUpdateApiModel request);
 
         /// <summary>
-        /// List all applications or continue a FindApplications
+        /// List all applications or continue a QueryApplications
         /// call.
         /// </summary>
         /// <param name="continuation"></param>

@@ -5,7 +5,9 @@
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
-    using Opc.Ua;
+    using UaApplicationType = Opc.Ua.ApplicationType;
+    using UaSecurityMode = Opc.Ua.MessageSecurityMode;
+    using UaTokenType = Opc.Ua.UserTokenType;
 
     public static class OpcUaTypesEx {
 
@@ -14,13 +16,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public static SecurityMode? ToServiceType(this MessageSecurityMode mode) {
+        public static SecurityMode? ToServiceType(this UaSecurityMode mode) {
             switch(mode) {
-                case MessageSecurityMode.None:
+                case UaSecurityMode.None:
                     return SecurityMode.None;
-                case MessageSecurityMode.Sign:
+                case UaSecurityMode.Sign:
                     return SecurityMode.Sign;
-                case MessageSecurityMode.SignAndEncrypt:
+                case UaSecurityMode.SignAndEncrypt:
                     return SecurityMode.SignAndEncrypt;
                 default:
                     return null;
@@ -32,15 +34,35 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static TokenType? ToServiceType(this UserTokenType type) {
+        public static TokenType? ToServiceType(this UaTokenType type) {
             switch (type) {
-                case UserTokenType.Anonymous:
+                case UaTokenType.Anonymous:
                     return TokenType.None;
-                case UserTokenType.Certificate:
+                case UaTokenType.Certificate:
                     return TokenType.X509Certificate;
-                case UserTokenType.UserName:
-                case UserTokenType.IssuedToken:
+                case UaTokenType.UserName:
+                case UaTokenType.IssuedToken:
                     return TokenType.UserNamePassword;
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert application type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static Models.ApplicationType? ToServiceType(this UaApplicationType type) {
+            switch (type) {
+                case UaApplicationType.Client:
+                    return Models.ApplicationType.Client;
+                case UaApplicationType.DiscoveryServer:
+                    return Models.ApplicationType.Server;
+                case UaApplicationType.Server:
+                    return Models.ApplicationType.Server;
+                case UaApplicationType.ClientAndServer:
+                    return Models.ApplicationType.ClientAndServer;
                 default:
                     return null;
             }

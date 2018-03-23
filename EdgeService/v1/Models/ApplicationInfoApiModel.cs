@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         /// <param name="model"></param>
         public ApplicationInfoApiModel(ApplicationInfoModel model) {
             ApplicationUri = model?.ApplicationUri;
-            ApplicationType = model?.ApplicationType ?? ApplicationType.Server;
+            ApplicationType = model?.ApplicationType ?? ApplicationType.ClientAndServer;
             ApplicationName = model?.ApplicationName;
             ProductUri = model?.ProductUri;
             Certificate = model?.Certificate;

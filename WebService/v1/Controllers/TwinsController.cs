@@ -98,11 +98,31 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Controllers {
         /// <param name="onlyServerState">Whether to include only server
         /// state, or display current client state of the twin if
         /// available</param>
-        /// <param name="model">Query model to match</param>
+        /// <param name="model">Query to match</param>
         /// <returns>Twin model list</returns>
         [HttpPost("query")]
-        public async Task<TwinInfoListApiModel> QueryAsync(
+        public async Task<TwinInfoListApiModel> FindAsync(
             [FromBody] TwinRegistrationQueryApiModel model,
+            [FromQuery] bool? onlyServerState) {
+            var result = await _twins.QueryTwinsAsync(model.ToServiceModel(),
+                onlyServerState ?? false);
+
+            // TODO: Filter twins based on RBAC
+
+            return new TwinInfoListApiModel(result);
+        }
+
+        /// <summary>
+        /// Returns the twins using query from uri query
+        /// </summary>
+        /// <param name="onlyServerState">Whether to include only server
+        /// state, or display current client state of the twin if
+        /// available</param>
+        /// <param name="model">Query to match</param>
+        /// <returns>Twin model list</returns>
+        [HttpGet("query")]
+        public async Task<TwinInfoListApiModel> QueryAsync(
+            [FromQuery] TwinRegistrationQueryApiModel model,
             [FromQuery] bool? onlyServerState) {
             var result = await _twins.QueryTwinsAsync(model.ToServiceModel(),
                 onlyServerState ?? false);

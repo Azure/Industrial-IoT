@@ -2,6 +2,14 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client</PackageId>
+        <Authors>Microsoft</Authors>
+        <Product>Connected Factory Opc Ua Twin Web Service Client</Product>
+        <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <AssemblyName>Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client</AssemblyName>
+        <RootNamespace>Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

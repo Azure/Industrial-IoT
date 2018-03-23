@@ -1,12 +1,14 @@
-FROM microsoft/dotnet:2.0-runtime AS base
+FROM microsoft/dotnet:runtime AS base
 WORKDIR /app
 
-FROM microsoft/dotnet:2.0-sdk AS build
+FROM microsoft/dotnet:latest AS build
 WORKDIR /src
 COPY iot-opc-twin-service.sln ./
 COPY Samples/OpcUaTwinCtrl/OpcUaTwinCtrl.csproj Samples/OpcUaTwinCtrl/
 COPY WebService.Client/WebService.Client.csproj WebService.Client/
 COPY Services.Common/Services.Common.csproj Services.Common/
+COPY .nuget .nuget
+RUN dotnet restore --configfile .nuget/NuGet.Config -nowarn:msb3202,nu1503
 RUN dotnet restore -nowarn:msb3202,nu1503
 COPY . .
 WORKDIR /src/Samples/OpcUaTwinCtrl

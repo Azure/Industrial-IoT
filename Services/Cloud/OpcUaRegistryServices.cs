@@ -424,16 +424,26 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 query += $"AND tags.{nameof(OpcUaApplicationRegistration.ApplicationUriLC)} = " +
                     $"'{model.ApplicationUri.ToLowerInvariant()}' ";
             }
-            if (model.ApplicationType != null) {
-                // If ApplicationType provided, include it in search
-                query += $"AND tags.{nameof(OpcUaApplicationRegistration.ApplicationType)} = " +
-                    $"'{model.ApplicationType}' ";
+
+            if (model.ApplicationType == ApplicationType.Client) {
+                // If searching for clients include it in search
+                query += $"AND tags.{nameof(ApplicationType.Client)} = true ";
             }
+
+            if (model.ApplicationType == ApplicationType.Server) {
+                // If searching for servers include it in search
+                query += $"AND tags.{nameof(ApplicationType.Server)} = true ";
+            }
+
             if (model.Capabilities != null) {
                 // If Capabilities provided, include it in search
+
+                // TODO: Same as above!
+
                 query += $"AND tags.{nameof(OpcUaApplicationRegistration.Capabilities)} = " +
                     $"'{model.Capabilities.EncodeAsString()}' ";
             }
+
             var result = await _registry.QueryAsync(query, null);
             return new ApplicationInfoListModel {
                 ContinuationToken = result.ContinuationToken,

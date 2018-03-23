@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
 
     /// <summary>
     /// Main entry point
@@ -64,15 +65,29 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService {
             AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
 
             using (var hostScope = container.BeginLifetimeScope()) {
-                var module = hostScope.Resolve<IEdgeHost>();
-                await module.StartAsync();
                 var events = hostScope.Resolve<IEventEmitter>();
+                try {
+                    var module = hostScope.Resolve<IEdgeHost>();
+                    await module.StartAsync();
 
-                // Report type of service
-                await events.SendAsync("type", "supervisor");
-                Console.TreatControlCAsInput = true;
-                await Task.WhenAny(tcs.Task, Task.Run(() => Console.ReadKey()));
-                await events.SendAsync("type", null);
+                    // Report type of service
+                    await events.SendAsync("type", "supervisor");
+                    if (!Console.IsInputRedirected) {
+                        Console.WriteLine("Press any key to exit...");
+                        Console.TreatControlCAsInput = true;
+                        await Task.WhenAny(tcs.Task, Task.Run(() => Console.ReadKey()));
+                    }
+                    else {
+                        await tcs.Task;
+                    }
+                }
+                catch (Exception ex) {
+                    var logger = hostScope.Resolve<ILogger>();
+                    logger.Error("Error during edge run!", () => ex);
+                }
+                finally {
+                    await events.SendAsync("type", null);
+                }
             }
         }
 

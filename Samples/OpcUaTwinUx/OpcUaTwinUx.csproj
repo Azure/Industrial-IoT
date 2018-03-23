@@ -4,6 +4,11 @@
         <TargetFramework>netcoreapp2.0</TargetFramework>
         <AssemblyName>Microsoft.Azure.IoTSolutions.Browser</AssemblyName>
         <RootNamespace>Microsoft.Azure.IoTSolutions.Browser</RootNamespace>
+        <PackageId>Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Ux</PackageId>
+        <Product>Connected Factory Opc Ua Twin Web Service Sample UX</Product>
+        <Company>Microsoft</Company>
+        <Authors>Microsoft</Authors>
+        <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
     </PropertyGroup>
 
     <ItemGroup>

@@ -133,6 +133,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             if (ApplicationType != application.ApplicationType) {
                 ApplicationType = application.ApplicationType;
                 twin.Tags.Add(nameof(ApplicationType), JToken.FromObject(ApplicationType));
+
+                twin.Tags.Add(nameof(Models.ApplicationType.Server), 
+                    ApplicationType == Models.ApplicationType.Server ||
+                    ApplicationType == Models.ApplicationType.ClientAndServer);
+                twin.Tags.Add(nameof(Models.ApplicationType.Client),
+                    ApplicationType == Models.ApplicationType.Client ||
+                    ApplicationType == Models.ApplicationType.ClientAndServer);
             }
 
             if (SupervisorId != application.SupervisorId) {

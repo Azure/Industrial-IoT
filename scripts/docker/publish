@@ -1,8 +1,0 @@
-#!/usr/bin/env bash -e
-
-# Note: use lowercase names for the Docker images
-DOCKER_IMAGE="microsoft/iot-opc-twin-service"
-# "testing" is the latest dev build, usually matching the code in the "master" branch
-DOCKER_TAG="$DOCKER_IMAGE:testing"
-
-docker push $DOCKER_TAG

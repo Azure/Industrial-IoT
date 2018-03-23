@@ -1,8 +1,8 @@
 {
   "profiles": {
-    "Services.Client": {
+    "OpcUaTwinCtrl": {
       "commandName": "Project",
-      "commandLineArgs": "-d"
+      "commandLineArgs": "console"
     }
   }
 }

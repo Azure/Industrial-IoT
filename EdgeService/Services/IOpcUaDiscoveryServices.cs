@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService{
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
     using System;
     using System.Threading.Tasks;
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService{
         /// <param name="portRanges"></param>
         /// <param name="discoveryIdleTime"></param>
         /// <returns></returns>
-        Task UpdateScanConfigurationAsync(string addressRanges, 
+        Task UpdateScanConfigurationAsync(string addressRanges,
             string portRanges, TimeSpan? discoveryIdleTime);
     }
 }

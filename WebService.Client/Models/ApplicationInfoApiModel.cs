@@ -14,7 +14,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
     [JsonConverter(typeof(StringEnumConverter))]
     public enum ApplicationType {
         Server,
-        Client
+        Client,
+        ClientServer
     }
 
     /// <summary>

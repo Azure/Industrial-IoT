@@ -119,11 +119,27 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Controllers {
         /// Returns the applications for the information in the
         /// specified application query info model.
         /// </summary>
-        /// <param name="query">Application info for the server</param>
-        /// <returns>Application model</returns>
+        /// <param name="query">Application query</param>
+        /// <returns>Applications</returns>
         [HttpPost("query")]
+        public async Task<ApplicationInfoListApiModel> FindAsync(
+            [FromBody] ApplicationRegistrationQueryApiModel query) {
+            var result = await _applications.QueryApplicationsAsync(
+                query.ToServiceModel());
+
+            // TODO: Filter results based on RBAC
+
+            return new ApplicationInfoListApiModel(result);
+        }
+
+        /// <summary>
+        /// Query using Uri query specification.
+        /// </summary>
+        /// <param name="query">Application Query</param>
+        /// <returns>Applications</returns>
+        [HttpGet("query")]
         public async Task<ApplicationInfoListApiModel> QueryAsync(
-            ApplicationRegistrationQueryApiModel query) {
+            [FromQuery] ApplicationRegistrationQueryApiModel query) {
             var result = await _applications.QueryApplicationsAsync(
                 query.ToServiceModel());
 
@@ -148,7 +164,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Controllers {
         }
 
         /// <summary>
-        /// The returned application certificate allows a user to determine 
+        /// The returned application certificate allows a user to determine
         /// whether endpoints should be trusted.
         /// </summary>
         /// <param name="id">Endpoint identifier</param>

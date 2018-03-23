@@ -21,7 +21,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// <summary>
         /// Application is client
         /// </summary>
-        Client
+        Client,
+
+        /// <summary>
+        /// Application is client and server
+        /// </summary>
+        ClientAndServer,
     }
 }
 

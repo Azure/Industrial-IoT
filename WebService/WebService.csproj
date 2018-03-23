@@ -4,9 +4,17 @@
     <AssemblyName>Microsoft.Azure.IoTSolutions.OpcTwin.WebService</AssemblyName>
     <RootNamespace>Microsoft.Azure.IoTSolutions.OpcTwin.WebService</RootNamespace>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+    <PackageId>Microsoft.Azure.IoTSolutions.OpcTwin.WebService</PackageId>
+    <Product>Connected Factory Opc Ua Twin Web Service</Product>
+    <Authors>Microsoft</Authors>
+    <Company>Microsoft</Company>
+    <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.0\OpcTwin.WebService.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp2.0\Microsoft.Azure.IoTSolutions.OpcTwin.WebService.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\netcoreapp2.0\Microsoft.Azure.IoTSolutions.OpcTwin.WebService.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="OPC Foundation\**" />

@@ -103,9 +103,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService {
                 });
 
                 // Add help
-                var xmlPath = Path.Combine(AppContext.BaseDirectory,
-                    ServiceInfo.NAME + ".WebService.xml");
-                options.IncludeXmlComments(xmlPath);
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory,
+                    typeof(Startup).Assembly.GetName().Name + ".xml"));
 
                 // If auth enabled, need to have bearer token to access any api
                 if (Config.AuthRequired) {

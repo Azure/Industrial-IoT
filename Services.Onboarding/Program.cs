@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding {
     using Autofac;
     using System;
     using System.IO;
+    using System.Threading;
 
     public class Program {
 
@@ -35,8 +36,18 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding {
             using (var scope = container.BeginLifetimeScope()) {
                 var host = scope.Resolve<IEventProcessorHost>();
                 host.StartAsync().Wait();
-                Console.WriteLine("Press any key to exit...");
-                Console.ReadKey();
+                if (!Console.IsInputRedirected) {
+                    Console.WriteLine("Press any key to exit...");
+                    Console.ReadKey();
+                }
+                else {
+                    var evt = new ManualResetEvent(false);
+                    Console.CancelKeyPress += (s, a) => {
+                        evt.Set();
+                        a.Cancel = true;
+                    };
+                    evt.WaitOne();
+                }
                 host.StopAsync().Wait();
             }
         }

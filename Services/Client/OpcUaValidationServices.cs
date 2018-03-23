@@ -98,7 +98,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
                         ApplicationUri = ep.Server.ApplicationUri,
                         DiscoveryUrls = ep.Server.DiscoveryUrls,
                         DiscoveryProfileUri = ep.Server.DiscoveryProfileUri,
-                        ApplicationType = Models.ApplicationType.Server,
+                        ApplicationType = ep.Server.ApplicationType.ToServiceType() ?? 
+                            Models.ApplicationType.Server,
                         ProductUri = ep.Server.ProductUri,
                         Certificate = ep.ServerCertificate,
                         ApplicationName = ep.Server.ApplicationName.Text,

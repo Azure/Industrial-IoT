@@ -3,9 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Exporter {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
-    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>

@@ -1,9 +1,17 @@
 version: '3'
 
 services:
-  webservice:
+  opc.twin.service:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-    ports:
-      - "80"
 
+  opc.twin.edge.service:
+    image: iot-opc-twin-edge-service:1.0.0
+    build:
+      context: .
+      dockerfile: EdgeService/Dockerfile
+    #network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - EdgeHubConnectionString

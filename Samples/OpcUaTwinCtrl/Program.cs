@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace WebService.Client {
+namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Cli {
     using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client;
     using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models;
     using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services;

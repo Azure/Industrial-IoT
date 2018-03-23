@@ -7,7 +7,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Company>Microsoft</Company>
-    <Product>Connected Factory OPC Twin services</Product>
+    <Product>IoT Solutions common services library</Product>
     <Authors>Microsoft</Authors>
     <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>

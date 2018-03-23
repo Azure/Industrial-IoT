@@ -62,11 +62,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
             }
 
             if (UsesProxy) {
-                _logger.Info("OPC stack with reverse proxy connection to shop floor",
-                    () => { });
-            }
-            else {
-                _logger.Info("OPC stack with direct connection to shop floor servers",
+                _logger.Info("OPC stack configured with reverse proxy connection.",
                     () => { });
             }
         }
@@ -110,7 +106,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
                 else {
                     // Create new session
                     try {
-                        session = await CreateSessionAsync(key).ConfigureAwait(false); ;
+                        session = await CreateSessionAsync(key).ConfigureAwait(false);
                     }
                     catch(ServiceResultException sre) {
                         _logger.Debug("Failed create session", () => new { sre, endpoint });
@@ -120,7 +116,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
                 }
                 try {
                     // Run service on session and convert
-                    var result = await service(session.Session).ConfigureAwait(false); ;
+                    var result = await service(session.Session).ConfigureAwait(false);
                     ReturnSession(session);
                     return result;
                 }
@@ -172,7 +168,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
                 (server, endpoints, channel) => {
                     callback(channel, SelectServerEndpoint(server, endpoints, channel, true));
                     return null;
-                }).ConfigureAwait(false); 
+                }).ConfigureAwait(false);
         }
 
         /// <summary>

@@ -36,7 +36,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
                 Application = new ApplicationInfoModel {
                     ApplicationId = CreateApplicationId(supervisorId,
                         result.Description.Server.ApplicationUri),
-                    ApplicationType = ApplicationType.Server,
+                    ApplicationType = result.Description.Server.ApplicationType
+                        .ToServiceType() ?? ApplicationType.Server,
                     ProductUri = result.Description.Server.ProductUri,
                     ApplicationUri = result.Description.Server.ApplicationUri,
                     DiscoveryUrls = result.Description.Server.DiscoveryUrls,

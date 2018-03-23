@@ -3,6 +3,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <PackageId>Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding</PackageId>
+    <Authors>Microsoft</Authors>
+    <Company>Microsoft</Company>
+    <Product>Connected Factory Opc Ua Twin Onboarding Service</Product>
+    <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
+    <AssemblyName>Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding</AssemblyName>
+    <RootNamespace>Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

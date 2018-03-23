@@ -4,11 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.EventHub {
-    using Microsoft.Azure.EventHubs;
-    using Microsoft.Azure.EventHubs.Processor;
     using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
     using Microsoft.Azure.IoTSolutions.Common.Exceptions;
-    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.Azure.EventHubs;
+    using Microsoft.Azure.EventHubs.Processor;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
