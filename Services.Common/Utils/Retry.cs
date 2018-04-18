@@ -63,10 +63,10 @@ namespace Microsoft.Azure.IoTSolutions.Common.Utils {
                 }
                 catch (Exception ex) {
                     if (k > maxRetry || !cont(ex)) {
-                        logger.Info($"Give up after {k}", () => ex);
+                        logger?.Info($"Give up after {k}", () => ex);
                         throw ex;
                     }
-                    logger.Debug($"Retry {k}..", () => ex);
+                    logger?.Debug($"Retry {k}..", () => ex);
                     var delay = policy(k, ex);
                     if (delay == 0) {
                         continue;
@@ -98,10 +98,10 @@ namespace Microsoft.Azure.IoTSolutions.Common.Utils {
                 }
                 catch (Exception ex) {
                     if (k > maxRetry || !cont(ex)) {
-                        logger.Info($"Give up after {k}", () => ex);
+                        logger?.Info($"Give up after {k}", () => ex);
                         throw ex;
                     }
-                    logger.Debug($"Retry {k}...", () => ex);
+                    logger?.Debug($"Retry {k}...", () => ex);
                     var delay = policy(k, ex);
                     if (delay == 0) {
                         continue;

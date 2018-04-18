@@ -9,7 +9,7 @@ services:
     image: iot-opc-twin-edge-service:1.0.0
     build:
       context: .
-      dockerfile: EdgeService/Dockerfile
+      dockerfile: EdgeService.Twin/Dockerfile
     #network_mode: "host"
     cap_add:
       - NET_ADMIN

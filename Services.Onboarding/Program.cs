@@ -6,8 +6,7 @@
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.EventHub;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.Runtime;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Direct;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Manager;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.IoTHub;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud;
     using Microsoft.Azure.IoTSolutions.Common.Http;
     using Microsoft.Extensions.Configuration;
@@ -76,25 +75,15 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding {
             builder.RegisterType<DiscoveryEventProcessor>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Register registry services to use and ...
-            builder.RegisterType<OpcUaRegistryServices>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Register registry services to use
             builder.RegisterType<OpcUaTwinValidator>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<HttpClient>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            // ... use iot hub manager micro service as backing ...
-            if (!string.IsNullOrEmpty(config.IoTHubManagerV1ApiUrl)) {
-                // ... if the dependency url was configured!
-                builder.RegisterType<IoTHubManagerServiceClient>()
-                    .AsImplementedInterfaces().SingleInstance();
-            }
-            else {
-                // ... or if not, for testing, use direct services
-                builder.RegisterType<IoTHubServiceHttpClient>()
-                    .AsImplementedInterfaces().SingleInstance();
-            }
+            builder.RegisterType<OpcUaRegistryServices>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubServiceHttpClient>()
+                .AsImplementedInterfaces().SingleInstance();
             return builder.Build();
         }
     }

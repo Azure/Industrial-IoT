@@ -84,8 +84,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.EventHub {
                 //
                 await _host.RegisterEventProcessorFactoryAsync(
                     _factory, new EventProcessorOptions {
-                        InitialOffsetProvider = s =>
-                            DateTime.UtcNow - TimeSpan.FromHours(24),
+                        InitialOffsetProvider = s => EventPosition.FromEnqueuedTime(
+                            DateTime.UtcNow - TimeSpan.FromHours(24)),
                         MaxBatchSize = _config.ReceiveBatchSize,
                         ReceiveTimeout = _config.ReceiveTimeout,
                         InvokeProcessorAfterReceiveTimeout = true

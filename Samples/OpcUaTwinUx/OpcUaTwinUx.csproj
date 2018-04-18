@@ -1,30 +1,30 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp2.0</TargetFramework>
-        <AssemblyName>Microsoft.Azure.IoTSolutions.Browser</AssemblyName>
-        <RootNamespace>Microsoft.Azure.IoTSolutions.Browser</RootNamespace>
-        <PackageId>Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Ux</PackageId>
-        <Product>Connected Factory Opc Ua Twin Web Service Sample UX</Product>
-        <Company>Microsoft</Company>
-        <Authors>Microsoft</Authors>
-        <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
+      <TargetFramework>netcoreapp2.0</TargetFramework>
+      <AssemblyName>Microsoft.Azure.IoTSolutions.Browser</AssemblyName>
+      <RootNamespace>Microsoft.Azure.IoTSolutions.Browser</RootNamespace>
+      <PackageId>Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Ux</PackageId>
+      <Product>Connected Factory Opc Ua Twin Web Service Sample UX</Product>
+      <Company>Microsoft</Company>
+      <Authors>Microsoft</Authors>
+      <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Autofac" Version="4.6.2" />
-        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.2.0" />
-        <PackageReference Include="BuildBundlerMinifier" Version="2.6.362" />
-        <PackageReference Include="BuildWebCompiler" Version="1.11.375" />
-        <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
+      <PackageReference Include="Autofac" Version="4.7.0" />
+      <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.2.2" />
+      <PackageReference Include="BuildBundlerMinifier" Version="2.6.375" />
+      <PackageReference Include="BuildWebCompiler" Version="1.11.375" />
+      <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.6" />
     </ItemGroup>
 
     <ItemGroup>
-        <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.2" />
+      <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.2" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\WebService.Client\WebService.Client.csproj" />
+      <ProjectReference Include="..\..\WebService.Twin.Client\WebService.Twin.Client.csproj" />
     </ItemGroup>
 
     <ItemGroup>

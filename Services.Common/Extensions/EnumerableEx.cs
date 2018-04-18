@@ -46,6 +46,23 @@ namespace System.Collections.Generic {
         }
 
         /// <summary>
+        /// Safe set equals
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="seq"></param>
+        /// <param name="that"></param>
+        /// <returns></returns>
+        public static bool SetEqualsSafe<T>(this ISet<T> seq, IEnumerable<T> that) {
+            if (seq == that) {
+                return true;
+            }
+            if (seq == null || that == null) {
+                return false;
+            }
+            return seq.SetEquals(that);
+        }
+
+        /// <summary>
         /// Create batches of enumerables
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -262,11 +279,12 @@ namespace System.Collections.Generic {
         /// <returns></returns>
         public static IEnumerable<T> SelectConverted<T>(this IEnumerable enumerable) =>
             SelectConverted(enumerable, o => {
-                if (o is IConvertible convertible) {
+                while (o is IConvertible convertible) {
                     try {
                         return (T)Convert.ChangeType(convertible, typeof(T));
                     }
                     catch {
+                        break;
                     }
                 }
                 // Try once more by converting the value to string

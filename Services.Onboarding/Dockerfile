@@ -5,7 +5,7 @@ FROM microsoft/dotnet:latest AS build
 WORKDIR /src
 COPY iot-opc-twin-service.sln ./
 COPY Services.Onboarding/Services.Onboarding.csproj Services.Onboarding/
-COPY Services/Services.csproj Services/
+COPY Services.Twin/Services.Twin.csproj Services.Twin/
 COPY Services.Common/Services.Common.csproj Services.Common/
 COPY .nuget .nuget
 RUN dotnet restore --configfile .nuget/NuGet.Config -nowarn:msb3202,nu1503

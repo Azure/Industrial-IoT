@@ -50,14 +50,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.EventHub {
 
             foreach (var eventData in messages) {
                 if (!eventData.Properties.TryGetValue("$$ContentType", out var contentType) ||
+                    !eventData.Properties.TryGetValue("$$DeviceId", out var deviceId) ||
                     !contentType.ToString().Equals("application/x-discovery-v1-json",
                         StringComparison.InvariantCultureIgnoreCase)) {
                     // Not our content to process
-                    continue;
-                }
-                if (!eventData.Properties.TryGetValue("iothub-connection-device-id", out var id)) {
-                    // Not a device message
-                    _logger.Error("Unexpected!  Missing device id property", () => eventData);
                     continue;
                 }
                 var json = Encoding.UTF8.GetString(eventData.Body.Array);
@@ -70,8 +66,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.EventHub {
                     continue;
                 }
                 try {
-                    await ProcessServerEndpointDiscoveryAsync(context, id.ToString(), discovery,
-                        eventData);
+                    eventData.Properties.TryGetValue("$$ModuleId", out var moduleId);
+                    var supervisorId = SupervisorModelEx.CreateSupervisorId(
+                        deviceId.ToString(), moduleId?.ToString());
+                    await ProcessServerEndpointDiscoveryAsync(context, supervisorId, 
+                        discovery, eventData);
                 }
                 catch (AggregateException ex) {
                     _logger.Error($"Processing failed - skip", () => ex);
@@ -136,7 +135,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.EventHub {
                 queue.Enqueue(model);
                 if (queue.Completed) {
                     // Process discoveries
-                    await _registry.ProcessSupervisorDiscoveryAsync(supervisorId,
+                    await _registry.ProcessDiscoveryAsync(supervisorId,
                         queue.Endpoints);
 
                     backlog.Remove(model.TimeStamp);

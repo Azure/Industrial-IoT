@@ -128,6 +128,21 @@ namespace System {
         }
 
         /// <summary>
+        /// Replace whitespace
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string SanitizePropertyName(this string value) {
+            var chars = new char[checked(value.Length)];
+            unchecked {
+                for (var i = 0; i < value.Length; i++) {
+                    chars[i] = !char.IsLetterOrDigit(value[i]) ? '_' : value[i];
+                }
+            }
+            return new string(chars);
+        }
+
+        /// <summary>
         /// Split using predicate
         /// </summary>
         /// <param name="str"></param>

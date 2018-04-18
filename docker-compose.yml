@@ -16,7 +16,7 @@ services:
     image: iot-opc-twin-service:1.0.0
     build:
       context: .
-      dockerfile: WebService/Dockerfile
+      dockerfile: WebService.Twin/Dockerfile
     ports:
       - "9042:9042"
     environment:

@@ -1,109 +1,128 @@
-@ECHO off & setlocal enableextensions enabledelayedexpansion
+@REM Copyright (c) Microsoft. All rights reserved.
+@REM Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-:: Usage:
-:: Build the project in the local environment:  Scripts\build
-:: Build the project inside a Docker container: Scripts\build -s
-:: Build the project inside a Docker container: Scripts\build --in-sandbox
+@setlocal EnableExtensions EnableDelayedExpansion
+@echo off
 
-:: Debug|Release
-SET CONFIGURATION=Release
+set current-path=%~dp0
+rem // remove trailing slash
+set current-path=%current-path:~0,-1%
 
-:: strlen("\Scripts\") => 9
-SET APP_HOME=%~dp0
-SET APP_HOME=%APP_HOME:~0,-9%
-cd %APP_HOME%
+set build_root=%current-path%\..
+set repository=
+set image-version=
+set image-name=
+set dockerfile=
+set postfix=
 
-IF "%1"=="-s" GOTO :RunInSandbox
-IF "%1"=="--in-sandbox" GOTO :RunInSandbox
+cmd /c docker version > NUL 2>&1
+if not !ERRORLEVEL! == 0 echo ERROR: Install docker! && exit /b !ERRORLEVEL!
 
+:args-loop
+if "%1" equ "" goto :args-done
+if "%1" equ "--xtrace" goto :arg-trace
+if "%1" equ  "-x" goto :arg-trace
+if "%1" equ "--version" goto :arg-version
+if "%1" equ  "-v" goto :arg-version
+if "%1" equ "--repository" goto :arg-repository
+if "%1" equ  "-r" goto :arg-repository
+if "%1" equ "--name" goto :arg-name
+if "%1" equ  "-n" goto :arg-name
+if "%1" equ "--file" goto :arg-dockerfile
+if "%1" equ  "-f" goto :arg-dockerfile
+if "%1" equ "--postfix" goto :arg-postfix
+if "%1" equ  "-p" goto :arg-postfix
+goto :usage
+:args-continue
+shift
+goto :args-loop
 
-:RunLocally
+:usage
+echo build.cmd [options]
+echo options:
+echo -n --name ^<value^>            Image name [mandatory].
+echo -f --file ^<value^>            Docker file location [mandatory].
+echo -r --repository ^<value^>      Repository to optionally push images to.
+echo -v --version ^<value^>         Image version (e.g. 1.0.4) (to tag).
+echo -p --postfix ^<value^>         Image tag postfix to append to tag.
+echo -x --xtrace                  print a trace of each command.
+exit /b 1
 
-    :: Check dependencies
-    dotnet --version > NUL 2>&1
-    IF %ERRORLEVEL% NEQ 0 GOTO MISSING_DOTNET
+:arg-trace
+echo on
+goto :args-continue
 
-    :: Check settings
-    call .\Scripts\env-vars-check.cmd
-    IF %ERRORLEVEL% NEQ 0 GOTO FAIL
+:arg-version
+shift
+if "%1" equ "" goto :usage
+set image-version=%1
+goto :args-continue
 
-    :: Restore nuget packages and compile the application
-    echo Downloading dependencies...
-    call dotnet restore
-    IF %ERRORLEVEL% NEQ 0 GOTO FAIL
-    echo Compiling code...
-    call dotnet build --configuration %CONFIGURATION%
-    IF %ERRORLEVEL% NEQ 0 GOTO FAIL
+:arg-repository
+shift
+if "%1" equ "" goto :usage
+set repository=%1
+goto :args-continue
 
-    :: Find all the test assemblies and run the tests
-    echo Running tests...
-    for /d %%i in (*.Test) do (
-        dotnet test %%i\%%i.csproj
-        IF !ERRORLEVEL! NEQ 0 GOTO FAIL
-    )
+:arg-name
+shift
+if "%1" equ "" goto :usage
+set image-name=%1
+goto :args-continue
 
-    goto :END
+:arg-dockerfile
+shift
+if "%1" equ "" goto :usage
+set dockerfile=%1
+goto :args-continue
 
+:arg-postfix
+shift
+if "%1" equ "" goto :usage
+set postfix=%1
+goto :args-continue
 
-:RunInSandbox
+@rem
+@rem Validate command line
+@rem
+:args-done
+if "%image-name%" == "" goto :usage
+if "%dockerfile%" == "" goto :usage
+if "%repository%" == "" goto :main
+set repository=%repository%/
+if "%image-version%" == "" goto :usage
+goto :main
 
-    :: Folder where PCS sandboxes cache data. Reuse the same folder to speed up the
-    :: sandbox and to save disk space.
-    :: Use PCS_CACHE="%APP_HOME%\.cache" to cache inside the project folder
-    SET PCS_CACHE="%TMP%\azure\iotpcs\.cache"
+@rem
+@rem Build, and optionally tag and push docker images
+@rem
+:build_tag_and_push
+echo Building %image-name%:latest%postfix% from %dockerfile%...
+cmd /c docker build -t %image-name%:latest%postfix% -f %dockerfile% . > "%TEMP%\_build.out"
+if not !ERRORLEVEL! == 0 type "%TEMP%\_build.out" && exit /b !ERRORLEVEL!
+if "%image-version%" == "" goto :eof
+cmd /c docker tag %image-name%:latest%postfix% %image-name%:%image-version%%postfix% > "%TEMP%\_build.out"
+if not !ERRORLEVEL! == 0 type "%TEMP%\_build.out" && exit /b !ERRORLEVEL!
+if "%repository%" == "" goto :eof
+echo Pushing %image-name%:latest%postfix% ...
+cmd /c docker tag %image-name%:latest%postfix% %repository%%image-name%:latest%postfix% > "%TEMP%\_build.out"
+if not !ERRORLEVEL! == 0 type "%TEMP%\_build.out" && exit /b !ERRORLEVEL!
+cmd /c docker tag %image-name%:latest%postfix% %repository%%image-name%:%image-version%%postfix%  > "%TEMP%\_build.out"
+if not !ERRORLEVEL! == 0 type "%TEMP%\_build.out" && exit /b !ERRORLEVEL!
+cmd /c docker push %repository%%image-name%:%image-version%%postfix% > "%TEMP%\_build.out"
+if not !ERRORLEVEL! == 0 type "%TEMP%\_build.out" && exit /b !ERRORLEVEL!
+cmd /c docker push %repository%%image-name%:latest%postfix% > "%TEMP%\_build.out"
+if not !ERRORLEVEL! == 0 type "%TEMP%\_build.out" && exit /b !ERRORLEVEL!
+goto :eof
 
-    :: Check dependencies
-    docker version > NUL 2>&1
-    IF %ERRORLEVEL% NEQ 0 GOTO MISSING_DOCKER
-
-    :: Create cache folders to speed up future executions
-    mkdir %PCS_CACHE%\sandbox\.config > NUL 2>&1
-    mkdir %PCS_CACHE%\sandbox\.dotnet > NUL 2>&1
-    mkdir %PCS_CACHE%\sandbox\.nuget > NUL 2>&1
-    echo Note: caching build files in %PCS_CACHE%
-
-    :: Start the sandbox and execute the build script
-    docker run ^
-        -e "_HUB_CS=%_HUB_CS%" ^
-        -e "_STORE_CS=%_STORE_CS%" ^
-        -e "_EH_CS=%_EH_CS%" ^
-        -v %PCS_CACHE%\sandbox\.config:/root/.config ^
-        -v %PCS_CACHE%\sandbox\.dotnet:/root/.dotnet ^
-        -v %PCS_CACHE%\sandbox\.nuget:/root/.nuget ^
-        -v %APP_HOME%:/opt/code ^
-        azureiotpcs/code-builder-dotnet:1.0-dotnetcore /opt/code/Scripts/build
-
-    :: Error 125 typically triggers in Windows if the drive is not shared
-    IF %ERRORLEVEL% EQU 125 GOTO DOCKER_SHARE
-    IF %ERRORLEVEL% NEQ 0 GOTO FAIL
-
-    goto :END
-
-
-:: - - - - - - - - - - - - - -
-goto :END
-
-:MISSING_DOTNET
-    echo ERROR: 'dotnet' command not found.
-    echo Install .NET Core 2 and make sure the 'dotnet' command is in the PATH.
-    echo Nuget installation: https://dotnet.github.io/
-    exit /B 1
-
-:MISSING_DOCKER
-    echo ERROR: 'docker' command not found.
-    echo Install Docker and make sure the 'docker' command is in the PATH.
-    echo Docker installation: https://www.docker.com/community-edition#/download
-    exit /B 1
-
-:DOCKER_SHARE
-    echo ERROR: the drive containing the source code cannot be mounted.
-    echo Open Docker settings from the tray icon, and fix the settings under 'Shared Drives'.
-    exit /B 1
-
-:FAIL
-    echo Command failed
-    endlocal
-    exit /B 1
-
-:END
+@rem
+@rem Main
+@rem
+:main
+pushd %build_root%
+call :build_tag_and_push
+if exist "%TEMP%\_build.out" del "%TEMP%\_build.out"
+popd
+if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 endlocal
+

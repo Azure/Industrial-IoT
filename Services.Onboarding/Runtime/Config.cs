@@ -38,9 +38,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.Runtime {
         /// <summary>IoT hub connection string</summary>
         public string IoTHubConnString => GetString(IoThubConnStringKey,
             GetString("_HUB_CS", null));
-        /// <summary>IoT hub manager endpoint url</summary>
-        public string IoTHubManagerV1ApiUrl => GetString(IoTHubManagerV1ApiUrlKey,
-            GetString("PCS_IOTHUBMANAGER_WEBSERVICE_URL", null));
         /// <summary> Always bypass proxy </summary>
         public bool BypassProxy =>
             true;
