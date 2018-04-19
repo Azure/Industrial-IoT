@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.Runtime {
-    using Microsoft.Azure.Devices;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.EventHub;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Runtime;
+    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
+    using Microsoft.Azure.Devices;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;

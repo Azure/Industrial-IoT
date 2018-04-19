@@ -259,7 +259,7 @@ set _cmd_line=%_cmd_line% -e "_STORE_CS=%_STORE_CS%"
 set _cmd_line=%_cmd_line% -e "_EH_CS=%_EH_CS%"
 if not "%subscription%" == "" set _cmd_line=%_cmd_line% -s %subscription%
 if not "%location%" == "" set _cmd_line=%_cmd_line% -l %location%
-rem cmd /c %current-path%\deploy.cmd -t instance %_cmd_line%
+cmd /c %current-path%\deploy.cmd -t instance %_cmd_line%
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 
 echo Deploy twin web service...

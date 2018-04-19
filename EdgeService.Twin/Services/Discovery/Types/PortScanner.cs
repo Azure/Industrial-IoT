@@ -482,9 +482,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             /// </summary>
             /// <param name="state"></param>
             private void OnTimeout(object state) {
-                var takeLock = _lock.WaitAsync(0);
-                if (!takeLock.IsCompletedSuccessfully) {
-                    // lock is taken
+                if (!_lock.Wait(0)) {
+                    // lock is taken either by having completed or having rebegun.
                     return;
                 }
                 try {

@@ -9,9 +9,9 @@
     <Company>Microsoft</Company>
     <Product>Azure IoT</Product>
     <Authors>Microsoft</Authors>
-    <Version>1.0.1</Version>
-    <AssemblyVersion>1.0.1</AssemblyVersion>
-    <FileVersion>1.0.1</FileVersion>
+    <Version>1.0.2</Version>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <FileVersion>1.0.2</FileVersion>
     <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
     <Copyright>Microsoft Corp. All rights reserved.</Copyright>
     <Description>Azure IoT Common services</Description>

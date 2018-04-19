@@ -26,28 +26,28 @@ namespace Microsoft.Azure.IoTSolutions.Common.Diagnostics {
         /// </summary>
         /// <param name="message"></param>
         protected override sealed void Debug(Func<string> message) =>
-            Write(_logLevel < LogLevel.Debug, "DEBUG", message);
+            Write(_logLevel <= LogLevel.Debug, "[DEBUG]", message);
 
         /// <summary>
         /// Log info
         /// </summary>
         /// <param name="message"></param>
         protected override sealed void Info(Func<string> message) =>
-            Write(_logLevel < LogLevel.Info, "INFO", message);
+             Write(_logLevel <= LogLevel.Info, " [INFO]", message);
 
         /// <summary>
         /// Log warning
         /// </summary>
         /// <param name="message"></param>
         protected override sealed void Warn(Func<string> message) =>
-            Write(_logLevel < LogLevel.Warn, "WARN", message);
+             Write(_logLevel <= LogLevel.Warn, " [WARN]", message);
 
         /// <summary>
         /// Log error
         /// </summary>
         /// <param name="message"></param>
         protected override sealed void Error(Func<string> message) =>
-            Write(_logLevel < LogLevel.Error, "ERROR", message);
+            Write(_logLevel <= LogLevel.Error, "[ERROR]", message);
 
         /// <summary>
         /// Write message to console
@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IoTSolutions.Common.Diagnostics {
         /// <param name="message"></param>
         private void Write(bool enabled, string level, Func<string> message) {
             if (enabled) {
-                Console.WriteLine($"[{level}]{message()}");
+                Console.WriteLine($"{level}{message()}");
             }
         }
 
