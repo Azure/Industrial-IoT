@@ -36,9 +36,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         public IEnumerable<AddressRange> AddressRanges { get; set; }
 
         /// <summary>
-        /// Minimum network probes that should run.
+        /// Network probe timeout
         /// </summary>
-        public int? MinNetworkProbes { get; set; }
+        public TimeSpan? NetworkProbeTimeout { get; set; }
 
         /// <summary>
         /// Max network probes that should ever run.
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <summary>
         /// Minimum port probes that should run.
         /// </summary>
-        public int? MinPortProbes { get; set; }
+        public TimeSpan? PortProbeTimeout { get; set; }
 
         /// <summary>
         /// Max port probes that should ever run.
@@ -74,9 +74,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             MaxDegreeOfParallelism = MaxDegreeOfParallelism,
             AddressRanges = AddressRanges,
             PortRanges = PortRanges,
-            MinPortProbes = MinPortProbes,
+            PortProbeTimeout = PortProbeTimeout,
+            NetworkProbeTimeout = NetworkProbeTimeout,
             MaxPortProbes = MaxPortProbes,
-            MinNetworkProbes = MinNetworkProbes,
             MaxNetworkProbes = MaxNetworkProbes,
             DiscoveryIdleTime = DiscoveryIdleTime
         };
@@ -88,15 +88,15 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <returns></returns>
         internal bool UpdateFromModel(DiscoveryConfigModel configuration) {
 
-            DiscoveryIdleTime = configuration.IdleTimeBetweenScans;
+            DiscoveryIdleTime = configuration?.IdleTimeBetweenScans;
 
             var restart =
-                MinPortProbes != configuration.MinPortProbes ||
-                MaxPortProbes != configuration.MaxPortProbes ||
-                MinNetworkProbes != configuration.MinNetworkProbes ||
-                MaxNetworkProbes != configuration.MaxNetworkProbes;
+                PortProbeTimeout != configuration?.PortProbeTimeout ||
+                NetworkProbeTimeout != configuration?.NetworkProbeTimeout ||
+                MaxPortProbes != configuration?.MaxPortProbes ||
+                MaxNetworkProbes != configuration?.MaxNetworkProbes;
 
-            if (!string.IsNullOrEmpty(configuration.AddressRangesToScan)) {
+            if (!string.IsNullOrEmpty(configuration?.AddressRangesToScan)) {
                 if (AddressRange.TryParse(configuration.AddressRangesToScan,
                     out var addresses)) {
                     AddressRanges = addresses;
@@ -110,7 +110,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                 }
             }
 
-            if (!string.IsNullOrEmpty(configuration.PortRangesToScan)) {
+            if (!string.IsNullOrEmpty(configuration?.PortRangesToScan)) {
                 if (PortRange.TryParse(configuration.PortRangesToScan,
                     out var ports)) {
                     PortRanges = ports;
@@ -124,10 +124,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                 }
             }
 
-            MinPortProbes = configuration.MinPortProbes;
-            MaxPortProbes = configuration.MaxPortProbes;
-            MinNetworkProbes = configuration.MinNetworkProbes;
-            MaxNetworkProbes = configuration.MaxNetworkProbes;
+            PortProbeTimeout = configuration?.PortProbeTimeout;
+            NetworkProbeTimeout = configuration?.NetworkProbeTimeout;
+            MaxPortProbes = configuration?.MaxPortProbes;
+            MaxNetworkProbes = configuration?.MaxNetworkProbes;
 
             return restart;
         }

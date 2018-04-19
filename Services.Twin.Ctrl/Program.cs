@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Ctrl {
     using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery;
     using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Exporter;
     using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using Microsoft.Azure.IoTSolutions.Common.Utils;
     using Microsoft.Azure.IoTSolutions.Common.Http;
     using Microsoft.Azure.Devices.Edge;
     using Microsoft.Azure.Devices.Edge.Hosting;
@@ -28,7 +29,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Ctrl {
     using System.Net;
     using System.Threading;
     using System.Linq;
-    using Microsoft.Azure.IoTSolutions.Common.Utils;
 
     /// <summary>
     /// Sample program to run imports
@@ -52,6 +52,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Ctrl {
             TestNetworkScanner,
             TestPortScanner,
             MakeEdgeSupervisor,
+            ClearEdgeSupervisors,
             ClearRegistry
         }
 
@@ -124,6 +125,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Ctrl {
                                 throw new ArgumentException("Operations are mutually exclusive");
                             }
                             op = Op.ClearRegistry;
+                            break;
+                        case "-C":
+                        case "--clear-edge":
+                            if (op != Op.None) {
+                                throw new ArgumentException("Operations are mutually exclusive");
+                            }
+                            op = Op.ClearEdgeSupervisors;
                             break;
                         case "-p":
                         case "--ports":
@@ -247,6 +255,9 @@ Operations (Mutually exclusive):
                     case Op.MakeEdgeSupervisor:
                         MakeEdgeSupervisor(deviceId, moduleId).Wait();
                         break;
+                    case Op.ClearEdgeSupervisors:
+                        ClearEdgeSupervisors().Wait();
+                        break;
                     case Op.ClearRegistry:
                         ClearRegistry().Wait();
                         break;
@@ -267,7 +278,7 @@ Operations (Mutually exclusive):
         /// </summary>
         /// <returns></returns>
         private static async Task MakeEdgeSupervisor(string deviceId, string moduleId) {
-            var logger = new Logger("test", LogLevel.Debug);
+            var logger = new ConsoleLogger("test", LogLevel.Debug);
             var config = new OpcUaTestConfig {
                 BypassProxy = true
             };
@@ -294,8 +305,38 @@ Operations (Mutually exclusive):
         /// Clear registry
         /// </summary>
         /// <returns></returns>
+        private static async Task ClearEdgeSupervisors() {
+            var logger = new ConsoleLogger("test", LogLevel.Debug);
+            var config = new OpcUaTestConfig {
+                BypassProxy = true
+            };
+            var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
+                config, logger);
+
+            var supers = await registry.QueryAsync(
+                "SELECT * from devices.modules where properties.reported.type = 'supervisor'");
+            foreach (var item in supers) {
+                foreach (var tag in item.Tags.Keys.ToList()) {
+                    item.Tags[tag] = null;
+                }
+                foreach (var property in item.Properties.Desired.Keys.ToList()) {
+                    item.Properties.Desired[property] = null;
+                }
+                foreach (var property in item.Properties.Reported.Keys.ToList()) {
+                    if (!item.Properties.Desired.ContainsKey(property)) {
+                        item.Properties.Desired.Add(property, null);
+                    }
+                }
+                await registry.CreateOrUpdateAsync(item);
+            }
+        }
+
+        /// <summary>
+        /// Clear registry
+        /// </summary>
+        /// <returns></returns>
         private static async Task ClearRegistry() {
-            var logger = new Logger("test", LogLevel.Debug);
+            var logger = new ConsoleLogger("test", LogLevel.Debug);
             var config = new OpcUaTestConfig {
                 BypassProxy = true
             };
@@ -315,7 +356,7 @@ Operations (Mutually exclusive):
         /// <param name="host"></param>
         /// <returns></returns>
         private static async Task TestPortScanner(string host, bool opc) {
-            var logger = new Logger("test", LogLevel.Debug);
+            var logger = new ConsoleLogger("test", LogLevel.Debug);
             var addresses = await Dns.GetHostAddressesAsync(host);
             var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var watch = Stopwatch.StartNew();
@@ -333,7 +374,7 @@ Operations (Mutually exclusive):
         /// </summary>
         /// <returns></returns>
         private static async Task TestNetworkScanner() {
-            var logger = new Logger("test", LogLevel.Debug);
+            var logger = new ConsoleLogger("test", LogLevel.Debug);
             var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var watch = Stopwatch.StartNew();
             var results = await NetworkScanner.ScanAsync(logger,
@@ -349,7 +390,7 @@ Operations (Mutually exclusive):
         /// </summary>
         /// <returns></returns>
         private static async Task TestOpcUaDiscoveryService() {
-            var logger = new Logger("test", LogLevel.Debug);
+            var logger = new ConsoleLogger("test", LogLevel.Debug);
             var client = new OpcUaClient(logger, new OpcUaTestConfig {
                 BypassProxy = true
             });
@@ -369,7 +410,7 @@ Operations (Mutually exclusive):
         /// </summary>
         /// <returns></returns>
         private static async Task TestOpcUaModelExportService(EndpointModel endpoint) {
-            var logger = new Logger("test", LogLevel.Debug);
+            var logger = new ConsoleLogger("test", LogLevel.Debug);
             var client = new OpcUaClient(logger, new OpcUaTestConfig {
                 BypassProxy = true
             });
@@ -390,7 +431,7 @@ Operations (Mutually exclusive):
         /// <param name="useProxy"></param>
         private static async Task TestOpcUaServerClient(EndpointModel endpoint,
             bool useProxy) {
-            var logger = new Logger("test", LogLevel.Debug);
+            var logger = new ConsoleLogger("test", LogLevel.Debug);
             var client = new OpcUaClient(logger, new OpcUaTestConfig {
                 BypassProxy = !useProxy
             });

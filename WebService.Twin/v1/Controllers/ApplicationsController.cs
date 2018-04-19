@@ -189,28 +189,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Controllers {
             return new ApplicationRegistrationApiModel(result);
         }
 
-        /// <summary>
-        /// The returned application certificate allows a user to determine
-        /// whether endpoints should be trusted.
-        /// </summary>
-        /// <param name="id">Endpoint identifier</param>
-        /// <returns>Public certificate of the server</returns>
-        [HttpGet("{id}/certificate")]
-        [Authorize(Policy = Policy.RegisterTwins)]
-        public async Task<ActionResult> GetCertificateAsync(string id) {
-            var result = await _applications.GetApplicationAsync(id);
-            if (result == null) {
-                throw new ResourceNotFoundException($"Application {id} not found.");
-            }
-            var certificate = new X509Certificate2(result.Application.Certificate);
-            if (certificate == null) {
-                throw new ResourceNotFoundException($"Certificate not available in {id}");
-            }
-
-            return File(certificate.GetRawCertData(),
-                MediaTypeNames.Application.Octet, certificate.FriendlyName + ".der");
-        }
-
         private const string kContinuationTokenHeaderKey = "x-ms-continuation";
         private const string kPageSizeHeaderKey = "x-ms-max-item-count";
         private readonly IOpcUaApplicationRegistry _applications;

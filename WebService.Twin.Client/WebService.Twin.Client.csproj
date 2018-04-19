@@ -8,13 +8,13 @@
       <RootNamespace>Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client</RootNamespace>
       <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
       <Company>Microsoft</Company>
-      <Product>Azure IoT OPC UA Twin Services</Product>
-      <Description>Azure IoT OPC UA Twin Services Class Library</Description>
+      <Product>Azure IoT OPC UA Twin</Product>
+      <Description>Azure IoT OPC UA Twin Web service client library</Description>
       <Authors>Microsoft</Authors>
-      <Version>1.0.0</Version>
-      <AssemblyVersion>1.0.0</AssemblyVersion>
-      <FileVersion>1.0.0</FileVersion>
-      <Copyright>Copyright � 2018 Microsoft Corp. All rights reserved.</Copyright>
+      <Version>1.0.5</Version>
+      <AssemblyVersion>1.0.5</AssemblyVersion>
+      <FileVersion>1.0.5</FileVersion>
+      <Copyright>Microsoft Corp. All rights reserved.</Copyright>
     </PropertyGroup>
     <ItemGroup>
       <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />

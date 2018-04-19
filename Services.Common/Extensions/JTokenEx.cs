@@ -65,7 +65,12 @@ namespace Newtonsoft.Json.Linq {
         public static T Get<T>(this Dictionary<string, JToken> dict,
             string key, T defaultValue) {
             if (dict.TryGetValue(key, out var token)) {
-                return token.ToObject<T>();
+                try {
+                    return token.ToObject<T>();
+                }
+                catch {
+                    return defaultValue;
+                }
             }
             return defaultValue;
         }
@@ -81,7 +86,12 @@ namespace Newtonsoft.Json.Linq {
         public static T? Get<T>(this Dictionary<string, JToken> dict,
             string key, T? defaultValue) where T : struct {
             if (dict.TryGetValue(key, out var token)) {
-                return token.ToObject<T>();
+                try {
+                    return token.ToObject<T>();
+                }
+                catch {
+                    return defaultValue;
+                }
             }
             return defaultValue;
         }
@@ -97,7 +107,12 @@ namespace Newtonsoft.Json.Linq {
         public static T Get<T>(this JObject o,
             string key, T defaultValue) {
             if (o.TryGetValue(key, out var token)) {
-                return token.ToObject<T>();
+                try {
+                    return token.ToObject<T>();
+                }
+                catch {
+                    return defaultValue;
+                }
             }
             return defaultValue;
         }
@@ -113,7 +128,12 @@ namespace Newtonsoft.Json.Linq {
         public static T? Get<T>(this JObject o,
             string key, T? defaultValue) where T : struct {
             if (o.TryGetValue(key, out var token)) {
-                return token.ToObject<T>();
+                try {
+                    return token.ToObject<T>();
+                }
+                catch {
+                    return defaultValue;
+                }
             }
             return defaultValue;
         }

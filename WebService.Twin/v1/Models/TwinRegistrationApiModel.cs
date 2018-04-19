@@ -26,7 +26,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public TwinRegistrationApiModel(TwinRegistrationModel model) {
             Id = model.Id;
             Endpoint = new EndpointApiModel(model.Endpoint);
+            Certificate = model.Certificate;
             Connected = model.Connected;
+            SecurityLevel = model.SecurityLevel;
         }
 
         /// <summary>
@@ -37,6 +39,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
             return new TwinRegistrationModel {
                 Id = Id,
                 Endpoint = Endpoint.ToServiceModel(),
+                SecurityLevel = SecurityLevel,
+                Certificate = Certificate,
                 Connected = Connected
             };
         }
@@ -54,6 +58,22 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         [JsonProperty(PropertyName = "endpoint")]
         [Required]
         public EndpointApiModel Endpoint { get; set; }
+
+        /// <summary>
+        /// Endpoint security level
+        /// </summary>
+        [JsonProperty(PropertyName = "securityLevel",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null), ReadOnly(true)]
+        public int? SecurityLevel { get; set; }
+
+        /// <summary>
+        /// Certificate of the endpoint
+        /// </summary>
+        [JsonProperty(PropertyName = "certificate",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null), ReadOnly(true)]
+        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Whether edge is connected on this registration

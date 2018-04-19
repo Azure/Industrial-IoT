@@ -5,10 +5,16 @@
     <PackageId>Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService</PackageId>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
-    <Product>Connected Factory Opc Ua Twin Edge Service Module</Product>
+    <Product>Azure IoT OPC UA Twin</Product>
     <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
     <AssemblyName>Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService</AssemblyName>
     <RootNamespace>Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>1.0.5.0</AssemblyVersion>
+    <FileVersion>1.0.5.0</FileVersion>
+    <Version>1.0.5-preview</Version>
+    <Copyright>Microsoft Corp. All rights reserved.</Copyright>
+    <Description>Azure OPC Ua Twin Edge Service Module</Description>
   </PropertyGroup>
 
   <ItemGroup>

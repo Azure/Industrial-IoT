@@ -24,6 +24,20 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         public EndpointApiModel Endpoint { get; set; }
 
         /// <summary>
+        /// Endpoint security level
+        /// </summary>
+        [JsonProperty(PropertyName = "securityLevel",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public int? SecurityLevel { get; set; }
+
+        /// <summary>
+        /// Certificate of the endpoint
+        /// </summary>
+        [JsonProperty(PropertyName = "certificate",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public byte[] Certificate { get; set; }
+
+        /// <summary>
         /// Whether edge is connected on this registration
         /// </summary>
         [JsonProperty(PropertyName = "connected",

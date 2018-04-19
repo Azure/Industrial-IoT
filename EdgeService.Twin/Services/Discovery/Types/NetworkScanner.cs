@@ -255,7 +255,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             return false;
         }
 
-        private const int kDefaultMaxProbeCount = 1000;
+        private const int kDefaultMaxProbeCount = 100;
         private const int kDefaultBatchSize = 1000;
         private readonly TimeSpan kDefaultProbeTimeout =
             TimeSpan.FromSeconds(3);

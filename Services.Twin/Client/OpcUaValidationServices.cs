@@ -43,9 +43,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        public async Task<ApplicationModel> DiscoverApplicationAsync(
+        public async Task<ApplicationRegistrationModel> DiscoverApplicationAsync(
             Uri discoveryUrl) {
-            var discovered = new List<ApplicationModel>();
+            var discovered = new List<ApplicationRegistrationModel>();
             var results = await _client.DiscoverAsync(discoveryUrl, CancellationToken.None);
             if (results.Any()) {
                 _logger.Info($"Found {results.Count()} endpoints on {discoveryUrl}.",
@@ -70,11 +70,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        public async Task<ApplicationModel> ValidateEndpointAsync(
+        public async Task<ApplicationRegistrationModel> ValidateEndpointAsync(
             EndpointModel endpoint) {
 
             var uri = new Uri(endpoint.Url);
-            ApplicationModel result = null;
+            ApplicationRegistrationModel result = null;
             await _client.ValidateEndpointAsync(endpoint, (channel, ep) => {
 
                 if (ep == null) {
@@ -88,9 +88,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
                 endpoint.SecurityMode = ep.SecurityMode.ToServiceType();
                 endpoint.SecurityPolicy = ep.SecurityPolicyUri;
 
-                result = new ApplicationModel {
-                    Endpoints = new List<EndpointModel> {
-                        endpoint
+                result = new ApplicationRegistrationModel {
+                    Endpoints = new List<TwinRegistrationModel> {
+                        new TwinRegistrationModel {
+                            Endpoint = endpoint,
+                            Certificate = ep.ServerCertificate,
+                            SecurityLevel = ep.SecurityLevel
+                        }
                     },
                     Application = new ApplicationInfoModel {
                         ApplicationId = ApplicationModelEx.CreateApplicationId(
@@ -101,7 +105,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
                         ApplicationType = ep.Server.ApplicationType.ToServiceType() ?? 
                             Models.ApplicationType.Server,
                         ProductUri = ep.Server.ProductUri,
-                        Certificate = ep.ServerCertificate,
                         ApplicationName = ep.Server.ApplicationName.Text
                     }
                 };

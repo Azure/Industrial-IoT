@@ -11,25 +11,26 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     /// <summary>
     /// Endpoint with server info
     /// </summary>
-    public class ApplicationApiModel {
+    public class ApplicationRegistrationApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public ApplicationApiModel() { }
+        public ApplicationRegistrationApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public ApplicationApiModel(ApplicationModel model) {
+        public ApplicationRegistrationApiModel(ApplicationRegistrationModel model) {
             Application = new ApplicationInfoApiModel(model?.Application);
+            SecurityAssessment = model.SecurityAssessment;
             if (model?.Endpoints == null) {
-                Endpoints = new List<EndpointApiModel>();
+                Endpoints = new List<TwinRegistrationApiModel>();
             }
             else {
                 Endpoints = model.Endpoints
-                    .Select(e => new EndpointApiModel(e))
+                    .Select(e => new TwinRegistrationApiModel(e))
                     .ToList();
             }
         }
@@ -42,6 +43,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         /// <summary>
         /// Endoint validated
         /// </summary>
-        public List<EndpointApiModel> Endpoints { get; set; }
+        public List<TwinRegistrationApiModel> Endpoints { get; set; }
+
+        /// <summary>
+        /// Registration security assessment
+        /// </summary>
+        public SecurityAssessment? SecurityAssessment { get; set; }
     }
 }

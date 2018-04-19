@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Models;
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
     using Newtonsoft.Json.Linq;
@@ -44,6 +45,21 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// Lower case endpoint url
         /// </summary>
         public string EndpointUrlLC { get; set; }
+
+        /// <summary>
+        /// Security level of application
+        /// </summary>
+        public int? SecurityLevel { get; set; }
+
+        /// <summary>
+        /// Returns the public certificate presented by the application
+        /// </summary>
+        public Dictionary<string, string> Certificate { get; set; }
+
+        /// <summary>
+        /// Certificate hash
+        /// </summary>
+        public string Thumbprint { get; set; }
 
         #endregion Twin Tags
 
@@ -132,9 +148,21 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 twin.Tags.Add(nameof(ApplicationId), ApplicationId);
             }
 
+            if (SecurityLevel != twinRegistration.SecurityLevel) {
+                SecurityLevel = twinRegistration.SecurityLevel;
+                twin.Tags.Add(nameof(SecurityLevel), JToken.FromObject(SecurityLevel));
+            }
+
             if (SupervisorId != twinRegistration.Endpoint.SupervisorId) {
                 SupervisorId = twinRegistration.Endpoint.SupervisorId;
                 twin.Tags.Add(nameof(SupervisorId), SupervisorId);
+            }
+
+            if (!Certificate.DecodeAsByteArray().SequenceEqualsSafe(twinRegistration.Certificate)) {
+                Certificate = twinRegistration.Certificate.EncodeAsDictionary();
+                twin.Tags.Add(nameof(Certificate), JToken.FromObject(Certificate));
+                Thumbprint = twinRegistration.Certificate?.ToSha1Hash();
+                twin.Tags.Add(nameof(Thumbprint), Thumbprint);
             }
 
             // Endpoint Property
@@ -203,6 +231,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                     tags.Get<string>(nameof(EndpointUrlLC), null),
                 ApplicationId =
                     tags.Get<string>(nameof(ApplicationId), null),
+                Certificate =
+                    tags.Get<Dictionary<string, string>>(nameof(Certificate), null),
+                SecurityLevel =
+                    tags.Get<int>(nameof(SecurityLevel), null),
+                Thumbprint =
+                    tags.Get<string>(nameof(Thumbprint), null),
 
                 // Endpoint Property
 
@@ -284,6 +318,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             return new TwinInfoModel {
                 ApplicationId = ApplicationId,
                 Id = DeviceId,
+                Certificate = Certificate?.DecodeAsByteArray(),
+                SecurityLevel = SecurityLevel,
                 Endpoint = new EndpointModel {
                     Url = string.IsNullOrEmpty(EndpointUrl) ?
                         EndpointUrlLC : EndpointUrl,
@@ -317,7 +353,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         public bool Matches(TwinInfoModel model) {
             return model != null &&
                 Matches(model.Endpoint) &&
-                ApplicationId == model?.ApplicationId;
+                ApplicationId == model?.ApplicationId &&
+                Certificate.DecodeAsByteArray().SequenceEqualsSafe(
+                    model.Certificate);
         }
 
         /// <summary>
@@ -328,7 +366,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         public static OpcUaEndpointRegistration FromServiceModel(TwinInfoModel model) {
             return new OpcUaEndpointRegistration {
                 ApplicationId = model.ApplicationId,
+                Certificate = model.Certificate?.EncodeAsDictionary(),
+                Thumbprint = model.Certificate?.ToSha1Hash(),
                 IsEnabled = model.Endpoint.IsTrusted ?? false,
+                SecurityLevel = model.SecurityLevel,
                 SupervisorId = model.Endpoint.SupervisorId,
                 EndpointUrlLC = model.Endpoint.Url?.ToLowerInvariant(),
                 EndpointUrl = model.Endpoint.Url,
@@ -433,8 +474,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 User == registration.User &&
                 Token?.ToString() == registration.Token?.ToString() &&
                 TokenType == registration.TokenType &&
+                SecurityLevel == registration.SecurityLevel &&
                 SecurityPolicy == registration.SecurityPolicy &&
-                SecurityMode == registration.SecurityMode;
+                SecurityMode == registration.SecurityMode &&
+                Certificate.DecodeAsByteArray().SequenceEqualsSafe(
+                    registration.Certificate.DecodeAsByteArray());
         }
 
         public static bool operator ==(OpcUaEndpointRegistration r1,
@@ -463,11 +507,15 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(Token?.ToString());
             hashCode = hashCode * -1521134295 +
+                EqualityComparer<int?>.Default.GetHashCode(SecurityLevel);
+            hashCode = hashCode * -1521134295 +
                 EqualityComparer<TokenType?>.Default.GetHashCode(TokenType);
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<SecurityMode?>.Default.GetHashCode(SecurityMode);
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(SecurityPolicy);
+            hashCode = hashCode * -1521134295 +
+                EqualityComparer<string>.Default.GetHashCode(Thumbprint);
             return hashCode;
         }
 

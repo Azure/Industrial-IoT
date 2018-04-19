@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
     using System;
 
     /// <summary>
-    /// Supervisor configuration
+    /// Discovery configuration
     /// </summary>
     public class DiscoveryConfigApiModel {
 
@@ -23,10 +23,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         /// <param name="model"></param>
         public DiscoveryConfigApiModel(DiscoveryConfigModel model) {
             AddressRangesToScan = model.AddressRangesToScan;
-            MinNetworkProbes = model.MinNetworkProbes;
+            NetworkProbeTimeout = model.NetworkProbeTimeout;
             MaxNetworkProbes = model.MaxNetworkProbes;
             PortRangesToScan = model.PortRangesToScan;
-            MinPortProbes = model.MinPortProbes;
+            PortProbeTimeout = model.PortProbeTimeout;
             MaxPortProbes = model.MaxPortProbes;
             IdleTimeBetweenScans = model.IdleTimeBetweenScans;
         }
@@ -38,10 +38,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         public DiscoveryConfigModel ToServiceModel() {
             return new DiscoveryConfigModel {
                 AddressRangesToScan = AddressRangesToScan,
-                MinNetworkProbes = MinNetworkProbes,
+                NetworkProbeTimeout = NetworkProbeTimeout,
                 MaxNetworkProbes = MaxNetworkProbes,
                 PortRangesToScan = PortRangesToScan,
-                MinPortProbes = MinPortProbes,
+                PortProbeTimeout = PortProbeTimeout,
                 MaxPortProbes = MaxPortProbes,
                 IdleTimeBetweenScans = IdleTimeBetweenScans
             };
@@ -53,9 +53,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         public string AddressRangesToScan { get; set; }
 
         /// <summary>
-        /// Minimum network probes that should run.
+        /// Networking probe timeout
         /// </summary>
-        public int? MinNetworkProbes { get; set; }
+        public TimeSpan? NetworkProbeTimeout { get; set; }
 
         /// <summary>
         /// Max network probes that should ever run.
@@ -68,9 +68,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         public string PortRangesToScan { get; set; }
 
         /// <summary>
-        /// Minimum port probes that should run.
+        /// Port probe timeout
         /// </summary>
-        public int? MinPortProbes { get; set; }
+        public TimeSpan? PortProbeTimeout { get; set; }
 
         /// <summary>
         /// Max port probes that should ever run.

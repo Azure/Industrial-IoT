@@ -8,6 +8,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
     using Microsoft.Azure.Devices.Shared;
+    using Microsoft.Azure.IoTSolutions.Common.Utils;
     using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
     using Microsoft.Azure.IoTSolutions.Common.Exceptions;
     using Newtonsoft.Json.Linq;
@@ -41,6 +42,11 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
         public string ModuleId { get; private set; }
 
         /// <summary>
+        /// Operation timeout
+        /// </summary>
+        public TimeSpan Timeout { get; set; } = TimeSpan.FromMinutes(5);
+
+        /// <summary>
         /// Create edge service module
         /// </summary>
         /// <param name="config"></param>
@@ -67,13 +73,18 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
                 try {
                     await _lock.WaitAsync();
                     if (_client != null) {
+                        _client.OperationTimeoutInMilliseconds = 1000;
                         await _client.CloseAsync();
                     }
-                    _client = null;
-                    _reported.Clear();
                     _logger.Info("Edge Host stopped.", () => { });
                 }
+                catch (Exception ex) {
+                    _logger.Error("Edge Host stopping caused exception.", 
+                        () => ex);
+                }
                 finally {
+                    _client = null;
+                    _reported?.Clear();
                     _lock.Release();
                 }
             }
@@ -469,18 +480,42 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
             
             DeviceClient client;
             if (transportSettings.Count != 0) {
-                client = DeviceClient.CreateFromConnectionString(cs.ToString(),
-                    transportSettings.ToArray());
+                client = await Fallback.Run(transportSettings
+                    .Select<ITransportSettings, Func<Task<DeviceClient>>>(t => 
+                         () => CreateDeviceClientAsync(cs.ToString(), t))
+                    .ToArray());
             }
             else {
-                // Any
-                client = DeviceClient.CreateFromConnectionString(cs.ToString());
+                client = await CreateDeviceClientAsync(cs.ToString());
             }
-
-            // TODO: If any, retry with any_ws...:
-            await client.OpenAsync();
             DeviceId = cs.DeviceId;
             ModuleId = cs.ModuleId;
+            return client;
+        }
+
+        /// <summary>
+        /// Helper to create client
+        /// </summary>
+        /// <param name="cs"></param>
+        /// <param name="transportSetting"></param>
+        /// <returns></returns>
+        private async Task<DeviceClient> CreateDeviceClientAsync(string cs, 
+            ITransportSettings transportSetting = null) {
+            DeviceClient client;
+            if (transportSetting != null) {
+                client = DeviceClient.CreateFromConnectionString(cs,
+                    new ITransportSettings[] { transportSetting });
+            }
+            else {
+                client = DeviceClient.CreateFromConnectionString(cs);
+            }
+            client.OperationTimeoutInMilliseconds = (uint)Timeout.TotalMilliseconds;
+            client.SetConnectionStatusChangesHandler((s, r) =>
+                _logger.Info($"Edge Host status changed to {s} due to {r}.", () => { }));
+            client.SetRetryPolicy(new ExponentialBackoff(1000, TimeSpan.FromSeconds(3),
+                TimeSpan.FromMinutes(2), TimeSpan.FromSeconds(1)));
+            client.DiagnosticSamplingPercentage = 5;
+            await client.OpenAsync();
             return client;
         }
 

@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
-            _discovered = new SortedDictionary<DateTime, List<ApplicationModel>>();
+            _discovered = new SortedDictionary<DateTime, List<ApplicationRegistrationModel>>();
             _setupDelay = TimeSpan.FromSeconds(10);
             _lock = new SemaphoreSlim(1);
         }
@@ -135,6 +135,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
 
             if (delay != null) {
                 try {
+                    _logger.Debug($"Delaying for {delay}...", () => { });
                     await Task.Delay((TimeSpan)delay, ct);
                 }
                 catch (OperationCanceledException) {
@@ -169,29 +170,26 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                     //
                     // Upload results
                     //
-                    try {
-                        var messages = discovered
-                            .SelectMany(server => server.Endpoints
-                                .Select(endpoint => new DiscoveryEventModel {
-                                    Application = server.Application,
-                                    Endpoint = endpoint,
-                                    TimeStamp = timestamp
-                                }))
-                            .Append(new DiscoveryEventModel {
-                                Endpoint = null, // last
+                    _logger.Info($"Uploading {discovered.Count} results...", () => { });
+                    var messages = discovered
+                        .SelectMany(server => server.Endpoints
+                            .Select(endpoint => new DiscoveryEventModel {
+                                Application = server.Application,
+                                Endpoint = endpoint,
                                 TimeStamp = timestamp
-                            })
-                            .Select((discovery, i) => {
-                                discovery.Index = i;
-                                return discovery;
-                            })
-                            .Select(discovery => Encoding.UTF8.GetBytes(
-                                JsonConvertEx.SerializeObject(discovery)));
-                        await _events.SendAsync(messages, "application/x-discovery-v1-json");
-                    }
-                    catch (Exception ex) {
-                        _logger.Error("Error during discovery upload", () => ex);
-                    }
+                            }))
+                        .Append(new DiscoveryEventModel {
+                            Endpoint = null, // last
+                            TimeStamp = timestamp
+                        })
+                        .Select((discovery, i) => {
+                            discovery.Index = i;
+                            return discovery;
+                        })
+                        .Select(discovery => Encoding.UTF8.GetBytes(
+                            JsonConvertEx.SerializeObject(discovery)));
+                    await _events.SendAsync(messages, "application/x-discovery-v1-json");
+                    _logger.Info($"{discovered.Count} results uploaded.", () => { });
                 }
                 catch (OperationCanceledException) {
                     return;
@@ -206,8 +204,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                 try {
                     if (!ct.IsCancellationRequested) {
                         GC.Collect();
-                        await Task.Delay(options.DiscoveryIdleTime ??
-                            TimeSpan.FromMinutes(3), ct);
+                        var idle = options.DiscoveryIdleTime ??
+                            TimeSpan.FromMinutes(3);
+                        if (idle.Ticks != 0) {
+                            _logger.Debug($"Idle for {idle}...", () => { });
+                            await Task.Delay(idle, ct);
+                        }
                     }
                 }
                 catch (OperationCanceledException) {
@@ -221,11 +223,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<List<ApplicationModel>> DiscoverServersAsync(
+        private async Task<List<ApplicationRegistrationModel>> DiscoverServersAsync(
             OpcUaDiscoveryOptions options, CancellationToken ct) {
             var discoveryUrls = new ConcurrentQueue<Uri>();
             if (options.Mode == DiscoveryMode.Off) {
-                return new List<ApplicationModel>();
+                return new List<ApplicationRegistrationModel>();
             }
 
             var watch = Stopwatch.StartNew();
@@ -285,24 +287,24 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             //
             var local = options.Mode == DiscoveryMode.Local;
             var probe = new OpcUaServerProbe(_logger);
+#if !NO_SCHEDULER_DUMP
+            _counter = 0;
+#endif
             using (var portscan = new PortScanner(_logger, portranges, discovery, probe,
-                options.MinPortProbes, options.MaxPortProbes, null, ct))
+                options.MaxPortProbes, options.PortProbeTimeout, ct))
             using (var netscanner = new NetworkScanner(_logger, portranges, local,
                 local ? null : options.AddressRanges, options.NetworkClass,
-                options.MaxNetworkProbes, null, ct))
-            using (var progress = new Timer(_ => _logger.Info(
-                $"Scanned {netscanner.ScanCount} addresses and {portscan.ScanCount} ports so " +
-                $"far (Active probes: {netscanner.ActiveProbes}, {portscan.ActiveProbes})...",
-                () => { }), null, _logInterval, _logInterval)) {
-
+                options.MaxNetworkProbes, options.NetworkProbeTimeout, ct))
+            using (var progress = new Timer(_ => ProgressTimer(portscan, netscanner), 
+                null, _progressInterval, _progressInterval)) {
                 await discovery.Completion;
             }
 
             //
             // Create application model list from discovered endpoints...
             //
-            var discovered = new List<ApplicationModel>();
-            foreach(var url in discoveryUrls) {
+            var discovered = new List<ApplicationRegistrationModel>();
+            foreach (var url in discoveryUrls) {
                 ct.ThrowIfCancellationRequested();
                 var results = await _client.DiscoverAsync(url, ct).ConfigureAwait(false);
                 if (results.Any()) {
@@ -320,14 +322,34 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             return discovered;
         }
 
+        /// <summary>
+        /// Called in intervals to check and log progress.
+        /// </summary>
+        /// <param name="portscan"></param>
+        /// <param name="netscanner"></param>
+        private void ProgressTimer(PortScanner portscan, NetworkScanner netscanner) {
+#if !NO_SCHEDULER_DUMP
+            if ((++_counter % 200) == 0) { // 10 minute timeout
+                _scheduler.Dump(_logger);
+            }
+#endif
+            _logger.Info(
+                $"Scanned {netscanner.ScanCount} addresses and {portscan.ScanCount} ports so " +
+                $"far (Active probes: {netscanner.ActiveProbes}, {portscan.ActiveProbes})...",
+            () => { });
+        }
+
+#if !NO_SCHEDULER_DUMP
+        private int _counter;
+#endif
         private CancellationTokenSource _discovery;
         private Task _completed;
         private TimeSpan? _setupDelay;
 
-        private readonly SortedDictionary<DateTime, List<ApplicationModel>> _discovered;
+        private readonly SortedDictionary<DateTime, List<ApplicationRegistrationModel>> _discovered;
         private readonly SemaphoreSlim _lock;
         private readonly ILogger _logger;
-        private readonly TimeSpan _logInterval = TimeSpan.FromSeconds(3);
+        private readonly TimeSpan _progressInterval = TimeSpan.FromSeconds(3);
         private readonly IEventEmitter _events;
         private readonly ITaskScheduler _scheduler;
         private readonly IOpcUaClient _client;

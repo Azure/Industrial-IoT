@@ -19,11 +19,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         public string AddressRangesToScan { get; set; }
 
         /// <summary>
-        /// Minimum network probes that should run.
+        /// Networking probe timeout
         /// </summary>
-        [JsonProperty(PropertyName = "minNetworkProbes",
+        [JsonProperty(PropertyName = "networkProbeTimeoutMs",
             NullValueHandling = NullValueHandling.Ignore)]
-        public int? MinNetworkProbes { get; set; }
+        public int? NetworkProbeTimeoutMs { get; set; }
 
         /// <summary>
         /// Max network probes that should ever run.
@@ -41,11 +41,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         public string PortRangesToScan { get; set; }
 
         /// <summary>
-        /// Minimum port probes that should run.
+        /// Port probe timeout
         /// </summary>
-        [JsonProperty(PropertyName = "minPortProbes",
+        [JsonProperty(PropertyName = "portProbeTimeoutMs",
             NullValueHandling = NullValueHandling.Ignore)]
-        public int? MinPortProbes { get; set; }
+        public int? PortProbeTimeoutMs { get; set; }
 
         /// <summary>
         /// Max port probes that should ever run.
@@ -57,8 +57,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         /// <summary>
         /// Delay time between discovery sweeps in seconds
         /// </summary>
-        [JsonProperty(PropertyName = "idleTimeBetweenScans",
+        [JsonProperty(PropertyName = "idleTimeBetweenScansSec",
             NullValueHandling = NullValueHandling.Ignore)]
-        public int? IdleTimeBetweenScans { get; set; }
+        public int? IdleTimeBetweenScansSec { get; set; }
     }
 }

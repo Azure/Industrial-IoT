@@ -37,7 +37,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        public async Task<ApplicationModel> ValidateEndpointAsync(EndpointModel endpoint) {
+        public async Task<ApplicationRegistrationModel> ValidateEndpointAsync(
+            EndpointModel endpoint) {
             if (endpoint == null) {
                 throw new ArgumentNullException(nameof(endpoint));
             }
@@ -57,7 +58,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        public async Task<ApplicationModel> DiscoverApplicationAsync(Uri discoveryUrl) {
+        public async Task<ApplicationRegistrationModel> DiscoverApplicationAsync(
+            Uri discoveryUrl) {
             if (discoveryUrl == null) {
                 throw new ArgumentNullException(nameof(discoveryUrl));
             }

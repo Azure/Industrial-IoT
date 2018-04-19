@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
 
     /// <summary>
-    /// Twin model
+    /// Twin registration
     /// </summary>
     public class TwinRegistrationModel {
 
@@ -19,6 +19,16 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// Endpoint information in the registration
         /// </summary>
         public EndpointModel Endpoint { get; set; }
+
+        /// <summary>
+        /// Security level of the endpoint
+        /// </summary>
+        public int? SecurityLevel { get; set; }
+
+        /// <summary>
+        /// Endpoint cert
+        /// </summary>
+        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Whether twin is running on edge

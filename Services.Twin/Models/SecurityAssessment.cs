@@ -4,26 +4,33 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
-    using System.Collections.Generic;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     /// <summary>
-    /// Application with optional list of endpoints
+    /// Security assessment of the endpoint or application
     /// </summary>
-    public class ApplicationRegistrationModel {
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum SecurityAssessment {
 
         /// <summary>
-        /// Application information
+        /// Unknown security level
         /// </summary>
-        public ApplicationInfoModel Application { get; set; }
+        Unknown = 0,
 
         /// <summary>
-        /// List of endpoints for it
+        /// Low or no security
         /// </summary>
-        public List<TwinRegistrationModel> Endpoints { get; set; }
+        Low = 1,
 
         /// <summary>
-        /// Registration security assessment
+        /// Good security
         /// </summary>
-        public SecurityAssessment? SecurityAssessment { get; set; }
+        Medium = 2,
+
+        /// <summary>
+        /// High level of security
+        /// </summary>
+        High = 3,
     }
 }

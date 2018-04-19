@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
                 ApplicationUri = ApplicationUri,
                 ProductUri = ProductUri,
                 ApplicationName = ApplicationName,
-                Capabilities = Capabilities,
+                Capabilities = Capabilities
             };
         }
 

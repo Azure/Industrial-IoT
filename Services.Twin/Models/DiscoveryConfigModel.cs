@@ -14,9 +14,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         public string AddressRangesToScan { get; set; }
 
         /// <summary>
-        /// Minimum network probes that should run.
+        /// Network probe timeout.
         /// </summary>
-        public int? MinNetworkProbes { get; set; }
+        public TimeSpan? NetworkProbeTimeout { get; set; }
 
         /// <summary>
         /// Max network probes that should ever run.
@@ -29,9 +29,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         public string PortRangesToScan { get; set; }
 
         /// <summary>
-        /// Minimum port probes that should run.
+        /// Port probe timeout
         /// </summary>
-        public int? MinPortProbes { get; set; }
+        public TimeSpan? PortProbeTimeout { get; set; }
 
         /// <summary>
         /// Max port probes that should ever run.

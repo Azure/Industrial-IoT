@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <param name="ct"></param>
         public PortScanner(ILogger logger, ISourceBlock<IEnumerable<IPEndPoint>> source,
             ITargetBlock<IPEndPoint> target, IPortProbe portProbe, CancellationToken ct) :
-            this(logger, source, target, portProbe, null, null, null, ct) {
+            this(logger, source, target, portProbe, null, null, ct) {
         }
 
         /// <summary>
@@ -64,14 +64,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <param name="portProbe"></param>
         /// <param name="ct"></param>
         public PortScanner(ILogger logger, ISourceBlock<IEnumerable<IPEndPoint>> source,
-            ITargetBlock<IPEndPoint> target, IPortProbe portProbe, int? minProbeCount,
+            ITargetBlock<IPEndPoint> target, IPortProbe portProbe,
             int? maxProbeCount, TimeSpan? timeout, CancellationToken ct) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _target = target ?? throw new ArgumentNullException(nameof(target));
 
             _maxProbeCount = maxProbeCount ?? kDefaultMaxProbeCount;
-            _minProbeCount = minProbeCount ?? kDefaultMinProbeCount;
+            _minProbeCount = _maxProbeCount / 10;
             _timeout = timeout ?? kDefaultProbeTimeout;
 
             _candidates = new BlockingCollection<IPEndPoint>(_maxProbeCount * 10);
@@ -526,8 +526,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// improvement is linear, e.g. all ports on a Windows PC are scanned in
         /// around 16 seconds.
         /// </summary>
-        private const int kDefaultMaxProbeCount = 1000;
-        private const int kDefaultMinProbeCount = 200;
+        private const int kDefaultMaxProbeCount = 200;
         private readonly TimeSpan kDefaultProbeTimeout =
             TimeSpan.FromSeconds(10);
 

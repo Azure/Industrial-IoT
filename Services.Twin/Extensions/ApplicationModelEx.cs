@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
     using System.Collections.Generic;
     using System.Linq;
     using System;
+    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Service model extensions for discovery service
@@ -30,9 +31,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// Create server model
         /// </summary>
         /// <param name="result"></param>
-        public static ApplicationModel ToServiceModel(this OpcUaDiscoveryResult result,
-            string supervisorId) {
-            return new ApplicationModel {
+        public static ApplicationRegistrationModel ToServiceModel(
+            this OpcUaDiscoveryResult result, string supervisorId) {
+            return new ApplicationRegistrationModel {
                 Application = new ApplicationInfoModel {
                     SupervisorId = supervisorId,
                     ApplicationId = CreateApplicationId(supervisorId,
@@ -44,16 +45,19 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
                     DiscoveryUrls = result.Description.Server.DiscoveryUrls,
                     DiscoveryProfileUri = result.Description.Server.DiscoveryProfileUri,
                     ApplicationName = result.Description.Server.ApplicationName.Text,
-                    Certificate = result.Description.ServerCertificate,
                     Capabilities = new HashSet<string>(result.Capabilities)
                 },
-                Endpoints = new List<EndpointModel> {
-                    new EndpointModel {
-                        Url = result.Description.EndpointUrl,
-                        SecurityMode = result.Description.SecurityMode.ToServiceType() ??
-                            SecurityMode.None,
-                        SecurityPolicy = result.Description.SecurityPolicyUri,
-                        SupervisorId = supervisorId
+                Endpoints = new List<TwinRegistrationModel> {
+                    new TwinRegistrationModel {
+                        Certificate = result.Description.ServerCertificate,
+                        SecurityLevel = result.Description.SecurityLevel,
+                        Endpoint = new EndpointModel {
+                            Url = result.Description.EndpointUrl,
+                            SecurityMode = result.Description.SecurityMode.ToServiceType() ??
+                                SecurityMode.None,
+                            SecurityPolicy = result.Description.SecurityPolicyUri,
+                            SupervisorId = supervisorId
+                        },
                     }
                 }
             };
@@ -64,8 +68,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <param name="supervisorId"></param>
-        public static ApplicationModel SetSupervisorId(this ApplicationModel model,
-            string supervisorId) {
+        public static ApplicationRegistrationModel SetSupervisorId(
+            this ApplicationRegistrationModel model, string supervisorId) {
             if (model == null) {
                 return null;
             }
@@ -75,7 +79,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
                     supervisorId, model.Application.ApplicationUri);
             }
             if (model.Endpoints != null) {
-                model.Endpoints.ForEach(e => e.SupervisorId = supervisorId);
+                model.Endpoints.ForEach(e => e.Endpoint.SupervisorId = supervisorId);
             }
             return model;
         }
@@ -94,8 +98,26 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
             if (model == null || that == null) {
                 return false;
             }
-            return that.ApplicationUri == model.ApplicationUri &&
-                that.Certificate.SequenceEqualsSafe(model.Certificate);
+            return that.ApplicationUri == model.ApplicationUri;
+        }
+
+        /// <summary>
+        /// Equality comparison
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="that"></param>
+        /// <returns></returns>
+        public static bool IsEqual(this TwinRegistrationModel model, 
+            TwinRegistrationModel that) {
+            if (model == that) {
+                return true;
+            }
+            if (model == null || that == null) {
+                return false;
+            }
+            return model.Endpoint.IsEqual(that.Endpoint) && 
+                model.SecurityLevel == that.SecurityLevel &&
+                model.Certificate?.ToSha1Hash() == that.Certificate?.ToSha1Hash();
         }
 
         /// <summary>
@@ -120,15 +142,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// Add or update a server list
         /// </summary>
         /// <param name="server"></param>
-        public static void AddOrUpdate(this List<ApplicationModel> discovered,
-            ApplicationModel server) {
+        public static void AddOrUpdate(this List<ApplicationRegistrationModel> discovered,
+            ApplicationRegistrationModel server) {
             lock (discovered) {
                 var actual = discovered
                     .FirstOrDefault(s => s.Application.IsEqual(server.Application));
                 if (actual != null) {
                     // Merge server info
                     actual.UnionWith(server);
-                    return;
                 }
                 else {
                     discovered.Add(server);
@@ -140,8 +161,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// Create Union with server
         /// </summary>
         /// <param name="server"></param>
-        public static void UnionWith(this ApplicationModel model,
-            ApplicationModel server) {
+        public static void UnionWith(this ApplicationRegistrationModel model,
+            ApplicationRegistrationModel server) {
 
             if (server?.Application?.Capabilities?.Any() ?? false) {
                 if (model.Application == null) {
@@ -167,6 +188,48 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Update security assessment
+        /// </summary>
+        /// <param name="model"></param>
+        public static ApplicationRegistrationModel SetSecurityAssessment(
+            this ApplicationRegistrationModel model) {
+            model.SecurityAssessment = (SecurityAssessment)
+                model.Endpoints.Average(e => (int)e.GetSecurityAssessment());
+            return model;
+        }
+
+        /// <summary>
+        /// Get security assessment
+        /// </summary>
+        /// <param name="model"></param>
+        public static SecurityAssessment GetSecurityAssessment(
+            this TwinRegistrationModel model) {
+            if (model.Endpoint.SecurityMode == SecurityMode.None) {
+                return SecurityAssessment.Low;
+            }
+
+            // TODO
+
+            var cert = new X509Certificate2(model.Certificate);
+            var securityProfile = model.Endpoint.SecurityPolicy.Remove(0,
+                model.Endpoint.SecurityPolicy.IndexOf('#') + 1);
+
+            var expiryDate = cert.NotAfter;
+            var issuer = cert.Issuer.Extract("CN=", ",");
+
+            if ((securityProfile == "None") ||
+                (securityProfile == "sha1") ||
+                (cert.PublicKey.Key.KeySize == 1024)) {
+                return SecurityAssessment.Low;
+            }
+            if ((cert.IssuerName.Name == cert.SubjectName.Name) &&
+                (securityProfile != "None")) {
+                return SecurityAssessment.High;
+            }
+            return SecurityAssessment.Medium;
         }
     }
 }

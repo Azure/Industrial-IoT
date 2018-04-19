@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
     using System.Collections.Generic;
-    using System;
 
     /// <summary>
     /// Application information
@@ -41,11 +40,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// Name of application
         /// </summary>
         public string ApplicationName { get; set; }
-
-        /// <summary>
-        /// Application cert
-        /// </summary>
-        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Application capabilities

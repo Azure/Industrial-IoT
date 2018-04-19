@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
     using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Models;
+    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
     using Newtonsoft.Json.Linq;
 
     /// <summary>

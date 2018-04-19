@@ -31,6 +31,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         public bool? IsTrusted { get; set; }
 
         /// <summary>
+        /// Certificate of the endpoint
+        /// </summary>
+        public byte[] Certificate { get; set; }
+
+        /// <summary>
         /// Endpoint security policy to use - null = Best.
         /// </summary>
         public string SecurityPolicy { get; set; }

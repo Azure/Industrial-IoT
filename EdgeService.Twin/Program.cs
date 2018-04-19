@@ -66,28 +66,32 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService {
 
             using (var hostScope = container.BeginLifetimeScope()) {
                 var events = hostScope.Resolve<IEventEmitter>();
-                try {
-                    var module = hostScope.Resolve<IEdgeHost>();
-                    await module.StartAsync();
+                var module = hostScope.Resolve<IEdgeHost>();
+                while (true) {
+                    try {
+                        await module.StartAsync();
 
-                    // Report type of service
-                    await events.SendAsync("type", "supervisor");
-                    await events.SendAsync("connected", true);
-                    if (!Console.IsInputRedirected) {
-                        Console.WriteLine("Press any key to exit...");
-                        Console.TreatControlCAsInput = true;
-                        await Task.WhenAny(tcs.Task, Task.Run(() => Console.ReadKey()));
+                        // Report type of service
+                        await events.SendAsync("type", "supervisor");
+                        await events.SendAsync("connected", true);
+                        if (!Console.IsInputRedirected) {
+                            Console.WriteLine("Press any key to exit...");
+                            Console.TreatControlCAsInput = true;
+                            await Task.WhenAny(tcs.Task, Task.Run(() => Console.ReadKey()));
+                        }
+                        else {
+                            await tcs.Task;
+                        }
+                        return;
                     }
-                    else {
-                        await tcs.Task;
+                    catch (Exception ex) {
+                        var logger = hostScope.Resolve<ILogger>();
+                        logger.Error("Error during edge run!", () => ex);
                     }
-                }
-                catch (Exception ex) {
-                    var logger = hostScope.Resolve<ILogger>();
-                    logger.Error("Error during edge run!", () => ex);
-                }
-                finally {
-                    await events.SendAsync("connected", false);
+                    finally {
+                        await events.SendAsync("connected", false);
+                        await module.StopAsync();
+                    }
                 }
             }
         }

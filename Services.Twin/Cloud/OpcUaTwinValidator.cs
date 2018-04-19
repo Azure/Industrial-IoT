@@ -38,11 +38,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        public async Task<ApplicationModel> DiscoverApplicationAsync(Uri discoveryUrl) {
+        public async Task<ApplicationRegistrationModel> DiscoverApplicationAsync(
+            Uri discoveryUrl) {
             if (discoveryUrl == null) {
                 throw new ArgumentNullException(nameof(discoveryUrl));
             }
-            var result = await CallServiceOnAllSupervisors<Uri, ApplicationModel>(
+            var result = await CallServiceOnAllSupervisors<Uri, ApplicationRegistrationModel>(
                 "DiscoverApplication_V1", discoveryUrl, kValidationTimeout);
             // Update edge supervisor value to the one responding
             return result.Item2.SetSupervisorId(result.Item1);
@@ -53,11 +54,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        public async Task<ApplicationModel> ValidateEndpointAsync(EndpointModel endpoint) {
+        public async Task<ApplicationRegistrationModel> ValidateEndpointAsync(
+            EndpointModel endpoint) {
             if (endpoint == null) {
                 throw new ArgumentNullException(nameof(endpoint));
             }
-            var result = await CallServiceOnAllSupervisors<EndpointModel, ApplicationModel>(
+            var result = await CallServiceOnAllSupervisors<EndpointModel, ApplicationRegistrationModel>(
                 "ValidateEndpoint_V1", endpoint, kValidationTimeout);
             // Update edge supervisor value to the one responding
             return result.Item2.SetSupervisorId(result.Item1);

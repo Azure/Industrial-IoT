@@ -40,6 +40,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         public bool? IsTrusted { get; set; }
 
         /// <summary>
+        /// Certificate of the endpoint
+        /// </summary>
+        [JsonProperty(PropertyName = "certificate",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public byte[] Certificate { get; set; }
+
+        /// <summary>
         /// Security Mode 
         /// </summary>
         [JsonProperty(PropertyName = "securityMode",

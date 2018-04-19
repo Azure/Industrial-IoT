@@ -50,10 +50,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.EventHub {
 
             foreach (var eventData in messages) {
                 if (!eventData.Properties.TryGetValue("$$ContentType", out var contentType) ||
-                    !eventData.Properties.TryGetValue("$$DeviceId", out var deviceId) ||
                     !contentType.ToString().Equals("application/x-discovery-v1-json",
                         StringComparison.InvariantCultureIgnoreCase)) {
                     // Not our content to process
+                    continue;
+                }
+                if (!eventData.Properties.TryGetValue("$$DeviceId", out var deviceId)) {
                     continue;
                 }
                 var json = Encoding.UTF8.GetString(eventData.Body.Array);

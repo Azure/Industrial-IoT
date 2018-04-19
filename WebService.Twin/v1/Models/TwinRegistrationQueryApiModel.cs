@@ -27,6 +27,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
             User = model.User;
             TokenType = model.TokenType;
             IsTrusted = model.IsTrusted;
+            Certificate = model.Certificate;
             SecurityPolicy = model.SecurityPolicy;
             SecurityMode = model.SecurityMode;
         }
@@ -41,6 +42,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
                 User = User,
                 TokenType = TokenType,
                 IsTrusted = IsTrusted,
+                Certificate = Certificate,
                 SecurityPolicy = SecurityPolicy,
                 SecurityMode = SecurityMode,
             };
@@ -77,6 +79,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public bool? IsTrusted { get; set; }
+
+        /// <summary>
+        /// Certificate of the endpoint
+        /// </summary>
+        [JsonProperty(PropertyName = "certificate",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Security Mode 

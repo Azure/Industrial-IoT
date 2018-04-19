@@ -143,6 +143,26 @@ namespace System {
         }
 
         /// <summary>
+        /// Extract data between start and end
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="findStart"></param>
+        /// <param name="findEnd"></param>
+        /// <returns></returns>
+        public static string Extract(this string str, string findStart, string findEnd) {
+            var start = str.IndexOf(findStart, 0, StringComparison.Ordinal);
+            if (start == -1) {
+                return string.Empty;
+            }
+            start += findStart.Length;
+            var end = str.IndexOf(findEnd, start, StringComparison.Ordinal);
+            if (end == -1) {
+                return string.Empty;
+            }
+            return str.Substring(start, end - start);
+        }
+
+        /// <summary>
         /// Split using predicate
         /// </summary>
         /// <param name="str"></param>

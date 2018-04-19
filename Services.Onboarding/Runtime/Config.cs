@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.Runtime {
             GetString("_EH_CS", null));
         /// <summary> Event hub consumer group </summary>
         public string ConsumerGroup =>
-            GetString(EventHubConsumerGroupKey, "$Default");
+            GetString(EventHubConsumerGroupKey, "onboard");
         /// <summary> Event hub path </summary>
         public string EventHubPath => GetString(EventHubPathKey,
             IotHubConnectionStringBuilder.Create(IoTHubConnString).IotHubName);
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.Runtime {
         /// <param name="configuration"></param>
         public Config(IConfigurationRoot configuration) {
             Configuration = configuration;
-            Logger = new Logger(Uptime.ProcessId,
+            Logger = new ConsoleLogger(Uptime.ProcessId,
                 GetLogLevel("Logging:LogLevel:Default", LogLevel.Debug));
         }
 

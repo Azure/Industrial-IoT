@@ -260,7 +260,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             await MergeEndpointsAsync(discovered.Endpoints.Select(e =>
                 OpcUaEndpointRegistration.FromServiceModel(new TwinInfoModel {
                     ApplicationId = discovered.Application.ApplicationId,
-                    Endpoint = e
+                    Endpoint = e.Endpoint,
+                    SecurityLevel = e.SecurityLevel,
+                    Certificate = e.Certificate
                 })), endpoints);
             _logger.Debug("Application registered.", () => discovered);
 
@@ -292,7 +294,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                     ApplicationType = request.ApplicationType ?? ApplicationType.Server,
                     ApplicationUri = request.ApplicationUri,
                     Capabilities = request.Capabilities,
-                    Certificate = request.Certificate,
                     SupervisorId = null
                 }));
             return new ApplicationRegistrationResultModel {
@@ -332,10 +333,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             if (request.ProductUri != null) {
                 patched.ProductUri = string.IsNullOrEmpty(request.ProductUri) ?
                     null : request.ProductUri;
-            }
-            if (request.Certificate != null) {
-                patched.Certificate = request.Certificate.Length == 0 ?
-                    null : request.Certificate;
             }
             if (request.Capabilities != null) {
                 patched.Capabilities = request.Capabilities.Count == 0 ?
@@ -388,9 +385,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 Endpoints = endpoints.Select(t => new TwinRegistrationModel {
                     Endpoint = t.Endpoint,
                     Id = t.Id,
+                    Certificate = t.Certificate,
+                    SecurityLevel = t.SecurityLevel,
                     Connected = t.Connected
                 }).ToList()
-            };
+            }.SetSecurityAssessment();
         }
 
         /// <summary>
@@ -465,7 +464,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             foreach(var twin in endpoints) {
                 try {
                     if (!string.IsNullOrEmpty(twin.Endpoint.SupervisorId)) {
-                        await _registry.UpdatePropertyAsync(twin.Endpoint.SupervisorId,
+                        var deviceId = SupervisorModelEx.ParseDeviceId(
+                            twin.Endpoint.SupervisorId, out var moduleId);
+                        await _registry.UpdatePropertyAsync(deviceId, moduleId,
                             twin.Id, null);
                     }
                 }
@@ -590,8 +591,15 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
                 var existingEndpoints = endpoints
                     .Select(t => OpcUaEndpointRegistration.FromTwin(t, false));
-                var discoveredEndpoints = ev.Select(e => e.Endpoint)
-                    .Select(e => new TwinInfoModel { Endpoint = e, ApplicationId = ev.Key })
+                var discoveredEndpoints = ev
+                    .Select(e => e.Endpoint)
+                    .Where(e => e.Endpoint != null)
+                    .Select(e => new TwinInfoModel {
+                        Endpoint = e.Endpoint,
+                        Certificate = e.Certificate,
+                        SecurityLevel = e.SecurityLevel,
+                        ApplicationId = ev.Key
+                    })
                     .Select(OpcUaEndpointRegistration.FromServiceModel);
 
                 await MergeEndpointsAsync(discoveredEndpoints, existingEndpoints);

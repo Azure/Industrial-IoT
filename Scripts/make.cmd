@@ -155,6 +155,8 @@ call :build_image iot-opc-twin-service WebService.Twin\Dockerfile
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 call :build_image iot-opc-twin-edge-service EdgeService.Twin\Dockerfile
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
+call :build_image iot-opc-twin-edge-service EdgeService.Twin\Dockerfile.Debug -debug
+if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 call :build_image iot-opc-onboarding-service Services.Onboarding\Dockerfile
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 call :build_image iot-opc-twin-service-ctrl WebService.Twin.Ctrl\Dockerfile
@@ -257,7 +259,7 @@ set _cmd_line=%_cmd_line% -e "_STORE_CS=%_STORE_CS%"
 set _cmd_line=%_cmd_line% -e "_EH_CS=%_EH_CS%"
 if not "%subscription%" == "" set _cmd_line=%_cmd_line% -s %subscription%
 if not "%location%" == "" set _cmd_line=%_cmd_line% -l %location%
-cmd /c %current-path%\deploy.cmd -t instance %_cmd_line%
+rem cmd /c %current-path%\deploy.cmd -t instance %_cmd_line%
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 
 echo Deploy twin web service...

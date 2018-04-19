@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     /// <summary>
     /// Twin registration model for webservice api
@@ -28,6 +29,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         /// </summary>
         [JsonProperty(PropertyName = "endpoint")]
         public EndpointApiModel Endpoint { get; set; }
+
+        /// <summary>
+        /// Endpoint security level
+        /// </summary>
+        [JsonProperty(PropertyName = "securityLevel",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public int? SecurityLevel { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between

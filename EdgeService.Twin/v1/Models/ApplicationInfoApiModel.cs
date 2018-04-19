@@ -23,10 +23,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         /// <param name="model"></param>
         public ApplicationInfoApiModel(ApplicationInfoModel model) {
             ApplicationUri = model?.ApplicationUri;
-            ApplicationType = model?.ApplicationType ?? ApplicationType.ClientAndServer;
+            ApplicationType = model?.ApplicationType ?? 
+                ApplicationType.ClientAndServer;
             ApplicationName = model?.ApplicationName;
             ProductUri = model?.ProductUri;
-            Certificate = model?.Certificate;
             DiscoveryUrls = model?.DiscoveryUrls;
             DiscoveryProfileUri = model?.DiscoveryProfileUri;
             Capabilities = model?.Capabilities;
@@ -41,7 +41,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
                 ApplicationType = ApplicationType,
                 ApplicationName = ApplicationName,
                 ProductUri = ProductUri,
-                Certificate = Certificate,
                 DiscoveryUrls = DiscoveryUrls,
                 DiscoveryProfileUri = DiscoveryProfileUri,
                 Capabilities = Capabilities
@@ -67,11 +66,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         /// Product uri
         /// </summary>
         public string ProductUri { get; set; }
-
-        /// <summary>
-        /// Server cert
-        /// </summary>
-        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Capabilities

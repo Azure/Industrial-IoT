@@ -33,13 +33,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         public string ApplicationName { get; set; }
 
         /// <summary>
-        /// Application public cert
-        /// </summary>
-        [JsonProperty(PropertyName = "certificate",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public byte[] Certificate { get; set; }
-
-        /// <summary>
         /// Capabilities of the application
         /// </summary>
         [JsonProperty(PropertyName = "capabilities",

@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        Task<ApplicationModel> ValidateEndpointAsync(
+        Task<ApplicationRegistrationModel> ValidateEndpointAsync(
             EndpointModel endpoint);
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services {
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        Task<ApplicationModel> DiscoverApplicationAsync(
+        Task<ApplicationRegistrationModel> DiscoverApplicationAsync(
             Uri discoveryUrl);
     }
 }

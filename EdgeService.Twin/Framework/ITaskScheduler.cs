@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.Devices.Edge {
+    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
     using System.Threading.Tasks;
 
     public interface ITaskScheduler {
@@ -12,5 +13,10 @@ namespace Microsoft.Azure.Devices.Edge {
         /// Task factory
         /// </summary>
         TaskFactory Factory { get; }
+
+        /// <summary>
+        /// Create debug dump
+        /// </summary>
+        void Dump(ILogger logger);
     }
 }

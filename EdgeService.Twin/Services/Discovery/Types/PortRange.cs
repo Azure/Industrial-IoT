@@ -53,6 +53,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             }
             return _lower == range._lower && _upper == range._upper;
         }
+
         public static bool operator ==(PortRange range1, PortRange range2) =>
             EqualityComparer<PortRange>.Default.Equals(range1, range2);
         public static bool operator !=(PortRange range1, PortRange range2) =>

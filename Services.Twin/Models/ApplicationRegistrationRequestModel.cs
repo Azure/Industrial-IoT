@@ -32,11 +32,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         public string ApplicationName { get; set; }
 
         /// <summary>
-        /// Application cert
-        /// </summary>
-        public byte[] Certificate { get; set; }
-
-        /// <summary>
         /// Application capabilities
         /// </summary>
         public HashSet<string> Capabilities { get; set; }

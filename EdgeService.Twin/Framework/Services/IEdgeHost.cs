@@ -13,6 +13,11 @@ namespace Microsoft.Azure.Devices.Edge.Services {
     public interface IEdgeHost : IDisposable {
 
         /// <summary>
+        /// Operation timeout
+        /// </summary>
+        TimeSpan Timeout { get; set; }
+
+        /// <summary>
         /// Start service
         /// </summary>
         /// <returns></returns>

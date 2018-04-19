@@ -210,7 +210,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             return new SupervisorModel {
                 Discovery = Discovery != DiscoveryMode.Off ? Discovery : (DiscoveryMode?)null,
                 Domain = string.IsNullOrEmpty(Domain) ? null : Domain,
-                DiscoveryConfig = IsConfigNullOrEmpty(DiscoveryConfig) ? null : DiscoveryConfig,
+                DiscoveryConfig = IsNullOrEmpty(DiscoveryConfig) ? null : DiscoveryConfig,
                 Connected = IsConnected() ? true : (bool?)null,
                 OutOfSync = IsConnected() && !_isInSync ? true : (bool?)null,
                 Id = SupervisorModelEx.CreateSupervisorId(DeviceId, ModuleId)
@@ -231,39 +231,39 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         }
 
         /// <summary>
-        /// Returns true if configuration is null or empty
+        /// Returns true if config is null or empty
         /// </summary>
-        /// <param name="configuration"></param>
+        /// <param name="config"></param>
         /// <returns></returns>
-        private static bool IsConfigNullOrEmpty(DiscoveryConfigModel configuration) =>
-            configuration == null || (
-                string.IsNullOrEmpty(configuration.AddressRangesToScan) &&
-                string.IsNullOrEmpty(configuration.PortRangesToScan) &&
-                configuration.MaxNetworkProbes == null &&
-                configuration.MinNetworkProbes == null &&
-                configuration.MaxPortProbes == null &&
-                configuration.MinPortProbes == null &&
-                configuration.IdleTimeBetweenScans == null);
+        private static bool IsNullOrEmpty(DiscoveryConfigModel config) =>
+            config == null || (
+                string.IsNullOrEmpty(config.AddressRangesToScan) &&
+                string.IsNullOrEmpty(config.PortRangesToScan) &&
+                config.MaxNetworkProbes == null &&
+                config.NetworkProbeTimeout == null &&
+                config.MaxPortProbes == null &&
+                config.PortProbeTimeout == null &&
+                config.IdleTimeBetweenScans == null);
 
         /// <summary>
         /// Returns whether 2 configurations are the same.
         /// </summary>
-        /// <param name="configuration"></param>
+        /// <param name="config"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        private static bool IsConfigEqual(DiscoveryConfigModel configuration,
+        private static bool IsConfigEqual(DiscoveryConfigModel config,
             DiscoveryConfigModel other) {
-            if (configuration == null) {
+            if (config == null) {
                 return other == null;
             }
             return
-                configuration.AddressRangesToScan == other?.AddressRangesToScan &&
-                configuration.MinNetworkProbes == other?.MinNetworkProbes &&
-                configuration.MaxNetworkProbes == other?.MaxNetworkProbes &&
-                configuration.PortRangesToScan == other?.PortRangesToScan &&
-                configuration.MinPortProbes == other?.MinPortProbes &&
-                configuration.MaxPortProbes == other?.MaxPortProbes &&
-                configuration.IdleTimeBetweenScans == other?.IdleTimeBetweenScans;
+                config.AddressRangesToScan == other?.AddressRangesToScan &&
+                config.NetworkProbeTimeout == other?.NetworkProbeTimeout &&
+                config.MaxNetworkProbes == other?.MaxNetworkProbes &&
+                config.PortRangesToScan == other?.PortRangesToScan &&
+                config.PortProbeTimeout == other?.PortProbeTimeout &&
+                config.MaxPortProbes == other?.MaxPortProbes &&
+                config.IdleTimeBetweenScans == other?.IdleTimeBetweenScans;
         }
 
         internal bool IsConnected() => Connected;

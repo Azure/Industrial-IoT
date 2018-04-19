@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Runtime {
         /// <param name="configuration"></param>
         public Config(IConfigurationRoot configuration) {
             Configuration = configuration;
-            Logger = new Logger(Uptime.ProcessId,
+            Logger = new ConsoleLogger(Uptime.ProcessId,
                 GetLogLevel("Logging:LogLevel:Default", LogLevel.Debug));
         }
 

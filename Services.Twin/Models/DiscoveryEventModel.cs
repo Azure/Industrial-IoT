@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// <summary>
         /// Discovered endpoint
         /// </summary>
-        public EndpointModel Endpoint { get; set; }
+        public TwinRegistrationModel Endpoint { get; set; }
 
         /// <summary>
         /// Application to which this endpoint belongs

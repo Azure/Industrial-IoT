@@ -24,12 +24,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         /// <param name="model"></param>
         public DiscoveryConfigApiModel(DiscoveryConfigModel model) {
             AddressRangesToScan = model.AddressRangesToScan;
-            MinNetworkProbes = model.MinNetworkProbes;
+            NetworkProbeTimeoutMs = (int?)model.NetworkProbeTimeout?.TotalMilliseconds;
             MaxNetworkProbes = model.MaxNetworkProbes;
             PortRangesToScan = model.PortRangesToScan;
-            MinPortProbes = model.MinPortProbes;
+            PortProbeTimeoutMs = (int?)model.PortProbeTimeout?.TotalMilliseconds;
             MaxPortProbes = model.MaxPortProbes;
-            IdleTimeBetweenScans = (int?)model.IdleTimeBetweenScans?.TotalSeconds;
+            IdleTimeBetweenScansSec = (int?)model.IdleTimeBetweenScans?.TotalSeconds;
         }
 
         /// <summary>
@@ -39,13 +39,15 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public DiscoveryConfigModel ToServiceModel() {
             return new DiscoveryConfigModel {
                 AddressRangesToScan = AddressRangesToScan,
-                MinNetworkProbes = MinNetworkProbes,
+                NetworkProbeTimeout = NetworkProbeTimeoutMs == null ?
+                    (TimeSpan?)null : TimeSpan.FromMilliseconds((double)NetworkProbeTimeoutMs),
                 MaxNetworkProbes = MaxNetworkProbes,
                 PortRangesToScan = PortRangesToScan,
-                MinPortProbes = MinPortProbes,
+                PortProbeTimeout = PortProbeTimeoutMs == null ?
+                    (TimeSpan?)null : TimeSpan.FromMilliseconds((double)PortProbeTimeoutMs),
                 MaxPortProbes = MaxPortProbes,
-                IdleTimeBetweenScans = IdleTimeBetweenScans == null ?
-                    (TimeSpan?)null: TimeSpan.FromSeconds((double)IdleTimeBetweenScans)
+                IdleTimeBetweenScans = IdleTimeBetweenScansSec == null ?
+                    (TimeSpan?)null: TimeSpan.FromSeconds((double)IdleTimeBetweenScansSec)
             };
         }
 
@@ -57,11 +59,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public string AddressRangesToScan { get; set; }
 
         /// <summary>
-        /// Minimum network probes that should run.
+        /// Networking probe timeout
         /// </summary>
-        [JsonProperty(PropertyName = "minNetworkProbes",
+        [JsonProperty(PropertyName = "networkProbeTimeoutMs",
             NullValueHandling = NullValueHandling.Ignore)]
-        public int? MinNetworkProbes { get; set; }
+        public int? NetworkProbeTimeoutMs { get; set; }
 
         /// <summary>
         /// Max network probes that should ever run.
@@ -78,11 +80,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public string PortRangesToScan { get; set; }
 
         /// <summary>
-        /// Minimum port probes that should run.
+        /// Port probe timeout
         /// </summary>
-        [JsonProperty(PropertyName = "minPortProbes",
+        [JsonProperty(PropertyName = "portProbeTimeoutMs",
             NullValueHandling = NullValueHandling.Ignore)]
-        public int? MinPortProbes { get; set; }
+        public int? PortProbeTimeoutMs { get; set; }
 
         /// <summary>
         /// Max port probes that should ever run.
@@ -94,8 +96,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         /// <summary>
         /// Delay time between discovery sweeps in seconds
         /// </summary>
-        [JsonProperty(PropertyName = "idleTimeBetweenScans",
+        [JsonProperty(PropertyName = "idleTimeBetweenScansSec",
             NullValueHandling = NullValueHandling.Ignore)]
-        public int? IdleTimeBetweenScans { get; set; }
+        public int? IdleTimeBetweenScansSec { get; set; }
     }
 }

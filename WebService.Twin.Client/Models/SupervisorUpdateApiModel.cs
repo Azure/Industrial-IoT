@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
-        /// Supervisor discovery configuration
+        /// Supervisor discovery config
         /// </summary>
         [JsonProperty(PropertyName = "discoveryConfig",
             NullValueHandling = NullValueHandling.Ignore)]

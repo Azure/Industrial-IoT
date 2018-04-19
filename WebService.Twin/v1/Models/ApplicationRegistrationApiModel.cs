@@ -27,6 +27,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         /// <param name="model"></param>
         public ApplicationRegistrationApiModel(ApplicationRegistrationModel model) {
             Application = new ApplicationInfoApiModel(model.Application);
+            SecurityAssessment = model.SecurityAssessment;
             if (model.Endpoints != null) {
                 Endpoints = model.Endpoints
                     .Select(s => new TwinRegistrationApiModel(s))
@@ -44,6 +45,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public ApplicationRegistrationModel ToServiceModel() {
             return new ApplicationRegistrationModel {
                 Application = Application.ToServiceModel(),
+                SecurityAssessment = SecurityAssessment,
                 Endpoints = Endpoints.Count == 0 ? null :
                     Endpoints.Select(e => e.ToServiceModel()).ToList()
             };
@@ -63,5 +65,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public List<TwinRegistrationApiModel> Endpoints { get; set; }
+
+        /// <summary>
+        /// Application security assessment
+        /// </summary>
+        [JsonProperty(PropertyName = "securityAssessment",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public SecurityAssessment? SecurityAssessment { get; set; }
     }
 }

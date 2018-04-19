@@ -27,6 +27,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
             Id = model.Id;
             Endpoint = new EndpointApiModel(model.Endpoint);
             ApplicationId = model.ApplicationId;
+            SecurityLevel = model.SecurityLevel;
             OutOfSync = model.OutOfSync;
             Connected = model.Connected;
         }
@@ -40,6 +41,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
                 Id = Id,
                 ApplicationId = ApplicationId,
                 Endpoint = Endpoint.ToServiceModel(),
+                SecurityLevel = SecurityLevel,
                 OutOfSync = OutOfSync,
                 Connected = Connected
             };
@@ -65,6 +67,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         [JsonProperty(PropertyName = "endpoint")]
         [Required]
         public EndpointApiModel Endpoint { get; set; }
+
+        /// <summary>
+        /// Endpoint security level
+        /// </summary>
+        [JsonProperty(PropertyName = "securityLevel",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null), ReadOnly(true)]
+        public int? SecurityLevel { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync

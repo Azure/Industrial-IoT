@@ -43,13 +43,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
             string applicationId);
 
         /// <summary>
-        /// Returns the certificate of the application
-        /// </summary>
-        /// <param name="applicationId"></param>
-        /// <returns></returns>
-        Task<string> GetCertificateAsync(string applicationId);
-
-        /// <summary>
         /// Register new application and all twins with it.
         /// </summary>
         /// <param name="request"></param>
@@ -134,7 +127,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client {
             string supervisorId);
 
         /// <summary>
-        /// Update supervisor including configuration updates.
+        /// Update supervisor including config updates.
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>

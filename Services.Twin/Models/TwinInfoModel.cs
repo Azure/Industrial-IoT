@@ -26,6 +26,16 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         public EndpointModel Endpoint { get; set; }
 
         /// <summary>
+        /// Security level of the endpoint
+        /// </summary>
+        public int? SecurityLevel { get; set; }
+
+        /// <summary>
+        /// Endpoint cert
+        /// </summary>
+        public byte[] Certificate { get; set; }
+
+        /// <summary>
         /// Whether the registration is out of sync between
         /// client (edge) and server (service) (default: false).
         /// </summary>

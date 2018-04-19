@@ -9,9 +9,7 @@ namespace Microsoft.Azure.IoTSolutions.Shared.Runtime {
     using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client;
     using Microsoft.Extensions.Configuration;
     using System;
-    using System.Linq;
     using System.Collections.Generic;
-    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Web service configuration - wraps a configuration root
@@ -42,33 +40,7 @@ namespace Microsoft.Azure.IoTSolutions.Shared.Runtime {
         /// <param name="configuration"></param>
         public Config(IConfigurationRoot configuration) {
             Configuration = configuration;
-            Logger = new Logger(Uptime.ProcessId,
-                GetLogLevel("Logging:LogLevel:Default", LogLevel.Error));
-        }
-
-        /// <summary>
-        /// Get log level
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
-        private LogLevel GetLogLevel(string key, LogLevel defaultValue) {
-            var level = GetString(key);
-            if (!string.IsNullOrEmpty(level)) {
-                switch (level.ToLowerInvariant()) {
-                    case "Warning":
-                        return LogLevel.Warn;
-                    case "Trace":
-                    case "Debug":
-                        return LogLevel.Debug;
-                    case "Information":
-                        return LogLevel.Info;
-                    case "Error":
-                    case "Critical":
-                        return LogLevel.Error;
-                }
-            }
-            return defaultValue;
+            Logger = new TraceLogger(Uptime.ProcessId);
         }
 
         /// <summary>

@@ -80,11 +80,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         public ApplicationType? ApplicationType { get; set; }
 
         /// <summary>
-        /// Returns the public certificate presented by the application
-        /// </summary>
-        public Dictionary<string, string> Certificate { get; set; }
-
-        /// <summary>
         /// Returns discovery urls of the application
         /// </summary>
         public Dictionary<string, string> DiscoveryUrls { get; set; }
@@ -93,11 +88,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// Capabilities
         /// </summary>
         public Dictionary<string, bool> Capabilities { get; set; }
-
-        /// <summary>
-        /// Certificate hash
-        /// </summary>
-        public string Thumbprint { get; set; }
 
 
         #endregion Twin Tags
@@ -121,8 +111,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
             // Tags
 
-            if (IsEnabled != (application.Certificate != null)) {
-                IsEnabled = (application.Certificate != null);
+            if (IsEnabled != string.IsNullOrEmpty(application.SupervisorId)) {
+                IsEnabled = string.IsNullOrEmpty(application.SupervisorId);
                 twin.Tags.Add(nameof(IsEnabled), IsEnabled);
             }
 
@@ -167,13 +157,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             if (ProductUri != application.ProductUri) {
                 ProductUri = application.ProductUri;
                 twin.Tags.Add(nameof(ProductUri), ProductUri);
-            }
-
-            if (!Certificate.DecodeAsByteArray().SequenceEqualsSafe(application.Certificate)) {
-                Certificate = application.Certificate.EncodeAsDictionary();
-                twin.Tags.Add(nameof(Certificate), JToken.FromObject(Certificate));
-                Thumbprint = application.Certificate?.ToSha1Hash();
-                twin.Tags.Add(nameof(Thumbprint), Thumbprint);
             }
 
             if (!DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(application.DiscoveryUrls)) {
@@ -222,8 +205,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                     tags.Get<string>(nameof(ApplicationUri), null),
                 ProductUri =
                     tags.Get<string>(nameof(ProductUri), null),
-                Thumbprint =
-                    tags.Get<string>(nameof(Thumbprint), null),
                 SupervisorId =
                     tags.Get<string>(nameof(SupervisorId), null),
                 ApplicationUriLC =
@@ -236,8 +217,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                     tags.Get<Dictionary<string, bool>>(nameof(Capabilities), null),
                 DiscoveryUrls =
                     tags.Get<Dictionary<string, string>>(nameof(DiscoveryUrls), null),
-                Certificate =
-                    tags.Get<Dictionary<string, string>>(nameof(Certificate), null),
             };
         }
 
@@ -269,7 +248,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 ApplicationUri = string.IsNullOrEmpty(ApplicationUri) ?
                     ApplicationUriLC : ApplicationUri,
                 ProductUri = ProductUri,
-                Certificate = Certificate?.DecodeAsByteArray(),
                 SupervisorId = string.IsNullOrEmpty(SupervisorId) ?
                     null : SupervisorId,
                 DiscoveryUrls = DiscoveryUrls?.DecodeAsList(),
@@ -291,15 +269,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 ApplicationUriLC = model.ApplicationUri?.ToLowerInvariant(),
                 Capabilities = model.Capabilities?.EncodeAsDictionary(true),
                 DiscoveryUrls = model.DiscoveryUrls?.EncodeAsDictionary(),
-                Certificate = model.Certificate?.EncodeAsDictionary(),
-                Thumbprint = model.Certificate?.ToSha1Hash(),
                 SupervisorId = model.SupervisorId,
                 ApplicationId = model.ApplicationId,
             };
         }
 
         /// <summary>
-        /// Returns true if this registration matches the server
+        /// Returns true if this registration matches the application
         /// model provided.
         /// </summary>
         /// <param name="model"></param>
@@ -313,9 +289,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 Capabilities.DecodeAsSet().SetEqualsSafe(
                     model.Capabilities?.Select(x => x.SanitizePropertyName().ToUpperInvariant())) &&
                 DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
-                    model.DiscoveryUrls) &&
-                Certificate.DecodeAsByteArray().SequenceEqualsSafe(
-                    model.Certificate);
+                    model.DiscoveryUrls);
         }
 
         /// <summary>
@@ -344,9 +318,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 Capabilities.DecodeAsSet().SetEqualsSafe(
                     registration.Capabilities.DecodeAsSet()) &&
                 DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
-                    registration.DiscoveryUrls.DecodeAsList()) &&
-                Certificate.DecodeAsByteArray().SequenceEqualsSafe(
-                    registration.Certificate.DecodeAsByteArray());
+                    registration.DiscoveryUrls.DecodeAsList());
         }
 
         public static bool operator ==(OpcUaApplicationRegistration r1,
@@ -376,8 +348,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
           //      EqualityComparer<string>.Default.GetHashCode(Capabilities);
           //  hashCode = hashCode * -1521134295 +
           //      EqualityComparer<string>.Default.GetHashCode(DiscoveryUrls);
-            hashCode = hashCode * -1521134295 +
-                EqualityComparer<string>.Default.GetHashCode(Thumbprint);
             return hashCode;
         }
 

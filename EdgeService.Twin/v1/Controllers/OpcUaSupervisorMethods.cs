@@ -41,10 +41,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        public async Task<ApplicationApiModel> ValidateEndpointAsync(
+        public async Task<ApplicationRegistrationApiModel> ValidateEndpointAsync(
             EndpointApiModel endpoint) {
             var result = await _validate.ValidateEndpointAsync(endpoint.ToServiceModel());
-            return new ApplicationApiModel(result);
+            return new ApplicationRegistrationApiModel(result);
         }
 
         /// <summary>
@@ -52,10 +52,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
         /// </summary>
         /// <param name="discoveryUri"></param>
         /// <returns></returns>
-        public async Task<ApplicationApiModel> DiscoverApplicationAsync(
+        public async Task<ApplicationRegistrationApiModel> DiscoverApplicationAsync(
             Uri discoveryUri) {
             var result = await _validate.DiscoverApplicationAsync(discoveryUri);
-            return new ApplicationApiModel(result);
+            return new ApplicationRegistrationApiModel(result);
         }
 
         /// <summary>

@@ -9,6 +9,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
 
     /// <summary>
     /// Provides a task scheduler that ensures a maximum concurrency level
@@ -25,15 +26,22 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
         /// Initialize factory
         /// </summary>
         /// <returns></returns>
-        private static TaskFactory InitFactory() {
+        static EdgeScheduler() {
 #if USE_DEFAULT_FACTORY
             return Task.Factory;
 #else
-            return new TaskFactory(CancellationToken.None,
+            _scheduler = new LimitingTaskScheduler(Environment.ProcessorCount);
+            _factory = new TaskFactory(CancellationToken.None,
                 TaskCreationOptions.DenyChildAttach, TaskContinuationOptions.None,
-                    new LimitingTaskScheduler(Environment.ProcessorCount));
+                    _scheduler);
 #endif
         }
+
+        /// <summary>
+        /// Create debug dump
+        /// </summary>
+        /// <param name="logger"></param>
+        public void Dump(ILogger logger) => _scheduler?.Dump(logger);
 
         /// <summary>
         /// Scheduler implementation
@@ -171,6 +179,20 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
                 }
             }
 
+            /// <summary>
+            /// Dump scheduler
+            /// </summary>
+            /// <param name="logger"></param>
+            internal void Dump(ILogger logger) {
+                logger.Debug("Dumping tasks...", () => { });
+                logger.Debug("-------------------------", () => { });
+                foreach (var task in GetScheduledTasks()) {
+                    logger.Debug(task.ToString(), () => task);
+                }
+                logger.Debug("-------------------------", () => { });
+                logger.Debug("... completed", () => { });
+            }
+
             // Whether the current thread is processing work items.
             [ThreadStatic]
             private static bool _currentThreadIsProcessingItems;
@@ -179,6 +201,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
             private int _delegatesQueuedOrRunning;
         }
 
-        private static readonly TaskFactory _factory = InitFactory();
+        private static readonly TaskFactory _factory;
+        private static readonly LimitingTaskScheduler _scheduler;
     }
 }
