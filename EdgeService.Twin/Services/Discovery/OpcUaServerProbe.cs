@@ -52,12 +52,16 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             /// <summary>
             /// Reset probe
             /// </summary>
-            public void Reset() {
+            public bool Reset() {
+                var closed = false;
                 if (_socket != null) {
+                    // If connected, close will cause a call to the completion port
+                    closed = _socket.Connected; 
                     _socket.SafeDispose();
                     _socket = null;
                 }
                 _state = State.BeginProbe;
+                return closed;
             }
 
             /// <summary>

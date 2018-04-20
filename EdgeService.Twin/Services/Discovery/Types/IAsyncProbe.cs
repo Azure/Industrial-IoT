@@ -30,6 +30,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// Reset probe to beginning cancelling any
         /// outstanding socket operations.
         /// </summary>
-        void Reset();
+        /// <returns>false if not cancelled</returns>
+        bool Reset();
     }
 }

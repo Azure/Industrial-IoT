@@ -200,7 +200,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             public void Dispose() {}
 
             /// <inheritdoc />
-            public void Reset() {}
+            public bool Reset() => false;
 
             /// <inheritdoc />
             public IAsyncProbe Create() => this;
@@ -483,22 +483,35 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             /// <param name="state"></param>
             private void OnTimeout(object state) {
                 if (!_lock.Wait(0)) {
-                    // lock is taken either by having completed or having rebegun.
+                    // lock is taken either by having completed or having re-begun.
                     return;
                 }
                 try {
-                    if (_state == State.Connect) {
-                        // Cancel current arg and mark as timedout then recycle
-                        Socket.CancelConnectAsync(_arg);
-                    }
-                    else if (_state == State.Probe) {
+                    switch (_state) {
+                        case State.Timeout:
+                            return;
+                        case State.Connect:
+                            // Cancel current arg and mark as timedout then recycle
+                            Socket.CancelConnectAsync(_arg);
+                            _arg.SocketError = SocketError.TimedOut;
+                            return;
+                        case State.Probe:
 // #if LOG_VERBOSE
-                        _scanner._logger.Debug($"Probe {_arg.RemoteEndPoint} timed out...",
-                            () => { });
+                            _scanner._logger.Debug(
+                                $"Probe {_index} {_arg.RemoteEndPoint} timed out...",
+                                    () => { });
 // #endif
+                            _arg.SocketError = SocketError.TimedOut;
+                            if (_probe.Reset()) {
+                                return;
+                            }
+                            // Has not cancelled the operation in progress.
+                            _scanner._logger.Info(
+                                $"Probe {_index} not cancelled - try restart...",
+                                    () => { });
+                            OnBeginAsync(_arg);
+                            return;
                     }
-                    _probe.Reset(); // This will also cancel any operation in progress.
-                    _arg.SocketError = SocketError.TimedOut;
                 }
                 catch (Exception ex) {
                     _scanner._logger.Debug($"Error during timeout of probe {_index}",
