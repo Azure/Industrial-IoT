@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.Devices.Edge.Hosting {
     using Microsoft.Azure.Devices.Edge.Services;
     using Microsoft.Azure.Devices.Shared;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;

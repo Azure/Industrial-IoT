@@ -3,14 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.IoTHub {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Models;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Runtime;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
-    using Microsoft.Azure.IoTSolutions.Common.Http;
-    using Microsoft.Azure.IoTSolutions.Common.Utils;
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.External.IoTHub {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External.Models;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Runtime;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Exceptions;
+    using Microsoft.Azure.IIoT.Common.Http;
+    using Microsoft.Azure.IIoT.Common.Utils;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;

@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.Client.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
 
@@ -31,6 +31,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         [JsonProperty(PropertyName = "applicationName",
             NullValueHandling = NullValueHandling.Ignore)]
         public string ApplicationName { get; set; }
+
+        /// <summary>
+        /// Application public cert
+        /// </summary>
+        [JsonProperty(PropertyName = "certificate",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Capabilities of the application

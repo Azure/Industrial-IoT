@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.External {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
@@ -18,7 +18,15 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External {
     /// </summary>
     public interface IOpcUaClient {
 
+        /// <summary>
+        /// Whether the client uses proxy
+        /// </summary>
         bool UsesProxy { get; }
+
+        /// <summary>
+        /// Returns the client certificate
+        /// </summary>
+        X509Certificate2 Certificate { get; }
 
         /// <summary>
         /// Update client certificate

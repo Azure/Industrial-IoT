@@ -2,13 +2,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <PackageId>Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService</PackageId>
+    <PackageId>Microsoft.Azure.IIoT.OpcTwin.EdgeService</PackageId>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
     <Product>Azure IoT OPC UA Twin</Product>
     <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
-    <AssemblyName>Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService</AssemblyName>
-    <RootNamespace>Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService</RootNamespace>
+    <AssemblyName>Microsoft.Azure.IIoT.OpcTwin.EdgeService</AssemblyName>
+    <RootNamespace>Microsoft.Azure.IIoT.OpcTwin.EdgeService</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>1.0.5.0</AssemblyVersion>
     <FileVersion>1.0.5.0</FileVersion>

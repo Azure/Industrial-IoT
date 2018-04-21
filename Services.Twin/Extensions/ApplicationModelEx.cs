@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Models {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Client;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External;
     using System.Collections.Generic;
     using System.Linq;
     using System;
@@ -45,6 +45,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
                     DiscoveryUrls = result.Description.Server.DiscoveryUrls,
                     DiscoveryProfileUri = result.Description.Server.DiscoveryProfileUri,
                     ApplicationName = result.Description.Server.ApplicationName.Text,
+                    Certificate = result.Description.ServerCertificate,
                     Capabilities = new HashSet<string>(result.Capabilities)
                 },
                 Endpoints = new List<TwinRegistrationModel> {
@@ -107,7 +108,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsEqual(this TwinRegistrationModel model, 
+        public static bool IsEqual(this TwinRegistrationModel model,
             TwinRegistrationModel that) {
             if (model == that) {
                 return true;
@@ -115,7 +116,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
             if (model == null || that == null) {
                 return false;
             }
-            return model.Endpoint.IsEqual(that.Endpoint) && 
+            return model.Endpoint.IsEqual(that.Endpoint) &&
                 model.SecurityLevel == that.SecurityLevel &&
                 model.Certificate?.ToSha1Hash() == that.Certificate?.ToSha1Hash();
         }
@@ -144,16 +145,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// <param name="server"></param>
         public static void AddOrUpdate(this List<ApplicationRegistrationModel> discovered,
             ApplicationRegistrationModel server) {
-            lock (discovered) {
-                var actual = discovered
-                    .FirstOrDefault(s => s.Application.IsEqual(server.Application));
-                if (actual != null) {
-                    // Merge server info
-                    actual.UnionWith(server);
-                }
-                else {
-                    discovered.Add(server);
-                }
+            var actual = discovered
+                .FirstOrDefault(s => s.Application.IsEqual(server.Application));
+            if (actual != null) {
+                // Merge server info
+                actual.UnionWith(server);
+            }
+            else {
+                discovered.Add(server);
             }
         }
 

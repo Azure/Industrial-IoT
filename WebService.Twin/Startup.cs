@@ -3,14 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Auth;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Runtime;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.IoTHub;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.Common.Http;
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService {
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.Auth;
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.Runtime;
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.v1;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Cloud;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External.IoTHub;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Http;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;

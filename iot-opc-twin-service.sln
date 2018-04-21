@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EdgeService.Twin", "EdgeSer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EdgeService.Twin.Test", "EdgeService.Twin.Test\EdgeService.Twin.Test.csproj", "{759C2015-CB1C-4EEB-81F3-4BC54F16DF78}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{CBCD98A4-ABDE-4937-B03A-33582B737466}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{CBCD98A4-ABDE-4937-B03A-33582B737466}"
 	ProjectSection(SolutionItems) = preProject
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
@@ -36,7 +36,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{CB
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Services.Onboarding", "Services.Onboarding\Services.Onboarding.csproj", "{10E0911C-6F5E-4459-9D2F-858D1550CE0F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{2095DF5B-4F90-42B7-819E-4344C902244D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{2095DF5B-4F90-42B7-819E-4344C902244D}"
 	ProjectSection(SolutionItems) = preProject
 		Scripts\build.cmd = Scripts\build.cmd
 		Scripts\deploy.cmd = Scripts\deploy.cmd
@@ -45,7 +45,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{2095
 		Scripts\setenv.cmd = Scripts\setenv.cmd
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Services.Common.Test", "Services.Common.Test\Services.Common.Test.csproj", "{66D44A0F-12AD-4276-A869-453003F64420}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Services.Common.Test", "Services.Common.Test\Services.Common.Test.csproj", "{50213BC6-5455-4E7E-B17A-F8E72924525B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -97,10 +97,10 @@ Global
 		{10E0911C-6F5E-4459-9D2F-858D1550CE0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10E0911C-6F5E-4459-9D2F-858D1550CE0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10E0911C-6F5E-4459-9D2F-858D1550CE0F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{66D44A0F-12AD-4276-A869-453003F64420}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{66D44A0F-12AD-4276-A869-453003F64420}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{66D44A0F-12AD-4276-A869-453003F64420}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{66D44A0F-12AD-4276-A869-453003F64420}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50213BC6-5455-4E7E-B17A-F8E72924525B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50213BC6-5455-4E7E-B17A-F8E72924525B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50213BC6-5455-4E7E-B17A-F8E72924525B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50213BC6-5455-4E7E-B17A-F8E72924525B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

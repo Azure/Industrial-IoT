@@ -1,6 +1,6 @@
 using System;
 
-namespace Microsoft.Azure.IoTSolutions.Browser.Models
+namespace Microsoft.Azure.IIoT.Browser.Models
 {
     public class ErrorViewModel
     {

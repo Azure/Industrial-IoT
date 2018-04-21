@@ -5,7 +5,7 @@
 
 namespace Services.Test {
     using Opc.Ua;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External.Stack;
     using Xunit;
     using System.Xml;
 

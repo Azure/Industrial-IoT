@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Models {
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.External.Models {
     using System.Collections.Generic;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;

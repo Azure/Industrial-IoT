@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+namespace Microsoft.Azure.IIoT.OpcTwin.EdgeService.Discovery {
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
     using Opc.Ua;
     using Opc.Ua.Bindings;
     using System;
@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <summary>
         /// Operation timeout
         /// </summary>
-        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
+        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
         /// Create factory
@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                 var closed = false;
                 if (_socket != null) {
                     // If connected, close will cause a call to the completion port
-                    closed = _socket.Connected; 
+                    closed = _socket.Connected;
                     _socket.SafeDispose();
                     _socket = null;
                 }
@@ -70,12 +70,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             /// <param name="arg"></param>
             /// <param name="ok"></param>
             /// <returns>true if completed, false to be called again</returns>
-            public bool CompleteAsync(SocketAsyncEventArgs arg, out bool ok, out int timeout) {
+            public bool CompleteAsync(int index, SocketAsyncEventArgs arg,
+                out bool ok, out int timeout) {
                 ok = false;
                 timeout = _timeout;
                 if (arg.SocketError != SocketError.Success) {
 // #if LOG_VERBOSE
-                    _logger.Debug($"Probe {_socket.RemoteEndPoint} found no opc server.",
+                    _logger.Debug($"Probe {index} {_socket.RemoteEndPoint} found no opc server.",
                         () => arg.SocketError);
 // #endif
                     _state = State.BeginProbe;
@@ -90,7 +91,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                             }
                             _socket = arg.ConnectSocket;
 #if TRACE
-                            _logger.Debug($"Probe {_socket.RemoteEndPoint} ...", () => { });
+                            _logger.Debug($"Probe {index} {_socket.RemoteEndPoint} ...", () => { });
 #endif
                             using (var ostrm = new MemoryStream(_buffer, 0, _buffer.Length))
                             using (var encoder = new BinaryEncoder(ostrm,
@@ -142,8 +143,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                                 var type = BitConverter.ToUInt32(_buffer, 0);
                                 if (type != TcpMessageType.Acknowledge) {
 #if LOG_VERBOSE
-                                    _logger.Debug($"Probe {_socket.RemoteEndPoint} returned " +
-                                        $"invalid message type {type}.", () => {});
+                                    _logger.Debug($"Probe {index} {_socket.RemoteEndPoint} " +
+                                        $"returned invalid message type {type}.", () => {});
 #endif
                                     _state = State.BeginProbe;
                                     return true;
@@ -151,8 +152,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                                 _size = (int)BitConverter.ToUInt32(_buffer, 4);
                                 if (_size > _buffer.Length) {
 #if TRACE
-                                    _logger.Debug($"Probe {_socket.RemoteEndPoint} returned " +
-                                        $"invalid message length {_size}.", () => { });
+                                    _logger.Debug($"Probe {index} {_socket.RemoteEndPoint} " +
+                                        $"returned invalid message length {_size}.", () => { });
 #endif
                                     _state = State.BeginProbe;
                                     return true;
@@ -181,14 +182,16 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                                     var maxMessageSize = (int)decoder.ReadUInt32(null);
                                     var maxChunkCount = (int)decoder.ReadUInt32(null);
 
-                                    _logger.Debug($"Probe {_socket.RemoteEndPoint} found opc server " +
-                                        $"(ver: {protocolVersion}) ...", () => { });
+                                    _logger.Debug($"Probe {index} {_socket.RemoteEndPoint} " +
+                                        $"found opc server (protocol:{protocolVersion}) ...",
+                                        () => { });
 
                                     if (sendBufferSize < TcpMessageLimits.MinBufferSize ||
                                         receiveBufferSize < TcpMessageLimits.MinBufferSize) {
-                                        _logger.Debug($"Bad size value read {sendBufferSize} " +
-                                            $"or {receiveBufferSize} from opc server " +
-                                            $"at {_socket.RemoteEndPoint}.", () => { });
+                                        _logger.Debug($"Probe {index} Bad size value read " +
+                                            $"{sendBufferSize} or {receiveBufferSize} from " +
+                                            $"opc server at {_socket.RemoteEndPoint}.",
+                                            () => { });
                                         return true;
                                     }
                                 }

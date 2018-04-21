@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.Common.Http {
-    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
+namespace Microsoft.Azure.IIoT.Common.Http {
+    using Microsoft.Azure.IIoT.Common.Exceptions;
     using System;
     using System.Net;
 

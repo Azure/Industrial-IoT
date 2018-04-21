@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.v1.Models {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
     using Newtonsoft.Json;
+    using System;
     using System.Collections.Generic;
     using System.ComponentModel;
 
@@ -28,7 +29,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
             ApplicationType = model.ApplicationType;
             ApplicationUri = model.ApplicationUri;
             ApplicationName = model.ApplicationName;
+            Certificate = model.Certificate;
             ProductUri = model.ProductUri;
+            NotSeenSince = model.NotSeenSince;
             SupervisorId = model.SupervisorId;
             DiscoveryProfileUri = model.DiscoveryProfileUri;
             DiscoveryUrls = model.DiscoveryUrls;
@@ -44,7 +47,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
                 ApplicationType = ApplicationType,
                 ApplicationUri = ApplicationUri,
                 ApplicationName = ApplicationName,
+                Certificate = Certificate,
                 ProductUri = ProductUri,
+                NotSeenSince = NotSeenSince,
                 SupervisorId = SupervisorId,
                 DiscoveryProfileUri = DiscoveryProfileUri,
                 DiscoveryUrls = DiscoveryUrls,
@@ -87,12 +92,28 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public string SupervisorId { get; set; }
 
         /// <summary>
+        /// Last time application was seen
+        /// </summary>
+        [JsonProperty(PropertyName = "notSeenSince",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public DateTime? NotSeenSince { get; set; }
+
+        /// <summary>
         /// Name of server
         /// </summary>
         [JsonProperty(PropertyName = "applicationName",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public string ApplicationName { get; set; }
+
+        /// <summary>
+        /// Application public cert
+        /// </summary>
+        [JsonProperty(PropertyName = "certificate",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Capabilities

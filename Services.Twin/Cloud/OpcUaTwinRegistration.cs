@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Models;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Cloud {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External.Models;
     using Newtonsoft.Json.Linq;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Base twin registration
@@ -34,6 +34,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         public abstract string DeviceType { get; }
 
         /// <summary>
+        /// Edge supervisor that owns the twin.
+        /// </summary>
+        public virtual string SupervisorId { get; set; }
+
+        /// <summary>
         /// Application id of twin
         /// </summary>
         public virtual string ApplicationId { get; set; }
@@ -41,14 +46,24 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// <summary>
         /// Whether registration is enabled or not
         /// </summary>
-        public bool? IsEnabled { get; set; }
+        public bool? IsDisabled { get; set; }
 
         /// <summary>
-        /// Edge supervisor that owns the twin.
+        /// Certificate hash
         /// </summary>
-        public string SupervisorId { get; set; }
+        public virtual string Thumbprint { get; set; }
 
         #endregion Twin Tags
+
+        #region Twin Tags or reported properties
+
+        /// <summary>
+        /// Returns the public certificate presented by the application
+        /// </summary>
+        public Dictionary<string, string> Certificate { get; set; }
+
+        #endregion Twin Tags or reported properties
+
 
         /// <summary>
         /// Convert twin to registration information.
@@ -59,11 +74,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             if (twin == null || twin.Tags == null) {
                 return null;
             }
-            switch (twin.Tags.Get(nameof(DeviceType), "unknown")) {
-                case "Endpoint":
+            switch (twin.Tags.Get(nameof(DeviceType),
+                twin.Properties.Reported.Get("type", "Unknown")).ToLowerInvariant()) {
+                case "endpoint":
                     return OpcUaEndpointRegistration.FromTwin(twin, false);
-                case "Application":
+                case "application":
                     return OpcUaApplicationRegistration.FromTwin(twin);
+                case "supervisor":
+                    return OpcUaSupervisorRegistration.FromTwin(twin);
             }
             return null;
         }

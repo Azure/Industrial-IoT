@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+namespace Microsoft.Azure.IIoT.OpcTwin.EdgeService.Discovery {
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
     using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Threading.Tasks.Dataflow;
 
     /// <summary>
     /// Scans network using icmp and finds all machines in it.
@@ -36,7 +35,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <param name="logger"></param>
         /// <param name="replies"></param>
         /// <param name="ct"></param>
-        public NetworkScanner(ILogger logger, ITargetBlock<PingReply> replies,
+        public NetworkScanner(ILogger logger, Action<PingReply> replies,
             CancellationToken ct) :
             this(logger, replies, false, null, NetworkClass.Wired, null, null, ct) {
         }
@@ -47,7 +46,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <param name="logger"></param>
         /// <param name="replies"></param>
         /// <param name="ct"></param>
-        public NetworkScanner(ILogger logger, ITargetBlock<PingReply> replies,
+        public NetworkScanner(ILogger logger, Action<PingReply> replies,
             NetworkClass netclass, CancellationToken ct) :
             this(logger, replies, false, null, netclass, null, null, ct) {
         }
@@ -58,7 +57,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <param name="logger"></param>
         /// <param name="replies"></param>
         /// <param name="ct"></param>
-        public NetworkScanner(ILogger logger, ITargetBlock<PingReply> replies,
+        public NetworkScanner(ILogger logger, Action<PingReply> replies,
             bool local, NetworkClass netclass, CancellationToken ct) :
             this(logger, replies, local, null, netclass, null, null, ct) {
         }
@@ -69,7 +68,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <param name="logger"></param>
         /// <param name="replies"></param>
         /// <param name="ct"></param>
-        public NetworkScanner(ILogger logger, ITargetBlock<PingReply> replies,
+        public NetworkScanner(ILogger logger, Action<PingReply> replies,
             IEnumerable<AddressRange> addresses, CancellationToken ct) :
             this(logger, replies, false,
                 addresses ?? throw new ArgumentNullException(nameof(addresses)),
@@ -82,13 +81,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <param name="logger"></param>
         /// <param name="replies"></param>
         /// <param name="ct"></param>
-        public NetworkScanner(ILogger logger, ITargetBlock<PingReply> replies,
+        public NetworkScanner(ILogger logger, Action<PingReply> replies,
             bool local, IEnumerable<AddressRange> addresses, NetworkClass netclass,
             int? maxProbeCount, TimeSpan? timeout, CancellationToken ct) {
             _logger = logger;
             _replies = replies;
             _ct = ct;
             _timeout = timeout ?? kDefaultProbeTimeout;
+            _completion = new TaskCompletionSource<bool>();
             _candidates = new List<uint>();
             if (addresses == null) {
                 addresses = NetworkInterface.GetAllNetworkInterfaces()
@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <summary>
         /// Scan completed
         /// </summary>
-        public Task Completion => _replies.Completion;
+        public Task Completion => _completion.Task;
 
         /// <summary>
         /// Scan entire network
@@ -129,13 +129,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         public static async Task<IEnumerable<PingReply>> ScanAsync(ILogger logger,
             NetworkClass netclass, CancellationToken ct) {
             var result = new List<PingReply>();
-            var output = new ActionBlock<PingReply>(reply => {
+            using (var scanner = new NetworkScanner(logger, reply => {
                 result.Add(reply);
 #if TRACE
                 logger.Debug($"{reply.Address} found.", () => { });
 #endif
-            });
-            using (var scanner = new NetworkScanner(logger, output, netclass, ct)) {
+            }, netclass, ct)) {
                 await scanner.Completion;
             }
             return result;
@@ -146,12 +145,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// </summary>
         public void Dispose() {
             lock (_candidates) {
-                _replies.Complete();
                 foreach (var ping in _pings) {
                     ping.SendAsyncCancel();
                     ping.Dispose();
                 }
                 _pings.Clear();
+                _completion.TrySetCanceled();
             }
         }
 
@@ -185,7 +184,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                     ping.Dispose();
                     if (!_pings.Any()) {
                         // All pings drained...
-                        _replies.Complete();
+                        _completion.TrySetResult(true);
                     }
                 }
             }
@@ -202,7 +201,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                 ping.PingCompleted += (sender, e) => {
                     var reply = e.Reply;
                     if (reply != null && reply.Status == IPStatus.Success) {
-                        _replies.SendAsync(reply).Wait();
+                        _replies(reply);
                     }
                     // When completed, grab next
                     Interlocked.Increment(ref _scanCount);
@@ -265,7 +264,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         private readonly List<AddressRange> _addresses;
         private readonly ILogger _logger;
         private readonly List<Ping> _pings;
-        private readonly ITargetBlock<PingReply> _replies;
+        private readonly Action<PingReply> _replies;
+        private readonly TaskCompletionSource<bool> _completion;
         private readonly CancellationToken _ct;
         private int _scanCount;
     }

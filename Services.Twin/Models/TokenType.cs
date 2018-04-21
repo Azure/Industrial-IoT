@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
 

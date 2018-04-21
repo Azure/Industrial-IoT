@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.Devices.Edge.Hosting {
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
     using Microsoft.Azure.Devices.Edge.Services;
     using Microsoft.Azure.Devices.Client;
     using Newtonsoft.Json;
@@ -76,7 +76,6 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
                     // must be assignable from task
                     continue;
                 }
-                // Must have 0 or 1 generic arguments.
                 var tArgs = methodInfo.ReturnParameter.ParameterType
                     .GetGenericArguments();
                 if (tArgs.Length != 1) {

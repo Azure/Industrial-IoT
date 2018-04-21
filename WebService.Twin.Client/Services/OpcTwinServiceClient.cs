@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.Common.Http;
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.Client.Services {
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.Client.Models;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Http;
     using Newtonsoft.Json;
     using System;
     using System.Threading.Tasks;

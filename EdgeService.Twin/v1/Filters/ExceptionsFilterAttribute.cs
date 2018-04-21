@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Filters {
+namespace Microsoft.Azure.IIoT.OpcTwin.EdgeService.v1.Filters {
     using Microsoft.Azure.Devices.Edge;
-    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Exceptions;
+    using Microsoft.Azure.IIoT.Common.Exceptions;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Exceptions;
     using Newtonsoft.Json;
     using System;
     using System.Net;

@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.EventHub {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Onboarding.EventHub {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
     using Microsoft.Azure.EventHubs;
     using Microsoft.Azure.EventHubs.Processor;
     using Newtonsoft.Json;
@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.EventHub {
                     eventData.Properties.TryGetValue("$$ModuleId", out var moduleId);
                     var supervisorId = SupervisorModelEx.CreateSupervisorId(
                         deviceId.ToString(), moduleId?.ToString());
-                    await ProcessServerEndpointDiscoveryAsync(context, supervisorId, 
+                    await ProcessServerEndpointDiscoveryAsync(context, supervisorId,
                         discovery, eventData);
                 }
                 catch (AggregateException ex) {
@@ -138,7 +138,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.EventHub {
                 if (queue.Completed) {
                     // Process discoveries
                     await _registry.ProcessDiscoveryAsync(supervisorId,
-                        queue.Endpoints);
+                        queue.Endpoints, false);
 
                     backlog.Remove(model.TimeStamp);
                     //

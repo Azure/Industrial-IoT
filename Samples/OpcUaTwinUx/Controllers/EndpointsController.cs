@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.Browser.Controllers {
-    using Microsoft.Azure.IoTSolutions.Browser.Filters;
-    using Microsoft.Azure.IoTSolutions.Browser.Models;
-    using Microsoft.Azure.IoTSolutions.Browser.Properties;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models;
+namespace Microsoft.Azure.IIoT.Browser.Controllers {
+    using Microsoft.Azure.IIoT.Browser.Filters;
+    using Microsoft.Azure.IIoT.Browser.Models;
+    using Microsoft.Azure.IIoT.Browser.Properties;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.Client;
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.Client.Models;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;

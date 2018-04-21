@@ -3,14 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.External.Stack {
     using Microsoft.Azure.Devices.Proxy;
     using Microsoft.Azure.Devices.Proxy.Provider;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Exceptions;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Runtime;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Exceptions;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Exceptions;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Runtime;
     using Opc.Ua;
     using Opc.Ua.Bindings.Proxy;
     using Opc.Ua.Client;
@@ -24,14 +24,33 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.Common.Utils;
+    using Microsoft.Azure.IIoT.Common.Utils;
 
     /// <summary>
     /// Opc ua stack based client
     /// </summary>
     public class OpcUaClient : IOpcUaClient {
 
+        /// <summary>
+        /// Whether to use proxy
+        /// </summary>
         public bool UsesProxy { get; }
+
+        /// <summary>
+        /// Client public certificate
+        /// </summary>
+        public X509Certificate2 Certificate => _clientCert; // TODO
+
+        /// <summary>
+        /// Update client certificate
+        /// </summary>
+        /// <param name="certificate"></param>
+        /// <returns></returns>
+        public Task UpdateClientCertificate(X509Certificate2 certificate) {
+            _clientCert = certificate ??
+                throw new ArgumentNullException(nameof(certificate));
+            return Task.CompletedTask;
+        }
 
         /// <summary>
         /// Create stack
@@ -67,17 +86,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
                 _logger.Info("OPC stack configured with reverse proxy connection.",
                     () => { });
             }
-        }
-
-        /// <summary>
-        /// Update client certificate
-        /// </summary>
-        /// <param name="certificate"></param>
-        /// <returns></returns>
-        public Task UpdateClientCertificate(X509Certificate2 certificate) {
-            _clientCert = certificate ??
-                throw new ArgumentNullException(nameof(certificate));
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -201,10 +209,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
                 _logger.Debug($"Discover endpoints at {discoveryUrl}...", () => { });
 #endif
                 try {
-                    await Retry.Do(null, ct, () =>
+                    await Retry.Do(_logger, ct, () =>
                         Task.Run(() => Discover(discoveryUrl, nextServer.Item2,
-                            Timeout, visitedUris, queue, results), ct), 
-                        _ => !ct.IsCancellationRequested, Retry.Exponential, 5)
+                            Timeout, visitedUris, queue, results), ct),
+                        _ => !ct.IsCancellationRequested, Retry.Exponential, 2)
                             .ConfigureAwait(false);
                 }
                 catch (Exception ex) {

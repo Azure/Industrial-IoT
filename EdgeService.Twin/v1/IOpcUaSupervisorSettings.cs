@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1 {
+namespace Microsoft.Azure.IIoT.OpcTwin.EdgeService.v1 {
     using Newtonsoft.Json.Linq;
     using System.Threading.Tasks;
 

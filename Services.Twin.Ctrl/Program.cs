@@ -3,17 +3,17 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Ctrl {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.IoTHub;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Runtime;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Exporter;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.Common.Utils;
-    using Microsoft.Azure.IoTSolutions.Common.Http;
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Ctrl {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External.Stack;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External.IoTHub;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Runtime;
+    using Microsoft.Azure.IIoT.OpcTwin.EdgeService.Discovery;
+    using Microsoft.Azure.IIoT.OpcTwin.EdgeService.Exporter;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Utils;
+    using Microsoft.Azure.IIoT.Common.Http;
     using Microsoft.Azure.Devices.Edge;
     using Microsoft.Azure.Devices.Edge.Hosting;
     using Microsoft.Extensions.Configuration;
@@ -65,12 +65,16 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Ctrl {
             var proxy = false;
             var endpoint = new EndpointModel { IsTrusted = true };
             var host = Utils.GetHostName();
-            string deviceId = null, moduleId = null;
+            string deviceId = null, moduleId = null, addressRanges = null;
+            var stress = false;
 
             var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
             try {
                 for (var i = 0; i < args.Length; i++) {
                     switch (args[i]) {
+                        case "--stress":
+                            stress = true;
+                            break;
                         case "-s":
                         case "--server":
                             if (op != Op.None) {
@@ -168,6 +172,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Ctrl {
                                 throw new ArgumentException("Operations are mutually exclusive");
                             }
                             op = Op.TestOpcUaDiscoveryService;
+                            i++;
+                            if (i < args.Length) {
+                                addressRanges = args[i];
+                            }
                             break;
                         case "-?":
                         case "-h":
@@ -247,7 +255,7 @@ Operations (Mutually exclusive):
                         TestPortScanner(host, true).Wait();
                         break;
                     case Op.TestOpcUaDiscoveryService:
-                        TestOpcUaDiscoveryService().Wait();
+                        TestOpcUaDiscoveryService(addressRanges, stress).Wait();
                         break;
                     case Op.TestOpcUaExportService:
                         TestOpcUaModelExportService(endpoint).Wait();
@@ -389,7 +397,8 @@ Operations (Mutually exclusive):
         /// Test discovery
         /// </summary>
         /// <returns></returns>
-        private static async Task TestOpcUaDiscoveryService() {
+        private static async Task TestOpcUaDiscoveryService(string addressRanges,
+            bool stress) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
             var client = new OpcUaClient(logger, new OpcUaTestConfig {
                 BypassProxy = true
@@ -397,12 +406,22 @@ Operations (Mutually exclusive):
 
             var discovery = new OpcUaDiscoveryServices(client, new ConsoleEmitter(),
                 new EdgeScheduler(), logger);
-            await discovery.UpdateConfigurationAsync(new DiscoveryConfigModel {
-                IdleTimeBetweenScans = TimeSpan.FromMilliseconds(1)
-            });
-            await discovery.SetDiscoveryModeAsync(DiscoveryMode.Scan);
-            await Task.Delay(TimeSpan.FromMinutes(10));
-            await discovery.SetDiscoveryModeAsync(DiscoveryMode.Off);
+
+            var rand = new Random();
+            while (true) {
+                await discovery.UpdateConfigurationAsync(new DiscoveryConfigModel {
+                    IdleTimeBetweenScans = TimeSpan.FromMilliseconds(1),
+                    AddressRangesToScan = addressRanges
+                });
+                await discovery.SetDiscoveryModeAsync(DiscoveryMode.Scan);
+                await Task.Delay(!stress ? TimeSpan.FromMinutes(10) :
+                    TimeSpan.FromMilliseconds(rand.Next(0, 120000)));
+                logger.Info("Stopping discovery!", () => { });
+                await discovery.SetDiscoveryModeAsync(DiscoveryMode.Off);
+                if (!stress) {
+                    break;
+                }
+            }
         }
 
         /// <summary>

@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.Common.Http {
+namespace Microsoft.Azure.IIoT.Common.Http {
     using System.Threading.Tasks;
 
     /// <summary>

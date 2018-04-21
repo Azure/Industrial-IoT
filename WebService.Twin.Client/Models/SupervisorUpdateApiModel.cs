@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.Client.Models {
     using Newtonsoft.Json;
 
     /// <summary>
@@ -16,13 +16,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
-
-        /// <summary>
-        /// Domain of supervisor
-        /// </summary>
-        [JsonProperty(PropertyName = "domain",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string Domain { get; set; }
 
         /// <summary>
         /// Whether the supervisor is in discovery mode

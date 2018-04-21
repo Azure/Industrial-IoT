@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Newtonsoft.Json {
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Serialization;
     using System;

@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Exceptions;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Client {
+    using Microsoft.Azure.IIoT.OpcTwin.Services;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Exceptions;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Exceptions;
     using Opc.Ua;
     using Opc.Ua.Bindings;
     using Opc.Ua.Bindings.Proxy;
@@ -105,6 +105,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client {
                         ApplicationType = ep.Server.ApplicationType.ToServiceType() ?? 
                             Models.ApplicationType.Server,
                         ProductUri = ep.Server.ProductUri,
+                        Certificate = ep.ServerCertificate,
                         ApplicationName = ep.Server.ApplicationName.Text
                     }
                 };

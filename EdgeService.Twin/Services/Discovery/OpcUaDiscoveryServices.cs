@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+namespace Microsoft.Azure.IIoT.OpcTwin.EdgeService.Discovery {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
     using Microsoft.Azure.Devices.Edge;
     using Newtonsoft.Json;
     using System;
@@ -14,11 +14,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
     using System.Diagnostics;
     using System.Linq;
     using System.Net;
-    using System.Net.NetworkInformation;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Threading.Tasks.Dataflow;
     using System.Collections.Concurrent;
 
     /// <summary>
@@ -130,7 +128,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// Scan and discover in continuous loop
         /// </summary>
         /// <param name="ct"></param>
-        private async Task RunAsync(OpcUaDiscoveryOptions options, TimeSpan? delay, 
+        private async Task RunAsync(OpcUaDiscoveryOptions options, TimeSpan? delay,
             CancellationToken ct) {
 
             if (delay != null) {
@@ -146,7 +144,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             // Run scans until cancelled
             while (!ct.IsCancellationRequested) {
                 try {
-
                     //
                     // Discover
                     //
@@ -156,46 +153,26 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                     //
                     // Update cache
                     //
-                    try {
-                        await _lock.WaitAsync();
+                    lock (_discovered) {
                         _discovered.Add(timestamp, discovered);
                         if (_discovered.Count > 10) {
                             _discovered.Remove(_discovered.First().Key);
                         }
                     }
-                    finally {
-                        _lock.Release();
-                    }
+
+                    ct.ThrowIfCancellationRequested();
 
                     //
                     // Upload results
                     //
-                    _logger.Info($"Uploading {discovered.Count} results...", () => { });
-                    var messages = discovered
-                        .SelectMany(server => server.Endpoints
-                            .Select(endpoint => new DiscoveryEventModel {
-                                Application = server.Application,
-                                Endpoint = endpoint,
-                                TimeStamp = timestamp
-                            }))
-                        .Append(new DiscoveryEventModel {
-                            Endpoint = null, // last
-                            TimeStamp = timestamp
-                        })
-                        .Select((discovery, i) => {
-                            discovery.Index = i;
-                            return discovery;
-                        })
-                        .Select(discovery => Encoding.UTF8.GetBytes(
-                            JsonConvertEx.SerializeObject(discovery)));
-                    await _events.SendAsync(messages, "application/x-discovery-v1-json");
-                    _logger.Info($"{discovered.Count} results uploaded.", () => { });
+                    await UploadResultsAsync(discovered, timestamp, ct);
                 }
                 catch (OperationCanceledException) {
+                    _logger.Debug("Cancelled discovery run.", () => { });
                     return;
                 }
                 catch (Exception ex) {
-                    _logger.Error("Error during network discovery run", () => ex);
+                    _logger.Error("Error during discovery run.", () => ex);
                 }
 
                 //
@@ -231,74 +208,93 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             }
 
             var watch = Stopwatch.StartNew();
-            _logger.Info("Start discovery sweep...", () => { });
-
-            //
-            // Select ports to scan from opc ua range and unassigned
-            //
-            var portranges = new TransformManyBlock<PingReply, IEnumerable<IPEndPoint>>(
-                reply => {
-#if TRACE
-                    _logger.Debug($"{reply.Address} found.", () => { });
-#endif
-                    var ranges = options.PortRanges;
-                    if (ranges == null) {
-                        ranges = PortRange.OpcUa;
-                        if (options.Mode == DiscoveryMode.Scan) {
-                            ranges = ranges.Concat(PortRange.Unassigned);
-                        }
-                    }
-                    return ranges.SelectMany(x => x.GetEndpoints(reply.Address))
-#if TRUE
-                        .Batch(kPortScanBatchSize);
-#else
-                        .YieldReturn()
-#endif
-                }, new ExecutionDataflowBlockOptions {
-                    MaxDegreeOfParallelism = options.MaxDegreeOfParallelism,
-                    BoundedCapacity = options.MaxDegreeOfParallelism,
-                    CancellationToken = ct
-                });
-
-            //
-            // Collect discovery urls
-            //
-            var discovery = new ActionBlock<IPEndPoint>(
-                async ep => {
-                    // Get host
-                    string host;
-                    try {
-                        var entry = await Dns.GetHostEntryAsync(ep.Address);
-                        host = entry.HostName ?? ep.Address.ToString();
-                        host = ep.Address.ToString();
-                    }
-                    catch {
-                        host = ep.Address.ToString();
-                    }
-                    var url = new Uri($"opc.tcp://{host}:{ep.Port}");
-                    discoveryUrls.Enqueue(url);
-                }, new ExecutionDataflowBlockOptions {
-                    MaxDegreeOfParallelism = options.MaxDegreeOfParallelism,
-                    CancellationToken = ct
-                });
+            _logger.Info("Start discovery run...", () => { });
 
             //
             // Set up scanner pipeline and start discovery
             //
             var local = options.Mode == DiscoveryMode.Local;
+#if !NO_SCHEDULER_DUMP
+            _counter = 0;
+#endif
+            var addresses = new List<IPAddress>();
+            using (var netscanner = new NetworkScanner(_logger, reply => {
+                _logger.Debug($"{reply.Address} found.", () => { });
+                addresses.Add(reply.Address);
+            }, local, local ? null : options.AddressRanges, options.NetworkClass,
+                options.MaxNetworkProbes, options.NetworkProbeTimeout, ct))
+            using (var progress = new Timer(_ => ProgressTimer(() =>
+                $"Scanned {netscanner.ScanCount} addresses " +
+                $"(Active probes: {netscanner.ActiveProbes})..."),
+                null, _progressInterval, _progressInterval)) {
+                await netscanner.Completion;
+            }
+            ct.ThrowIfCancellationRequested();
+
+            _logger.Info(
+                $"Finding {addresses.Count} addresses took {watch.Elapsed}...",
+                    () => { });
+            if (addresses.Count == 0) {
+                return new List<ApplicationRegistrationModel>();
+            }
+
+            var ports = new List<IPEndPoint>();
             var probe = new OpcUaServerProbe(_logger);
 #if !NO_SCHEDULER_DUMP
             _counter = 0;
 #endif
-            using (var portscan = new PortScanner(_logger, portranges, discovery, probe,
-                options.MaxPortProbes, options.PortProbeTimeout, ct))
-            using (var netscanner = new NetworkScanner(_logger, portranges, local,
-                local ? null : options.AddressRanges, options.NetworkClass,
-                options.MaxNetworkProbes, options.NetworkProbeTimeout, ct))
-            using (var progress = new Timer(_ => ProgressTimer(portscan, netscanner), 
+            using (var portscan = new PortScanner(_logger,
+                addresses.SelectMany(address => {
+                    var ranges = options.PortRanges;
+                    if (ranges == null) {
+                        if (options.Mode == DiscoveryMode.Local) {
+                            ranges = PortRange.All;
+                        }
+                        else {
+                            ranges = PortRange.OpcUa;
+                        }
+                        if (options.Mode == DiscoveryMode.Scan) {
+                            ranges = ranges.Concat(PortRange.Unassigned);
+                        }
+                    }
+                    return ranges.SelectMany(x => x.GetEndpoints(address));
+                }), ports.Add, probe, options.MaxPortProbes,
+                options.PortProbeTimeout, ct))
+            using (var progress = new Timer(_ => ProgressTimer(() =>
+                $"Scanned {portscan.ScanCount} ports " +
+                $"(Active probes: {portscan.ActiveProbes})..."),
                 null, _progressInterval, _progressInterval)) {
-                await discovery.Completion;
+                await portscan.Completion;
             }
+            ct.ThrowIfCancellationRequested();
+
+            _logger.Info(
+                $"Finding {ports.Count} ports on servers (elapsed:{watch.Elapsed})...",
+                    () => { });
+            if (ports.Count == 0) {
+                return new List<ApplicationRegistrationModel>();
+            }
+
+            //
+            // Collect discovery urls
+            //
+            foreach (var ep in ports) {
+                ct.ThrowIfCancellationRequested();
+
+                // Get host
+                string host;
+                try {
+                    // var entry = await Dns.GetHostEntryAsync(ep.Address);
+                    // host = entry.HostName ?? ep.Address.ToString();
+                    host = ep.Address.ToString();
+                }
+                catch {
+                    host = ep.Address.ToString();
+                }
+                var url = new Uri($"opc.tcp://{host}:{ep.Port}");
+                discoveryUrls.Enqueue(url);
+            }
+            ct.ThrowIfCancellationRequested();
 
             //
             // Create application model list from discovered endpoints...
@@ -306,37 +302,71 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             var discovered = new List<ApplicationRegistrationModel>();
             foreach (var url in discoveryUrls) {
                 ct.ThrowIfCancellationRequested();
-                var results = await _client.DiscoverAsync(url, ct).ConfigureAwait(false);
-                if (results.Any()) {
-                    _logger.Info($"Found {results.Count()} endpoints on {url.Host}:{url.Port}.",
-                        () => { });
+                var eps = await _client.DiscoverAsync(url, ct).ConfigureAwait(false);
+                if (!eps.Any()) {
+                    continue;
                 }
+                _logger.Info($"Found {eps.Count()} endpoints on {url.Host}:{url.Port}.",
+                    () => { });
                 // Merge results...
-                foreach (var result in results) {
-                    discovered.AddOrUpdate(result.ToServiceModel(
-                        SupervisorModelEx.CreateSupervisorId(_events.DeviceId, _events.ModuleId)));
+                foreach (var ep in eps) {
+                    discovered.AddOrUpdate(ep.ToServiceModel(
+                        SupervisorModelEx.CreateSupervisorId(_events.DeviceId,
+                        _events.ModuleId)));
                 }
             }
-            _logger.Info($"Discovery took {watch.Elapsed} and found {discovered.Count} " +
-                $"servers.", () => { });
+            ct.ThrowIfCancellationRequested();
+            _logger.Info($"Discovery took {watch.Elapsed} and found " +
+                $"{discovered.Count} servers.", () => { });
             return discovered;
+        }
+
+        /// <summary>
+        /// Upload results
+        /// </summary>
+        /// <param name="discovered"></param>
+        /// <param name="timestamp"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task UploadResultsAsync(List<ApplicationRegistrationModel> discovered,
+            DateTime timestamp, CancellationToken ct) {
+            _logger.Info($"Uploading {discovered.Count} results...", () => { });
+            var messages = discovered
+                .SelectMany(server => server.Endpoints
+                    .Select(endpoint => new DiscoveryEventModel {
+                        Application = server.Application,
+                        Endpoint = endpoint,
+                        TimeStamp = timestamp
+                    }))
+                .Append(new DiscoveryEventModel {
+                    Endpoint = null, // last
+                    TimeStamp = timestamp
+                })
+                .Select((discovery, i) => {
+                    discovery.Index = i;
+                    return discovery;
+                })
+                .Select(discovery => Encoding.UTF8.GetBytes(
+                    JsonConvertEx.SerializeObject(discovery)));
+            await Task.Run(() => _events.SendAsync(
+                messages, "application/x-discovery-v1-json"), ct);
+            _logger.Info($"{discovered.Count} results uploaded.", () => { });
         }
 
         /// <summary>
         /// Called in intervals to check and log progress.
         /// </summary>
-        /// <param name="portscan"></param>
-        /// <param name="netscanner"></param>
-        private void ProgressTimer(PortScanner portscan, NetworkScanner netscanner) {
+        /// <param name="message"></param>
+        private void ProgressTimer(Func<string> message) {
 #if !NO_SCHEDULER_DUMP
-            if ((++_counter % 200) == 0) { // 10 minute timeout
+            if ((++_counter % 500) == 0) {
                 _scheduler.Dump(_logger);
+                if (_counter >= 2000) {
+                    throw new ThreadStateException("Stuck");
+                }
             }
 #endif
-            _logger.Info(
-                $"Scanned {netscanner.ScanCount} addresses and {portscan.ScanCount} ports so " +
-                $"far (Active probes: {netscanner.ActiveProbes}, {portscan.ActiveProbes})...",
-            () => { });
+            _logger.Info(message(), () => { });
         }
 
 #if !NO_SCHEDULER_DUMP

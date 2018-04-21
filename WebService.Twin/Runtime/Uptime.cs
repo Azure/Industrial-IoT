@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Runtime {
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.Runtime {
     using System;
 
     /// <summary>

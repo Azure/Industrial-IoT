@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.Common.Utils {
+namespace Microsoft.Azure.IIoT.Common.Utils {
     using System;
     using System.Threading.Tasks;
     using System.Collections.Generic;

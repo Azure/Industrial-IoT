@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+namespace Microsoft.Azure.IIoT.OpcTwin.EdgeService.Discovery {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
     using System;
     using System.Collections.Generic;
 

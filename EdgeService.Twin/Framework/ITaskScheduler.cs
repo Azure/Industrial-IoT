@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.Devices.Edge {
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
     using System.Threading.Tasks;
 
     public interface ITaskScheduler {

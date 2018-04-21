@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.Common.Http {
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+namespace Microsoft.Azure.IIoT.Common.Http {
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
     using System;
     using System.Diagnostics;
     using System.Net.Http;

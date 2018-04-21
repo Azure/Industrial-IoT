@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Models;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Cloud {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External.Models;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -75,6 +75,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         public string ProductUri { get; set; }
 
         /// <summary>
+        /// Last time application was seen
+        /// </summary>
+        public DateTime? NotSeenSince { get; set; }
+
+        /// <summary>
         /// Application type
         /// </summary>
         public ApplicationType? ApplicationType { get; set; }
@@ -89,14 +94,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// </summary>
         public Dictionary<string, bool> Capabilities { get; set; }
 
-
         #endregion Twin Tags
 
         /// <summary>
         /// Patch this registration and create patch twin model to upload
         /// </summary>
         /// <param name="application"></param>
-        public DeviceTwinModel Patch(ApplicationInfoModel application) {
+        public DeviceTwinModel Patch(ApplicationInfoModel application, bool? disable = null) {
             if (application == null) {
                 throw new ArgumentNullException(nameof(application));
             }
@@ -111,9 +115,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
             // Tags
 
-            if (IsEnabled != string.IsNullOrEmpty(application.SupervisorId)) {
-                IsEnabled = string.IsNullOrEmpty(application.SupervisorId);
-                twin.Tags.Add(nameof(IsEnabled), IsEnabled);
+            if (disable != null && IsDisabled != disable) {
+                IsDisabled = disable;
+                twin.Tags.Add(nameof(IsDisabled), IsDisabled);
+                NotSeenSince = (bool)disable ? DateTime.UtcNow : (DateTime?)null;
+                twin.Tags.Add(nameof(NotSeenSince), NotSeenSince);
             }
 
             var updateApplicationId = false;
@@ -159,6 +165,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 twin.Tags.Add(nameof(ProductUri), ProductUri);
             }
 
+            if (!Certificate.DecodeAsByteArray().SequenceEqualsSafe(application.Certificate)) {
+                Certificate = application.Certificate.EncodeAsDictionary();
+                twin.Tags.Add(nameof(Certificate), JToken.FromObject(Certificate));
+                Thumbprint = application.Certificate?.ToSha1Hash();
+                twin.Tags.Add(nameof(Thumbprint), Thumbprint);
+            }
+
             if (!DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(application.DiscoveryUrls)) {
                 DiscoveryUrls = application.DiscoveryUrls.EncodeAsDictionary();
                 twin.Tags.Add(nameof(DiscoveryUrls), JToken.FromObject(DiscoveryUrls));
@@ -197,14 +210,18 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
                 // Tags
 
-                IsEnabled =
-                    tags.Get(nameof(IsEnabled), false),
+                IsDisabled =
+                    tags.Get(nameof(IsDisabled), false),
+                NotSeenSince =
+                    tags.Get<DateTime>(nameof(NotSeenSince), null),
                 ApplicationName =
                     tags.Get<string>(nameof(ApplicationName), null),
                 ApplicationUri =
                     tags.Get<string>(nameof(ApplicationUri), null),
                 ProductUri =
                     tags.Get<string>(nameof(ProductUri), null),
+                Thumbprint =
+                    tags.Get<string>(nameof(Thumbprint), null),
                 SupervisorId =
                     tags.Get<string>(nameof(SupervisorId), null),
                 ApplicationUriLC =
@@ -217,6 +234,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                     tags.Get<Dictionary<string, bool>>(nameof(Capabilities), null),
                 DiscoveryUrls =
                     tags.Get<Dictionary<string, string>>(nameof(DiscoveryUrls), null),
+                Certificate =
+                    tags.Get<Dictionary<string, string>>(nameof(Certificate), null),
             };
         }
 
@@ -244,10 +263,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             return new ApplicationInfoModel {
                 ApplicationId = ApplicationId,
                 ApplicationName = ApplicationName,
+                NotSeenSince = NotSeenSince,
                 ApplicationType = ApplicationType ?? Models.ApplicationType.Server,
                 ApplicationUri = string.IsNullOrEmpty(ApplicationUri) ?
                     ApplicationUriLC : ApplicationUri,
                 ProductUri = ProductUri,
+                Certificate = Certificate?.DecodeAsByteArray(),
                 SupervisorId = string.IsNullOrEmpty(SupervisorId) ?
                     null : SupervisorId,
                 DiscoveryUrls = DiscoveryUrls?.DecodeAsList(),
@@ -266,8 +287,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 ApplicationType = model.ApplicationType,
                 ApplicationUri = model.ApplicationUri,
                 ProductUri = model.ProductUri,
+                NotSeenSince = model.NotSeenSince,
                 ApplicationUriLC = model.ApplicationUri?.ToLowerInvariant(),
                 Capabilities = model.Capabilities?.EncodeAsDictionary(true),
+                Certificate = model.Certificate?.EncodeAsDictionary(),
                 DiscoveryUrls = model.DiscoveryUrls?.EncodeAsDictionary(),
                 SupervisorId = model.SupervisorId,
                 ApplicationId = model.ApplicationId,
@@ -285,20 +308,22 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 ApplicationId == model.ApplicationId &&
                 ApplicationType == model.ApplicationType &&
                 ApplicationUri == model.ApplicationUri &&
+                NotSeenSince == model.NotSeenSince &&
                 SupervisorId == model.SupervisorId &&
                 Capabilities.DecodeAsSet().SetEqualsSafe(
                     model.Capabilities?.Select(x => x.SanitizePropertyName().ToUpperInvariant())) &&
                 DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
-                    model.DiscoveryUrls);
+                    model.DiscoveryUrls) &&
+                Certificate.DecodeAsByteArray().SequenceEqualsSafe(
+                    model.Certificate);
         }
 
         /// <summary>
         /// Stringify
         /// </summary>
         /// <returns></returns>
-        public override string ToString() {
-            return $"{ApplicationUriLC}-{ApplicationType}-{SupervisorId}";
-        }
+        public override string ToString() =>
+            $"{ApplicationUriLC}-{ApplicationType}-{SupervisorId}";
 
         /// <summary>
         /// Pure equality
@@ -309,7 +334,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             var registration = obj as OpcUaApplicationRegistration;
             return registration != null &&
                 ApplicationId == registration.ApplicationId &&
-                IsEnabled == registration.IsEnabled &&
+                IsDisabled == registration.IsDisabled &&
+                NotSeenSince == registration.NotSeenSince &&
                 ApplicationType == registration.ApplicationType &&
                 ApplicationUriLC == registration.ApplicationUriLC &&
                 ProductUri == registration.ProductUri &&
@@ -318,7 +344,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 Capabilities.DecodeAsSet().SetEqualsSafe(
                     registration.Capabilities.DecodeAsSet()) &&
                 DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
-                    registration.DiscoveryUrls.DecodeAsList());
+                    registration.DiscoveryUrls.DecodeAsList()) &&
+                Certificate.DecodeAsByteArray().SequenceEqualsSafe(
+                    registration.Certificate.DecodeAsByteArray());
         }
 
         public static bool operator ==(OpcUaApplicationRegistration r1,
@@ -335,7 +363,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         public override int GetHashCode() {
             var hashCode = 1200389859;
             hashCode = hashCode * -1521134295 +
-                IsEnabled.GetHashCode();
+                EqualityComparer<bool?>.Default.GetHashCode(IsDisabled);
+            hashCode = hashCode * -1521134295 +
+                EqualityComparer<DateTime?>.Default.GetHashCode(NotSeenSince);
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<ApplicationType?>.Default.GetHashCode(ApplicationType);
             hashCode = hashCode * -1521134295 +
@@ -348,6 +378,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
           //      EqualityComparer<string>.Default.GetHashCode(Capabilities);
           //  hashCode = hashCode * -1521134295 +
           //      EqualityComparer<string>.Default.GetHashCode(DiscoveryUrls);
+            hashCode = hashCode * -1521134295 +
+                EqualityComparer<string>.Default.GetHashCode(Thumbprint);
             return hashCode;
         }
 

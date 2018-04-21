@@ -66,6 +66,10 @@ goto :main
 @rem Build, and generate sdk
 @rem
 :build_and_generate
+
+for /f %%i in ('XML.EXE sel -t -v "//LOCATION" *.csproj') do set var=%%i
+echo LOCATION is %var%
+
 echo Building %image-name%:latest%postfix% from %dockerfile%...
 cmd /c dotnet build -c Release
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!

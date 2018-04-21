@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Models {
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -37,9 +38,19 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         public string SupervisorId { get; set; }
 
         /// <summary>
+        /// Last time application was seen
+        /// </summary>
+        public DateTime? NotSeenSince { get; set; }
+
+        /// <summary>
         /// Name of application
         /// </summary>
         public string ApplicationName { get; set; }
+
+        /// <summary>
+        /// Application cert
+        /// </summary>
+        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Application capabilities

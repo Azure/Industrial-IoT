@@ -3,12 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Ctrl {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services;
-    using Microsoft.Azure.IoTSolutions.Shared.Runtime;
-    using Microsoft.Azure.IoTSolutions.Common.Http;
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.Ctrl {
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.Client;
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.Client.Models;
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.Client.Services;
+    using Microsoft.Azure.IIoT.Shared.Runtime;
+    using Microsoft.Azure.IIoT.Common.Http;
     using Microsoft.Extensions.Configuration;
     using Newtonsoft.Json;
     using Autofac;
@@ -437,7 +437,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Ctrl {
             await service.UpdateSupervisorAsync(
                 new SupervisorUpdateApiModel {
                     Id = GetOption<string>(options, "-i", "--id"),
-                    Domain = GetOption<string>(options, "-n", "--domain", null),
                     Discovery = GetOption<DiscoveryMode>(options, "-d", "--discovery", null)
                 });
         }
@@ -979,7 +978,6 @@ Commands and Options
         with ...
         -i, --id        Id of twin to update (mandatory)
         -d, --discovery Set supervisor discovery mode
-        -n, --domain    Domain of supervisor
 
      help, -h, -? --help
                 Prints out this help.

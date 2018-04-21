@@ -8,9 +8,9 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
     using Microsoft.Azure.Devices.Shared;
-    using Microsoft.Azure.IoTSolutions.Common.Utils;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
+    using Microsoft.Azure.IIoT.Common.Utils;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Exceptions;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
     public class EdgeHost : IEdgeHost, ITwinProperties, IEventEmitter, IBlobUpload {
 
         /// <summary>
-        /// Twin tags
+        /// Twin properties
         /// </summary>
         public IReadOnlyDictionary<string, dynamic> Reported => _reported;
 
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
                     _logger.Info("Edge Host stopped.", () => { });
                 }
                 catch (Exception ex) {
-                    _logger.Error("Edge Host stopping caused exception.", 
+                    _logger.Error("Edge Host stopping caused exception.",
                         () => ex);
                 }
                 finally {
@@ -319,7 +319,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
                 ModuleId = _twin.ModuleId;
             }
 
-            _logger.Info($"Initialize twin for {DeviceId} - {ModuleId ?? "standalone"}", 
+            _logger.Info($"Initialize twin for {DeviceId} - {ModuleId ?? "standalone"}",
                 () => { });
 
             if (_twin.Properties.Reported.Count > 0 || _twin.Properties.Desired.Count > 0) {
@@ -477,11 +477,11 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
                         TransportType.Amqp_WebSocket_Only));
                 }
             }
-            
+
             DeviceClient client;
             if (transportSettings.Count != 0) {
                 client = await Fallback.Run(transportSettings
-                    .Select<ITransportSettings, Func<Task<DeviceClient>>>(t => 
+                    .Select<ITransportSettings, Func<Task<DeviceClient>>>(t =>
                          () => CreateDeviceClientAsync(cs.ToString(), t))
                     .ToArray());
             }
@@ -499,7 +499,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
         /// <param name="cs"></param>
         /// <param name="transportSetting"></param>
         /// <returns></returns>
-        private async Task<DeviceClient> CreateDeviceClientAsync(string cs, 
+        private async Task<DeviceClient> CreateDeviceClientAsync(string cs,
             ITransportSettings transportSetting = null) {
             DeviceClient client;
             if (transportSetting != null) {

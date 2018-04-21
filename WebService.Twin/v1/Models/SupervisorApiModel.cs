@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.v1.Models {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
     using Newtonsoft.Json;
     using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
@@ -26,9 +26,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public SupervisorApiModel(SupervisorModel model) {
             Id = model.Id;
             Discovery = model.Discovery;
-            DiscoveryConfig = model.DiscoveryConfig == null ? null : 
+            DiscoveryConfig = model.DiscoveryConfig == null ? null :
                 new DiscoveryConfigApiModel(model.DiscoveryConfig);
-            Domain = model.Domain;
+            Certificate = model.Certificate;
             OutOfSync = model.OutOfSync;
             Connected = model.Connected;
         }
@@ -41,9 +41,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
             return new SupervisorModel {
                 Id = Id,
                 Discovery = Discovery,
+                Certificate = Certificate,
                 DiscoveryConfig = DiscoveryConfig?.ToServiceModel(),
                 OutOfSync = OutOfSync,
-                Domain = Domain,
                 Connected = Connected
             };
         }
@@ -54,14 +54,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         [JsonProperty(PropertyName = "id")]
         [Required]
         public string Id { get; set; }
-
-        /// <summary>
-        /// Domain of supervisor
-        /// </summary>
-        [JsonProperty(PropertyName = "domain",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public string Domain { get; set; }
 
         /// <summary>
         /// Whether the supervisor is in discovery mode
@@ -76,7 +68,16 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         /// </summary>
         [JsonProperty(PropertyName = "discoveryConfig",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
+
+        /// <summary>
+        /// Supervisor public client cert
+        /// </summary>
+        [JsonProperty(PropertyName = "certificate",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between

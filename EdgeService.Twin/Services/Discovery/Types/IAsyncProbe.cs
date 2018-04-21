@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
+namespace Microsoft.Azure.IIoT.OpcTwin.EdgeService.Discovery {
     using System;
     using System.Net.Sockets;
 
@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// Complete probe using the passed in socket
         /// event arg.
         /// </summary>
+        /// <param name="index"></param>
         /// <param name="arg"></param>
         /// <param name="ok">
         /// If the probe returns true, this value
@@ -23,7 +24,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// false if expected to be called again.
         /// true if probe is complete.
         /// </returns>
-        bool CompleteAsync(SocketAsyncEventArgs arg,
+        bool CompleteAsync(int index, SocketAsyncEventArgs arg,
             out bool ok, out int timeout);
 
         /// <summary>

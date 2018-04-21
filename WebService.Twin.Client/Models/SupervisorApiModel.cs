@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.Client.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
 
@@ -30,13 +30,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         public string Id { get; set; }
 
         /// <summary>
-        /// Domain of supervisor
-        /// </summary>
-        [JsonProperty(PropertyName = "domain",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string Domain { get; set; }
-
-        /// <summary>
         /// Whether the supervisor is in discovery mode
         /// </summary>
         [JsonProperty(PropertyName = "discovery",
@@ -49,6 +42,13 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         [JsonProperty(PropertyName = "discoveryConfig",
             NullValueHandling = NullValueHandling.Ignore)]
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
+
+        /// <summary>
+        /// Supervisor public client cert
+        /// </summary>
+        [JsonProperty(PropertyName = "certificate",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between

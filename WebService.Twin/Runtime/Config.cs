@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Runtime {
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Runtime;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Auth;
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.Runtime {
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Exceptions;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Runtime;
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.Auth;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;

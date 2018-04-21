@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
+namespace Microsoft.Azure.IIoT.OpcTwin.EdgeService.Discovery {
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -13,6 +13,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
     /// A port range
     /// </summary>
     public class PortRange {
+
+        /// <summary>
+        /// Number of ports in range
+        /// </summary>
+        public int Count => _upper - _lower + 1;
 
         /// <summary>
         /// Create port range
@@ -92,9 +97,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
                         var lows = x[0].Trim();
                         var highs = (x.Length == 2) ? x[1].Trim() : lows;
                         return new PortRange(
-                            lows == "*" ? IPEndPoint.MinPort : 
+                            lows == "*" ? IPEndPoint.MinPort :
                                 int.Parse(lows),
-                            highs == "*" ? IPEndPoint.MaxPort : 
+                            highs == "*" ? IPEndPoint.MaxPort :
                                 int.Parse(highs));
                     });
                 return true;

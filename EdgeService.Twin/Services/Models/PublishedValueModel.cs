@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Models {
+namespace Microsoft.Azure.IIoT.OpcTwin.EdgeService.Models {
     using Newtonsoft.Json;
     using System;
 

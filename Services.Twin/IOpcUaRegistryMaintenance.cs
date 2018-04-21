@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+namespace Microsoft.Azure.IIoT.OpcTwin.Services {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -19,8 +19,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services {
         /// </summary>
         /// <param name="supervisorId"></param>
         /// <param name="servers"></param>
+        /// <param name="hardDelete"></param>
         /// <returns></returns>
         Task ProcessDiscoveryAsync(string supervisorId,
-            IEnumerable<DiscoveryEventModel> servers);
+            IEnumerable<DiscoveryEventModel> servers, bool hardDelete);
     }
 }

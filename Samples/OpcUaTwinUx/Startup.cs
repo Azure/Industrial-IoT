@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.Browser {
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.Common.Http;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Services;
-    using Microsoft.Azure.IoTSolutions.Shared.Runtime;
+namespace Microsoft.Azure.IIoT.Browser {
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Http;
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.Client.Services;
+    using Microsoft.Azure.IIoT.Shared.Runtime;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;

@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.v1.Models {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
     using Newtonsoft.Json;
     using System.Collections.Generic;
     using System.ComponentModel;
@@ -28,6 +28,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
             Id = model.Id;
             ProductUri = model.ProductUri;
             ApplicationName = model.ApplicationName;
+            Certificate = model.Certificate;
             Capabilities = model.Capabilities;
             DiscoveryUrls = model.DiscoveryUrls;
             DiscoveryProfileUri = model.DiscoveryProfileUri;
@@ -42,6 +43,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
                 Id = Id,
                 ApplicationName = ApplicationName,
                 ProductUri = ProductUri,
+                Certificate = Certificate,
                 Capabilities = Capabilities,
                 DiscoveryUrls = DiscoveryUrls,
                 DiscoveryProfileUri = DiscoveryProfileUri
@@ -70,6 +72,14 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public string ApplicationName { get; set; }
+
+        /// <summary>
+        /// Application public cert
+        /// </summary>
+        [JsonProperty(PropertyName = "certificate",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Capabilities of the application

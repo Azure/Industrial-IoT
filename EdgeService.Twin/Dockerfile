@@ -20,4 +20,4 @@ RUN dotnet publish -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.dll"]
+ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.OpcTwin.EdgeService.dll"]

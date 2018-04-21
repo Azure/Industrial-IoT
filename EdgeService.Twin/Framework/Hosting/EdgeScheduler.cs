@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Devices.Edge.Hosting {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
 
     /// <summary>
     /// Provides a task scheduler that ensures a maximum concurrency level

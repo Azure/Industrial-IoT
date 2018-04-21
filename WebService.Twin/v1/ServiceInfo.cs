@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1 {
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.v1 {
 
     /// <summary>
     /// Web service API version 1 information

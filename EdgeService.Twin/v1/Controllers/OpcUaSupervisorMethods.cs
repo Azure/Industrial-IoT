@@ -3,12 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Controllers {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Filters;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services;
+namespace Microsoft.Azure.IIoT.OpcTwin.EdgeService.v1.Controllers {
+    using Microsoft.Azure.IIoT.OpcTwin.EdgeService.v1.Filters;
+    using Microsoft.Azure.IIoT.OpcTwin.EdgeService.v1.Models;
+    using Microsoft.Azure.IIoT.OpcTwin.Services;
     using Microsoft.Azure.Devices.Edge;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
     using System;
     using System.Threading.Tasks;
 

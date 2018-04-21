@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Supervisor {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Twin;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Client;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Runtime;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
+namespace Microsoft.Azure.IIoT.OpcTwin.EdgeService.Supervisor {
+    using Microsoft.Azure.IIoT.OpcTwin.EdgeService.Twin;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Client;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External.Stack;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Runtime;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
     using Microsoft.Azure.Devices.Edge;
     using Microsoft.Azure.Devices.Edge.Services;
     using Microsoft.Azure.Devices.Client.Exceptions;

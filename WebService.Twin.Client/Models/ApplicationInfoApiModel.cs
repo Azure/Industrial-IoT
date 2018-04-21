@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.Client.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -15,7 +16,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
     public enum ApplicationType {
         Server,
         Client,
-        ClientServer
+        ClientAndServer
     }
 
     /// <summary>
@@ -56,11 +57,32 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.Client.Models {
         public string SupervisorId { get; set; }
 
         /// <summary>
+        /// Whether the application is enabled
+        /// </summary>
+        [JsonProperty(PropertyName = "isDisabled",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public bool? IsDisabled { get; set; }
+
+        /// <summary>
+        /// Last time application was seen
+        /// </summary>
+        [JsonProperty(PropertyName = "notSeenSince",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public DateTime? NotSeenSince { get; set; }
+
+        /// <summary>
         /// Name of server
         /// </summary>
         [JsonProperty(PropertyName = "applicationName",
             NullValueHandling = NullValueHandling.Ignore)]
         public string ApplicationName { get; set; }
+
+        /// <summary>
+        /// Application public cert
+        /// </summary>
+        [JsonProperty(PropertyName = "certificate",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Capabilities

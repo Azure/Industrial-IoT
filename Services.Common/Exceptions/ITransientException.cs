@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.Common.Exceptions {
+namespace Microsoft.Azure.IIoT.Common.Exceptions {
 
     /// <summary>
     /// Marks exceptions that are transient in nature, i.e.

@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+namespace Microsoft.Azure.IIoT.OpcTwin.EdgeService.v1.Models {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -23,10 +23,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         /// <param name="model"></param>
         public ApplicationInfoApiModel(ApplicationInfoModel model) {
             ApplicationUri = model?.ApplicationUri;
-            ApplicationType = model?.ApplicationType ?? 
-                ApplicationType.ClientAndServer;
+            ApplicationType = model?.ApplicationType ?? ApplicationType.ClientAndServer;
             ApplicationName = model?.ApplicationName;
             ProductUri = model?.ProductUri;
+            Certificate = model?.Certificate;
             DiscoveryUrls = model?.DiscoveryUrls;
             DiscoveryProfileUri = model?.DiscoveryProfileUri;
             Capabilities = model?.Capabilities;
@@ -41,6 +41,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
                 ApplicationType = ApplicationType,
                 ApplicationName = ApplicationName,
                 ProductUri = ProductUri,
+                Certificate = Certificate,
                 DiscoveryUrls = DiscoveryUrls,
                 DiscoveryProfileUri = DiscoveryProfileUri,
                 Capabilities = Capabilities
@@ -66,6 +67,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.v1.Models {
         /// Product uri
         /// </summary>
         public string ProductUri { get; set; }
+
+        /// <summary>
+        /// Server cert
+        /// </summary>
+        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Capabilities

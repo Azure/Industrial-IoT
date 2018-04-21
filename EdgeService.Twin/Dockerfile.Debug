@@ -22,4 +22,4 @@ RUN apt-get update && apt-get install -y unzip \
 	&& curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/vsdbg
 ENV PATH="${PATH}:/root/vsdbg/vsdbg"
 
-ENTRYPOINT ["dotnet", "Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.dll"]
+ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.OpcTwin.EdgeService.dll"]

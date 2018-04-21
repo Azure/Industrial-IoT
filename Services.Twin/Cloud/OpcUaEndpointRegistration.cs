@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Models;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Cloud {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External.Models;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -51,16 +51,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// </summary>
         public int? SecurityLevel { get; set; }
 
-        /// <summary>
-        /// Returns the public certificate presented by the application
-        /// </summary>
-        public Dictionary<string, string> Certificate { get; set; }
-
-        /// <summary>
-        /// Certificate hash
-        /// </summary>
-        public string Thumbprint { get; set; }
-
         #endregion Twin Tags
 
         #region Twin Properties
@@ -68,7 +58,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// <summary>
         /// Whether endpoint is trusted
         /// </summary>
-        public bool IsTrusted => IsEnabled ?? false;
+        public bool IsTrusted { get; set; }
 
         /// <summary>
         /// Endoint url for direct server access
@@ -111,7 +101,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// Patch this registration and create patch twin model to upload
         /// </summary>
         /// <param name="twinRegistration"></param>
-        public DeviceTwinModel Patch(TwinInfoModel twinRegistration) {
+        public DeviceTwinModel Patch(TwinInfoModel twinRegistration, bool? disable = null) {
             if (twinRegistration == null) {
                 throw new ArgumentNullException(nameof(twinRegistration));
             }
@@ -119,7 +109,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             var twin = new DeviceTwinModel {
                 Etag = Etag,
                 Tags = new Dictionary<string, JToken>(),
-                Properties = new TwinPropertiesModel() {
+                Properties = new TwinPropertiesModel {
                     Desired = new Dictionary<string, JToken>()
                 }
             };
@@ -135,13 +125,12 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 updateEndpoint = true;
             }
 
-            if (IsEnabled != (twinRegistration.Endpoint.IsTrusted ?? false)) {
-                IsEnabled = (twinRegistration.Endpoint.IsTrusted ?? false);
-                twin.Tags.Add(nameof(IsEnabled), IsEnabled);
-                updateEndpoint = true;
-            }
-
             // Tags
+
+            if (disable != null && IsDisabled != disable) {
+                IsDisabled = disable;
+                twin.Tags.Add(nameof(IsDisabled), IsDisabled);
+            }
 
             if (ApplicationId != twinRegistration.ApplicationId) {
                 ApplicationId = twinRegistration.ApplicationId;
@@ -190,6 +179,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 updateEndpoint = true;
             }
 
+            if (IsTrusted != (twinRegistration.Endpoint.IsTrusted ?? false)) {
+                IsTrusted = (twinRegistration.Endpoint.IsTrusted ?? false);
+                updateEndpoint = true;
+            }
+
             if (SecurityPolicy != twinRegistration.Endpoint.SecurityPolicy) {
                 SecurityPolicy = twinRegistration.Endpoint.SecurityPolicy;
                 updateEndpoint = true;
@@ -223,8 +217,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
                 // Tags
 
-                IsEnabled =
-                    tags.Get(nameof(IsEnabled), false),
+                IsDisabled =
+                    tags.Get(nameof(IsDisabled), false),
+                IsTrusted =
+                    tags.Get(nameof(IsTrusted), false),
                 SupervisorId =
                     tags.Get<string>(nameof(SupervisorId), null),
                 EndpointUrlLC =
@@ -368,7 +364,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 ApplicationId = model.ApplicationId,
                 Certificate = model.Certificate?.EncodeAsDictionary(),
                 Thumbprint = model.Certificate?.ToSha1Hash(),
-                IsEnabled = model.Endpoint.IsTrusted ?? false,
+                IsTrusted = model.Endpoint.IsTrusted ?? false,
                 SecurityLevel = model.SecurityLevel,
                 SupervisorId = model.Endpoint.SupervisorId,
                 EndpointUrlLC = model.Endpoint.Url?.ToLowerInvariant(),
@@ -467,7 +463,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         public override bool Equals(object obj) {
             var registration = obj as OpcUaEndpointRegistration;
             return registration != null &&
-                IsEnabled == registration.IsEnabled &&
+                IsTrusted == registration.IsTrusted &&
+                IsDisabled == registration.IsDisabled &&
                 EndpointUrlLC == registration.EndpointUrlLC &&
                 ApplicationId == registration.ApplicationId &&
                 SupervisorId == registration.SupervisorId &&
@@ -499,7 +496,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(ApplicationId);
             hashCode = hashCode * -1521134295 +
-               IsEnabled.GetHashCode();
+                EqualityComparer<bool?>.Default.GetHashCode(IsDisabled);
+            hashCode = hashCode * -1521134295 +
+                EqualityComparer<bool?>.Default.GetHashCode(IsTrusted);
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(SupervisorId);
             hashCode = hashCode * -1521134295 +

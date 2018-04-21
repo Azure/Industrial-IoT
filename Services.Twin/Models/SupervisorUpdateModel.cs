@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Models {
 
     /// <summary>
     /// Supervisor registration update request
@@ -14,11 +14,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         /// Identifier of the supervisor
         /// </summary>
         public string Id { get; set; }
-
-        /// <summary>
-        /// Domain of supervisor
-        /// </summary>
-        public string Domain { get; set; }
 
         /// <summary>
         /// Supervisor discovery mode

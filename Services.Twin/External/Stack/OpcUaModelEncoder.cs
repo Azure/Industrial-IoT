@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Stack {
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.External.Stack {
     using Opc.Ua;
     using System;
     using System.Collections.Generic;

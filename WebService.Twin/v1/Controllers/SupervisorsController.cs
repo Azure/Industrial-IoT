@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Controllers {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Auth;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Filters;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services;
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.v1.Controllers {
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.v1.Auth;
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.v1.Filters;
+    using Microsoft.Azure.IIoT.OpcTwin.WebService.v1.Models;
+    using Microsoft.Azure.IIoT.OpcTwin.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System.Linq;

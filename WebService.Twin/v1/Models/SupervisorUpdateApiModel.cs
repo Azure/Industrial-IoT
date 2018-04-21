@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+namespace Microsoft.Azure.IIoT.OpcTwin.WebService.v1.Models {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
     using Newtonsoft.Json;
     using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
@@ -25,7 +25,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         /// <param name="model"></param>
         public SupervisorUpdateApiModel(SupervisorUpdateModel model) {
             Id = model.Id;
-            Domain = model.Domain;
             Discovery = model.Discovery;
             DiscoveryConfig = model.DiscoveryConfig == null ? null :
                 new DiscoveryConfigApiModel(model.DiscoveryConfig);
@@ -38,7 +37,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         public SupervisorUpdateModel ToServiceModel() {
             return new SupervisorUpdateModel {
                 Id = Id,
-                Domain = Domain,
                 Discovery = Discovery,
                 DiscoveryConfig = DiscoveryConfig?.ToServiceModel()
             };
@@ -50,15 +48,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.WebService.v1.Models {
         [JsonProperty(PropertyName = "id")]
         [Required]
         public string Id { get; set; }
-
-        /// <summary>
-        /// Domain of supervisor - if null does not change.
-        /// empty string to delete.
-        /// </summary>
-        [JsonProperty(PropertyName = "domain",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public string Domain { get; set; }
 
         /// <summary>
         /// Whether the supervisor is in discovery mode.

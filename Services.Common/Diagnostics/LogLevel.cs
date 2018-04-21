@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.Common.Diagnostics {
+namespace Microsoft.Azure.IIoT.Common.Diagnostics {
     public enum LogLevel {
         Debug = 10,
         Info = 20,

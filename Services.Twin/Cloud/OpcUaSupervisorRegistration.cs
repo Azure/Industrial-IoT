@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Models;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Cloud {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External.Models;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -13,29 +14,28 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
     /// <summary>
     /// Endpoint persisted in twin and comparable
     /// </summary>
-    public sealed class OpcUaSupervisorRegistration {
-
-        /// <summary>
-        /// Device id of supervisor
-        /// </summary>
-        public string DeviceId { get; set; }
+    public sealed class OpcUaSupervisorRegistration : OpcUaTwinRegistration {
 
         /// <summary>
         /// Module id of supervisor
         /// </summary>
         public string ModuleId { get; set; }
 
-        /// <summary>
-        /// Etag id
-        /// </summary>
-        public string Etag { get; set; }
+        public override string DeviceType => "Supervisor";
 
         #region Twin Tags
 
         /// <summary>
-        /// Domain
+        /// Edge supervisor that owns the twin.
         /// </summary>
-        public string Domain { get; set; }
+        public override string SupervisorId =>
+            SupervisorModelEx.CreateSupervisorId(DeviceId, ModuleId);
+
+        /// <summary>
+        /// Certificate hash
+        /// </summary>
+        public override string Thumbprint =>
+            Certificate.DecodeAsByteArray().ToSha1Hash();
 
         #endregion Twin Tags
 
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// Patch this registration and create patch twin model to upload
         /// </summary>
         /// <param name="model"></param>
-        public DeviceTwinModel Patch(SupervisorModel model) {
+        public DeviceTwinModel Patch(SupervisorModel model, bool? disable = null) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
@@ -86,9 +86,9 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
             // Tags
 
-            if (Domain != model.Domain?.ToLowerInvariant()) {
-                Domain = model.Domain?.ToLowerInvariant();
-                twin.Tags.Add(nameof(Domain), Domain);
+            if (disable != null && IsDisabled != disable) {
+                IsDisabled = disable;
+                twin.Tags.Add(nameof(IsDisabled), IsDisabled);
             }
 
             // Settings
@@ -105,6 +105,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                     JToken.FromObject(DiscoveryConfig));
             }
 
+            twin.Tags.Add(nameof(DeviceType), DeviceType);
             twin.Id = DeviceId;
             twin.ModuleId = ModuleId;
             return twin;
@@ -115,11 +116,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// </summary>
         /// <param name="deviceId"></param>
         /// <param name="etag"></param>
-        /// <param name="tags"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
         public static OpcUaSupervisorRegistration FromTwin(string deviceId, string moduleId,
-            string etag, Dictionary<string, JToken> tags, Dictionary<string, JToken> properties) {
+            string etag, Dictionary<string, JToken> properties) {
             return new OpcUaSupervisorRegistration {
                 // Device
 
@@ -127,13 +127,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 ModuleId = moduleId,
                 Etag = etag,
 
-                // Tags
-
-                Domain =
-                    tags.Get<string>(nameof(Domain), null),
-
                 // Properties
 
+                Certificate =
+                    properties.Get<Dictionary<string, string>>(nameof(Certificate), null),
                 Discovery =
                     properties.Get(nameof(Discovery), DiscoveryMode.Off),
                 DiscoveryConfig =
@@ -178,7 +175,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
             OpcUaSupervisorRegistration reported = null, desired = null;
             if (twin.Properties?.Reported != null) {
-                reported = FromTwin(twin.Id, twin.ModuleId, twin.Etag, twin.Tags,
+                reported = FromTwin(twin.Id, twin.ModuleId, twin.Etag,
                     twin.Properties.Reported);
                 if (reported != null) {
                     connected = reported.Connected;
@@ -186,7 +183,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             }
 
             if (twin.Properties?.Desired != null) {
-                desired = FromTwin(twin.Id, twin.ModuleId, twin.Etag, twin.Tags,
+                desired = FromTwin(twin.Id, twin.ModuleId, twin.Etag,
                     twin.Properties.Desired);
             }
 
@@ -209,11 +206,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         public SupervisorModel ToServiceModel() {
             return new SupervisorModel {
                 Discovery = Discovery != DiscoveryMode.Off ? Discovery : (DiscoveryMode?)null,
-                Domain = string.IsNullOrEmpty(Domain) ? null : Domain,
+                Certificate = Certificate?.DecodeAsByteArray(),
                 DiscoveryConfig = IsNullOrEmpty(DiscoveryConfig) ? null : DiscoveryConfig,
                 Connected = IsConnected() ? true : (bool?)null,
                 OutOfSync = IsConnected() && !_isInSync ? true : (bool?)null,
-                Id = SupervisorModelEx.CreateSupervisorId(DeviceId, ModuleId)
+                Id = SupervisorId
             };
         }
 

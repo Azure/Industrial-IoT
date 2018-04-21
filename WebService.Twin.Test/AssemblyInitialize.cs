@@ -2,7 +2,7 @@
 
 using System;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Azure.IoTSolutions.OpcTwin.WebService;
+using Microsoft.Azure.IIoT.OpcTwin.WebService;
 using WebService.Test.helpers;
 
 namespace WebService.Test

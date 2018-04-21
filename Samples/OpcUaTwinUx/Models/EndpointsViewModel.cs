@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace Microsoft.Azure.IoTSolutions.Browser.Models {
+namespace Microsoft.Azure.IIoT.Browser.Models {
     public class EndpointsViewModel {
         public int EndpointId { get; set; }
         public List<SelectListItem> PrepopulatedEndpoints { get; set; }

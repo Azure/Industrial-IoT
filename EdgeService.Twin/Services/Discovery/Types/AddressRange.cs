@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
+namespace Microsoft.Azure.IIoT.OpcTwin.EdgeService.Discovery {
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -28,6 +28,11 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         public uint High { get; }
 
         /// <summary>
+        /// Number of addresses in range
+        /// </summary>
+        public int Count => (int)(High - Low) + 1;
+
+        /// <summary>
         /// Create address range
         /// </summary>
         /// <param name="low"></param>
@@ -50,7 +55,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <param name="nic"></param>
         /// <param name="address"></param>
         /// <param name="scope"></param>
-        public AddressRange(IPAddress address, int scope, 
+        public AddressRange(IPAddress address, int scope,
             string nic = "unknown") {
             var curAddr = (uint)IPAddress.NetworkToHostOrder(
                 (int)BitConverter.ToUInt32(
@@ -71,7 +76,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <param name="nic"></param>
         /// <param name="address"></param>
         /// <param name="localOnly"></param>
-        public AddressRange(UnicastIPAddressInformation address, 
+        public AddressRange(UnicastIPAddressInformation address,
             string nic, bool localOnly = false) {
             var curAddr = (uint)IPAddress.NetworkToHostOrder(
                 (int)BitConverter.ToUInt32(
@@ -137,10 +142,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
         /// <param name="value"></param>
         /// <param name="ranges"></param>
         /// <returns></returns>
-        public static bool TryParse(string value, 
+        public static bool TryParse(string value,
             out IEnumerable<AddressRange> ranges) {
             try {
-                ranges = value.Split(new char[] { ';', ',' }, 
+                ranges = value.Split(new char[] { ';', ',' },
                     StringSplitOptions.RemoveEmptyEntries).Select(s => {
                         var x = s.Split('/');
                         if (x.Length != 2) {
@@ -174,7 +179,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.EdgeService.Discovery {
             for (var i = 0; _cur <= High && i < count; i++) {
                 batch.Add(_cur++);
             }
-            batch.Shuffle();
         }
         private uint _cur;
     }

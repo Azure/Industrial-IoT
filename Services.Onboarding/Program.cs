@@ -3,12 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.EventHub;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Onboarding.Runtime;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.IoTHub;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud;
-    using Microsoft.Azure.IoTSolutions.Common.Http;
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Onboarding {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Onboarding.EventHub;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Onboarding.Runtime;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External.IoTHub;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Cloud;
+    using Microsoft.Azure.IIoT.Common.Http;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using System;

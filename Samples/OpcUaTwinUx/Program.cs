@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.Browser {
+namespace Microsoft.Azure.IIoT.Browser {
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
 

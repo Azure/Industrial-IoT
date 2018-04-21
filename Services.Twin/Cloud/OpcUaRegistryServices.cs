@@ -3,12 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.External.Models;
-    using Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models;
-    using Microsoft.Azure.IoTSolutions.Common.Diagnostics;
-    using Microsoft.Azure.IoTSolutions.Common.Exceptions;
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Cloud {
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.External.Models;
+    using Microsoft.Azure.IIoT.OpcTwin.Services.Models;
+    using Microsoft.Azure.IIoT.Common.Diagnostics;
+    using Microsoft.Azure.IIoT.Common.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -114,7 +114,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
 
             if (model.IsTrusted != null) {
                 // If application name provided, include it in search
-                query += $"AND tags.{nameof(OpcUaEndpointRegistration.IsEnabled)} = " +
+                query += $"AND tags.{nameof(OpcUaEndpointRegistration.IsTrusted)} = " +
                     $"{model.IsTrusted} ";
             }
             if (model.Url != null) {
@@ -256,14 +256,15 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             //
             // Create or patch existing application and update all endpoint twins
             //
-            await _registry.CreateOrUpdateAsync(application.Patch(discovered.Application));
+            await _registry.CreateOrUpdateAsync(application.Patch(discovered.Application,
+                false));
             await MergeEndpointsAsync(discovered.Endpoints.Select(e =>
                 OpcUaEndpointRegistration.FromServiceModel(new TwinInfoModel {
                     ApplicationId = discovered.Application.ApplicationId,
                     Endpoint = e.Endpoint,
                     SecurityLevel = e.SecurityLevel,
                     Certificate = e.Certificate
-                })), endpoints);
+                })), endpoints, true);
             _logger.Debug("Application registered.", () => discovered);
 
             return new ApplicationRegistrationResultModel {
@@ -333,6 +334,10 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             if (request.ProductUri != null) {
                 patched.ProductUri = string.IsNullOrEmpty(request.ProductUri) ?
                     null : request.ProductUri;
+            }
+            if (request.Certificate != null) {
+                patched.Certificate = request.Certificate.Length == 0 ?
+                    null : request.Certificate;
             }
             if (request.Capabilities != null) {
                 patched.Capabilities = request.Capabilities.Count == 0 ?
@@ -464,10 +469,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             foreach(var twin in endpoints) {
                 try {
                     if (!string.IsNullOrEmpty(twin.Endpoint.SupervisorId)) {
-                        var deviceId = SupervisorModelEx.ParseDeviceId(
-                            twin.Endpoint.SupervisorId, out var moduleId);
-                        await _registry.UpdatePropertyAsync(deviceId, moduleId,
-                            twin.Id, null);
+                        await EnableTwinAsync(twin.Endpoint.SupervisorId, twin.Id, true);
                     }
                 }
                 catch (Exception ex) {
@@ -525,10 +527,6 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             if (request.DiscoveryConfig != null) {
                 patched.DiscoveryConfig = request.DiscoveryConfig;
             }
-            if (request.Domain != null) {
-                patched.Domain = string.IsNullOrEmpty(
-                    request.Domain) ? null : request.Domain;
-            }
             // Patch
             await _registry.CreateOrUpdateAsync(registration.Patch(patched));
         }
@@ -559,7 +557,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// <param name="events"></param>
         /// <returns></returns>
         public async Task ProcessDiscoveryAsync(string supervisorId,
-            IEnumerable<DiscoveryEventModel> events) {
+            IEnumerable<DiscoveryEventModel> events, bool hardDelete) {
 
             if (string.IsNullOrEmpty(supervisorId)) {
                 throw new ArgumentNullException(nameof(supervisorId));
@@ -577,7 +575,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                 t => OpcUaApplicationRegistration.FromTwin(t));
             var discoveredApplications = events.Select(
                 ev => OpcUaApplicationRegistration.FromServiceModel(ev.Application));
-            await MergeApplicationsAsync(discoveredApplications, existingApplications);
+            await MergeApplicationsAsync(discoveredApplications, existingApplications,
+                hardDelete);
 
             // Update endpoints of all existing applications
             foreach (var ev in events.GroupBy(k => k.Application.ApplicationId)) {
@@ -602,7 +601,8 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
                     })
                     .Select(OpcUaEndpointRegistration.FromServiceModel);
 
-                await MergeEndpointsAsync(discoveredEndpoints, existingEndpoints);
+                await MergeEndpointsAsync(discoveredEndpoints, existingEndpoints,
+                    hardDelete);
             }
         }
 
@@ -614,52 +614,81 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// <returns></returns>
         private async Task MergeApplicationsAsync(
             IEnumerable<OpcUaApplicationRegistration> found,
-            IEnumerable<OpcUaApplicationRegistration> existing) {
+            IEnumerable<OpcUaApplicationRegistration> existing, bool hardDelete) {
 
             var remove = new HashSet<OpcUaApplicationRegistration>(existing,
                 OpcUaApplicationRegistration.Logical);
             var add = new HashSet<OpcUaApplicationRegistration>(found,
                 OpcUaApplicationRegistration.Logical);
+            var unchange = new HashSet<OpcUaApplicationRegistration>(existing,
+                OpcUaApplicationRegistration.Logical);
 
-            var unchanged = 0;
+            unchange.IntersectWith(add);
+            remove.ExceptWith(found);
+            add.ExceptWith(existing);
+
             var added = 0;
+            var unchanged = 0;
             var removed = 0;
 
             // Remove applications
-            foreach (var item in existing) {
-                if (add.Contains(item)) {
-                    continue;
-                }
+            foreach (var item in remove) {
                 try {
-                    // TODO: Soft delete here...
-                    await UnregisterApplicationAsync(item.ApplicationId);
+                    if (hardDelete) {
+                        await UnregisterApplicationAsync(item.ApplicationId);
+                    }
+                    else if (!(item.IsDisabled ?? false)) {
+                        // Disable
+                        await DisableApplicationAsync(item);
+                    }
+                    else {
+                        unchanged++;
+                        continue;
+                    }
                     removed++;
                 }
                 catch (Exception ex) {
-                    _logger.Error("Exception during discovery removal.", () => ex);
+                    unchanged++;
+                    _logger.Error("Exception during application removal.", () => ex);
                 }
             }
 
-            // Add applications
-            foreach (var item in found) {
-                if (remove.Contains(item)) {
-                    unchanged++;
-                    continue;
+            // Update applications that were disabled
+            foreach (var item in unchange) {
+                if (item.IsDisabled ?? false) {
+                    try {
+                        await _registry.CreateOrUpdateAsync(
+                            item.Patch(item.ToServiceModel(), false));
+                        added++;
+                    }
+                    catch (Exception ex) {
+                        unchanged++;
+                        _logger.Error("Exception during enabling.", () => ex);
+                    }
                 }
-                var twin = new OpcUaApplicationRegistration().Patch(item.ToServiceModel());
+                else {
+                    unchanged++;
+                }
+            }
+
+            // Add new applications
+            foreach (var item in add) {
                 try {
+                    var twin = new OpcUaApplicationRegistration().Patch(item.ToServiceModel(),
+                        false);
                     await _registry.CreateOrUpdateAsync(twin);
                     added++;
                 }
                 catch (Exception ex) {
+                    unchanged++;
                     _logger.Error("Exception during discovery addition.", () => ex);
                 }
             }
 
-            if (add.Count != 0 || remove.Count != 0) {
-                _logger.Info($"... processed discovery results: {added} " +
-                    $"applications added, {removed} removed, and {unchanged} " +
-                    "unchanged.", () => { });
+            if (added != 0 || removed != 0) {
+                _logger.Info($"... processed discovery results: {added} applications added or " +
+                    $"updated, {removed} removed or disabled, and {unchanged} unchanged.", 
+                    () => { });
             }
         }
 
@@ -671,59 +700,122 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
         /// <returns></returns>
         private async Task MergeEndpointsAsync(
             IEnumerable<OpcUaEndpointRegistration> found,
-            IEnumerable<OpcUaEndpointRegistration> existing) {
+            IEnumerable<OpcUaEndpointRegistration> existing, bool hardDelete) {
 
             var remove = new HashSet<OpcUaEndpointRegistration>(existing,
                 OpcUaEndpointRegistration.Logical);
             var add = new HashSet<OpcUaEndpointRegistration>(found,
                 OpcUaEndpointRegistration.Logical);
+            var unchange = new HashSet<OpcUaEndpointRegistration>(existing,
+                OpcUaEndpointRegistration.Logical);
 
-            var unchanged = 0;
+            unchange.IntersectWith(add);
+            remove.ExceptWith(found);
+            add.ExceptWith(existing);
+
             var added = 0;
+            var unchanged = 0;
             var removed = 0;
 
-            // Remove items
-            foreach (var item in existing) {
-                if (add.Contains(item)) {
-                    unchanged++;
-                    continue;
-                }
+            // Remove or disable an endpoint
+            foreach (var item in remove) {
                 try {
-                    var twin = await _registry.GetAsync(item.DeviceId);
-                    // Now we need to update any supervisor registration
-                    var existingEndpoint = OpcUaEndpointRegistration.FromTwin(twin, false);
-                    if (!string.IsNullOrEmpty(existingEndpoint.SupervisorId)) {
-                        await _registry.UpdatePropertyAsync(existingEndpoint.SupervisorId,
-                            item.DeviceId, null);
+                    if (hardDelete) {
+                        var device = await _registry.GetAsync(item.DeviceId);
+                        // First we update any supervisor registration
+                        var existingEndpoint = OpcUaEndpointRegistration.FromTwin(device, false);
+                        if (!string.IsNullOrEmpty(existingEndpoint.SupervisorId)) {
+                            await EnableTwinAsync(existingEndpoint.SupervisorId, device.Id, true);
+                        }
+                        // Then hard delete...
+                        await _registry.DeleteAsync(item.DeviceId);
                     }
-                    await _registry.DeleteAsync(item.DeviceId); // TODO: Soft delete here...
+                    else if (!(item.IsDisabled ?? false)) {
+                        await _registry.CreateOrUpdateAsync(
+                            item.Patch(item.ToServiceModel(), true));
+                    }
+                    else {
+                        unchanged++;
+                        continue;
+                    }
                     removed++;
                 }
                 catch (Exception ex) {
-                    _logger.Error("Exception during discovery removal.", () => ex);
+                    unchanged++;
+                    _logger.Error($"Exception during discovery removal.", () => ex);
                 }
             }
 
-            // Add items
-            foreach (var item in found) {
-                if (remove.Contains(item)) {
-                    unchanged++;
-                    continue;
+            // Update endpoints that were disabled
+            foreach (var item in unchange) {
+                if (item.IsDisabled ?? false) {
+                    try {
+                        await _registry.CreateOrUpdateAsync(
+                            item.Patch(item.ToServiceModel(), false));
+                        added++;
+                    }
+                    catch (Exception ex) {
+                        unchanged++;
+                        _logger.Error("Exception during enabling.", () => ex);
+                    }
                 }
-                var twin = new OpcUaEndpointRegistration().Patch(item.ToServiceModel());
+                else {
+                    unchanged++;
+                }
+            }
+
+            // Add endpoint
+            foreach (var item in add) {
                 try {
+                    var twin = new OpcUaEndpointRegistration().Patch(item.ToServiceModel(),
+                        false);
                     await _registry.CreateOrUpdateAsync(twin);
                     added++;
                 }
                 catch (Exception ex) {
+                    unchanged++;
                     _logger.Error("Exception during discovery addition.", () => ex);
                 }
             }
 
-            if (add.Count != 0 || remove.Count != 0) {
-                _logger.Info($"processed endpoint results: {added} endpoints added, " +
-                    $"{removed} removed, and {unchanged} unchanged.", () => { });
+            if (added != 0 || removed != 0) {
+                _logger.Info($"processed endpoint results: {added} endpoints added or " +
+                    $"updated, {removed} removed or disabled, and {unchanged} unchanged.", 
+                    () => { });
             }
+        }
+
+        /// <summary>
+        /// Disable application and all related endpoints
+        /// </summary>
+        /// <param name="application"></param>
+        /// <returns></returns>
+        private async Task DisableApplicationAsync(OpcUaApplicationRegistration application) {
+            var query = $"SELECT * FROM devices WHERE " +
+                $"tags.{nameof(OpcUaEndpointRegistration.ApplicationId)} = '" +
+                    application.ApplicationId +
+                $"' AND IS_OBJECT(properties.desired.{k_endpointProperty})";
+            string continuation = null;
+            do {
+                var devices = await _registry.QueryAsync(query, null);
+                foreach (var twin in devices.Items) {
+                    var endpoint = OpcUaEndpointRegistration.FromTwin(twin, true);
+                    try {
+                        if (!string.IsNullOrEmpty(endpoint.SupervisorId)) {
+                            await EnableTwinAsync(endpoint.SupervisorId, twin.Id, true);
+                        }
+                        await _registry.CreateOrUpdateAsync(endpoint.Patch(
+                            endpoint.ToServiceModel(), true));
+                    }
+                    catch (Exception ex) {
+                        _logger.Debug($"Failed disabling of twin {twin.Id}", () => ex);
+                    }
+                }
+                continuation = devices.ContinuationToken;
+            }
+            while (continuation != null);
+            await _registry.CreateOrUpdateAsync(application.Patch(application.ToServiceModel(), 
+                true));
         }
 
         /// <summary>
@@ -783,7 +875,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Cloud {
             var deviceId = SupervisorModelEx.ParseDeviceId(supervisorId, out var moduleId);
             // Remove from supervisor - this disconnects the device
             if (disable) {
-                await _registry.UpdatePropertyAsync(deviceId, moduleId, twinId, 
+                await _registry.UpdatePropertyAsync(deviceId, moduleId, twinId,
                     null);
             }
             // Enable

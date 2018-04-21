@@ -2,8 +2,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7</LangVersion>
-    <AssemblyName>Microsoft.Azure.IoTSolutions.Common</AssemblyName>
-    <RootNamespace>Microsoft.Azure.IoTSolutions.Common</RootNamespace>
+    <AssemblyName>Microsoft.Azure.IIoT.Common</AssemblyName>
+    <RootNamespace>Microsoft.Azure.IIoT.Common</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Company>Microsoft</Company>

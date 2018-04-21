@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
+namespace Microsoft.Azure.IIoT.OpcTwin.Services.Models {
 
     /// <summary>
     /// Info about a published nodes
@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IoTSolutions.OpcTwin.Services.Models {
         public string NodeId { get; set; }
 
         /// <summary>
-        /// Enabled or disabled 
+        /// Enabled or disabled
         /// </summary>
         public bool Enabled { get; set; }
     }
