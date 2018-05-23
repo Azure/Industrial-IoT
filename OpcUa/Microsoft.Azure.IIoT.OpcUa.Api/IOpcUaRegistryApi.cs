@@ -52,6 +52,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
             ApplicationRegistrationUpdateApiModel request);
 
         /// <summary>
+        /// List all Application sites to visually group applications.
+        /// </summary>
+        /// <param name="continuation"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        Task<ApplicationSiteListApiModel> ListSitesAsync(
+            string continuation, int? pageSize);
+
+        /// <summary>
         /// List all applications or continue a QueryApplications
         /// call.
         /// </summary>

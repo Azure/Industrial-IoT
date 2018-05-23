@@ -134,6 +134,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Ctrl {
                                 case "list":
                                     await ListApplicationsAsync(registry, options);
                                     break;
+                                case "sites":
+                                    await GetSitesApplicationsAsync(registry, options);
+                                    break;
                                 case "query":
                                     await QueryApplicationsAsync(registry, options);
                                     break;
@@ -587,6 +590,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Ctrl {
         }
 
         /// <summary>
+        /// List sites
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static async Task GetSitesApplicationsAsync(IOpcUaRegistryApi service,
+            Dictionary<string, string> options) {
+            if (GetOption(options, "-A", "--all", false)) {
+                var result = await service.ListAllSitesAsync();
+                PrintResult(options, result);
+                Console.WriteLine($"{result.Count()} item(s) found...");
+            }
+            else {
+                var result = await service.ListSitesAsync(
+                    GetOption<string>(options, "-C", "--continuation", null),
+                    GetOption<int>(options, "-P", "--page-size", null));
+                PrintResult(options, result);
+            }
+        }
+
+        /// <summary>
         /// Query applications
         /// </summary>
         /// <param name="service"></param>
@@ -899,6 +923,14 @@ Commands and Options
 Manage applications registry.
 
 Commands and Options
+
+     sites       List application sites
+        with ...
+        -C, --continuation
+                        Continuation from previous result.
+        -P, --page-size Size of page
+        -A, --all       Return all sites (unpaged)
+        -F, --format    Json format for result
 
      list        List applications
         with ...

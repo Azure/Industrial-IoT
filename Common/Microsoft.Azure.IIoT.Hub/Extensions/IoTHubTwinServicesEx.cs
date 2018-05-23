@@ -18,9 +18,9 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="query"></param>
         /// <param name="continuation"></param>
         /// <returns></returns>
-        public static Task<DeviceTwinListModel> QueryTwinsAsync(
+        public static Task<DeviceTwinListModel> QueryDeviceTwinsAsync(
             this IIoTHubTwinServices service, string query, string continuation) =>
-            service.QueryTwinsAsync(query, continuation, null);
+            service.QueryDeviceTwinsAsync(query, continuation, null);
 
         /// <summary>
         /// Query twins
@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="query"></param>
         /// <param name="continuation"></param>
         /// <returns></returns>
-        public static async Task<DeviceTwinListModel> QueryTwinsAsync(
+        public static async Task<DeviceTwinListModel> QueryDeviceTwinsAsync(
             this IIoTHubTwinServices service, string query, string continuation,
             int? pageSize) {
             var response = await service.QueryAsync(query, continuation, pageSize);
@@ -46,12 +46,12 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="service"></param>
         /// <param name="query"></param>
         /// <returns></returns>
-        public static async Task<List<DeviceTwinModel>> QueryTwinsAsync(
+        public static async Task<List<DeviceTwinModel>> QueryDeviceTwinsAsync(
             this IIoTHubTwinServices service, string query) {
             var result = new List<DeviceTwinModel>();
             string continuation = null;
             do {
-                var response = await service.QueryTwinsAsync(query, continuation);
+                var response = await service.QueryDeviceTwinsAsync(query, continuation);
                 result.AddRange(response.Items);
                 continuation = response.ContinuationToken;
             }

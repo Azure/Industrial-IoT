@@ -327,7 +327,7 @@ Operations (Mutually exclusive):
 
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{OpcUaTwinRegistration.kTypeProp} = 'supervisor'";
-            var supers = await registry.QueryTwinsAsync(query);
+            var supers = await registry.QueryDeviceTwinsAsync(query);
             foreach (var item in supers) {
                 foreach (var tag in item.Tags.Keys.ToList()) {
                     item.Tags[tag] = null;
@@ -356,7 +356,7 @@ Operations (Mutually exclusive):
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
 
-            var result = await registry.QueryTwinsAsync(
+            var result = await registry.QueryDeviceTwinsAsync(
                 "SELECT * from devices where IS_DEFINED(tags.DeviceType)");
             foreach (var item in result) {
                 await registry.DeleteAsync(item.Id, item.ModuleId);

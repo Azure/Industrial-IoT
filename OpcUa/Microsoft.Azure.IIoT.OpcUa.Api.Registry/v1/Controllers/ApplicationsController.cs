@@ -106,6 +106,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.v1.Controllers {
         }
 
         /// <summary>
+        /// List all sites applications are registered in.
+        /// </summary>
+        /// <param name="pageSize">Optional number of results to
+        /// return</param>
+        /// <param name="continuationToken">Optional Continuation
+        /// token</param>
+        /// <returns>Sites</returns>
+        [HttpGet("sites")]
+        public async Task<ApplicationSiteListApiModel> GetSitesAsync(
+            [FromQuery] string continuationToken,
+            [FromQuery] int? pageSize) {
+
+            if (Request.Headers.ContainsKey(kContinuationTokenHeaderKey)) {
+                continuationToken = Request.Headers[kContinuationTokenHeaderKey]
+                    .FirstOrDefault();
+            }
+            if (Request.Headers.ContainsKey(kPageSizeHeaderKey)) {
+                pageSize = int.Parse(Request.Headers[kPageSizeHeaderKey]
+                    .FirstOrDefault());
+            }
+            var result = await _applications.ListSitesAsync(
+                continuationToken, pageSize);
+            return new ApplicationSiteListApiModel(result);
+        }
+
+        /// <summary>
         /// Get all registered applications in paged form.
         /// </summary>
         /// <param name="pageSize">Optional number of results to

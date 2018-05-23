@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -62,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
             // Find all devices where endpoint information is configured
             var query = $"SELECT * FROM devices WHERE " +
                 $"tags.{nameof(OpcUaTwinRegistration.DeviceType)} = 'Endpoint'";
-            var devices = await _iothub.QueryTwinsAsync(query, continuation, pageSize);
+            var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize);
 
             return new TwinInfoListModel {
                 ContinuationToken = devices.ContinuationToken,
@@ -87,7 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
             if (string.IsNullOrEmpty(endpoint.Url)) {
                 throw new ArgumentNullException(nameof(endpoint.Url));
             }
-            var results = await _iothub.QueryTwinsAsync("SELECT * FROM devices WHERE " +
+            var results = await _iothub.QueryDeviceTwinsAsync("SELECT * FROM devices WHERE " +
                 $"tags.{nameof(OpcUaEndpointRegistration.EndpointUrlLC)} = " +
                     $"'{endpoint.Url.ToLowerInvariant()}'");
             foreach (var candidate in results) {
@@ -99,31 +100,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
             }
             return null;
         }
-
-    //   /// <summary>
-    //   /// Get filter meta data for twin queries
-    //   /// </summary>
-    //   /// <returns></returns>
-    //   public async Task<TwinRegistrationFiltersModel> QueryTwinFiltersAsync() {
-    //       var meta = new Dictionary<string, Action<TwinRegistrationFiltersModel, JArray>> {
-    //           [$"properties.desired.{nameof(OpcUaEndpointRegistration.EndpointUrl)}"] =
-    //               (f, a) => f.Url = a
-    //                   .Select(x => x.Value<string>(nameof(OpcUaEndpointRegistration.EndpointUrl)),
-    //           [$"properties.desired.{nameof(OpcUaEndpointRegistration.SecurityPolicy)}"] =
-    //               nameof(TwinRegistrationFiltersModel.SecurityPolicy),
-    //           [$"properties.desired.{nameof(OpcUaEndpointRegistration.User)}"] =
-    //               nameof(TwinRegistrationFiltersModel.User),
-    //       };
-    //       foreach (var item in meta) {
-    //           var query =
-    //               $"SELECT {item.Key}, COUNT() FROM devices WHERE " +
-    //               $"tags.{nameof(OpcUaEndpointRegistration.DeviceType)} = 'Endpoint' " +
-    //               $"GROUP BY {item.Key}";
-    //           var result = await _iothub.QueryAsync(query);
-    //
-    //       }
-    //       return null;
-    //   }
 
         /// <summary>
         /// Find registration of endpoints using query specification
@@ -180,7 +156,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
                 query += $"AND properties.reported.{OpcUaTwinRegistration.kConnectedProp} " +
                     $"{(model.Connected.Value ? "=" : "!=")} true ";
             }
-            var result = await _iothub.QueryTwinsAsync(query, null, pageSize);
+            var result = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize);
             return new TwinInfoListModel {
                 ContinuationToken = result.ContinuationToken,
                 Items = result.Items
@@ -280,7 +256,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
             //
             // See if already something registered in this form
             //
-            var existing = await _iothub.QueryTwinsAsync("SELECT * FROM devices WHERE " +
+            var existing = await _iothub.QueryDeviceTwinsAsync("SELECT * FROM devices WHERE " +
                 $"tags.{nameof(OpcUaTwinRegistration.ApplicationId)} = " +
                     $"'{discovered.Application.ApplicationId}'");
 
@@ -479,7 +455,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
                     $"'{model.SiteOrSupervisorId}' ";
             }
 
-            var queryResult = await _iothub.QueryTwinsAsync(query, null, pageSize);
+            var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize);
             return new ApplicationInfoListModel {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
@@ -490,7 +466,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
         }
 
         /// <summary>
-        /// List all servers with endpoints == twins
+        /// List all applications
         /// </summary>
         /// <param name="continuation"></param>
         /// <param name="pageSize"></param>
@@ -499,12 +475,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
             string continuation, int? pageSize) {
             var query = "SELECT * FROM devices WHERE " +
                 $"tags.{nameof(OpcUaApplicationRegistration.DeviceType)} = 'Application' ";
-            var result = await _iothub.QueryTwinsAsync(query, continuation, pageSize);
+            var result = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize);
             return new ApplicationInfoListModel {
                 ContinuationToken = result.ContinuationToken,
                 Items = result.Items
                     .Select(OpcUaApplicationRegistration.FromTwin)
                     .Select(s => s.ToServiceModel())
+                    .ToList()
+            };
+        }
+
+        /// <summary>
+        /// Get list of registered application sites to group applications visually
+        /// </summary>
+        /// <param name="continuation"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        public async Task<ApplicationSiteListModel> ListSitesAsync(
+            string continuation, int? pageSize) {
+            var tag = nameof(OpcUaTwinRegistration.SiteOrSupervisorId);
+            var query = $"SELECT tags.{tag}, COUNT() FROM devices WHERE " +
+                $"tags.{nameof(OpcUaApplicationRegistration.DeviceType)} = 'Application' " +
+                $"GROUP BY tags.{tag}";
+            var result = await _iothub.QueryAsync(query, continuation, pageSize);
+            return new ApplicationSiteListModel {
+                ContinuationToken = result.ContinuationToken,
+                Sites = result.Result
+                    .Select(o => o.Get<string>(tag, null))
+                    .Where(s => !string.IsNullOrEmpty(s))
                     .ToList()
             };
         }
@@ -655,7 +653,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
             string continuation, int? pageSize) {
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{OpcUaTwinRegistration.kTypeProp} = 'supervisor'";
-            var devices = await _iothub.QueryTwinsAsync(query, continuation, pageSize);
+            var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize);
             return new SupervisorListModel {
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
@@ -690,7 +688,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
                     $"'{model.SiteId}')";
             }
 
-            var queryResult = await _iothub.QueryTwinsAsync(query, null, pageSize);
+            var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize);
             return new SupervisorListModel {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
@@ -712,7 +710,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
                 $"tags.{nameof(OpcUaTwinRegistration.DeviceType)} = 'Application'";
             string continuation = null;
             do {
-                var devices = await _iothub.QueryTwinsAsync(query, continuation);
+                var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation);
                 foreach (var twin in devices.Items) {
                     var application = OpcUaApplicationRegistration.FromTwin(twin);
                     if (application.NotSeenSince == null ||
@@ -756,7 +754,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
                 throw new ArgumentException("Unexpected number of sites in discovery");
             }
             var siteId = sites.SingleOrDefault() ?? supervisorId;
-            var results = await _iothub.QueryTwinsAsync("SELECT * FROM devices WHERE " +
+            var results = await _iothub.QueryDeviceTwinsAsync("SELECT * FROM devices WHERE " +
                 $"tags.{nameof(OpcUaTwinRegistration.DeviceType)} = 'Application' AND " +
                 $"(tags.{nameof(OpcUaApplicationRegistration.SiteId)} = '{siteId}' OR" +
                 $" tags.{nameof(OpcUaTwinRegistration.SupervisorId)} = '{supervisorId}')");
@@ -1020,7 +1018,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
                 $"tags.{nameof(OpcUaTwinRegistration.DeviceType)} = 'Endpoint'";
             string continuation = null;
             do {
-                var devices = await _iothub.QueryTwinsAsync(query, continuation);
+                var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation);
                 foreach (var twin in devices.Items) {
                     var endpoint = OpcUaEndpointRegistration.FromTwin(twin, true);
                     if (endpoint.IsDisabled ?? false) {
@@ -1067,7 +1065,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
             var result = new List<DeviceTwinModel>();
             string continuation = null;
             do {
-                var devices = await _iothub.QueryTwinsAsync(query, null);
+                var devices = await _iothub.QueryDeviceTwinsAsync(query, null);
                 result.AddRange(devices.Items);
                 continuation = devices.ContinuationToken;
             }
@@ -1130,6 +1128,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
                         }
                         builder.Query +=
                             $"event={ev.UrlEncode()}&supervisorId={supervisorId.UrlEncode()}";
+                        if (!string.IsNullOrEmpty(supervisor.SiteId)) {
+                            builder.Query += $"&siteId ={supervisor.SiteId.UrlEncode()}";
+                        }
                         await _client.GetAsync(new HttpRequest {
                             Uri = builder.Uri
                         });

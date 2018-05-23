@@ -101,13 +101,13 @@ namespace Newtonsoft.Json.Linq {
         /// Helper to get values from object
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="o"></param>
+        /// <param name="t"></param>
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T Get<T>(this JObject o,
+        public static T Get<T>(this JToken t,
             string key, T defaultValue) {
-            if (o.TryGetValue(key, out var token)) {
+            if (t is JObject o && o.TryGetValue(key, out var token)) {
                 try {
                     return token.ToObject<T>();
                 }
@@ -122,13 +122,14 @@ namespace Newtonsoft.Json.Linq {
         /// Helper to get values from object
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="o"></param>
+        /// <param name="t"></param>
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T? Get<T>(this JObject o,
+        public static T? Get<T>(this JToken t,
             string key, T? defaultValue) where T : struct {
-            if (o.TryGetValue(key, out var token)) {
+
+            if (t is JObject o && o.TryGetValue(key, out var token)) {
                 try {
                     return token.ToObject<T>();
                 }
@@ -143,7 +144,7 @@ namespace Newtonsoft.Json.Linq {
         /// Apply a patch to the token
         /// </summary>
         /// <returns></returns>
-        public static JToken ApplyPatch(this JToken target, 
+        public static JToken ApplyPatch(this JToken target,
             JToken patch) {
             if (patch == null) {
                 return JValue.CreateNull();
@@ -163,7 +164,7 @@ namespace Newtonsoft.Json.Linq {
             //
             if (target is JObject o) {
                 foreach (var prop in (JObject)patch) {
-                    if (o.TryGetValue(prop.Key, 
+                    if (o.TryGetValue(prop.Key,
                         out var existing)) {
                         o.Remove(prop.Key);
                     }
@@ -183,7 +184,7 @@ namespace Newtonsoft.Json.Linq {
             if (target is JArray a) {
                 var f = (JArray)patch;
                 var n = new JArray();
-                for (var i = 0; 
+                for (var i = 0;
                     i < Math.Max(a.Count, f.Count); i++) {
                     if (i >= f.Count) {
                         n.Add(a[i]);

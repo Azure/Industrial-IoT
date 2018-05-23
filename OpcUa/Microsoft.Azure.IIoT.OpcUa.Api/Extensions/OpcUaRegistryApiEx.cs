@@ -83,6 +83,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
         }
 
         /// <summary>
+        /// List all sites
+        /// </summary>
+        /// <param name="service"></param>
+        /// <returns></returns>
+        public static async Task<IEnumerable<string>> ListAllSitesAsync(
+            this IOpcUaRegistryApi service) {
+            var sites = new List<string>();
+            var result = await service.ListSitesAsync(null, null);
+            sites.AddRange(result.Sites);
+            while (result.ContinuationToken != null) {
+                result = await service.ListSitesAsync(result.ContinuationToken, null);
+                sites.AddRange(result.Sites);
+            }
+            return sites;
+        }
+
+        /// <summary>
         /// List all registrations
         /// </summary>
         /// <param name="service"></param>

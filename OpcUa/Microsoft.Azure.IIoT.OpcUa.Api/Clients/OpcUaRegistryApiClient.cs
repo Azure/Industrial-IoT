@@ -218,8 +218,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="continuation"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        public async Task<ApplicationInfoListApiModel> ListApplicationsAsync(string continuation,
-            int? pageSize) {
+        public async Task<ApplicationInfoListApiModel> ListApplicationsAsync(
+            string continuation, int? pageSize) {
             var request = NewRequest($"{_serviceUri}/applications");
             if (continuation != null) {
                 request.AddHeader(kContinuationTokenHeaderKey, continuation);
@@ -230,6 +230,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
             return JsonConvertEx.DeserializeObject<ApplicationInfoListApiModel>(
+                response.Content);
+        }
+
+        /// <summary>
+        /// List sites
+        /// </summary>
+        /// <param name="continuation"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        public async Task<ApplicationSiteListApiModel> ListSitesAsync(
+            string continuation, int? pageSize) {
+            var request = NewRequest($"{_serviceUri}/applications/sites");
+            if (continuation != null) {
+                request.AddHeader(kContinuationTokenHeaderKey, continuation);
+            }
+            if (pageSize != null) {
+                request.AddHeader(kPageSizeHeaderKey, pageSize.ToString());
+            }
+            var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
+            response.Validate();
+            return JsonConvertEx.DeserializeObject<ApplicationSiteListApiModel>(
                 response.Content);
         }
 
