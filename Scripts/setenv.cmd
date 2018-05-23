@@ -105,19 +105,21 @@ if not "%_hub_name%" == "" goto :iothub
 echo IoT Hub does not exist in resource group %resource-group%. Skip.
 goto :check-storage
 :iothub
-set _cmd_line=az iot hub show-connection-string -g %resource-group%
-set _cmd_line=%_cmd_line% -n %_hub_name% --query cs
-for /f %%i in ('cmd /c %_cmd_line%') do call :set_value _HUB_CS %%i
+set __HUB_CS=%_HUB_CS%
+set _HUB_CS=
+set _cmd_line=az iot hub show-connection-string -g %resource-group% -n %_hub_name%
+for /f %%i in ('cmd /c %_cmd_line% --query cs') do call :set_value _HUB_CS %%i
 if not "%_HUB_CS%" == "" goto :iothub-done
-set _cmd_line=az iot hub show-connection-string -g %resource-group%
-set _cmd_line=%_cmd_line% -n %_hub_name% --query [0].connectionString
-for /f %%i in ('cmd /c %_cmd_line%') do call :set_value _HUB_CS %%i
+for /f %%i in ('cmd /c %_cmd_line% --query connectionString') do call :set_value _HUB_CS %%i
 if not "%_HUB_CS%" == "" goto :iothub-done
+for /f %%i in ('cmd /c %_cmd_line% --query [0].connectionString') do call :set_value _HUB_CS %%i
+if not "%_HUB_CS%" == "" goto :iothub-done
+set _HUB_CS=%__HUB_CS%
 echo IoT Hub %_hub_name% does not have connection string. Skip.
 goto :check-storage
 :iothub-done
-echo set _HUB_CS=%_HUB_CS% >> "%TEMP%\_set.cmd"
-if "%persist%" == "1" echo SETX _HUB_CS %_HUB_CS% >> "%TEMP%\_set.cmd"
+echo set _HUB_CS=%_HUB_CS%>> "%TEMP%\_set.cmd"
+if "%persist%" == "1" echo SETX _HUB_CS %_HUB_CS%>> "%TEMP%\_set.cmd"
 set _hub_ep=
 set _cmd_line=az iot hub show -g %resource-group% -n %_hub_name%
 set _cmd_line=%_cmd_line% --query properties.eventHubEndpoints.events.endpoint
@@ -125,11 +127,12 @@ for /f %%i in ('cmd /c %_cmd_line%') do call :set_value _hub_ep %%i
 if "%_hub_ep%" == "" echo Event hub endpoint not found in %_hub_name% hub. Skip.
 set _EH_CS=Endpoint=%_hub_ep%;
 for /f "tokens=1* delims=;" %%i in ("%_HUB_CS%") do set _EH_CS=%_EH_CS%%%j
-echo set _EH_CS=%_EH_CS% >> "%TEMP%\_set.cmd"
-if "%persist%" == "1" echo SETX _EH_CS %_EH_CS% >> "%TEMP%\_set.cmd"
+echo set _EH_CS=%_EH_CS%>> "%TEMP%\_set.cmd"
+if "%persist%" == "1" echo SETX _EH_CS %_EH_CS%>> "%TEMP%\_set.cmd"
 
 rem set storage configuration
 :check-storage
+set __HUB_CS=
 set _storage_name=
 set _cmd_line=az storage account list -g %resource-group% --query [0].name
 for /f %%i in ('cmd /c %_cmd_line%') do call :set_value _storage_name %%i
@@ -142,8 +145,8 @@ set _cmd_line=az storage account show-connection-string -g %resource-group%
 set _cmd_line=%_cmd_line% -n %_storage_name% --query connectionString
 for /f %%i in ('cmd /c %_cmd_line%') do call :set_value _STORE_CS %%i
 if "%_STORE_CS%" == "" echo Storage connection string for %_storage_name% not found. Skip.
-echo set _STORE_CS=%_STORE_CS% >> "%TEMP%\_set.cmd"
-if "%persist%" == "1" echo SETX _STORE_CS %_STORE_CS% >> "%TEMP%\_set.cmd"
+echo set _STORE_CS=%_STORE_CS%>> "%TEMP%\_set.cmd"
+if "%persist%" == "1" echo SETX _STORE_CS %_STORE_CS%>> "%TEMP%\_set.cmd"
 
 :setvars
 endlocal

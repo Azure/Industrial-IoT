@@ -24,7 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\WebService.Twin.Client\WebService.Twin.Client.csproj" />
+      <ProjectReference Include="..\..\OpcUa\Microsoft.Azure.IIoT.OpcUa.Api\Microsoft.Azure.IIoT.OpcUa.Api.csproj" />
     </ItemGroup>
 
     <ItemGroup>

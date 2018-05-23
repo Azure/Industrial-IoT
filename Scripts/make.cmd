@@ -151,17 +151,17 @@ goto :eof
 call :switch_to_mode linux
 echo Building Linux images...
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-service WebService.Twin\Dockerfile
+call :build_image iot-opc-twin-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Api.Twin\Dockerfile
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-edge-service EdgeService.Twin\Dockerfile
+call :build_image iot-opc-twin-edge-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Edge\Dockerfile
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-edge-service EdgeService.Twin\Dockerfile.Debug -debug
+call :build_image iot-opc-twin-edge-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Edge\Dockerfile.Debug -debug
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-onboarding-service Services.Onboarding\Dockerfile
+call :build_image iot-opc-onboarding-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Onboarding\Dockerfile
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-service-ctrl WebService.Twin.Ctrl\Dockerfile
+call :build_image iot-opc-twin-service-ctrl OpcUa\Microsoft.Azure.IIoT.OpcUa.Twin.Ctrl\Dockerfile
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-service-test Services.Twin.Ctrl\Dockerfile
+call :build_image iot-opc-twin-service-test OpcUa\Microsoft.Azure.IIoT.OpcUa.Services.Ctrl\Dockerfile
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 call :revert_to_original
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
@@ -174,11 +174,11 @@ goto :eof
 call :switch_to_mode windows
 echo Building Windows images...
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-service WebService.Twin\Dockerfile.Windows -nanoserver-1709
+call :build_image iot-opc-twin-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Api.Twin\Dockerfile.Windows -nanoserver-1709
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-edge-service EdgeService.Twin\Dockerfile.Windows -nanoserver-1709
+call :build_image iot-opc-twin-edge-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Edge\Dockerfile.Windows -nanoserver-1709
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-onboarding-service Services.Onboarding\Dockerfile.Windows -nanoserver-1709
+call :build_image iot-opc-onboarding-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Onboarding\Dockerfile.Windows -nanoserver-1709
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 call :revert_to_original
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!

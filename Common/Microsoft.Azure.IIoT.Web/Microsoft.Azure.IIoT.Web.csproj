@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>7</LangVersion>
+    <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.0.0</Version>
+    <Authors>Microsoft</Authors>
+    <Company>Microsoft</Company>
+    <Product>Azure IoT Industrial Twin</Product>
+    <Copyright>Microsoft Corp. All rights reserved.</Copyright>
+    <Description>Azure Web Service Common Framework</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="2.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Azure.IIoT\Microsoft.Azure.IIoT.csproj" />
+  </ItemGroup>
+</Project>
