@@ -41,18 +41,18 @@ IF "%1"=="--in-sandbox" GOTO :RunInSandbox
 
     :: Folder where PCS sandboxes cache data. Reuse the same folder to speed up the
     :: sandbox and to save disk space.
-    :: Use PCS_CACHE="%APP_HOME%\.cache" to cache inside the project folder
-    SET PCS_CACHE="%TMP%\azure\iotpcs\.cache"
+    :: Use IIOT_CACHE="%APP_HOME%\.cache" to cache inside the project folder
+    SET IIOT_CACHE="%TMP%\azure\iotpcs\.cache"
 
     :: Check dependencies
     docker version > NUL 2>&1
     IF %ERRORLEVEL% NEQ 0 GOTO MISSING_DOCKER
 
     :: Create cache folders to speed up future executions
-    mkdir %PCS_CACHE%\sandbox\.config > NUL 2>&1
-    mkdir %PCS_CACHE%\sandbox\.dotnet > NUL 2>&1
-    mkdir %PCS_CACHE%\sandbox\.nuget > NUL 2>&1
-    echo Note: caching build files in %PCS_CACHE%
+    mkdir %IIOT_CACHE%\sandbox\.config > NUL 2>&1
+    mkdir %IIOT_CACHE%\sandbox\.dotnet > NUL 2>&1
+    mkdir %IIOT_CACHE%\sandbox\.nuget > NUL 2>&1
+    echo Note: caching build files in %IIOT_CACHE%
 
     :: Check settings
     call .\scripts\env-vars-check.cmd
@@ -61,11 +61,11 @@ IF "%1"=="--in-sandbox" GOTO :RunInSandbox
     :: Start the sandbox and run the service
     docker run -it ^
         -p 54321:54321 ^
-        -e PCS_IOTHUB_CONNSTRING ^
-        -e PCS_IOTHUBMANAGER_WEBSERVICE_URL=http://127.0.0.1:9002/v1 ^
-        -v %PCS_CACHE%\sandbox\.config:/root/.config ^
-        -v %PCS_CACHE%\sandbox\.dotnet:/root/.dotnet ^
-        -v %PCS_CACHE%\sandbox\.nuget:/root/.nuget ^
+        -e IIOT_IOTHUB_CONNSTRING ^
+        -e IIOT_IOTHUBMANAGER_WEBSERVICE_URL=http://127.0.0.1:9002/v1 ^
+        -v %IIOT_CACHE%\sandbox\.config:/root/.config ^
+        -v %IIOT_CACHE%\sandbox\.dotnet:/root/.dotnet ^
+        -v %IIOT_CACHE%\sandbox\.nuget:/root/.nuget ^
         -v %APP_HOME%:/opt/code ^
         azureiotpcs/code-builder-dotnet:1.0-dotnetcore /opt/code/scripts/run
 

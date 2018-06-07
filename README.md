@@ -1,4 +1,3 @@
-[![Build][build-badge]][build-url]
 [![Issues][issues-badge]][issues-url]
 [![Gitter][gitter-badge]][gitter-url]
 
@@ -24,8 +23,8 @@ How to use it
 
 Running locally on your development machine:
 
-1. Set your PCS_IOTHUB_CONNSTRING system environment variable for your
-   IoT Hub connection, and PCS_IOTHUBMANAGER_WEBSERVICE_URL for the URL of the
+1. Set your IIOT_IOTHUB_CONNSTRING system environment variable for your
+   IoT Hub connection, and IIOT_IOTHUBMANAGER_WEBSERVICE_URL for the URL of the
    iot hub manager service.
 2. Start an OPC UA server, e.g. the UA Sample server from here:  (<todo>)
 3. Start the proxy and publisher edge modules (see here <todo> for how)
@@ -66,10 +65,10 @@ Configuration
 2. webservice\appsettings.json allows configuring the microservice application, 
    including IoT Hub connection string. 
    The file references the environment variable below:
-       1. PCS_IOTHUB_CONNSTRING is a system environment variable and should contain
+       1. IIOT_IOTHUB_CONNSTRING is a system environment variable and should contain
           your IoT Hub connection string. Create this environment variable before
           running the microservice.
-       2. PCS_IOTHUBMANAGER_WEBSERVICE_URL points to the IoTHubManager micro service
+       2. IIOT_IOTHUBMANAGER_WEBSERVICE_URL points to the IoTHubManager micro service
           endpoint.  This setting must be set for production use. If it is not set, 
           the service will inject a development-only implementation of the IoT Hub 
           twin services interface that interacts with IoT Hub directly.  This means
@@ -86,8 +85,6 @@ Other documents
 * [Contributing and Development setup](CONTRIBUTING.md)
 * [Development setup, scripts and tools](DEVELOPMENT.md)
 
-[build-badge]: https://img.shields.io/travis/Azure/iot-opc-twin-service.svg
-[build-url]: https://travis-ci.org/Azure/iot-opc-twin-service
 [issues-badge]: https://img.shields.io/github/issues/azure/iot-opc-twin-service.svg
 [issues-url]: https://github.com/Azure/iot-opc-twin-service/issues
 [gitter-badge]: https://img.shields.io/gitter/room/azure/iot-solutions.js.svg

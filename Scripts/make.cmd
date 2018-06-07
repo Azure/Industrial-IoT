@@ -151,17 +151,17 @@ goto :eof
 call :switch_to_mode linux
 echo Building Linux images...
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Api.Twin\Dockerfile
+call :build_image iot-opc-twin-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Twin\src\Dockerfile
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-edge-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Edge\Dockerfile
+call :build_image iot-opc-registry-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Registry\src\Dockerfile
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-edge-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Edge\Dockerfile.Debug -debug
+call :build_image iot-edge-opc-twin OpcUa\Microsoft.Azure.IIoT.OpcUa.Edge\src\Dockerfile
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-onboarding-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Onboarding\Dockerfile
+call :build_image iot-edge-opc-twin OpcUa\Microsoft.Azure.IIoT.OpcUa.Edge\src\Dockerfile.Debug -debug
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-service-ctrl OpcUa\Microsoft.Azure.IIoT.OpcUa.Twin.Ctrl\Dockerfile
+call :build_image iot-opc-onboarding-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Onboarding\src\Dockerfile
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-service-test OpcUa\Microsoft.Azure.IIoT.OpcUa.Services.Ctrl\Dockerfile
+call :build_image iot-opc-twin-service-ctrl OpcUa\Microsoft.Azure.IIoT.OpcUa.Api\cli\Dockerfile
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 call :revert_to_original
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
@@ -174,11 +174,13 @@ goto :eof
 call :switch_to_mode windows
 echo Building Windows images...
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Api.Twin\Dockerfile.Windows -nanoserver-1709
+call :build_image iot-opc-twin-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Twin\src\Dockerfile.Windows -nanoserver-1709
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-twin-edge-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Edge\Dockerfile.Windows -nanoserver-1709
+call :build_image iot-opc-registry-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Registry\src\Dockerfile.Windows -nanoserver-1709
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
-call :build_image iot-opc-onboarding-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Onboarding\Dockerfile.Windows -nanoserver-1709
+call :build_image iot-edge-opc-twin OpcUa\Microsoft.Azure.IIoT.OpcUa.Edge\src\Dockerfile.Windows -nanoserver-1709
+if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
+call :build_image iot-opc-onboarding-service OpcUa\Microsoft.Azure.IIoT.OpcUa.Onboarding\src\Dockerfile.Windows -nanoserver-1709
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 call :revert_to_original
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
@@ -265,13 +267,25 @@ if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
 echo Deploy twin web service...
 set _cmd_line=
 set _cmd_line=%_cmd_line% -i %repository%/iot-opc-twin-service:%image-version%
-set _cmd_line=%_cmd_line% -n %name-prefix%opctwin
+set _cmd_line=%_cmd_line% -n %name-prefix%twin
 set _cmd_line=%_cmd_line% -g %resource-group%
 set _cmd_line=%_cmd_line% -e "_HUB_CS=%_HUB_CS%"
 if not "%subscription%" == "" set _cmd_line=%_cmd_line% -s %subscription%
 if not "%location%" == "" set _cmd_line=%_cmd_line% -l %location%
 cmd /c %current-path%\deploy.cmd -t webapp %_cmd_line%
 if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
+
+echo Deploy registry web service...
+set _cmd_line=
+set _cmd_line=%_cmd_line% -i %repository%/iot-opc-registry-service:%image-version%
+set _cmd_line=%_cmd_line% -n %name-prefix%registry
+set _cmd_line=%_cmd_line% -g %resource-group%
+set _cmd_line=%_cmd_line% -e "_HUB_CS=%_HUB_CS%"
+if not "%subscription%" == "" set _cmd_line=%_cmd_line% -s %subscription%
+if not "%location%" == "" set _cmd_line=%_cmd_line% -l %location%
+cmd /c %current-path%\deploy.cmd -t webapp %_cmd_line%
+if not !ERRORLEVEL! == 0 exit /b !ERRORLEVEL!
+
 goto :eof
 :deploy_skip
 echo skipping deploy...

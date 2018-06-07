@@ -45,8 +45,8 @@ Steps using Visual Studio 2017:
 1. When the solution is loaded, right click on the `WebService` project,
    select `Properties` and go to the `Debug` section.
 1. Add new environment variables with names below:
-   `PCS_IOTHUB_CONNSTRING` with the connection string for your Azure IoT Hub.
-   `PCS_IOTHUBMANAGER_WEBSERVICE_URL` with the url of the iothubmanager service.
+   `IIOT_IOTHUB_CONNSTRING` with the connection string for your Azure IoT Hub.
+   `IIOT_IOTHUBMANAGER_WEBSERVICE_URL` with the url of the iothubmanager service.
 1. In the same section set the `App URL` to
    `http://localhost:9042/swagger`
 1. Right click on the "WebService" project and "Set as StartUp Project".
@@ -63,8 +63,8 @@ Run and Debug with IntelliJ Rider
    create a new `.NET Project` configuration.
 1. In the configuration select the WebService project
 1. Add a new environment variable with name
-   `PCS_IOTHUB_CONNSTRING` with the connection string for your Azure IoT Hub.
-   `PCS_IOTHUBMANAGER_WEBSERVICE_URL` with the url of the iothubmanager service.
+   `IIOT_IOTHUB_CONNSTRING` with the connection string for your Azure IoT Hub.
+   `IIOT_IOTHUBMANAGER_WEBSERVICE_URL` with the url of the iothubmanager service.
 1. Save the settings and run the configuration just created, from the IDE
    toolbar.
 1. You should see the service bootstrap messages in IntelliJ Run window,

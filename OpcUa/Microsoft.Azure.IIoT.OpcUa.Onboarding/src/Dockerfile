@@ -1,0 +1,23 @@
+FROM microsoft/dotnet:2.0-runtime AS base
+WORKDIR /app
+
+FROM microsoft/dotnet:2.0-sdk AS build
+WORKDIR /src
+COPY OpcUa/Microsoft.Azure.IIoT.OpcUa.Onboarding/src/Microsoft.Azure.IIoT.OpcUa.Onboarding.csproj OpcUa/Microsoft.Azure.IIoT.OpcUa.Onboarding/src/
+COPY Common/Microsoft.Azure.IIoT.Processor/src/Microsoft.Azure.IIoT.Processor.csproj Common/Microsoft.Azure.IIoT.Processor/src/
+COPY Common/Microsoft.Azure.IIoT/src/Microsoft.Azure.IIoT.csproj Common/Microsoft.Azure.IIoT/src/
+COPY OpcUa/Microsoft.Azure.IIoT.OpcUa.Services/src/Microsoft.Azure.IIoT.OpcUa.Services.csproj OpcUa/Microsoft.Azure.IIoT.OpcUa.Services/src/
+COPY Common/Microsoft.Azure.IIoT.Hub/src/Microsoft.Azure.IIoT.Hub.csproj Common/Microsoft.Azure.IIoT.Hub/src/
+COPY .nuget .nuget
+RUN dotnet restore --configfile .nuget/NuGet.Config -nowarn:msb3202,nu1503 OpcUa/Microsoft.Azure.IIoT.OpcUa.Onboarding/src/Microsoft.Azure.IIoT.OpcUa.Onboarding.csproj
+COPY . .
+WORKDIR /src/OpcUa/Microsoft.Azure.IIoT.OpcUa.Onboarding/src
+RUN dotnet build Microsoft.Azure.IIoT.OpcUa.Onboarding.csproj -c Release -o /app
+
+FROM build AS publish
+RUN dotnet publish Microsoft.Azure.IIoT.OpcUa.Onboarding.csproj -c Release -o /app
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app .
+ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.OpcUa.Onboarding.dll"]

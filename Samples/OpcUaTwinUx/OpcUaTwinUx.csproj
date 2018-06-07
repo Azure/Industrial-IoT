@@ -24,7 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\OpcUa\Microsoft.Azure.IIoT.OpcUa.Api\Microsoft.Azure.IIoT.OpcUa.Api.csproj" />
+      <ProjectReference Include="..\..\OpcUa\Microsoft.Azure.IIoT.OpcUa.Api\src\Microsoft.Azure.IIoT.OpcUa.Api.csproj" />
     </ItemGroup>
 
     <ItemGroup>
