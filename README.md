@@ -20,7 +20,7 @@ This application uses the OPC Foundations's OPC UA reference stack and therefore
 |master|[![Build status](https://ci.appveyor.com/api/projects/status/6t7ru6ow7t9uv74r/branch/master?svg=true)](https://ci.appveyor.com/project/marcschier/iot-gateway-opc-ua-r4ba5/branch/master) [![Build Status](https://travis-ci.org/Azure/iot-gateway-opc-ua.svg?branch=master)](https://travis-ci.org/Azure/iot-gateway-opc-ua)|
 
 # Building the Application
-The application requires the .NET Core SDK 2.0.
+The application requires the .NET Core SDK 2.1.
 
 ## As native Windows application
 Open the OpcPublisher.sln project with Visual Studio 2017 and build the solution by hitting F7.

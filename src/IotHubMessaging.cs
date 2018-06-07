@@ -257,10 +257,10 @@ namespace OpcPublisher
 
                     // connect to EdgeHub
                     Trace($"Create Publisher EdgeHub client with connection string using '{IotHubProtocol}' for communication.");
-                    _iotHubClient = DeviceClient.CreateFromConnectionString(_edgeHubConnectionString, transportSettings);
+                    _iotEdgeModuleClient = ModuleClient.CreateFromEnvironment(transportSettings);
                     ExponentialBackoff exponentialRetryPolicy = new ExponentialBackoff(int.MaxValue, TimeSpan.FromMilliseconds(2), TimeSpan.FromMilliseconds(1024), TimeSpan.FromMilliseconds(3));
-                    _iotHubClient.SetRetryPolicy(exponentialRetryPolicy);
-                    await _iotHubClient.OpenAsync();
+                    _iotEdgeModuleClient.SetRetryPolicy(exponentialRetryPolicy);
+                    await _iotEdgeModuleClient.OpenAsync();
                 }
 
                 // show config
@@ -309,12 +309,17 @@ namespace OpcPublisher
                 if (_iotHubClient != null)
                 {
                     await _iotHubClient.CloseAsync();
+                    _iotHubClient = null;
+                }
+                if (_iotEdgeModuleClient != null)
+                {
+                    await _iotEdgeModuleClient.CloseAsync();
+                    _iotEdgeModuleClient = null;
                 }
 
                 _monitoredItemsDataQueue = null;
                 _tokenSource = null;
                 _monitoredItemsProcessorTask = null;
-                _iotHubClient = null;
             }
             catch (Exception e)
             {
@@ -594,13 +599,23 @@ namespace OpcPublisher
                                 iotHubMessage.Write(Encoding.UTF8.GetBytes("]"), 0, 1);
                                 encodedIotHubMessage = new Microsoft.Azure.Devices.Client.Message(iotHubMessage.ToArray());
                             }
-                            if (_iotHubClient != null)
+                            if (_iotHubClient != null || _iotEdgeModuleClient != null)
                             {
                                 nextSendTime += TimeSpan.FromSeconds(_defaultSendIntervalSeconds);
                                 try
                                 {
+                                    encodedIotHubMessage.ContentType = "application/json";
+                                    encodedIotHubMessage.ContentEncoding = "UTF-8";
+
                                     _sentBytes += encodedIotHubMessage.GetBytes().Length;
-                                    await _iotHubClient.SendEventAsync(encodedIotHubMessage);
+                                    if (_iotHubClient != null)
+                                    {
+                                        await _iotHubClient.SendEventAsync(encodedIotHubMessage);
+                                    }
+                                    else
+                                    {
+                                        await _iotEdgeModuleClient.SendEventAsync(encodedIotHubMessage);
+                                    }
                                     _sentMessages++;
                                     _sentLastTime = DateTime.UtcNow;
                                     Trace(Utils.TraceMasks.OperationDetail, $"Sending {encodedIotHubMessage.BodyStream.Length} bytes to IoTHub.");
@@ -665,6 +680,7 @@ namespace OpcPublisher
         private static CancellationTokenSource _tokenSource;
         private static Task _monitoredItemsProcessorTask;
         private static DeviceClient _iotHubClient;
+        private static ModuleClient _iotEdgeModuleClient;
         private static StringBuilder _jsonStringBuilder;
         private static StringWriter _jsonStringWriter;
         private static JsonWriter _jsonWriter;
