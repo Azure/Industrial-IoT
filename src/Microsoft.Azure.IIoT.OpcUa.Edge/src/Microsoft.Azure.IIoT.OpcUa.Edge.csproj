@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>7</LangVersion>
+    <Authors>Microsoft</Authors>
+    <Company>Microsoft</Company>
+    <Product>Azure IoT OPC UA Twin</Product>
+    <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+    <Version>1.0.1-preview</Version>
+    <Copyright>Microsoft Corp. All rights reserved.</Copyright>
+    <Description>Azure OPC Ua Twin Edge Service Module</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <ProjectReference Include="..\..\..\external\azure-iiot-common\src\Microsoft.Azure.IIoT.Edge\src\Microsoft.Azure.IIoT.Edge.csproj" />
+      <ProjectReference Include="..\..\..\external\azure-iiot-common\src\Microsoft.Azure.IIoT.Net\src\Microsoft.Azure.IIoT.Net.csproj" />
+      <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
+  </ItemGroup>
+</Project>

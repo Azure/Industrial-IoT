@@ -1,0 +1,27 @@
+FROM microsoft/dotnet:2.1-sdk AS build
+WORKDIR /src
+COPY src/Microsoft.Azure.IIoT.OpcUa.Modules.Twin/src/Microsoft.Azure.IIoT.OpcUa.Modules.Twin.csproj src/Microsoft.Azure.IIoT.OpcUa.Modules.Twin/src/
+COPY src/Microsoft.Azure.IIoT.OpcUa.Edge/src/Microsoft.Azure.IIoT.OpcUa.Edge.csproj src/Microsoft.Azure.IIoT.OpcUa.Edge/src/
+COPY src/Microsoft.Azure.IIoT.OpcUa/src/Microsoft.Azure.IIoT.OpcUa.csproj src/Microsoft.Azure.IIoT.OpcUa/src/
+COPY external/azure-iiot-common/src/Microsoft.Azure.IIoT.Hub/src/Microsoft.Azure.IIoT.Hub.csproj external/azure-iiot-common/src/Microsoft.Azure.IIoT.Hub/src/
+COPY external/azure-iiot-common/src/Microsoft.Azure.IIoT/src/Microsoft.Azure.IIoT.csproj external/azure-iiot-common/src/Microsoft.Azure.IIoT/src/
+COPY external/azure-iiot-common/src/Microsoft.Azure.IIoT.Edge/src/Microsoft.Azure.IIoT.Edge.csproj external/azure-iiot-common/src/Microsoft.Azure.IIoT.Edge/src/
+COPY external/azure-iiot-common/src/Microsoft.Azure.IIoT.Net/src/Microsoft.Azure.IIoT.Net.csproj external/azure-iiot-common/src/Microsoft.Azure.IIoT.Net/src/
+COPY .nuget .nuget
+RUN dotnet restore --configfile .nuget/NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.OpcUa.Modules.Twin/src/Microsoft.Azure.IIoT.OpcUa.Modules.Twin.csproj
+COPY . .
+WORKDIR /src/src/Microsoft.Azure.IIoT.OpcUa.Modules.Twin/src
+RUN dotnet build Microsoft.Azure.IIoT.OpcUa.Modules.Twin.csproj -c Release -o /app
+
+FROM build AS publish
+RUN dotnet publish Microsoft.Azure.IIoT.OpcUa.Modules.Twin.csproj -c Release -o /app
+
+FROM build AS final
+WORKDIR /app
+COPY --from=publish /app .
+
+RUN apt-get update && apt-get install -y unzip \
+	&& curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/vsdbg
+ENV PATH="${PATH}:/root/vsdbg/vsdbg"
+
+ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.OpcUa.Modules.Twin.dll"]

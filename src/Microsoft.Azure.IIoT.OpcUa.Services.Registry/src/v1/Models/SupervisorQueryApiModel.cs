@@ -1,0 +1,57 @@
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Newtonsoft.Json;
+    using System.ComponentModel;
+
+    /// <summary>
+    /// Supervisor registration query request
+    /// </summary>
+    public class SupervisorQueryApiModel {
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public SupervisorQueryApiModel() { }
+
+        /// <summary>
+        /// Create from service model
+        /// </summary>
+        /// <param name="model"></param>
+        public SupervisorQueryApiModel(SupervisorQueryModel model) {
+            SiteId = model.SiteId;
+            Discovery = model.Discovery;
+        }
+
+        /// <summary>
+        /// Convert back to service model
+        /// </summary>
+        /// <returns></returns>
+        public SupervisorQueryModel ToServiceModel() {
+            return new SupervisorQueryModel {
+                SiteId = SiteId,
+                Discovery = Discovery
+            };
+        }
+
+        /// <summary>
+        /// Site of the supervisor
+        /// </summary>
+        [JsonProperty(PropertyName = "siteId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string SiteId { get; set; }
+
+        /// <summary>
+        /// Discovery mode of supervisor
+        /// </summary>
+        [JsonProperty(PropertyName = "discovery",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public DiscoveryMode? Discovery { get; set; }
+    }
+}
