@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>7</LangVersion>
+    <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+    <Version>1.0.1</Version>
+    <Authors>Microsoft</Authors>
+    <Company>Microsoft</Company>
+    <Product>Azure IoT Industrial Proxy Abstraction</Product>
+    <Copyright>Microsoft Corp. All rights reserved.</Copyright>
+    <Description>Azure IoT Proxy Abstraction</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Castle.Core" Version="4.2.1" />
+    <PackageReference Include="Dynamitey" Version="2.0.9.136" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,59 @@
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace System.Net.Sockets {
+    using System.Threading.Tasks;
+
+    public static class SocketEx {
+
+        /// <summary>
+        /// Safe close and dispose of socket
+        /// </summary>
+        /// <param name="socket"></param>
+        public static void SafeDispose(this Socket socket) {
+            if (socket == null) {
+                return;
+            }
+            try {
+                socket.Close(0);
+                socket.Dispose();
+            }
+            catch {
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Send asynchronously
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="size"></param>
+        /// <param name="flags"></param>
+        /// <returns></returns>
+        public static Task<int> SendAsync(this Socket socket, byte[] buffer,
+            int offset, int size, SocketFlags flags) =>
+            Task.Factory.FromAsync((c, o) => socket.BeginSend(
+                buffer, offset, size, flags, c, o),
+                socket.EndSend, TaskCreationOptions.DenyChildAttach);
+
+        /// <summary>
+        /// Send to asynchronously
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="size"></param>
+        /// <param name="remoteEndpoint"></param>
+        /// <param name="flags"></param>
+        /// <returns></returns>
+        public static Task<int> SendToAsync(this Socket socket, byte[] buffer,
+            int offset, int size, SocketFlags flags, EndPoint remoteEndpoint) =>
+            Task.Factory.FromAsync((c, o) => socket.BeginSendTo(
+                buffer, offset, size, flags, remoteEndpoint, c, o),
+                socket.EndSendTo, TaskCreationOptions.DenyChildAttach);
+    }
+}

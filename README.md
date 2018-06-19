@@ -1,3 +1,7 @@
+# Common Azure Industrial IoT (IIoT) libraries (Preview)
+
+These helper libraries are used across various Azure IIoT projects including OPC UA Twin, GDS, and related
+API SDK's and will eventually be available as nuget packages on nuget.org.
 
 # Contributing
 

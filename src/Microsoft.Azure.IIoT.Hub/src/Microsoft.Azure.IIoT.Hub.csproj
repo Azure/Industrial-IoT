@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>7</LangVersion>
+    <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>1.0.2.0</AssemblyVersion>
+    <FileVersion>1.0.2.0</FileVersion>
+    <Version>1.0.2-preview</Version>
+    <Authors>Microsoft</Authors>
+    <Company>Microsoft</Company>
+    <Product>Azure IoT Industrial Twin</Product>
+    <Copyright>Microsoft Corp. All rights reserved.</Copyright>
+    <Description>Azure IIoT IoT Hub client</Description>
+    <NoWarn>1701;1702;1705;3021</NoWarn>
+    <Antlr4UseCSharpGenerator>True</Antlr4UseCSharpGenerator>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Antlr4" Version="4.6.5-rc002" />
+  </ItemGroup>
+  <ItemGroup>
+    <Antlr4 Include="**/*.g4">
+       <Generator>MSBuild:Compile</Generator>
+       <CustomToolNamespace>$(RootNamespace).Memory.SqlParser</CustomToolNamespace>
+       <Listener>False</Listener>
+       <Visitor>False</Visitor>
+    </Antlr4>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT\src\Microsoft.Azure.IIoT.csproj" />
+  </ItemGroup>
+</Project>
