@@ -21,9 +21,9 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.1.1" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\external\azure-iiot-common')">
+    <When Condition="Exists('..\..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\external\azure-iiot-common\src\Microsoft.Azure.IIoT\src\Microsoft.Azure.IIoT.csproj" />
+        <ProjectReference Include="..\..\common\src\Microsoft.Azure.IIoT\src\Microsoft.Azure.IIoT.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>

@@ -22,14 +22,14 @@
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.OpcUa.Api.csproj" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\external\azure-iiot-common')">
+    <When Condition="Exists('..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\external\azure-iiot-common\src\Microsoft.Azure.IIoT.Auth\src\Microsoft.Azure.IIoT.Auth.csproj" />
+        <ProjectReference Include="..\common\src\Microsoft.Azure.IIoT.Auth\src\Microsoft.Azure.IIoT.Auth.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Auth" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Auth" version="1.0.0" />
       </ItemGroup>
     </Otherwise>
   </Choose>
