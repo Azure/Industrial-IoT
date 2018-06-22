@@ -7,10 +7,10 @@
     <Company>Microsoft</Company>
     <Product>Azure IoT</Product>
     <Authors>Microsoft</Authors>
-    <Version>1.0.1.0</Version>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <FileVersion>1.0.1</FileVersion>
-    <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
+    <Version>1.0.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+    <PackageLicenseUrl>https://github.com/Azure/azure-iiot-common/blob/master/LICENSE</PackageLicenseUrl>
     <Copyright>Microsoft Corp. All rights reserved.</Copyright>
     <Description>Azure IoT Industrial shared component</Description>
   </PropertyGroup>

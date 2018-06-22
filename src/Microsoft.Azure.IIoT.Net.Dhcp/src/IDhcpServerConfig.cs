@@ -43,6 +43,12 @@ namespace Microsoft.Azure.IIoT.Net.Dhcp {
         int AddressRangeOffsetTop { get; }
 
         /// <summary>
+        /// Assign descending addresses from top of the
+        /// range or otherwise ascending from the bottom.
+        /// </summary>
+        bool AssignDescending { get; }
+
+        /// <summary>
         /// Dns servers
         /// </summary>
         List<IPAddress> DnsServers { get; }

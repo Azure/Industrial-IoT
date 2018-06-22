@@ -7,10 +7,13 @@ namespace Microsoft.Azure.IIoT.Http {
     using System.Net;
     using System.Net.Http.Headers;
 
+    /// <summary>
+    /// Response interface
+    /// </summary>
     public interface IHttpResponse {
 
         /// <summary>
-        /// Id of the resource for authentication
+        /// Id of the resource that responded
         /// </summary>
         string ResourceId { get; }
 
@@ -27,6 +30,6 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <summary>
         /// Response content
         /// </summary>
-        string Content { get; }
+        byte[] Content { get; }
     }
 }

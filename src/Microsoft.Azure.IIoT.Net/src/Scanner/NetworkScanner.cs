@@ -9,9 +9,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using System.Net.NetworkInformation;
-    using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -92,11 +90,12 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             _completion = new TaskCompletionSource<bool>();
             _candidates = new List<uint>();
             if (addresses == null) {
-                addresses = NetworkInformationEx.GetAllNetworkInterfaceAddresses(netclass)
-                    .Select(t => new AddressRange(t, local))
-                    .Distinct();
+                _addresses = NetworkInformationEx.GetAllNetworkInterfaceAddresses(netclass)
+                    .Select(t => new AddressRange(t, local)).Distinct() .ToList();
             }
-            _addresses = addresses.ToList();
+            else {
+                _addresses = addresses.Select(a => a.Copy()).Distinct().ToList();
+            }
             _pings = CreatePings(local ? _addresses.Count + 1 :
                 maxProbeCount ?? kDefaultMaxProbeCount);
             // Start initial pings

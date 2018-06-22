@@ -39,6 +39,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             if (string.IsNullOrEmpty(config.IoTHubConnString)) {
                 throw new ArgumentException(nameof(config));
             }
+            _resourceId = config.IoTHubResourceId;
             _hubConnectionString = ConnectionString.Parse(config.IoTHubConnString);
         }
 
@@ -119,7 +120,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 {
                     var response = await _httpClient.PatchAsync(patch);
                     response.Validate();
-                    var result = DeviceTwinModelEx.ToDeviceTwinModel(response.Content);
+                    var result = DeviceTwinModelEx.ToDeviceTwinModel(response.GetContentAsString());
                     _logger.Info($"{twin.Id} ({twin.ModuleId ?? ""}) created or updated " +
                         $"({twin.Etag ?? "*"} -> {result.Etag})", () => { });
                     return result;
@@ -148,7 +149,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 });
                 var response = await _httpClient.PostAsync(request);
                 response.Validate();
-                dynamic result = JToken.Parse(response.Content);
+                dynamic result = JToken.Parse(response.GetContentAsString());
                 return new MethodResultModel {
                     JsonPayload = ((JToken)result.payload).ToString(),
                     Status = result.status
@@ -193,7 +194,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     $"/twins/{ToResourceId(deviceId, moduleId)}");
                 var response = await _httpClient.GetAsync(request);
                 response.Validate();
-                return DeviceTwinModelEx.ToDeviceTwinModel(response.Content);
+                return DeviceTwinModelEx.ToDeviceTwinModel(response.GetContentAsString());
             });
         }
 
@@ -209,7 +210,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     $"/devices/{ToResourceId(deviceId, moduleId)}");
                 var response = await _httpClient.GetAsync(request);
                 response.Validate();
-                return ToDeviceRegistrationModel(JToken.Parse(response.Content));
+                return ToDeviceRegistrationModel(JToken.Parse(response.GetContentAsString()));
             });
         }
 
@@ -224,22 +225,22 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest("/devices/query");
                 if (continuation != null) {
-                    request.Headers.Add(kContinuationKey, continuation);
+                    request.Headers.Add(HttpHeader.ContinuationToken, continuation);
                 }
                 if (pageSize != null) {
-                    request.Headers.Add(kPageSizeKey, pageSize.ToString());
+                    request.Headers.Add(HttpHeader.MaxItemCount, pageSize.ToString());
                 }
                 request.SetContent(new {
                     query
                 });
                 var response = await _httpClient.PostAsync(request);
                 response.Validate();
-                if (response.Headers.TryGetValues(kContinuationKey, out var values)) {
+                if (response.Headers.TryGetValues(HttpHeader.ContinuationToken, out var values)) {
                     continuation = values.First();
                 }
                 return new QueryResultModel {
                     ContinuationToken = continuation,
-                    Result = JArray.Parse(response.Content)
+                    Result = JArray.Parse(response.GetContentAsString())
                 };
             });
         }
@@ -305,7 +306,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 }
                 var response = await _httpClient.PutAsync(request);
                 response.Validate();
-                return ToJobModel(JToken.Parse(response.Content));
+                return ToJobModel(JToken.Parse(response.GetContentAsString()));
             });
             // Get device infos
             return await QueryDevicesInfoAsync(model);
@@ -321,7 +322,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 var request = NewRequest($"/jobs/v2/{jobId}");
                 var response = await _httpClient.GetAsync(request);
                 response.Validate();
-                return ToJobModel(JToken.Parse(response.Content));
+                return ToJobModel(JToken.Parse(response.GetContentAsString()));
             });
             // Get device infos
             return await QueryDevicesInfoAsync(model);
@@ -368,7 +369,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             await Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest("/devices/query");
                 if (continuation != null) {
-                    request.Headers.Add(kContinuationKey, continuation);
+                    request.Headers.Add(HttpHeader.ContinuationToken, continuation);
                     continuation = null;
                 }
                 request.SetContent(new {
@@ -376,10 +377,10 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 });
                 var response = await _httpClient.PostAsync(request);
                 response.Validate();
-                if (response.Headers.TryGetValues(kContinuationKey, out var values)) {
+                if (response.Headers.TryGetValues(HttpHeader.ContinuationToken, out var values)) {
                     continuation = values.First();
                 }
-                var result = (JArray)JToken.Parse(response.Content);
+                var result = (JArray)JToken.Parse(response.GetContentAsString());
                 devices.AddRange(result.Select(ToDeviceJobModel));
             });
             return continuation;
@@ -468,7 +469,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 Host = _hubConnectionString.HostName,
                 Path = path,
                 Query = "api-version=" + kApiVersion
-            }.Uri);
+            }.Uri, _resourceId);
             request.Headers.Add(HttpRequestHeader.Authorization.ToString(),
                 CreateSasToken(_hubConnectionString, 3600));
             request.Headers.Add(HttpRequestHeader.UserAgent.ToString(), kClientId);
@@ -511,10 +512,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
 
         const string kApiVersion = "2018-03-01-preview"; // Configuration preview
         const string kClientId = "OpcTwin";
-        const string kContinuationKey = "x-ms-continuation";
-        const string kPageSizeKey = "x-ms-max-item-count";
 
         private readonly ConnectionString _hubConnectionString;
+        private readonly string _resourceId;
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
     }

@@ -64,10 +64,15 @@ namespace Microsoft.Azure.IIoT.Net.Dhcp.Shared {
         /// </summary>
         /// <param name="itf"></param>
         internal DhcpScope(NetInterface itf, int offsetBottom, int offsetTop,
-            ILogger logger, HashSet<IPAddress> reserved = null) {
+            ILogger logger, HashSet<IPAddress> reserved = null, bool descending = false) {
             Interface = itf ?? throw new ArgumentNullException(nameof(itf));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _assigned = new Dictionary<DhcpLease.Id, DhcpLease>();
+
             var range = new AddressRange(itf);
+
+            _available = new SortedList<IPAddress, DhcpLease>(
+                descending ? IPAddressEx.Descending : IPAddressEx.Ascending);
             for (var addr = range.Low + offsetBottom + 1;
                     addr <= range.High - offsetTop - 1; addr++) {
 
@@ -278,10 +283,8 @@ namespace Microsoft.Azure.IIoT.Net.Dhcp.Shared {
             }
         }
 
-        private readonly Dictionary<DhcpLease.Id, DhcpLease> _assigned =
-            new Dictionary<DhcpLease.Id, DhcpLease>();
-        private readonly SortedList<IPAddress, DhcpLease> _available =
-            new SortedList<IPAddress, DhcpLease>(new IPv4Address(0));
+        private readonly IDictionary<DhcpLease.Id, DhcpLease> _assigned;
+        private readonly IDictionary<IPAddress, DhcpLease> _available;
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
         private readonly ILogger _logger;
     }

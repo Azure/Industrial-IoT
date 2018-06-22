@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns>this</returns>
-        public static IHttpRequest AddHeader(this IHttpRequest request, string name, 
+        public static IHttpRequest AddHeader(this IHttpRequest request, string name,
             string value) {
             if (!request.Headers.TryAddWithoutValidation(name, value)) {
                 if (name.ToLowerInvariant() != "content-type") {
@@ -35,13 +35,35 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="encoding"></param>
         /// <param name="mediaType"></param>
         /// <returns>this</returns>
-        public static IHttpRequest SetContent(this IHttpRequest request, string content, 
+        public static IHttpRequest SetContent(this IHttpRequest request, string content,
             Encoding encoding, MediaTypeHeaderValue mediaType) {
             request.Content = new StringContent(content, encoding,
                 mediaType.MediaType);
             request.Content.Headers.ContentType = mediaType;
             return request;
         }
+
+        /// <summary>
+        /// Set content
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="type"></param>
+        /// <returns>this</returns>
+        public static IHttpRequest SetContent(this IHttpRequest request, byte[] content,
+            MediaTypeHeaderValue type) {
+            request.Content = new ByteArrayContent(content);
+            request.Content.Headers.ContentType = type;
+            return request;
+        }
+
+        /// <summary>
+        /// Set content
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="type"></param>
+        /// <returns>this</returns>
+        public static IHttpRequest SetContent(this IHttpRequest request, byte[] content,
+            string type) => SetContent(request, content, new MediaTypeHeaderValue(type));
 
         /// <summary>
         /// Set content as type
@@ -51,7 +73,7 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="encoding"></param>
         /// <param name="mediaType"></param>
         /// <returns>this</returns>
-        public static IHttpRequest SetContent<T>(this IHttpRequest request, T sourceObject, 
+        public static IHttpRequest SetContent<T>(this IHttpRequest request, T sourceObject,
             Encoding encoding, MediaTypeHeaderValue mediaType) => request.SetContent(
                JsonConvertEx.SerializeObject(sourceObject), encoding, mediaType);
 

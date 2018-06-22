@@ -1,0 +1,33 @@
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:10080/",
+      "sslPort": 0
+    }
+  },
+  "profiles": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "REMOTE_ENDPOINT": "https://vm-123456.somecloud.cloudapp.azure.com",
+        "REDIRECT_HTTP_TO_HTTPS": "false",
+        "REMOTE_ENDPOINT_SSL_THUMBPRINT": "0011223344556677889900aabbccddeeff001122",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "ProxyAgent": {
+      "commandName": "Project",
+      "launchUrl": "status",
+      "environmentVariables": {
+        "REMOTE_ENDPOINT": "https://vm-123456.somecloud.cloudapp.azure.com",
+        "REDIRECT_HTTP_TO_HTTPS": "false",
+        "REMOTE_ENDPOINT_SSL_THUMBPRINT": "0011223344556677889900aabbccddeeff001122",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "http://localhost:10080"
+    }
+  }
+}

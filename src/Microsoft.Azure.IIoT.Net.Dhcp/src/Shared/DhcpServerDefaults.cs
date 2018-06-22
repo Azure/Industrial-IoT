@@ -31,6 +31,9 @@ namespace Microsoft.Azure.IIoT.Net.Dhcp.Shared {
         public int AddressRangeOffsetTop { get; set; }
 
         /// <inheritdoc/>
+        public bool AssignDescending { get; set; }
+
+        /// <inheritdoc/>
         public List<IPAddress> DnsServers { get; set; }
 
         /// <inheritdoc/>

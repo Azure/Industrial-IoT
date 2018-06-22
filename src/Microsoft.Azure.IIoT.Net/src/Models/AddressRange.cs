@@ -136,6 +136,12 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             $"{(IPv4Address)Low}-{(IPv4Address)High} [{Nic}]";
 
         /// <summary>
+        /// Clone
+        /// </summary>
+        /// <returns></returns>
+        public AddressRange Copy() => new AddressRange(Low, High, Nic);
+
+        /// <summary>
         /// Parses a series of address ranges
         /// </summary>
         /// <param name="value"></param>
@@ -185,6 +191,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                 batch.Add(_cur++);
             }
         }
+        public void Reset() => _cur = 0;
         private uint _cur;
     }
 }

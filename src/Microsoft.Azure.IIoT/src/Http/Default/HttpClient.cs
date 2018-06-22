@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Default {
-    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Diagnostics;
     using System;
     using System.Diagnostics;
@@ -12,9 +11,13 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using System.Net;
+    using System.IO;
+    using System.Text;
 
     /// <summary>
-    /// Client implementation
+    /// Http client wrapping http client factory created http clients and
+    /// abstracting away all the http client factory and handler noise
+    /// for easy injection.
     /// </summary>
     public class HttpClient : IHttpClient {
 
@@ -22,18 +25,16 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// Create client
         /// </summary>
         /// <param name="logger"></param>
-        public HttpClient(ILogger logger, IHttpAuthHandler auth) {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _auth = auth ?? throw new ArgumentNullException(nameof(auth));
-        }
+        public HttpClient(ILogger logger) : this(null, logger) { }
 
         /// <summary>
         /// Create client
         /// </summary>
         /// <param name="logger"></param>
-        public HttpClient(ILogger logger) {
+        /// <param name="factory"></param>
+        public HttpClient(IHttpClientFactory factory, ILogger logger) {
+            _factory = factory ?? new HttpClientFactory(null, logger);
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _logger.Info("Requests are not authenticated", () => { });
         }
 
         /// <summary>
@@ -110,42 +111,30 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         private async Task<IHttpResponse> SendAsync(IHttpRequest httpRequest,
             HttpMethod httpMethod) {
 
-            if (!(httpRequest is HttpRequest build)) {
+            if (!(httpRequest is HttpRequest wrapper)) {
                 throw new InvalidOperationException("Bad request");
             }
-
-            if (_auth != null && httpRequest.ResourceId != null) {
-                await _auth.OnRequestAsync(httpRequest);
-            }
-
-            var request = build.Request;
-            request.Method = httpMethod;
-
-            _logger.Debug($"Sending {httpMethod} request to {httpRequest.Uri}...",
-                () => { });
-            var sw = Stopwatch.StartNew();
-            var handler = new HttpClientHandler();
 #if DEBUG
             httpRequest.Options.Timeout *= 100;
-            handler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
 #endif
-            using (var client = new System.Net.Http.HttpClient(handler)) {
+            using (var client = _factory.CreateClient(httpRequest.ResourceId ??
+                HttpHandlerFactory.kDefaultResourceId)) {
                 client.Timeout = TimeSpan.FromMilliseconds(httpRequest.Options.Timeout);
+                var sw = Stopwatch.StartNew();
                 try {
-                    using (var response = await client.SendAsync(request)) {
+                    _logger.Debug($"Sending {httpMethod} request to {httpRequest.Uri}...",
+                         () => { });
+                    wrapper.Request.Method = httpMethod;
+                    using (var response = await client.SendAsync(wrapper.Request)) {
                         _logger.Debug($"... {httpMethod} to {httpRequest.Uri} returned " +
-                            $"{response.StatusCode} (took {sw.Elapsed}).", () => {});
+                            $"{response.StatusCode} (took {sw.Elapsed}).", () => { });
 
                         var httpResponse = new HttpResponse {
                             ResourceId = httpRequest.ResourceId,
                             StatusCode = response.StatusCode,
                             Headers = response.Headers,
-                            Content = await response.Content.ReadAsStringAsync()
+                            Content = await response.Content.ReadAsByteArrayAsync()
                         };
-                        if (_auth != null && httpRequest.ResourceId != null) {
-                            // Invalidate token cache for resource
-                            await _auth.OnResponseAsync(httpResponse);
-                        }
                         return httpResponse;
                     }
                 }
@@ -183,6 +172,10 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                     RequestUri = uri
                 };
                 ResourceId = resourceId;
+                if (ResourceId != null) {
+                    Request.Headers.TryAddWithoutValidation(
+                        HttpHeader.ResourceId, ResourceId);
+                }
             }
 
             /// <summary>
@@ -224,10 +217,10 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             public HttpResponseHeaders Headers { get; internal set; }
 
             /// <inheritdoc/>
-            public string Content { get; internal set; }
+            public byte[] Content { get; internal set; }
         }
 
+        private readonly IHttpClientFactory _factory;
         private readonly ILogger _logger;
-        private readonly IHttpAuthHandler _auth;
     }
 }

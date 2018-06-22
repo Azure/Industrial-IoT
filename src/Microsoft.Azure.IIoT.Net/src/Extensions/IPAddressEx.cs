@@ -5,6 +5,7 @@
 
 namespace System.Net {
     using Microsoft.Azure.IIoT.Net.Models;
+    using System.Collections.Generic;
 
     public static class IPAddressEx {
 
@@ -23,5 +24,34 @@ namespace System.Net {
         /// <returns></returns>
         public static IPAddress Copy(this IPAddress address) =>
             address == null ? null : new IPAddress(address.GetAddressBytes());
+
+
+        /// <summary>
+        /// Returns descending comparer for addresses
+        /// </summary>
+        public static IComparer<IPAddress> Descending =>
+            new DescendingComparer();
+
+        /// <summary>
+        /// Returns ascending comparer for addresses
+        /// </summary>
+        public static IComparer<IPAddress> Ascending =>
+            new AscendingComparer();
+
+        /// <summary>
+        /// Ascending comparer implementation
+        /// </summary>
+        private class DescendingComparer : IComparer<IPAddress> {
+            public int Compare(IPAddress x, IPAddress y) =>
+                y.AsV4().CompareTo(x);
+        }
+
+        /// <summary>
+        /// Ascending comparer implementation
+        /// </summary>
+        private class AscendingComparer : IComparer<IPAddress> {
+            public int Compare(IPAddress x, IPAddress y) =>
+                x.AsV4().CompareTo(y);
+        }
     }
 }

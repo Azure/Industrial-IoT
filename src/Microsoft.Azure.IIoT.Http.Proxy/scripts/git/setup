@@ -1,0 +1,45 @@
+#!/usr/bin/env bash -e
+
+APP_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && cd .. && pwd )/"
+
+failed() {
+    echo "Git hooks setup failed"
+    exit 1
+}
+
+install_precommit_hook() {
+    echo "Adding pre-commit hook..."
+
+    cd $APP_HOME/.git || failed
+    mkdir -p hooks || failed
+    cd hooks || failed
+    rm -f pre-commit
+
+    cp -p $APP_HOME/scripts/git/pre-commit-runner-no-sandbox.sh ./pre-commit || failed
+
+    chmod 755 ./pre-commit
+    echo "Done."
+}
+
+git_setup() {
+    git config --local core.whitespace trailing-space,space-before-tab
+    git config --local core.autocrlf false
+    git config --local core.eol lf
+    git config --local apply.whitespace fix
+
+    git config --local alias.st status
+    git config --local alias.co checkout
+    git config --local alias.ci commit
+
+    git config --local alias.branches 'branch -v -a'
+    git config --local alias.lg 'log --graph --pretty=format:'\''%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'\'' --abbrev-commit --date=relative'
+    git config --local alias.lg1 'log --reverse --pretty=oneline'
+    git config --local alias.lgx 'log --stat'
+    git config --local alias.lgt 'log --graph --pretty=oneline --oneline --all'
+    git config --local alias.stashdiff 'stash show --patience'
+}
+
+install_precommit_hook
+git_setup
+
+set +e

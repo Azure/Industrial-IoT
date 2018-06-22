@@ -34,5 +34,13 @@ namespace Microsoft.Azure.IIoT.Exceptions {
             MessageSize = messageSize;
             MaxMessageSize = maxMessageSize;
         }
+
+        /// <summary>
+        /// Create exception
+        /// </summary>
+        /// <param name="message"></param>
+        public MessageTooLargeException(string message) :
+            this(message, -1, -1){
+        }
     }
 }

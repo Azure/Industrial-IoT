@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Edge {
     /// <summary>
     /// Edge host module
     /// </summary>
-    public class EdgeHostModule : Autofac.Module {
+    public class EdgeHostModule : Module {
 
         /// <summary>
         /// Load the module

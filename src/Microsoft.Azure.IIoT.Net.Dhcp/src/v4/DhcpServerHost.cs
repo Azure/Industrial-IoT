@@ -239,7 +239,8 @@ namespace Microsoft.Azure.IIoT.Net.Dhcp.v4 {
                         _configuration?.AddressRangeOffsetBottom ?? 0,
                         _configuration?.AddressRangeOffsetTop ?? 0,
                         _logger,
-                        _configuration?.StaticAssignment.Values.ToHashSetSafe());
+                        _configuration?.StaticAssignment.Values.ToHashSetSafe(),
+                        _configuration?.AssignDescending ?? false);
                     _subnets.Add(key, subnet);
                 }
                 return subnet;

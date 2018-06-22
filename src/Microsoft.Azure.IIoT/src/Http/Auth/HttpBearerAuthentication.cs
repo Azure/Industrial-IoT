@@ -11,8 +11,10 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
     using System.Net;
     using System;
     using System.Linq;
+    using System.Net.Http;
+    using System.Threading;
 
-    public class HttpBearerAuthentication : IHttpAuthHandler {
+    public class HttpBearerAuthentication : HttpMessageHandlerBase {
 
         /// <summary>
         /// Create bearer auth handler
@@ -27,24 +29,27 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
         /// <summary>
         /// Authenticate request using provider
         /// </summary>
-        /// <param name="request"></param>
+        /// <param name="resourceId"></param>
+        /// <param name="headers"></param>
+        /// <param name="content"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        public async Task OnRequestAsync(IHttpRequest request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
+        public override async Task OnRequestAsync(string resourceId,
+            HttpRequestHeaders headers, HttpContent content, CancellationToken ct) {
+            if (headers == null) {
+                throw new ArgumentNullException(nameof(headers));
             }
-            if (!string.IsNullOrEmpty(request.ResourceId)) {
-
+            if (!string.IsNullOrEmpty(resourceId)) {
                 // TODO: also get scopes/desired permissions from the request,
                 // e.g. read/write, etc. A provider that
                 var desiredPermissions = Enumerable.Empty<string>();
                 // TODO...
 
-                var result = await _provider.GetTokenForAsync(request.ResourceId,
+                var result = await _provider.GetTokenForAsync(resourceId,
                     desiredPermissions);
 
                 if (result?.RawToken != null) {
-                    request.Headers.Authorization = new AuthenticationHeaderValue(
+                    headers.Authorization = new AuthenticationHeaderValue(
                         "Bearer", result.RawToken);
                 }
             }
@@ -53,14 +58,21 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
         /// <summary>
         /// Invalidate if needed
         /// </summary>
-        /// <param name="response"></param>
+        /// <param name="resourceId"></param>
+        /// <param name="statusCode"></param>
+        /// <param name="headers"></param>
+        /// <param name="content"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        public async Task OnResponseAsync(IHttpResponse response) {
-            if (response == null) {
-                throw new ArgumentNullException(nameof(response));
+        public override async Task OnResponseAsync(string resourceId, HttpStatusCode statusCode,
+            HttpResponseHeaders headers, HttpContent content, CancellationToken ct) {
+            if (headers == null) {
+                throw new ArgumentNullException(nameof(headers));
             }
-            if (response.StatusCode == HttpStatusCode.Unauthorized) {
-                await _provider.InvalidateAsync(response.ResourceId);
+            if (statusCode == HttpStatusCode.Unauthorized) {
+                if (!string.IsNullOrEmpty(resourceId)) {
+                    await _provider.InvalidateAsync(resourceId);
+                }
             }
         }
 

@@ -190,7 +190,8 @@ namespace Microsoft.Azure.IIoT.Edge.Hub {
             public static async Task<IClient> CreateAsync(
                 IotHubConnectionStringBuilder cs, ITransportSettings transportSetting,
                 TimeSpan timeout, IRetryPolicy retry, ILogger logger) {
-                var client = Create(cs, transportSetting);
+
+                var client = await CreateAsync(cs, transportSetting);
 
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
@@ -262,17 +263,17 @@ namespace Microsoft.Azure.IIoT.Edge.Hub {
             /// <param name="cs"></param>
             /// <param name="transportSetting"></param>
             /// <returns></returns>
-            private static ModuleClient Create(IotHubConnectionStringBuilder cs,
+            private static async Task<ModuleClient> CreateAsync(IotHubConnectionStringBuilder cs,
                 ITransportSettings transportSetting) {
                 if (transportSetting == null) {
                     if (cs == null) {
-                        return ModuleClient.CreateFromEnvironment();
+                        return await ModuleClient.CreateFromEnvironmentAsync();
                     }
                     return ModuleClient.CreateFromConnectionString(cs.ToString());
                 }
                 var ts = new ITransportSettings[] { transportSetting };
                 if (cs == null) {
-                    return ModuleClient.CreateFromEnvironment(ts);
+                    return await ModuleClient.CreateFromEnvironmentAsync(ts);
                 }
                 return ModuleClient.CreateFromConnectionString(cs.ToString(), ts);
             }

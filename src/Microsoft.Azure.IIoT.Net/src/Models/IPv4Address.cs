@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
     using System.Net;
 
     public class IPv4Address : IPAddress, IComparable<IPv4Address>,
-        IComparer<IPAddress>, IComparer<IPv4Address> {
+        IComparable<IPAddress> {
 
         /// <summary>
         /// Create address
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         public int CompareTo(IPv4Address other) => (int)(this - other);
 
         /// <inheritdoc/>
-        public int Compare(IPAddress x, IPAddress y) => Compare(x?.AsV4(), y?.AsV4());
+        public int CompareTo(IPAddress other) => CompareTo(other.AsV4());
 
         /// <inheritdoc/>
         public int Compare(IPv4Address x, IPv4Address y) => x.CompareTo(y);
