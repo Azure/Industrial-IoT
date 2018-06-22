@@ -4,9 +4,9 @@
     <LangVersion>7</LangVersion>
     <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.9.0</AssemblyVersion>
-    <FileVersion>1.0.9.0</FileVersion>
-    <Version>1.0.9-preview</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.0.0-preview</Version>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
     <Product>Connected Factory OPC Twin services</Product>
@@ -22,8 +22,16 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="2.1.1" />
     <PackageReference Include="System.Security.Principal.Windows" Version="4.5.0" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\external\azure-iiot-common\src\Microsoft.Azure.IIoT.Hub\src\Microsoft.Azure.IIoT.Hub.csproj" />
-    <ProjectReference Include="..\..\..\external\azure-iiot-common\src\Microsoft.Azure.IIoT\src\Microsoft.Azure.IIoT.csproj" />
-  </ItemGroup>
+  <Choose>
+    <When Condition="Exists('..\..\..\..\common')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub\src\Microsoft.Azure.IIoT.Hub.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub" Version="1.0.0-preview" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
 </Project>

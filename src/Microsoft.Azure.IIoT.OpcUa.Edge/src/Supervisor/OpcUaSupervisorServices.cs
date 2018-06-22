@@ -200,6 +200,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
             /// Dummy Service configuration
             /// </summary>
             public string IoTHubConnString => null;
+            public string IoTHubResourceId => null;
             public bool BypassProxy => true;
 
             /// <summary>

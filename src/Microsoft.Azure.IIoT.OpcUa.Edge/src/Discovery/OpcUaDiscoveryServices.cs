@@ -210,12 +210,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 addresses.Add(reply.Address);
             }, local, local ? null : options.AddressRanges, options.NetworkClass,
                 options.Configuration.MaxNetworkProbes,
-                options.Configuration.NetworkProbeTimeout, ct))
-            using (var progress = new Timer(_ => ProgressTimer(() =>
-                $"Scanned {netscanner.ScanCount} addresses " +
-                $"(Active probes: {netscanner.ActiveProbes})..."),
-                null, _progressInterval, _progressInterval)) {
-                await netscanner.Completion;
+                options.Configuration.NetworkProbeTimeout, ct)) {
+
+                // Log progress
+                using (var progress = new Timer(_ => ProgressTimer(() =>
+                    $"Scanned {netscanner.ScanCount} addresses " +
+                    $"(Active probes: {netscanner.ActiveProbes})..."),
+                    null, _progressInterval, _progressInterval)) {
+                    await netscanner.Completion;
+                }
             }
             ct.ThrowIfCancellationRequested();
 
@@ -248,12 +251,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     return ranges.SelectMany(x => x.GetEndpoints(address));
                 }), ports.Add, probe, options.Configuration.MaxPortProbes,
                 options.Configuration.MinPortProbesPercent,
-                options.Configuration.PortProbeTimeout, ct))
-            using (var progress = new Timer(_ => ProgressTimer(() =>
-                $"Scanned {portscan.ScanCount} ports " +
-                $"(Active probes: {portscan.ActiveProbes})..."),
-                null, _progressInterval, _progressInterval)) {
-                await portscan.Completion;
+                options.Configuration.PortProbeTimeout, ct)) {
+
+                // Log progress
+                using (var progress = new Timer(_ => ProgressTimer(() =>
+                    $"Scanned {portscan.ScanCount} ports " +
+                    $"(Active probes: {portscan.ActiveProbes})..."),
+                    null, _progressInterval, _progressInterval)) {
+                    await portscan.Completion;
+                }
             }
             ct.ThrowIfCancellationRequested();
 

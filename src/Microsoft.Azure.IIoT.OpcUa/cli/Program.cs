@@ -44,6 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
         /// </summary>
         private class OpcUaTestConfig : IOpcUaConfig, IIoTHubConfig {
             public string IoTHubConnString => Environment.GetEnvironmentVariable("_HUB_CS");
+            public string IoTHubResourceId => null;
             public bool BypassProxy { get; set; }
         }
 

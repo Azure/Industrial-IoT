@@ -37,7 +37,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Api", "src\Microsoft.Azure.IIoT.OpcUa.Api\src\Microsoft.Azure.IIoT.OpcUa.Api.csproj", "{C42023DA-F375-401B-BF9B-D20286311455}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Web", "external\azure-iiot-common\src\Microsoft.Azure.IIoT.Web\src\Microsoft.Azure.IIoT.Web.csproj", "{7C3C842E-A979-4118-B322-7F7403835E23}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services", "external\azure-iiot-common\src\Microsoft.Azure.IIoT.Services\src\Microsoft.Azure.IIoT.Services.csproj", "{7C3C842E-A979-4118-B322-7F7403835E23}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Hub.Processor", "external\azure-iiot-common\src\Microsoft.Azure.IIoT.Hub.Processor\src\Microsoft.Azure.IIoT.Hub.Processor.csproj", "{CAF3D563-E700-404B-B4F3-C683F5C35EAB}"
 EndProject
@@ -68,6 +68,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{FEE95825-2E34-45AF-BDED-52F9C7412BF5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BBEE26AC-8733-469B-B816-0A54EA99FC59}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Http.Proxy", "external\azure-iiot-common\src\Microsoft.Azure.IIoT.Http.Proxy\src\Microsoft.Azure.IIoT.Http.Proxy.csproj", "{230EBFAD-0DAC-4166-9479-55BE7FDAA176}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Http.Proxy.Tests", "external\azure-iiot-common\src\Microsoft.Azure.IIoT.Http.Proxy\tests\Microsoft.Azure.IIoT.Http.Proxy.Tests.csproj", "{1DDAF774-1449-4B08-A40A-520DBF352980}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -187,6 +191,14 @@ Global
 		{AE829E0E-4643-46B0-8263-E8B34758ECD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE829E0E-4643-46B0-8263-E8B34758ECD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE829E0E-4643-46B0-8263-E8B34758ECD6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{230EBFAD-0DAC-4166-9479-55BE7FDAA176}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{230EBFAD-0DAC-4166-9479-55BE7FDAA176}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{230EBFAD-0DAC-4166-9479-55BE7FDAA176}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{230EBFAD-0DAC-4166-9479-55BE7FDAA176}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DDAF774-1449-4B08-A40A-520DBF352980}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DDAF774-1449-4B08-A40A-520DBF352980}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DDAF774-1449-4B08-A40A-520DBF352980}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DDAF774-1449-4B08-A40A-520DBF352980}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -222,6 +234,8 @@ Global
 		{AE829E0E-4643-46B0-8263-E8B34758ECD6} = {BBEE26AC-8733-469B-B816-0A54EA99FC59}
 		{FEE95825-2E34-45AF-BDED-52F9C7412BF5} = {DF41A1FC-41C0-4E95-BC73-60BDF16C2D37}
 		{BBEE26AC-8733-469B-B816-0A54EA99FC59} = {DF41A1FC-41C0-4E95-BC73-60BDF16C2D37}
+		{230EBFAD-0DAC-4166-9479-55BE7FDAA176} = {FEE95825-2E34-45AF-BDED-52F9C7412BF5}
+		{1DDAF774-1449-4B08-A40A-520DBF352980} = {BBEE26AC-8733-469B-B816-0A54EA99FC59}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}

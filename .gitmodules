@@ -1,3 +1,0 @@
-[submodule "external/azure-iiot-common"]
-	path = external/azure-iiot-common
-	url = https://github.com/Azure/azure-iiot-common.git
