@@ -44,12 +44,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
 
             // Check client configuration
             var client = container.Resolve<IOpcUaClient>();
-            if (client.UsesProxy) {
-                throw new InvalidConfigurationException(
-                    "Bad configuration - client should not be in proxy mode. " +
-                    "this is likely the result of a bad services configuration. " +
-                    "Update your configuration and restart.");
-            }
 
             RunAsync(container, config).Wait();
         }

@@ -6,7 +6,6 @@
     <Company>Microsoft</Company>
     <Product>Azure IoT OPC UA Edge module</Product>
     <Description>Azure OPC Ua Twin Edge Service Module</Description>
-    <Version>1.0.0-preview</Version>
   </PropertyGroup>
 
   <ItemGroup>
