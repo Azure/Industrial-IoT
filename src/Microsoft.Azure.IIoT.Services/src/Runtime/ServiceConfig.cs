@@ -13,7 +13,19 @@ namespace Microsoft.Azure.IIoT.Services.Runtime {
     using System;
 
     /// <summary>
-    /// Web service configuration - wraps a configuration root
+    /// Web service configuration - wraps a configuration root as well
+    /// as reads simple configuration from the following environment
+    /// variables:
+    /// - IIOT_CORS_WHITELIST (optional, defaults to *)
+    /// - IIOT_AUTH_TRUSTED_ISSUE (optional, defaults to 
+    ///     "https://login.windows...")
+    /// - IIOT_AUTH_APP_ID (set to registered application id)
+    /// - IIOT_AUTH_APP_KEY (if not provided, auth will be off)
+    /// - IIOT_AUTH_CLIENT_ID (set to registered client application
+    ///     id)
+    /// - IIOT_AUTH_CLIENT_KEY (if not provided, but auth is on, 
+    ///     swagger will be off)
+    /// - IIOT_AAD_TENANT_ID (if not set, "common" tenant will be used)
     /// </summary>
     public class ServiceConfig : ConfigBase, IAuthConfig,
         ICorsConfig, IClientConfig, ISwaggerConfig {
@@ -41,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Services.Runtime {
             GetBool(kAuth_RequiredKey, !string.IsNullOrEmpty(ClientSecret));
         /// <summary>Allowed issuer</summary>
         public string TrustedIssuer => GetString(kAuth_TrustedIssuerKey,
-            GetString("IIOT_AAD_TRUSTED_ISSUER", string.IsNullOrEmpty(TenantId) ?
+            GetString("IIOT_AUTH_TRUSTED_ISSUER", string.IsNullOrEmpty(TenantId) ?
                 null : $"https://login.windows.net/{TenantId}/"));
         /// <summary>Allowed clock skew</summary>
         public TimeSpan AllowedClockSkew =>
@@ -50,16 +62,16 @@ namespace Microsoft.Azure.IIoT.Services.Runtime {
         /// <summary>
         /// Application configuration
         /// </summary>
-        private const string kAuth_AppIdKey = kAuthKey + "AppId";
-        private const string kAuth_AppSecretKey = kAuthKey + "AppSecret";
+        private const string kAuth_AppIdKey = "AppId";
+        private const string kAuth_AppSecretKey = "AppSecret";
         private const string kAuth_TenantIdKey = kAuthKey + "TenantId";
         private const string kAuth_AuthorityKey = kAuthKey + "Authority";
         /// <summary>Application id</summary>
-        public string ClientId => GetString(kAuth_AppIdKey,
-            GetString(ServiceId + "_APP_ID"))?.Trim();
+        public string ClientId => GetString(kAuth_AppIdKey, GetString(
+            ServiceId + "_APP_ID", GetString("IIOT_AUTH_APP_ID"))).Trim();
         /// <summary>App secret for behalf of flow</summary>
-        public string ClientSecret => GetString(kAuth_AppSecretKey,
-            GetString(ServiceId + "_APP_KEY"))?.Trim();
+        public string ClientSecret => GetString(kAuth_AppSecretKey, GetString(
+            ServiceId + "_APP_KEY", GetString("IIOT_AUTH_APP_KEY"))).Trim();
         /// <summary>Optional tenant</summary>
         public string TenantId => GetString(kAuth_TenantIdKey,
             GetString("IIOT_AAD_TENANT_ID"));
@@ -74,17 +86,17 @@ namespace Microsoft.Azure.IIoT.Services.Runtime {
         private const string kSwagger_AppIdKey = kSwaggerKey + "AppId";
         private const string kSwagger_AppSecretKey = kSwaggerKey + "AppSecret";
         /// <summary>Enabled</summary>
-        public bool UIEnabled =>
-            GetBool(kSwagger_EnabledKey, true);
+        public bool UIEnabled => GetBool(kSwagger_EnabledKey, 
+            !AuthRequired || !string.IsNullOrEmpty(SwaggerClientSecret));
         /// <summary>Auth enabled</summary>
         public bool WithAuth =>
             AuthRequired;
         /// <summary>Application id</summary>
-        public string SwaggerClientId => GetString(kSwagger_AppIdKey,
-            GetString(ServiceId + "_APP_ID_SWAGGER"))?.Trim();
+        public string SwaggerClientId => GetString(kSwagger_AppIdKey, GetString(
+            ServiceId + "_CLIENT_ID", GetString("IIOT_AUTH_CLIENT_ID"))).Trim();
         /// <summary>Application key</summary>
-        public string SwaggerClientSecret => GetString(kSwagger_AppSecretKey,
-            GetString(ServiceId + "_APP_KEY_SWAGGER"))?.Trim();
+        public string SwaggerClientSecret => GetString(kSwagger_AppSecretKey, GetString(
+            ServiceId + "_CLIENT_KEY", GetString("IIOT_AUTH_CLIENT_KEY"))).Trim();
 
         public string ServiceId { get; }
 

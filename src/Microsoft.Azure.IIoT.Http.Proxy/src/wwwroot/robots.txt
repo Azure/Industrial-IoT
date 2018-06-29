@@ -1,5 +1,0 @@
-# Blocks spiders from scanning and indexing the proxied pages.
-# Remove this file to allow search engines indexing.
-
-User-agent: *
-Disallow: /

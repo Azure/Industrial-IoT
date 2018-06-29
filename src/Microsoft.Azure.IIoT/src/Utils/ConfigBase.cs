@@ -6,9 +6,16 @@
 namespace Microsoft.Azure.IIoT.Utils {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;
+#if !NET46
+    using Microsoft.Extensions.Configuration;
+#else
+    // Adapter since there is no other good place to put below base 
+    public interface IConfigurationRoot {
+        string GetValue(string key, string defaultValue);
+    }
+#endif
 
     /// <summary>
     /// Configuration base helper class

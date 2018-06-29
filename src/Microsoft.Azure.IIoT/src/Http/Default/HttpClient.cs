@@ -11,8 +11,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using System.Net;
-    using System.IO;
-    using System.Text;
 
     /// <summary>
     /// Http client wrapping http client factory created http clients and
@@ -25,7 +23,9 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// Create client
         /// </summary>
         /// <param name="logger"></param>
-        public HttpClient(ILogger logger) : this(null, logger) { }
+        public HttpClient(ILogger logger) : 
+            this(null, logger) {
+        }
 
         /// <summary>
         /// Create client

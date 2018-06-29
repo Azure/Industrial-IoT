@@ -10,7 +10,7 @@ namespace System.Threading.Tasks {
     /// Provides support for efficiently using Tasks to implement
     /// the APM (Begin/End) pattern.
     /// </summary>
-    internal static class TaskToApm {
+    public static class TaskToApm {
 
         /// <summary>
         /// Marshals the Task as an IAsyncResult, using the supplied

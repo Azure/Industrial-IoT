@@ -84,6 +84,20 @@ namespace Microsoft.Azure.IIoT.Utils {
         }
 
         /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="keyName"></param>
+        /// <param name="token"></param>
+        public static ConnectionString Create(Uri endpoint, string keyName, string token) {
+            var connectionString = new ConnectionString();
+            connectionString._items[Id.EndpointName] = endpoint.ToString();
+            connectionString._items[Id.SharedAccessKeyName] = keyName;
+            connectionString._items[Id.SharedAccessToken] = token;
+            return connectionString;
+        }
+
+        /// <summary>
         /// Converts to string
         /// </summary>
         /// <returns></returns>

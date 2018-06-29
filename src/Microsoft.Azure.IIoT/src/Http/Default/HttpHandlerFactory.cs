@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// </summary>
     public class HttpHandlerFactory : IHttpHandlerFactory {
 
-        public static readonly string kDefaultResourceId = "__default__";
+        public static readonly string kDefaultResourceId = "$default$";
 
         /// <summary>
         /// Create handler factory
@@ -54,8 +54,10 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <param name="name"></param>
         /// <returns></returns>
         public TimeSpan Create(string name, out HttpMessageHandler handler) {
-            var del = new HttpHandlerDelegate(new HttpClientHandler(), name, 
-                _handlers.Where(h => h.IsFor?.Invoke(name) ?? true), _proxy, _logger);
+            var resource = name == kDefaultResourceId ? null : name;
+            var del = new HttpHandlerDelegate(new HttpClientHandler(), resource, 
+                _handlers.Where(h => h.IsFor?.Invoke(resource) ?? true), 
+                _proxy, _logger);
             handler = del;
             return del.MaxLifetime;
         }

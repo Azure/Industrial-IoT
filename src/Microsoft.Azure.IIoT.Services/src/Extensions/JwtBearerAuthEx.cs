@@ -9,6 +9,8 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.IdentityModel.Tokens;
     using System;
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Security.Claims;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -39,7 +41,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
 
                     options.TokenValidationParameters = new TokenValidationParameters {
                         ClockSkew = config.AllowedClockSkew,
-                        //  ValidAudience = clientId,
+                        // ValidAudience = clientId,
                         //  ValidateAudience = !string.IsNullOrEmpty(clientId),
                         ValidateAudience = false,
                     };
@@ -49,7 +51,16 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
                             if (config.AuthRequired) {
                                 ctx.NoResult();
                                 return WriteErrorAsync(ctx.Response,
-                                inDevelopment ? ctx.Exception : null);
+                                    inDevelopment ? ctx.Exception : null);
+                            }
+                            return Task.CompletedTask;
+                        },
+
+                        OnTokenValidated = ctx => {
+                            if (ctx.SecurityToken is JwtSecurityToken accessToken) {
+                                if (ctx.Principal.Identity is ClaimsIdentity identity) {
+                                    identity.AddClaim(new Claim("access_token", accessToken.RawData));
+                                }
                             }
                             return Task.CompletedTask;
                         }

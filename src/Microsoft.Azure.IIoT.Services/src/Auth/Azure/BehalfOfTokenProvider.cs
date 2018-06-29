@@ -58,14 +58,26 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
                 return null;
             }
 
-            // User id should be known, we use it to sign in on behalf of...
-            var token = await _ctx.HttpContext.GetTokenAsync("access_token");
             var user = _ctx.HttpContext.User;
-            if (user == null || string.IsNullOrEmpty(token)) {
-                throw new AuthenticationException("Missing token or claims principal.");
+            // User id should be known, we need it to sign in on behalf of...
+            if (user == null) {
+                throw new AuthenticationException("Missing claims principal.");
             }
+
             var name = user.FindFirstValue(ClaimTypes.Upn) ??
                 user.FindFirstValue(ClaimTypes.Email);
+
+            const string kAccessTokenKey = "access_token";
+            var token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey);
+            if (string.IsNullOrEmpty(token)) {
+                // TODO: The above always fails currently. Find out what we do wrongly.
+                // This is the 1.1 workaround...
+                token = user?.FindFirstValue(kAccessTokenKey);
+                if (string.IsNullOrEmpty(token)) {
+                    throw new AuthenticationException(
+                        $"No auth on behalf of {name} without token...");
+                }
+            }
 
             var cache = new DistributedTokenCache(_cache,
                 $"OID:{user.GetObjectId()}::AUD:{user.GetAudienceId()}", _dp);
@@ -113,7 +125,6 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
             // TODO
             return Task.CompletedTask;
         }
-
 
         private const string kGrantType = "urn:ietf:params:oauth:grant-type:jwt-bearer";
         private const string kAuthority = "https://login.microsoftonline.com/";
