@@ -4,28 +4,28 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Proxy;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1;
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.Services.Auth.Azure;
     using Microsoft.Azure.IIoT.Services.Cors;
-    using Microsoft.Azure.IIoT.Services.Http;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
     using Newtonsoft.Json;
     using Swashbuckle.AspNetCore.Swagger;
     using System;
@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
                 options.AddV1Policies(Config);
             });
 
-            // TODO: Remove http client factory and use 
+            // TODO: Remove http client factory and use
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
@@ -130,10 +130,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
             loggerFactory.AddConsole(Config.Configuration.GetSection("Logging"));
 
             if (Config.AuthRequired) {
-                // Try authenticate
                 app.UseAuthentication();
-
-                app.UseMiddleware<InternalAuthMiddleware>();
             }
 
             app.EnableCors();
@@ -184,9 +181,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
             // Register http client ...
             builder.RegisterType<HttpClient>().SingleInstance()
                 .AsImplementedInterfaces();
-            builder.RegisterType<HttpClientFactory>().SingleInstance()
-                .AsImplementedInterfaces();
             builder.RegisterType<HttpHandlerFactory>().SingleInstance()
+                .AsImplementedInterfaces();
+            builder.RegisterType<HttpClientFactory>().SingleInstance()
                 .AsImplementedInterfaces();
 
             // ... with bearer auth
@@ -211,7 +208,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
 
             // Register opc ua proxy client if not bypassing
             if (!Config.BypassProxy) {
-                builder.RegisterType<OpcUaClient>()
+                builder.RegisterType<OpcUaProxyClient>()
                     .AsImplementedInterfaces().SingleInstance();
                 // Register misc opc services, such as variant codec
                 builder.RegisterType<OpcUaJsonVariantCodec>()

@@ -22,20 +22,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1 {
             IAuthConfig config) {
 
             if (!config.AuthRequired) {
-                foreach (var p in Policy.All()) {
-                    options.AddPolicy(p,
-                        policy => policy.RequireAssertion(_ => true));
-                }
+                options.AddNoOpPolicies(Policies.All());
                 return;
             }
 
             // Otherwise, configure policies here to your liking
-            options.AddPolicy(Policy.Browse, policy =>
+            options.AddPolicy(Policies.CanBrowse, policy =>
                 policy.RequireAuthenticatedUser());
-            options.AddPolicy(Policy.Control, policy =>
-                policy.RequireAuthenticatedUser().RequireRole(Role.Operator));
-            options.AddPolicy(Policy.Publish, policy =>
-                policy.RequireAuthenticatedUser().RequireRole(Role.Admin));
+            options.AddPolicy(Policies.CanControl, policy =>
+                policy.RequireAuthenticatedUser().Require(AdminRights));
+            options.AddPolicy(Policies.CanPublish, policy =>
+                policy.RequireAuthenticatedUser().Require(AdminRights));
+        }
+
+        /// <summary>
+        /// Admin either has the admin role, or has execute claim
+        /// </summary>
+        public static bool AdminRights(AuthorizationHandlerContext context) {
+            return
+                context.User.IsInRole(Roles.Admin) ||
+                context.User.HasClaim(c => c.Type == Claims.Execute);
         }
     }
 }

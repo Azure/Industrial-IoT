@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
     [Route(VersionInfo.PATH + "/[controller]")]
     [ExceptionsFilter]
     [Produces("application/json")]
-    [Authorize(Policy = Policy.Browse)]
+    [Authorize(Policy = Policies.CanBrowse)]
     public class ReadController : Controller {
 
         /// <summary>

@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
     [Route(VersionInfo.PATH + "/[controller]")]
     [ExceptionsFilter]
     [Produces("application/json")]
-    [Authorize(Policy = Policy.Control)]
+    [Authorize(Policy = Policies.CanControl)]
     public class CallController : Controller {
 
         /// <summary>

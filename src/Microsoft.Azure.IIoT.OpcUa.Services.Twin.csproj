@@ -4,7 +4,6 @@
     <Product>Connected Factory Opc Ua Twin Web Service</Product>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
-    <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.1\Microsoft.Azure.IIoT.OpcUa.Services.Twin.xml</DocumentationFile>
@@ -41,12 +40,14 @@
   <Choose>
     <When Condition="Exists('..\..\opc-twin')">
       <ItemGroup>
-        <ProjectReference Include="..\..\opc-twin\src\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
+        <ProjectReference Include="..\..\opc-twin\src\Microsoft.Azure.IIoT.OpcUa.Registry\src\Microsoft.Azure.IIoT.OpcUa.Registry.csproj" />
+        <ProjectReference Include="..\..\opc-twin\src\Microsoft.Azure.IIoT.OpcUa.Twin\src\Microsoft.Azure.IIoT.OpcUa.Twin.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa" Version="1.0.0-preview" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Registry" Version="1.0.0-preview" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Twin" Version="1.0.0-preview" />
       </ItemGroup>
     </Otherwise>
   </Choose>

@@ -8,38 +8,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Auth {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Defines various policies for user claims for the rest api.
-    /// Policies are associated with roles, and users are assigned
-    /// to roles.
+    /// Defines twin api policies.
     /// </summary>
-    public static class Policy {
+    public static class Policies {
 
         /// <summary>
         /// Allowed to read and browse
         /// </summary>
-        public const string Browse =
-            nameof(Browse);
+        public const string CanBrowse =
+            nameof(CanBrowse);
 
         /// <summary>
         /// Allowed to write or execute
         /// </summary>
-        public const string Control =
-            nameof(Control);
+        public const string CanControl =
+            nameof(CanControl);
 
         /// <summary>
         /// Allowed to request publish
         /// </summary>
-        public const string Publish =
-            nameof(Publish);
+        public const string CanPublish =
+            nameof(CanPublish);
 
         /// <summary>
         /// Return all policies
         /// </summary>
         /// <returns></returns>
         public static IEnumerable<string> All() {
-            yield return Browse;
-            yield return Control;
-            yield return Publish;
+            yield return CanBrowse;
+            yield return CanControl;
+            yield return CanPublish;
         }
     }
 }

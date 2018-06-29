@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime {
     /// <summary>
     /// Web service configuration - wraps a configuration root
     /// </summary>
-    public class Config : ServiceConfig, IOpcUaConfig, IIoTHubConfig {
+    public class Config : ServiceConfig, IOpcUaProxyConfig, IIoTHubConfig {
 
         /// <summary>
         /// Service configuration

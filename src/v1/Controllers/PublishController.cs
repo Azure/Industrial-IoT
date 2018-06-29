@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
     [Route(VersionInfo.PATH + "/[controller]")]
     [ExceptionsFilter]
     [Produces("application/json")]
-    [Authorize(Policy = Policy.Publish)]
+    [Authorize(Policy = Policies.CanPublish)]
     public class PublishController : Controller {
 
         /// <summary>
