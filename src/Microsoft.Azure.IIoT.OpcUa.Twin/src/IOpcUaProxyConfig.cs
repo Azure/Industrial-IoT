@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     /// <summary>
     /// Configuration for client
     /// </summary>
-    public interface IOpcUaConfig : IIoTHubConfig {
+    public interface IOpcUaProxyConfig {
 
         /// <summary>
         /// Bypass the use of proxy - for development

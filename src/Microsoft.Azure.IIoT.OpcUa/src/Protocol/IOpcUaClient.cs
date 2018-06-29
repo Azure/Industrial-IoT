@@ -19,11 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface IOpcUaClient {
 
         /// <summary>
-        /// Whether the client uses proxy
-        /// </summary>
-        bool UsesProxy { get; }
-
-        /// <summary>
         /// Returns the client certificate
         /// </summary>
         X509Certificate2 Certificate { get; }

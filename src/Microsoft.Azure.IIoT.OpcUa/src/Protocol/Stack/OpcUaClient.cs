@@ -10,10 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.Devices.Proxy;
-    using Microsoft.Azure.Devices.Proxy.Provider;
     using Opc.Ua;
-    using Opc.Ua.Bindings.Proxy;
     using Opc.Ua.Client;
     using System;
     using System.Linq;
@@ -31,11 +28,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
     /// Opc ua stack based client
     /// </summary>
     public class OpcUaClient : IOpcUaClient {
-
-        /// <summary>
-        /// Whether to use proxy
-        /// </summary>
-        public bool UsesProxy { get; }
 
         /// <summary>
         /// Client public certificate
@@ -57,8 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
         /// Create stack
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="config"></param>
-        public OpcUaClient(ILogger logger, IOpcUaConfig config) {
+        public OpcUaClient(ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _cache = new ConcurrentDictionary<SessionKey, ImmutableQueue<ServerSession>>();
 
@@ -72,21 +63,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
                 CertificateFactory.defaultKeySize, DateTime.UtcNow - TimeSpan.FromDays(1),
                 CertificateFactory.defaultLifeTime, CertificateFactory.defaultHashSize,
                 false, null, null);
-
-            if (config != null &&
-                !string.IsNullOrEmpty(config.IoTHubConnString) &&
-                !config.BypassProxy) {
-
-                // initialize our custom transport via the proxy
-                Socket.Provider = new DefaultProvider(config.IoTHubConnString);
-                WcfChannelBase.g_CustomTransportChannel = new ProxyTransportChannelFactory();
-                UsesProxy = true;
-            }
-
-            if (UsesProxy) {
-                _logger.Info("OPC stack configured with reverse proxy connection.",
-                    () => { });
-            }
         }
 
         /// <summary>
@@ -185,7 +161,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
         /// <summary>
         /// Connect timeout
         /// </summary>
-        int Timeout => UsesProxy ? 120000 : 60000;
+        protected int Timeout { get; set; } = 60000;
 
          /// <summary>
         /// Try get unique set of endpoints from all servers found on discovery server

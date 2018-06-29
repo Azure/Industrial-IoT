@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
@@ -14,7 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Edge\src\Microsoft.Azure.IIoT.OpcUa.Edge.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Twin\src\Microsoft.Azure.IIoT.OpcUa.Twin.csproj" />
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
-
 </Project>

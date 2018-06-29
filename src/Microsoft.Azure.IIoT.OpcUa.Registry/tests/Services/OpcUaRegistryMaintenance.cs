@@ -4,20 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using Autofac.Extras.Moq;
     using AutoFixture;
     using AutoFixture.Kernel;
-    using Moq;
+    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Hub.Mock;
+    using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Models;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using Xunit;
-    using Microsoft.Azure.IIoT.Hub.Memory;
 
     public class OpcUaRegistryMaintenanceTests {
 

@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Exceptions;
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
@@ -78,7 +77,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
             var job = await _jobs.CreateAsync(new JobModel {
                 JobId = jobId,
                 QueryCondition = "FROM devices.modules WHERE " +
-                    $"properties.reported.{OpcUaTwinRegistration.kTypeProp} = 'supervisor'",
+                    $"properties.reported.{kTypeProp} = 'supervisor'",
                 Type = JobType.ScheduleDeviceMethod,
                 MaxExecutionTimeInSeconds = timeout.Seconds,
                 MethodParameter = new MethodParameterModel {
@@ -144,6 +143,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
 
         private readonly IIoTHubJobServices _jobs;
         private readonly ILogger _logger;
+
+        public const string kTypeProp = "__type__"; // TODO: Consolidate as common constant
 
         private static readonly TimeSpan kValidationTimeout = TimeSpan.FromSeconds(30);
     }

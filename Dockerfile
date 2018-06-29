@@ -6,6 +6,7 @@ WORKDIR /src
 COPY src/Microsoft.Azure.IIoT.OpcUa/cli/Microsoft.Azure.IIoT.OpcUa.Cli.csproj src/Microsoft.Azure.IIoT.OpcUa/cli/
 COPY src/Microsoft.Azure.IIoT.OpcUa/src/Microsoft.Azure.IIoT.OpcUa.csproj src/Microsoft.Azure.IIoT.OpcUa/src/
 COPY src/Microsoft.Azure.IIoT.OpcUa.Edge/src/Microsoft.Azure.IIoT.OpcUa.Edge.csproj src/Microsoft.Azure.IIoT.OpcUa.Edge/src/
+COPY src/Microsoft.Azure.IIoT.OpcUa.Twin/src/Microsoft.Azure.IIoT.OpcUa.Twin.csproj src/Microsoft.Azure.IIoT.OpcUa.Twin/src/
 COPY .nuget .nuget
 RUN dotnet restore --configfile .nuget/NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.OpcUa/cli/Microsoft.Azure.IIoT.OpcUa.Cli.csproj
 COPY . .

@@ -11,8 +11,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Opc.Ua;
-    using Opc.Ua.Bindings;
-    using Opc.Ua.Bindings.Proxy;
     using System;
     using System.Threading.Tasks;
     using System.Collections.Generic;
@@ -104,28 +102,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         /// </summary>
         /// <param name="channel"></param>
         /// <returns></returns>
-        private string GetAddressFromChannel(ITransportChannel channel) {
-            // Access underlying proxy socket
-            if (channel is IMessageSocketChannel proxyChannel) {
-                if (proxyChannel.Socket is ProxyMessageSocket socket) {
-                    var proxySocket = socket.ProxySocket;
-                    if (proxySocket == null) {
-                        throw new InvalidProgramException(
-                            "Unexpected - current proxy socket is null.");
-                    }
-                    _logger.Debug($"Connected.", () => proxySocket.LocalEndPoint);
-
-                    var address = proxySocket.RemoteEndPoint.AsProxySocketAddress();
-                    return address?.Host;
-                }
-                if (proxyChannel.Socket is TcpMessageSocket tcp) {
-                    // TODO
-                }
-            }
+        protected virtual string GetAddressFromChannel(ITransportChannel channel) {
             return null;
         }
 
-        private readonly IOpcUaClient _client;
-        private readonly ILogger _logger;
+        protected readonly IOpcUaClient _client;
+        protected readonly ILogger _logger;
     }
 }

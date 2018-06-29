@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Memory;
+    using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Autofac.Extras.Moq;
     using AutoFixture;

@@ -17,15 +17,18 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="2.1.1" />
     <PackageReference Include="System.Security.Principal.Windows" Version="4.5.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
+  </ItemGroup>
   <Choose>
     <When Condition="Exists('..\..\..\..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT\src\Microsoft.Azure.IIoT.csproj" />
+        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub\src\Microsoft.Azure.IIoT.Hub.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT" Version="1.0.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub" Version="1.0.0-preview" />
       </ItemGroup>
     </Otherwise>
   </Choose>

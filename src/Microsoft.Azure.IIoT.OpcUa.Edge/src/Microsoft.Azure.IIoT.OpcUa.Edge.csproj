@@ -7,9 +7,6 @@
     <Product>Azure IoT OPC UA Twin</Product>
     <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <Version>1.0.0-preview</Version>
     <Copyright>Microsoft Corp. All rights reserved.</Copyright>
     <Description>Azure OPC Ua Twin Edge Service Module</Description>
   </PropertyGroup>

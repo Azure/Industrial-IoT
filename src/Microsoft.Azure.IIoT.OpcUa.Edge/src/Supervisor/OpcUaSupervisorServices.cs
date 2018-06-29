@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Edge;
     using Microsoft.Azure.IIoT.Edge.Hub;
     using Microsoft.Azure.IIoT.Edge.Services;
@@ -19,8 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
     using System.Threading.Tasks;
     using System.Collections.Generic;
     using System.Threading;
-    using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Twin supervisor service
@@ -176,7 +174,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         /// <summary>
         /// Twin host configuration wrapper
         /// </summary>
-        private class TwinConfig : IOpcUaConfig, IEdgeConfig {
+        private class TwinConfig : IEdgeConfig {
 
             /// <summary>
             /// Create twin configuration
@@ -195,13 +193,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
             public string HubConnectionString { get; }
             public bool BypassCertVerification { get; }
             public TransportOption Transport { get; }
-
-            /// <summary>
-            /// Dummy Service configuration
-            /// </summary>
-            public string IoTHubConnString => null;
-            public string IoTHubResourceId => null;
-            public bool BypassProxy => true;
 
             /// <summary>
             /// Create new connection string from existing edge connection string.

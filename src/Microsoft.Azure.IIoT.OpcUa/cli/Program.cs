@@ -4,22 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Cli {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Proxy;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.IIoT.Net;
-    using Microsoft.Azure.IIoT.Net.Scanner;
-    using Microsoft.Azure.IIoT.Net.Models;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Edge;
     using Microsoft.Azure.IIoT.Edge.Hosting;
+    using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Net;
+    using Microsoft.Azure.IIoT.Net.Models;
+    using Microsoft.Azure.IIoT.Net.Scanner;
     using Microsoft.Extensions.Configuration;
     using Newtonsoft.Json;
     using Opc.Ua;
@@ -28,11 +28,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Net;
-    using System.Threading;
     using System.Linq;
+    using System.Net;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Sample program to run imports
@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
         /// <summary>
         /// Test configuration
         /// </summary>
-        private class OpcUaTestConfig : IOpcUaConfig, IIoTHubConfig {
+        private class OpcUaTestConfig : IOpcUaProxyConfig, IIoTHubConfig {
             public string IoTHubConnString => Environment.GetEnvironmentVariable("_HUB_CS");
             public string IoTHubResourceId => null;
             public bool BypassProxy { get; set; }
@@ -327,7 +327,7 @@ Operations (Mutually exclusive):
                 config, logger);
 
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{OpcUaTwinRegistration.kTypeProp} = 'supervisor'";
+                $"properties.reported.{kTypeProp} = 'supervisor'";
             var supers = await registry.QueryDeviceTwinsAsync(query);
             foreach (var item in supers) {
                 foreach (var tag in item.Tags.Keys.ToList()) {
@@ -344,6 +344,8 @@ Operations (Mutually exclusive):
                 await registry.CreateOrUpdateAsync(item);
             }
         }
+
+        public const string kTypeProp = "__type__"; // TODO: Consolidate as common constant
 
         /// <summary>
         /// Clear registry
@@ -407,9 +409,7 @@ Operations (Mutually exclusive):
         private static async Task TestOpcUaDiscoveryService(string addressRanges,
             bool stress) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var client = new OpcUaClient(logger, new OpcUaTestConfig {
-                BypassProxy = true
-            });
+            var client = new OpcUaClient(logger);
 
             var discovery = new OpcUaDiscoveryServices(client, new ConsoleEmitter(),
                 new EdgeScheduler(), logger);
@@ -439,9 +439,7 @@ Operations (Mutually exclusive):
         /// <returns></returns>
         private static async Task TestOpcUaModelExportService(EndpointModel endpoint) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var client = new OpcUaClient(logger, new OpcUaTestConfig {
-                BypassProxy = true
-            });
+            var client = new OpcUaClient(logger);
 
             var exporter = new OpcUaExportServices(client, new ConsoleUploader(),
                 new ConsoleEmitter(), new EdgeScheduler(), logger) {
@@ -460,9 +458,8 @@ Operations (Mutually exclusive):
         private static async Task TestOpcUaServerClient(EndpointModel endpoint,
             bool useProxy) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var client = new OpcUaClient(logger, new OpcUaTestConfig {
-                BypassProxy = !useProxy
-            });
+            var client = useProxy ? new OpcUaProxyClient(logger, new OpcUaTestConfig()) :
+                new OpcUaClient(logger);
             await client.ExecuteServiceAsync(endpoint, async session => {
                 var mask = (uint)Opc.Ua.NodeClass.Variable | (uint)Opc.Ua.NodeClass.Object |
                     (uint)Opc.Ua.NodeClass.Method;
