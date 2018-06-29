@@ -51,6 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<HttpHandlerFactory>()
                 .AsImplementedInterfaces().SingleInstance();
+
             // Use bearer authentication
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -912,10 +913,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
 
             public string OpcUaTwinServiceResourceId =>
                 Configuration.GetValue(kOpcUaTwinServiceIdKey,
-                    Configuration.GetValue("IIOT_OPCUA_TWIN_APP_ID", (string)null));
+                    Configuration.GetValue("IIOT_OPCUA_TWIN_APP_ID",
+                         Configuration.GetValue<string>("IIOT_AUTH_APP_ID")));
             public string OpcUaRegistryServiceResourceId =>
                 Configuration.GetValue(kOpcUaRegistryServiceIdKey,
-                    Configuration.GetValue("IIOT_OPCUA_REGISTRY_APP_ID", (string)null));
+                    Configuration.GetValue("IIOT_OPCUA_REGISTRY_APP_ID",
+                         Configuration.GetValue<string>("IIOT_AUTH_APP_ID")));
 
             /// <summary>
             /// Client configuration
@@ -923,7 +926,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
 
             public string ClientId =>
                 Configuration.GetValue(kOpcUaTwinServiceIdKey,
-                    Configuration.GetValue("IIOT_OPCUA_TWIN_CLI_APP_ID", (string)null));
+                    Configuration.GetValue("IIOT_OPCUA_TWIN_CLI_APP_ID",
+                         Configuration.GetValue<string>("IIOT_AUTH_CLIENT_ID")));
+
             public string ClientSecret => null;
             public string TenantId => null;
             public string Authority => null;
