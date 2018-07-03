@@ -16,14 +16,14 @@
   <Choose>
     <When Condition="Exists('..\..\..\..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Edge\src\Microsoft.Azure.IIoT.Edge.csproj" />
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Net\src\Microsoft.Azure.IIoT.Net.csproj" />
+        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Edge\src\Microsoft.Azure.IIoT.Hub.Edge.csproj" />
+        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Net.Scan\src\Microsoft.Azure.IIoT.Net.Scan.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Edge" Version="1.0.0-preview" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Net" Version="1.0.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Edge" Version="1.0.0-preview001" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Net.Scan" Version="1.0.0-preview001" />
       </ItemGroup>
     </Otherwise>
   </Choose>

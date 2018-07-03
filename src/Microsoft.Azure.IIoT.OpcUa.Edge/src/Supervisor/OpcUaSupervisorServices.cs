@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Edge;
-    using Microsoft.Azure.IIoT.Edge.Hub;
+    using Microsoft.Azure.IIoT.Edge.Client;
     using Microsoft.Azure.IIoT.Edge.Services;
     using Autofac;
     using System;

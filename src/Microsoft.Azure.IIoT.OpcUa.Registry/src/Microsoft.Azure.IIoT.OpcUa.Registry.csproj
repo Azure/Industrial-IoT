@@ -28,7 +28,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub" Version="1.0.0-preview" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub" Version="1.0.0-preview001" />
       </ItemGroup>
     </Otherwise>
   </Choose>

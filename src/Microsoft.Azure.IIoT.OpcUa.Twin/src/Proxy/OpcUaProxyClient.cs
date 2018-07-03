@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Proxy {
-    using Microsoft.Azure.IIoT.Proxy.Provider.Hub;
+    using Microsoft.Azure.IIoT.Proxy.Provider.Legacy;
+    using Microsoft.Azure.IIoT.Proxy.Provider;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
     using Opc.Ua;
     using Opc.Ua.Bindings.Proxy;
-    using System.Net.Proxy;
 
     /// <summary>
     /// Opc ua stack client that registers proxy transport
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Proxy {
             base(logger) {
 
             // initialize our custom transport via the proxy
-            Socket.Provider = new DefaultProvider(config.IoTHubConnString);
+            DefaultProvider.Set(new IoTHubProvider(config.IoTHubConnString));
             WcfChannelBase.g_CustomTransportChannel =
                 new ProxyTransportChannelFactory();
 

@@ -385,7 +385,7 @@ namespace Opc.Ua.Models {
             }
             return arrayDimensions.Split(',').Select(s => {
                 try {
-                    return System.Convert.ToUInt32(s);
+                    return Convert.ToUInt32(s);
                 }
                 catch {
                     return (uint)0;
