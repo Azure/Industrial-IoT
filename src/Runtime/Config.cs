@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Runtime {
     using Microsoft.Azure.IIoT.Edge;
-    using Microsoft.Azure.IIoT.Edge.Hub;
+    using Microsoft.Azure.IIoT.Edge.Client;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;

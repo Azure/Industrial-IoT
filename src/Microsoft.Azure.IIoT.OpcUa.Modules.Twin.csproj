@@ -2,8 +2,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <Authors>Microsoft</Authors>
-    <Company>Microsoft</Company>
     <Product>Azure IoT OPC UA Edge module</Product>
     <Description>Azure OPC Ua Twin Edge Service Module</Description>
   </PropertyGroup>
@@ -31,7 +29,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Edge" Version="1.0.0-preview" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Edge" Version="1.0.0-preview001" />
       </ItemGroup>
     </Otherwise>
   </Choose>
