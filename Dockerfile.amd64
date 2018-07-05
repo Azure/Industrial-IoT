@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:2.0-sdk-jessie
+FROM microsoft/dotnet:2.1-sdk-stretch AS build-env
 
 COPY /src /build/src
 
@@ -6,5 +6,8 @@ WORKDIR /build/src
 RUN dotnet restore
 RUN dotnet publish --configuration Release --output /build/out
 
+FROM microsoft/dotnet:2.1.0-runtime-stretch-slim
+
+COPY --from=build-env /build/out /build/out
 WORKDIR /docker
 ENTRYPOINT ["dotnet", "/build/out/OpcPublisher.dll"]

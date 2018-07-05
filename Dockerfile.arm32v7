@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:2.1-sdk-nanoserver-1803 as build-env
+FROM microsoft/dotnet:2.1-sdk-stretch-arm32v7 AS build-env
 
 COPY /src /build/src
 
@@ -6,7 +6,7 @@ WORKDIR /build/src
 RUN dotnet restore
 RUN dotnet publish --configuration Release --output /build/out
 
-FROM microsoft/dotnet:2.1-runtime-nanoserver-1803
+FROM microsoft/dotnet:2.1-runtime-stretch-arm32v7
 
 COPY --from=build-env /build/out /build/out
 WORKDIR /docker
