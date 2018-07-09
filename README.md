@@ -294,225 +294,236 @@ The syntax of the configuration file is as follows:
 The complete usage of the application can be shown using the `--help` command line option and is as follows:
 
 
-        Usage: OpcPublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
+     Usage: OpcPublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
 
-        OPC Edge Publisher to subscribe to configured OPC UA servers and send telemetry to Azure IoTHub.
-        To exit the application, just press ENTER while it is running.
+     OPC Edge Publisher to subscribe to configured OPC UA servers and send telemetry to Azure IoTHub.
+     To exit the application, just press ENTER while it is running.
 
-        applicationname: the OPC UA application name to use, required
-                         The application name is also used to register the publisher under this name in the
-                         IoTHub device registry.
+     applicationname: the OPC UA application name to use, required
+                      The application name is also used to register the publisher under this name in the
+                      IoTHub device registry.
 
-        iothubconnectionstring: the IoTHub owner connectionstring, optional
+     iothubconnectionstring: the IoTHub owner connectionstring, optional
 
-        There are a couple of environment variables which can be used to control the application:
-        _HUB_CS: sets the IoTHub owner connectionstring
-        _GW_LOGP: sets the filename of the log file to use
-        _TPC_SP: sets the path to store certificates of trusted stations
-        _GW_PNFP: sets the filename of the publishing configuration file
+     There are a couple of environment variables which can be used to control the application:
+     _HUB_CS: sets the IoTHub owner connectionstring
+     _GW_LOGP: sets the filename of the log file to use
+     _TPC_SP: sets the path to store certificates of trusted stations
+     _GW_PNFP: sets the filename of the publishing configuration file
 
-        Command line arguments overrule environment variable settings.
+     Command line arguments overrule environment variable settings.
 
-        Options:
-              --pf, --publishfile=VALUE
-                                     the filename to configure the nodes to publish.
-                                       Default: '.\publishednodes.json'
-              --tc, --telemetryconfigfile=VALUE
-                                     the filename to configure the ingested telemetry
-                                       Default: ''
-              --sd, --shopfloordomain=VALUE
-                                     the domain of the shopfloor. if specified this
-                                       domain is appended (delimited by a ':' to the '
-                                       ApplicationURI' property when telemetry is sent
-                                       to IoTHub.
-                                       The value must follow the syntactical rules of a
-                                       DNS hostname.
-                                       Default: not set
-              --sw, --sessionconnectwait=VALUE
-                                     specify the wait time in seconds publisher is
-                                       trying to connect to disconnected endpoints and
-                                       starts monitoring unmonitored items
-                                       Min: 10
-                                       Default: 10
-              --mq, --monitoreditemqueuecapacity=VALUE
-                                     specify how many notifications of monitored items
-                                       can be stored in the internal queue, if the
-                                       data can not be sent quick enough to IoTHub
-                                       Min: 1024
-                                       Default: 8192
-              --di, --diagnosticsinterval=VALUE
-                                     shows publisher diagnostic info at the specified
-                                       interval in seconds. 0 disables diagnostic
-                                       output.
-                                       Default: 0
-              --vc, --verboseconsole=VALUE
-                                     the output of publisher is shown on the console.
-                                       Default: False
-              --ns, --noshutdown=VALUE
-                                     publisher can not be stopped by pressing a key
-                                       on the console, but will run forever.
-                                       Default: False
-              --ih, --iothubprotocol=VALUE
-                                     the protocol to use for communication with Azure
-                                       IoTHub (allowed values: Amqp, Http1, Amqp_
-                                       WebSocket_Only, Amqp_Tcp_Only, Mqtt, Mqtt_
-                                       WebSocket_Only, Mqtt_Tcp_Only).
-                                       Default: Mqtt_WebSocket_Only
-              --ms, --iothubmessagesize=VALUE
-                                     the max size of a message which can be send to
-                                       IoTHub. when telemetry of this size is available
-                                       it will be sent.
-                                       0 will enforce immediate send when telemetry is
-                                       available
-                                       Min: 0
-                                       Max: 262144
-                                       Default: 262144
-              --si, --iothubsendinterval=VALUE
-                                     the interval in seconds when telemetry should be
-                                       send to IoTHub. If 0, then only the
-                                       iothubmessagesize parameter controls when
-                                       telemetry is sent.
-                                       Default: '10'
-              --dc, --deviceconnectionstring=VALUE
-                                     if publisher is not able to register itself with
-                                       IoTHub, you could create a device with name <
-                                       applicationname> manually and pass in the
-                                       connectionstring of this device.
-                                       Default: none
-              --lf, --logfile=VALUE  the filename of the logfile to use.
-                                       Default: './Logs/<applicationname>.log.txt'
-              --pn, --portnum=VALUE  the server port of the publisher OPC server
-                                       endpoint.
-                                       Default: 62222
-              --pa, --path=VALUE     the enpoint URL path part of the publisher OPC
-                                       server endpoint.
-                                       Default: '/UA/Publisher'
-              --lr, --ldsreginterval=VALUE
-                                     the LDS(-ME) registration interval in ms. If 0,
-                                       then the registration is disabled.
-                                       Default: 0
-              --ot, --operationtimeout=VALUE
-                                     the operation timeout of the publisher OPC UA
-                                       client in ms.
-                                       Default: 120000
-              --oi, --opcsamplinginterval=VALUE
-                                     the publisher is using this as default value in
-                                       milliseconds to request the servers to sample
-                                       the nodes with this interval
-                                       this value might be revised by the OPC UA
-                                       servers to a supported sampling interval.
-                                       please check the OPC UA specification for
-                                       details how this is handled by the OPC UA stack.
-                                       a negative value will set the sampling interval
-                                       to the publishing interval of the subscription
-                                       this node is on.
-                                       0 will configure the OPC UA server to sample in
-                                       the highest possible resolution and should be
-                                       taken with care.
-                                       Default: 1000
-              --op, --opcpublishinginterval=VALUE
-                                     the publisher is using this as default value in
-                                       milliseconds for the publishing interval setting
-                                       of the subscriptions established to the OPC UA
-                                       servers.
-                                       please check the OPC UA specification for
-                                       details how this is handled by the OPC UA stack.
-                                       a value less than or equal zero will let the
-                                       server revise the publishing interval.
-                                       Default: 0
-              --ct, --createsessiontimeout=VALUE
-                                     specify the timeout in seconds used when creating
-                                       a session to an endpoint. On unsuccessful
-                                       connection attemps a backoff up to 5 times the
-                                       specified timeout value is used.
-                                       Min: 1
-                                       Default: 10
-              --ki, --keepaliveinterval=VALUE
-                                     specify the interval in seconds the publisher is
-                                       sending keep alive messages to the OPC servers
-                                       on the endpoints it is connected to.
-                                       Min: 2
-                                       Default: 2
-              --kt, --keepalivethreshold=VALUE
-                                     specify the number of keep alive packets a server
-                                       can miss, before the session is disconneced
-                                       Min: 1
-                                       Default: 5
-              --st, --opcstacktracemask=VALUE
-                                     the trace mask for the OPC stack. See github OPC .
-                                       NET stack for definitions.
-                                       To enable IoTHub telemetry tracing set it to 711.
+     Options:
+           --pf, --publishfile=VALUE
+                                  the filename to configure the nodes to publish.
+                                    Default: '.\publishednodes.json'
+           --tc, --telemetryconfigfile=VALUE
+                                  the filename to configure the ingested telemetry
+                                    Default: not set
+       -s, --site=VALUE           the site OPC Publisher is working in. if specified
+                                    this domain is appended (delimited by a ':' to
+                                    the 'ApplicationURI' property when telemetry is
+                                    sent to IoTHub.
+                                    The value must follow the syntactical rules of a
+                                    DNS hostname.
+                                    Default: not set
+           --ic, --iotcentral     publisher will send OPC UA data in IoTCentral
+                                    compatible format (DisplayName of a node is used
+                                    as key, this key is the Field name in IoTCentral)
+                                    . you need to ensure that all DisplayName's are
+                                    unique. (Auto enables fetch display name)
+                                    Default: False
+           --sw, --sessionconnectwait=VALUE
+                                  specify the wait time in seconds publisher is
+                                    trying to connect to disconnected endpoints and
+                                    starts monitoring unmonitored items
+                                    Min: 10
+                                    Default: 10
+           --mq, --monitoreditemqueuecapacity=VALUE
+                                  specify how many notifications of monitored items
+                                    can be stored in the internal queue, if the data
+                                    can not be sent quick enough to IoTHub
+                                    Min: 1024
+                                    Default: 8192
+           --di, --diagnosticsinterval=VALUE
+                                  shows publisher diagnostic info at the specified
+                                    interval in seconds (need log level info). 0
+                                    disables diagnostic output.
+                                    Default: 0
+           --vc, --verboseconsole=VALUE
+                                  ignored, only supported for backward comaptibility.
+           --ns, --noshutdown=VALUE
+                                  same as runforever.
+                                    Default: False
+           --rf, --runforwver     publisher can not be stopped by pressing a key on
+                                    the console, but will run forever.
+                                    Default: False
+           --ih, --iothubprotocol=VALUE
+                                  the protocol to use for communication with Azure
+                                    IoTHub (allowed values: Amqp, Http1, Amqp_
+                                    WebSocket_Only, Amqp_Tcp_Only, Mqtt, Mqtt_
+                                    WebSocket_Only, Mqtt_Tcp_Only).
+                                    Default: Mqtt_WebSocket_Only
+           --ms, --iothubmessagesize=VALUE
+                                  the max size of a message which can be send to
+                                    IoTHub. when telemetry of this size is available
+                                    it will be sent.
+                                    0 will enforce immediate send when telemetry is
+                                    available
+                                    Min: 0
+                                    Max: 262144
+                                    Default: 262144
+           --si, --iothubsendinterval=VALUE
+                                  the interval in seconds when telemetry should be
+                                    send to IoTHub. If 0, then only the
+                                    iothubmessagesize parameter controls when
+                                    telemetry is sent.
+                                    Default: '10'
+           --dc, --deviceconnectionstring=VALUE
+                                  if publisher is not able to register itself with
+                                    IoTHub, you can create a device with name <
+                                    applicationname> manually and pass in the
+                                    connectionstring of this device.
+                                    Default: none
+       -c, --connectionstring=VALUE
+                                  the IoTHub owner connectionstring.
+                                    Default: none
+           --lf, --logfile=VALUE  the filename of the logfile to use.
+                                    Default: './<hostname>-publisher.log'
+           --ll, --loglevel=VALUE the loglevel to use (allowed: fatal, error, warn,
+                                    info, debug, verbose).
+                                    Default: info
+           --pn, --portnum=VALUE  the server port of the publisher OPC server
+                                    endpoint.
+                                    Default: 62222
+           --pa, --path=VALUE     the enpoint URL path part of the publisher OPC
+                                    server endpoint.
+                                    Default: '/UA/Publisher'
+           --lr, --ldsreginterval=VALUE
+                                  the LDS(-ME) registration interval in ms. If 0,
+                                    then the registration is disabled.
+                                    Default: 0
+           --ol, --opcmaxstringlen=VALUE
+                                  the max length of a string opc can transmit/
+                                    receive.
+                                    Default: 1048576
+           --ot, --operationtimeout=VALUE
+                                  the operation timeout of the publisher OPC UA
+                                    client in ms.
+                                    Default: 120000
+           --oi, --opcsamplinginterval=VALUE
+                                  the publisher is using this as default value in
+                                    milliseconds to request the servers to sample
+                                    the nodes with this interval
+                                    this value might be revised by the OPC UA
+                                    servers to a supported sampling interval.
+                                    please check the OPC UA specification for
+                                    details how this is handled by the OPC UA stack.
+                                    a negative value will set the sampling interval
+                                    to the publishing interval of the subscription
+                                    this node is on.
+                                    0 will configure the OPC UA server to sample in
+                                    the highest possible resolution and should be
+                                    taken with care.
+                                    Default: 1000
+           --op, --opcpublishinginterval=VALUE
+                                  the publisher is using this as default value in
+                                    milliseconds for the publishing interval setting
+                                    of the subscriptions established to the OPC UA
+                                    servers.
+                                    please check the OPC UA specification for
+                                    details how this is handled by the OPC UA stack.
+                                    a value less than or equal zero will let the
+                                    server revise the publishing interval.
+                                    Default: 0
+           --ct, --createsessiontimeout=VALUE
+                                  specify the timeout in seconds used when creating
+                                    a session to an endpoint. On unsuccessful
+                                    connection attemps a backoff up to 5 times the
+                                    specified timeout value is used.
+                                    Min: 1
+                                    Default: 10
+           --ki, --keepaliveinterval=VALUE
+                                  specify the interval in seconds the publisher is
+                                    sending keep alive messages to the OPC servers
+                                    on the endpoints it is connected to.
+                                    Min: 2
+                                    Default: 2
+           --kt, --keepalivethreshold=VALUE
+                                  specify the number of keep alive packets a server
+                                    can miss, before the session is disconneced
+                                    Min: 1
+                                    Default: 5
+           --st, --opcstacktracemask=VALUE
+                                  ignored, only supported for backward comaptibility.
+           --as, --autotrustservercerts=VALUE
+                                  same as autoaccept, only supported for backward
+                                    cmpatibility.
+                                    Default: False
+           --aa, --autoaccept     the publisher trusts all servers it is
+                                    establishing a connection to.
+                                    Default: False
+           --tm, --trustmyself=VALUE
+                                  same as trustowncert.
+                                    Default: True
+           --to, --trustowncert   the publisher certificate is put into the trusted
+                                    certificate store automatically.
+                                    Default: True
+           --fd, --fetchdisplayname
+                                  enable to read the display name of a published
+                                    node from the server. this will increase the
+                                    runtime.
+                                    Default: False
+           --at, --appcertstoretype=VALUE
+                                  the own application cert store type.
+                                    (allowed values: Directory, X509Store)
+                                    Default: 'X509Store'
+           --ap, --appcertstorepath=VALUE
+                                  the path where the own application cert should be
+                                    stored
+                                    Default (depends on store type):
+                                    X509Store: 'CurrentUser\UA_MachineDefault'
+                                    Directory: 'CertificateStores/own'
+           --tt, --trustedcertstoretype=VALUE
+                                  the trusted cert store type.
+                                    (allowed values: Directory, X509Store)
+                                    Default: Directory
+           --tp, --trustedcertstorepath=VALUE
+                                  the path of the trusted cert store
+                                    Default (depends on store type):
+                                    X509Store: 'CurrentUser\UA_MachineDefault'
+                                    Directory: 'CertificateStores/trusted'
+           --rt, --rejectedcertstoretype=VALUE
+                                  the rejected cert store type.
+                                    (allowed values: Directory, X509Store)
+                                    Default: Directory
+           --rp, --rejectedcertstorepath=VALUE
+                                  the path of the rejected cert store
+                                    Default (depends on store type):
+                                    X509Store: 'CurrentUser\UA_MachineDefault'
+                                    Directory: 'CertificateStores/rejected'
+           --it, --issuercertstoretype=VALUE
+                                  the trusted issuer cert store type.
+                                    (allowed values: Directory, X509Store)
+                                    Default: Directory
+           --ip, --issuercertstorepath=VALUE
+                                  the path of the trusted issuer cert store
+                                    Default (depends on store type):
+                                    X509Store: 'CurrentUser\UA_MachineDefault'
+                                    Directory: 'CertificateStores/issuers'
+           --dt, --devicecertstoretype=VALUE
+                                  the iothub device cert store type.
+                                    (allowed values: Directory, X509Store)
+                                    Default: X509Store
+           --dp, --devicecertstorepath=VALUE
+                                  the path of the iot device cert store
+                                    Default Default (depends on store type):
+                                    X509Store: 'My'
+                                    Directory: 'CertificateStores/IoTHub'
+       -i, --install              register OPC Publisher with IoTHub and then exits.
+                                    Default:  False
+       -h, --help                 show this message and exit
 
-                                       Default: 285  (645)
-              --as, --autotrustservercerts=VALUE
-                                     the publisher trusts all servers it is
-                                       establishing a connection to.
-                                       Default: False
-              --tm, --trustmyself=VALUE
-                                     the publisher certificate is put into the trusted
-                                       certificate store automatically.
-                                       Default: True
-              --fd, --fetchdisplayname=VALUE
-                                     enable to read the display name of a published
-                                       node from the server. this will increase the
-                                       runtime.
-                                       Default: False
-              --at, --appcertstoretype=VALUE
-                                     the own application cert store type.
-                                       (allowed values: Directory, X509Store)
-                                       Default: 'X509Store'
-              --ap, --appcertstorepath=VALUE
-                                     the path where the own application cert should be
-                                       stored
-                                       Default (depends on store type):
-                                       X509Store: 'CurrentUser\UA_MachineDefault'
-                                       Directory: 'CertificateStores/own'
-              --tt, --trustedcertstoretype=VALUE
-                                     the trusted cert store type.
-                                       (allowed values: Directory, X509Store)
-                                       Default: Directory
-              --tp, --trustedcertstorepath=VALUE
-                                     the path of the trusted cert store
-                                       Default (depends on store type):
-                                       X509Store: 'CurrentUser\UA_MachineDefault'
-                                       Directory: 'CertificateStores/trusted'
-              --rt, --rejectedcertstoretype=VALUE
-                                     the rejected cert store type.
-                                       (allowed values: Directory, X509Store)
-                                       Default: Directory
-              --rp, --rejectedcertstorepath=VALUE
-                                     the path of the rejected cert store
-                                       Default (depends on store type):
-                                       X509Store: 'CurrentUser\UA_MachineDefault'
-                                       Directory: 'CertificateStores/rejected'
-              --it, --issuercertstoretype=VALUE
-                                     the trusted issuer cert store type.
-                                       (allowed values: Directory, X509Store)
-                                       Default: Directory
-              --ip, --issuercertstorepath=VALUE
-                                     the path of the trusted issuer cert store
-                                       Default (depends on store type):
-                                       X509Store: 'CurrentUser\UA_MachineDefault'
-                                       Directory: 'CertificateStores/issuers'
-              --dt, --devicecertstoretype=VALUE
-                                     the iothub device cert store type.
-                                       (allowed values: Directory, X509Store)
-                                       Default: X509Store
-              --dp, --devicecertstorepath=VALUE
-                                     the path of the iot device cert store
-                                       Default Default (depends on store type):
-                                       X509Store: 'My'
-                                       Directory: 'CertificateStores/IoTHub'
-          -h, --help                 show this message and exit
-
-
-There are a couple of environment variables which can be used to control the application:
-* _HUB_CS: sets the IoTHub owner connectionstring
-* _GW_LOGP: sets the filename of the log file to use
-* _TPC_SP: sets the path to store certificates of trusted stations
-* _GW_PNFP: sets the filename of the publishing configuration file
-
-Command line arguments overrule environment variable settings.
 
 Typically you specify the IoTHub owner connectionstring only on the first start of the application. The connectionstring will be encrypted and stored in the platforms certificiate store.
 On subsequent calls it will be read from there and reused. If you specify the connectionstring on each start, the device which is created for the application in the IoTHub device registry will be removed and recreated each time.
@@ -535,33 +546,47 @@ There is a prebuilt container available on DockerHub. To start it, just do:
     docker run microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
 ## Using it as a module in Azure IoT Edge
-[Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge) is now in public preview and OpcPublisher is ready to be used as a module to run in IoT Edge.
-We recommend to take a look on the information available on the beforementioned link and use then the information provided here. You need to install the IoT Edge as
-explained in the Quickstart guides and create an IoTHub to be able to configure the modules to run on IoT Edge.
+[Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge) Microsoft's Intelligent Edge framework and OpcPublisher is ready to be used as a module to run in IoT Edge.
+We recommend to take a look on the information available on the beforementioned link and use then the information provided here.
 
-To add publisher as module to your IoT Edge deployment, you go to the Azure portal and navigate to your IoTHub and:
-* Go to IoT Edge (preview) and select your IoT Edge device.
+To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure portal and navigate to your IoTHub and:
+* Go to IoT Edge and create or select your IoT Edge device.
 * Select `Set Modules`.
-* Select `Add IoT Edge Module`.
+* Select `Add`under `Deployment Modules`and `Add IoT Edge Module`.
 * In the `Name` field, enter `iot-edge-opc-publisher`.
 In the `Image URI` field, enter `microsoft/iot-edge-opc-publisher:latest`
 * Paste the following into the `Container Create Options` field:
 
         {
-            "Hostname": "publisher",
-            "Cmd": [
-                "dotnet", "/build/out/OpcPublisher.dll", "publisher", "--pf", "/docker/publishednodes.json", "--lf", "/docker/publisher.log.txt", "--si", "1", "--ms", "0", "--di", "5", "--fd", "true", "--tm", "true", "--as", "true", "--vc", "true", "--ih", "Mqtt_Tcp_Only"
+          "Hostname": "publisher",
+          "Cmd": [
+            "publisher",
+            "--pf",
+            "/cfg/pn.json",
+            "--aa"
+          ],
+          "HostConfig": {
+            "PortBindings": {
+              "62222/tcp": [
+                {
+                  "HostPort": "62222"
+                }
+              ]
+            },
+            "Binds": [
+              "test_cfx509certstores:/root/.dotnet/corefx/cryptography/x509stores",
+              "d:/iiotedge:/cfg"
             ],
-            "HostConfig": {
-                    "Binds": [
-                        "//d/docker/docker:/docker"
-                    ]
-            }
+            "ExtraHosts": [
+              "localhost:127.0.0.1"
+            ]
+          }
         }
 
 * Adjust the command line parameters in `Cmd` as needed
-* Adjust the `Binds` source, which is set in the example to `//d/docker/docker`, which means that the publishednodes.json and the publisher.log.txt are put into
-  folder d:\docker\docker on the Windows host IoT Edge is running (Note: you need to apply the the appropriate Settings to allow Docker for Windows accessing the drives.)
+* Adjust the `Binds` source, which is set in the example to `d:/iiotedge`, which means that the configuration file is in the host folder 
+  `d:\iiotedge` on the Windows host IoT Edge is running. The command line option specifies the configuration file as `\cfg\pn.json`.
+  This resolves with the volume mapping to `d:\iiotedge\pn.json`. (Note: you need to apply the the appropriate Settings to allow Docker for Windows accessing the drives.)
 * Leave the other settings unchanged and select `Save`.
 * Back in the `Set Modules` page, select `Next`
 * Add the following route in the `Specify Routes` page:
@@ -612,6 +637,43 @@ In certain use cases it may make sense to read configuration information from or
 
 ### Store for X509 certificates
 Storing X509 certificates does not work with bind mounts, since the permissions of the path to the store need to be `rw` for the owner. Instead you need to use the `-v` option of `docker run` in the volume mode.
+
+## Configuration of the nodes to publish
+### Configuration via configuration file
+The easiest way to configure the OPC UA nodes to publish is via configuration file. The configuration file format is documented in `publishednodes.json` in this repository.
+Configuration file syntax has changed over time and OPC Publisher still can read old formats, but converts them into the latest format when persisting the configuration.
+An example for the format of the configuration file is:
+        [
+          {
+            "EndpointUrl": "opc.tcp://192.168.178.26:62541/Quickstarts/ReferenceServer",
+            "UseSecurity": false,
+            "OpcNodes": [
+              {
+                "Id": "i=2258",
+                "OpcSamplingInterval": 2000,
+                "OpcPublishingInterval": 5000
+              }
+            ]
+          }
+        ]
+
+### Configuration via OPC UA method calls
+OPC Publisher has an OPC UA Server integrated, which could be accessed on port 62222. If the hostname is `publisher`, then the URI of the endpoint is: `opc.tcp://pub-test:62222/UA/Publisher`
+This endpoint exposes three methods:
+  - PublishNode
+  - UnpublishNode
+  - GetPublishedNodes
+
+### Configuration via IoTHub direct function calls
+OPC Publisher implements the following IoTHub direct method calls, which can be called when OPC Publisher runs standalone or in IoTEdge:
+  - PublishNodes
+  - UnpublishNodes
+  - UnpublishAllNodes
+  - GetConfiguredEndpoints
+  - GetConfiguredNodesOnEndpoint
+
+The format of the JSON payload of the method request and responses are defined in the file HubMethodModels.cs.
+
 
 ## Performance and memory considerations
 ### Commandline parameters contolling performance and memory
@@ -783,60 +845,7 @@ Open the OpcPublisher.sln project with Visual Studio 2017 and start debugging th
 
 If you need to access the OPC UA server in the publisher, you should ensure that the firewall setting allow access to the port the server is listening on (default: 62222).
 
-## In a docker container
 
-Visual Studio 2017 supports debugging of application in docker container. This is done by using docker-compose. Since this does not allow to pass command line parameters it is not convenient. 
-Another debugging option VS2017 supports is to debug via ssh. In the root of the repository the docker build configuration file `Dockerfile.ssh` can be used to create a SSH enabled container by:
-
-    docker build -f .\Dockerfile.ssh -t publisherssh .
-
-The container can now be started for publisher debugging purposes with:
-
-    docker run -it publisherssh
-
-In the container you need to manually start the ssh daemon with:
-
-    service ssh start
-
-At this point you should be able to create an ssh session as user `root` with the password `Passw0rd`.
-
-To prepare debugging of the application in the container you need to do the following additional steps:
-
-On the host side create a launch.json:
-
-    {
-      "version": "0.2.0",
-      "adapter": "<path>\\plink.exe",
-      "adapterArgs": "root@localhost -pw Passw0rd -batch -T ~/vsdbg/vsdbg --interpreter=vscode",
-      "languageMappings": {
-        "C#": {
-          "languageId": "3F5162F8-07C6-11D3-9053-00C04FA302A1",
-          "extensions": [ "*" ]
-        }
-      },
-      "exceptionCategoryMappings": {
-        "CLR": "449EC4CC-30D2-4032-9256-EE18EB41B62B",
-        "MDA": "6ECE07A9-0EDE-45C4-8296-818D8FC401D4"
-      },
-      "configurations": [
-        {
-          "name": ".NET Core Launch",
-          "type": "coreclr",
-          "cwd": "~/publisher",
-          "program": "Opc.Ua.Publisher.dll",
-          "args": "<put-the-publisher-command-line-options-here>",
-
-          "request": "launch"
-        }
-      ]
-    }
-
-Build your project and publish it to a directory of your choice.
-
-Use a tool like WinSCP to copy over the published files to the container into the directory `/root/publisher` (this can be also a different directory, but needs to be in sync with the `cdw` property of launch.json.
-
-Now you can start debugging with the following command in Visual Studio's Command Window (View->Other Windows->Command Window):
-DebugAdapterHost.Launch /LaunchJson:"<path-to-the-launch.json-file-you-saved>"
 
 
 

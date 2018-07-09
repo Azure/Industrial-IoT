@@ -1,0 +1,22 @@
+FROM microsoft/dotnet:2.0-runtime-stretch AS base
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends unzip procps && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN useradd -ms /bin/bash moduleuser
+USER moduleuser
+RUN curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/vsdbg
+
+FROM microsoft/dotnet:2.0-sdk AS build-env
+COPY /src /build/src
+WORKDIR /build/src
+RUN dotnet restore
+RUN dotnet publish --configuration Debug --output /build/out
+
+FROM microsoft/dotnet:2.0-runtime
+FROM base
+WORKDIR /docker
+COPY --from=build-env /build/out ./
+
+ENTRYPOINT ["dotnet", "OpcPublisher.dll"]
