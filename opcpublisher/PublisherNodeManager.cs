@@ -114,8 +114,8 @@ namespace OpcPublisher
                     MethodState getPublishedNodesLegacyMethod = CreateMethod(methodsFolder, "GetPublishedNodes", "GetPublishedNodes");
                     SetGetPublishedNodesLegacyMethodProperties(ref getPublishedNodesLegacyMethod);
 
-                    MethodState getConfiguredNodesMethod = CreateMethod(methodsFolder, "GetConfiguredNodes", "GetConfiguredNodes");
-                    SetGetConfiguredNodesMethodProperties(ref getConfiguredNodesMethod);
+                    MethodState getConfiguredNodesOnEndpointMethod = CreateMethod(methodsFolder, "GetConfiguredNodesOnEndpoint", "GetConfiguredNodesOnEndpoint");
+                    SetGetConfiguredNodesOnEndpointMethodProperties(ref getConfiguredNodesOnEndpointMethod);
                 }
                 catch (Exception e)
                 {
@@ -221,9 +221,9 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Sets properies of the GetConfigruredNodes method.
+        /// Sets properies of the GetConfigruredNodesOnEndpoint method.
         /// </summary>
-        private void SetGetConfiguredNodesMethodProperties(ref MethodState method)
+        private void SetGetConfiguredNodesOnEndpointMethodProperties(ref MethodState method)
         {
             // define input arguments
             method.InputArguments = new PropertyState<Argument[]>(method)
@@ -256,9 +256,9 @@ namespace OpcPublisher
 
             method.OutputArguments.Value = new Argument[]
             {
-                        new Argument() { Name = "Configured nodes", Description = "List of the nodes configured to publish in OPC Publisher",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                        new Argument() { Name = "Configured nodes on endpoint", Description = "List of the nodes configured on the specifcied endpoint to publish in OPC Publisher",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
             };
-            method.OnCallMethod = new GenericMethodCalledEventHandler(OnGetConfiguredNodesCall);
+            method.OnCallMethod = new GenericMethodCalledEventHandler(OnGetConfiguredNodesOnEndpointCall);
         }
 
         /// <summary>
@@ -689,15 +689,15 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Method to get the list of configured nodes, which returns the list in new format. Executes synchronously.
+        /// Method to get the list of configured nodes on the psecified endpoint, which returns the list in new format. Executes synchronously.
         /// </summary>
-        private ServiceResult OnGetConfiguredNodesCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
+        private ServiceResult OnGetConfiguredNodesOnEndpointCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
             Uri endpointUrl = null;
 
             if (string.IsNullOrEmpty(inputArguments[0] as string))
             {
-                Logger.Error($"OnGetConfiguredNodesCall: endpointUrl is null or empty'!");
+                Logger.Error($"OnGetConfiguredNodesOnEndpointCall: endpointUrl is null or empty'!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as first argument!");
             }
             else
@@ -708,7 +708,7 @@ namespace OpcPublisher
                 }
                 catch (UriFormatException)
                 {
-                    Logger.Error($"OnGetConfiguredNodesCall: The endpointUrl is invalid '{inputArguments[0] as string}'!");
+                    Logger.Error($"OnGetConfiguredNodesOnEndpointCall: The endpointUrl is invalid '{inputArguments[0] as string}'!");
                     return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as first argument!");
                 }
             }
@@ -716,7 +716,7 @@ namespace OpcPublisher
             // get the list of published nodes in NodeId format
             uint nodeConfigVersion = 0;
             outputArguments[0] = JsonConvert.SerializeObject(GetPublisherConfigurationFileEntries(endpointUrl, false, out nodeConfigVersion));
-            Logger.Information("OnGetConfiguredNodesCall: Success!");
+            Logger.Information("OnGetConfiguredNodesOnEndpointCall: Success!");
 
             return ServiceResult.Good;
         }

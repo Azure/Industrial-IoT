@@ -18,10 +18,10 @@ namespace OpcPublisher
 
     public static class PublisherNodeConfiguration
     {
-        public static SemaphoreSlim PublisherNodeConfigurationSemaphore;
-        public static SemaphoreSlim PublisherNodeConfigurationFileSemaphore;
-        public static List<OpcSession> OpcSessions;
-        public static SemaphoreSlim OpcSessionsListSemaphore;
+        public static SemaphoreSlim PublisherNodeConfigurationSemaphore { get; set; }
+        public static SemaphoreSlim PublisherNodeConfigurationFileSemaphore { get; set; }
+        public static List<OpcSession> OpcSessions { get; set; }
+        public static SemaphoreSlim OpcSessionsListSemaphore { get; set; }
 
         public static string PublisherNodeConfigurationFilename { get; set; } = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
 

@@ -84,12 +84,12 @@ namespace OpcPublisher
 
         public static int LdsRegistrationInterval { get; set; } = 0;
 
-        public static int OpcTraceToLoggerVerbose = 0;
-        public static int OpcTraceToLoggerDebug = 0;
-        public static int OpcTraceToLoggerInformation = 0;
-        public static int OpcTraceToLoggerWarning = 0;
-        public static int OpcTraceToLoggerError = 0;
-        public static int OpcTraceToLoggerFatal = 0;
+        public static int OpcTraceToLoggerVerbose { get; set; } = 0;
+        public static int OpcTraceToLoggerDebug { get; set; } = 0;
+        public static int OpcTraceToLoggerInformation { get; set; } = 0;
+        public static int OpcTraceToLoggerWarning { get; set; } = 0;
+        public static int OpcTraceToLoggerError { get; set; } = 0;
+        public static int OpcTraceToLoggerFatal { get; set; } = 0;
 
         /// <summary>
         /// Configures all OPC stack settings

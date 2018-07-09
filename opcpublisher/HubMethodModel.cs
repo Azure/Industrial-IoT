@@ -8,9 +8,9 @@ namespace OpcPublisher
     /// </summary>
     public class GetConfiguredNodesMethodData
     {
-        public string EndpointUrl;
-        public string PublishInterval;
-        public string SamplingInterval;
+        public string EndpointUrl { get; set; }
+        public string PublishInterval { get; set; }
+        public string SamplingInterval { get; set; }
     }
 
     public class NodeModel
@@ -22,13 +22,13 @@ namespace OpcPublisher
             OpcSamplingInterval = opcSamplingInterval;
         }
 
-        public string Id;
+        public string Id { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public int? OpcPublishingInterval;
+        public int? OpcPublishingInterval { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public int? OpcSamplingInterval;
+        public int? OpcSamplingInterval { get; set; }
     }
 
     public class PublishNodesMethodRequestModel
@@ -42,17 +42,17 @@ namespace OpcPublisher
             Password = password;
         }
 
-        public string EndpointUrl;
-        public List<NodeModel> Nodes;
+        public string EndpointUrl { get; set; }
+        public List<NodeModel> Nodes { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public bool UseSecurity;
+        public bool UseSecurity { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string UserName;
+        public string UserName { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string Password;
+        public string Password { get; set; }
     }
 
     public class UnpublishNodesMethodRequestModel
@@ -63,8 +63,8 @@ namespace OpcPublisher
             EndpointUrl = endpointUrl;
         }
 
-        public string EndpointUrl;
-        public List<NodeModel> Nodes;
+        public string EndpointUrl { get; set; }
+        public List<NodeModel> Nodes { get; set; }
     }
 
     public class UnpublishAllNodesMethodRequestModel
@@ -74,22 +74,19 @@ namespace OpcPublisher
             EndpointUrl = endpointUrl;
         }
 
-        public string EndpointUrl;
+        public string EndpointUrl { get; set; }
     }
 
 
     public class GetConfiguredEndpointsMethodRequestModel
     {
-        public GetConfiguredEndpointsMethodRequestModel(uint? count = null, ulong? continuationToken = null)
+        public GetConfiguredEndpointsMethodRequestModel(ulong? continuationToken = null)
         {
-            Count = count;
             ContinuationToken = continuationToken;
         }
-        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public uint? Count;
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public ulong? ContinuationToken;
+        public ulong? ContinuationToken { get; set; }
     }
 
 
@@ -104,7 +101,7 @@ namespace OpcPublisher
         {
             Endpoints = endpoints;
         }
-        public List<string> Endpoints;
+        public List<string> Endpoints { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ulong? ContinuationToken;
@@ -112,20 +109,16 @@ namespace OpcPublisher
 
     public class GetConfiguredNodesOnEndpointMethodRequestModel
     {
-        public GetConfiguredNodesOnEndpointMethodRequestModel(string endpointUrl, uint? count = null, ulong? continuationToken = null)
+        public GetConfiguredNodesOnEndpointMethodRequestModel(string endpointUrl, ulong? continuationToken = null)
         {
             EndpointUrl = endpointUrl;
-            Count = count;
             ContinuationToken = continuationToken;
         }
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public string EndpointUrl;
+        public string EndpointUrl { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public uint? Count;
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public ulong? ContinuationToken;
+        public ulong? ContinuationToken { get; set; }
     }
 
 
@@ -142,9 +135,9 @@ namespace OpcPublisher
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public List<NodeModel> Nodes;
+        public List<NodeModel> Nodes { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public ulong? ContinuationToken;
+        public ulong? ContinuationToken { get; set; }
     }
 }

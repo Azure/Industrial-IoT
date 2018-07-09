@@ -645,7 +645,7 @@ Configuration file syntax has changed over time and OPC Publisher still can read
 An example for the format of the configuration file is:
         [
           {
-            "EndpointUrl": "opc.tcp://192.168.178.26:62541/Quickstarts/ReferenceServer",
+            "EndpointUrl": "opc.tcp://testserver:62541/Quickstarts/ReferenceServer",
             "UseSecurity": false,
             "OpcNodes": [
               {
@@ -658,7 +658,7 @@ An example for the format of the configuration file is:
         ]
 
 ### Configuration via OPC UA method calls
-OPC Publisher has an OPC UA Server integrated, which could be accessed on port 62222. If the hostname is `publisher`, then the URI of the endpoint is: `opc.tcp://pub-test:62222/UA/Publisher`
+OPC Publisher has an OPC UA Server integrated, which can be accessed on port 62222. If the hostname is `publisher`, then the URI of the endpoint is: `opc.tcp://publisher:62222/UA/Publisher`
 This endpoint exposes three methods:
   - PublishNode
   - UnpublishNode

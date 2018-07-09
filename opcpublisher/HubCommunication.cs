@@ -28,8 +28,8 @@ namespace OpcPublisher
     {
         private class IotCentralMessage
         {
-            public string Key;
-            public string Value;
+            public string Key { get; set; }
+            public string Value { get; set; }
 
             public IotCentralMessage()
             {
@@ -554,7 +554,7 @@ namespace OpcPublisher
             }
 
             // set count
-            uint requestedEndpointsCount = getConfiguredEndpointsMethodRequest.Count ?? endpointsCount - startIndex;
+            uint requestedEndpointsCount = endpointsCount - startIndex;
             uint availableEndpointCount = endpointsCount - startIndex;
             uint actualEndpointsCount = Math.Min(requestedEndpointsCount, availableEndpointCount);
 
@@ -643,7 +643,7 @@ namespace OpcPublisher
             }
 
             // set count
-            uint requestedNodeCount = getConfiguredNodesOnEndpointMethodRequest.Count ?? configuredNodesOnEndpointCount - startIndex;
+            uint requestedNodeCount = configuredNodesOnEndpointCount - startIndex;
             uint availableNodeCount = configuredNodesOnEndpointCount - startIndex;
             uint actualNodeCount = Math.Min(requestedNodeCount, availableNodeCount);
 

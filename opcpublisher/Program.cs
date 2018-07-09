@@ -34,9 +34,9 @@ namespace OpcPublisher
 
         public static uint PublisherShutdownWaitPeriod { get; } = 10;
 
-        public static DateTime PublisherStartTime = DateTime.UtcNow;
+        public static DateTime PublisherStartTime { get; set; } = DateTime.UtcNow;
 
-        public static Serilog.Core.Logger Logger = null;
+        public static Serilog.Core.Logger Logger { get; set; } = null;
 
         /// <summary>
         /// Synchronous main method of the app.
@@ -88,6 +88,19 @@ namespace OpcPublisher
                                 else
                                 {
                                     throw new OptionException("The shopfloor site is not a valid DNS hostname.", "site");
+                                }
+                            }
+                         },
+                        { "sd|shopfloordomain=", $"same as site option, only there for backward compatibility\n" +
+                                "The value must follow the syntactical rules of a DNS hostname.\nDefault: not set", (string s) => {
+                                Regex siteNameRegex = new Regex("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
+                                if (siteNameRegex.IsMatch(s))
+                                {
+                                    PublisherSite = s;
+                                }
+                                else
+                                {
+                                    throw new OptionException("The shopfloor domain is not a valid DNS hostname.", "shopfloordomain");
                                 }
                             }
                          },

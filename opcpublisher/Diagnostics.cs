@@ -16,8 +16,6 @@ namespace OpcPublisher
     {
         public static uint DiagnosticsInterval { get; set; } = 0;
 
-        public static int IotHubMessagingMessagesSentCount { get; } = 0;
-
         public static void Init()
         {
             // init data

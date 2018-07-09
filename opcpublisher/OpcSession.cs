@@ -37,21 +37,21 @@ namespace OpcPublisher
             ExpandedNodeId
         }
 
-        public string DisplayName;
-        public OpcMonitoredItemState State;
-        public uint AttributeId;
-        public MonitoringMode MonitoringMode;
-        public int RequestedSamplingInterval;
-        public int SamplingInterval;
-        public uint QueueSize;
-        public bool DiscardOldest;
-        public MonitoredItemNotificationEventHandler Notification;
-        public Uri EndpointUrl;
-        public MonitoredItem OpcUaClientMonitoredItem;
-        public NodeId ConfigNodeId;
-        public ExpandedNodeId ConfigExpandedNodeId;
-        public string OriginalId;
-        public OpcMonitoredItemConfigurationType ConfigType;
+        public string DisplayName { get; set; }
+        public OpcMonitoredItemState State { get; set; }
+        public uint AttributeId { get; set; }
+        public MonitoringMode MonitoringMode { get; set; }
+        public int RequestedSamplingInterval { get; set; }
+        public int SamplingInterval { get; set; }
+        public uint QueueSize { get; set; }
+        public bool DiscardOldest { get; set; }
+        public MonitoredItemNotificationEventHandler Notification { get; set; }
+        public Uri EndpointUrl { get; set; }
+        public MonitoredItem OpcUaClientMonitoredItem { get; set; }
+        public NodeId ConfigNodeId { get; set; }
+        public ExpandedNodeId ConfigExpandedNodeId { get; set; }
+        public string OriginalId { get; set; }
+        public OpcMonitoredItemConfigurationType ConfigType { get; set; }
 
         /// <summary>
         /// Ctor using NodeId (ns syntax for namespace).

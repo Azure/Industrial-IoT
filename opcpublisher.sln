@@ -1,0 +1,67 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2036
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{560B34E9-68E3-4033-94D4-CE24073F5904}"
+	ProjectSection(SolutionItems) = preProject
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		.travis.yml = .travis.yml
+		appveyor.yml = appveyor.yml
+		License.txt = License.txt
+		README.md = README.md
+		THIRDPARTYNOTICES = THIRDPARTYNOTICES
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "opcpublisher", "opcpublisher\opcpublisher.csproj", "{215DC07F-AFA5-445C-BE70-09BF009C9A66}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{8B205340-83A1-4748-9417-0300C1AA5CA3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "linux", "linux", "{E702EA85-1054-4252-B029-78B694D08C08}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "windows", "windows", "{BC12870A-38D7-4A8F-9C6B-925101D402FB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "amd64", "amd64", "{7AE30F71-DFA6-4E09-8CAD-334D009515C1}"
+	ProjectSection(SolutionItems) = preProject
+		docker\linux\amd64\Dockerfile = docker\linux\amd64\Dockerfile
+		docker\linux\amd64\Dockerfile.debug = docker\linux\amd64\Dockerfile.debug
+		docker\linux\amd64\Dockerfile.ssh = docker\linux\amd64\Dockerfile.ssh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "arm32v7", "arm32v7", "{94E5355D-AA16-4E28-8B34-FA1CDBC77312}"
+	ProjectSection(SolutionItems) = preProject
+		docker\linux\arm32v7\Dockerfile = docker\linux\arm32v7\Dockerfile
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "amd64", "amd64", "{8F91D4C5-8CD0-4195-9B3E-1072F0B87E92}"
+	ProjectSection(SolutionItems) = preProject
+		docker\windows\amd64\Dockerfile = docker\windows\amd64\Dockerfile
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{215DC07F-AFA5-445C-BE70-09BF009C9A66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{215DC07F-AFA5-445C-BE70-09BF009C9A66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{215DC07F-AFA5-445C-BE70-09BF009C9A66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{215DC07F-AFA5-445C-BE70-09BF009C9A66}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8B205340-83A1-4748-9417-0300C1AA5CA3} = {560B34E9-68E3-4033-94D4-CE24073F5904}
+		{E702EA85-1054-4252-B029-78B694D08C08} = {8B205340-83A1-4748-9417-0300C1AA5CA3}
+		{BC12870A-38D7-4A8F-9C6B-925101D402FB} = {8B205340-83A1-4748-9417-0300C1AA5CA3}
+		{7AE30F71-DFA6-4E09-8CAD-334D009515C1} = {E702EA85-1054-4252-B029-78B694D08C08}
+		{94E5355D-AA16-4E28-8B34-FA1CDBC77312} = {E702EA85-1054-4252-B029-78B694D08C08}
+		{8F91D4C5-8CD0-4195-9B3E-1072F0B87E92} = {BC12870A-38D7-4A8F-9C6B-925101D402FB}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C1B8DD9F-B491-4E8A-8DF9-3077636E9A84}
+	EndGlobalSection
+EndGlobal
