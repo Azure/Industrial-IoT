@@ -36,55 +36,42 @@ The `-f` option for `docker build` is optional and the default is to use Dockerf
 
     docker build -t <your-container-name> https://github.com/Azure/iot-edge-opc-publisher
 
-# Configuring the OPC UA nodes to publish
-The OPC UA nodes whose values should be published to Azure IoT Hub can be configured by creating a JSON formatted configuration file (defaultname: "publishednodes.json"). This file is updated and persisted by the application, when using it's OPC UA server methods "PublishNode" or "UnpublishNode".
-
-The syntax of the configuration file is as follows:
-
-    [
-        {
-            // example for an EnpointUrl is: opc.tcp://win10iot:51210/UA/SampleServer
-            "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
-            // Allows to access the endpoint with SecurityPolicy.None when set to 'false' (no signing and encryption applied to the OPC UA communication), default is true
-            "UseSecurity": true,
+## Configuration of the OPC UA nodes to publish
+### Configuration via configuration file
+The easiest way to configure the OPC UA nodes to publish is via configuration file. The configuration file format is documented in `publishednodes.json` in this repository.
+Configuration file syntax has changed over time and OPC Publisher still can read old formats, but converts them into the latest format when persisting the configuration.
+An example for the format of the configuration file is:
+        [
+          {
+            "EndpointUrl": "opc.tcp://testserver:62541/Quickstarts/ReferenceServer",
+            "UseSecurity": false,
             "OpcNodes": [
-                // Publisher will request the server at EndpointUrl to sample the node with the OPC sampling interval specified on command line (or the default value: OPC publishing interval)
-                // and the subscription will publish the node value with the OPC publishing interval specified on command line (or the default value: server revised publishing interval).
-                {
-                    // The identifier specifies the NamespaceUri and the node identifier in XML notation as specified in Part 6 of the OPC UA specification in the XML Mapping section.
-                    "ExpandedNodeId": "nsu=http://opcfoundation.org/UA/;i=2258"
-                },
-                // Publisher will request the server at EndpointUrl to sample the node with the OPC sampling interval specified on command line (or the default value: OPC publishing interval)
-                // and the subscription will publish the node value with an OPC publishing interval of 4 seconds.
-                // Publisher will use for each dinstinct publishing interval (of nodes on the same EndpointUrl) a separate subscription. All nodes without a publishing interval setting,
-                // will be on the same subscription and the OPC UA stack will publish with the lowest sampling interval of a node.
-                {
-                    "ExpandedNodeId": "nsu=http://opcfoundation.org/UA/;i=2258",
-                    "OpcPublishingInterval": 4000
-                },
-                // Publisher will request the server at EndpointUrl to sample the node with the given sampling interval of 1 second
-                // and the subscription will publish the node value with the OPC publishing interval specified on command line (or the default value: server revised interval).
-                // If the OPC publishing interval is set to a lower value, Publisher will adjust the OPC publishing interval of the subscription to the OPC sampling interval value.
-                {
-                    "ExpandedNodeId": "nsu=http://opcfoundation.org/UA/;i=2258",
-                    // the OPC sampling interval to use for this node.
-                    "OpcSamplingInterval": 1000
-                }
+              {
+                "Id": "i=2258",
+                "OpcSamplingInterval": 2000,
+                "OpcPublishingInterval": 5000
+              }
             ]
-        },
+          }
+        ]
 
-        // the format below (NodeId format) is only supported for backward compatibility. you need to ensure that the
-        // OPC UA server on the configured EndpointUrl has the namespaceindex you expect with your configuration.
-        // please use the ExpandedNodeId format as in the examples above instead.
-        {
-            "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
-            "NodeId": {
-                "Identifier": "ns=0;i=2258"
-            }
-        }
-        // please consult the OPC UA specification for details on how OPC monitored node sampling interval and OPC subscription publishing interval settings are handled by the OPC UA stack.
-        // the publishing interval of the data to Azure IoTHub is controlled by the command line settings (or the default: publish data to IoTHub at least each 1 second).
-    ]
+### Configuration via OPC UA method calls
+OPC Publisher has an OPC UA Server integrated, which can be accessed on port 62222. If the hostname is `publisher`, then the URI of the endpoint is: `opc.tcp://publisher:62222/UA/Publisher`
+This endpoint exposes three methods:
+  - PublishNode
+  - UnpublishNode
+  - GetPublishedNodes
+
+### Configuration via IoTHub direct function calls
+OPC Publisher implements the following IoTHub direct method calls, which can be called when OPC Publisher runs standalone or in IoTEdge:
+  - PublishNodes
+  - UnpublishNodes
+  - UnpublishAllNodes
+  - GetConfiguredEndpoints
+  - GetConfiguredNodesOnEndpoint
+
+The format of the JSON payload of the method request and responses are defined in the file HubMethodModels.cs.
+
 
 # Configuring the telemetry published to IoTHub
 When OpcPublisher gets notified about a value change in one of the configured published nodes, it generates a JSON formatted message, which is sent to IoTHub.
@@ -637,43 +624,6 @@ In certain use cases it may make sense to read configuration information from or
 
 ### Store for X509 certificates
 Storing X509 certificates does not work with bind mounts, since the permissions of the path to the store need to be `rw` for the owner. Instead you need to use the `-v` option of `docker run` in the volume mode.
-
-## Configuration of the nodes to publish
-### Configuration via configuration file
-The easiest way to configure the OPC UA nodes to publish is via configuration file. The configuration file format is documented in `publishednodes.json` in this repository.
-Configuration file syntax has changed over time and OPC Publisher still can read old formats, but converts them into the latest format when persisting the configuration.
-An example for the format of the configuration file is:
-        [
-          {
-            "EndpointUrl": "opc.tcp://testserver:62541/Quickstarts/ReferenceServer",
-            "UseSecurity": false,
-            "OpcNodes": [
-              {
-                "Id": "i=2258",
-                "OpcSamplingInterval": 2000,
-                "OpcPublishingInterval": 5000
-              }
-            ]
-          }
-        ]
-
-### Configuration via OPC UA method calls
-OPC Publisher has an OPC UA Server integrated, which can be accessed on port 62222. If the hostname is `publisher`, then the URI of the endpoint is: `opc.tcp://publisher:62222/UA/Publisher`
-This endpoint exposes three methods:
-  - PublishNode
-  - UnpublishNode
-  - GetPublishedNodes
-
-### Configuration via IoTHub direct function calls
-OPC Publisher implements the following IoTHub direct method calls, which can be called when OPC Publisher runs standalone or in IoTEdge:
-  - PublishNodes
-  - UnpublishNodes
-  - UnpublishAllNodes
-  - GetConfiguredEndpoints
-  - GetConfiguredNodesOnEndpoint
-
-The format of the JSON payload of the method request and responses are defined in the file HubMethodModels.cs.
-
 
 ## Performance and memory considerations
 ### Commandline parameters contolling performance and memory
