@@ -1,4 +1,25 @@
 ﻿[
+
+    {
+        // example for an EnpointUrl is: opc.tcp://192.168.178.26:62541/Quickstarts/ReferenceServer
+        "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
+        // allows to access the endpoint with SecurityPolicy.None when set to 'false' (no signing and encryption applied to the OPC UA communication), default is true
+        "UseSecurity": true,
+        "OpcNodes": [
+            {
+                // identifies the OPC node to publish in either NodeId format (contains "ns=") or ExpandedNodeId format (contains "nsu=")
+                "Id": "i=2258",
+                // specifies the sampling interval OPC Publisher requests the server to sample the node value
+                "OpcSamplingInterval": 2000,
+                // specifies the publishing interval OPC Publisher requests the server to publish the node value, it will only be published if the value has changed
+                "OpcPublishingInterval": 5000
+            }
+        ]
+    },
+
+    //
+    // For completeness you will find the documentation of legacy formats below.
+    //
     {
         // example for an EnpointUrl is: opc.tcp://win10iot:51210/UA/SampleServer
         "EndpointUrl": "opc.tcp://<your_opcua_server>:<your_opcua_server_port>/<your_opcua_server_path>",
