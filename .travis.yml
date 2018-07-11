@@ -10,6 +10,6 @@ addons:
     packages:
 install:
 script: 
-  - dotnet restore src
-  - dotnet build -c Debug src
-  - dotnet build -c Release src
+  - dotnet restore opcpublisher
+  - dotnet build -c Debug opcpublisher
+  - dotnet build -c Release opcpublisher
