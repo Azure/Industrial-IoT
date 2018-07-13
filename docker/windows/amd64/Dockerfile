@@ -19,4 +19,5 @@ RUN dotnet publish -c Release -o out
 FROM microsoft/dotnet:${runtime_base_tag} AS runtime
 WORKDIR /app
 COPY --from=build /app/opcpublisher/out ./
-ENTRYPOINT ["dotnet", "opcpublisher.dll"]
+WORKDIR /appdata
+ENTRYPOINT ["dotnet", "/app/opcpublisher.dll"]
