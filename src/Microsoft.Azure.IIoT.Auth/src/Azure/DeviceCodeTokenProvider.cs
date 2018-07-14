@@ -23,21 +23,34 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="config"></param>
-        public DeviceCodeTokenProvider(ILogger logger, IClientConfig config) :
-            this(logger, (c, exp, msg) => Console.WriteLine(msg), config) {
+        public DeviceCodeTokenProvider(IClientConfig config, ILogger logger) :
+            this((c, exp, msg) => Console.WriteLine(msg), config, null, logger) {
+        }
+
+        /// <summary>
+        /// Create console output device code based token provider
+        /// </summary>
+        /// <param name="store"></param>
+        /// <param name="logger"></param>
+        /// <param name="config"></param>
+        public DeviceCodeTokenProvider(IClientConfig config, ITokenCacheProvider store, 
+            ILogger logger) :
+            this((c, exp, msg) => Console.WriteLine(msg), config, store, logger) {
         }
 
         /// <summary>
         /// Create device code provider with callback
         /// </summary>
+        /// <param name="store"></param>
         /// <param name="logger"></param>
         /// <param name="callback"></param>
         /// <param name="config"></param>
-        public DeviceCodeTokenProvider(ILogger logger,
-            Action<string, DateTimeOffset, string> callback, IClientConfig config) {
+        public DeviceCodeTokenProvider(Action<string, DateTimeOffset, string> callback, 
+            IClientConfig config, ITokenCacheProvider store, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
+            _store = store ?? DefaultTokenCacheProvider.Instance;
 
             if (string.IsNullOrEmpty(_config.ClientId)) {
                 _logger.Error("Device code token provider was not configured with " +
@@ -56,7 +69,7 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
                 return null;
             }
             var ctx = CreateAuthenticationContext(_config.Authority,
-                _config.TenantId);
+                _config.TenantId, _store);
             try {
                 try {
                     var result = await ctx.AcquireTokenSilentAsync(
@@ -89,12 +102,13 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
         /// <param name="tenantId"></param>
         /// <returns></returns>
         private static AuthenticationContext CreateAuthenticationContext(
-            string authority, string tenantId) {
+            string authority, string tenantId, ITokenCacheProvider store) {
             var tenant = tenantId ?? "common";
             if (string.IsNullOrEmpty(authority)) {
                 authority = kAuthority;
             }
-            var ctx = new AuthenticationContext(authority + tenant);
+            var ctx = new AuthenticationContext(authority + tenant,
+                store.GetCache(authority));
             if (tenantId == null && ctx.TokenCache.Count > 0) {
                 tenant = ctx.TokenCache.ReadItems().First().TenantId;
                 ctx = new AuthenticationContext(authority + tenant);
@@ -110,5 +124,6 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
         private readonly ILogger _logger;
         private readonly IClientConfig _config;
         private readonly Action<string, DateTimeOffset, string> _callback;
+        private readonly ITokenCacheProvider _store;
     }
 }

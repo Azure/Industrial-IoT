@@ -36,12 +36,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         public DeviceAuthenticationModel Authentication { get; set; }
 
         /// <summary>
-        /// Host name
-        /// </summary>
-        [JsonProperty(PropertyName = "IoTHubHostName")]
-        public string IoTHubHostName { get; set; }
-
-        /// <summary>
         /// Whether device is enabled
         /// </summary>
         [JsonProperty(PropertyName = "Enabled")]

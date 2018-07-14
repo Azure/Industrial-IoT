@@ -14,6 +14,13 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// <summary>
         /// Create logger
         /// </summary>
+        public ConsoleLogger() :
+            this(Guid.NewGuid().ToString(), LogLevel.Debug) {
+        }
+
+        /// <summary>
+        /// Create logger
+        /// </summary>
         /// <param name="processId"></param>
         /// <param name="loggingLevel"></param>
         public ConsoleLogger(string processId, LogLevel loggingLevel) :

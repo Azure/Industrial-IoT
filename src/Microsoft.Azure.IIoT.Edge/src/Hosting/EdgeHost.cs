@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Edge.Hosting {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Edge.Hub;
+    using Microsoft.Azure.IIoT.Edge.Client;
     using Microsoft.Azure.Devices.Client.Exceptions;
 
     /// <summary>
@@ -333,7 +333,6 @@ namespace Microsoft.Azure.IIoT.Edge.Hosting {
             if (!string.IsNullOrEmpty(_twin.ModuleId)) {
                 ModuleId = _twin.ModuleId;
             }
-
             _logger.Info($"Initialize twin for {DeviceId} - {ModuleId ?? "standalone"}",
                 () => { });
 

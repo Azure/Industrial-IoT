@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Net {
     using Microsoft.Azure.IIoT.Net.Models;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -15,19 +14,11 @@ namespace Microsoft.Azure.IIoT.Net {
     public static class NetworkInformationEx {
 
         /// <summary>
-        /// Clone address
-        /// </summary>
-        /// <param name="address"></param>
-        /// <returns></returns>
-        public static PhysicalAddress Copy(this PhysicalAddress address) =>
-            address == null ? null : new PhysicalAddress(address.GetAddressBytes());
-
-        /// <summary>
         /// Get all interface addresses
         /// </summary>
         /// <param name="netclass"></param>
         /// <returns></returns>
-        public static IEnumerable<NetInterface> GetAllNetworkInterfaceAddresses(
+        public static IEnumerable<NetInterface> GetAllNetInterfaces(
             NetworkClass netclass) {
             return NetworkInterface.GetAllNetworkInterfaces()
                 .Where(n =>
@@ -41,6 +32,39 @@ namespace Microsoft.Azure.IIoT.Net {
                     t.UnicastAddress.AddressFamily == AddressFamily.InterNetwork &&
                     !IPAddress.IsLoopback(t.UnicastAddress))
                 .Distinct();
+        }
+
+        /// <summary>
+        /// Get network interface for index
+        /// </summary>
+        /// <param name="itfIndex"></param>
+        /// <returns></returns>
+        public static NetInterface GetNetInterfaceByIndex(int itfIndex) {
+            return NetworkInterface.GetAllNetworkInterfaces()
+                .Where(n => n.NetworkInterfaceType.IsInClass(NetworkClass.All))
+                .Where(n => n.Supports(NetworkInterfaceComponent.IPv4))
+                .FirstOrDefault(n =>
+                    n.GetIPProperties().GetIPv4Properties().Index == itfIndex)
+                .ToNetInterface();
+        }
+
+        /// <summary>
+        /// Get network interface for index
+        /// </summary>
+        /// <param name="nic"></param>
+        /// <returns></returns>
+        public static NetInterface ToNetInterface(this NetworkInterface nic) {
+
+            var props = nic.GetIPProperties();
+            var address = props.UnicastAddresses.FirstOrDefault(a =>
+                a.Address.AddressFamily == AddressFamily.InterNetwork);
+            var gateway = props.GatewayAddresses.FirstOrDefault(a =>
+                a.Address.AddressFamily == AddressFamily.InterNetwork);
+
+            var key = new NetInterface(nic.Name, nic.GetPhysicalAddress(),
+                address.Address, address.IPv4Mask, gateway?.Address,
+                props.DnsSuffix, props.DnsAddresses);
+            return key;
         }
 
         /// <summary>

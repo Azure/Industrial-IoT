@@ -10,6 +10,16 @@ namespace System.Net {
     public static class IPAddressEx {
 
         /// <summary>
+        /// Is empty
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public static bool IsEmpty(this IPAddress address) =>
+            address == null ||
+            address.Equals(IPAddress.Any) || address.Equals(IPAddress.IPv6Any) ||
+            address.Equals(IPAddress.None) || address.Equals(IPAddress.IPv6None);
+
+        /// <summary>
         /// Clone address as v4 address
         /// </summary>
         /// <param name="address"></param>

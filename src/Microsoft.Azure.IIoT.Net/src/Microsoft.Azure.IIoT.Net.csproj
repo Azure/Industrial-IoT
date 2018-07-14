@@ -3,13 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Company>Microsoft</Company>
-    <Product>Azure IoT</Product>
-    <Authors>Microsoft</Authors>
-    <PackageLicenseUrl>https://github.com/Azure/azure-iiot-common/blob/master/LICENSE</PackageLicenseUrl>
-    <Copyright>Microsoft Corp. All rights reserved.</Copyright>
-    <Description>Azure IoT Industrial shared component</Description>
+    <Description>Azure IIoT Common networking components</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT\src\Microsoft.Azure.IIoT.csproj" />

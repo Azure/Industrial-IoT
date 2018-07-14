@@ -2,13 +2,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7</LangVersion>
-    <PackageLicenseUrl>https://github.com/Azure/azure-iiot-common/blob/master/LICENSE</PackageLicenseUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>Microsoft</Authors>
-    <Company>Microsoft</Company>
-    <Product>Azure IoT Industrial Twin</Product>
-    <Copyright>Microsoft Corp. All rights reserved.</Copyright>
-    <Description>Azure Edge Service Processor Framework</Description>
+    <Description>Azure IIoT Event processor abstractions</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.1" />

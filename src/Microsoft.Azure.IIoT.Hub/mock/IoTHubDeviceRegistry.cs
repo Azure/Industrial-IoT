@@ -23,6 +23,11 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     public class IoTHubDeviceRegistry : IIoTHubTwinServices {
 
         /// <summary>
+        /// The host name the client is talking to
+        /// </summary>
+        public string HostName => "mock.azure-devices.net";
+
+        /// <summary>
         /// List of devices for devices queries
         /// </summary>
         public List<IoTHubDeviceModel> Devices { get; set; }

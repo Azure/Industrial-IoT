@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Edge.Hub {
+namespace Microsoft.Azure.IIoT.Edge.Client {
     using System;
 
     /// <summary>

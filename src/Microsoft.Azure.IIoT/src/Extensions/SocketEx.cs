@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace System.Net.Sockets {
+    using Microsoft.Azure.IIoT.Utils;
     using System.Threading.Tasks;
 
     public static class SocketEx {
@@ -16,13 +17,8 @@ namespace System.Net.Sockets {
             if (socket == null) {
                 return;
             }
-            try {
-                socket.Close(0);
-                socket.Dispose();
-            }
-            catch {
-                return;
-            }
+            Try.Op(() => socket.Close(0));
+            Try.Op(socket.Dispose);
         }
 
         /// <summary>

@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Edge {
     using Microsoft.Azure.IIoT.Edge.Hosting;
-    using Microsoft.Azure.IIoT.Edge.Hub;
+    using Microsoft.Azure.IIoT.Edge.Client;
     using Autofac;
 
     /// <summary>

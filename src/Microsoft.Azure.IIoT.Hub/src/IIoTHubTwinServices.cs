@@ -15,6 +15,11 @@ namespace Microsoft.Azure.IIoT.Hub {
     public interface IIoTHubTwinServices {
 
         /// <summary>
+        /// Get the host name of the iot hub
+        /// </summary>
+        string HostName { get; }
+
+        /// <summary>
         /// Create new twin or update existing one
         /// </summary>
         /// <param name="device"></param>

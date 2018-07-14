@@ -4,44 +4,71 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
-    using Microsoft.AspNetCore.DataProtection;
+    using Microsoft.Azure.IIoT.Auth.Azure;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
+    using Microsoft.AspNetCore.DataProtection;
+    using System;
 
     /// <summary>
     /// Token cache persisted in the distributed cache.
     /// </summary>
-    public class DistributedTokenCache : TokenCache {
+    public class DistributedTokenCache : ITokenCacheProvider {
 
         /// <summary>
-        /// Create token cache entry in provided distributed cache
+        /// Create token store in provided distributed cache
         /// </summary>
-        /// <param name="cacheKey">Key in cache</param>
-        /// <param name="cache">cache to create entry in</param>
+        /// <param name="cache">Cache</param>
         /// <param name="dp">protector</param>
-        public DistributedTokenCache(IDistributedCache cache, string cacheKey,
-            IDataProtectionProvider dp) {
+        public DistributedTokenCache(IDistributedCache cache,
+            IDataProtectionProvider dp, ILogger logger) {
+            _dp = dp ?? throw new ArgumentNullException(nameof(dp));
+            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
 
-            var protector = dp.CreateProtector(GetType().FullName);
+        /// <inheritdoc/>
+        public TokenCache GetCache(string name) => 
+            new DistributedTokenCacheEntry(this, name);
 
-            AfterAccess = args => {
-                if (HasStateChanged) {
-                    if (Count > 0) {
-                        // Write our new token cache state to the cache
-                        cache.Set(cacheKey, protector.Protect(Serialize()));
+        /// <summary>
+        /// Cache implementation
+        /// </summary>
+        private class DistributedTokenCacheEntry : TokenCache {
+
+            /// <summary>
+            /// Create token cache entry in provided distributed cache
+            /// </summary>
+            /// <param name="cacheKey">Key in cache</param>
+            /// <param name="store">cache to create entry in</param>
+            public DistributedTokenCacheEntry(DistributedTokenCache store, 
+                string cacheKey) {
+                var protector = store._dp.CreateProtector(GetType().FullName);
+
+                AfterAccess = args => {
+                    if (HasStateChanged) {
+                        if (Count > 0) {
+                            // Write our new token cache state to the cache
+                            store._cache.Set(cacheKey, protector.Protect(Serialize()));
+                        }
+                        else {
+                            // The Token cache is empty so remove ourselves.
+                            store._cache.Remove(cacheKey);
+                        }
+                        HasStateChanged = false;
                     }
-                    else {
-                        // The Token cache is empty so remove ourselves.
-                        cache.Remove(cacheKey);
-                    }
-                    HasStateChanged = false;
+                };
+
+                var cacheData = store._cache.Get(cacheKey);
+                if (cacheData != null) {
+                    Deserialize(protector.Unprotect(cacheData));
                 }
-            };
-
-            var cacheData = cache.Get(cacheKey);
-            if (cacheData != null) {
-                Deserialize(protector.Unprotect(cacheData));
             }
         }
+
+        private readonly IDataProtectionProvider _dp;
+        private readonly IDistributedCache _cache;
+        private readonly ILogger _logger;
     }
 }

@@ -27,6 +27,11 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     public class IoTHubServiceHttpClient : IIoTHubTwinServices, IIoTHubJobServices {
 
         /// <summary>
+        /// The host name the client is talking to
+        /// </summary>
+        public string HostName => _hubConnectionString.HostName;
+
+        /// <summary>
         /// Create service client
         /// </summary>
         /// <param name="httpClient"></param>

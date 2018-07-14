@@ -15,6 +15,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         Running = 2,
         Completed = 3,
         Failed = 4,
-        Canceled = 5
+        Cancelled = 5
     }
 }

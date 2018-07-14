@@ -9,9 +9,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.AspNetCore.Authentication;
-    using Microsoft.AspNetCore.DataProtection;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using System;
     using System.Linq;
@@ -30,11 +28,13 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
         /// Create auth provider. Need to also inject the http context accessor
         /// to be able to get at the http context here.
         /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="store"></param>
+        /// <param name="config"></param>
         /// <param name="logger"></param>
-        public BehalfOfTokenProvider(IHttpContextAccessor ctx, IDistributedCache cache,
-            IDataProtectionProvider dp, IClientConfig config, ILogger logger) {
-            _dp = dp ?? throw new ArgumentNullException(nameof(dp));
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+        public BehalfOfTokenProvider(IHttpContextAccessor ctx, ITokenCacheProvider store,
+            IClientConfig config, ILogger logger) {
+            _store = store ?? throw new ArgumentNullException(nameof(store));
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -79,8 +79,8 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
                 }
             }
 
-            var cache = new DistributedTokenCache(_cache,
-                $"OID:{user.GetObjectId()}::AUD:{user.GetAudienceId()}", _dp);
+            var cache = _store.GetCache(
+                $"OID:{user.GetObjectId()}::AUD:{user.GetAudienceId()}");
             var ctx = CreateAuthenticationContext(_config.Authority,
                 _config.TenantId, cache);
 
@@ -129,9 +129,8 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
         private const string kGrantType = "urn:ietf:params:oauth:grant-type:jwt-bearer";
         private const string kAuthority = "https://login.microsoftonline.com/";
 
-        private readonly IDataProtectionProvider _dp;
-        private readonly IDistributedCache _cache;
         private readonly IHttpContextAccessor _ctx;
+        private readonly ITokenCacheProvider _store;
         private readonly ILogger _logger;
         private readonly IClientConfig _config;
     }

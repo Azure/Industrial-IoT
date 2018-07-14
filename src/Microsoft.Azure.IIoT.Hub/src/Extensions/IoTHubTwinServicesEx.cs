@@ -5,12 +5,41 @@
 
 namespace Microsoft.Azure.IIoT.Hub {
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
 
     public static class IoTHubTwinServicesEx {
+
+        /// <summary>
+        /// Returns device connection string
+        /// </summary>
+        /// <param name="deviceId"></param>
+        /// <param name="primary"></param>
+        /// <returns></returns>
+        public static async Task<ConnectionString> GetConnectionStringAsync(
+            this IIoTHubTwinServices service, string deviceId, bool primary = true) {
+            var model = await service.GetRegistrationAsync(deviceId);
+            return ConnectionString.Create(service.HostName, deviceId, primary ?
+                model.Authentication.PrimaryKey : model.Authentication.SecondaryKey);
+        }
+
+        /// <summary>
+        /// Returns module connection string
+        /// </summary>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
+        /// <param name="primary"></param>
+        /// <returns></returns>
+        public static async Task<ConnectionString> GetConnectionStringAsync(
+            this IIoTHubTwinServices service, string deviceId, string moduleId,
+            bool primary = true) {
+            var model = await service.GetRegistrationAsync(deviceId, moduleId);
+            return ConnectionString.Create(service.HostName, deviceId, moduleId, primary ?
+                model.Authentication.PrimaryKey : model.Authentication.SecondaryKey);
+        }
 
         /// <summary>
         /// Returns devices matching a query string
@@ -221,6 +250,5 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <returns></returns>
         public static Task DeleteAsync(this IIoTHubTwinServices service, string deviceId,
             string moduleId) => service.DeleteAsync(deviceId, moduleId, null);
-
     }
 }

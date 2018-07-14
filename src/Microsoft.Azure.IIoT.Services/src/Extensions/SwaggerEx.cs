@@ -15,6 +15,7 @@ namespace Swashbuckle.AspNetCore.Swagger {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.Extensions.Options;
     using System.Linq;
+    using Microsoft.AspNetCore.Mvc.Controllers;
 
     /// <summary>
     /// Configure swagger
@@ -148,8 +149,9 @@ namespace Swashbuckle.AspNetCore.Swagger {
             /// <param name="operation"></param>
             /// <param name="context"></param>
             public void Apply(Operation operation, OperationFilterContext context) {
-                var claims = context.ControllerActionDescriptor.GetRequiredPolicyGlaims(
-                    _options.Value);
+                var descriptor = context.ApiDescription.ActionDescriptor as 
+                    ControllerActionDescriptor;
+                var claims = descriptor.GetRequiredPolicyGlaims(_options.Value);
                 if (claims.Any()) {
                     operation.Responses.Add("401",
                         new Response { Description = "Unauthorized" });

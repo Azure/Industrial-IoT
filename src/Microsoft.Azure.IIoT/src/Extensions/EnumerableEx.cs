@@ -29,6 +29,31 @@ namespace System.Collections.Generic {
         }
 
         /// <summary>
+        /// Safe hash
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="seq"></param>
+        /// <returns></returns>
+        public static int GetHashCodeSafe<T>(this IEnumerable<T> seq) =>
+            GetHashCodeSafe(seq, EqualityComparer<T>.Default.GetHashCode);
+
+        /// <summary>
+        /// Safe hash
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="seq"></param>
+        /// <returns></returns>
+        public static int GetHashCodeSafe<T>(this IEnumerable<T> seq, Func<T, int> hash) {
+            var hashCode = -932366343;
+            if (seq != null) {
+                foreach (var item in seq) {
+                    hashCode = hashCode * -1521134295 + hash(item);
+                }
+            }
+            return hashCode;
+        }
+
+        /// <summary>
         /// Safe sequence equals
         /// </summary>
         /// <typeparam name="T"></typeparam>

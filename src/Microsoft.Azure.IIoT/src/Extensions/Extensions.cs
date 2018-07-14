@@ -36,6 +36,33 @@ namespace System {
         }
 
         /// <summary>
+        /// Append byte buffer
+        /// </summary>
+        /// <param name="stringBuilder"></param>
+        /// <param name="bytes"></param>
+        /// <param name="size"></param>
+        public static void Append(this StringBuilder stringBuilder, byte[] bytes, int size) {
+            var truncate = bytes.Length > size;
+            var length = truncate ? size : bytes.Length;
+            var ascii = true;
+            for (var i = 0; i < length; i++) {
+                if (bytes[i] <= 32 || bytes[i] > 127) {
+                    ascii = false;
+                    break;
+                }
+            }
+            var content = ascii ? Encoding.ASCII.GetString(bytes, 0, length) :
+                BitConverter.ToString(bytes, 0, length);
+            length = content.IndexOf('\n');
+            if (length > 0) {
+                stringBuilder.Append(content, 0, length - 1);
+            }
+            else {
+                stringBuilder.Append(content);
+            }
+        }
+
+        /// <summary>
         /// Convert to base 16
         /// </summary>
         /// <param name="value"></param>
@@ -54,6 +81,43 @@ namespace System {
             }
             return new string(chars);
         }
+
+        /// <summary>
+        /// Yet another case insensitve equals
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
+        public static bool EqualsIgnoreCase(this string str, string to) =>
+            StringComparer.OrdinalIgnoreCase.Equals(str, to);
+
+        /// <summary>
+        /// Equal to any in the list
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
+        public static bool AnyOf(this string str, IEnumerable<string> to,
+            bool ignoreCase = false) => to.Any(s => s.Equals(str, ignoreCase ?
+            StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>
+        /// Equal to any in the list
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
+        public static bool AnyOf(this string str, params string[] to) =>
+            AnyOf(str, to, false);
+
+        /// <summary>
+        /// Equal to any in the list but case ignoring
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
+        public static bool AnyOfIgnoreCase(this string str, params string[] to) =>
+            AnyOf(str, to, true);
 
         /// <summary>
         /// Convert to base 64
@@ -124,6 +188,17 @@ namespace System {
         /// <returns></returns>
         public static string ToSha1Hash(this JToken token) =>
             token.ToStringMinified().ToSha1Hash();
+
+        /// <summary>
+        /// Clone byte buffer
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        public static byte[] Copy(this byte[] bytes) {
+            var copy = new byte[bytes.Length];
+            bytes.CopyTo(copy, 0);
+            return copy;
+        }
 
         /// <summary>
         /// Append byte array to string builder

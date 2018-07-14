@@ -1,13 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageLicenseUrl>https://github.com/Azure/azure-iiot-common/blob/master/LICENSE</PackageLicenseUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>Microsoft</Authors>
-    <Company>Microsoft</Company>
-    <Product>Azure IoT Industrial Twin</Product>
-    <Copyright>Microsoft Corp. All rights reserved.</Copyright>
-    <Description>Azure IIoT IoT Hub client</Description>
+    <Description>Azure IIoT IoT Hub registry mocks</Description>
     <NoWarn>1701;1702;1705;3021</NoWarn>
     <Antlr4UseCSharpGenerator>True</Antlr4UseCSharpGenerator>
   </PropertyGroup>

@@ -4,16 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Swashbuckle.AspNetCore.Swagger {
-    using Microsoft.Extensions.DependencyInjection;
-    using System.Collections.Generic;
-    using Swashbuckle.AspNetCore.SwaggerGen;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.Extensions.Options;
-    using System.Linq;
     using Microsoft.AspNetCore.Authorization.Infrastructure;
-    using System.Security.Claims;
-    using Microsoft.AspNetCore.Mvc.Infrastructure;
     using Microsoft.AspNetCore.Mvc.Controllers;
+    using Microsoft.AspNetCore.Mvc.Infrastructure;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Options;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Security.Claims;
 
     public static class ApiDescriptorEx {
 
@@ -42,8 +41,7 @@ namespace Swashbuckle.AspNetCore.Swagger {
         /// <returns></returns>
         public static IEnumerable<string> GetRequiredPolicyGlaims(
             this ControllerActionDescriptor descriptor, AuthorizationOptions options) {
-            var attributes = descriptor.GetControllerAndActionAttributes(false)
-                .OfType<AuthorizeAttribute>();
+            var attributes = descriptor.GetAttributes<AuthorizeAttribute>(false);
             var requirements = attributes
                 .Select(attr => attr.Policy)
                 .Select(options.GetPolicy)
@@ -55,15 +53,29 @@ namespace Swashbuckle.AspNetCore.Swagger {
                 .SelectMany(x => x.AllowedRoles)
                 .Concat(attributes.Where(a => a.Roles != null).Select(a => a.Roles));
             if (roles.Any()) {
-                if (descriptor.ActionName == "ListAsync") {
-                    System.Console.WriteLine("TEST");
-                }
                 claims = claims.Append(ClaimTypes.Role);
             }
             if (requirements.OfType<DenyAnonymousAuthorizationRequirement>().Any()) {
                 claims = claims.Append(ClaimTypes.Authentication);
             }
             return claims.Distinct();
+        }
+
+        /// <summary>
+        /// Rerturn controller and action attributes sorted
+        /// </summary>
+        /// <param name="descriptor"></param>
+        /// <param name="inherit"></param>
+        /// <returns></returns>
+        public static IEnumerable<T> GetAttributes<T>(
+            this ControllerActionDescriptor descriptor, bool inherit) {
+            var controllerAttributes = descriptor.ControllerTypeInfo
+                .GetCustomAttributes(inherit);
+            var actionAttributes = descriptor.MethodInfo
+                .GetCustomAttributes(inherit);
+            return controllerAttributes
+                .Append(actionAttributes)
+                .OfType<T>();
         }
     }
 }
