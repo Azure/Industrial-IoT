@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <Product>Azure Industrial IoT OPC Twin</Product>
+    <RepositoryUrl>https://github.com/Azure/azure-iiot-opc-twin</RepositoryUrl>
+    <PackageTags>Azure;IoT;IIoT,.NET</PackageTags>
+  </PropertyGroup>
+</Project>

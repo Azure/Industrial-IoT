@@ -2,13 +2,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7</LangVersion>
-    <Authors>Microsoft</Authors>
-    <Company>Microsoft</Company>
-    <Product>Azure IoT OPC UA Twin</Product>
-    <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Copyright>Microsoft Corp. All rights reserved.</Copyright>
-    <Description>Azure OPC Ua Twin Edge Service Module</Description>
+    <Description>Azure IIoT OPC Twin Edge business logic</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
@@ -16,13 +11,13 @@
   <Choose>
     <When Condition="Exists('..\..\..\..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Edge\src\Microsoft.Azure.IIoT.Hub.Edge.csproj" />
+        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Edge\src\Microsoft.Azure.IIoT.Edge.csproj" />
         <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Net.Scan\src\Microsoft.Azure.IIoT.Net.Scan.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Edge" Version="1.0.0-preview001" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Edge" Version="1.0.0-preview001" />
         <PackageReference Include="Microsoft.Azure.IIoT.Net.Scan" Version="1.0.0-preview001" />
       </ItemGroup>
     </Otherwise>

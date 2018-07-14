@@ -2,13 +2,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7</LangVersion>
-    <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>Microsoft</Authors>
-    <Company>Microsoft</Company>
-    <Product>Connected Factory OPC Twin services</Product>
-    <Copyright>Microsoft Corp. All rights reserved.</Copyright>
-    <Description>Azure OPC Twin services business logic</Description>
+    <Description>Azure IIoT OPC UA Twin Control business logic</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
