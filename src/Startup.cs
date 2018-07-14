@@ -190,6 +190,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
             if (Config.AuthRequired) {
                 builder.RegisterType<BehalfOfTokenProvider>()
                     .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<DistributedTokenCache>()
+                   .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<HttpBearerAuthentication>()
                     .AsImplementedInterfaces().SingleInstance();
             }
