@@ -1,4 +1,7 @@
-FROM microsoft/dotnet:2.1-sdk AS build
+FROM microsoft/dotnet:2.1-runtime-nanoserver-sac2016 AS base
+WORKDIR /app
+
+FROM microsoft/dotnet:2.1-sdk-nanoserver-sac2016 AS build
 WORKDIR /src
 COPY src/Microsoft.Azure.IIoT.OpcUa.Modules.Twin.csproj src/
 COPY packages packages
@@ -11,12 +14,7 @@ RUN dotnet build Microsoft.Azure.IIoT.OpcUa.Modules.Twin.csproj -c Release -o /a
 FROM build AS publish
 RUN dotnet publish Microsoft.Azure.IIoT.OpcUa.Modules.Twin.csproj -c Release -o /app
 
-FROM build AS final
+FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-
-RUN apt-get update && apt-get install -y unzip \
-	&& curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/vsdbg
-ENV PATH="${PATH}:/root/vsdbg/vsdbg"
-
 ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.OpcUa.Modules.Twin.dll"]

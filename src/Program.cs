@@ -90,7 +90,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
 
         /// <summary>
         /// Autofac configuration. Find more information here:
-        /// @see http://docs.autofac.org/en/latest/integration/aspnetcore.html
+        /// see http://docs.autofac.org/en/latest/integration/aspnetcore.html
         /// </summary>
         public static IContainer ConfigureContainer(IConfigurationRoot configuration) {
 

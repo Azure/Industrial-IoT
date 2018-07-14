@@ -1,3 +1,5 @@
+[Build Status](https://msazure.visualstudio.com/_apis/public/build/definitions/b32aa71e-8ed2-41b2-9d77-5bc261222004/33979/badge)
+
 # OPC Twin Module
 
 The OPC Twin module runs on the edge and contains the OPC Twin supervisor which manages OPC UA endpoint Twins.  
