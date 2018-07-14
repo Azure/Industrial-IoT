@@ -1,11 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <Authors>Microsoft</Authors>
-    <Company>Microsoft</Company>
-    <Product>Opc Ua Twin Web Service Command line interface</Product>
-    <PackageLicenseUrl>https://github.com/Azure/iot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
     <AssemblyName>OpcTwinCtrl</AssemblyName>
     <RootNamespace>Microsoft.Azure.IIoT.OpcUa.Api.Cli</RootNamespace>
   </PropertyGroup>

@@ -929,9 +929,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     Configuration.GetValue("IIOT_OPCUA_TWIN_CLI_APP_ID",
                          Configuration.GetValue<string>("IIOT_AUTH_CLIENT_ID")));
 
-            public string ClientSecret => null;
-            public string TenantId => null;
+            public string TenantId => 
+                Configuration.GetValue<string>("IIOT_AAD_TENANT_ID");
+
             public string Authority => null;
+            public string ClientSecret => null;
 
             private const string kOpcUaTwinServiceUrlKey = "OpcTwinServiceUrl";
             private const string kOpcUaRegistryServiceUrlKey = "OpcRegistryServiceUrl";
