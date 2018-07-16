@@ -22,14 +22,9 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends unzip procps && \
     rm -rf /var/lib/apt/lists/*
 
-# Add an unprivileged user account for running the module
-RUN useradd -s /bin/sh moduleuser
-
 RUN curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/vsdbg
 
 WORKDIR /app
 COPY --from=build /app/opcpublisher/out ./
 WORKDIR /appdata
-RUN chown -R moduleuser /appdata
-USER moduleuser
 ENTRYPOINT ["dotnet", "/app/opcpublisher.dll"]
