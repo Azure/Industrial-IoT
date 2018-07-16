@@ -17,11 +17,7 @@ RUN dotnet publish -c Release -o out
 
 # start it up
 FROM microsoft/dotnet:${runtime_base_tag} AS runtime
-# Add an unprivileged user account for running the module
-RUN useradd -s /bin/sh moduleuser
 WORKDIR /app
 COPY --from=build /app/opcpublisher/out ./
 WORKDIR /appdata
-RUN chown -R moduleuser /appdata
-USER moduleuser
 ENTRYPOINT ["dotnet", "/app/opcpublisher.dll"]
