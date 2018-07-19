@@ -75,7 +75,7 @@ namespace OpcPublisher
 
                 // command line options
                 Mono.Options.OptionSet options = new Mono.Options.OptionSet {
-                        // Publishing configuration options
+                        // Publisher configuration options
                         { "pf|publishfile=", $"the filename to configure the nodes to publish.\nDefault: '{PublisherNodeConfigurationFilename}'", (string p) => PublisherNodeConfigurationFilename = p },
                         { "tc|telemetryconfigfile=", $"the filename to configure the ingested telemetry\nDefault: '{PublisherTelemetryConfigurationFilename}'", (string p) => PublisherTelemetryConfigurationFilename = p },
                         { "s|site=", $"the site OPC Publisher is working in. if specified this domain is appended (delimited by a ':' to the 'ApplicationURI' property when telemetry is sent to IoTHub.\n" +
@@ -133,7 +133,31 @@ namespace OpcPublisher
 
                         { "ns|noshutdown=", $"same as runforever.\nDefault: {_noShutdown}", (bool b) => _noShutdown = b },
                         { "rf|runforwver", $"publisher can not be stopped by pressing a key on the console, but will run forever.\nDefault: {_noShutdown}", b => _noShutdown = b != null },
-                    
+
+                        { "lf|logfile=", $"the filename of the logfile to use.\nDefault: './{_logFileName}'", (string l) => _logFileName = l },
+                        { "lt|logflushtimespan=", $"the timespan in seconds when the logfile should be flushed.\nDefault: on logfile rollover.", (int s) => {
+                                if (s > 0)
+                                {
+                                    _logFileFlushTimeSpanSec = TimeSpan.FromSeconds(s);
+                                }
+                                else
+                                {
+                                    throw new Mono.Options.OptionException("The logflushtimespan must be a positive number.", "logflushtimespan");
+                                }
+                            }
+                        },
+                        { "ll|loglevel=", $"the loglevel to use (allowed: fatal, error, warn, info, debug, verbose).\nDefault: info", (string l) => {
+                                List<string> logLevels = new List<string> {"fatal", "error", "warn", "info", "debug", "verbose"};
+                                if (logLevels.Contains(l.ToLowerInvariant()))
+                                {
+                                    _logLevel = l.ToLowerInvariant();
+                                }
+                                else
+                                {
+                                    throw new Mono.Options.OptionException("The loglevel must be one of: fatal, error, warn, info, debug, verbose", "loglevel");
+                                }
+                            }
+                        },
                         // IoTHub specific options
                         { "ih|iothubprotocol=", $"{(IsIotEdgeModule ? "not supported when running as IoTEdge module (Mqtt_Tcp_Only is enforced)\n" : $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}")}",
                             (Microsoft.Azure.Devices.Client.TransportType p) => {
@@ -181,19 +205,6 @@ namespace OpcPublisher
                         },
 
                         // opc server configuration options
-                        { "lf|logfile=", $"the filename of the logfile to use.\nDefault: './{_logFileName}'", (string l) => _logFileName = l },
-                        { "ll|loglevel=", $"the loglevel to use (allowed: fatal, error, warn, info, debug, verbose).\nDefault: info", (string l) => {
-                                List<string> logLevels = new List<string> {"fatal", "error", "warn", "info", "debug", "verbose"};
-                                if (logLevels.Contains(l.ToLowerInvariant()))
-                                {
-                                    _logLevel = l.ToLowerInvariant();
-                                }
-                                else
-                                {
-                                    throw new Mono.Options.OptionException("The loglevel must be one of: fatal, error, warn, info, debug, verbose", "loglevel");
-                                }
-                            }
-                        },
                         { "pn|portnum=", $"the server port of the publisher OPC server endpoint.\nDefault: {PublisherServerPort}", (ushort p) => PublisherServerPort = p },
                         { "pa|path=", $"the enpoint URL path part of the publisher OPC server endpoint.\nDefault: '{PublisherServerPath}'", (string a) => PublisherServerPath = a },
                         { "lr|ldsreginterval=", $"the LDS(-ME) registration interval in ms. If 0, then the registration is disabled.\nDefault: {LdsRegistrationInterval}", (int i) => {
@@ -297,7 +308,8 @@ namespace OpcPublisher
                         { "tm|trustmyself=", $"same as trustowncert.\nDefault: {TrustMyself}", (bool b) => TrustMyself = b  },
                         { "to|trustowncert", $"the publisher certificate is put into the trusted certificate store automatically.\nDefault: {TrustMyself}", t => TrustMyself = t != null  },
                         // read the display name of the nodes to publish from the server and publish them instead of the node id
-                        { "fd|fetchdisplayname", $"enable to read the display name of a published node from the server. this will increase the runtime.\nDefault: {FetchOpcNodeDisplayName}", b => FetchOpcNodeDisplayName = IotCentralMode ? true : b != null },
+                        { "fd|fetchdisplayname=", $"same as fetchname.\nDefault: {FetchOpcNodeDisplayName}", (bool b) => FetchOpcNodeDisplayName = IotCentralMode ? true : b },
+                        { "fn|fetchname=", $"enable to read the display name of a published node from the server. this will increase the runtime.\nDefault: {FetchOpcNodeDisplayName}", b => FetchOpcNodeDisplayName = IotCentralMode ? true : b != null },
 
                         // own cert store options
                         { "at|appcertstoretype=", $"the own application cert store type. \n(allowed values: Directory, X509Store)\nDefault: '{OpcOwnCertStoreType}'", (string s) => {
@@ -870,7 +882,7 @@ namespace OpcPublisher
                 // configure rolling file sink
                 const int MAX_LOGFILE_SIZE = 1024 * 1024;
                 const int MAX_RETAINED_LOGFILES = 2;
-                loggerConfiguration.WriteTo.File(_logFileName, fileSizeLimitBytes: MAX_LOGFILE_SIZE, rollOnFileSizeLimit: true, retainedFileCountLimit: MAX_RETAINED_LOGFILES);
+                loggerConfiguration.WriteTo.File(_logFileName, fileSizeLimitBytes: MAX_LOGFILE_SIZE, flushToDiskInterval: _logFileFlushTimeSpanSec, rollOnFileSizeLimit: true, retainedFileCountLimit: MAX_RETAINED_LOGFILES);
             }
 
             Logger = loggerConfiguration.CreateLogger();
@@ -886,5 +898,6 @@ namespace OpcPublisher
         private static bool _installOnly = false;
         private static string _logFileName = $"{Utils.GetHostName()}-publisher.log";
         private static string _logLevel = "info";
+        private static TimeSpan? _logFileFlushTimeSpanSec = null;
     }
 }

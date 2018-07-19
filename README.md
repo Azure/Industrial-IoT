@@ -62,7 +62,6 @@ This endpoint exposes four methods:
   - PublishNode
   - UnpublishNode
   - GetPublishedNodes
-  - GetConfiguredNodesOnEndpoint
 
 ### Configuration via IoTHub direct function calls
 OPC Publisher implements the following IoTHub direct method calls, which can be called when OPC Publisher runs standalone or in IoTEdge:
@@ -72,7 +71,7 @@ OPC Publisher implements the following IoTHub direct method calls, which can be 
   - GetConfiguredEndpoints
   - GetConfiguredNodesOnEndpoint
 
-The format of the JSON payload of the method request and responses are defined in the file `HubMethodModels.cs`.
+The format of the JSON payload of the method request and responses are defined in the file `opcpublisher/HubMethodModels.cs`.
 
 
 # Configuring the telemetry published to IoTHub

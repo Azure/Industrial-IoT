@@ -113,9 +113,6 @@ namespace OpcPublisher
 
                     MethodState getPublishedNodesLegacyMethod = CreateMethod(methodsFolder, "GetPublishedNodes", "GetPublishedNodes");
                     SetGetPublishedNodesLegacyMethodProperties(ref getPublishedNodesLegacyMethod);
-
-                    MethodState getConfiguredNodesOnEndpointMethod = CreateMethod(methodsFolder, "GetConfiguredNodesOnEndpoint", "GetConfiguredNodesOnEndpoint");
-                    SetGetConfiguredNodesOnEndpointMethodProperties(ref getConfiguredNodesOnEndpointMethod);
                 }
                 catch (Exception e)
                 {
@@ -218,47 +215,6 @@ namespace OpcPublisher
                         new Argument() { Name = "Published nodes", Description = "List of the nodes configured to publish in OPC Publisher in NodeId format",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
             };
             method.OnCallMethod = new GenericMethodCalledEventHandler(OnGetPublishedNodesLegacyCall);
-        }
-
-        /// <summary>
-        /// Sets properies of the GetConfigruredNodesOnEndpoint method.
-        /// </summary>
-        private void SetGetConfiguredNodesOnEndpointMethodProperties(ref MethodState method)
-        {
-            // define input arguments
-            method.InputArguments = new PropertyState<Argument[]>(method)
-            {
-                NodeId = new NodeId(method.BrowseName.Name + "InArgs", NamespaceIndex),
-                BrowseName = BrowseNames.InputArguments
-            };
-            method.InputArguments.DisplayName = method.InputArguments.BrowseName.Name;
-            method.InputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
-            method.InputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
-            method.InputArguments.DataType = DataTypeIds.Argument;
-            method.InputArguments.ValueRank = ValueRanks.OneDimension;
-
-            method.InputArguments.Value = new Argument[]
-            {
-                            new Argument() { Name = "EndpointUrl", Description = "Endpoint URI of the OPC UA server to return the published nodes for.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
-            };
-
-            // set output arguments
-            method.OutputArguments = new PropertyState<Argument[]>(method)
-            {
-                NodeId = new NodeId(method.BrowseName.Name + "OutArgs", NamespaceIndex),
-                BrowseName = BrowseNames.OutputArguments
-            };
-            method.OutputArguments.DisplayName = method.OutputArguments.BrowseName.Name;
-            method.OutputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
-            method.OutputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
-            method.OutputArguments.DataType = DataTypeIds.Argument;
-            method.OutputArguments.ValueRank = ValueRanks.OneDimension;
-
-            method.OutputArguments.Value = new Argument[]
-            {
-                        new Argument() { Name = "Configured nodes on endpoint", Description = "List of the nodes configured on the specifcied endpoint to publish in OPC Publisher",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
-            };
-            method.OnCallMethod = new GenericMethodCalledEventHandler(OnGetConfiguredNodesOnEndpointCall);
         }
 
         /// <summary>
@@ -471,9 +427,10 @@ namespace OpcPublisher
         /// </summary>
         private ServiceResult OnPublishNodeCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
+            string logPrefix = "OnPublishNodeCall:";
             if (string.IsNullOrEmpty(inputArguments[0] as string) || string.IsNullOrEmpty(inputArguments[1] as string))
             {
-                Logger.Error("PublishNode: Invalid Arguments when trying to publish a node.");
+                Logger.Error($"{logPrefix} Invalid Arguments when trying to publish a node.");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments as strings!");
             }
 
@@ -499,12 +456,12 @@ namespace OpcPublisher
             }
             catch (UriFormatException)
             {
-                Logger.Error($"PublishNode: The EndpointUrl has an invalid format '{inputArguments[1] as string}'!");
+                Logger.Error($"{logPrefix} The EndpointUrl has an invalid format '{inputArguments[1] as string}'!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as second argument!");
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"PublishNode: The NodeId has an invalid format '{inputArguments[0] as string}'!");
+                Logger.Error(e, $"{logPrefix} The NodeId has an invalid format '{inputArguments[0] as string}'!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA NodeId in NodeId or ExpandedNodeId format as first argument!");
             }
 
@@ -529,32 +486,40 @@ namespace OpcPublisher
                     // create new session info.
                     opcSession = new OpcSession(endpointUrl, true, OpcSessionCreationTimeout);
                     OpcSessions.Add(opcSession);
-                    Logger.Information($"PublishNode: No matching session found for endpoint '{endpointUrl.OriginalString}'. Requested to create a new one.");
+                    Logger.Information($"OnPublishNodeCall: No matching session found for endpoint '{endpointUrl.OriginalString}'. Requested to create a new one.");
                 }
 
                 if (isNodeIdFormat)
                 {
                     // add the node info to the subscription with the default publishing interval, execute syncronously
-                    Logger.Debug($"PublishNode: Request to monitor item with NodeId '{nodeId.ToString()}' (PublishingInterval: {OpcPublishingInterval}, SamplingInterval: {OpcSamplingInterval})");
+                    Logger.Debug($"{logPrefix} Request to monitor item with NodeId '{nodeId.ToString()}' (PublishingInterval: {OpcPublishingInterval}, SamplingInterval: {OpcSamplingInterval})");
                     statusCode = opcSession.AddNodeForMonitoringAsync(nodeId, null, OpcPublishingInterval, OpcSamplingInterval, ShutdownTokenSource.Token).Result;
                 }
                 else
                 {
                     // add the node info to the subscription with the default publishing interval, execute syncronously
-                    Logger.Debug($"PublishNode: Request to monitor item with ExpandedNodeId '{expandedNodeId.ToString()}' (PublishingInterval: {OpcPublishingInterval}, SamplingInterval: {OpcSamplingInterval})");
+                    Logger.Debug($"{logPrefix} Request to monitor item with ExpandedNodeId '{expandedNodeId.ToString()}' (PublishingInterval: {OpcPublishingInterval}, SamplingInterval: {OpcSamplingInterval})");
                     statusCode = opcSession.AddNodeForMonitoringAsync(null, expandedNodeId, OpcPublishingInterval, OpcSamplingInterval, ShutdownTokenSource.Token).Result;
                 }
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"PublishNode: Exception while trying to configure publishing node '{(isNodeIdFormat ? nodeId.ToString() : expandedNodeId.ToString())}'");
+                Logger.Error(e, $"{logPrefix} Exception while trying to configure publishing node '{(isNodeIdFormat ? nodeId.ToString() : expandedNodeId.ToString())}'");
                 return ServiceResult.Create(e, StatusCodes.BadUnexpectedError, $"Unexpected error publishing node: {e.Message}");
             }
             finally
             {
                 OpcSessionsListSemaphore.Release();
             }
-            return (statusCode == HttpStatusCode.OK || statusCode == HttpStatusCode.Accepted ? ServiceResult.Good : ServiceResult.Create(StatusCodes.Bad, "Can not start monitoring node!"));
+            if (statusCode == HttpStatusCode.NotAcceptable)
+            {
+                return ServiceResult.Create(StatusCodes.BadSessionNotActivated, "Can not start monitoring node, because session is in connecting state. Please retry later!");
+            }
+            if (statusCode == HttpStatusCode.OK || statusCode == HttpStatusCode.Accepted)
+            {
+                return ServiceResult.Good;
+            }
+            return ServiceResult.Create(StatusCodes.Bad, "Can not start monitoring node! Reason unknown.");
         }
 
         /// <summary>
@@ -562,9 +527,10 @@ namespace OpcPublisher
         /// </summary>
         private ServiceResult OnUnpublishNodeCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
+            string logPrefix = "OnUnpublishNodeCall:";
             if (string.IsNullOrEmpty(inputArguments[0] as string) || string.IsNullOrEmpty(inputArguments[1] as string))
             {
-                Logger.Error("UnpublishNode: Invalid arguments!");
+                Logger.Error($"{logPrefix} Invalid arguments!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments!");
             }
 
@@ -590,12 +556,12 @@ namespace OpcPublisher
             }
             catch (UriFormatException)
             {
-                Logger.Error($"UnpublishNode: The endpointUrl is invalid '{inputArguments[1] as string}'!");
+                Logger.Error($"{logPrefix} The endpointUrl is invalid '{inputArguments[1] as string}'!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as second argument!");
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"UnpublishNode: The NodeId has an invalid format '{inputArguments[0] as string}'!");
+                Logger.Error(e, $"{logPrefix} The NodeId has an invalid format '{inputArguments[0] as string}'!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA NodeId in NodeId or ExpandedNodeId format as first argument!");
             }
 
@@ -622,7 +588,7 @@ namespace OpcPublisher
                 if (opcSession == null)
                 {
                     // do nothing if there is no session for this endpoint.
-                    Logger.Error($"UnpublishNode: Session for endpoint '{endpointUrl.OriginalString}' not found.");
+                    Logger.Error($"{logPrefix} Session for endpoint '{endpointUrl.OriginalString}' not found.");
                     return ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session for endpoint of node to unpublished not found!");
                 }
                 else
@@ -630,20 +596,20 @@ namespace OpcPublisher
                     if (isNodeIdFormat)
                     {
                         // stop monitoring the node, execute syncronously
-                        Logger.Information($"UnpublishNode: Request to stop monitoring item with NodeId '{nodeId.ToString()}')");
+                        Logger.Information($"{logPrefix} Request to stop monitoring item with NodeId '{nodeId.ToString()}')");
                         statusCode = opcSession.RequestMonitorItemRemovalAsync(nodeId, null, ShutdownTokenSource.Token).Result;
                     }
                     else
                     {
                         // stop monitoring the node, execute syncronously
-                        Logger.Information($"UnpublishNode: Request to stop monitoring item with ExpandedNodeId '{expandedNodeId.ToString()}')");
+                        Logger.Information($"{logPrefix} Request to stop monitoring item with ExpandedNodeId '{expandedNodeId.ToString()}')");
                         statusCode = opcSession.RequestMonitorItemRemovalAsync(null, expandedNodeId, ShutdownTokenSource.Token).Result;
                     }
                 }
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"UnpublishNode: Exception while trying to configure publishing node '{nodeId.ToString()}'");
+                Logger.Error(e, $"{logPrefix} Exception while trying to configure publishing node '{nodeId.ToString()}'");
                 return ServiceResult.Create(e, StatusCodes.BadUnexpectedError, $"Unexpected error unpublishing node: {e.Message}");
             }
             finally
@@ -661,12 +627,12 @@ namespace OpcPublisher
         /// </summary>
         private ServiceResult OnGetPublishedNodesLegacyCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
+            string logPrefix = "OnGetPublishedNodesLegacyCall:";
             Uri endpointUrl = null;
 
             if (string.IsNullOrEmpty(inputArguments[0] as string))
             {
-                Logger.Error($"GetPublishedNodesLegacy: endpointUrl is null or empty'!");
-                return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as first argument!");
+                Logger.Information($"{logPrefix} returning all nodes of all endpoints'!");
             }
             else
             {
@@ -676,48 +642,15 @@ namespace OpcPublisher
                 }
                 catch (UriFormatException)
                 {
-                    Logger.Error($"GetPublishedNodesLegacy: The endpointUrl is invalid '{inputArguments[0] as string}'!");
+                    Logger.Error($"{logPrefix} The endpointUrl is invalid '{inputArguments[0] as string}'!");
                     return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as first argument!");
                 }
             }
 
             // get the list of published nodes in NodeId format
-            outputArguments[0] = JsonConvert.SerializeObject(GetPublisherConfigurationFileEntriesAsNodeIds(endpointUrl));
-            Logger.Information("GetPublishedNodesLegacy: Success!");
-
-            return ServiceResult.Good;
-        }
-
-        /// <summary>
-        /// Method to get the list of configured nodes on the psecified endpoint, which returns the list in new format. Executes synchronously.
-        /// </summary>
-        private ServiceResult OnGetConfiguredNodesOnEndpointCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
-        {
-            Uri endpointUrl = null;
-
-            if (string.IsNullOrEmpty(inputArguments[0] as string))
-            {
-                Logger.Error($"OnGetConfiguredNodesOnEndpointCall: endpointUrl is null or empty'!");
-                return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as first argument!");
-            }
-            else
-            {
-                try
-                {
-                    endpointUrl = new Uri(inputArguments[0] as string);
-                }
-                catch (UriFormatException)
-                {
-                    Logger.Error($"OnGetConfiguredNodesOnEndpointCall: The endpointUrl is invalid '{inputArguments[0] as string}'!");
-                    return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as first argument!");
-                }
-            }
-
-            // get the list of published nodes in NodeId format
-            uint nodeConfigVersion = 0;
-            outputArguments[0] = JsonConvert.SerializeObject(GetPublisherConfigurationFileEntries(endpointUrl, false, out nodeConfigVersion));
-            Logger.Information("OnGetConfiguredNodesOnEndpointCall: Success!");
-
+            List<PublisherConfigurationFileEntryLegacyModel> configFileEntries = GetPublisherConfigurationFileEntriesAsNodeIdsAsync(endpointUrl).Result;
+            outputArguments[0] = JsonConvert.SerializeObject(configFileEntries);
+            Logger.Information($"{logPrefix} Success (number of entries: {configFileEntries.Count})");
             return ServiceResult.Good;
         }
     }

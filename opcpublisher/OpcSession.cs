@@ -1070,6 +1070,7 @@ namespace OpcPublisher
         /// </summary>
         public async Task<HttpStatusCode> AddNodeForMonitoringAsync(NodeId nodeId, ExpandedNodeId expandedNodeId, int opcPublishingInterval, int opcSamplingInterval, CancellationToken ct)
         {
+            string logPrefix = "AddNodeForMonitoringAsync:";
             bool sessionLocked = false;
             try
             {
@@ -1077,6 +1078,13 @@ namespace OpcPublisher
                 if (!sessionLocked || ct.IsCancellationRequested)
                 {
                     return HttpStatusCode.Gone;
+                }
+
+                // check if the session is just connecting, in this case we do not have the namespace array yet
+                if (State == SessionState.Connecting)
+                {
+                    Logger.Warning($"{logPrefix} The session to endpoint '{EndpointUrl}' is not yet connected. Please retry, when it is established.");
+                    return HttpStatusCode.NotAcceptable;
                 }
 
                 // check if there is already a subscription with the same publishing interval, which can be used to monitor the node
@@ -1087,7 +1095,7 @@ namespace OpcPublisher
                 {
                     opcSubscription = new OpcSubscription(opcPublishingInterval);
                     OpcSubscriptions.Add(opcSubscription);
-                    Logger.Information($"AddNodeForMonitoring: No matching subscription with publishing interval of {opcPublishingInterval} found'. Requested to create a new one.");
+                    Logger.Information($"{logPrefix} No matching subscription with publishing interval of {opcPublishingInterval} found'. Requested to create a new one.");
                 }
 
                 // create objects for publish check
@@ -1122,7 +1130,7 @@ namespace OpcPublisher
                     opcMonitoredItem.RequestedSamplingInterval = opcSamplingInterval;
                     opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                     Interlocked.Increment(ref NodeConfigVersion);
-                    Logger.Debug($"AddNodeForMonitoring: Added item with nodeId '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' for monitoring.");
+                    Logger.Debug($"{logPrefix} Added item with nodeId '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' for monitoring.");
 
                     // trigger the actual OPC communication with the server to be done
                     Task t = Task.Run(async () => await ConnectAndMonitorAsync(ct));
@@ -1130,12 +1138,12 @@ namespace OpcPublisher
                 }
                 else
                 {
-                    Logger.Debug($"AddNodeForMonitoring: Node with Id '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' is already monitored.");
+                    Logger.Debug($"{logPrefix} Node with Id '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' is already monitored.");
                 }
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"AddNodeForMonitoring: Exception while trying to add node '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' for monitoring.");
+                Logger.Error(e, $"{logPrefix} Exception while trying to add node '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' for monitoring.");
                 return HttpStatusCode.InternalServerError;
             }
             finally
@@ -1172,7 +1180,7 @@ namespace OpcPublisher
                     if (expandedNodeId == null)
                     {
                         string namespaceUri = _namespaceTable.ToArray().ElementAtOrDefault(nodeId.NamespaceIndex);
-                        expandedNodeIdCheck = new ExpandedNodeId(nodeId.Identifier, nodeId.NamespaceIndex, namespaceUri, 0);
+                        expandedNodeIdCheck = new ExpandedNodeId(nodeIdCheck, namespaceUri, 0);
                     }
                     if (nodeId == null)
                     {
