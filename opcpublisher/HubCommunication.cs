@@ -58,7 +58,7 @@ namespace OpcPublisher
 
         public static uint HubMessageSize { get; set; } = 262144;
 
-        public static TransportType HubProtocol { get; set; } = Microsoft.Azure.Devices.Client.TransportType.Mqtt_WebSocket_Only;
+        public static TransportType HubProtocol { get; set; } = TransportType.Mqtt_WebSocket_Only;
 
         public static int DefaultSendIntervalSeconds { get; set; } = 10;
 
@@ -115,7 +115,6 @@ namespace OpcPublisher
 
                 // show IoTCentral mode
                 Logger.Information($"IoTCentral mode: {IotCentralMode}");
-
 
                 if (_iotHubClient == null)
                 {
@@ -214,23 +213,24 @@ namespace OpcPublisher
         /// </summary>
         static async Task<MethodResponse> HandlePublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
+            string logPrefix = "HandlePublishNodesMethodAsync:";
             Uri endpointUrl = null;
             PublishNodesMethodRequestModel publishNodesMethodData = null;
             HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
             try
             {
-                Logger.Debug("PublishNodes method called.");
+                Logger.Debug($"{logPrefix} called");
                 publishNodesMethodData = JsonConvert.DeserializeObject<PublishNodesMethodRequestModel>(methodRequest.DataAsJson);
                 endpointUrl = new Uri(publishNodesMethodData.EndpointUrl);
             }
             catch (UriFormatException)
             {
-                Logger.Error($"PublishNodesMethod: The EndpointUrl has an invalid format '{publishNodesMethodData.EndpointUrl}'!");
+                Logger.Error($"{logPrefix} The EndpointUrl has an invalid format '{publishNodesMethodData.EndpointUrl}'!");
                 return (new MethodResponse((int)HttpStatusCode.InternalServerError));
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"PublishNodesMethod");
+                Logger.Error(e, $"{logPrefix} Exception");
                 return (new MethodResponse((int)HttpStatusCode.InternalServerError));
             }
 
@@ -242,7 +242,7 @@ namespace OpcPublisher
 
                 if (ShutdownTokenSource.IsCancellationRequested)
                 {
-                    Logger.Warning($"PublishNodesMethod: Publisher shutdown detected. Aborting...");
+                    Logger.Warning($"{logPrefix} Publisher shutdown detected. Aborting...");
                     return (new MethodResponse((int)HttpStatusCode.Gone));
                 }
 
@@ -256,7 +256,7 @@ namespace OpcPublisher
                     // create new session info.
                     opcSession = new OpcSession(endpointUrl, true, OpcSessionCreationTimeout);
                     OpcSessions.Add(opcSession);
-                    Logger.Information($"PublishNodesMethod: No matching session found for endpoint '{endpointUrl.OriginalString}'. Requested to create a new one.");
+                    Logger.Information($"{logPrefix} No matching session found for endpoint '{endpointUrl.OriginalString}'. Requested to create a new one.");
                 }
 
                 // process all nodes
@@ -280,7 +280,7 @@ namespace OpcPublisher
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e, $"PublishNodesMethod: The NodeId has an invalid format '{node.Id}'!");
+                        Logger.Error(e, $"{logPrefix} The NodeId has an invalid format '{node.Id}'!");
                         continue;
                     }
 
@@ -291,19 +291,19 @@ namespace OpcPublisher
                         if (isNodeIdFormat)
                         {
                             // add the node info to the subscription with the default publishing interval, execute syncronously
-                            Logger.Information($"PublishNodesMethod: Request to monitor item with NodeId '{nodeId.ToString()}' (PublishingInterval: {publishingInterval}, SamplingInterval: {samplingInterval})");
+                            Logger.Debug($"{logPrefix} Request to monitor item with NodeId '{nodeId.ToString()}' (PublishingInterval: {publishingInterval}, SamplingInterval: {samplingInterval})");
                             statusCode = await opcSession.AddNodeForMonitoringAsync(nodeId, null, publishingInterval, samplingInterval, ShutdownTokenSource.Token);
                         }
                         else
                         {
                             // add the node info to the subscription with the default publishing interval, execute syncronously
-                            Logger.Information($"PublishNodesMethod: Request to monitor item with ExpandedNodeId '{expandedNodeId.ToString()}' (PublishingInterval: {publishingInterval}, SamplingInterval: {samplingInterval})");
+                            Logger.Debug($"{logPrefix} Request to monitor item with ExpandedNodeId '{expandedNodeId.ToString()}' (PublishingInterval: {publishingInterval}, SamplingInterval: {samplingInterval})");
                             statusCode = await opcSession.AddNodeForMonitoringAsync(null, expandedNodeId, publishingInterval, samplingInterval, ShutdownTokenSource.Token);
                         }
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e, $"PublishNodesMethod: Exception while trying to configure publishing node '{(isNodeIdFormat ? nodeId.ToString() : expandedNodeId.ToString())}'");
+                        Logger.Error(e, $"{logPrefix} Exception while trying to configure publishing node '{(isNodeIdFormat ? nodeId.ToString() : expandedNodeId.ToString())}'");
                         return (new MethodResponse((int)HttpStatusCode.InternalServerError));
                     }
                 }
@@ -312,7 +312,7 @@ namespace OpcPublisher
             {
                 foreach (Exception ex in e.InnerExceptions)
                 {
-                    Logger.Error(ex, "Error in PublishNodesMethod method handler.");
+                    Logger.Error(ex, $"{logPrefix} Exception");
                 }
                 // Indicate that the message treatment is not completed
                 return (new MethodResponse((int)HttpStatusCode.InternalServerError));
@@ -330,6 +330,7 @@ namespace OpcPublisher
         /// </summary>
         static async Task<MethodResponse> HandleUnpublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
+            string logPrefix = "HandleUnpublishNodesMethodAsync:";
             NodeId nodeId = null;
             ExpandedNodeId expandedNodeId = null;
             Uri endpointUrl = null;
@@ -338,18 +339,18 @@ namespace OpcPublisher
             HttpStatusCode statusCode = HttpStatusCode.OK;
             try
             {
-                Logger.Debug("UnpublishNodes method called.");
+                Logger.Debug($"{logPrefix} called");
                 unpublishNodesMethodData = JsonConvert.DeserializeObject<UnpublishNodesMethodRequestModel>(methodRequest.DataAsJson);
                 endpointUrl = new Uri(unpublishNodesMethodData.EndpointUrl);
             }
             catch (UriFormatException)
             {
-                Logger.Error($"UnpublishNodesMethod: The EndpointUrl has an invalid format '{unpublishNodesMethodData.EndpointUrl}'!");
+                Logger.Error($"{logPrefix} The EndpointUrl has an invalid format '{unpublishNodesMethodData.EndpointUrl}'!");
                 return (new MethodResponse((int)HttpStatusCode.InternalServerError));
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"UnpublishNodesMethod");
+                Logger.Error(e, $"{logPrefix} Exception");
                 return (new MethodResponse((int)HttpStatusCode.InternalServerError));
             }
 
@@ -376,7 +377,7 @@ namespace OpcPublisher
                 if (opcSession == null)
                 {
                     // do nothing if there is no session for this endpoint.
-                    Logger.Error($"UnpublishNodes: Session for endpoint '{endpointUrl.OriginalString}' not found.");
+                    Logger.Error($"{logPrefix} Session for endpoint '{endpointUrl.OriginalString}' not found.");
                     return (new MethodResponse((int)HttpStatusCode.Gone));
                 }
                 else
@@ -399,20 +400,20 @@ namespace OpcPublisher
                         }
                         catch (Exception e)
                         {
-                            Logger.Error(e, $"UnpublishNodesMethod: The NodeId has an invalid format '{node.Id}'!");
+                            Logger.Error(e, $"{logPrefix} The NodeId has an invalid format '{node.Id}'!");
                             return (new MethodResponse((int)HttpStatusCode.InternalServerError));
                         }
 
                         if (isNodeIdFormat)
                         {
                             // stop monitoring the node, execute syncronously
-                            Logger.Information($"UnpublishNodes: Request to stop monitoring item with NodeId '{nodeId.ToString()}')");
+                            Logger.Information($"{logPrefix} Request to stop monitoring item with NodeId '{nodeId.ToString()}')");
                             statusCode = await opcSession.RequestMonitorItemRemovalAsync(nodeId, null, ShutdownTokenSource.Token);
                         }
                         else
                         {
                             // stop monitoring the node, execute syncronously
-                            Logger.Information($"UnpublishNodes: Request to stop monitoring item with ExpandedNodeId '{expandedNodeId.ToString()}')");
+                            Logger.Information($"{logPrefix} Request to stop monitoring item with ExpandedNodeId '{expandedNodeId.ToString()}')");
                             statusCode = await opcSession.RequestMonitorItemRemovalAsync(null, expandedNodeId, ShutdownTokenSource.Token);
                         }
                     }
@@ -420,7 +421,7 @@ namespace OpcPublisher
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"UnpublishNodes: Exception while trying to configure publishing node '{nodeId.ToString()}'");
+                Logger.Error(e, $"{logPrefix} Exception while trying to configure publishing node '{nodeId.ToString()}'");
                 return (new MethodResponse((int)HttpStatusCode.InternalServerError));
             }
             finally
@@ -437,12 +438,13 @@ namespace OpcPublisher
         /// </summary>
         static async Task<MethodResponse> HandleUnpublishAllNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
+            string logPrefix = "HandleUnpublishAllNodesMethodAsync:";
             Uri endpointUrl = null;
             UnpublishAllNodesMethodRequestModel unpublishAllNodesMethodData = null;
 
             try
             {
-                Logger.Debug("UnpublishAllNodes method called.");
+                Logger.Debug($"{logPrefix} called");
                 unpublishAllNodesMethodData = JsonConvert.DeserializeObject<UnpublishAllNodesMethodRequestModel>(methodRequest.DataAsJson);
                 if (unpublishAllNodesMethodData != null && unpublishAllNodesMethodData.EndpointUrl != null)
                 {
@@ -451,12 +453,12 @@ namespace OpcPublisher
             }
             catch (UriFormatException)
             {
-                Logger.Error($"UnpublishAllNodes: The EndpointUrl has an invalid format '{unpublishAllNodesMethodData.EndpointUrl}'!");
+                Logger.Error($"{logPrefix}  The EndpointUrl has an invalid format '{unpublishAllNodesMethodData.EndpointUrl}'!");
                 return (new MethodResponse((int)HttpStatusCode.InternalServerError));
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"UnpublishAllNodes");
+                Logger.Error(e, $"{logPrefix} Exception");
                 return (new MethodResponse((int)HttpStatusCode.InternalServerError));
             }
 
@@ -508,7 +510,7 @@ namespace OpcPublisher
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"UnpublishAllNodes: Exception while trying to unpublish nodes");
+                Logger.Error(e, $"{logPrefix} Exception");
                 return (new MethodResponse((int)HttpStatusCode.InternalServerError));
             }
             finally
@@ -523,15 +525,16 @@ namespace OpcPublisher
         /// </summary>
         static async Task<MethodResponse> HandleGetConfiguredEndpointsMethodAsync(MethodRequest methodRequest, object userContext)
         {
+            string logPrefix = "HandleGetConfiguredEndpointsMethodAsync:";
             GetConfiguredEndpointsMethodRequestModel getConfiguredEndpointsMethodRequest = null;
             try
             {
-                Logger.Debug("HandleGetConfiguredEndpointsMethodAsync method called.");
+                Logger.Debug($"{logPrefix} called");
                 getConfiguredEndpointsMethodRequest = JsonConvert.DeserializeObject<GetConfiguredEndpointsMethodRequestModel>(methodRequest.DataAsJson);
             }
             catch (Exception e)
             {
-                Logger.Error(e, "HandleGetConfiguredEndpointsMethodAsync");
+                Logger.Error(e, $"{logPrefix} Exception");
                 return (new MethodResponse((int)HttpStatusCode.InternalServerError));
             }
 
@@ -547,7 +550,7 @@ namespace OpcPublisher
                 uint requestedNodeConfigVersion = (uint)(getConfiguredEndpointsMethodRequest.ContinuationToken >> 32);
                 if (nodeConfigVersion != requestedNodeConfigVersion)
                 {
-                    Logger.Error($"HandleGetConfiguredEndpointsMethodAsync: The node configuration has changed. Requested version: {requestedNodeConfigVersion:X8}, Current version '{nodeConfigVersion:X8}'!");
+                    Logger.Error($"{logPrefix} The node configuration has changed. Requested version: {requestedNodeConfigVersion:X8}, Current version '{nodeConfigVersion:X8}'!");
                     return (new MethodResponse((int)HttpStatusCode.Gone));
                 }
                 startIndex = (uint)(getConfiguredEndpointsMethodRequest.ContinuationToken & 0x0FFFFFFFFL);
@@ -587,7 +590,7 @@ namespace OpcPublisher
             string resultString = JsonConvert.SerializeObject(getConfiguredEndpointsMethodResponse);
             byte[] result = Encoding.UTF8.GetBytes(resultString);
             MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
-            Logger.Information($"HandleGetConfiguredEndpointsMethodAsync: Success returning {actualEndpointsCount} endpoint(s) (node config version: {nodeConfigVersion:X8})!");
+            Logger.Information($"{logPrefix} Success returning {actualEndpointsCount} endpoint(s) (node config version: {nodeConfigVersion:X8})!");
             return methodResponse;
         }
 
@@ -596,37 +599,45 @@ namespace OpcPublisher
         /// </summary>
         static async Task<MethodResponse> HandleGetConfiguredNodesOnEndpointMethodAsync(MethodRequest methodRequest, object userContext)
         {
+            string logPrefix = "HandleGetConfiguredNodesOnEndpointMethodAsync:";
             Uri endpointUrl = null;
             GetConfiguredNodesOnEndpointMethodRequestModel getConfiguredNodesOnEndpointMethodRequest = null;
             try
             {
-                Logger.Debug("HandleGetConfiguredNodesOnEndpointMethodAsync method called.");
+                Logger.Debug($"{logPrefix} called");
                 getConfiguredNodesOnEndpointMethodRequest = JsonConvert.DeserializeObject<GetConfiguredNodesOnEndpointMethodRequestModel>(methodRequest.DataAsJson);
                 endpointUrl = new Uri(getConfiguredNodesOnEndpointMethodRequest.EndpointUrl);
             }
             catch (UriFormatException)
             {
-                Logger.Error($"HandleGetConfiguredNodesOnEndpointMethodAsync: The EndpointUrl has an invalid format '{getConfiguredNodesOnEndpointMethodRequest.EndpointUrl}'!");
+                Logger.Error($"{logPrefix} The EndpointUrl has an invalid format '{getConfiguredNodesOnEndpointMethodRequest.EndpointUrl}'!");
                 return (new MethodResponse((int)HttpStatusCode.InternalServerError));
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"HandleGetConfiguredNodesOnEndpointMethodAsync");
+                Logger.Error(e, $"{logPrefix} Exception");
                 return (new MethodResponse((int)HttpStatusCode.InternalServerError));
             }
 
             // get the list of published nodes for the endpoint
             uint nodeConfigVersion = 0;
-            List<PublisherConfigurationFileEntry> configFileEntries = GetPublisherConfigurationFileEntries(endpointUrl, false, out nodeConfigVersion);
+            List<PublisherConfigurationFileEntryModel> configFileEntries = GetPublisherConfigurationFileEntries(endpointUrl, false, out nodeConfigVersion);
+
+            // return if there are no nodes configured for this endpoint
+            if (configFileEntries.Count == 0)
+            {
+                Logger.Information($"{logPrefix} There are no nodes configured for endpoint '{endpointUrl}'");
+                return (new MethodResponse((int)HttpStatusCode.OK));
+            }
 
             // there should be only one config file entry per endpoint
             if (configFileEntries.Count != 1)
             {
-                Logger.Error($"HandleGetConfiguredNodesOnEndpointMethodAsync: There are more configuration entries for endpoint '{endpointUrl}'. Aborting...");
+                Logger.Error($"{logPrefix} here are more configuration entries for endpoint '{endpointUrl}'. Aborting...");
                 return (new MethodResponse((int)HttpStatusCode.InternalServerError));
             }
 
-            List<OpcNodeOnEndpoint> opcNodes = configFileEntries.First().OpcNodes;
+            List<OpcNodeOnEndpointModel> opcNodes = configFileEntries.First().OpcNodes;
             uint configuredNodesOnEndpointCount = (uint)opcNodes.Count();
 
             // validate version
@@ -636,7 +647,7 @@ namespace OpcPublisher
                 uint requestedNodeConfigVersion = (uint)(getConfiguredNodesOnEndpointMethodRequest.ContinuationToken >> 32);
                 if (nodeConfigVersion != requestedNodeConfigVersion)
                 {
-                    Logger.Error($"HandleGetConfiguredNodesOnEndpointMethodAsync: The node configuration has changed. Requested version: {requestedNodeConfigVersion:X8}, Current version '{nodeConfigVersion:X8}'!");
+                    Logger.Error($"{logPrefix} The node configuration has changed. Requested version: {requestedNodeConfigVersion:X8}, Current version '{nodeConfigVersion:X8}'!");
                     return (new MethodResponse((int)HttpStatusCode.Gone));
                 }
                 startIndex = (uint)(getConfiguredNodesOnEndpointMethodRequest.ContinuationToken & 0x0FFFFFFFFL);
@@ -676,7 +687,7 @@ namespace OpcPublisher
             string resultString = JsonConvert.SerializeObject(getConfiguredNodesOnEndpointMethodResponse);
             byte[] result = Encoding.UTF8.GetBytes(resultString);
             MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
-            Logger.Information($"HandleGetConfiguredNodesOnEndpointMethodAsync: Success returning {actualNodeCount} node(s) of {availableNodeCount} (start: {startIndex}) (node config version: {nodeConfigVersion:X8})!");
+            Logger.Information($"{logPrefix} Success returning {actualNodeCount} node(s) of {availableNodeCount} (start: {startIndex}) (node config version: {nodeConfigVersion:X8})!");
             return methodResponse;
         }
 
@@ -913,15 +924,17 @@ namespace OpcPublisher
         protected async Task MonitoredItemsProcessorAsync(CancellationToken ct)
         {
             uint jsonSquareBracketLength = 2;
-            Microsoft.Azure.Devices.Client.Message tempMsg = new Microsoft.Azure.Devices.Client.Message();
+            Message tempMsg = new Message();
             // the system properties are MessageId (max 128 byte), Sequence number (ulong), ExpiryTime (DateTime) and more. ideally we get that from the client.
             int systemPropertyLength = 128 + sizeof(ulong) + tempMsg.ExpiryTimeUtc.ToString().Length;
+            int applicationPropertyLength = Encoding.UTF8.GetByteCount($"iothub-content-type={CONTENT_TYPE_OPCUAJSON}") + Encoding.UTF8.GetByteCount($"iothub-content-encoding={CONTENT_ENCODING_UTF8}");
             // if batching is requested the buffer will have the requested size, otherwise we reserve the max size
-            uint hubMessageBufferSize = (HubMessageSize > 0 ? HubMessageSize : HubMessageSizeMax) - (uint)systemPropertyLength - (uint)jsonSquareBracketLength;
+            uint hubMessageBufferSize = (HubMessageSize > 0 ? HubMessageSize : HubMessageSizeMax) - (uint)systemPropertyLength - jsonSquareBracketLength - (uint)applicationPropertyLength;
             byte[] hubMessageBuffer = new byte[hubMessageBufferSize];
             MemoryStream hubMessage = new MemoryStream(hubMessageBuffer);
             DateTime nextSendTime = DateTime.UtcNow + TimeSpan.FromSeconds(DefaultSendIntervalSeconds);
             double millisecondsTillNextSend = nextSendTime.Subtract(DateTime.UtcNow).TotalMilliseconds;
+            bool singleMessageSend = DefaultSendIntervalSeconds == 0 && HubMessageSize == 0;
 
             using (hubMessage)
             {
@@ -934,7 +947,10 @@ namespace OpcPublisher
 
                     hubMessage.Position = 0;
                     hubMessage.SetLength(0);
-                    hubMessage.Write(Encoding.UTF8.GetBytes("["), 0, 1);
+                    if (!singleMessageSend)
+                    {
+                        hubMessage.Write(Encoding.UTF8.GetBytes("["), 0, 1);
+                    }
                     while (true)
                     {
                         // sanity check the send interval, compute the timeout and get the next monitored item message
@@ -1026,25 +1042,31 @@ namespace OpcPublisher
                                 nextSendTime += TimeSpan.FromSeconds(DefaultSendIntervalSeconds);
                                 hubMessage.Position = 0;
                                 hubMessage.SetLength(0);
-                                hubMessage.Write(Encoding.UTF8.GetBytes("["), 0, 1);
+                                if (!singleMessageSend)
+                                {
+                                    hubMessage.Write(Encoding.UTF8.GetBytes("["), 0, 1);
+                                }
                                 continue;
                             }
 
-                            // if there is no batching and not interval configured, we send the JSON message we just got, otherwise we send the buffer
-                            if (HubMessageSize == 0 && DefaultSendIntervalSeconds == 0)
+                            // if there is no batching and no send interval configured, we send the JSON message we just got, otherwise we send the buffer
+                            if (singleMessageSend)
                             {
-                                // we use also an array for a single message to make backend processing more consistent
-                                encodedhubMessage = new Microsoft.Azure.Devices.Client.Message(Encoding.UTF8.GetBytes("[" + jsonMessage.ToString() + "]"));
+                                // create the message without brackets
+                                encodedhubMessage = new Message(Encoding.UTF8.GetBytes(jsonMessage.ToString()));
                             }
                             else
                             {
                                 // remove the trailing comma and add a closing square bracket
                                 hubMessage.SetLength(hubMessage.Length - 1);
                                 hubMessage.Write(Encoding.UTF8.GetBytes("]"), 0, 1);
-                                encodedhubMessage = new Microsoft.Azure.Devices.Client.Message(hubMessage.ToArray());
+                                encodedhubMessage = new Message(hubMessage.ToArray());
                             }
                             if (_iotHubClient != null || _edgeHubClient != null)
                             {
+                                encodedhubMessage.ContentType = CONTENT_TYPE_OPCUAJSON;
+                                encodedhubMessage.ContentEncoding = CONTENT_ENCODING_UTF8;
+
                                 nextSendTime += TimeSpan.FromSeconds(DefaultSendIntervalSeconds);
                                 try
                                 {
@@ -1069,7 +1091,10 @@ namespace OpcPublisher
                                 // reset the messaage
                                 hubMessage.Position = 0;
                                 hubMessage.SetLength(0);
-                                hubMessage.Write(Encoding.UTF8.GetBytes("["), 0, 1);
+                                if (!singleMessageSend)
+                                {
+                                    hubMessage.Write(Encoding.UTF8.GetBytes("["), 0, 1);
+                                }
 
                                 // if we had not yet buffered the last message because there was not enough space, buffer it now
                                 if (needToBufferMessage)
@@ -1102,6 +1127,8 @@ namespace OpcPublisher
         }
 
         private static int MAX_RESPONSE_PAYLOAD_LENGTH = (8 * 1024 - 256);
+        private static string CONTENT_TYPE_OPCUAJSON = "application/opcua+uajson";
+        private static string CONTENT_ENCODING_UTF8 = "UTF-8";
 
         private static string _hubConnectionString = string.Empty;
         private static long _enqueueCount;

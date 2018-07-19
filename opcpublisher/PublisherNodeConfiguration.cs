@@ -114,8 +114,8 @@ namespace OpcPublisher
             PublisherNodeConfigurationSemaphore = new SemaphoreSlim(1);
             PublisherNodeConfigurationFileSemaphore = new SemaphoreSlim(1);
             OpcSessions = new List<OpcSession>();
-            _nodePublishingConfiguration = new List<NodePublishingConfiguration>();
-            _configurationFileEntries = new List<PublisherConfigurationFileEntryLegacy>();
+            _nodePublishingConfiguration = new List<NodePublishingConfigurationModel>();
+            _configurationFileEntries = new List<PublisherConfigurationFileEntryLegacyModel>();
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace OpcPublisher
                     try
                     {
                         await PublisherNodeConfigurationFileSemaphore.WaitAsync();
-                        _configurationFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigurationFileEntryLegacy>>(File.ReadAllText(PublisherNodeConfigurationFilename));
+                        _configurationFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigurationFileEntryLegacyModel>>(File.ReadAllText(PublisherNodeConfigurationFilename));
                     }
                     finally
                     {
@@ -177,7 +177,7 @@ namespace OpcPublisher
                                     if (opcNode.ExpandedNodeId != null)
                                     {
                                         ExpandedNodeId expandedNodeId = ExpandedNodeId.Parse(opcNode.ExpandedNodeId);
-                                        _nodePublishingConfiguration.Add(new NodePublishingConfiguration(expandedNodeId, opcNode.ExpandedNodeId, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval));
+                                        _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.ExpandedNodeId, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval));
                                     }
                                     else
                                     {
@@ -186,13 +186,13 @@ namespace OpcPublisher
                                         {
                                             // ExpandedNodeId format
                                             ExpandedNodeId expandedNodeId = ExpandedNodeId.Parse(opcNode.Id);
-                                            _nodePublishingConfiguration.Add(new NodePublishingConfiguration(expandedNodeId, opcNode.Id, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval));
+                                            _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.Id, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval));
                                         }
                                         else
                                         {
                                             // NodeId format
                                             NodeId nodeId = NodeId.Parse(opcNode.Id);
-                                            _nodePublishingConfiguration.Add(new NodePublishingConfiguration(nodeId, opcNode.Id, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval));
+                                            _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(nodeId, opcNode.Id, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval));
                                         }
                                     }
                                 }
@@ -200,7 +200,7 @@ namespace OpcPublisher
                             else
                             {
                                 // NodeId (ns=) format node configuration syntax using default sampling and publishing interval.
-                                _nodePublishingConfiguration.Add(new NodePublishingConfiguration(publisherConfigFileEntryLegacy.NodeId, publisherConfigFileEntryLegacy.NodeId.ToString(), publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, OpcSamplingInterval, OpcPublishingInterval));
+                                _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(publisherConfigFileEntryLegacy.NodeId, publisherConfigFileEntryLegacy.NodeId.ToString(), publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, OpcSamplingInterval, OpcPublishingInterval));
                             }
                         }
                     }
@@ -307,9 +307,9 @@ namespace OpcPublisher
         /// Returns a list of all published nodes for a specific endpoint in config file format.
         /// </summary>
         /// <returns></returns>
-        public static List<PublisherConfigurationFileEntry> GetPublisherConfigurationFileEntries(Uri endpointUrl, bool getAll, out uint nodeConfigVersion)
+        public static List<PublisherConfigurationFileEntryModel> GetPublisherConfigurationFileEntries(Uri endpointUrl, bool getAll, out uint nodeConfigVersion)
         {
-            List<PublisherConfigurationFileEntry> publisherConfigurationFileEntries = new List<PublisherConfigurationFileEntry>();
+            List<PublisherConfigurationFileEntryModel> publisherConfigurationFileEntries = new List<PublisherConfigurationFileEntryModel>();
             nodeConfigVersion = (uint)NodeConfigVersion;
             try
             {
@@ -328,11 +328,11 @@ namespace OpcPublisher
                             sessionLocked = session.LockSessionAsync().Result;
                             if (sessionLocked && (endpointUrl == null || session.EndpointUrl.AbsoluteUri.Equals(endpointUrl.AbsoluteUri, StringComparison.OrdinalIgnoreCase)))
                             {
-                                PublisherConfigurationFileEntry publisherConfigurationFileEntry = new PublisherConfigurationFileEntry();
+                                PublisherConfigurationFileEntryModel publisherConfigurationFileEntry = new PublisherConfigurationFileEntryModel();
 
                                 publisherConfigurationFileEntry.EndpointUrl = session.EndpointUrl;
                                 publisherConfigurationFileEntry.UseSecurity = session.UseSecurity;
-                                publisherConfigurationFileEntry.OpcNodes = new List<OpcNodeOnEndpoint>();
+                                publisherConfigurationFileEntry.OpcNodes = new List<OpcNodeOnEndpointModel>();
 
                                 foreach (var subscription in session.OpcSubscriptions)
                                 {
@@ -341,7 +341,7 @@ namespace OpcPublisher
                                         // ignore items tagged to stop
                                         if (monitoredItem.State != OpcMonitoredItemState.RemovalRequested || getAll == true)
                                         {
-                                            OpcNodeOnEndpoint opcNodeOnEndpoint = new OpcNodeOnEndpoint();
+                                            OpcNodeOnEndpointModel opcNodeOnEndpoint = new OpcNodeOnEndpointModel();
                                             opcNodeOnEndpoint.Id = monitoredItem.OriginalId;
                                             opcNodeOnEndpoint.OpcPublishingInterval = subscription.RequestedPublishingInterval == OpcPublishingInterval ? (int?)null : subscription.RequestedPublishingInterval;
                                             opcNodeOnEndpoint.OpcSamplingInterval = monitoredItem.RequestedSamplingInterval == OpcSamplingInterval ? (int?)null : monitoredItem.RequestedSamplingInterval;
@@ -383,16 +383,16 @@ namespace OpcPublisher
         /// Returns a list of all configured nodes in NodeId format.
         /// </summary>
         /// <returns></returns>
-        public static async Task<List<PublisherConfigurationFileEntryLegacy>> GetPublisherConfigurationFileEntriesAsNodeIds(Uri endpointUrl)
+        public static async Task<List<PublisherConfigurationFileEntryLegacyModel>> GetPublisherConfigurationFileEntriesAsNodeIdsAsync(Uri endpointUrl)
         {
-            List<PublisherConfigurationFileEntryLegacy> publisherConfigurationFileEntriesLegacy = new List<PublisherConfigurationFileEntryLegacy>();
+            List<PublisherConfigurationFileEntryLegacyModel> publisherConfigurationFileEntriesLegacy = new List<PublisherConfigurationFileEntryLegacyModel>();
             try
             {
-                PublisherNodeConfigurationSemaphore.Wait();
+                await PublisherNodeConfigurationSemaphore.WaitAsync();
 
                 try
                 {
-                    OpcSessionsListSemaphore.Wait();
+                    await OpcSessionsListSemaphore.WaitAsync();
 
                     // itereate through all sessions, subscriptions and monitored items and create config file entries
                     foreach (var session in OpcSessions)
@@ -400,14 +400,10 @@ namespace OpcPublisher
                         bool sessionLocked = false;
                         try
                         {
-                            sessionLocked = session.LockSessionAsync().Result;
+                            sessionLocked = await session.LockSessionAsync();
                             if (sessionLocked && (endpointUrl == null || session.EndpointUrl.AbsoluteUri.Equals(endpointUrl.AbsoluteUri, StringComparison.OrdinalIgnoreCase)))
                             {
-                                PublisherConfigurationFileEntryLegacy publisherConfigurationFileEntryLegacy = new PublisherConfigurationFileEntryLegacy();
 
-                                publisherConfigurationFileEntryLegacy.EndpointUrl = session.EndpointUrl;
-                                publisherConfigurationFileEntryLegacy.NodeId = null;
-                                publisherConfigurationFileEntryLegacy.OpcNodes = null;
                                 foreach (var subscription in session.OpcSubscriptions)
                                 {
                                     foreach (var monitoredItem in subscription.OpcMonitoredItems)
@@ -415,6 +411,11 @@ namespace OpcPublisher
                                         // ignore items tagged to stop
                                         if (monitoredItem.State != OpcMonitoredItemState.RemovalRequested)
                                         {
+                                            PublisherConfigurationFileEntryLegacyModel publisherConfigurationFileEntryLegacy = new PublisherConfigurationFileEntryLegacyModel();
+                                            publisherConfigurationFileEntryLegacy.EndpointUrl = session.EndpointUrl;
+                                            publisherConfigurationFileEntryLegacy.NodeId = null;
+                                            publisherConfigurationFileEntryLegacy.OpcNodes = null;
+
                                             if (monitoredItem.ConfigType == OpcMonitoredItemConfigurationType.ExpandedNodeId)
                                             {
                                                 // for certain scenarios we support returning the NodeId format even so the
@@ -473,7 +474,7 @@ namespace OpcPublisher
             {
                 // itereate through all sessions, subscriptions and monitored items and create config file entries
                 uint nodeConfigVersion = 0;
-                List<PublisherConfigurationFileEntry> publisherNodeConfiguration = GetPublisherConfigurationFileEntries(null, true, out nodeConfigVersion);
+                List<PublisherConfigurationFileEntryModel> publisherNodeConfiguration = GetPublisherConfigurationFileEntries(null, true, out nodeConfigVersion);
 
                 // update the config file
                 try
@@ -492,139 +493,7 @@ namespace OpcPublisher
             }
         }
 
-        private static List<NodePublishingConfiguration> _nodePublishingConfiguration;
-        private static List<PublisherConfigurationFileEntryLegacy> _configurationFileEntries;
+        private static List<NodePublishingConfigurationModel> _nodePublishingConfiguration;
+        private static List<PublisherConfigurationFileEntryLegacyModel> _configurationFileEntries;
     }
-
-    /// <summary>
-    /// Class describing a list of nodes
-    /// </summary>
-    public class OpcNodeOnEndpoint
-    {
-        // Id can be:
-        // a NodeId ("ns=")
-        // an ExpandedNodeId ("nsu=")
-        public string Id;
-
-        // support legacy configuration file syntax
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string ExpandedNodeId;
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public int? OpcSamplingInterval;
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public int? OpcPublishingInterval;
-    }
-
-    /// <summary>
-    /// Class describing the nodes which should be published.
-    /// </summary>
-    public partial class PublisherConfigurationFileEntry
-    {
-        public PublisherConfigurationFileEntry()
-        {
-        }
-
-        public PublisherConfigurationFileEntry(string nodeId, string endpointUrl)
-        {
-            EndpointUrl = new Uri(endpointUrl);
-            OpcNodes = new List<OpcNodeOnEndpoint>();
-        }
-
-        public Uri EndpointUrl { get; set; }
-
-        [DefaultValue(true)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
-        public bool? UseSecurity { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public List<OpcNodeOnEndpoint> OpcNodes { get; set; }
-    }
-
-    /// <summary>
-    /// Describes the publishing information of a node.
-    /// </summary>
-    public class NodePublishingConfiguration
-    {
-        public Uri EndpointUrl;
-        public bool UseSecurity;
-        public NodeId NodeId;
-        public ExpandedNodeId ExpandedNodeId;
-        public string OriginalId;
-        public int OpcSamplingInterval;
-        public int OpcPublishingInterval;
-
-        public NodePublishingConfiguration(ExpandedNodeId expandedNodeId, string originalId, Uri endpointUrl, bool? useSecurity, int opcSamplingInterval, int opcPublishingInterval)
-        {
-            NodeId = null;
-            ExpandedNodeId = expandedNodeId;
-            OriginalId = originalId;
-            EndpointUrl = endpointUrl;
-            UseSecurity = useSecurity ?? true;
-            OpcSamplingInterval = opcSamplingInterval;
-            OpcPublishingInterval = opcPublishingInterval;
-        }
-
-        public NodePublishingConfiguration(NodeId nodeId, string originalId, Uri endpointUrl, bool? useSecurity, int opcSamplingInterval, int opcPublishingInterval)
-        {
-            NodeId = nodeId;
-            ExpandedNodeId = null;
-            OriginalId = originalId;
-            EndpointUrl = endpointUrl;
-            UseSecurity = useSecurity ?? true;
-            OpcSamplingInterval = opcSamplingInterval;
-            OpcPublishingInterval = opcPublishingInterval;
-        }
-    }
-
-
-    ///// <summary>
-    ///// Class describing a list of nodes in the ExpandedNodeId format
-    ///// </summary>
-    //public class OpcNodeOnEndpointUrl
-    //{
-    //    public string ExpandedNodeId;
-
-    //    [DefaultValue(OpcSamplingIntervalDefault)]
-    //    [JsonProperty(DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate, NullValueHandling = NullValueHandling.Ignore)]
-    //    public int? OpcSamplingInterval;
-
-    //    [DefaultValue(OpcPublishingIntervalDefault)]
-    //    [JsonProperty(DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate, NullValueHandling = NullValueHandling.Ignore)]
-    //    public int? OpcPublishingInterval;
-    //}
-
-    /// <summary>
-    /// Class describing the nodes which should be published. It supports two formats:
-    /// - NodeId syntax using the namespace index (ns) syntax
-    /// - List of ExpandedNodeId syntax, to allow putting nodes with similar publishing and/or sampling intervals in one object
-    /// </summary>
-    public partial class PublisherConfigurationFileEntryLegacy
-    {
-        public PublisherConfigurationFileEntryLegacy()
-        {
-        }
-
-        public PublisherConfigurationFileEntryLegacy(string nodeId, string endpointUrl)
-        {
-            NodeId = new NodeId(nodeId);
-            EndpointUrl = new Uri(endpointUrl);
-        }
-
-        public Uri EndpointUrl { get; set; }
-
-        [DefaultValue(true)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
-        public bool? UseSecurity { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public NodeId NodeId { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public List<OpcNodeOnEndpoint> OpcNodes { get; set; }
-    }
-
-
-
 }
