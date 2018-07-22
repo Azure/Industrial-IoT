@@ -132,10 +132,10 @@ namespace OpcPublisher
                         { "vc|verboseconsole=", $"ignored, only supported for backward comaptibility.", b => {}},
 
                         { "ns|noshutdown=", $"same as runforever.\nDefault: {_noShutdown}", (bool b) => _noShutdown = b },
-                        { "rf|runforwver", $"publisher can not be stopped by pressing a key on the console, but will run forever.\nDefault: {_noShutdown}", b => _noShutdown = b != null },
+                        { "rf|runforever", $"publisher can not be stopped by pressing a key on the console, but will run forever.\nDefault: {_noShutdown}", b => _noShutdown = b != null },
 
                         { "lf|logfile=", $"the filename of the logfile to use.\nDefault: './{_logFileName}'", (string l) => _logFileName = l },
-                        { "lt|logflushtimespan=", $"the timespan in seconds when the logfile should be flushed.\nDefault: on logfile rollover.", (int s) => {
+                        { "lt|logflushtimespan=", $"the timespan in seconds when the logfile should be flushed.\nDefault: {_logFileFlushTimeSpanSec} sec", (int s) => {
                                 if (s > 0)
                                 {
                                     _logFileFlushTimeSpanSec = TimeSpan.FromSeconds(s);
@@ -750,7 +750,7 @@ namespace OpcPublisher
             Logger.Information("Usage: {0}.exe <applicationname> [<iothubconnectionstring>] [<options>]", Assembly.GetEntryAssembly().GetName().Name);
             Logger.Information("");
             Logger.Information("OPC Edge Publisher to subscribe to configured OPC UA servers and send telemetry to Azure IoTHub.");
-            Logger.Information("To exit the application, just press ENTER while it is running.");
+            Logger.Information("To exit the application, just press CTRL-C while it is running.");
             Logger.Information("");
             Logger.Information("applicationname: the OPC UA application name to use, required");
             Logger.Information("                 The application name is also used to register the publisher under this name in the");
@@ -898,6 +898,6 @@ namespace OpcPublisher
         private static bool _installOnly = false;
         private static string _logFileName = $"{Utils.GetHostName()}-publisher.log";
         private static string _logLevel = "info";
-        private static TimeSpan? _logFileFlushTimeSpanSec = null;
+        private static TimeSpan _logFileFlushTimeSpanSec = TimeSpan.FromSeconds(30);
     }
 }
