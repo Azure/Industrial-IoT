@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.Net {
             var data = new byte[] { 0, 2, 3, 4, 5, 6, 7, 8, 9 };
             var expected = new byte[] { 5, 6, 7 };
 
-            var value = data.Read(ref offset, 3, 10);
+            var value = data.ReadByteArray(ref offset, 3, 10);
             Assert.Equal(3, value.Length);
             Assert.Equal(expected, value);
             Assert.Equal(14, offset);
@@ -104,7 +104,7 @@ namespace Microsoft.Azure.IIoT.Net {
             var data = new byte[] { 0, 2, 3, 4, 5, 6, 7, 8, 9 };
             var expected = new byte[] { 5, 6, 7 };
 
-            var value = data.Read(ref offset, 3);
+            var value = data.ReadByteArray(ref offset, 3);
             Assert.Equal(3, value.Length);
             Assert.Equal(expected, value);
             Assert.Equal(7, offset);
@@ -116,7 +116,7 @@ namespace Microsoft.Azure.IIoT.Net {
             var data = new byte[] { 0, 2, 3, 4, 5, 6, 7, 8, 9 };
             var expected = new byte[] { 5, 6, 7 };
 
-            var value = data.Read(ref offset, 3, 3);
+            var value = data.ReadByteArray(ref offset, 3, 3);
             Assert.Equal(3, value.Length);
             Assert.Equal(expected, value);
             Assert.Equal(7, offset);
@@ -127,8 +127,8 @@ namespace Microsoft.Azure.IIoT.Net {
             var offset = 2;
             var data = new byte[] { 0, 2, 3, 4, 5 };
 
-            Assert.Throws<ArgumentException>(() => data.Read(ref offset, 5));
-            Assert.Throws<ArgumentException>(() => data.Read(ref offset, 5));
+            Assert.Throws<ArgumentException>(() => data.ReadByteArray(ref offset, 5));
+            Assert.Throws<ArgumentException>(() => data.ReadByteArray(ref offset, 5));
         }
 
         [Fact]

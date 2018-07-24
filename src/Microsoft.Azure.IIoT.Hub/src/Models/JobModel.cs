@@ -16,79 +16,81 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <summary>
         /// Id of the job
         /// </summary>
-        [JsonProperty(PropertyName = "JobId")]
+        [JsonProperty(PropertyName = "jobId")]
         public string JobId { get; set; }
 
         /// <summary>
         /// Query
         /// </summary>
-        [JsonProperty(PropertyName = "QueryCondition",
+        [JsonProperty(PropertyName = "queryCondition",
             NullValueHandling = NullValueHandling.Ignore)]
         public string QueryCondition { get; set; }
 
         /// <summary>
         /// Method parameters if type is device method
         /// </summary>
-        [JsonProperty(PropertyName = "MethodParameter",
+        [JsonProperty(PropertyName = "methodParameter",
             NullValueHandling = NullValueHandling.Ignore)]
         public MethodParameterModel MethodParameter { get; set; }
 
         /// <summary>
         /// Twin if type is twin update
         /// </summary>
-        [JsonProperty(PropertyName = "UpdateTwin",
+        [JsonProperty(PropertyName = "updateTwin",
             NullValueHandling = NullValueHandling.Ignore)]
         public DeviceTwinModel UpdateTwin { get; set; }
 
         /// <summary>
         /// Scheduled start time
         /// </summary>
-        [JsonProperty(PropertyName = "EndTimeUtc",
+        [JsonProperty(PropertyName = "startTimeUtc",
             NullValueHandling = NullValueHandling.Ignore)]
         public DateTime? StartTimeUtc { get; set; }
 
         /// <summary>
         /// Scheduled end time
         /// </summary>
-        [JsonProperty(PropertyName = "EndTimeUtc",
+        [JsonProperty(PropertyName = "endTimeUtc",
             NullValueHandling = NullValueHandling.Ignore)]
         public DateTime? EndTimeUtc { get; set; }
 
         /// <summary>
         /// Or max execution time
         /// </summary>
-        [JsonProperty(PropertyName = "MaxExecutionTimeInSeconds",
+        [JsonProperty(PropertyName = "maxExecutionTimeInSeconds",
             NullValueHandling = NullValueHandling.Ignore)]
         public long? MaxExecutionTimeInSeconds { get; set; }
 
         /// <summary>
         /// Type of the job
         /// </summary>
-        [JsonProperty(PropertyName = "Type")]
+        [JsonProperty(PropertyName = "type")]
         public JobType Type { get; set; }
 
         /// <summary>
         /// Status of the job
         /// </summary>
-        [JsonProperty(PropertyName = "Status")]
+        [JsonProperty(PropertyName = "status")]
         public JobStatus Status { get; set; }
 
         /// <summary>
         /// Failure reason if status is error
         /// </summary>
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(PropertyName = "failureReason",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string FailureReason { get; set; }
 
         /// <summary>
         /// Status message
         /// </summary>
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(PropertyName = "statusMessage",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string StatusMessage { get; set; }
 
         /// <summary>
         /// Individual job results
         /// </summary>
-        [JsonProperty(PropertyName = "Devices",
+        [JsonProperty(PropertyName = "devices",
             NullValueHandling = NullValueHandling.Ignore)]
         public IEnumerable<DeviceJobModel> Devices { get; set; }
     }

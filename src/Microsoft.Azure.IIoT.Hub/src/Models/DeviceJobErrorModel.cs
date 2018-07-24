@@ -14,13 +14,13 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <summary>
         /// Error code
         /// </summary>
-        [JsonProperty("Code")]
+        [JsonProperty("code")]
         public string Code { get; set; }
 
         /// <summary>
         /// Description
         /// </summary>
-        [JsonProperty("Description")]
+        [JsonProperty("description")]
         public string Description { get; set; }
     }
 }

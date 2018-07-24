@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
+    using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
     using System.Linq;
@@ -28,6 +29,9 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                         p => ((JProperty)p).Name, p => ((JProperty)p).Value),
                     Reported = ((JObject)twin.properties.reported)?.Children().ToDictionary(
                         p => ((JProperty)p).Name, p => ((JProperty)p).Value)
+                },
+                Capabilities = new DeviceCapabilitiesModel {
+                    IoTEdge = twin.capabilities?.iotEdge
                 }
             };
         }
@@ -57,7 +61,9 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                         JObject.FromObject(twin.Properties.Desired),
                     reported = twin.Properties.Reported == null ? null :
                         JObject.FromObject(twin.Properties.Reported),
-                }
+                },
+                capabilities = twin.Capabilities == null ? null :
+                    JObject.FromObject(twin.Capabilities)
             });
         }
 

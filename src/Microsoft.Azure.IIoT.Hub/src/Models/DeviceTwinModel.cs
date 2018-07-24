@@ -16,35 +16,42 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <summary>
         /// Device id
         /// </summary>
-        [JsonProperty(PropertyName = "Id")]
+        [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         /// <summary>
         /// Module id
         /// </summary>
-        [JsonProperty(PropertyName = "ModuleId",
+        [JsonProperty(PropertyName = "moduleId",
             NullValueHandling = NullValueHandling.Ignore)]
         public string ModuleId { get; set; }
 
         /// <summary>
         /// Etag for comparison
         /// </summary>
-        [JsonProperty(PropertyName = "Etag",
+        [JsonProperty(PropertyName = "etag",
             NullValueHandling = NullValueHandling.Ignore)]
         public string Etag { get; set; }
 
         /// <summary>
         /// Tags
         /// </summary>
-        [JsonProperty(PropertyName = "Tags",
+        [JsonProperty(PropertyName = "tags",
             NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, JToken> Tags { get; set; }
 
         /// <summary>
         /// Settings
         /// </summary>
-        [JsonProperty(PropertyName = "Properties",
+        [JsonProperty(PropertyName = "properties",
             NullValueHandling = NullValueHandling.Ignore)]
         public TwinPropertiesModel Properties { get; set; }
+
+        /// <summary>
+        /// Capabilities
+        /// </summary>
+        [JsonProperty(PropertyName = "capabilities",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public DeviceCapabilitiesModel Capabilities { get; set; }
     }
 }

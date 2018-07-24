@@ -6,6 +6,7 @@
 namespace System {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Security;
 
     public static class ConsoleEx {
 
@@ -50,5 +51,28 @@ namespace System {
         /// <returns></returns>
         public static T Select<T>(IEnumerable<T> items, string exit = "") =>
             Select(items, t => t.ToString(), exit);
+
+        /// <summary>
+        /// Read password
+        /// </summary>
+        /// <returns></returns>
+        public static SecureString ReadPassword() {
+            var str = new SecureString();
+            while (true) {
+                var key = Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Enter) {
+                    break;
+                }
+                if (key.Key != ConsoleKey.Backspace) {
+                    str.AppendChar(key.KeyChar);
+                    Console.Write("*");
+                }
+                else if (str.Length > 0) {
+                    str.RemoveAt(str.Length - 1);
+                    Console.Write("\b \b");
+                }
+            }
+            return str;
+        }
     }
 }

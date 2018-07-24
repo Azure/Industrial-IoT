@@ -13,6 +13,14 @@ namespace Newtonsoft.Json.Linq {
     public static class JTokenEx {
 
         /// <summary>
+        /// hashes a json object
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static string ToSha1Hash(this JToken token) =>
+            token.ToStringMinified().ToSha1Hash();
+
+        /// <summary>
         /// Creates a comparable bson buffer from token
         /// </summary>
         /// <param name="token"></param>

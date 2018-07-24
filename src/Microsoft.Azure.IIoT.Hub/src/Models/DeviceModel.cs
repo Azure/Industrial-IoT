@@ -14,37 +14,37 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <summary>
         /// Etag for comparison
         /// </summary>
-        [JsonProperty(PropertyName = "Etag")]
+        [JsonProperty(PropertyName = "etag")]
         public string Etag { get; set; }
 
         /// <summary>
         /// Device id
         /// </summary>
-        [JsonProperty(PropertyName = "Id")]
+        [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         /// <summary>
         /// Module id
         /// </summary>
-        [JsonProperty(PropertyName = "ModuleId")]
+        [JsonProperty(PropertyName = "moduleId")]
         public string ModuleId { get; set; }
 
         /// <summary>
         /// Authentication information
         /// </summary>
-        [JsonProperty(PropertyName = "Authentication")]
+        [JsonProperty(PropertyName = "authentication")]
         public DeviceAuthenticationModel Authentication { get; set; }
 
         /// <summary>
         /// Whether device is enabled
         /// </summary>
-        [JsonProperty(PropertyName = "Enabled")]
+        [JsonProperty(PropertyName = "enabled")]
         public bool Enabled { get; set; }
 
         /// <summary>
         /// Whether device is connected
         /// </summary>
-        [JsonProperty(PropertyName = "Connected")]
+        [JsonProperty(PropertyName = "connected")]
         public bool Connected { get; set; }
     }
 }

@@ -1,0 +1,59 @@
+{
+  "modulesContent": {
+    "$edgeAgent": {
+      "properties.desired": {
+        "schemaVersion": "1.0",
+        "runtime": {
+          "type": "docker",
+          "settings": {
+            "minDockerVersion": "1.25"
+          }
+        },
+        "systemModules": {
+          "edgeAgent": {
+            "type": "docker",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-agent:latest",
+              "createOptions": ""
+            }
+          },
+          "edgeHub": {
+            "type": "docker",
+            "status": "Running",
+            "restartPolicy": "Always",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-hub:latest",
+              "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}},\"Env\":[\"SSL_CERTIFICATE_PATH=/mnt/edgehub\",\"SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx\"]}"
+            }
+          }
+        },
+        "modules": {
+          "twin": {
+            "type": "docker",
+            "status": "Running",
+            "restartPolicy": "Always",
+            "settings": {
+              "image": "marcschier/azure-iiot-opc-twin-module:latest",
+              "createOptions": "{\"HostConfig\":{\"Privileged\":true}}"
+            }
+          }
+        }
+      }
+    },
+    "$edgeHub": {
+      "properties.desired": {
+        "schemaVersion": "1.0",
+        "routes": {
+          "default": "FROM * INTO $upstream"
+        },
+        "storeAndForwardConfiguration": {
+          "timeToLiveSecs": 7200
+        }
+      }
+    },
+    "twin": {
+      "properties.desired": {}
+    }
+  },
+  "deviceContent": null
+}

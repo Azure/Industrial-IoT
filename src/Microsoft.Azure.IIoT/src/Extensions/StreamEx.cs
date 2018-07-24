@@ -6,6 +6,8 @@
 namespace System.IO {
     using System;
     using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     public static class StreamEx {
 
@@ -49,5 +51,121 @@ namespace System.IO {
             catch (IOException) { }
             return new ArraySegment<byte>(body, 0, offset);
         }
+
+        /// <summary>
+        /// Write remaining buffer from offset
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static void Write(this Stream stream, byte[] buffer, int offset) =>
+            stream.Write(buffer, offset, buffer.Length - offset);
+
+        /// <summary>
+        /// Write entire buffer
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static void Write(this Stream stream, byte[] buffer) =>
+            stream.Write(buffer, 0, buffer.Length);
+
+        /// <summary>
+        /// Write remaining buffer from offset
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static Task WriteAsync(this Stream stream, byte[] buffer, int offset) =>
+            stream.WriteAsync(buffer, offset, buffer.Length - offset);
+
+        /// <summary>
+        /// Write entire buffer
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static Task WriteAsync(this Stream stream, byte[] buffer) =>
+            stream.WriteAsync(buffer, 0, buffer.Length);
+
+        /// <summary>
+        /// Write remaining buffer from offset
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static Task WriteAsync(this Stream stream, byte[] buffer, int offset,
+            CancellationToken ct) =>
+            stream.WriteAsync(buffer, offset, buffer.Length - offset, ct);
+
+        /// <summary>
+        /// Write entire buffer
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static Task WriteAsync(this Stream stream, byte[] buffer,
+            CancellationToken ct) =>
+            stream.WriteAsync(buffer, 0, buffer.Length, ct);
+
+        /// <summary>
+        /// Read remaining buffer from offset
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static int Read(this Stream stream, byte[] buffer, int offset) =>
+            stream.Read(buffer, offset, buffer.Length - offset);
+
+        /// <summary>
+        /// Read entire buffer
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static int Read(this Stream stream, byte[] buffer) =>
+            stream.Read(buffer, 0, buffer.Length);
+
+        /// <summary>
+        /// Read remaining buffer from offset
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static Task<int> ReadAsync(this Stream stream, byte[] buffer, int offset) =>
+            stream.ReadAsync(buffer, offset, buffer.Length - offset);
+
+        /// <summary>
+        /// Read entire buffer
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static Task<int> ReadAsync(this Stream stream, byte[] buffer) =>
+            stream.ReadAsync(buffer, 0, buffer.Length);
+
+        /// <summary>
+        /// Read remaining buffer from offset
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static Task<int> ReadAsync(this Stream stream, byte[] buffer, int offset,
+            CancellationToken ct) =>
+            stream.ReadAsync(buffer, offset, buffer.Length - offset, ct);
+
+        /// <summary>
+        /// Read entire buffer
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static Task<int> ReadAsync(this Stream stream, byte[] buffer,
+            CancellationToken ct) =>
+            stream.ReadAsync(buffer, 0, buffer.Length, ct);
     }
 }

@@ -17,7 +17,9 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="twin"></param>
         /// <returns></returns>
         public static Device ToDevice(this DeviceTwinModel twin) =>
-            new Device(twin.Id);
+            new Device(twin.Id) {
+                Capabilities = twin.Capabilities?.ToCapabilities()
+            };
 
         /// <summary>
         /// Convert twin to module
@@ -80,7 +82,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                         twin.Properties?.Desired?.ToModel(),
                     Reported =
                         twin.Properties?.Reported?.ToModel()
-                }
+                },
+                Capabilities = twin.Capabilities?.ToModel()
             };
         }
 

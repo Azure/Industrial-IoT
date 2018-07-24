@@ -9,7 +9,6 @@ namespace Newtonsoft.Json {
     using Microsoft.Azure.IIoT.Diagnostics;
     using System;
     using System.Collections.Generic;
-    using System.Net;
 
     public static class JsonConvertEx {
 

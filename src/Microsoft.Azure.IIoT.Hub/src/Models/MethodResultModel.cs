@@ -11,10 +11,16 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// </summary>
     public class MethodResultModel {
 
-        [JsonProperty(PropertyName = "Status")]
+        /// <summary>
+        /// Status
+        /// </summary>
+        [JsonProperty(PropertyName = "status")]
         public int Status { get; set; }
 
-        [JsonProperty(PropertyName = "JsonPayload")]
+        /// <summary>
+        /// Response payload
+        /// </summary>
+        [JsonProperty(PropertyName = "jsonPayload")]
         public string JsonPayload { get; set; }
     }
 }

@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         public List<DeviceJobModel> Jobs { get; set; }
 
         /// <summary>
-        /// Registry fixture
+        /// Create Registry
         /// </summary>
         public IoTHubDeviceRegistry() {
             Devices = new List<IoTHubDeviceModel>();
@@ -51,11 +51,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             Jobs = new List<DeviceJobModel>();
         }
 
-        /// <summary>
-        /// Create or update a device
-        /// </summary>
-        /// <param name="twin">Device information</param>
-        /// <returns>Device information</returns>
+        /// <inheritdoc/>
         public Task<DeviceTwinModel> CreateOrUpdateAsync(DeviceTwinModel twin,
             bool forceUpdate) {
 
@@ -116,26 +112,13 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             return Task.FromResult(twin);
         }
 
-        /// <summary>
-        /// Call method on device
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <param name="parameters"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task<MethodResultModel> CallMethodAsync(string deviceId, string moduleId,
             MethodParameterModel parameters) {
             throw new NotSupportedException();
         }
 
-        /// <summary>
-        /// Update device properties through twin
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <param name="properties"></param>
-        /// <param name="etag"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task UpdatePropertiesAsync(string deviceId, string moduleId,
             Dictionary<string, JToken> properties, string etag) {
 
@@ -149,12 +132,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Returns device twin object
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns>Device information</returns>
+        /// <inheritdoc/>
         public Task<DeviceTwinModel> GetAsync(string deviceId, string moduleId) {
             var result = moduleId == null ?
                 Devices
@@ -169,12 +147,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             return Task.FromResult(result);
         }
 
-        /// <summary>
-        /// Returns device registration object
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns>Device information</returns>
+        /// <inheritdoc/>
         public Task<DeviceModel> GetRegistrationAsync(string deviceId, string moduleId) {
             var result = moduleId == null ?
                 Devices
@@ -189,12 +162,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             return Task.FromResult(result);
         }
 
-        /// <summary>
-        /// Delete device or module twin
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <param name="etag"></param>
+        /// <inheritdoc/>
         public Task DeleteAsync(string deviceId, string moduleId, string etag) {
             if (moduleId == null) {
                 Devices.RemoveAll(d => d.Device.Id == deviceId);
@@ -205,12 +173,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Query registry
-        /// </summary>
-        /// <param name="query"></param>
-        /// <param name="continuation"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task<QueryResultModel> QueryAsync(string query, string continuation,
             int? pageSize) {
             var result = Query(query).ToList();

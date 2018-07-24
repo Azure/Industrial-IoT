@@ -14,6 +14,7 @@
     <PackageReference Include="Autofac" Version="4.8.1" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Net.Ssh\src\Microsoft.Azure.IIoT.Net.Ssh.csproj" />
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.Edge.Simulation.csproj" />
   </ItemGroup>
 </Project>

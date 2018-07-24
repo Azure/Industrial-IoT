@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -64,31 +64,25 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
             if (!string.IsNullOrEmpty(cs)) {
                 return cs;
             }
-            cs = "RunAs=";
             if (string.IsNullOrEmpty(_config?.ClientId)) {
                 // Run as dev or current user
-#if DEBUG
-                cs += "CurrentUser";
-                // cs += "DeveloperTool";
-#else
-                return null; // Let framework figure it out.
-#endif
+                return NoClientIdRunAs();
             }
-            else {
-                // Run as app
-                cs += $"App;AppId={_config.ClientId}";
-                if (!string.IsNullOrEmpty(_config.TenantId)) {
-                    cs += $";TenantId={_config.TenantId}";
-                }
-                if (!string.IsNullOrEmpty(_config.ClientSecret)) {
-                    cs += $";AppKey={_config.ClientSecret}";
-                }
+            // Run as app
+            cs = $"RunAs=App;AppId={_config.ClientId}";
+            if (!string.IsNullOrEmpty(_config.TenantId)) {
+                cs += $";TenantId={_config.TenantId}";
+            }
+            if (!string.IsNullOrEmpty(_config.ClientSecret)) {
+                cs += $";AppKey={_config.ClientSecret}";
             }
             return cs;
         }
 
+        protected virtual string NoClientIdRunAs() => null;
+
         private const string kAuthority = "https://login.microsoftonline.com/";
-        private readonly IClientConfig _config;
-        private readonly AzureServiceTokenProvider _provider;
+        protected readonly IClientConfig _config;
+        protected readonly AzureServiceTokenProvider _provider;
     }
 }

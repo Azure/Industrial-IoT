@@ -11,14 +11,14 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <summary>
         /// Primary sas key
         /// </summary>
-        [JsonProperty(PropertyName = "PrimaryKey", 
+        [JsonProperty(PropertyName = "primaryKey",
             NullValueHandling = NullValueHandling.Ignore)]
         public string PrimaryKey { get; set; }
 
         /// <summary>
         /// Secondary sas key
         /// </summary>
-        [JsonProperty(PropertyName = "SecondaryKey", 
+        [JsonProperty(PropertyName = "secondaryKey",
             NullValueHandling = NullValueHandling.Ignore)]
         public string SecondaryKey { get; set; }
     }

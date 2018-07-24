@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Edge.Simulation {
+    using Microsoft.Azure.IIoT.Edge.Deployment;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -12,17 +13,16 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation {
     public interface ISimulator : IDisposable {
 
         /// <summary>
-        /// Start simulator
+        /// Create deployments
         /// </summary>
-        /// <returns></returns>
-        Task StartAsync();
+        IEdgeDeploymentFactory Deployments { get; }
 
         /// <summary>
-        /// Creates a Simulation Environment consisting 
-        /// of a IoT Edge device and simulated devices, 
-        /// which can be individually controlled. 
+        /// Creates a Simulation Environment consisting
+        /// of a IoT Edge device and simulated devices,
+        /// which can be individually controlled.
         /// </summary>
-        /// <param name="tags">Tags to use when 
+        /// <param name="tags">Tags to use when
         /// creating iot-edge instances</param>
         /// <returns></returns>
         Task<ISimulation> CreateAsync(
@@ -53,6 +53,6 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation {
         /// simulation environments.
         /// </summary>
         /// <returns></returns>
-        Task StopAsync();
+        Task CloseAsync();
     }
 }

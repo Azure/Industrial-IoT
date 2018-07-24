@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         public static async Task<ConnectionString> GetConnectionStringAsync(
             this IIoTHubTwinServices service, string deviceId, bool primary = true) {
             var model = await service.GetRegistrationAsync(deviceId);
-            return ConnectionString.Create(service.HostName, deviceId, primary ?
+            return ConnectionString.CreateDeviceConnectionString(service.HostName, deviceId, primary ?
                 model.Authentication.PrimaryKey : model.Authentication.SecondaryKey);
         }
 
@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Hub {
             this IIoTHubTwinServices service, string deviceId, string moduleId,
             bool primary = true) {
             var model = await service.GetRegistrationAsync(deviceId, moduleId);
-            return ConnectionString.Create(service.HostName, deviceId, moduleId, primary ?
+            return ConnectionString.CreateModuleConnectionString(service.HostName, deviceId, moduleId, primary ?
                 model.Authentication.PrimaryKey : model.Authentication.SecondaryKey);
         }
 

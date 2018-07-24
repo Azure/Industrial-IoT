@@ -15,56 +15,56 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <summary>
         /// Device id
         /// </summary>
-        [JsonProperty(PropertyName = "DeviceId")]
+        [JsonProperty(PropertyName = "deviceId")]
         public string DeviceId { get; set; }
 
         /// <summary>
         /// Module Id
         /// </summary>
-        [JsonProperty(PropertyName = "ModuleId")]
+        [JsonProperty(PropertyName = "moduleId")]
         public string ModuleId { get; set; }
 
         /// <summary>
         /// Job status
         /// </summary>
-        [JsonProperty(PropertyName = "Status")]
+        [JsonProperty(PropertyName = "status")]
         public DeviceJobStatus Status { get; set; }
 
         /// <summary>
         /// Start of job
         /// </summary>
-        [JsonProperty(PropertyName = "StartTimeUtc")]
+        [JsonProperty(PropertyName = "startTimeUtc")]
         public DateTime StartTimeUtc { get; set; }
 
         /// <summary>
         /// End of job
         /// </summary>
-        [JsonProperty(PropertyName = "EndTimeUtc")]
+        [JsonProperty(PropertyName = "endTimeUtc")]
         public DateTime EndTimeUtc { get; set; }
 
         /// <summary>
         /// Job creation time
         /// </summary>
-        [JsonProperty(PropertyName = "CreatedDateTimeUtc")]
+        [JsonProperty(PropertyName = "createdDateTimeUtc")]
         public DateTime CreatedDateTimeUtc { get; set; }
 
         /// <summary>
         /// Last updated
         /// </summary>
-        [JsonProperty(PropertyName = "LastUpdatedDateTimeUtc")]
+        [JsonProperty(PropertyName = "lastUpdatedDateTimeUtc")]
         public DateTime LastUpdatedDateTimeUtc { get; set; }
 
         /// <summary>
         /// Result
         /// </summary>
-        [JsonProperty(PropertyName = "Outcome",
+        [JsonProperty(PropertyName = "outcome",
             NullValueHandling = NullValueHandling.Ignore)]
         public MethodResultModel Outcome { get; set; }
 
         /// <summary>
         /// Error details
         /// </summary>
-        [JsonProperty(PropertyName = "Error",
+        [JsonProperty(PropertyName = "error",
             NullValueHandling = NullValueHandling.Ignore)]
         public DeviceJobErrorModel Error { get; set; }
     }

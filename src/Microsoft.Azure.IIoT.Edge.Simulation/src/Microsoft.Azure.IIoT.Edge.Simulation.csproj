@@ -6,13 +6,17 @@
     <Description>Azure IIoT Simulation infrastructure</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Docker.DotNet" Version="3.125.2" />
-    <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.11.1" />
+    <PackageReference Include="Docker.DotNet.BasicAuth" Version="3.125.2" />
+    <PackageReference Include="Docker.DotNet.X509" Version="3.125.2" />
+    <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.13.0" />
     <PackageReference Include="Microsoft.Azure.Management.IotHub" Version="2.1.0" />
+    <PackageReference Include="System.Net.WebSockets.Client" Version="4.3.2" />
     <PackageReference Include="SSH.NET" Version="2016.1.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Auth\src\Microsoft.Azure.IIoT.Auth.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Edge.Deployment\src\Microsoft.Azure.IIoT.Edge.Deployment.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Hub.Client\src\Microsoft.Azure.IIoT.Hub.Client.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Infrastructure\src\Microsoft.Azure.IIoT.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Net.Ssh\src\Microsoft.Azure.IIoT.Net.Ssh.csproj" />
   </ItemGroup>
 </Project>

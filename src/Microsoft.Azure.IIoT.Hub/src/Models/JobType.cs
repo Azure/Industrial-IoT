@@ -4,10 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     /// <summary>
     /// refer to Microsoft.Azure.Devices.JobType
     /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum JobType {
         Unknown = 0,
         ScheduleDeviceMethod = 3,

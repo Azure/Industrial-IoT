@@ -7,6 +7,7 @@ namespace System.Collections.Generic {
     using System;
     using System.Collections;
     using System.Collections.Concurrent;
+    using System.ComponentModel;
     using System.Linq;
     using System.Reflection;
 

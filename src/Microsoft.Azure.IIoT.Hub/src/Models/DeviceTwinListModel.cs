@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
     using System.Collections.Generic;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// List of device twins with continuation token
@@ -14,11 +15,14 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <summary>
         /// Continuation token to use for next call or null
         /// </summary>
+        [JsonProperty(PropertyName = "continuationToken",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string ContinuationToken { get; set; }
 
         /// <summary>
         /// Items returned
         /// </summary>
+        [JsonProperty(PropertyName = "items")]
         public List<DeviceTwinModel> Items { get; set; }
     }
 }

@@ -7,11 +7,17 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
 
     public class TwinPropertiesModel {
 
-        [JsonProperty(PropertyName = "Reported",
+        /// <summary>
+        /// Reported settings
+        /// </summary>
+        [JsonProperty(PropertyName = "reported",
             NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, JToken> Reported { get; set; }
 
-        [JsonProperty(PropertyName = "Desired",
+        /// <summary>
+        /// Desired settings
+        /// </summary>
+        [JsonProperty(PropertyName = "desired",
             NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, JToken> Desired { get; set; }
     }

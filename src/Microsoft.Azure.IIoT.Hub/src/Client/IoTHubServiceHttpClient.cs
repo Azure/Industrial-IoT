@@ -24,7 +24,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     /// This is intended for stand alone testing, not for production.
     /// See samples for details.
     /// </summary>
-    public class IoTHubServiceHttpClient : IIoTHubTwinServices, IIoTHubJobServices {
+    public class IoTHubServiceHttpClient : IIoTHubTwinServices, IIoTHubJobServices,
+        IIoTHubConfigurationServices {
 
         /// <summary>
         /// The host name the client is talking to
@@ -48,11 +49,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             _hubConnectionString = ConnectionString.Parse(config.IoTHubConnString);
         }
 
-        /// <summary>
-        /// Create or update a device
-        /// </summary>
-        /// <param name="twin">Device information</param>
-        /// <returns>Updated etag</returns>
+        /// <inheritdoc/>
         public Task<DeviceTwinModel> CreateOrUpdateAsync(DeviceTwinModel twin,
             bool forceUpdate) {
             return Retry.WithExponentialBackoff(_logger, async () => {
@@ -62,7 +59,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     try {
                         var device = NewRequest($"/devices/{twin.Id}");
                         device.SetContent(new {
-                            deviceId = twin.Id
+                            deviceId = twin.Id,
+                            capabilities = twin.Capabilities
                         });
                         var response = await _httpClient.PutAsync(device);
                         response.Validate();
@@ -133,13 +131,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             });
         }
 
-        /// <summary>
-        /// Call method on device
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <param name="parameters"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task<MethodResultModel> CallMethodAsync(string deviceId, string moduleId,
             MethodParameterModel parameters) {
             return Retry.WithExponentialBackoff(_logger, async () => {
@@ -162,13 +154,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             });
         }
 
-        /// <summary>
-        /// Update device properties through twin
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <param name="properties"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task UpdatePropertiesAsync(string deviceId, string moduleId,
             Dictionary<string, JToken> properties, string etag) {
             return Retry.WithExponentialBackoff(_logger, async () => {
@@ -187,12 +173,19 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             });
         }
 
-        /// <summary>
-        /// Returns device twin object
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns>Device information</returns>
+        /// <inheritdoc/>
+        public Task ApplyConfigurationAsync(string deviceId,
+            ConfigurationContentModel configuration) {
+            return Retry.WithExponentialBackoff(_logger, async () => {
+                var request = NewRequest(
+                    $"/devices/{ToResourceId(deviceId, null)}/applyConfigurationContent");
+                request.SetContent(configuration);
+                var response = await _httpClient.PostAsync(request);
+                response.Validate();
+            });
+        }
+
+        /// <inheritdoc/>
         public Task<DeviceTwinModel> GetAsync(string deviceId, string moduleId) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest(
@@ -203,12 +196,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             });
         }
 
-        /// <summary>
-        /// Returns device registration object
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns>Device information</returns>
+        /// <inheritdoc/>
         public Task<DeviceModel> GetRegistrationAsync(string deviceId, string moduleId) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest(
@@ -219,12 +207,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             });
         }
 
-        /// <summary>
-        /// Return raw query response
-        /// </summary>
-        /// <param name="query"></param>
-        /// <param name="continuation"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task<QueryResultModel> QueryAsync(string query, string continuation,
             int? pageSize) {
             return Retry.WithExponentialBackoff(_logger, async () => {
@@ -250,11 +233,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             });
         }
 
-        /// <summary>
-        /// Delete device or module twin
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
+        /// <inheritdoc/>
         public Task DeleteAsync(string deviceId, string moduleId, string etag) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest(
@@ -266,11 +245,35 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             });
         }
 
-        /// <summary>
-        /// Create job
-        /// </summary>
-        /// <param name="job"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
+        public Task<ConfigurationModel> CreateOrUpdateConfigurationAsync(
+            ConfigurationModel configuration, bool forceUpdate) {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public Task<ConfigurationModel> GetConfigurationAsync(
+            string configurationId) {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public Task<IEnumerable<ConfigurationModel>> ListConfigurationsAsync(
+            int? maxCount) {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public Task DeleteConfigurationAsync(string configurationId,
+            string etag) {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
         public async Task<JobModel> CreateAsync(JobModel job) {
             var model = await Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"/jobs/v2/{job.JobId}");
@@ -317,11 +320,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             return await QueryDevicesInfoAsync(model);
         }
 
-        /// <summary>
-        /// Refresh
-        /// </summary>
-        /// <param name="jobId"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<JobModel> RefreshAsync(string jobId) {
             var model = await Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"/jobs/v2/{jobId}");
@@ -333,11 +332,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             return await QueryDevicesInfoAsync(model);
         }
 
-        /// <summary>
-        /// Cancel job
-        /// </summary>
-        /// <param name="jobId"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task CancelAsync(string jobId) {
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"/jobs/v2/{jobId}/cancel");
@@ -515,7 +510,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             }
         }
 
-        const string kApiVersion = "2018-03-01-preview"; // Configuration preview
+        const string kApiVersion = "2018-06-30";
         const string kClientId = "OpcTwin";
 
         private readonly ConnectionString _hubConnectionString;

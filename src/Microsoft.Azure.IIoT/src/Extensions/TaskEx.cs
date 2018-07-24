@@ -15,5 +15,22 @@ namespace System.Threading.Tasks {
             cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).SetResult(true), tcs);
             return tcs.Task;
         }
+
+        /// <summary>
+        /// Handles cleanup operations when app is cancelled or unloads
+        /// </summary>
+        public static async Task<T> FallbackWhen<T>(this Task<T> task,
+            Func<T, bool> condition, Func<Task<T>> fallback) {
+            try {
+                var result = await task;
+                if (!condition(result)) {
+                    return result;
+                }
+                return await fallback();
+            }
+            catch {
+                return await fallback();
+            }
+        }
     }
 }

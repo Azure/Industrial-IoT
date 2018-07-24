@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// Create logger
         /// </summary>
         /// <param name="processId"></param>
-        public BaseLogger(string processId) {
+        protected BaseLogger(string processId) {
             _processId = processId;
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// </summary>
         /// <param name="message"></param>
         /// <param name="context"></param>
-        public void Debug(string message, Func<object> context) => 
+        public void Debug(string message, Func<object> context) =>
             Debug(() => Write(context.GetMethodInfo(), message + " " +
                 JsonConvertEx.SerializeObject(context.Invoke())));
 
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="text"></param>
-        private string Write( MethodInfo context, string text) {
+        protected virtual string Write(MethodInfo context, string text) {
             // Extract the Class Name from the context
             var classname = "";
             if (context.DeclaringType != null) {

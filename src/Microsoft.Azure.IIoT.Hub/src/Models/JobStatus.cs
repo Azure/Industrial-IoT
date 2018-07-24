@@ -4,10 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     /// <summary>
     /// refer to Microsoft.Azure.Devices.JobStatus
     /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum JobStatus {
         Unknown = 0,
         Enqueued = 1,

@@ -95,8 +95,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="endpoint"></param>
         /// <param name="keyName"></param>
         /// <param name="token"></param>
-        public static ConnectionString Create(Uri endpoint, string keyName,
-            string token) {
+        public static ConnectionString CreateWithEndpointAndToken(Uri endpoint, 
+            string keyName, string token) {
             var connectionString = new ConnectionString();
             connectionString._items[Id.EndpointName] = endpoint.ToString();
             connectionString._items[Id.SharedAccessKeyName] = keyName;
@@ -105,18 +105,33 @@ namespace Microsoft.Azure.IIoT.Utils {
         }
 
         /// <summary>
+        /// Create service connection string
+        /// </summary>
+        /// <param name="hostName"></param>
+        /// <param name="keyName"></param>
+        /// <param name="key"></param>
+        public static ConnectionString CreateServiceConnectionString(string hostName, 
+            string keyName, string key) {
+            var connectionString = new ConnectionString();
+            connectionString._items[Id.HostName] = hostName;
+            connectionString._items[Id.SharedAccessKeyName] = keyName;
+            connectionString._items[Id.SharedAccessKey] = key;
+            return connectionString;
+        }
+
+        /// <summary>
         /// Create device connection string
         /// </summary>
         /// <param name="hostName"></param>
         /// <param name="deviceId"></param>
-        /// <param name="token"></param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public static ConnectionString Create(string hostName, string deviceId,
-            string token) {
+        public static ConnectionString CreateDeviceConnectionString(string hostName,
+            string deviceId, string key) {
             var connectionString = new ConnectionString();
             connectionString._items[Id.HostName] = hostName;
             connectionString._items[Id.DeviceId] = deviceId;
-            connectionString._items[Id.SharedAccessToken] = token;
+            connectionString._items[Id.SharedAccessKey] = key;
             return connectionString;
         }
 
@@ -126,15 +141,15 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="hostName"></param>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
-        /// <param name="token"></param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public static ConnectionString Create(string hostName, string deviceId,
-            string moduleId, string token) {
+        public static ConnectionString CreateModuleConnectionString(string hostName, 
+            string deviceId, string moduleId, string key) {
             var connectionString = new ConnectionString();
             connectionString._items[Id.HostName] = hostName;
             connectionString._items[Id.DeviceId] = deviceId;
             connectionString._items[Id.ModuleId] = moduleId;
-            connectionString._items[Id.SharedAccessToken] = token;
+            connectionString._items[Id.SharedAccessKey] = key;
             return connectionString;
         }
 

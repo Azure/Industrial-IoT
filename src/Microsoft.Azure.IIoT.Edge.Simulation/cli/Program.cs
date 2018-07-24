@@ -4,22 +4,29 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Edge.Simulation.Cli {
-    using Autofac;
+    using Microsoft.Azure.IIoT.Edge.Simulation.Services;
+    using Microsoft.Azure.IIoT.Infrastructure.Auth;
+    using Microsoft.Azure.IIoT.Infrastructure.Compute.Services;
+    using Microsoft.Azure.IIoT.Infrastructure.Hub.Services;
+    using Microsoft.Azure.IIoT.Infrastructure.Runtime;
+    using Microsoft.Azure.IIoT.Infrastructure.Services;
     using Microsoft.Azure.IIoT.Auth.Azure;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Edge.Simulation.Azure;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Net;
+    using Microsoft.Azure.IIoT.Net.Ssh;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Management.Auth;
-    using Microsoft.Azure.IIoT.Management.Runtime;
+    using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Extensions.Configuration;
+    using Autofac;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Api command line interface
@@ -52,10 +59,11 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation.Cli {
         /// </summary>
         /// <param name="args">command-line arguments</param>
         public static async Task RunAsync(string[] args, IComponentContext context) {
-            var simulator = context.Resolve<ISimulator>();
-            var interactive = true;
+            var simulatorFactory = context.Resolve<ISimulationProvider>();
+            ISimulator simulator = null;
+            var run = true;
             do {
-                if (interactive) {
+                if (run) {
                     Console.Write("> ");
                     args = Console.ReadLine().ParseAsCommandLine();
                 }
@@ -66,22 +74,44 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation.Cli {
                     var command = args[0].ToLowerInvariant();
                     var options = CollectOptions(1, args);
                     switch (command) {
-                        case "logout":
                         case "exit":
-                            interactive = false;
-                            await simulator.StopAsync();
+                            run = false;
+                            break;
+                        case "logout":
+                            if (simulator == null) {
+                                Console.WriteLine("Not logged in.");
+                                break;
+                            }
+                            simulator = await LogoutAsync(simulator);
                             break;
                         case "login":
-                            await simulator.StartAsync();
-                            interactive = true;
+                            if (simulator != null) {
+                                throw new ArgumentException("Already logged in.");
+                            }
+                            simulator = await LoginAsync(simulatorFactory, options);
                             break;
                         case "get":
                             await GetSimulationAsync(simulator, options);
                             break;
+                        case "shell":
+                            await RunSimulationShellAsync(simulator, options);
+                            break;
+                        case "logs":
+                            await GetEdgeLogsAsync(simulator, options);
+                            break;
+                        case "status":
+                            await GetEdgeStatusAsync(simulator, options);
+                            break;
+                        case "reset":
+                            await ResetEdgeAsync(simulator, options);
+                            break;
+                        case "restart":
+                            await RestartSimulationAsync(simulator, options);
+                            break;
                         case "list":
                             await ListSimulationsAsync(simulator, options);
                             break;
-                        case "new":
+                        case "create":
                             await CreateSimulationAsync(simulator, options);
                             break;
                         case "delete":
@@ -99,7 +129,7 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation.Cli {
                 }
                 catch (ArgumentException e) {
                     Console.WriteLine(e.Message);
-                    if (!interactive) {
+                    if (!run) {
                         PrintHelp();
                         return;
                     }
@@ -110,7 +140,32 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation.Cli {
                     Console.WriteLine("==================");
                 }
             }
-            while (interactive);
+            while (run);
+        }
+
+        /// <summary>
+        /// Login
+        /// </summary>
+        /// <param name="simulatorFactory"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static async Task<ISimulator> LoginAsync(ISimulationProvider simulatorFactory,
+            Dictionary<string, string> options) {
+            return await simulatorFactory.CreateOrGetAsync(
+                GetOption<string>(options, "-n", "--name"), false);
+        }
+
+        /// <summary>
+        /// Logout
+        /// </summary>
+        /// <param name="simulator"></param>
+        /// <returns></returns>
+        private static async Task<ISimulator> LogoutAsync(ISimulator simulator) {
+            if (simulator == null) {
+                throw new ArgumentException("Must login first");
+            }
+            await simulator.CloseAsync();
+            return null;
         }
 
         /// <summary>
@@ -121,6 +176,9 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation.Cli {
         /// <returns></returns>
         private static async Task DeleteSimulationAsync(ISimulator simulator,
             Dictionary<string, string> options) {
+            if (simulator == null) {
+                throw new ArgumentException("Must login first");
+            }
             await simulator.DeleteAsync(GetOption<string>(options, "-i", "--id"));
         }
 
@@ -132,6 +190,9 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation.Cli {
         /// <returns></returns>
         private static async Task CreateSimulationAsync(ISimulator simulator,
             Dictionary<string, string> options) {
+            if (simulator == null) {
+                throw new ArgumentException("Must login first");
+            }
             var simulation = await simulator.CreateAsync(new Dictionary<string, JToken> {
                 ["tag"] = GetOption(options, "-t", "--tag", "none")
             });
@@ -146,6 +207,9 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation.Cli {
         /// <returns></returns>
         private static async Task ListSimulationsAsync(ISimulator simulator,
             Dictionary<string, string> options) {
+            if (simulator == null) {
+                throw new ArgumentException("Must login first");
+            }
             var simulations = await simulator.ListAsync();
             PrintResult(options, simulations);
         }
@@ -158,9 +222,119 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation.Cli {
         /// <returns></returns>
         private static async Task GetSimulationAsync(ISimulator simulator,
             Dictionary<string, string> options) {
+            if (simulator == null) {
+                throw new ArgumentException("Must login first");
+            }
             var simulation = await simulator.GetAsync(
                 GetOption<string>(options, "-i", "--id"));
             PrintResult(options, simulation);
+        }
+
+
+        /// <summary>
+        /// Shell into simulation
+        /// </summary>
+        /// <param name="simulator"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static async Task RunSimulationShellAsync(ISimulator simulator,
+            Dictionary<string, string> options) {
+            if (simulator == null) {
+                throw new ArgumentException("Must login first");
+            }
+            var simulation = await simulator.GetAsync(
+                GetOption<string>(options, "-i", "--id"));
+            if (simulation == null) {
+                return;
+            }
+            using (var shell = await simulation.OpenSecureShellAsync()) {
+                var timeout = GetOption(options, "-t", "--timeout", -1);
+                var cts = new CancellationTokenSource(
+                    GetOption(options, "-t", "--timeout", -1));
+                await shell.BindAsync(cts.Token);
+            }
+        }
+
+        /// <summary>
+        /// Restart simulation
+        /// </summary>
+        /// <param name="simulator"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static async Task RestartSimulationAsync(ISimulator simulator,
+            Dictionary<string, string> options) {
+            if (simulator == null) {
+                throw new ArgumentException("Must login first");
+            }
+            var simulation = await simulator.GetAsync(
+                GetOption<string>(options, "-i", "--id"));
+            if (simulation == null) {
+                return;
+            }
+            await simulation.RestartAsync();
+            Console.WriteLine("Simulation restarted");
+        }
+
+        /// <summary>
+        /// Reset Edge
+        /// </summary>
+        /// <param name="simulator"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static async Task ResetEdgeAsync(ISimulator simulator,
+            Dictionary<string, string> options) {
+            if (simulator == null) {
+                throw new ArgumentException("Must login first");
+            }
+            var simulation = await simulator.GetAsync(
+                GetOption<string>(options, "-i", "--id"));
+            if (simulation == null) {
+                return;
+            }
+            await simulation.ResetEdgeAsync();
+            Console.WriteLine("Gateway reset");
+        }
+
+        /// <summary>
+        /// Get edge daemon status
+        /// </summary>
+        /// <param name="simulator"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static async Task GetEdgeStatusAsync(ISimulator simulator,
+            Dictionary<string, string> options) {
+            if (simulator == null) {
+                throw new ArgumentException("Must login first");
+            }
+            var simulation = await simulator.GetAsync(
+                GetOption<string>(options, "-i", "--id"));
+            if (simulation == null) {
+                return;
+            }
+            var active = await simulation.IsEdgeRunningAsync();
+            Console.WriteLine("Edge is " + (active ? "active" : "not active"));
+            var connected = await simulation.IsEdgeConnectedAsync();
+            Console.WriteLine("Edge is " + (connected ? "connected" : "not connected"));
+        }
+
+        /// <summary>
+        /// Get edge logs
+        /// </summary>
+        /// <param name="simulator"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static async Task GetEdgeLogsAsync(ISimulator simulator,
+            Dictionary<string, string> options) {
+            if (simulator == null) {
+                throw new ArgumentException("Must login first");
+            }
+            var simulation = await simulator.GetAsync(
+                GetOption<string>(options, "-i", "--id"));
+            if (simulation == null) {
+                return;
+            }
+            var logs = await simulation.GetEdgeLogAsync();
+            Console.Write(logs);
         }
 
         /// <summary>
@@ -267,9 +441,9 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation.Cli {
 
             /// <summary>
             /// Client id with permissions to Windows Azure Management
-            /// Service API.  The registration manifest must contain 
+            /// Service API.  The registration manifest must contain
             /// the following entry
-            /// 
+            ///
             /// "resourceAppId": "797f4846-ba00-4fd7-ba43-dac1f8f63013",
             /// "resourceAccess": [
             ///     {
@@ -278,7 +452,7 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation.Cli {
             ///     }
             /// ]
             /// </summary>
-            public string ClientId => 
+            public string ClientId =>
                 Configuration.GetValue("IIOT_MANAGEMENT_CLIENT_ID",
                 Configuration.GetValue<string>("IIOT_AUTH_CLIENT_ID"));
             public string TenantId =>
@@ -299,17 +473,41 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation.Cli {
         /// <returns></returns>
         private static IContainer ConfigureContainer(
             IConfigurationRoot configuration) {
+
+            var config = new SimulatorConfig {
+                Configuration = configuration
+            };
+
             var builder = new ContainerBuilder();
 
             // Register configuration interfaces
-            builder.RegisterInstance(
-                new SimulatorConfig {
-                    Configuration = configuration
-                })
+            builder.RegisterInstance(config)
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register logger
             builder.RegisterType<ConsoleLogger>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // Register infrastructure code
+            builder.RegisterType<ResourceGroupFactory>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<AzureSubscription>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ConsoleSelector>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubFactory>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<VirtualMachineFactory>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SshShellFactory>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // Register infrastructure code
+            builder.RegisterType<ResourceGroupFactory>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<AzureSubscription>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ConsoleSelector>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register http client implementation
@@ -323,15 +521,20 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation.Cli {
             // Register simulator
             builder.RegisterType<IoTHubServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<AzureManagement>()
+            builder.RegisterType<EdgeSimulator>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<AzureBasedSimulator>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<ConsoleSelector>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<DeviceCodeCredentials>()
+            builder.RegisterType<FilePersistance>()
                 .AsImplementedInterfaces().SingleInstance();
 
+            if (config.ClientId == null ||
+                System.Diagnostics.Debugger.IsAttached) {
+                builder.RegisterType<VisualStudioCredentials>()
+                    .AsImplementedInterfaces().SingleInstance();
+            }
+            else {
+                builder.RegisterType<DeviceCodeCredentials>()
+                    .AsImplementedInterfaces().SingleInstance();
+            }
             return builder.Build();
         }
 
@@ -346,9 +549,8 @@ usage:      Simulator command [options]
 
 Commands and Options
 
-     login       Login and start simulator.
-
-     exit        Stop and exit simulator.
+     login       Login and start simulator
+     logout      Stop and exit simulator.
 
      list        List simulations
         with ...
@@ -363,6 +565,11 @@ Commands and Options
         with ...
         -i, --id        Id of simulation to get (mandatory)
         -F, --format    Json format for result
+
+     shell       Open a shell into the simulation
+        with ...
+        -i, --id        Id of simulation to open shell 
+                        for (mandatory)
 
      delete      Delete simulation
         with ...

@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
         /// <param name="store"></param>
         /// <param name="logger"></param>
         /// <param name="config"></param>
-        public DeviceCodeTokenProvider(IClientConfig config, ITokenCacheProvider store, 
+        public DeviceCodeTokenProvider(IClientConfig config, ITokenCacheProvider store,
             ILogger logger) :
             this((c, exp, msg) => Console.WriteLine(msg), config, store, logger) {
         }
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
         /// <param name="logger"></param>
         /// <param name="callback"></param>
         /// <param name="config"></param>
-        public DeviceCodeTokenProvider(Action<string, DateTimeOffset, string> callback, 
+        public DeviceCodeTokenProvider(Action<string, DateTimeOffset, string> callback,
             IClientConfig config, ITokenCacheProvider store, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -121,9 +121,9 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
         }
 
         private const string kAuthority = "https://login.microsoftonline.com/";
-        private readonly ILogger _logger;
-        private readonly IClientConfig _config;
-        private readonly Action<string, DateTimeOffset, string> _callback;
+        protected readonly ILogger _logger;
+        protected readonly IClientConfig _config;
+        protected readonly Action<string, DateTimeOffset, string> _callback;
         private readonly ITokenCacheProvider _store;
     }
 }

@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="copy"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public static byte[] Read(this byte[] data, ref int offset, int copy,
+        public static byte[] ReadByteArray(this byte[] data, ref int offset, int copy,
             int? length = null) {
 
             var padding = (length ?? copy) - copy;
@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="data"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static void Write(this Stream data, byte value) {
+        public static void WriteUInt8(this Stream data, byte value) {
             data.WriteByte(value);
         }
 
@@ -101,9 +101,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="data"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static void Write(this Stream data, uint value,
+        public static void WriteUInt32(this Stream data, uint value,
             bool netOrder = false) {
-            data.Write(value.ToBytes(netOrder));
+            data.WriteByteArray(value.ToBytes(netOrder));
         }
 
         /// <summary>
@@ -112,9 +112,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="data"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static void Write(this Stream data, ushort value,
+        public static void WriteUInt16(this Stream data, ushort value,
             bool netOrder = false) {
-            data.Write(value.ToBytes(netOrder));
+            data.WriteByteArray(value.ToBytes(netOrder));
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="value"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public static void Write(this Stream data, byte[] value,
+        public static void WriteByteArray(this Stream data, byte[] value,
             int? length = null) {
 
             var len = value?.Length ?? 0;
@@ -134,7 +134,7 @@ namespace Microsoft.Azure.IIoT.Net {
 
             var padding = (length ?? len) - len;
             if (padding > 0) {
-                data.Fill(0, padding);
+                data.WritePadding(0, padding);
             }
         }
 
@@ -142,9 +142,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// Write padding
         /// </summary>
         /// <param name="length"></param>
-        public static void Fill(this Stream data, byte pad, int length) {
+        public static void WritePadding(this Stream data, byte pad, int length) {
             for (var i = 0; i < length; i++) {
-                data.Write(pad);
+                data.WriteUInt8(pad);
             }
         }
 

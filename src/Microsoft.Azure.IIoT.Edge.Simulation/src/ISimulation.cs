@@ -4,9 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Edge.Simulation {
-    using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Edge.Deployment;
+    using Microsoft.Azure.IIoT.Net;
     using Microsoft.Extensions.Configuration;
-    using Renci.SshNet;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// The client library creates individual Linux Virtual
@@ -23,40 +24,61 @@ namespace Microsoft.Azure.IIoT.Edge.Simulation {
         /// <summary>
         /// The id of the simulation
         /// </summary>
-        string Id { get; }
+        string Name { get; }
 
         /// <summary>
-        /// The device id for the edge device in the environment
+        /// The device id for the edge device in the
+        /// simulation environment
         /// </summary>
         string EdgeDeviceId { get; }
 
         /// <summary>
-        /// Get the ssh connection information to open your own
-        /// ssh client, or scp, or sftp with.
-        /// </summary>
-        ConnectionInfo SshConnectionInfo { get; }
-
-        /// <summary>
-        /// Create simulated device in environment. The device
-        /// can be started and stopped to simulate device
-        /// failures.
+        /// Create simulated device in environment. The
+        /// device can be started and stopped to simulate
+        /// device failures.
         /// </summary>
         /// <param name="type"></param>
         /// <param name="configuration"></param>
-        /// <returns></returns>
+        /// <returns>the simulated device</returns>
         ISimulatedDevice CreateDevice(DeviceType type,
             IConfiguration configuration);
 
         /// <summary>
-        /// Restarts the edge gateway
+        /// Open a secure shell
         /// </summary>
         /// <returns></returns>
-        Task ResetGatewayAsync();
+        Task<ISecureShell> OpenSecureShellAsync();
+
+        /// <summary>
+        /// Whether the edge device is running correctly
+        /// or not.
+        /// </summary>
+        /// <returns>true if the gateway is running</returns>
+        Task<bool> IsEdgeRunningAsync();
+
+        /// <summary>
+        /// Check connection status
+        /// </summary>
+        /// <returns></returns>
+        Task<bool> IsEdgeConnectedAsync();
+
+        /// <summary>
+        /// Get edge device logs if possible
+        /// </summary>
+        /// <returns></returns>
+        Task<string> GetEdgeLogAsync();
+
+        /// <summary>
+        /// Restarts the edge gateway service in the
+        /// simulation
+        /// </summary>
+        /// <returns></returns>
+        Task ResetEdgeAsync();
 
         /// <summary>
         /// Reset entire simulation
         /// </summary>
         /// <returns></returns>
-        Task ResetAsync();
+        Task RestartAsync();
     }
 }

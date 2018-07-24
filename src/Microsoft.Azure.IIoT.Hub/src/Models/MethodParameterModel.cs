@@ -12,18 +12,30 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// </summary>
     public class MethodParameterModel {
 
-        [JsonProperty(PropertyName = "Name")]
+        /// <summary>
+        /// Name of method
+        /// </summary>
+        [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
 
-        [JsonProperty(PropertyName = "ResponseTimeout",
+        /// <summary>
+        /// Response timeout
+        /// </summary>
+        [JsonProperty(PropertyName = "responseTimeout",
             NullValueHandling = NullValueHandling.Ignore)]
         public TimeSpan? ResponseTimeout { get; set; }
 
-        [JsonProperty(PropertyName = "ConnectionTimeout",
+        /// <summary>
+        /// Connection timeout
+        /// </summary>
+        [JsonProperty(PropertyName = "connectionTimeout",
             NullValueHandling = NullValueHandling.Ignore)]
         public TimeSpan? ConnectionTimeout { get; set; }
 
-        [JsonProperty(PropertyName = "JsonPayload")]
+        /// <summary>
+        /// Json payload of the method request
+        /// </summary>
+        [JsonProperty(PropertyName = "jsonPayload")]
         public string JsonPayload { get; set; }
     }
 }
