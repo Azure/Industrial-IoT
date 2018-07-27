@@ -220,7 +220,15 @@ namespace OpcPublisher
                         {
                             Logger.Information($"Adding publisher certificate to trusted peer store. StorePath={PublisherOpcApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
                             X509Certificate2 publicKey = new X509Certificate2(certificate.RawData);
-                            await store.Add(publicKey);
+                            X509Certificate2Collection certCollection = await store.FindByThumbprint(publicKey.Thumbprint);
+                            if (certCollection.Count > 0)
+                            {
+                                Logger.Information($"A certificate with the same thumbprint is already in the trusted store.");
+                            }
+                            else
+                            {
+                                await store.Add(publicKey);
+                            }
                         }
                         finally
                         {

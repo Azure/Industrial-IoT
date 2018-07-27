@@ -309,7 +309,7 @@ namespace OpcPublisher
                         { "to|trustowncert", $"the publisher certificate is put into the trusted certificate store automatically.\nDefault: {TrustMyself}", t => TrustMyself = t != null  },
                         // read the display name of the nodes to publish from the server and publish them instead of the node id
                         { "fd|fetchdisplayname=", $"same as fetchname.\nDefault: {FetchOpcNodeDisplayName}", (bool b) => FetchOpcNodeDisplayName = IotCentralMode ? true : b },
-                        { "fn|fetchname=", $"enable to read the display name of a published node from the server. this will increase the runtime.\nDefault: {FetchOpcNodeDisplayName}", b => FetchOpcNodeDisplayName = IotCentralMode ? true : b != null },
+                        { "fn|fetchname", $"enable to read the display name of a published node from the server. this will increase the runtime.\nDefault: {FetchOpcNodeDisplayName}", b => FetchOpcNodeDisplayName = IotCentralMode ? true : b != null },
 
                         // own cert store options
                         { "at|appcertstoretype=", $"the own application cert store type. \n(allowed values: Directory, X509Store)\nDefault: '{OpcOwnCertStoreType}'", (string s) => {
