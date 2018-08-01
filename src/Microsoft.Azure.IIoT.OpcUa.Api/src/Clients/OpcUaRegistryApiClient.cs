@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -23,21 +23,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public OpcUaRegistryApiClient(IHttpClient httpClient,
-            IOpcUaRegistryConfig config, ILogger logger) {
+            IOpcUaRegistryConfig config, ILogger logger) :
+            this (httpClient, config.OpcUaRegistryServiceUrl,
+                config.OpcUaRegistryServiceResourceId, logger){
+        }
+
+        /// <summary>
+        /// Create service client
+        /// </summary>
+        /// <param name="httpClient"></param>
+        /// <param name="serviceUri"></param>
+        /// <param name="resourceId"></param>
+        /// <param name="logger"></param>
+        public OpcUaRegistryApiClient(IHttpClient httpClient,
+            string serviceUri, string resourceId, ILogger logger) {
             _httpClient = httpClient;
             _logger = logger;
-            _serviceUri = config.OpcUaRegistryServiceUrl;
-            _resourceId = config.OpcUaRegistryServiceResourceId;
+            _serviceUri = serviceUri;
+            _resourceId = resourceId;
 
             if (string.IsNullOrEmpty(_serviceUri)) {
-                _serviceUri = "http://localhost:9041/v1";
-                _logger.Error(
-                    "No opc twin service Uri specified.Using default " +
-                    _serviceUri + ". If this is not your intention, or to " +
-                    "remove this error, please configure the Url " +
-                    "in the appsettings.json file or set the " +
-                    "IIOT_OPCTWIN_WEBSERVICE_URL environment variable.",
-                    () => {});
+                throw new ArgumentNullException(nameof(serviceUri),
+                    "Please configure the Url of the registry micro service.");
             }
         }
 
@@ -130,8 +137,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// </summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        public async Task<ApplicationRegistrationResponseApiModel> RegisterAsync(
-            ServerRegistrationRequestApiModel content) {
+        public async Task RegisterAsync(ServerRegistrationRequestApiModel content) {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
@@ -144,8 +150,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             request.Options.Timeout = 60000;
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<ApplicationRegistrationResponseApiModel>(
-                response.GetContentAsString());
         }
 
         /// <summary>

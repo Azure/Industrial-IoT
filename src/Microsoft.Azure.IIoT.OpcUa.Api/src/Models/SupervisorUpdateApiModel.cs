@@ -1,29 +1,16 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-    using System;
     using System.Collections.Generic;
 
     /// <summary>
-    /// Discovery mode to use
+    /// Supervisor registration update request
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum DiscoveryMode {
-        Off,
-        Local,
-        Network,
-        Scan
-    }
-
-    /// <summary>
-    /// Supervisor registration model for webservice api
-    /// </summary>
-    public class SupervisorApiModel {
+    public class SupervisorUpdateApiModel {
 
         /// <summary>
         /// Supervisor id
@@ -32,14 +19,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         public string Id { get; set; }
 
         /// <summary>
-        /// Site of the application
+        /// Site the supervisor is part of
         /// </summary>
         [JsonProperty(PropertyName = "siteId",
             NullValueHandling = NullValueHandling.Ignore)]
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Whether the supervisor is in discovery mode
+        /// Discovery mode of supervisor
         /// </summary>
         [JsonProperty(PropertyName = "discovery",
             NullValueHandling = NullValueHandling.Ignore)]
@@ -53,32 +40,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
         /// <summary>
-        /// Discovery callbacks currently registered
+        /// Callbacks to add or remove (see below)
         /// </summary>
         [JsonProperty(PropertyName = "discoveryCallbacks",
             NullValueHandling = NullValueHandling.Ignore)]
-        public List<Uri> DiscoveryCallbacks { get; set; }
+        public List<CallbackApiModel> DiscoveryCallbacks { get; set; }
 
         /// <summary>
-        /// Supervisor public client cert
+        /// Whether to add or remove callbacks
         /// </summary>
-        [JsonProperty(PropertyName = "certificate",
+        [JsonProperty(PropertyName = "removeDiscoveryCallbacks",
             NullValueHandling = NullValueHandling.Ignore)]
-        public byte[] Certificate { get; set; }
-
-        /// <summary>
-        /// Whether the registration is out of sync between
-        /// client (edge) and server (service) (default: false).
-        /// </summary>
-        [JsonProperty(PropertyName = "outOfSync",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public bool? OutOfSync { get; set; }
-
-        /// <summary>
-        /// Whether edge is connected on this registration
-        /// </summary>
-        [JsonProperty(PropertyName = "connected",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public bool? Connected { get; set; }
+        public bool? RemoveDiscoveryCallbacks { get; set; }
     }
 }

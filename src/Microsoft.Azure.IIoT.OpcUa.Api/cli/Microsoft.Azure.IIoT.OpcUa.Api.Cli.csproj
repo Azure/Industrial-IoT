@@ -19,9 +19,9 @@
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.OpcUa.Api.csproj" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\common')">
+    <When Condition="Exists('..\..\..\..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\common\src\Microsoft.Azure.IIoT.Auth\src\Microsoft.Azure.IIoT.Auth.csproj" />
+        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Auth\src\Microsoft.Azure.IIoT.Auth.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>

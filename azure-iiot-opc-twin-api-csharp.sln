@@ -5,11 +5,11 @@ VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{48874E93-D02F-4BD8-9361-34FA358CC5F4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Api", "src\Microsoft.Azure.IIoT.OpcUa.Api.csproj", "{84962480-BB89-4F46-9022-D30A4BCC43E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Api", "src\Microsoft.Azure.IIoT.OpcUa.Api\src\Microsoft.Azure.IIoT.OpcUa.Api.csproj", "{84962480-BB89-4F46-9022-D30A4BCC43E1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cli", "cli", "{0E23FB7F-172C-4B0B-B56A-3B8BC7FC9BF7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Api.Cli", "cli\Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj", "{5D7F9B00-9A8C-4279-BC5C-EDC0E7FE2E15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Api.Cli", "src\Microsoft.Azure.IIoT.OpcUa.Api\cli\Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj", "{5D7F9B00-9A8C-4279-BC5C-EDC0E7FE2E15}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

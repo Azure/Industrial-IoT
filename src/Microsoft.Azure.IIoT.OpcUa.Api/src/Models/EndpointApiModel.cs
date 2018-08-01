@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,16 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
-
-    /// <summary>
-    /// Type of token to use for serverauth
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum TokenType {
-        None,
-        UserNamePassword,
-        X509Certificate
-    }
 
     /// <summary>
     /// Security mode of endpoint
@@ -40,25 +30,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         public string Url { get; set; }
 
         /// <summary>
-        /// User name to use
+        /// User Authentication
         /// </summary>
-        [JsonProperty(PropertyName = "user",
+        [JsonProperty(PropertyName = "authentication",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string User { get; set; }
-
-        /// <summary>
-        /// User token to pass to server
-        /// </summary>
-        [JsonProperty(PropertyName = "token",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public object Token { get; set; }
-
-        /// <summary>
-        /// Type of token
-        /// </summary>
-        [JsonProperty(PropertyName = "tokenType",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public TokenType? TokenType { get; set; }
+        public AuthenticationApiModel Authentication { get; set; }
 
         /// <summary>
         /// Security Mode to use for communication - default to best.

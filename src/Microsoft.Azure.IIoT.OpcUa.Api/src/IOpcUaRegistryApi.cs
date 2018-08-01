@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// OPC registry api calls
+    /// Registry api calls
     /// </summary>
     public interface IOpcUaRegistryApi {
 
@@ -20,15 +20,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
         Task<StatusResponseApiModel> GetServiceStatusAsync();
 
         /// <summary>
-        /// Register new server and all twins with it.
+        /// Register new server for onboarding
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<ApplicationRegistrationResponseApiModel> RegisterAsync(
-            ServerRegistrationRequestApiModel request);
+        Task RegisterAsync(ServerRegistrationRequestApiModel request);
 
         /// <summary>
-        /// Register new application, does not register twins.
+        /// Register new application.
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>

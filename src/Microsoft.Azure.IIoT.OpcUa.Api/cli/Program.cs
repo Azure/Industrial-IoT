@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -136,7 +136,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                     await RegisterApplicationAsync(registry, options);
                                     break;
                                 case "add":
-                                    await AddServerAsync(registry, options);
+                                    await RegisterServerAsync(registry, options);
                                     break;
                                 case "update":
                                     await UpdateApplicationAsync(registry, options);
@@ -532,13 +532,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task AddServerAsync(IOpcUaRegistryApi service,
+        private static async Task RegisterServerAsync(IOpcUaRegistryApi service,
             Dictionary<string, string> options) {
-            var result = await service.RegisterAsync(
+            await service.RegisterAsync(
                 new ServerRegistrationRequestApiModel {
+                    RegistrationId = Guid.NewGuid().ToString(),
                     DiscoveryUrl = GetOption<string>(options, "-u", "--url")
                 });
-            PrintResult(options, result);
         }
 
         /// <summary>
@@ -929,7 +929,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     Configuration.GetValue("IIOT_OPCUA_TWIN_CLI_APP_ID",
                          Configuration.GetValue<string>("IIOT_AUTH_CLIENT_ID")));
 
-            public string TenantId => 
+            public string TenantId =>
                 Configuration.GetValue<string>("IIOT_AAD_TENANT_ID");
 
             public string Authority => null;
