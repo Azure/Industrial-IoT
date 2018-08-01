@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -22,15 +22,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public ApplicationInfoApiModel(ApplicationInfoModel model) {
-            ApplicationUri = model?.ApplicationUri;
-            ApplicationType = model?.ApplicationType ?? ApplicationType.ClientAndServer;
-            ApplicationName = model?.ApplicationName;
-            ProductUri = model?.ProductUri;
-            Certificate = model?.Certificate;
-            DiscoveryUrls = model?.DiscoveryUrls;
-            DiscoveryProfileUri = model?.DiscoveryProfileUri;
-            Capabilities = model?.Capabilities;
-            HostAddresses = model?.HostAddresses;
+            ApplicationId = model.ApplicationId;
+            ApplicationType = model.ApplicationType;
+            ApplicationUri = model.ApplicationUri;
+            ApplicationName = model.ApplicationName;
+            Certificate = model.Certificate;
+            ProductUri = model.ProductUri;
+            SiteId = model.SiteId;
+            HostAddresses = model.HostAddresses;
+            SupervisorId = model.SupervisorId;
+            DiscoveryProfileUri = model.DiscoveryProfileUri;
+            DiscoveryUrls = model.DiscoveryUrls;
+            Capabilities = model.Capabilities;
         }
 
         /// <summary>
@@ -38,17 +41,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         public ApplicationInfoModel ToServiceModel() {
             return new ApplicationInfoModel {
-                ApplicationUri = ApplicationUri,
+                ApplicationId = ApplicationId,
                 ApplicationType = ApplicationType,
+                ApplicationUri = ApplicationUri,
                 ApplicationName = ApplicationName,
-                ProductUri = ProductUri,
                 Certificate = Certificate,
+                ProductUri = ProductUri,
+                SiteId = SiteId,
                 HostAddresses = HostAddresses,
-                DiscoveryUrls = DiscoveryUrls,
+                SupervisorId = SupervisorId,
                 DiscoveryProfileUri = DiscoveryProfileUri,
+                DiscoveryUrls = DiscoveryUrls,
                 Capabilities = Capabilities
             };
         }
+
+        /// <summary>
+        /// Unique application id
+        /// </summary>
+        public string ApplicationId { get; set; }
 
         /// <summary>
         /// Unique application uri
@@ -94,5 +105,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// Host addresses of server application or null
         /// </summary>
         public HashSet<string> HostAddresses { get; set; }
+
+        /// <summary>
+        /// Site of the application
+        /// </summary>
+        public string SiteId { get; set; }
+
+        /// <summary>
+        /// Supervisor having registered the application
+        /// </summary>
+        public string SupervisorId { get; set; }
     }
 }

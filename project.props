@@ -2,6 +2,7 @@
   <PropertyGroup>
     <Product>Azure Industrial IoT OPC Twin Module</Product>
     <RepositoryUrl>https://github.com/Azure/azure-iiot-opc-twin-module</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Azure/azure-iot-connected-factory</RepositoryUrl>
     <PackageTags>Azure;IoT;IIoT,.NET</PackageTags>
   </PropertyGroup>
 </Project>

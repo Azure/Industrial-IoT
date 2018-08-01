@@ -10,8 +10,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Scanning;
+    using Microsoft.Azure.IIoT.OpcUa.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
     using Microsoft.Extensions.Configuration;
@@ -41,10 +41,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
 
             // Set up dependency injection for the module host
             var container = ConfigureContainer(config);
-
-            // Check client configuration
-            var client = container.Resolve<IOpcUaClient>();
-
             RunAsync(container, config).Wait();
         }
 
@@ -66,20 +62,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
                     try {
                         await module.StartAsync(
                             "supervisor", config.GetValue<string>("site", null));
-
+#if DEBUG
                         if (!Console.IsInputRedirected) {
                             Console.WriteLine("Press any key to exit...");
                             Console.TreatControlCAsInput = true;
                             await Task.WhenAny(tcs.Task, Task.Run(() => Console.ReadKey()));
+                            return;
                         }
-                        else {
-                            await tcs.Task;
-                        }
+#endif
+                        await tcs.Task;
                         return;
                     }
                     catch (Exception ex) {
                         var logger = hostScope.Resolve<ILogger>();
-                        logger.Error("Error during edge run!", () => ex);
+                        logger.Error("Error during edge run - restarting!", () => ex);
                     }
                     finally {
                         await module.StopAsync();
@@ -114,13 +110,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
             // Register opc ua services
             builder.RegisterType<OpcUaNodeServices>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<OpcUaValidationServices>()
+            builder.RegisterType<OpcUaDiscoveryServices>()
                 .AsImplementedInterfaces();
             builder.RegisterType<OpcUaJsonVariantCodec>()
                 .AsImplementedInterfaces();
 
             // Register discovery services
-            builder.RegisterType<OpcUaDiscoveryServices>()
+            builder.RegisterType<OpcUaScanningServices>()
                 .AsImplementedInterfaces();
 
             // Register controllers

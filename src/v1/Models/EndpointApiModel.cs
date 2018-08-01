@@ -1,11 +1,10 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Models;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Endpoint model for edgeservice api
@@ -23,9 +22,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <param name="model"></param>
         public EndpointApiModel(EndpointModel model) {
             Url = model?.Url;
-            User = model?.User;
-            Token = model?.Token;
-            TokenType = model?.TokenType;
+            Authentication = model?.Authentication == null ? null :
+                new AuthenticationApiModel(model.Authentication);
             Validation = model?.Validation;
             SecurityMode = model?.SecurityMode;
             SecurityPolicy = model?.SecurityPolicy;
@@ -37,9 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public EndpointModel ToServiceModel() {
             return new EndpointModel {
                 Url = Url,
-                User = User,
-                Token = Token,
-                TokenType = TokenType,
+                Authentication = Authentication?.ToServiceModel(),
                 Validation = Validation,
                 SecurityMode = SecurityMode,
                 SecurityPolicy = SecurityPolicy,
@@ -52,19 +48,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public string Url { get; set; }
 
         /// <summary>
-        /// User name to use
+        /// Authentication
         /// </summary>
-        public string User { get; set; }
-
-        /// <summary>
-        /// Type of token
-        /// </summary>
-        public TokenType? TokenType { get; set; }
-
-        /// <summary>
-        /// User token to pass to server
-        /// </summary>
-        public JToken Token { get; set; }
+        public AuthenticationApiModel Authentication { get; set; }
 
         /// <summary>
         /// Endpoint security policy to use - null = Best.

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Models;
 
     /// <summary>
-    /// Twin model
+    /// Twin registration model
     /// </summary>
     public class TwinRegistrationApiModel {
 
@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public TwinRegistrationApiModel(TwinRegistrationModel model) {
+            Id = model.Id;
             Endpoint = new EndpointApiModel(model?.Endpoint);
             Certificate = model?.Certificate;
             SiteId = model?.SiteId;
@@ -38,6 +39,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
                 Certificate = Certificate
             };
         }
+
+        /// <summary>
+        /// Identifier of the twin
+        /// </summary>
+        public string Id { get; set; }
 
         /// <summary>
         /// Registered site of the twin

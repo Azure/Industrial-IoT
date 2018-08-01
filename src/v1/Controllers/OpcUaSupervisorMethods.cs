@@ -12,6 +12,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     using Microsoft.Azure.IIoT.Edge;
     using System;
     using System.Threading.Tasks;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Supervisor method controller
@@ -27,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// <param name="validate"></param>
         /// <param name="nodes"></param>
         /// <param name="logger"></param>
-        public OpcUaSupervisorMethods(IOpcUaValidationServices validate,
+        public OpcUaSupervisorMethods(IOpcUaDiscoveryServices validate,
             IOpcUaBrowseServices<EndpointModel> browse, IOpcUaNodeServices<EndpointModel> nodes,
             ILogger logger) {
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
@@ -37,25 +39,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// Validate endpoint
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <returns></returns>
-        public async Task<ApplicationRegistrationApiModel> ValidateEndpointAsync(
-            EndpointApiModel endpoint) {
-            var result = await _validate.ValidateEndpointAsync(endpoint.ToServiceModel());
-            return new ApplicationRegistrationApiModel(result);
-        }
-
-        /// <summary>
-        /// Validate application
+        /// Discover application
         /// </summary>
         /// <param name="discoveryUri"></param>
         /// <returns></returns>
-        public async Task<ApplicationRegistrationApiModel> DiscoverApplicationAsync(
+        public async Task<List<ApplicationRegistrationApiModel>> DiscoverApplicationAsync(
             Uri discoveryUri) {
-            var result = await _validate.DiscoverApplicationAsync(discoveryUri);
-            return new ApplicationRegistrationApiModel(result);
+            var result = await _validate.DiscoverApplicationsAsync(discoveryUri);
+            return result.Select(r => new ApplicationRegistrationApiModel(r)).ToList();
         }
 
         /// <summary>
@@ -139,6 +130,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         private readonly ILogger _logger;
         private readonly IOpcUaBrowseServices<EndpointModel> _browse;
         private readonly IOpcUaNodeServices<EndpointModel> _nodes;
-        private readonly IOpcUaValidationServices _validate;
+        private readonly IOpcUaDiscoveryServices _validate;
     }
 }
