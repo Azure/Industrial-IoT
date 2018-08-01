@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Registry {
+namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Hub;
@@ -15,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Diagnostics;
 
     /// <summary>
     /// Endpoint services using the IoT Hub twin services for endpoint
@@ -24,16 +26,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         IOpcUaApplicationRegistry, IOpcUaRegistryMaintenance {
 
         /// <summary>
-        /// Create using iot hub twin registry service client
+        /// Create registry services
         /// </summary>
         /// <param name="iothub"></param>
         public OpcUaRegistryServices(IIoTHubTwinServices iothub, IHttpClient client,
-            IOpcUaValidationServices validator, ILogger logger) {
-
+            IOpcUaDiscoveryServices discover, ILogger logger) {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _validator = validator ?? throw new ArgumentNullException(nameof(validator));
+            _discover = discover ?? throw new ArgumentNullException(nameof(discover));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        /// <summary>
+        /// Create registry services
+        /// </summary>
+        /// <param name="iothub"></param>
+        public OpcUaRegistryServices(IIoTHubTwinServices iothub, IHttpClient client,
+            ILogger logger) : this(iothub, client, new OpcUaDiscoveryStub(), logger) {
         }
 
         /// <summary>
@@ -191,21 +200,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
 
             // Update registration from update request
             var patched = registration.ToServiceModel();
+            patched.Registration.Endpoint.Authentication = new AuthenticationModel();
+            if (request.TokenType != null) {
+                patched.Registration.Endpoint.Authentication.TokenType =
+                    (TokenType)request.TokenType;
+            }
             if (request.User != null) {
-                patched.Registration.Endpoint.User = string.IsNullOrEmpty(request.User) ?
-                    null : request.User;
+                patched.Registration.Endpoint.Authentication.User =
+                    string.IsNullOrEmpty(request.User) ? null : request.User;
                 // Change user?  Always duplicate since id changes.
                 request.Duplicate = true;
             }
-            if (request.TokenType != null) {
-                patched.Registration.Endpoint.TokenType = (TokenType)request.TokenType;
-            }
-            if ((patched.Registration.Endpoint.TokenType ?? TokenType.None) !=
+            if ((patched.Registration.Endpoint.Authentication.TokenType ?? TokenType.None) !=
                 TokenType.None) {
-                patched.Registration.Endpoint.Token = request.Token;
+                patched.Registration.Endpoint.Authentication.Token = request.Token;
             }
             else {
-                patched.Registration.Endpoint.Token = null;
+                patched.Registration.Endpoint.Authentication.Token = null;
             }
 
             // Check whether to enable or disable...
@@ -226,75 +237,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
                 await EnableTwinAsync(registration.SupervisorId,
                     registration.DeviceId, enable);
             }
-        }
-
-        /// <summary>
-        /// Register application in device twin registry and any endpoints
-        /// associated with it.
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public async Task<ApplicationRegistrationResultModel> RegisterAsync(
-            ServerRegistrationRequestModel request) {
-
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (request.DiscoveryUrl == null) {
-                throw new ArgumentNullException(nameof(request.DiscoveryUrl));
-            }
-
-            var endpoints = Enumerable.Empty<OpcUaEndpointRegistration>();
-            var application = new OpcUaApplicationRegistration();
-
-            //
-            // Read application from remote using the passed in discovery url
-            //
-            var discovered = await _validator.DiscoverApplicationAsync(
-                new Uri(request.DiscoveryUrl));
-
-            //
-            // See if already something registered in this form
-            //
-            var existing = await _iothub.QueryDeviceTwinsAsync("SELECT * FROM devices WHERE " +
-                $"tags.{nameof(OpcUaTwinRegistration.ApplicationId)} = " +
-                    $"'{discovered.Application.ApplicationId}'");
-
-            if (existing.Any()) {
-                // if so, get existing twins
-                var twins = existing.Select(OpcUaTwinRegistration.ToRegistration);
-
-                // Select endpoints and application to be patched below.
-                endpoints = twins.OfType<OpcUaEndpointRegistration>();
-                application = twins.OfType<OpcUaApplicationRegistration>().SingleOrDefault();
-                if (application == null) {
-                    throw new InvalidOperationException("No or more than one application " +
-                        $"registered for id {discovered.Application.ApplicationId}");
-                }
-            }
-
-            //
-            // Create or patch existing application and update all endpoint twins
-            //
-            await _iothub.CreateOrUpdateAsync(OpcUaApplicationRegistration.Patch(
-                application,
-                OpcUaApplicationRegistration.FromServiceModel(discovered.Application,
-                    false)));
-            await MergeEndpointsAsync(discovered.Application.SupervisorId,
-                discovered.Endpoints.Select(e =>
-                    OpcUaEndpointRegistration.FromServiceModel(new TwinInfoModel {
-                        ApplicationId = discovered.Application.ApplicationId,
-                        Registration = new TwinRegistrationModel {
-                            Endpoint = e.Endpoint,
-                            SiteId = application.SiteId,
-                            SecurityLevel = e.SecurityLevel,
-                            Certificate = e.Certificate
-                    }}, false)), endpoints, true);
-            _logger.Debug("Application registered.", () => discovered);
-
-            return new ApplicationRegistrationResultModel {
-                Id = discovered.Application.ApplicationId
-            };
         }
 
         /// <summary>
@@ -639,7 +581,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             await _iothub.CreateOrUpdateAsync(OpcUaSupervisorRegistration.Patch(
                 registration, OpcUaSupervisorRegistration.FromServiceModel(patched)));
             if (notifyModeChange) {
-                await NotifyDiscoveryCallbacks(request.Id, patched.Discovery);
+                await NotifyDiscoveryCallbacksAsync(request.Id, patched.Discovery);
             }
         }
 
@@ -723,6 +665,81 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
                 continuation = devices.ContinuationToken;
             }
             while (continuation != null);
+        }
+
+        /// <summary>
+        /// Process server registration requests from onboarder
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task ProcessRegisterAsync(ServerRegistrationRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.DiscoveryUrl == null) {
+                throw new ArgumentNullException(nameof(request.DiscoveryUrl));
+            }
+            var registered = new List<ApplicationRegistrationModel>();
+            try {
+                //
+                // Read application from supervisor using the passed in discovery url
+                //
+                var result = await _discover.DiscoverApplicationsAsync(
+                    new Uri(request.DiscoveryUrl));
+                foreach (var discovered in result) {
+                    Debug.Assert(discovered.Application.SupervisorId != null);
+
+                    var endpoints = Enumerable.Empty<OpcUaEndpointRegistration>();
+                    var application = new OpcUaApplicationRegistration();
+
+                    //
+                    // See if already something registered in this form
+                    //
+                    var existing = await _iothub.QueryDeviceTwinsAsync(
+                        "SELECT * FROM devices WHERE " +
+                        $"tags.{nameof(OpcUaTwinRegistration.ApplicationId)} = " +
+                            $"'{discovered.Application.ApplicationId}'");
+                    if (existing.Any()) {
+                        // if so, get existing twins
+                        var twins = existing.Select(OpcUaTwinRegistration.ToRegistration);
+
+                        // Select endpoints and application to be patched below.
+                        endpoints = twins.OfType<OpcUaEndpointRegistration>();
+                        application = twins.OfType<OpcUaApplicationRegistration>()
+                            .SingleOrDefault();
+                        if (application == null) {
+                            throw new InvalidOperationException(
+                                "No or more than one application registered for " +
+                                $"id {discovered.Application.ApplicationId}");
+                        }
+                    }
+
+                    //
+                    // Create or patch existing application and update all endpoint twins
+                    //
+                    await _iothub.CreateOrUpdateAsync(OpcUaApplicationRegistration.Patch(
+                        application,
+                        OpcUaApplicationRegistration.FromServiceModel(discovered.Application,
+                            false)));
+                    await MergeEndpointsAsync(discovered.Application.SupervisorId,
+                        discovered.Endpoints.Select(e =>
+                            OpcUaEndpointRegistration.FromServiceModel(new TwinInfoModel {
+                                ApplicationId = discovered.Application.ApplicationId,
+                                Registration = new TwinRegistrationModel {
+                                    Endpoint = e.Endpoint,
+                                    SiteId = application.SiteId,
+                                    SecurityLevel = e.SecurityLevel,
+                                    Certificate = e.Certificate
+                                }
+                            }, false)), endpoints, true);
+
+                    _logger.Debug("Application registered.", () => discovered);
+                    registered.Add(discovered);
+                }
+            }
+            finally {
+                await NotifyRegistrationCallbackAsync(request?.Callback, registered);
+            }
         }
 
         /// <summary>
@@ -881,7 +898,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             }
 
             // Notify callbacks
-            await NotifyDiscoveryCallbacks(supervisorId, null);
+            await NotifyDiscoveryCallbacksAsync(supervisorId, null);
 
             if (added != 0 || removed != 0) {
                 _logger.Info($"... processed discovery results: {added} applications added, " +
@@ -1107,33 +1124,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         }
 
         /// <summary>
+        /// Notify registration callback
+        /// </summary>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        private async Task NotifyRegistrationCallbackAsync(CallbackModel callback,
+            IEnumerable<ApplicationRegistrationModel> registrations) {
+            if (callback == null) {
+                return;
+            }
+            try {
+                var ids = registrations?.Select(r => r.Application.ApplicationId) ??
+                    Enumerable.Empty<string>();
+                await _client.CallAsync(JToken.FromObject(ids), callback);
+            }
+            catch (Exception ex) {
+                _logger.Debug($"Failed to notify callbacks.  Continue...",
+                    () => ex);
+                // Continue...
+            }
+        }
+
+        /// <summary>
         /// Notify discovery callbacks about change
         /// </summary>
         /// <param name="supervisorId"></param>
         /// <param name="change"></param>
         /// <returns></returns>
-        private async Task NotifyDiscoveryCallbacks(string supervisorId,
+        private async Task NotifyDiscoveryCallbacksAsync(string supervisorId,
             DiscoveryMode? change) {
             try {
                 var supervisor = await GetSupervisorAsync(supervisorId);
-                var ev = (change?.ToString()?.UrlEncode() ?? "Completed");
-                ev = $"event={ev}&supervisorId={supervisorId.UrlEncode()}";
-                if (supervisor?.DiscoveryCallbacks?.Any() ?? false) {
-                    await Task.WhenAll(supervisor.DiscoveryCallbacks.Select(async uri => {
-                        var builder = new UriBuilder(uri);
-                        if (string.IsNullOrEmpty(builder.Query)) {
-                            builder.Query = "?";
-                        }
-                        else {
-                            builder.Query += "&";
-                        }
-                        builder.Query += ev;
-                        if (!string.IsNullOrEmpty(supervisor.SiteId)) {
-                            builder.Query += $"&siteId ={supervisor.SiteId.UrlEncode()}";
-                        }
-                        await _client.GetAsync(builder.Uri);
-                    }));
-                }
+                await _client.CallAsync(JToken.FromObject(new {
+                    @event = change?.ToString() ?? "Completed",
+                    supervisorId,
+                    siteId = supervisor.SiteId ?? supervisorId
+                }), supervisor.DiscoveryCallbacks?.ToArray());
             }
             catch (Exception ex) {
                 _logger.Debug($"Failed to notify callbacks.  Continue...",
@@ -1164,7 +1190,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
 
         private readonly IIoTHubTwinServices _iothub;
         private readonly IHttpClient _client;
-        private readonly IOpcUaValidationServices _validator;
+        private readonly IOpcUaDiscoveryServices _discover;
         private readonly ILogger _logger;
     }
 }

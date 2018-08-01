@@ -4,20 +4,23 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
+    using Newtonsoft.Json.Linq;
 
-    /// <summary>
-    /// Requests method metadata
-    /// </summary>
-    public class MethodMetadataRequestModel {
+    public class AuthenticationModel {
 
         /// <summary>
-        /// Method id to request meta data for
+        /// User name to use
         /// </summary>
-        public string MethodId { get; set; }
+        public string User { get; set; }
 
         /// <summary>
-        /// Elevation
+        /// Type of token
         /// </summary>
-        public AuthenticationModel Elevation { get; set; }
+        public TokenType? TokenType { get; set; }
+
+        /// <summary>
+        /// User token to pass to server
+        /// </summary>
+        public JToken Token { get; set; }
     }
 }

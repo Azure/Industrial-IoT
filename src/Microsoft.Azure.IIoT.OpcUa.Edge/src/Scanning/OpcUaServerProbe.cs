@@ -1,15 +1,16 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Net;
     using Opc.Ua;
     using Opc.Ua.Bindings;
     using System;
     using System.IO;
+    using System.Net;
     using System.Net.Sockets;
     using System.Text;
 
@@ -47,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             public OpcUaServerAsyncProbe(ILogger logger, int timeout) {
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
                 _timeout = timeout;
-                _buffer = new byte[160];
+                _buffer = new byte[256];
             }
 
             /// <summary>
@@ -76,10 +77,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 ok = false;
                 timeout = _timeout;
                 if (arg.SocketError != SocketError.Success) {
-// #if LOG_VERBOSE
-                    _logger.Debug($"Probe {index} {_socket.RemoteEndPoint} found no opc server.",
+                    _logger.Debug($"Probe {index} : {_socket.RemoteEndPoint} found no opc server.",
                         () => arg.SocketError);
-// #endif
                     _state = State.BeginProbe;
                     return true;
                 }
@@ -87,13 +86,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     switch (_state) {
                         case State.BeginProbe:
                             if (arg.ConnectSocket == null) {
-                                _logger.Debug("Probe called without connected socket!", () => { });
+                                _logger.Error($"Probe {index} : Called without connected socket!",
+                                    () => { });
                                 return true;
                             }
                             _socket = arg.ConnectSocket;
-#if TRACE
-                            _logger.Debug($"Probe {index} {_socket.RemoteEndPoint} ...", () => { });
-#endif
+                            var ep = _socket.RemoteEndPoint.TryResolve();
                             using (var ostrm = new MemoryStream(_buffer, 0, _buffer.Length))
                             using (var encoder = new BinaryEncoder(ostrm,
                                     ServiceMessageContext.GlobalContext)) {
@@ -104,8 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                                 encoder.WriteUInt32(null, TcpMessageLimits.DefaultMaxMessageSize);
                                 encoder.WriteUInt32(null, TcpMessageLimits.DefaultMaxMessageSize);
                                 encoder.WriteUInt32(null, TcpMessageLimits.DefaultMaxMessageSize);
-                                encoder.WriteByteString(null,
-                                    Encoding.UTF8.GetBytes("opc.tcp://" + _socket.RemoteEndPoint));
+                                encoder.WriteByteString(null, Encoding.UTF8.GetBytes("opc.tcp://" + ep));
                                 _size = encoder.Close();
                             }
                             _buffer[4] = (byte)((_size & 0x000000FF));
@@ -114,6 +111,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                             _buffer[7] = (byte)((_size & 0xFF000000) >> 24);
                             arg.SetBuffer(_buffer, 0, _size);
                             _len = 0;
+                            _logger.Debug($"Probe {index} : {ep} ({_socket.RemoteEndPoint})...",
+                                () => { });
                             _state = State.SendHello;
                             if (!_socket.SendAsync(arg)) {
                                 break;
@@ -121,7 +120,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                             return false;
                         case State.SendHello:
                             _len += arg.Count;
-                            if (_len == _size) {
+                            if (_len >= _size) {
                                 _len = 0;
                                 _size = TcpMessageLimits.MessageTypeAndSize;
                                 _state = State.ReceiveSize;
@@ -140,11 +139,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                             return false;
                         case State.ReceiveSize:
                             _len += arg.Count;
-                            if (_len == _size) {
+                            if (_len >= _size) {
                                 var type = BitConverter.ToUInt32(_buffer, 0);
                                 if (type != TcpMessageType.Acknowledge) {
 #if LOG_VERBOSE
-                                    _logger.Debug($"Probe {index} {_socket.RemoteEndPoint} " +
+                                    _logger.Debug($"Probe {index} : {_socket.RemoteEndPoint} " +
                                         $"returned invalid message type {type}.", () => {});
 #endif
                                     _state = State.BeginProbe;
@@ -152,10 +151,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                                 }
                                 _size = (int)BitConverter.ToUInt32(_buffer, 4);
                                 if (_size > _buffer.Length) {
-#if TRACE
-                                    _logger.Debug($"Probe {index} {_socket.RemoteEndPoint} " +
+                                    _logger.Debug($"Probe {index} : {_socket.RemoteEndPoint} " +
                                         $"returned invalid message length {_size}.", () => { });
-#endif
                                     _state = State.BeginProbe;
                                     return true;
                                 }
@@ -171,7 +168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                             return false;
                         case State.ReceiveAck:
                             _len += arg.Count;
-                            if (_len == _size) {
+                            if (_len >= _size) {
                                 _state = State.BeginProbe;
                                 // Validate message
                                 using (var istrm = new MemoryStream(_buffer, 0, _size))
@@ -183,17 +180,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                                     var maxMessageSize = (int)decoder.ReadUInt32(null);
                                     var maxChunkCount = (int)decoder.ReadUInt32(null);
 
-                                    _logger.Debug($"Probe {index} {_socket.RemoteEndPoint} " +
+                                    _logger.Info($"Probe {index} : {_socket.RemoteEndPoint} " +
                                         $"found opc server (protocol:{protocolVersion}) ...",
-                                        () => { });
+                                            () => { });
 
                                     if (sendBufferSize < TcpMessageLimits.MinBufferSize ||
                                         receiveBufferSize < TcpMessageLimits.MinBufferSize) {
-                                        _logger.Debug($"Probe {index} Bad size value read " +
+                                        _logger.Warn($"Probe {index} : Bad size value read " +
                                             $"{sendBufferSize} or {receiveBufferSize} from " +
                                             $"opc server at {_socket.RemoteEndPoint}.",
-                                            () => { });
-                                        return true;
+                                                () => { });
                                     }
                                 }
                                 ok = true;

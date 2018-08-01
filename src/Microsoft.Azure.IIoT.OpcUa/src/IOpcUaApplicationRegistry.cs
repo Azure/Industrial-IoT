@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -12,14 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa {
     /// Application registry
     /// </summary>
     public interface IOpcUaApplicationRegistry {
-
-        /// <summary>
-        /// Register application from discovery url.
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        Task<ApplicationRegistrationResultModel> RegisterAsync(
-            ServerRegistrationRequestModel request);
 
         /// <summary>
         /// Register application using the application info as

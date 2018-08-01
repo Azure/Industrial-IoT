@@ -1,9 +1,9 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Twin {
+namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -19,13 +19,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
     /// Access the edge publisher via proxy and configures it to publish to its
     /// device identity endpoint. (V1 functionality)
     /// </summary>
-    public class OpcUaPublishServices : IOpcUaPublishServices<EndpointModel> {
+    public class OpcUaPublishClient : IOpcUaPublishServices<EndpointModel> {
 
         /// <summary>
         /// Create client service to control publisher
         /// </summary>
         /// <param name="client"></param>
-        public OpcUaPublishServices(IOpcUaClient client, ILogger logger) {
+        public OpcUaPublishClient(IOpcUaClient client, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -151,7 +151,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
                 $"{stationUri.Scheme}://{hostName}:62222/UA/Publisher");
             return Task.FromResult(new EndpointModel {
                 Url = publisherUri.ToString()
-// TODO
+                // TODO
             });
         }
 

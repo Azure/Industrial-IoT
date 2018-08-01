@@ -1,8 +1,7 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
     using System.Collections.Generic;
@@ -24,9 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
             }
             return
                 that.Url == model.Url &&
-                (that.TokenType ?? TokenType.None) ==
-                    (model.TokenType ?? TokenType.None) &&
-                that.User == model.User &&
+                that.Authentication.IsSameAs(that.Authentication) &&
                 that.Validation.SequenceEqualsSafe(model.Validation) &&
                 that.SecurityPolicy == model.SecurityPolicy &&
                 (that.SecurityMode ?? SecurityMode.Best) ==
@@ -46,10 +43,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
                 Validation = model.Validation,
                 SecurityMode = model.SecurityMode,
                 SecurityPolicy = model.SecurityPolicy,
-                Token = model.Token?.DeepClone(),
-                TokenType = model.TokenType,
-                Url = model.Url,
-                User = model.User
+                Authentication = model.Authentication.Clone(),
+                Url = model.Url
             };
         }
     }

@@ -1,15 +1,16 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Registry {
+namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.Hub;
     using AutoFixture;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
+    using Microsoft.Azure.IIoT.OpcUa.Models;
 
     public class OpcUaSupervisorRegistrationTests {
 
@@ -136,7 +137,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
                 .FromFactory(() => new OpcUaSupervisorRegistration(
                     fix.Create<string>(), fix.Create<string>()))
                 .With(x => x.Certificate, cert.EncodeAsDictionary())
-                .With(x => x.DiscoveryCallbacks, fix.CreateMany<Uri>().ToList().EncodeAsDictionary())
+                .With(x => x.DiscoveryCallbacks, fix.CreateMany<CallbackModel>()
+                    .ToList().EncodeAsDictionary())
                 .With(x => x.Thumbprint, cert.ToSha1Hash())
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)

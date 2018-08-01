@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Twin {
+namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Hub;
@@ -20,8 +20,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
     /// the OPC UA edge device module receiving service requests via device method
     /// call.
     /// </summary>
-    public sealed class OpcUaTwinClient : IOpcUaBrowseServices<string>, IOpcUaNodeServices<string>,
-        IOpcUaPublishServices<string> {
+    public sealed class OpcUaTwinClient : IOpcUaBrowseServices<string>,
+        IOpcUaNodeServices<string>, IOpcUaPublishServices<string> {
 
         /// <summary>
         /// Create service

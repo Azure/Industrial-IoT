@@ -1,17 +1,18 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Registry {
-    using Autofac.Extras.Moq;
-    using AutoFixture;
-    using AutoFixture.Kernel;
+namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Newtonsoft.Json.Linq;
+    using Autofac.Extras.Moq;
+    using AutoFixture;
+    using AutoFixture.Kernel;
     using System;
     using System.Collections.Generic;
     using System.Linq;

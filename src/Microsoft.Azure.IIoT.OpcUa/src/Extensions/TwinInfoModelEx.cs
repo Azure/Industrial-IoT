@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -20,8 +20,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// <param name="endpoint"></param>
         /// <returns></returns>
         public static string CreateTwinId(string applicationId, EndpointModel endpoint) =>
-            CreateTwinId(applicationId, endpoint.Url, endpoint.User, endpoint.SecurityMode,
-                endpoint.SecurityPolicy);
+            CreateTwinId(applicationId, endpoint.Url, endpoint.Authentication?.User,
+                endpoint.SecurityMode, endpoint.SecurityPolicy);
 
         /// <summary>
         /// Create unique endpoint

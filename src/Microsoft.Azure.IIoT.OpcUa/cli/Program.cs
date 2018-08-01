@@ -1,15 +1,14 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Cli {
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Scanning;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Proxy;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Edge;
@@ -42,10 +41,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
         /// <summary>
         /// Test configuration
         /// </summary>
-        private class OpcUaTestConfig : IOpcUaProxyConfig, IIoTHubConfig {
+        private class OpcUaTestConfig : IIoTHubConfig {
             public string IoTHubConnString => Environment.GetEnvironmentVariable("_HUB_CS");
             public string IoTHubResourceId => null;
-            public bool BypassProxy { get; set; }
         }
 
         enum Op {
@@ -67,7 +65,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
         /// <param name="args">command-line arguments</param>
         public static void Main(string[] args) {
             var op = Op.None;
-            var proxy = false;
             var endpoint = new EndpointModel();
             var host = Utils.GetHostName();
             string deviceId = null, moduleId = null, addressRanges = null;
@@ -123,10 +120,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
                             else {
                                 endpoint.Url = "opc.tcp://" + host + ":51210/UA/SampleServer";
                             }
-                            break;
-                        case "-P":
-                        case "--proxy":
-                            proxy = true;
                             break;
                         case "-c":
                         case "--clear":
@@ -207,12 +200,6 @@ Options:
      -?
      -h      Prints out this help.
 
-Target (Mutually exclusive):
-
-     -P
-    --proxy
-             Use proxy
-
 Operations (Mutually exclusive):
      -n
     --network
@@ -248,7 +235,7 @@ Operations (Mutually exclusive):
                 Console.WriteLine($"Running {op}...");
                 switch(op) {
                     case Op.TestOpcUaServerClient:
-                        TestOpcUaServerClient(endpoint, proxy).Wait();
+                        TestOpcUaServerClient(endpoint).Wait();
                         break;
                     case Op.TestNetworkScanner:
                         TestNetworkScanner().Wait();
@@ -292,9 +279,7 @@ Operations (Mutually exclusive):
         /// <returns></returns>
         private static async Task MakeEdgeSupervisor(string deviceId, string moduleId) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var config = new OpcUaTestConfig {
-                BypassProxy = true
-            };
+            var config = new OpcUaTestConfig();
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
 
@@ -320,9 +305,7 @@ Operations (Mutually exclusive):
         /// <returns></returns>
         private static async Task ClearEdgeSupervisors() {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var config = new OpcUaTestConfig {
-                BypassProxy = true
-            };
+            var config = new OpcUaTestConfig();
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
 
@@ -353,9 +336,7 @@ Operations (Mutually exclusive):
         /// <returns></returns>
         private static async Task ClearRegistry() {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var config = new OpcUaTestConfig {
-                BypassProxy = true
-            };
+            var config = new OpcUaTestConfig();
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
 
@@ -411,7 +392,7 @@ Operations (Mutually exclusive):
             var logger = new ConsoleLogger("test", LogLevel.Debug);
             var client = new OpcUaClient(logger);
 
-            var discovery = new OpcUaDiscoveryServices(client, new ConsoleEmitter(),
+            var discovery = new OpcUaScanningServices(client, new ConsoleEmitter(),
                 new EdgeScheduler(), logger);
 
             var rand = new Random();
@@ -454,12 +435,10 @@ Operations (Mutually exclusive):
         /// Test client stuff
         /// </summary>
         /// <param name="endpoint"></param>
-        /// <param name="useProxy"></param>
-        private static async Task TestOpcUaServerClient(EndpointModel endpoint,
-            bool useProxy) {
+        /// <returns></returns>
+        private static async Task TestOpcUaServerClient(EndpointModel endpoint) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var client = useProxy ? new OpcUaProxyClient(logger, new OpcUaTestConfig()) :
-                new OpcUaClient(logger);
+            var client = new OpcUaClient(logger);
             await client.ExecuteServiceAsync(endpoint, async session => {
                 var mask = (uint)Opc.Ua.NodeClass.Variable | (uint)Opc.Ua.NodeClass.Object |
                     (uint)Opc.Ua.NodeClass.Method;

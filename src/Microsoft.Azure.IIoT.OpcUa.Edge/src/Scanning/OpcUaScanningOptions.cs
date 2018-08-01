@@ -1,20 +1,19 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
     using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Azure.IIoT.OpcUa.Models;
-    using System;
     using System.Collections.Generic;
 
     /// <summary>
-    /// Server discovery run configuration
+    /// Server scanning configuration
     /// </summary>
-    public class OpcUaDiscoveryOptions {
+    public class OpcUaScanningOptions {
 
-        public static OpcUaDiscoveryOptions Default => new OpcUaDiscoveryOptions();
+        public static OpcUaScanningOptions Default => new OpcUaScanningOptions();
 
         /// <summary>
         /// Discovery mode
@@ -45,8 +44,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// Clone options
         /// </summary>
         /// <returns></returns>
-        internal OpcUaDiscoveryOptions Clone() {
-            var options = new OpcUaDiscoveryOptions {
+        internal OpcUaScanningOptions Clone() {
+            var options = new OpcUaScanningOptions {
                 NetworkClass = NetworkClass
             };
             options.UpdateFromModel(Mode, Configuration);

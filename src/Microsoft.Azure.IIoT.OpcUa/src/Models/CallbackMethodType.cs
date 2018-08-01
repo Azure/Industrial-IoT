@@ -4,32 +4,33 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
-    using Newtonsoft.Json.Linq;
-    using System.Collections.Generic;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     /// <summary>
-    /// Result of node browse
+    /// Type of callback method to use
     /// </summary>
-    public class BrowseResultModel {
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum CallbackMethodType {
 
         /// <summary>
-        /// Node info for the currently browsed node
+        /// Call callback with get and query
         /// </summary>
-        public NodeModel Node { get; set; }
+        Get,
 
         /// <summary>
-        /// References, if included, otherwise null.
+        /// Call callback with post, query, and payload
         /// </summary>
-        public List<NodeReferenceModel> References { get; set; }
+        Post,
 
         /// <summary>
-        /// Continuation token if more results pending.
+        /// Call callback with put, query, and payload
         /// </summary>
-        public string ContinuationToken { get; set; }
+        Put,
 
         /// <summary>
-        /// Diagnostics in case of error
+        /// Call callback with delete and query
         /// </summary>
-        public JToken Diagnostics { get; set; }
+        Delete
     }
 }

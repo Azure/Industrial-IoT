@@ -3,32 +3,32 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Twin {
+namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Collections.Generic;
 
     /// <summary>
-    /// Implements node and publish services through edge command control against
-    /// the OPC UA edge device module receiving service requests via device method
-    /// call.
+    /// Implements discovery through jobs and twin supervisor.
     /// </summary>
-    public sealed class OpcUaTwinValidator : IOpcUaValidationServices {
+    public sealed class OpcUaDiscoveryClient : IOpcUaDiscoveryServices {
+
+        private static readonly TimeSpan kDiscoveryTimeout = TimeSpan.FromMinutes(5);
 
         /// <summary>
-        /// Create service
+        /// Create client
         /// </summary>
         /// <param name="jobs"></param>
         /// <param name="logger"></param>
-        public OpcUaTwinValidator(IIoTHubJobServices jobs, ILogger logger) {
+        public OpcUaDiscoveryClient(IIoTHubJobServices jobs, ILogger logger) {
             _jobs = jobs ?? throw new ArgumentNullException(nameof(jobs));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -38,27 +38,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        public async Task<ApplicationRegistrationModel> DiscoverApplicationAsync(
+        public async Task<List<ApplicationRegistrationModel>> DiscoverApplicationsAsync(
             Uri discoveryUrl) {
             if (discoveryUrl == null) {
                 throw new ArgumentNullException(nameof(discoveryUrl));
             }
-            return await CallServiceOnAllSupervisors<Uri, ApplicationRegistrationModel>(
-                "DiscoverApplication_V1", discoveryUrl, kValidationTimeout);
-        }
-
-        /// <summary>
-        /// Validate request
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <returns></returns>
-        public async Task<ApplicationRegistrationModel> ValidateEndpointAsync(
-            EndpointModel endpoint) {
-            if (endpoint == null) {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
-            return await CallServiceOnAllSupervisors<EndpointModel, ApplicationRegistrationModel>(
-                "ValidateEndpoint_V1", endpoint, kValidationTimeout);
+            return await CallServiceOnAllSupervisors<Uri, List<ApplicationRegistrationModel>>(
+                "DiscoverApplication_V1", discoveryUrl, kDiscoveryTimeout);
         }
 
         /// <summary>
@@ -72,21 +58,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         private async Task<R> CallServiceOnAllSupervisors<T, R>(
             string service, T request, TimeSpan timeout) {
 
-            // Create job to all supervisors - see edge service program.cs
+            // Create job to all supervisors
             var jobId = Guid.NewGuid().ToString();
             var job = await _jobs.CreateAsync(new JobModel {
                 JobId = jobId,
                 QueryCondition = "FROM devices.modules WHERE " +
                     $"properties.reported.{kTypeProp} = 'supervisor'",
                 Type = JobType.ScheduleDeviceMethod,
-                MaxExecutionTimeInSeconds = timeout.Seconds,
+                MaxExecutionTimeInSeconds = timeout.Seconds + 60,
                 MethodParameter = new MethodParameterModel {
                     Name = service,
                     JsonPayload = JsonConvertEx.SerializeObject(request)
                 }
             });
             _logger.Info($"Job {jobId} created...", () => job.Status);
-            var tryCancel = true;
+            var notCompleted = true;
             try {
                 // Poll to completion
                 var cts = new CancellationTokenSource(timeout);
@@ -94,34 +80,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
                     if (!string.IsNullOrEmpty(job.FailureReason)) {
                         throw new MethodCallException(job.FailureReason);
                     }
-                    var responses = job.Devices
-                        .Where(d => d.Status == DeviceJobStatus.Completed &&
-                            d.Outcome != null)
-                        .Where(d => {
-                            if (d.Outcome.Status != 200) {
-                                _logger.Debug($"{d.DeviceId} responded with {d.Outcome.Status}!",
-                                    () => JToken.Parse(d.Outcome.JsonPayload));
-                                return false; // Skip
-                            }
-                            return true;
-                        })
-                        .Select(d => JsonConvertEx.DeserializeObject<R>(d.Outcome.JsonPayload));
+                    var response = job.Devices
+                        .Where(d => d.Status == DeviceJobStatus.Completed)
+                        .Where(d => d.Outcome != null)
+                        .FirstOrDefault(d => d.Outcome.Status == 200);
+
                     if (job.Status == JobStatus.Completed ||
                         job.Status == JobStatus.Failed ||
-                        job.Status == JobStatus.Cancelled ||
-                        job.Status == JobStatus.Running) {
-                        tryCancel = false;
-                    }
-                    if (responses.Any()) {
-                        _logger.Info($"Job {jobId} done - response received!", () => job.Status);
-                        return responses.First();
-                    }
-                    if (cts.IsCancellationRequested ||
-                        job.Status == JobStatus.Completed ||
-                        job.Status == JobStatus.Failed ||
                         job.Status == JobStatus.Cancelled) {
+                        notCompleted = false;
+                    }
+                    if (response != null) {
+                        _logger.Info($"Job {jobId} done - response received!",
+                            () => job.Status);
+                        return JsonConvertEx.DeserializeObject<R>(
+                            response.Outcome.JsonPayload);
+                    }
+                    if (!notCompleted || cts.IsCancellationRequested) {
                         break;
                     }
+                    await Task.Delay(TimeSpan.FromSeconds(3), cts.Token);
                     job = await _jobs.RefreshAsync(jobId);
                     _logger.Info($"Job {jobId} polled...", () => job.Status);
                 }
@@ -129,8 +107,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
                     $"No response received for job {jobId} after {timeout}.");
             }
             finally {
-                if (tryCancel) {
-                    // Clean up
+                if (notCompleted) {
+                    // Try and cancel job
                     try {
                         await _jobs.CancelAsync(jobId);
                     }
@@ -141,11 +119,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
             }
         }
 
-        private readonly IIoTHubJobServices _jobs;
-        private readonly ILogger _logger;
-
         public const string kTypeProp = "__type__"; // TODO: Consolidate as common constant
 
-        private static readonly TimeSpan kValidationTimeout = TimeSpan.FromSeconds(30);
+        private readonly IIoTHubJobServices _jobs;
+        private readonly ILogger _logger;
     }
 }

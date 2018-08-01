@@ -1,11 +1,10 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Registry {
+namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.OpcUa.Models;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Newtonsoft.Json.Linq;
     using System;
@@ -31,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <summary>
         /// Discovery state callback uris
         /// </summary>
-        public Dictionary<string, Uri> DiscoveryCallbacks { get; set; }
+        public Dictionary<string, CallbackModel> DiscoveryCallbacks { get; set; }
 
         #endregion Twin Tags
 
@@ -126,8 +125,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             }
 
             // Tags and Settings
-            var cbUpdate = update?.DiscoveryCallbacks?.DecodeAsList()?.SequenceEqualsSafe(
-                existing?.DiscoveryCallbacks?.DecodeAsList());
+            var cbUpdate = update?.DiscoveryCallbacks?.DecodeAsList()?.SetEqualsSafe(
+                existing?.DiscoveryCallbacks?.DecodeAsList(),
+                    (callback1, callback2) => callback1.IsSameAs(callback2));
             if (!(cbUpdate ?? true)) {
                 twin.Tags.Add(nameof(DiscoveryCallbacks), update?.DiscoveryCallbacks == null ?
                     null : JToken.FromObject(update.DiscoveryCallbacks));
@@ -224,7 +224,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
                 Thumbprint =
                     tags.Get<string>(nameof(Thumbprint), null),
                 DiscoveryCallbacks =
-                    tags.Get<Dictionary<string, Uri>>(nameof(DiscoveryCallbacks), null),
+                    tags.Get<Dictionary<string, CallbackModel>>(nameof(DiscoveryCallbacks), null),
 
                 // Properties
 
@@ -292,7 +292,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             var consolidated = FromTwin(twin.Id, twin.ModuleId, twin.Etag, twin.Tags,
                 twin.GetConsolidatedProperties());
             var desired = (twin.Properties?.Desired == null) ? null :
-                FromTwin(twin.Id, twin.ModuleId, twin.Etag, twin.Tags, 
+                FromTwin(twin.Id, twin.ModuleId, twin.Etag, twin.Tags,
                     twin.Properties.Desired);
 
             connected = consolidated.Connected;
@@ -386,8 +386,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
                     MinPortProbesPercent, registration.MinPortProbesPercent) &&
                 EqualityComparer<TimeSpan?>.Default.Equals(
                     IdleTimeBetweenScans, registration.IdleTimeBetweenScans) &&
-                DiscoveryCallbacks.DecodeAsList().SequenceEqualsSafe(
-                    registration.DiscoveryCallbacks.DecodeAsList());
+                DiscoveryCallbacks.DecodeAsList().SetEqualsSafe(
+                    registration.DiscoveryCallbacks.DecodeAsList(),
+                        (callback1, callback2) => callback1.IsSameAs(callback2));
         }
 
         public static bool operator ==(OpcUaSupervisorRegistration r1,

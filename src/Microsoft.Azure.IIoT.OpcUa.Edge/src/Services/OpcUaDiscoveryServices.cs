@@ -1,11 +1,10 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Twin {
+namespace Microsoft.Azure.IIoT.OpcUa.Services {
     using Microsoft.Azure.IIoT.OpcUa;
-    using Microsoft.Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -16,11 +15,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
     using System.Collections.Generic;
     using System.Threading;
     using System.Linq;
+    using System.Net;
+    using System.Net.NetworkInformation;
 
     /// <summary>
-    /// Validator opens a connection to the server to test connectivity.
+    /// Discovery services open a connection to the server
+    /// to gather application information.
     /// </summary>
-    public class OpcUaValidationServices : IOpcUaValidationServices {
+    public class OpcUaDiscoveryServices : IOpcUaDiscoveryServices {
 
         /// <summary>
         /// Site id under which validation is happening
@@ -36,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         /// Create edge endpoint validator
         /// </summary>
         /// <param name="client"></param>
-        public OpcUaValidationServices(IOpcUaClient client, ILogger logger) {
+        public OpcUaDiscoveryServices(IOpcUaClient client, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -46,64 +48,53 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        public async Task<ApplicationRegistrationModel> DiscoverApplicationAsync(
+        public async Task<List<ApplicationRegistrationModel>> DiscoverApplicationsAsync(
             Uri discoveryUrl) {
+
             var discovered = new List<ApplicationRegistrationModel>();
+            var address = await GetHostAddressAsync(discoveryUrl.GetRoot());
+            if (address == null) {
+                throw new ResourceNotFoundException("Unable to find host");
+            }
+
             var results = await _client.DiscoverAsync(discoveryUrl, CancellationToken.None);
             if (results.Any()) {
                 _logger.Info($"Found {results.Count()} endpoints on {discoveryUrl}.",
                     () => { });
             }
 
-            string hostAddress = null; // TODO
-
             // Merge results...
             foreach (var result in results) {
-                discovered.AddOrUpdate(result.ToServiceModel(hostAddress, SiteId,
-                    SupervisorId));
+                discovered.AddOrUpdate(result.ToServiceModel(
+                    address?.ToString(), SiteId, SupervisorId));
             }
 
             // Check results
             if (discovered.Count == 0) {
-                throw new ResourceNotFoundException("Unable to find application");
+                throw new ResourceNotFoundException("Unable to find applications");
             }
-            return discovered.First();
+            return discovered;
         }
 
         /// <summary>
-        /// Validate request by connecting to the server and filling in
-        /// resulting details.
+        /// Get a reachable host address from url
         /// </summary>
-        /// <param name="endpoint"></param>
+        /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        public async Task<ApplicationRegistrationModel> ValidateEndpointAsync(
-            EndpointModel endpoint) {
-
-            var uri = new Uri(endpoint.Url);
-            ApplicationRegistrationModel result = null;
-            await _client.ValidateEndpointAsync(endpoint, (channel, ep) => {
-
-                if (ep == null) {
-                    throw new ConnectionException("Endpoint could not be found.");
+        protected virtual async Task<IPAddress> GetHostAddressAsync(Uri discoveryUrl) {
+            try {
+                var entry = await Dns.GetHostEntryAsync(discoveryUrl.DnsSafeHost);
+                foreach (var address in entry.AddressList) {
+                    var reply = await new Ping().SendPingAsync(address);
+                    if (reply.Status == IPStatus.Success) {
+                        return address;
+                    }
                 }
-
-                // Success - get remote hostname and update id
-                result = ep.ToServiceModel(GetAddressFromChannel(channel), SiteId, SupervisorId);
-
-            });
-            if (result == null) {
-                throw new ResourceNotFoundException("Unable to validate endpoint.");
+                return null;
             }
-            return result;
-        }
-
-        /// <summary>
-        /// Retrieve the host name or ip address from the session
-        /// </summary>
-        /// <param name="channel"></param>
-        /// <returns></returns>
-        protected virtual string GetAddressFromChannel(ITransportChannel channel) {
-            return null;
+            catch {
+                return null;
+            }
         }
 
         protected readonly IOpcUaClient _client;

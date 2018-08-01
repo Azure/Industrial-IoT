@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// <returns></returns>
         public static string CreateApplicationId(string siteOrSupervisorId,
             string applicationUri, ApplicationType? applicationType) {
-            if (applicationUri == null) {
+            if (string.IsNullOrEmpty(applicationUri)) {
                 return null;
             }
             applicationUri = applicationUri.ToLowerInvariant();

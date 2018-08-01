@@ -1,9 +1,9 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
     /// <summary>
     /// Provides discovery services for the supervisor
     /// </summary>
-    public class OpcUaDiscoveryServices : IOpcUaDiscoveryServices, IDisposable {
+    public class OpcUaScanningServices : IOpcUaScanningServices, IDisposable {
 
         /// <summary>
         /// Current discovery mode
@@ -45,13 +45,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// <summary>
         /// Discovery configuration
         /// </summary>
-        public OpcUaDiscoveryOptions Options { get; set; } = OpcUaDiscoveryOptions.Default;
+        public OpcUaScanningOptions Options { get; set; } = OpcUaScanningOptions.Default;
 
         /// <summary>
         /// Create service
         /// </summary>
         /// <param name="logger"></param>
-        public OpcUaDiscoveryServices(IOpcUaClient client, IEventEmitter events,
+        public OpcUaScanningServices(IOpcUaClient client, IEventEmitter events,
             ITaskScheduler scheduler, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _client = client ?? throw new ArgumentNullException(nameof(client));
@@ -115,7 +115,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// Scan and discover in continuous loop
         /// </summary>
         /// <param name="ct"></param>
-        private async Task RunAsync(OpcUaDiscoveryOptions options, TimeSpan? delay,
+        private async Task RunAsync(OpcUaScanningOptions options, TimeSpan? delay,
             CancellationToken ct) {
 
             if (delay != null) {
@@ -188,7 +188,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<List<ApplicationRegistrationModel>> DiscoverServersAsync(
-            OpcUaDiscoveryOptions options, CancellationToken ct) {
+            OpcUaScanningOptions options, CancellationToken ct) {
             var discoveryUrls = new ConcurrentQueue<Tuple<Uri, IPEndPoint>>();
             if (options.Mode == DiscoveryMode.Off) {
                 return new List<ApplicationRegistrationModel>();
@@ -262,7 +262,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 }
             }
             ct.ThrowIfCancellationRequested();
-
             _logger.Info(
                 $"Finding {ports.Count} ports on servers (elapsed:{watch.Elapsed})...",
                     () => { });
@@ -275,20 +274,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             //
             foreach (var ep in ports) {
                 ct.ThrowIfCancellationRequested();
-
-                // Get host
-                string host;
-                try {
-                    // TODO: Currently stack has issues with ipv4/6 use, specify ipv4
-                    // address...
-                    // var entry = await Dns.GetHostEntryAsync(ep.Address);
-                    // host = entry.HostName ?? ep.Address.ToString();
-                    host = ep.Address.ToString();
-                }
-                catch {
-                    host = ep.Address.ToString();
-                }
-                var url = new Uri($"opc.tcp://{host}:{ep.Port}");
+                var resolved = await ep.TryResolveAsync();
+                var url = new Uri($"opc.tcp://" + resolved);
                 discoveryUrls.Enqueue(Tuple.Create(url, ep));
             }
             ct.ThrowIfCancellationRequested();

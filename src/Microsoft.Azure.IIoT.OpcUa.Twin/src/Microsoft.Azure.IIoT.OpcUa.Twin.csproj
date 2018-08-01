@@ -9,18 +9,6 @@
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\..\common-proxy')">
-      <ItemGroup>
-        <ProjectReference Include="..\..\..\..\common-proxy\src\Microsoft.Azure.IIoT.OpcUa.Proxy\src\Microsoft.Azure.IIoT.OpcUa.Proxy.csproj" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Proxy" Version="1.0.0-preview001" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
-  <Choose>
     <When Condition="Exists('..\..\..\..\common')">
       <ItemGroup>
         <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub\src\Microsoft.Azure.IIoT.Hub.csproj" />

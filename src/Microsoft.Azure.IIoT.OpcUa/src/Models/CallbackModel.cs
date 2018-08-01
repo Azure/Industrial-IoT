@@ -4,20 +4,27 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
+    using System;
 
     /// <summary>
-    /// Requests method metadata
+    /// A registered callback
     /// </summary>
-    public class MethodMetadataRequestModel {
+    public class CallbackModel {
 
         /// <summary>
-        /// Method id to request meta data for
+        /// Uri to call - should use https scheme in which
+        /// case security is enforced.
         /// </summary>
-        public string MethodId { get; set; }
+        public Uri Uri { get; set; }
 
         /// <summary>
-        /// Elevation
+        /// Http method to use
         /// </summary>
-        public AuthenticationModel Elevation { get; set; }
+        public CallbackMethodType? Method { get; set; }
+
+        /// <summary>
+        /// Authentication header to add or null if not needed
+        /// </summary>
+        public string AuthenticationHeader { get; set; }
     }
 }

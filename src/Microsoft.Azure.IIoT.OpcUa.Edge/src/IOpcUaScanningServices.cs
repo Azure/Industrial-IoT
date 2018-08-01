@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,9 +8,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Discovery services interface
+    /// Provides server scanning services
     /// </summary>
-    public interface IOpcUaDiscoveryServices {
+    public interface IOpcUaScanningServices {
 
         /// <summary>
         /// Current discovery mode

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -141,21 +141,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Connect and validate server endpoint
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        public async Task ValidateEndpointAsync(EndpointModel endpoint,
-            Action<ITransportChannel, EndpointDescription> callback) {
-            await DiscoverEndpointsAsync(endpoint, new Uri(endpoint.Url), Timeout,
-                (server, endpoints, channel) => {
-                    callback(channel, SelectServerEndpoint(server, endpoints, channel, true));
-                    return null;
-                }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -409,13 +394,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
                 return obj is SessionKey key &&
                     key != null &&
                     Endpoint.Url == key.Endpoint.Url &&
-                    Endpoint.User == key.Endpoint.User &&
-                    (Endpoint.TokenType ?? TokenType.None) ==
-                        (key.Endpoint.TokenType ?? TokenType.None) &&
+                    Endpoint.Authentication?.User == key.Endpoint.Authentication?.User &&
+                    (Endpoint.Authentication?.TokenType ?? TokenType.None) ==
+                        (key.Endpoint.Authentication?.TokenType ?? TokenType.None) &&
                     (Endpoint.SecurityMode ?? SecurityMode.Best) ==
                         (key.Endpoint.SecurityMode ?? SecurityMode.Best) &&
                     Endpoint.SecurityPolicy == key.Endpoint.SecurityPolicy &&
-                    JToken.DeepEquals(Endpoint.Token, key.Endpoint.Token);
+                    JToken.DeepEquals(Endpoint.Authentication?.Token,
+                        key.Endpoint.Authentication?.Token);
             }
 
             /// <summary>
@@ -429,15 +415,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
                 hashCode = hashCode * -1521134295 +
                     EqualityComparer<string>.Default.GetHashCode(Endpoint.Url);
                 hashCode = hashCode * -1521134295 +
-                    EqualityComparer<string>.Default.GetHashCode(Endpoint.User);
+                    EqualityComparer<string>.Default.GetHashCode(Endpoint.Authentication?.User ?? "");
                 hashCode = hashCode * -1521134295 +
                     EqualityComparer<TokenType?>.Default.GetHashCode(
-                        Endpoint.TokenType ?? TokenType.None);
+                        Endpoint.Authentication?.TokenType ?? TokenType.None);
                 hashCode = hashCode * -1521134295 +
                    EqualityComparer<SecurityMode?>.Default.GetHashCode(
                        Endpoint.SecurityMode ?? SecurityMode.Best);
                 hashCode = hashCode * -1521134295 +
-                    JToken.EqualityComparer.GetHashCode(Endpoint.Token);
+                    JToken.EqualityComparer.GetHashCode(Endpoint.Authentication?.Token);
                 return hashCode;
             }
         }
@@ -587,12 +573,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
         /// <returns></returns>
         private static IUserIdentity CreateUserIdentity(EndpointModel endpoint) {
             IUserIdentity userId = null;
-            switch (endpoint.TokenType ?? TokenType.None) {
+            switch (endpoint.Authentication?.TokenType ?? TokenType.None) {
                 case TokenType.UserNamePassword:
-                    userId = new UserIdentity(endpoint.User, endpoint.Token.ToString());
+                    userId = new UserIdentity(endpoint.Authentication.User ?? "unknown",
+                        endpoint.Authentication.Token?.ToString() ?? "");
                     break;
                 case TokenType.X509Certificate:
-                    userId = new UserIdentity(new X509Certificate2(endpoint.Token.ToObject<byte[]>()));
+                    userId = new UserIdentity(new X509Certificate2(
+                        endpoint.Authentication.Token?.ToObject<byte[]>()));
                     break;
 
                 // TODO:

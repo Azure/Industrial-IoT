@@ -1,9 +1,9 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Registry {
+namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Newtonsoft.Json.Linq;
@@ -116,10 +116,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
                 update?.ApplicationType != existing?.ApplicationType) {
                 twin.Tags.Add(nameof(ApplicationType),
                     JToken.FromObject(update.ApplicationType));
-                twin.Tags.Add(nameof(Models.ApplicationType.Server),
-                    update.ApplicationType != Models.ApplicationType.Client);
-                twin.Tags.Add(nameof(Models.ApplicationType.Client),
-                    update.ApplicationType != Models.ApplicationType.Server);
+                twin.Tags.Add(nameof(OpcUa.Models.ApplicationType.Server),
+                    update.ApplicationType != OpcUa.Models.ApplicationType.Client);
+                twin.Tags.Add(nameof(OpcUa.Models.ApplicationType.Client),
+                    update.ApplicationType != OpcUa.Models.ApplicationType.Server);
             }
 
             if (update?.ApplicationUri != existing?.ApplicationUri) {
@@ -296,7 +296,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
                 ApplicationName = ApplicationName,
                 HostAddresses = HostAddresses.DecodeAsList().ToHashSetSafe(),
                 NotSeenSince = NotSeenSince,
-                ApplicationType = ApplicationType ?? Models.ApplicationType.Server,
+                ApplicationType = ApplicationType ?? OpcUa.Models.ApplicationType.Server,
                 ApplicationUri = string.IsNullOrEmpty(ApplicationUri) ?
                     ApplicationUriLC : ApplicationUri,
                 ProductUri = ProductUri,

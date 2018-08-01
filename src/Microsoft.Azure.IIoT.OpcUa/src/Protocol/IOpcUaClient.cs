@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -38,16 +38,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <returns></returns>
         Task<IEnumerable<OpcUaDiscoveryResult>> DiscoverAsync(
             Uri discoveryUrl, CancellationToken ct);
-
-        /// <summary>
-        /// Try to get concretely offered endpoints from server specified by the
-        /// passed in endpoint.
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        Task ValidateEndpointAsync(EndpointModel endpoint,
-            Action<ITransportChannel, EndpointDescription> callback);
 
         /// <summary>
         /// Execute the service

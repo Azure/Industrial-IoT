@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using System.Collections.Generic;
     using System.Linq;

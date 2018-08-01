@@ -1,11 +1,12 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Registry {
+namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -308,12 +309,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
                     Endpoint = new EndpointModel {
                         Url = string.IsNullOrEmpty(EndpointUrl) ?
                             EndpointUrlLC : EndpointUrl,
-                        User = string.IsNullOrEmpty(User) ?
-                            null : User,
-                        Token = Token,
-                        TokenType = TokenType == Models.TokenType.None ?
-                            null : TokenType,
-                        SecurityMode = SecurityMode == Models.SecurityMode.Best ?
+                        Authentication = TokenType == null ? null :
+                            new AuthenticationModel {
+                                User = string.IsNullOrEmpty(User) ?
+                                    null : User,
+                                Token = Token,
+                                TokenType = TokenType == OpcUa.Models.TokenType.None ?
+                                    null : TokenType
+                        },
+                        SecurityMode = SecurityMode == OpcUa.Models.SecurityMode.Best ?
                             null : SecurityMode,
                         SecurityPolicy = string.IsNullOrEmpty(SecurityPolicy) ?
                             null : SecurityPolicy,
@@ -363,12 +367,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
                 Thumbprint = model.Registration?.Certificate?.ToSha1Hash(),
                 SecurityLevel = model.Registration?.SecurityLevel,
                 EndpointUrl = model.Registration?.Endpoint.Url,
-                User = model.Registration?.Endpoint.User,
-                Token = model.Registration?.Endpoint.Token,
-                TokenType = model.Registration?.Endpoint.TokenType ??
-                    Models.TokenType.None,
+                User = model.Registration?.Endpoint.Authentication?.User,
+                Token = model.Registration?.Endpoint.Authentication?.Token,
+                TokenType = model.Registration?.Endpoint.Authentication?.TokenType ??
+                    OpcUa.Models.TokenType.None,
                 SecurityMode = model.Registration?.Endpoint.SecurityMode ??
-                    Models.SecurityMode.Best,
+                    OpcUa.Models.SecurityMode.Best,
                 SecurityPolicy = model.Registration?.Endpoint.SecurityPolicy,
                 Validation = model.Registration?.Endpoint?.Validation.EncodeAsDictionary(),
                 Activated = model.Activated,
@@ -385,10 +389,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         public bool Matches(EndpointModel endpoint) {
             return endpoint != null &&
                 EndpointUrl == endpoint.Url &&
-                User == endpoint.User &&
-                TokenType == (endpoint.TokenType ?? Models.TokenType.None) &&
-                JToken.DeepEquals(Token, endpoint.Token) &&
-                SecurityMode == (endpoint.SecurityMode ?? Models.SecurityMode.Best) &&
+                User == endpoint.Authentication?.User &&
+                TokenType == (endpoint.Authentication?.TokenType ?? OpcUa.Models.TokenType.None) &&
+                JToken.DeepEquals(Token, endpoint.Authentication?.Token) &&
+                SecurityMode == (endpoint.SecurityMode ?? OpcUa.Models.SecurityMode.Best) &&
                 SecurityPolicy == endpoint.SecurityPolicy &&
                 endpoint.Validation.SequenceEqualsSafe(
                     Validation.DecodeAsByteArray());
