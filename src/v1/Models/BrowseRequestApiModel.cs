@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -29,6 +29,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
             Direction = model.Direction;
             ReferenceTypeId = model.ReferenceTypeId;
             NoSubtypes = model.NoSubtypes;
+            Elevation = model.Elevation == null ? null :
+                new AuthenticationApiModel(model.Elevation);
         }
 
         /// <summary>
@@ -41,6 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
                 MaxReferencesToReturn = MaxReferencesToReturn,
                 Direction = Direction,
                 ReferenceTypeId = ReferenceTypeId,
+                Elevation = Elevation?.ToServiceModel(),
                 NoSubtypes = NoSubtypes
             };
         }
@@ -85,5 +88,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public uint? MaxReferencesToReturn { get; set; }
+
+        /// <summary>
+        /// Optional User elevation
+        /// </summary>
+        [JsonProperty(PropertyName = "elevation",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public AuthenticationApiModel Elevation { get; set; }
     }
 }

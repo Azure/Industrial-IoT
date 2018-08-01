@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,10 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Proxy;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -162,23 +160,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
             // Populate from services di
             builder.Populate(services);
 
-            // By default Autofac uses a request lifetime, creating new objects
-            // for each request, which is good to reduce the risk of memory
-            // leaks, but not so good for the overall performance.
-
             // Register logger
             builder.RegisterInstance(Config.Logger)
                 .AsImplementedInterfaces().SingleInstance();
-
             // Register configuration interfaces
             builder.RegisterInstance(Config)
                 .AsImplementedInterfaces().SingleInstance();
-
             // CORS setup
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Register http client ...
+            // Http client services ...
             builder.RegisterType<HttpClient>().SingleInstance()
                 .AsImplementedInterfaces();
             builder.RegisterType<HttpHandlerFactory>().SingleInstance()
@@ -196,7 +188,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
                     .AsImplementedInterfaces().SingleInstance();
             }
 #if DEBUG
-            builder.RegisterType<NoOpValidator>()
+            builder.RegisterType<NoOpCertValidator>()
                 .AsImplementedInterfaces();
 #endif
 
@@ -204,29 +196,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
             builder.RegisterType<IoTHubServiceHttpClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Register endpoint services and ...
+            // Opc ua services
             builder.RegisterType<OpcUaRegistryServices>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            // Register opc ua proxy client if not bypassing
-            if (!Config.BypassProxy) {
-                builder.RegisterType<OpcUaProxyClient>()
-                    .AsImplementedInterfaces().SingleInstance();
-                // Register misc opc services, such as variant codec
-                builder.RegisterType<OpcUaJsonVariantCodec>()
-                    .AsImplementedInterfaces().SingleInstance();
-                // Register composite validator
-                builder.RegisterType<OpcUaCompositeValidator>()
-                    .AsImplementedInterfaces().SingleInstance();
-            }
-            else {
-                // Validate only through jobs
-                builder.RegisterType<OpcUaTwinValidator>()
-                    .AsImplementedInterfaces().SingleInstance();
-            }
-
-            // Register composite client
-            builder.RegisterType<OpcUaCompositeClient>()
+            builder.RegisterType<OpcUaTwinClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<OpcUaSupervisorClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<OpcUaDiscoveryClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();

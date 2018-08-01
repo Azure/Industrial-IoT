@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -26,6 +26,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         public BrowseNextRequestApiModel(BrowseNextRequestModel model) {
             Abort = model.Abort;
             ContinuationToken = model.ContinuationToken;
+            Elevation = model.Elevation == null ? null :
+                new AuthenticationApiModel(model.Elevation);
         }
 
         /// <summary>
@@ -35,6 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         public BrowseNextRequestModel ToServiceModel() {
             return new BrowseNextRequestModel {
                 Abort = Abort,
+                Elevation = Elevation?.ToServiceModel(),
                 ContinuationToken = ContinuationToken
             };
         }
@@ -53,5 +56,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public bool? Abort { get; set; }
+
+        /// <summary>
+        /// Optional User elevation
+        /// </summary>
+        [JsonProperty(PropertyName = "elevation",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public AuthenticationApiModel Elevation { get; set; }
     }
 }

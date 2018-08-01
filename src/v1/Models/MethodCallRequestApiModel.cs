@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -34,6 +34,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
             else {
                 model.InputArguments = new List<MethodArgumentModel>();
             }
+            Elevation = model.Elevation == null ? null :
+                new AuthenticationApiModel(model.Elevation);
         }
 
         /// <summary>
@@ -44,6 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
             return new MethodCallRequestModel {
                 MethodId = MethodId,
                 ObjectId = ObjectId,
+                Elevation = Elevation?.ToServiceModel(),
                 InputArguments = Arguments.Select(s => s.ToServiceModel()).ToList()
             };
         }
@@ -68,5 +71,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         [JsonProperty(PropertyName = "arguments",
             NullValueHandling = NullValueHandling.Ignore)]
         public List<MethodArgumentApiModel> Arguments { get; set; }
+
+        /// <summary>
+        /// Optional User elevation
+        /// </summary>
+        [JsonProperty(PropertyName = "elevation",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public AuthenticationApiModel Elevation { get; set; }
     }
 }

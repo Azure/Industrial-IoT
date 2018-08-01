@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -23,6 +23,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// <param name="model"></param>
         public ValueReadRequestApiModel(ValueReadRequestModel model) {
             NodeId = model.NodeId;
+            Elevation = model.Elevation == null ? null :
+                new AuthenticationApiModel(model.Elevation);
         }
 
         /// <summary>
@@ -31,7 +33,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// <returns></returns>
         public ValueReadRequestModel ToServiceModel() {
             return new ValueReadRequestModel {
-                NodeId = NodeId
+                NodeId = NodeId,
+                Elevation = Elevation?.ToServiceModel()
             };
         }
 
@@ -41,5 +44,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         [JsonProperty(PropertyName = "nodeId")]
         [Required]
         public string NodeId { get; set; }
+
+        /// <summary>
+        /// Optional User elevation
+        /// </summary>
+        [JsonProperty(PropertyName = "elevation",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public AuthenticationApiModel Elevation { get; set; }
     }
 }

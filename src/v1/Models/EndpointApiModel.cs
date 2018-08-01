@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// <summary>
         /// Default constructor
         /// </summary>
-        public EndpointApiModel() {}
+        public EndpointApiModel() { }
 
         /// <summary>
         /// Create api model from service model
@@ -26,9 +26,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// <param name="model"></param>
         public EndpointApiModel(EndpointModel model) {
             Url = model.Url;
-            User = model.User;
-            Token = model.Token;
-            TokenType = model.TokenType;
+            Authentication = model.Authentication == null ? null :
+                new AuthenticationApiModel(model.Authentication);
             SecurityMode = model.SecurityMode;
             SecurityPolicy = model.SecurityPolicy;
             Validation = model.Validation;
@@ -40,9 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         public EndpointModel ToServiceModel() {
             return new EndpointModel {
                 Url = Url,
-                User = User,
-                Token = Token,
-                TokenType = TokenType,
+                Authentication = Authentication?.ToServiceModel(),
                 SecurityMode = SecurityMode,
                 SecurityPolicy = SecurityPolicy,
                 Validation = Validation,
@@ -73,12 +70,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         public JToken Token { get; set; }
 
         /// <summary>
-        /// Type of token
+        /// User Authentication
         /// </summary>
-        [JsonProperty(PropertyName = "tokenType",
+        [JsonProperty(PropertyName = "authentication",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(Microsoft.Azure.IIoT.OpcUa.Models.TokenType.None)]
-        public TokenType? TokenType { get; set; }
+        [DefaultValue(null)]
+        public AuthenticationApiModel Authentication { get; set; }
 
         /// <summary>
         /// Security Mode to use for communication - default to best.
