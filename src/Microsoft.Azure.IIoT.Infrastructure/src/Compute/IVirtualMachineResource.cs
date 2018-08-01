@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -24,12 +24,19 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
         string Password { get; }
 
         /// <summary>
-        /// Public ip address
+        /// Public ip address when added.
         /// </summary>
-        string IPAddress { get; }
+        string PublicIPAddress { get; }
 
         /// <summary>
-        /// Opens a shell to the vm
+        /// Add a public ip to the vm.
+        /// </summary>
+        /// <returns></returns>
+        Task AddPublicIPAddressAsync();
+
+        /// <summary>
+        /// Opens a shell to the vm.  Will add
+        /// a public IP if none has been added.
         /// </summary>
         /// <param name="port">Port to connect
         /// to.</param>
@@ -38,6 +45,12 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
         /// <returns></returns>
         Task<ISecureShell> OpenShellAsync(int port,
             CancellationToken ct);
+
+        /// <summary>
+        /// Remove public IP address from the vm.
+        /// </summary>
+        /// <returns></returns>
+        Task RemovePublicIPAddressAsync();
 
         /// <summary>
         /// Restart machine

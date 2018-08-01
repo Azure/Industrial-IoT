@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,6 +7,22 @@ namespace System {
     using System.ComponentModel;
 
     public static class ObjectEx {
+
+        /// <summary>
+        /// Safe equals
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="that"></param>
+        /// <returns></returns>
+        public static bool EqualsSafe(this object obj, object that) {
+            if (obj == that) {
+                return true;
+            }
+            if (obj == null || that == null) {
+                return false;
+            }
+            return obj.Equals(that);
+        }
 
         /// <summary>
         /// Using type converter, convert type

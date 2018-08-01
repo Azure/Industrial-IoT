@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -20,6 +20,11 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub {
         /// Secondary connection string
         /// </summary>
         string SecondaryConnectionString { get; }
+
+        /// <summary>
+        /// Event hub connection string
+        /// </summary>
+        string EventHubConnectionString { get; }
 
         /// <summary>
         /// Check whether the endpoints are healthy

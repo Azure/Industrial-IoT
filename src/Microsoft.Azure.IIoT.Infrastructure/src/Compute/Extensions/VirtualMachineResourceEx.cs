@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
         /// else it will run forever</param>
         /// <returns></returns>
         public static Task<ISecureShell> OpenShellAsync(
-        this IVirtualMachineResource resource, CancellationToken ct) =>
+            this IVirtualMachineResource resource, CancellationToken ct) =>
             resource.OpenShellAsync(22, ct);
     }
 }

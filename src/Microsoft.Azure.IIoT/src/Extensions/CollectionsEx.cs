@@ -1,151 +1,77 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT {
+namespace System.Collections.Generic {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
+    using System.Collections;
+    using System.Reflection;
 
     public static class CollectionsEx {
 
         /// <summary>
-        /// Convert list of strings into string
+        /// Safe hash
         /// </summary>
-        /// <param name="list"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="seq"></param>
         /// <returns></returns>
-        public static string EncodeAsString(this List<string> list) {
-            if (list == null || !list.Any()) {
-                return string.Empty;
-            }
-            return list.OrderBy(x => x).Aggregate((x, y) => $"{x},{y}");
-        }
+        public static int GetHashCodeSafe<T>(this IEnumerable<T> seq) =>
+            GetHashCodeSafe(seq, EqualityComparer<T>.Default.GetHashCode);
 
         /// <summary>
-        /// Convert string to list
+        /// Safe hash
         /// </summary>
-        /// <param name="queryString"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="seq"></param>
         /// <returns></returns>
-        public static List<string> DecodeAsList(this string queryString) {
-            if (string.IsNullOrEmpty(queryString)) {
-                return null;
-            }
-            return queryString.Split(',').ToList();
-        }
-
-        /// <summary>
-        /// Convert list to dictionary
-        /// </summary>
-        /// <param name="list"></param>
-        /// <returns></returns>
-        public static Dictionary<string, T> EncodeAsDictionary<T>(this List<T> list) {
-            if (list == null) {
-                return null;
-            }
-            var result = new Dictionary<string, T>();
-            for (var i = 0; i < list.Count; i++) {
-                result.Add(i.ToString(), list[i]);
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Convert dictionary to list
-        /// </summary>
-        /// <param name="dictionary"></param>
-        /// <returns></returns>
-        public static List<T> DecodeAsList<T>(this Dictionary<string, T> dictionary) {
-            if (dictionary == null) {
-                return null;
-            }
-            var result = Enumerable.Repeat(default(T), dictionary.Count).ToList();
-            foreach (var kv in dictionary) {
-                result[int.Parse(kv.Key)] = kv.Value;
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Provide custom serialization by chunking a buffer
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public static Dictionary<string, string> EncodeAsDictionary(this byte[] buffer) {
-            if (buffer == null) {
-                return null;
-            }
-            var str = buffer == null ? string.Empty :
-                Convert.ToBase64String(buffer);
-            var result = new Dictionary<string, string>();
-            for (var i = 0; ; i++) {
-                if (str.Length < 512) {
-                    result.Add($"part_{i}", str);
-                    break;
+        public static int GetHashCodeSafe<T>(this IEnumerable<T> seq, Func<T, int> hash) {
+            var hashCode = -932366343;
+            if (seq != null) {
+                foreach (var item in seq) {
+                    hashCode = hashCode * -1521134295 + hash(item);
                 }
-                var part = str.Substring(0, 512);
-                result.Add($"part_{i}", part);
-                str = str.Substring(512);
             }
-            return result;
+            return hashCode;
         }
 
         /// <summary>
-        /// Convert chunks back to buffer
+        /// Safe sequence equals
         /// </summary>
-        /// <param name="dictionary"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="seq"></param>
+        /// <param name="that"></param>
         /// <returns></returns>
-        public static byte[] DecodeAsByteArray(this Dictionary<string, string> dictionary) {
-            if (dictionary == null) {
-                return null;
+        public static bool SequenceEqualsSafe<T>(this IEnumerable<T> seq,
+            IEnumerable<T> that) {
+            if (seq == that) {
+                return true;
             }
-            var str = new StringBuilder();
-            for (var i = 0; ; i++) {
-                if (!dictionary.TryGetValue($"part_{i}", out var chunk)) {
-                    break;
-                }
-                str.Append(chunk);
+            if (seq == null || that == null) {
+                return false;
             }
-            if (str.Length == 0) {
-                return null;
-            }
-            return Convert.FromBase64String(str.ToString());
-        }
-
-
-        /// <summary>
-        /// Convert string set to queryable dictionary
-        /// </summary>
-        /// <param name="set"></param>
-        /// <param name="upperCase"></param>
-        /// <returns></returns>
-        public static Dictionary<string, bool> EncodeAsDictionary(this ISet<string> set,
-            bool? upperCase = null) {
-            if (set == null) {
-                return null;
-            }
-            var result = new Dictionary<string, bool>();
-            foreach (var s in set) {
-                var add = s.SanitizePropertyName();
-                if (upperCase != null) {
-                    add = (bool)upperCase ? add.ToUpperInvariant() : add.ToLowerInvariant();
-                }
-                result.Add(add, true);
-            }
-            return result;
+            return seq.SequenceEqual(that);
         }
 
         /// <summary>
-        /// Convert dictionary to string set
+        /// Safe set equals
         /// </summary>
-        /// <param name="dictionary"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="seq"></param>
+        /// <param name="that"></param>
+        /// <param name="func"></param>
         /// <returns></returns>
-        public static HashSet<string> DecodeAsSet(this Dictionary<string, bool> dictionary) {
-            if (dictionary == null) {
-                return null;
+        public static bool SetEqualsSafe<T>(this IEnumerable<T> seq, IEnumerable<T> that,
+            Func<T, T, bool> func) {
+            if (seq == that) {
+                return true;
             }
-            return new HashSet<string>(dictionary.Select(kv => kv.Key));
+            if (seq == null || that == null) {
+                return false;
+            }
+            var source = new HashSet<T>(seq, Compare.Using(func));
+            return source.SetEquals(that);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -14,18 +14,15 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
-    using System.Security.Cryptography;
-    using System.Text;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Implementation of twin and job services, talking to iot hub directly.
-    /// This is intended for stand alone testing, not for production.
-    /// See samples for details.
+    /// Implementation of twin and job services, talking to iot hub
+    /// directly. Alternatively, there is a sdk based implementation
+    /// in the Hub.Client nuget package that can also be used.
     /// </summary>
-    public class IoTHubServiceHttpClient : IIoTHubTwinServices, IIoTHubJobServices,
-        IIoTHubConfigurationServices {
+    public class IoTHubServiceHttpClient : IoTHubHttpClientBase,
+        IIoTHubTwinServices, IIoTHubJobServices {
 
         /// <summary>
         /// The host name the client is talking to
@@ -39,19 +36,19 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public IoTHubServiceHttpClient(IHttpClient httpClient,
-            IIoTHubConfig config, ILogger logger) {
-            _httpClient = httpClient;
-            _logger = logger;
-            if (string.IsNullOrEmpty(config.IoTHubConnString)) {
-                throw new ArgumentException(nameof(config));
-            }
-            _resourceId = config.IoTHubResourceId;
-            _hubConnectionString = ConnectionString.Parse(config.IoTHubConnString);
+            IIoTHubConfig config, ILogger logger) :
+            base (httpClient, config, logger) {
         }
 
         /// <inheritdoc/>
         public Task<DeviceTwinModel> CreateOrUpdateAsync(DeviceTwinModel twin,
             bool forceUpdate) {
+            if (twin == null) {
+                throw new ArgumentNullException(nameof(twin));
+            }
+            if (string.IsNullOrEmpty(twin.Id)) {
+                throw new ArgumentNullException(nameof(twin.Id));
+            }
             return Retry.WithExponentialBackoff(_logger, async () => {
 
                 if (string.IsNullOrEmpty(twin.Etag)) {
@@ -134,6 +131,15 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// <inheritdoc/>
         public Task<MethodResultModel> CallMethodAsync(string deviceId, string moduleId,
             MethodParameterModel parameters) {
+            if (string.IsNullOrEmpty(deviceId)) {
+                throw new ArgumentNullException(nameof(deviceId));
+            }
+            if (parameters == null) {
+                throw new ArgumentNullException(nameof(parameters));
+            }
+            if (string.IsNullOrEmpty(parameters.Name)) {
+                throw new ArgumentNullException(nameof(parameters.Name));
+            }
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest(
                     $"/twins/{ToResourceId(deviceId, moduleId)}/methods");
@@ -157,13 +163,16 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// <inheritdoc/>
         public Task UpdatePropertiesAsync(string deviceId, string moduleId,
             Dictionary<string, JToken> properties, string etag) {
+            if (string.IsNullOrEmpty(deviceId)) {
+                throw new ArgumentNullException(nameof(deviceId));
+            }
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest(
                     $"/twins/{ToResourceId(deviceId, moduleId)}");
                 request.SetContent(new {
                     deviceId,
                     properties = new {
-                        desired = properties
+                        desired = properties ?? new Dictionary<string, JToken>()
                     }
                 });
                 request.Headers.Add("If-Match",
@@ -176,6 +185,12 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// <inheritdoc/>
         public Task ApplyConfigurationAsync(string deviceId,
             ConfigurationContentModel configuration) {
+            if (configuration == null) {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+            if (string.IsNullOrEmpty(deviceId)) {
+                throw new ArgumentNullException(nameof(deviceId));
+            }
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest(
                     $"/devices/{ToResourceId(deviceId, null)}/applyConfigurationContent");
@@ -187,6 +202,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
 
         /// <inheritdoc/>
         public Task<DeviceTwinModel> GetAsync(string deviceId, string moduleId) {
+            if (string.IsNullOrEmpty(deviceId)) {
+                throw new ArgumentNullException(nameof(deviceId));
+            }
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest(
                     $"/twins/{ToResourceId(deviceId, moduleId)}");
@@ -198,6 +216,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
 
         /// <inheritdoc/>
         public Task<DeviceModel> GetRegistrationAsync(string deviceId, string moduleId) {
+            if (string.IsNullOrEmpty(deviceId)) {
+                throw new ArgumentNullException(nameof(deviceId));
+            }
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest(
                     $"/devices/{ToResourceId(deviceId, moduleId)}");
@@ -210,6 +231,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// <inheritdoc/>
         public Task<QueryResultModel> QueryAsync(string query, string continuation,
             int? pageSize) {
+            if (string.IsNullOrEmpty(query)) {
+                throw new ArgumentNullException(nameof(query));
+            }
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest("/devices/query");
                 if (continuation != null) {
@@ -235,6 +259,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
 
         /// <inheritdoc/>
         public Task DeleteAsync(string deviceId, string moduleId, string etag) {
+            if (string.IsNullOrEmpty(deviceId)) {
+                throw new ArgumentNullException(nameof(deviceId));
+            }
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest(
                     $"/devices/{ToResourceId(deviceId, moduleId)}");
@@ -246,35 +273,16 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         }
 
         /// <inheritdoc/>
-        public Task<ConfigurationModel> CreateOrUpdateConfigurationAsync(
-            ConfigurationModel configuration, bool forceUpdate) {
-            // TODO
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public Task<ConfigurationModel> GetConfigurationAsync(
-            string configurationId) {
-            // TODO
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public Task<IEnumerable<ConfigurationModel>> ListConfigurationsAsync(
-            int? maxCount) {
-            // TODO
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public Task DeleteConfigurationAsync(string configurationId,
-            string etag) {
-            // TODO
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
         public async Task<JobModel> CreateAsync(JobModel job) {
+            if (job == null) {
+                throw new ArgumentNullException(nameof(job));
+            }
+            if (string.IsNullOrEmpty(job.JobId)) {
+                throw new ArgumentNullException(nameof(job.JobId));
+            }
+            if (string.IsNullOrEmpty(job.QueryCondition)) {
+                throw new ArgumentNullException(nameof(job.QueryCondition));
+            }
             var model = await Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"/jobs/v2/{job.JobId}");
                 switch (job.Type) {
@@ -322,6 +330,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
 
         /// <inheritdoc/>
         public async Task<JobModel> RefreshAsync(string jobId) {
+            if (string.IsNullOrEmpty(jobId)) {
+                throw new ArgumentNullException(nameof(jobId));
+            }
             var model = await Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"/jobs/v2/{jobId}");
                 var response = await _httpClient.GetAsync(request);
@@ -334,6 +345,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
 
         /// <inheritdoc/>
         public Task CancelAsync(string jobId) {
+            if (string.IsNullOrEmpty(jobId)) {
+                throw new ArgumentNullException(nameof(jobId));
+            }
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var request = NewRequest($"/jobs/v2/{jobId}/cancel");
                 var response = await _httpClient.PostAsync(request);
@@ -457,65 +471,5 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 }
             };
         }
-
-        /// <summary>
-        /// Helper to create new request
-        /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        private IHttpRequest NewRequest(string path) {
-            var request = _httpClient.NewRequest(new UriBuilder {
-                Scheme = "https",
-                Host = _hubConnectionString.HostName,
-                Path = path,
-                Query = "api-version=" + kApiVersion
-            }.Uri, _resourceId);
-            request.Headers.Add(HttpRequestHeader.Authorization.ToString(),
-                CreateSasToken(_hubConnectionString, 3600));
-            request.Headers.Add(HttpRequestHeader.UserAgent.ToString(), kClientId);
-            return request;
-        }
-
-        /// <summary>
-        /// Helper to create resource path for device and optional module
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns></returns>
-        private static string ToResourceId(string deviceId, string moduleId) =>
-            string.IsNullOrEmpty(moduleId) ? deviceId : $"{deviceId}/modules/{moduleId}";
-
-        /// <summary>
-        /// Create a token for iothub from connection string.
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <param name="validityPeriodInSeconds"></param>
-        /// <returns></returns>
-        private static string CreateSasToken(ConnectionString connectionString,
-            int validityPeriodInSeconds) {
-            // http://msdn.microsoft.com/en-us/library/azure/dn170477.aspx
-            // signature is computed from joined encoded request Uri string and expiry string
-            var expiryTime = DateTime.UtcNow + TimeSpan.FromSeconds(validityPeriodInSeconds);
-            var expiry = ((long)(expiryTime -
-                new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds).ToString();
-            var encodedScope = Uri.EscapeDataString(connectionString.HostName);
-            // the connection string signature is base64 encoded
-            var key = Convert.FromBase64String(connectionString.SharedAccessKey);
-            using (var hmac = new HMACSHA256(key)) {
-                var sig = Convert.ToBase64String(hmac.ComputeHash(
-                    Encoding.UTF8.GetBytes(encodedScope + "\n" + expiry)));
-                return $"SharedAccessSignature sr={encodedScope}" +
-                    $"&sig={Uri.EscapeDataString(sig)}&se={Uri.EscapeDataString(expiry)}" +
-                    $"&skn={Uri.EscapeDataString(connectionString.SharedAccessKeyName)}";
-            }
-        }
-
-        const string kApiVersion = "2018-06-30";
-        const string kClientId = "OpcTwin";
-
-        private readonly ConnectionString _hubConnectionString;
-        private readonly string _resourceId;
-        private readonly IHttpClient _httpClient;
-        private readonly ILogger _logger;
     }
 }

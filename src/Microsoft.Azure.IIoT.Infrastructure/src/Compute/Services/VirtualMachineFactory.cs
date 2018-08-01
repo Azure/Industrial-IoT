@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,11 +7,16 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Infrastructure.Auth;
+    using Microsoft.Azure.IIoT.Infrastructure.Network;
+    using Microsoft.Azure.IIoT.Infrastructure.Services;
     using Microsoft.Azure.IIoT.Net;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.Management.Compute.Fluent;
     using Microsoft.Azure.Management.Compute.Fluent.Models;
+    using Microsoft.Azure.Management.Compute.Fluent.VirtualMachine.Definition;
     using Microsoft.Azure.Management.Fluent;
+    using Microsoft.Azure.Management.Network.Fluent;
+    using Microsoft.Azure.Management.Network.Fluent.Models;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using System;
     using System.Collections.Generic;
@@ -19,8 +24,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class VirtualMachineFactory : IVirtualMachineFactory {
-
+    public class VirtualMachineFactory : BaseFactory, IVirtualMachineFactory {
 
         /// <summary>
         /// Create virtual machine factory
@@ -39,13 +43,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
         /// <param name="logger"></param>
         public VirtualMachineFactory(ICredentialProvider creds,
             ISubscriptionInfoSelector selector, IShellFactory shell,
-            ILogger logger) {
-            _creds = creds ??
-                throw new ArgumentNullException(nameof(creds));
+            ILogger logger) : base (creds, logger) {
             _shell = shell ??
                 throw new ArgumentNullException(nameof(shell));
-            _logger = logger ??
-                throw new ArgumentNullException(nameof(logger));
             _selector = selector ??
                 throw new ArgumentNullException(nameof(selector));
         }
@@ -59,10 +59,13 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
             if (string.IsNullOrEmpty(name)) {
                 throw new ArgumentNullException(nameof(name));
             }
-            var client = await CreateClientAsync(resourceGroup);
 
+            var client = await CreateClientAsync(resourceGroup);
             var vm = await client.VirtualMachines.GetByResourceGroupAsync(
                 resourceGroup.Name, name);
+            if (vm == null) {
+                return null;
+            }
 
             // TODO: Create a root user/pw to access vm using ssh.
             var user = VirtualMachineResource.kDefaultUser;
@@ -74,80 +77,103 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
 
         /// <inheritdoc/>
         public async Task<IVirtualMachineResource> CreateAsync(
-            IResourceGroupResource resourceGroup, string name, string customData) {
+            IResourceGroupResource resourceGroup, string name,
+            INetworkResource netres, VirtualMachineImage image,
+            string customData) {
             if (resourceGroup == null) {
                 throw new ArgumentNullException(nameof(resourceGroup));
             }
 
             var client = await CreateClientAsync(resourceGroup);
-
-            // Check name - null means we need to create one
-            if (string.IsNullOrEmpty(name)) {
-                while (true) {
-                    name = StringEx.CreateUnique(10, "vm");
-                    var exists = await client.VirtualMachines.ContainsAsync(
-                        resourceGroup.Name, name);
-                    if (!exists) {
-                        break;
-                    }
-                }
-            }
-            else {
-                var exists = await client.VirtualMachines.ContainsAsync(
-                    resourceGroup.Name, name);
-                if (exists) {
-                    throw new ArgumentException("vm exists with this name",
-                        nameof(name));
-                }
-            }
+            name = await client.VirtualMachines.SelectResourceNameAsync(resourceGroup.Name,
+                "vm", name);
 
             // TODO: Create a root user/pw to access vm using ssh.
             var user = VirtualMachineResource.kDefaultUser;
             var pw = VirtualMachineResource.kDefaultPassword;
 
+            if (image == null) {
+                image = KnownImages.Ubuntu_16_04_lts;
+            }
+
             var attempt = 0;
+            INetwork network = null;
+            if (netres != null) {
+                network = await client.Networks.GetByResourceGroupAsync(
+                    resourceGroup.Name, netres.Name);
+                if (network == null) {
+                    throw new ArgumentException(nameof(netres));
+                }
+            }
+
+            var originalRegion = await resourceGroup.Subscription.GetRegionAsync();
             while (true) {
                 var regionAndVmSize = await SelectRegionAndVmSizeAsync(
                     resourceGroup, client);
                 if (regionAndVmSize == null) {
-                    throw new ExternalDependencyException("No sizes available.");
+                    throw new ExternalDependencyException(
+                        "No sizes available.");
                 }
                 var region = regionAndVmSize.Item1;
                 var vmSize = regionAndVmSize.Item2;
                 try {
-                    var network = client.Networks
+                    var nicDefine = client.NetworkInterfaces
                         .Define(name)
                             .WithRegion(region)
-                            .WithExistingResourceGroup(resourceGroup.Name)
-                            .WithAddressSpace("172.16.0.0/16");
+                            .WithExistingResourceGroup(resourceGroup.Name);
+                    var nic = nicDefine
+                        .WithNewPrimaryNetwork(client.Networks
+                            .Define(name)
+                                .WithRegion(region)
+                                .WithExistingResourceGroup(resourceGroup.Name)
+                                .WithAddressSpace("172.16.0.0/16"))
+                        .WithPrimaryPrivateIPAddressDynamic();
 
+                    var ipName = await client.PublicIPAddresses.SelectResourceNameAsync(
+                        resourceGroup.Name, "ip");
                     var publicIP = client.PublicIPAddresses
-                        .Define(name)
+                        .Define(ipName)
                             .WithRegion(region)
-                            .WithExistingResourceGroup(resourceGroup.Name)
-                            .WithLeafDomainLabel("a" + name);
+                            .WithExistingResourceGroup(resourceGroup.Name);
 
-                    var nic = client.NetworkInterfaces
-                        .Define(name)
-                            .WithRegion(region)
-                            .WithExistingResourceGroup(resourceGroup.Name)
-                            .WithNewPrimaryNetwork(network)
-                            .WithPrimaryPrivateIPAddressDynamic()
-                            .WithNewPrimaryPublicIPAddress(publicIP);
+                    if (network != null && originalRegion == region) {
+                        nic = nicDefine
+                            .WithExistingPrimaryNetwork(network)
+                                .WithSubnet(netres.Subnet)
+                            .WithPrimaryPrivateIPAddressDynamic();
+                    }
 
-                    var machine = client.VirtualMachines
+                    nic = nic.WithNewPrimaryPublicIPAddress(
+                        client.PublicIPAddresses
+                            .Define(name)
+                                .WithRegion(region)
+                                .WithExistingResourceGroup(resourceGroup.Name));
+
+                    var withOs = client.VirtualMachines
                         .Define(name)
                             .WithRegion(region)
                             .WithExistingResourceGroup(resourceGroup.Name)
-                            .WithNewPrimaryNetworkInterface(nic)
-                            // .WithPopularLinuxImage(
-                            // KnownLinuxVirtualMachineImage.UbuntuServer16_04_Lts)
-                            .WithLatestLinuxImage("Canonical", "UbuntuServer", "16.04.0-LTS")
+                            .WithNewPrimaryNetworkInterface(nic);
+
+                    IWithFromImageCreateOptionsManaged machine;
+                    if (image.IsLinux) {
+                        machine = withOs
+                            .WithLatestLinuxImage(image.Publisher,
+                                    image.Offer, image.Sku)
                                 .WithRootUsername(user)
                                 .WithRootPassword(pw);
+                    }
+                    else {
+                        machine = withOs
+                           .WithLatestWindowsImage(image.Publisher,
+                                   image.Offer, image.Sku)
+                               .WithAdminUsername(user)
+                               .WithAdminPassword(pw);
+                    }
 
-                    _logger.Info($"#{attempt} trying to create vm {name}" +
-                        $" on {vmSize}...", () => { });
+                    _logger.Info($"Trying to create vm {name} on {vmSize}...",
+                        () => { });
+
                     IVirtualMachine vm = null;
                     if (!string.IsNullOrEmpty(customData)) {
                         vm = await machine
@@ -161,14 +187,14 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                     else {
                         vm = await machine.WithSize(vmSize).CreateAsync();
                     }
-                    _logger.Info($"Created vm {name} - " +
-                        $"{vm.GetPrimaryPublicIPAddress().IPAddress}.", () => { });
+                    _logger.Info($"Created vm {name}.", () => { });
                     return new VirtualMachineResource(this, resourceGroup, vm,
                         user, pw, _logger);
                 }
                 catch (Exception ex) {
-                    _logger.Info($"#{attempt} failed creating vm {name} on {vmSize}...",
-                        () => ex);
+                    _logger.Info(
+                        $"#{attempt} failed creating VM {name} as {vmSize}...",
+                            () => ex);
                     await TryDeleteResourcesAsync(resourceGroup, name);
                     if (++attempt == 3) {
                         throw ex;
@@ -216,20 +242,114 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
             public string Password { get; }
 
             /// <inheritdoc/>
-            public string IPAddress =>
-                _vm.GetPrimaryPublicIPAddress().IPAddress;
+            public string PublicIPAddress =>
+                _vm.GetPrimaryPublicIPAddress()?.IPAddress ?? "";
 
             /// <inheritdoc/>
-            public Task<ISecureShell> OpenShellAsync(int port,
-                CancellationToken ct) => _manager._shell?.OpenSecureShellAsync(
-                    IPAddress, port, User, Password, ct) ??
-                        Task.FromResult<ISecureShell>(null);
+            public async Task AddPublicIPAddressAsync() {
+                if (!string.IsNullOrEmpty(PublicIPAddress)) {
+                    return;
+                }
+                var client = await _manager.CreateClientAsync(_resourceGroup);
+                var publicIP = client.PublicIPAddresses
+                    .Define(_vm.Name)
+                        .WithRegion(_vm.Region.Name)
+                        .WithExistingResourceGroup(_resourceGroup.Name);
+                await _vm.GetPrimaryNetworkInterface().Update()
+                    .WithNewPrimaryPublicIPAddress(publicIP)
+                    .ApplyAsync();
+                _logger.Info($"Added public IP {PublicIPAddress} to {_vm.Name}...",
+                    () => { });
+            }
+
+            /// <inheritdoc/>
+            public async Task RemovePublicIPAddressAsync() {
+                if (string.IsNullOrEmpty(PublicIPAddress)) {
+                    return;
+                }
+                await _vm.GetPrimaryNetworkInterface().Update()
+                    .WithoutPrimaryPublicIPAddress()
+                    .ApplyAsync();
+                _logger.Info($"Removed public IP from {_vm.Name}...", () => { });
+            }
+
+            /// <inheritdoc/>
+            public async Task<ISecureShell> OpenShellAsync(int port,
+                CancellationToken ct) {
+                if (_manager._shell != null) {
+                    while (!ct.IsCancellationRequested) {
+                        await Try.Async(() => AddPublicIPAddressAsync());
+                        await Try.Async(() => EnableInboundPortAsync(port));
+                        return await Try.Async(() => _manager._shell.OpenSecureShellAsync(
+                               PublicIPAddress, port, User, Password, ct));
+                    }
+                }
+                ct.ThrowIfCancellationRequested();
+                throw new ExternalDependencyException("Failed to open shell");
+            }
 
             /// <inheritdoc/>
             public async Task DeleteAsync() {
                 _logger.Info($"Deleting VM {_vm.Id}...", () => { });
                 await _manager.TryDeleteResourcesAsync(_resourceGroup, _vm.Id);
                 _logger.Info($"VM {_vm.Id} deleted.", () => { });
+            }
+
+
+            /// <summary>
+            /// Enable inbound port on any nic nsg
+            /// </summary>
+            /// <param name="port"></param>
+            /// <returns></returns>
+            public async Task EnableInboundPortAsync(int port) {
+                var nsg = _vm.GetPrimaryNetworkInterface().GetNetworkSecurityGroup();
+                if (nsg == null || nsg.SecurityRules.ContainsKey($"Allow{port}In")) {
+                    return;
+                }
+                try {
+                    nsg = await nsg
+                        .Update()
+                        .DefineRule($"Allow{port}In")
+                            .AllowInbound()
+                                .FromAnyAddress()
+                                .FromAnyPort()
+                                .ToAnyAddress()
+                                .ToPort(port)
+                                .WithProtocol(SecurityRuleProtocol.Tcp)
+                            .WithPriority(4000)
+                            .Attach()
+                        .ApplyAsync();
+
+                    await _vm.GetPrimaryNetworkInterface().Update()
+                        .WithExistingNetworkSecurityGroup(nsg).ApplyAsync();
+                }
+                catch (Exception ex) {
+                    _logger.Error($"Failed to enable port {port}", () => ex);
+                }
+            }
+
+            /// <summary>
+            /// Disable inbound port on any nic nsg
+            /// </summary>
+            /// <param name="port"></param>
+            /// <returns></returns>
+            public async Task DisableInboundPortAsync(int port) {
+                var nsg = _vm.GetPrimaryNetworkInterface().GetNetworkSecurityGroup();
+                if (nsg == null || !nsg.SecurityRules.ContainsKey($"Allow{port}In")) {
+                    return;
+                }
+                try {
+                    nsg = await nsg
+                        .Update()
+                            .WithoutRule($"Allow{port}In")
+                        .ApplyAsync();
+
+                    await _vm.GetPrimaryNetworkInterface().Update()
+                        .WithExistingNetworkSecurityGroup(nsg).ApplyAsync();
+                }
+                catch (Exception ex) {
+                    _logger.Error($"Failed to disable port {port}", () => ex);
+                }
             }
 
             public Task RestartAsync() =>
@@ -255,22 +375,6 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
         }
 
         /// <summary>
-        /// Helper to create new client
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IAzure> CreateClientAsync(
-            IResourceGroupResource resourceGroup) {
-            var environment = await resourceGroup.Subscription.GetAzureEnvironmentAsync();
-            var subscriptionId = await resourceGroup.Subscription.GetSubscriptionId();
-            var credentials = await _creds.GetAzureCredentialsAsync(environment);
-            return Azure
-                .Configure()
-                    .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                .Authenticate(credentials)
-                .WithSubscription(subscriptionId);
-        }
-
-        /// <summary>
         /// Select virtual machine size
         /// </summary>
         /// <param name="resourceGroup"></param>
@@ -286,7 +390,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                 .SelectMany(s => s.Regions, Tuple.Create)
                 .GroupBy(k => k.Item2.Name, k => k.Item1)
                 .ToDictionary(k => k.Key, v => v);
-            var selected = await resourceGroup.Subscription.GetRegion();
+            var selected = await resourceGroup.Subscription.GetRegionAsync();
             while (true) {
                 if (all.TryGetValue(selected, out var skuSelections)) {
                     // Region is supported select size
@@ -377,10 +481,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
             }
         }
 
-
-        private readonly ICredentialProvider _creds;
         private readonly IShellFactory _shell;
-        private readonly ILogger _logger;
         private readonly ISubscriptionInfoSelector _selector;
     }
 }

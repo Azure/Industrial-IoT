@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -10,11 +10,11 @@ namespace Microsoft.Azure.IIoT.Edge.Deployment.Models {
     public class EdgeAgentRuntimeSettingsModel {
 
         /// <summary>
-        /// Min docker version, e.g. "1.25"
+        /// Min docker version, e.g. "v1.25"
         /// </summary>
         [JsonProperty(PropertyName = "minDockerVersion",
             Required = Required.Always)]
-        public string MinDockerVersion { get; set; }
+        public string MinDockerVersion { get; set; } = "v1.25";
 
         /// <summary>
         /// Logging options

@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Http.Ssl {
     /// <summary>
     /// Validates using pinned certificate 
     /// </summary>
-    public class ThumbprintValidator : NoOpValidator {
+    public class ThumbprintValidator : NoOpCertValidator {
 
         /// <summary>
         /// Create validator

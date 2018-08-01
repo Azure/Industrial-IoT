@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -49,19 +49,19 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// </summary>
         /// <param name="nic"></param>
         /// <param name="address"></param>
-        /// <param name="scope"></param>
-        public AddressRange(IPAddress address, int scope,
+        /// <param name="suffix"></param>
+        public AddressRange(IPAddress address, int suffix,
             string nic = "unknown") {
             if (address == null) {
                 throw new ArgumentNullException(nameof(address));
             }
-            if (scope > 32) {
-                throw new ArgumentException(nameof(scope));
+            if (suffix > 32) {
+                throw new ArgumentException(nameof(suffix));
             }
             var curAddr = (uint)IPAddress.NetworkToHostOrder(
                 (int)BitConverter.ToUInt32(
                     address.GetAddressBytes(), 0));
-            var mask = 0xffffffff << (32 - scope);
+            var mask = 0xffffffff << (32 - suffix);
             High = curAddr | ~mask;
             Low = _cur = (curAddr & mask);
             Nic = nic;
@@ -73,19 +73,21 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <summary>
         /// Create address range from unicast address uinfo
         /// </summary>
-        /// <param name="address"></param>
+        /// <param name="itf"></param>
         /// <param name="localOnly"></param>
-        public AddressRange(NetInterface address,
-            bool localOnly = false) {
+        public AddressRange(NetInterface itf,
+            bool localOnly = false, int? suffix = null) {
 
-            if (address == null) {
-                throw new ArgumentNullException(nameof(address));
+            if (itf == null) {
+                throw new ArgumentNullException(nameof(itf));
             }
 
-            var curAddr = (uint)new IPv4Address(address.UnicastAddress);
-            var mask = (uint)new IPv4Address(address.SubnetMask);
+            var curAddr = (uint)new IPv4Address(itf.UnicastAddress);
+            var mask = suffix == null ?
+                (uint)new IPv4Address(itf.SubnetMask) :
+                    0xffffffff << (32 - suffix.Value);
 
-            Nic = address.Name;
+            Nic = itf.Name;
             if (localOnly) {
                 // Add local address only
                 High = curAddr;
@@ -165,20 +167,29 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <param name="value"></param>
         /// <returns></returns>
         public static IEnumerable<AddressRange> Parse(string value) {
+            if (string.IsNullOrEmpty(value)) {
+                throw new ArgumentNullException(nameof(value));
+            }
             var split = value.Split(new char[] { ';', ',' },
                 StringSplitOptions.RemoveEmptyEntries);
             return split
-                .Select(s => {
+                .SelectMany(s => {
                     var x = s.Split('/');
                     if (x.Length != 2) {
-                        throw new FormatException("Bad scope format");
+                        throw new FormatException("Bad suffix format");
                     }
-                    var scope = int.Parse(x[1]);
-                    if (scope == 0 || scope > 32) {
-                        throw new FormatException("Bad scope value");
+                    var suffix = int.Parse(x[1]);
+                    if (suffix == 0 || suffix > 32) {
+                        throw new FormatException("Bad suffix value");
                     }
-                    return new AddressRange(IPAddress.Parse(x[0]), scope);
-                }).ToList();
+                    if (x[0] == "*") {
+                        return NetworkInformationEx.GetAllNetInterfaces(
+                            NetworkClass.Wired)
+                        .Select(t => new AddressRange(t, false, suffix));
+                    }
+                    return new AddressRange(IPAddress.Parse(x[0]), suffix)
+                        .YieldReturn();
+                }).Distinct().ToList();
         }
 
         /// <summary>

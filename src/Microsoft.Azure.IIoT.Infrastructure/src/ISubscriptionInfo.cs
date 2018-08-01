@@ -21,6 +21,6 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <summary>
         /// Selected region
         /// </summary>
-        Task<string> GetRegion();
+        Task<string> GetRegionAsync();
     }
 }

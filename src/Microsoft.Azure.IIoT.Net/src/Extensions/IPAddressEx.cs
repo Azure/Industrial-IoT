@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,6 +6,8 @@
 namespace System.Net {
     using Microsoft.Azure.IIoT.Net.Models;
     using System.Collections.Generic;
+    using System.Net.Sockets;
+    using System.Threading.Tasks;
 
     public static class IPAddressEx {
 
@@ -35,6 +37,75 @@ namespace System.Net {
         public static IPAddress Copy(this IPAddress address) =>
             address == null ? null : new IPAddress(address.GetAddressBytes());
 
+        /// <summary>
+        /// Resolve address to host entry
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public static IPHostEntry GetHostEntry(this IPAddress address) =>
+            Dns.GetHostEntry(address);
+
+        /// <summary>
+        /// Resolve address to host
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public static Task<IPHostEntry> GetHostEntryAsync(this IPAddress address) =>
+            Dns.GetHostEntryAsync(address);
+
+        /// <summary>
+        /// Resolve address to host
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public static string Resolve(this IPAddress address) =>
+            address.GetHostEntry().HostName;
+
+        /// <summary>
+        /// Resolve address to host
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public static async Task<string> ResolveAsync(this IPAddress address) {
+            var entry = await address.GetHostEntryAsync();
+            return entry.HostName;
+        }
+
+        /// <summary>
+        /// Resolve address to host or return address as
+        /// string of resolve fails
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public static string TryResolve(this IPAddress address) {
+            if (address == null) {
+                return null;
+            }
+            try {
+                return address.Resolve();
+            }
+            catch {
+                return address.ToString();
+            }
+        }
+
+        /// <summary>
+        /// Resolve address to host or return address as
+        /// string of resolve fails
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public static async Task<string> TryResolveAsync(this IPAddress address) {
+            if (address == null) {
+                return null;
+            }
+            try {
+                return await address.ResolveAsync();
+            }
+            catch {
+                return address.ToString();
+            }
+        }
 
         /// <summary>
         /// Returns descending comparer for addresses

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -15,19 +15,17 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Infrastructure.Services;
 
-    public class IoTHubFactory : IIoTHubFactory {
+    public class IoTHubFactory : BaseFactory, IIoTHubFactory {
 
         /// <summary>
         /// Create iot hub manager
         /// </summary>
         /// <param name="creds"></param>
         /// <param name="logger"></param>
-        public IoTHubFactory(ICredentialProvider creds, ILogger logger) {
-            _creds = creds ??
-                throw new ArgumentNullException(nameof(creds));
-            _logger = logger ??
-                throw new ArgumentNullException(nameof(logger));
+        public IoTHubFactory(ICredentialProvider creds, ILogger logger) :
+            base (creds, logger) {
         }
 
         /// <inheritdoc/>
@@ -39,11 +37,17 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
             if (string.IsNullOrEmpty(hubName)) {
                 throw new ArgumentNullException(nameof(hubName));
             }
-            var client = await CreateClientAsync(resourceGroup);
+            var client = await CreateIoTHubClientAsync(resourceGroup);
             var hub = await client.IotHubResource.GetAsync(
                 resourceGroup.Name, hubName);
+            if (hub == null) {
+                return null;
+            }
             var keys = await client.IotHubResource.GetKeysForKeyNameAsync(
                 resourceGroup.Name, hubName, kIoTHubOwner);
+            if (keys == null) {
+                return null;
+            }
             return new IoTHubResource(this, resourceGroup, hubName,
                 hub.Properties, _logger, keys);
         }
@@ -55,7 +59,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
                 throw new ArgumentNullException(nameof(resourceGroup));
             }
 
-            var client = await CreateClientAsync(resourceGroup);
+            var client = await CreateIoTHubClientAsync(resourceGroup);
 
             // Check quota
             var quota = await client.ResourceProviderCommon
@@ -67,7 +71,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
                     $"Subscription limit reached at {(limit?.Limit ?? -1)}");
             }
 
-            // Check name -  null means we need to create one
+            // Check name - null means we need to create one
             if (string.IsNullOrEmpty(hubName)) {
                 while (true) {
                     hubName = StringEx.CreateUnique(10, "iothub");
@@ -90,7 +94,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
             // Create hub
             var hub = await client.IotHubResource.CreateOrUpdateAsync(
                 resourceGroup.Name, hubName, new IotHubDescription {
-                    Location = await resourceGroup.Subscription.GetRegion(),
+                    Location = await resourceGroup.Subscription.GetRegionAsync(),
                     Sku = new IotHubSkuInfo {
                         Name = IotHubSku.S1,
                         Capacity = 1
@@ -143,6 +147,11 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
                     properties.HostName, rule.KeyName, rule.PrimaryKey).ToString();
                 SecondaryConnectionString = ConnectionString.CreateServiceConnectionString(
                     properties.HostName, rule.KeyName, rule.SecondaryKey).ToString();
+
+                if (properties.EventHubEndpoints.TryGetValue("events", out var evtHub)) {
+                    EventHubConnectionString = ConnectionString.CreateEventHubConnectionString(
+                        evtHub.Endpoint, rule.KeyName, rule.PrimaryKey).ToString();
+                }
             }
 
             /// <inheritdoc/>
@@ -155,10 +164,13 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
             public string SecondaryConnectionString { get; }
 
             /// <inheritdoc/>
+            public string EventHubConnectionString { get; }
+
+            /// <inheritdoc/>
             public async Task<bool> IsHealthyAsync() {
                 try {
                     // Check health
-                    var client = await _manager.CreateClientAsync(_resourceGroup);
+                    var client = await _manager.CreateIoTHubClientAsync(_resourceGroup);
                     var eps = await client.IotHubResource.GetEndpointHealthAsync(
                         _resourceGroup.Name, Name);
                     return eps.All(q => q.HealthStatus.Equals("healthy",
@@ -175,7 +187,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
             public async Task DeleteAsync() {
                 try {
                     _logger.Info($"Deleting iot hub {Name}...", () => { });
-                    var client = await _manager.CreateClientAsync(_resourceGroup);
+                    var client = await _manager.CreateIoTHubClientAsync(_resourceGroup);
                     await client.IotHubResource.DeleteAsync(_resourceGroup.Name,
                         Name);
                     _logger.Info($"iot hub {Name} deleted.", () => { });
@@ -196,7 +208,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
         /// Helper to create new client
         /// </summary>
         /// <returns></returns>
-        private async Task<IotHubClient> CreateClientAsync(
+        private async Task<IotHubClient> CreateIoTHubClientAsync(
             IResourceGroupResource resourceGroup) {
             var environment = await resourceGroup.Subscription.GetAzureEnvironmentAsync();
             var credentials = await _creds.GetTokenCredentialsAsync(
@@ -208,7 +220,5 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
         }
 
         private const string kIoTHubOwner = "iothubowner";
-        private readonly ICredentialProvider _creds;
-        private readonly ILogger _logger;
     }
 }

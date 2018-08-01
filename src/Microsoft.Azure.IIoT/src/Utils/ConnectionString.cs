@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Utils {
             ModuleId,
             SharedAccessKeyName,
             SharedAccessKey,
-            EndpointName,
+            Endpoint,
             SharedAccessToken
         }
 
@@ -95,12 +95,27 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="endpoint"></param>
         /// <param name="keyName"></param>
         /// <param name="token"></param>
-        public static ConnectionString CreateWithEndpointAndToken(Uri endpoint, 
+        public static ConnectionString CreateWithEndpointAndToken(Uri endpoint,
             string keyName, string token) {
             var connectionString = new ConnectionString();
-            connectionString._items[Id.EndpointName] = endpoint.ToString();
+            connectionString._items[Id.Endpoint] = endpoint.ToString();
             connectionString._items[Id.SharedAccessKeyName] = keyName;
             connectionString._items[Id.SharedAccessToken] = token;
+            return connectionString;
+        }
+
+        /// <summary>
+        /// Create event hub connection string
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="keyName"></param>
+        /// <param name="key"></param>
+        public static ConnectionString CreateEventHubConnectionString(string endpoint,
+            string keyName, string key) {
+            var connectionString = new ConnectionString();
+            connectionString._items[Id.Endpoint] = endpoint;
+            connectionString._items[Id.SharedAccessKeyName] = keyName;
+            connectionString._items[Id.SharedAccessKey] = key;
             return connectionString;
         }
 
@@ -110,7 +125,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="hostName"></param>
         /// <param name="keyName"></param>
         /// <param name="key"></param>
-        public static ConnectionString CreateServiceConnectionString(string hostName, 
+        public static ConnectionString CreateServiceConnectionString(string hostName,
             string keyName, string key) {
             var connectionString = new ConnectionString();
             connectionString._items[Id.HostName] = hostName;
@@ -143,7 +158,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="moduleId"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static ConnectionString CreateModuleConnectionString(string hostName, 
+        public static ConnectionString CreateModuleConnectionString(string hostName,
             string deviceId, string moduleId, string key) {
             var connectionString = new ConnectionString();
             connectionString._items[Id.HostName] = hostName;

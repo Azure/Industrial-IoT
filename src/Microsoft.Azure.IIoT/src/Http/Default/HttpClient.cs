@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// Create client
         /// </summary>
         /// <param name="logger"></param>
-        public HttpClient(ILogger logger) : 
+        public HttpClient(ILogger logger) :
             this(null, logger) {
         }
 
@@ -121,21 +121,29 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 HttpHandlerFactory.kDefaultResourceId)) {
                 client.Timeout = TimeSpan.FromMilliseconds(httpRequest.Options.Timeout);
                 var sw = Stopwatch.StartNew();
+#if LOG_VERBOSE
+                _logger.Debug($"Sending {httpMethod} request to {httpRequest.Uri}...",
+                    () => { });
+#endif
                 try {
-                    _logger.Debug($"Sending {httpMethod} request to {httpRequest.Uri}...",
-                         () => { });
                     wrapper.Request.Method = httpMethod;
                     using (var response = await client.SendAsync(wrapper.Request)) {
-                        _logger.Debug($"... {httpMethod} to {httpRequest.Uri} returned " +
-                            $"{response.StatusCode} (took {sw.Elapsed}).", () => { });
-
-                        var httpResponse = new HttpResponse {
+                        if ((int)response.StatusCode >= 400) {
+                            _logger.Warn($"{httpMethod} to {httpRequest.Uri} returned " +
+                                 $"{response.StatusCode} (took {sw.Elapsed}).", () => { });
+                        }
+                        else {
+#if LOG_VERBOSE
+                           _logger.Debug($"... {httpMethod} to {httpRequest.Uri} returned " +
+                                $"{response.StatusCode} (took {sw.Elapsed}).", () => { });
+#endif
+                        }
+                        return new HttpResponse {
                             ResourceId = httpRequest.ResourceId,
                             StatusCode = response.StatusCode,
                             Headers = response.Headers,
                             Content = await response.Content.ReadAsByteArrayAsync()
                         };
-                        return httpResponse;
                     }
                 }
                 catch (HttpRequestException e) {
@@ -144,7 +152,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                         errorMessage += " - " + e.InnerException.Message;
                     }
                     _logger.Error(
-                        $"... {httpMethod} to {httpRequest.Uri} failed (took {sw.Elapsed})!",
+                        $"... {httpMethod} to {httpRequest.Uri} failed (after {sw.Elapsed})!",
                         () => new {
                             ExceptionMessage = e.Message,
                             InnerExceptionType = e.InnerException?.GetType().FullName ?? "",

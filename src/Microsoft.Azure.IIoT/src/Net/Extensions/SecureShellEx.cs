@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -70,6 +70,34 @@ namespace Microsoft.Azure.IIoT.Net {
             string fileName, string fromPath, bool isUserHomeBased,
             TimeSpan timeout) =>
             shell.DownloadAsync(fileName, fromPath, isUserHomeBased,
+                new CancellationTokenSource(timeout).Token);
+
+        /// <summary>
+        /// Download folder with default timeout of 5 minute
+        /// </summary>
+        /// <param name="shell"></param>
+        /// <param name="toPath"></param>
+        /// <param name="fromPath"></param>
+        /// <param name="isUserHomeBased"></param>
+        /// <returns></returns>
+        public static Task DownloadFolderAsync(this ISecureShell shell,
+            string toPath, string fromPath, bool isUserHomeBased) =>
+            shell.DownloadFolderAsync(toPath, fromPath, isUserHomeBased,
+                TimeSpan.FromMinutes(5));
+
+        /// <summary>
+        /// Download folder  with timeout
+        /// </summary>
+        /// <param name="shell"></param>
+        /// <param name="toPath"></param>
+        /// <param name="fromPath"></param>
+        /// <param name="isUserHomeBased"></param>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
+        public static Task DownloadFolderAsync(this ISecureShell shell,
+            string toPath, string fromPath, bool isUserHomeBased,
+            TimeSpan timeout) =>
+            shell.DownloadFolderAsync(toPath, fromPath, isUserHomeBased,
                 new CancellationTokenSource(timeout).Token);
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -44,11 +44,12 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Services {
             if (string.IsNullOrEmpty(resourceGroup)) {
                 throw new ArgumentNullException(nameof(resourceGroup));
             }
-
             subscription = CompositeInfo.Create(subscription, _subscription);
-
             var client = await CreateClientAsync(subscription);
             var rg = await client.ResourceGroups.GetByNameAsync(resourceGroup);
+            if (rg == null) {
+                return null;
+            }
             return new ResourceGroupResource(this, rg, deleteOnDispose,
                 subscription, _logger);
         }
@@ -80,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Services {
                 }
             }
 
-            var region = await subscription.GetRegion();
+            var region = await subscription.GetRegionAsync();
             _logger.Info($"Creating simulation group {resourceGroup} in {region}...",
                     () => { });
             var rg = await client.ResourceGroups.Define(resourceGroup)

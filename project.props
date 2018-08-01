@@ -2,6 +2,7 @@
   <PropertyGroup>
     <Product>Azure Industrial IoT</Product>
     <RepositoryUrl>https://github.com/Azure/azure-iiot-common</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Azure/azure-iot-connected-factory</RepositoryUrl>
     <PackageTags>Azure;IoT;IIoT,.NET</PackageTags>
   </PropertyGroup>
 </Project>

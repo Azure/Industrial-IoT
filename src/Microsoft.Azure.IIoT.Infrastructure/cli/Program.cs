@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -138,7 +138,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Cli {
                 Console.WriteLine("Resource group created.");
                 var vms = context.Resolve<IVirtualMachineFactory>();
                 Console.WriteLine("Creating virtual machine...");
-                var vm = await vms.CreateAsync(resourceGroup, name, "");
+                var vm = await vms.CreateAsync(resourceGroup, name);
                 Console.WriteLine("Virtual machine created.");
 
                 Console.WriteLine("Deleting virtual machine...");
@@ -146,7 +146,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Cli {
                 Console.WriteLine("Virtual machine deleted.");
 
                 Console.WriteLine("Recreating virtual machine...");
-                vm = await vms.CreateAsync(resourceGroup, name, "");
+                vm = await vms.CreateAsync(resourceGroup, name);
                 Console.WriteLine("Virtual machine created.");
             }
             Console.WriteLine("Resource group deleted.");

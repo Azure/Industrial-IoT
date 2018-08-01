@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -249,6 +249,23 @@ namespace Newtonsoft.Json.Linq {
             // Replace anything else...
             //
             return patch;
+        }
+
+        /// <summary>
+        /// Get value from object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="target"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static T Get<T>(this JToken target, string name) {
+            if (target is JObject o) {
+                var v = o.GetValue(name, StringComparison.InvariantCultureIgnoreCase);
+                if (v != null) {
+                    return v.ToObject<T>();
+                }
+            }
+            return default(T);
         }
     }
 }

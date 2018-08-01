@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             _candidates = new List<uint>();
             if (addresses == null) {
                 _addresses = NetworkInformationEx.GetAllNetInterfaces(netclass)
-                    .Select(t => new AddressRange(t, local)).Distinct() .ToList();
+                    .Select(t => new AddressRange(t, local)).Distinct().ToList();
             }
             else {
                 _addresses = addresses.Select(a => a.Copy()).Distinct().ToList();

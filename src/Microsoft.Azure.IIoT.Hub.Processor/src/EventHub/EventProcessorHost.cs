@@ -77,15 +77,10 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                     throw new InvalidConfigurationException(
                         "Invalid checkpoint configuration.");
                 }
-
-                //
-                // Streaming options: use the checkpoint if available,
-                // otherwise start streaming from 24 hours in the past
-                //
                 await _host.RegisterEventProcessorFactoryAsync(
                     _factory, new EventProcessorOptions {
-                        InitialOffsetProvider = s => EventPosition.FromEnqueuedTime(
-                            DateTime.UtcNow - TimeSpan.FromHours(24)),
+                        InitialOffsetProvider = s =>
+                            EventPosition.FromEnqueuedTime(DateTime.UtcNow),
                         MaxBatchSize = _config.ReceiveBatchSize,
                         ReceiveTimeout = _config.ReceiveTimeout,
                         InvokeProcessorAfterReceiveTimeout = true

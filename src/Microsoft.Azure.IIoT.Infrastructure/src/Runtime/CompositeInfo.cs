@@ -29,8 +29,8 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Runtime {
             .FallbackWhen(string.IsNullOrEmpty, () => _fallback.GetSubscriptionId());
 
         /// <inheritdoc/>
-        public Task<string> GetRegion() => _main.GetRegion()
-            .FallbackWhen(string.IsNullOrEmpty, () => _fallback.GetRegion());
+        public Task<string> GetRegionAsync() => _main.GetRegionAsync()
+            .FallbackWhen(string.IsNullOrEmpty, () => _fallback.GetRegionAsync());
 
         /// <summary>
         /// Safe create

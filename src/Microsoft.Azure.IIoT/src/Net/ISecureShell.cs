@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Net {
             int cols, int rows, int width, int height, CancellationToken ct);
 
         /// <summary>
-        /// Downloads the content of a file from the remote host tinto a
+        /// Downloads the content of a file from the remote host into a
         /// buffer.
         /// </summary>
         /// <param name="destBuff">The buffer to download into</param>
@@ -86,5 +86,19 @@ namespace Microsoft.Azure.IIoT.Net {
         /// </param>
         Task UploadAsync(byte[] data, string fileName, string toPath,
             bool isUserHomeBased, string mode, CancellationToken ct);
+
+        /// <summary>
+        /// Downloads the content of a folder from the remote host into a
+        /// local folder.
+        /// </summary>
+        /// <param name="toPath">The folder to download into</param>
+        /// <param name="fromPath">the path from which the files will be
+        /// downloaded</param>
+        /// <param name="isUserHomeBased">true if the path of the file is
+        /// relative to the user's home directory</param>
+        /// <param name="ct">A cancellation token to cancel the download
+        /// </param>
+        Task DownloadFolderAsync(string toPath,
+            string fromPath, bool isUserHomeBased, CancellationToken ct);
     }
 }

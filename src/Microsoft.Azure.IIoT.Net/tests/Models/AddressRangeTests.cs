@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -67,9 +67,8 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             AddressRange.TryParse("0.0.0.0/24,0.0.0.0/24", out var range1);
             var range2 = new AddressRange(0, 255);
 
+            Assert.Single(range1);
             Assert.Equal(range2, range1.First());
-            Assert.Equal(range2, range1.Skip(1).First());
-            Assert.Equal(2, range1.Count());
         }
 
         [Fact]
@@ -77,9 +76,8 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             AddressRange.TryParse("0.0.0.0/24;0.0.0.0/24;;;", out var range1);
             var range2 = new AddressRange(0, 255);
 
+            Assert.Single(range1);
             Assert.Equal(range2, range1.First());
-            Assert.Equal(range2, range1.Skip(1).First());
-            Assert.Equal(2, range1.Count());
         }
 
         [Fact]

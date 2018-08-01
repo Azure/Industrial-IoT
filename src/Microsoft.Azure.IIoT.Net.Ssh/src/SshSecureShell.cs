@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -141,6 +141,24 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
                     mstream.Position = 0;
                     return mstream.Read(destBuff, 0, maxCount);
                 }
+            }, ct);
+        }
+
+        /// <inheritdoc/>
+        public Task DownloadFolderAsync(string toPath,
+            string fromPath, bool isUserHomeBased, CancellationToken ct) {
+            if (_scpClient == null) {
+                return Task.FromResult(-1);
+            }
+
+            var path = fromPath;
+            if (isUserHomeBased) {
+                path = _homeDir + path;
+            }
+
+            return Task.Run(() => {
+                _scpClient.Download(path, new DirectoryInfo(toPath));
+                _logger.Debug($"SCP> {path} downloaded to {toPath}.", () => { });
             }, ct);
         }
 

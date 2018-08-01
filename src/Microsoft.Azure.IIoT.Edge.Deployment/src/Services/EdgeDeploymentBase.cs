@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -39,9 +39,7 @@ namespace Microsoft.Azure.IIoT.Edge.Deployment {
                     SchemaVersion = kDefaultSchemaVersion,
                     Modules = new Dictionary<string, EdgeAgentModuleModel>(),
                     Runtime = new EdgeAgentRuntimeModel {
-                        Settings = new EdgeAgentRuntimeSettingsModel {
-                            MinDockerVersion = "1.25"
-                        }
+                        Settings = new EdgeAgentRuntimeSettingsModel()
                     }
                 };
                 _edgeHub = new EdgeHubConfigurationModel {
@@ -83,7 +81,6 @@ namespace Microsoft.Azure.IIoT.Edge.Deployment {
             _edgeAgent.Modules.Add(module.Name, new EdgeAgentModuleModel {
                 DesiredStatus = (module.Stopped ?? false) ?
                     ModuleDesiredStatus.Stopped : ModuleDesiredStatus.Running,
-                Type = "docker",
                 RestartPolicy = module.RestartPolicy ?? ModuleRestartPolicy.Always,
                 Version = module.Version,
                 Settings = EdgeAgentModuleSettingsModelEx.Create(module.ImageName,
@@ -106,8 +103,8 @@ namespace Microsoft.Azure.IIoT.Edge.Deployment {
                 // Default route covers this one
                 return this;
             }
-            if (string.IsNullOrEmpty(route.From) || route.To.EqualsIgnoreCase("*")) {
-                route.From = "*";
+            if (string.IsNullOrEmpty(route.From) || route.To.EqualsIgnoreCase("messages/*")) {
+                route.From = "messages/*";
             }
             else if (!_configuration.ModulesContent.ContainsKey(route.To)) {
                 throw new ArgumentException($"{route.From} does not exist yet",
@@ -140,7 +137,7 @@ namespace Microsoft.Azure.IIoT.Edge.Deployment {
 
         private const string kDefaultSchemaVersion = "1.0";
         private const string kDefaultRouteName = "default";
-        private const string kDefaultRoute = "FROM * INTO $upstream";
+        private const string kDefaultRoute = "FROM messages/* INTO $upstream";
 
         protected readonly ConfigurationContentModel _configuration;
         private readonly EdgeAgentConfigurationModel _edgeAgent;

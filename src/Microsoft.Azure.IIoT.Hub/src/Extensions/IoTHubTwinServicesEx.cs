@@ -1,9 +1,10 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json.Linq;
@@ -22,8 +23,12 @@ namespace Microsoft.Azure.IIoT.Hub {
         public static async Task<ConnectionString> GetConnectionStringAsync(
             this IIoTHubTwinServices service, string deviceId, bool primary = true) {
             var model = await service.GetRegistrationAsync(deviceId);
-            return ConnectionString.CreateDeviceConnectionString(service.HostName, deviceId, primary ?
-                model.Authentication.PrimaryKey : model.Authentication.SecondaryKey);
+            if (model == null) {
+                throw new ResourceNotFoundException("Could not find " + deviceId);
+            }
+            return ConnectionString.CreateDeviceConnectionString(service.HostName,
+                deviceId, primary ?
+                    model.Authentication.PrimaryKey : model.Authentication.SecondaryKey);
         }
 
         /// <summary>
@@ -37,8 +42,12 @@ namespace Microsoft.Azure.IIoT.Hub {
             this IIoTHubTwinServices service, string deviceId, string moduleId,
             bool primary = true) {
             var model = await service.GetRegistrationAsync(deviceId, moduleId);
-            return ConnectionString.CreateModuleConnectionString(service.HostName, deviceId, moduleId, primary ?
-                model.Authentication.PrimaryKey : model.Authentication.SecondaryKey);
+            if (model == null) {
+                throw new ResourceNotFoundException("Could not find " + moduleId);
+            }
+            return ConnectionString.CreateModuleConnectionString(service.HostName,
+                deviceId, moduleId, primary ?
+                    model.Authentication.PrimaryKey : model.Authentication.SecondaryKey);
         }
 
         /// <summary>

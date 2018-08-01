@@ -1,13 +1,11 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
-    using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
-    using System.Linq;
 
     public static class DeviceTwinModelEx {
 
@@ -16,25 +14,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static DeviceTwinModel ToDeviceTwinModel(JToken model) {
-            var twin = (dynamic)model;
-            return new DeviceTwinModel {
-                Etag = twin.etag,
-                Id = twin.deviceId,
-                ModuleId = twin.moduleId,
-                Tags = ((JObject)twin.tags)?.Children().ToDictionary(
-                    p => ((JProperty)p).Name, p => ((JProperty)p).Value),
-                Properties = new TwinPropertiesModel {
-                    Desired = ((JObject)twin.properties.desired)?.Children().ToDictionary(
-                        p => ((JProperty)p).Name, p => ((JProperty)p).Value),
-                    Reported = ((JObject)twin.properties.reported)?.Children().ToDictionary(
-                        p => ((JProperty)p).Name, p => ((JProperty)p).Value)
-                },
-                Capabilities = new DeviceCapabilitiesModel {
-                    IoTEdge = twin.capabilities?.iotEdge
-                }
-            };
-        }
+        public static DeviceTwinModel ToDeviceTwinModel(JToken model) =>
+            model.ToObject<DeviceTwinModel>();
 
         /// <summary>
         /// Convert json to twin
@@ -49,23 +30,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
-        public static JToken ToJson(this DeviceTwinModel twin) {
-            return JToken.FromObject(new {
-                etag = twin.Etag,
-                deviceId = twin.Id,
-                moduleId = twin.ModuleId,
-                tags = twin.Tags == null ? null :
-                    JObject.FromObject(twin.Tags),
-                properties = twin.Properties == null ? null : new {
-                    desired = twin.Properties.Desired == null ? null :
-                        JObject.FromObject(twin.Properties.Desired),
-                    reported = twin.Properties.Reported == null ? null :
-                        JObject.FromObject(twin.Properties.Reported),
-                },
-                capabilities = twin.Capabilities == null ? null :
-                    JObject.FromObject(twin.Capabilities)
-            });
-        }
+        public static JToken ToJson(this DeviceTwinModel twin) =>
+            JToken.FromObject(twin);
 
         /// <summary>
         /// Consolidated

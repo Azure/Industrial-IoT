@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="action"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<bool> Async(Func<CancellationToken, Task> action, 
+        public static async Task<bool> Async(Func<CancellationToken, Task> action,
             CancellationToken ct) {
             try {
                 await action.Invoke(ct);
@@ -56,6 +56,36 @@ namespace Microsoft.Azure.IIoT.Utils {
             }
             catch {
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Try operation
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public static async Task<T> Async<T>(Func<Task<T>> action) {
+            try {
+                return await action.Invoke();
+            }
+            catch {
+                return default(T);
+            }
+        }
+
+        /// <summary>
+        /// Try operation
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static async Task<T> Async<T>(Func<CancellationToken, Task<T>> action,
+            CancellationToken ct) {
+            try {
+                return await action.Invoke(ct);
+            }
+            catch {
+                return default(T);
             }
         }
 

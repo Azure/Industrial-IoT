@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Runtime {
         public Task<string> GetSubscriptionId() => _subscriptionId;
 
         /// <inheritdoc/>
-        public Task<string> GetRegion() => _region;
+        public Task<string> GetRegionAsync() => _region;
 
         private readonly Task<string> _region;
         private readonly Task<string> _environment;

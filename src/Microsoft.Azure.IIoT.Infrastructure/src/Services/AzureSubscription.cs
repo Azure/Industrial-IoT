@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Services {
         /// <param name="creds"></param>
         /// <param name="logger"></param>
         public AzureSubscription(ICredentialProvider creds,
-            ILogger logger) : this (creds, new NoOpSelector(), logger) {
+            ILogger logger) : this (creds, new FixedSelector(), logger) {
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Services {
             }
 
             /// <inheritdoc/>
-            public Task<string> GetRegion() => _region.Value;
+            public Task<string> GetRegionAsync() => _region.Value;
 
             private Lazy<string> _environment;
             private Lazy<Task<ISubscription>> _subscription;

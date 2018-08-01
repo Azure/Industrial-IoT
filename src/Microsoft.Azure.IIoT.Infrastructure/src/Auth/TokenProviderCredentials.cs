@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -23,10 +23,17 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
         /// </summary>
         /// <param name="config"></param>
         public TokenProviderCredentials(ITokenProvider provider,
-            IClientConfig config) {
-
+            IClientConfig config) : this (config) {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
+        }
+
+        /// <summary>
+        /// Create credentials
+        /// </summary>
+        /// <param name="config"></param>
+        protected TokenProviderCredentials(IClientConfig config) {
             _config = config;
+            _expiry = TimeSpan.FromMinutes(3); // Create new credential after 3 minutes
         }
 
         /// <inheritdoc/>
@@ -37,11 +44,13 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
             }
             await _lock.WaitAsync();
             try {
-                if (!_credentials.TryGetValue(environment.Name, out var creds)) {
-                    creds = await CreateCredentialsAsync(environment);
-                    _credentials.Add(environment.Name, creds);
+                if (!_credentials.TryGetValue(environment.Name, out var creds) ||
+                    creds.Item1 + _expiry < DateTime.Now) {
+                    var credentials = await CreateCredentialsAsync(environment);
+                    creds = Tuple.Create(DateTime.Now, credentials);
+                    _credentials.AddOrUpdate(environment.Name, creds);
                 }
-                return creds;
+                return creds.Item2;
             }
             finally {
                 _lock.Release();
@@ -49,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
         }
 
         /// <inheritdoc/>
-        public async Task<Rest.TokenCredentials> GetTokenCredentialsAsync(
+        public virtual async Task<Rest.TokenCredentials> GetTokenCredentialsAsync(
             string resource) {
             var token = await _provider.GetTokenForAsync(resource);
             return new Rest.TokenCredentials(token.RawToken);
@@ -60,7 +69,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
         /// </summary>
         /// <param name="environment"></param>
         /// <returns></returns>
-        private async Task<AzureCredentials> CreateCredentialsAsync(
+        protected virtual async Task<AzureCredentials> CreateCredentialsAsync(
             AzureEnvironment environment) {
             var tenant = _config?.TenantId ?? "common";
             var mgmt = await GetTokenCredentialsAsync(environment.ManagementEndpoint);
@@ -76,10 +85,11 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
             }
         }
 
-        private readonly IClientConfig _config;
+        protected readonly IClientConfig _config;
         private readonly ITokenProvider _provider;
-        private readonly Dictionary<string, AzureCredentials> _credentials =
-            new Dictionary<string, AzureCredentials>();
+        private readonly Dictionary<string, Tuple<DateTime, AzureCredentials>> _credentials =
+            new Dictionary<string, Tuple<DateTime, AzureCredentials>>();
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
+        private readonly TimeSpan _expiry;
     }
 }

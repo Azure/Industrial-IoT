@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -71,6 +71,12 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
                             break;
                         case "upload":
                             await UploadAsync(shell, options);
+                            break;
+                        case "folderup":
+                            await UploadFolderAsync(shell, options);
+                            break;
+                        case "folderdown":
+                            await DownloadFolderAsync(shell, options);
                             break;
                         case "-?":
                         case "-h":
@@ -175,6 +181,57 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
             var to = GetOption<string>(options, "-t", "--to");
             var file = GetOption<string>(options, "-f", "--file");
             var from = GetOption<string>(options, "-p", "--path");
+            await UploadFileAsync(shell, options, to, from, file);
+        }
+
+        /// <summary>
+        /// Upload folder
+        /// </summary>
+        /// <param name="shell"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static async Task UploadFolderAsync(ISecureShell shell,
+            Dictionary<string, string> options) {
+            var to = GetOption<string>(options, "-t", "--to");
+            var from = GetOption<string>(options, "-p", "--path");
+
+            await UploadFolderAsync(shell, options, to, from);
+        }
+
+        /// <summary>
+        /// Upload folder
+        /// </summary>
+        /// <param name="shell"></param>
+        /// <param name="options"></param>
+        /// <param name="to"></param>
+        /// <param name="from"></param>
+        /// <returns></returns>
+        private static async Task UploadFolderAsync(ISecureShell shell,
+            Dictionary<string, string> options, string to, string from) {
+            foreach (var file in Directory.EnumerateFiles(from)) {
+                await UploadFileAsync(shell, options, to, from, file);
+            }
+            if (!GetOption(options, "-r", "--recursive", false)) {
+                return;
+            }
+            foreach (var dir in Directory.EnumerateDirectories(from)) {
+                await UploadFolderAsync(shell, options,
+                    to + "/" + dir, Path.Combine(from, dir));
+                // TODO: Path seperator is platform specific
+            }
+        }
+
+        /// <summary>
+        /// Upload file
+        /// </summary>
+        /// <param name="shell"></param>
+        /// <param name="options"></param>
+        /// <param name="to"></param>
+        /// <param name="from"></param>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        private static async Task UploadFileAsync(ISecureShell shell,
+            Dictionary<string, string> options, string to, string from, string file) {
             var buffer = await File.ReadAllBytesAsync(Path.Combine(from, file));
             await shell.UploadAsync(buffer, file, to,
                 GetOption(options, "-h", "--home", true),
@@ -194,6 +251,20 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
             var str = await shell.DownloadAsync(file, from,
                 GetOption(options, "-h", "--home", true));
             PrintResult(options, str);
+        }
+
+        /// <summary>
+        /// Download folder
+        /// </summary>
+        /// <param name="shell"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static async Task DownloadFolderAsync(ISecureShell shell,
+            Dictionary<string, string> options) {
+            var from = GetOption<string>(options, "-f", "--from");
+            var path = GetOption<string>(options, "-p", "--path");
+            await shell.DownloadFolderAsync(path, from,
+                GetOption(options, "-h", "--home", true));
         }
 
         /// <summary>
@@ -330,7 +401,7 @@ Commands and Options
         with ...
         -f, --file      File name to download
         -p, --path      File path to read from
-        -h, --home      Whether relative to home dir (default 
+        -h, --home      Whether relative to home dir (default
                         true)
         -F, --format    Json format for result
 
@@ -339,7 +410,22 @@ Commands and Options
         -f, --file      File name
         -p, --path      File path to upload from
         -t, --to        File path to write to
-        -h, --home      Whether relative to home dir (default 
+        -h, --home      Whether relative to home dir (default
+                        true)
+
+     folderdown  Download folder to local path
+        with ...
+        -f, --from      Folder to download
+        -p, --path      File path to read from
+        -h, --home      Whether relative to home dir (default
+                        true)
+
+     folderup    Upload folder
+        with ...
+        -p, --path      File path to upload from
+        -t, --to        File path to write to
+        -r, --recursive Include subfolders
+        -h, --home      Whether relative to home dir (default
                         true)
 
      exec        Execute command
