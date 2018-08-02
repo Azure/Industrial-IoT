@@ -5,6 +5,6 @@
     <Description>Azure IIoT IoT Hub service core</Description>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT\src\Microsoft.Azure.IIoT.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Abstractions\src\Microsoft.Azure.IIoT.Abstractions.csproj" />
   </ItemGroup>
 </Project>
