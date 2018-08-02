@@ -200,23 +200,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Update registration from update request
             var patched = registration.ToServiceModel();
-            patched.Registration.Endpoint.Authentication = new AuthenticationModel();
-            if (request.TokenType != null) {
-                patched.Registration.Endpoint.Authentication.TokenType =
-                    (TokenType)request.TokenType;
-            }
-            if (request.User != null) {
-                patched.Registration.Endpoint.Authentication.User =
-                    string.IsNullOrEmpty(request.User) ? null : request.User;
-                // Change user?  Always duplicate since id changes.
-                request.Duplicate = true;
-            }
-            if ((patched.Registration.Endpoint.Authentication.TokenType ?? TokenType.None) !=
-                TokenType.None) {
-                patched.Registration.Endpoint.Authentication.Token = request.Token;
-            }
-            else {
-                patched.Registration.Endpoint.Authentication.Token = null;
+
+            if (request.Authentication != null) {
+                patched.Registration.Endpoint.Authentication = new AuthenticationModel();
+
+                if (request.Authentication.TokenType != null) {
+                    patched.Registration.Endpoint.Authentication.TokenType =
+                        (TokenType)request.Authentication.TokenType;
+                }
+                if (request.Authentication.User != null) {
+                    patched.Registration.Endpoint.Authentication.User =
+                        string.IsNullOrEmpty(request.Authentication.User) ? null :
+                            request.Authentication.User;
+                    // Change user?  Always duplicate since id changes.
+                    request.Duplicate = true;
+                }
+                if ((patched.Registration.Endpoint.Authentication.TokenType
+                    ?? TokenType.None) != TokenType.None) {
+                    patched.Registration.Endpoint.Authentication.Token =
+                        request.Authentication.Token;
+                }
+                else {
+                    patched.Registration.Endpoint.Authentication.Token = null;
+                }
             }
 
             // Check whether to enable or disable...

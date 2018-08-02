@@ -6,19 +6,19 @@
     <Description>Azure IIoT OPC Twin Edge business logic</Description>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Edge.Modules\src\Microsoft.Azure.IIoT.Edge.Modules.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
   <Choose>
     <When Condition="Exists('..\..\..\..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Edge\src\Microsoft.Azure.IIoT.Edge.csproj" />
         <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Net.Scan\src\Microsoft.Azure.IIoT.Net.Scan.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Edge" Version="1.0.0-preview001" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Net.Scan" Version="1.0.0-preview001" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Edge.Modules" Version="1.0.0-preview002" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Net.Scan" Version="1.0.0-preview002" />
       </ItemGroup>
     </Otherwise>
   </Choose>

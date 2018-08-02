@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -28,18 +28,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         public bool? Activate { get; set; }
 
         /// <summary>
-        /// User name to use
+        /// Authentication to change on the twin.
         /// </summary>
-        public string User { get; set; }
-
-        /// <summary>
-        /// User token to pass to server
-        /// </summary>
-        public JToken Token { get; set; }
-
-        /// <summary>
-        /// Type of token
-        /// </summary>
-        public TokenType? TokenType { get; set; }
+        public AuthenticationModel Authentication { get; set; }
     }
 }
