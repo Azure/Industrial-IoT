@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Abstra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Abstractions.Tests", "src\Microsoft.Azure.IIoT.Abstractions\tests\Microsoft.Azure.IIoT.Abstractions.Tests.csproj", "{2FCFBC22-0FA0-45B1-B52D-C64E89418FA9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Edge", "src\Microsoft.Azure.IIoT.Edge\src\Microsoft.Azure.IIoT.Edge.csproj", "{20F33AC7-4217-468D-9930-63B3C4DB34BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Edge.Modules", "src\Microsoft.Azure.IIoT.Edge.Modules\src\Microsoft.Azure.IIoT.Edge.Modules.csproj", "{20F33AC7-4217-468D-9930-63B3C4DB34BC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Edge.Tests", "src\Microsoft.Azure.IIoT.Edge\tests\Microsoft.Azure.IIoT.Edge.Tests.csproj", "{596DEB58-65E3-4A3E-8163-215F049636F5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Edge.Modules.Tests", "src\Microsoft.Azure.IIoT.Edge.Modules\tests\Microsoft.Azure.IIoT.Edge.Modules.Tests.csproj", "{596DEB58-65E3-4A3E-8163-215F049636F5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{DF41A1FC-41C0-4E95-BC73-60BDF16C2D37}"
 EndProject
