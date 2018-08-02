@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT", "src\Microsoft.Azure.IIoT\src\Microsoft.Azure.IIoT.csproj", "{F34353F1-AB1D-4740-9D91-D266E46F6FD6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Abstractions", "src\Microsoft.Azure.IIoT.Abstractions\src\Microsoft.Azure.IIoT.Abstractions.csproj", "{F34353F1-AB1D-4740-9D91-D266E46F6FD6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Tests", "src\Microsoft.Azure.IIoT\tests\Microsoft.Azure.IIoT.Tests.csproj", "{2FCFBC22-0FA0-45B1-B52D-C64E89418FA9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Abstractions.Tests", "src\Microsoft.Azure.IIoT.Abstractions\tests\Microsoft.Azure.IIoT.Abstractions.Tests.csproj", "{2FCFBC22-0FA0-45B1-B52D-C64E89418FA9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Edge", "src\Microsoft.Azure.IIoT.Edge\src\Microsoft.Azure.IIoT.Edge.csproj", "{20F33AC7-4217-468D-9930-63B3C4DB34BC}"
 EndProject
