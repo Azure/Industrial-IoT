@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Runtime;
-    using Microsoft.Azure.IIoT.Edge;
-    using Microsoft.Azure.IIoT.Edge.Services;
+    using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor;
