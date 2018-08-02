@@ -18,12 +18,12 @@
   <Choose>
     <When Condition="Exists('..\..\..\..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT\src\Microsoft.Azure.IIoT.csproj" />
+        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Abstractions\src\Microsoft.Azure.IIoT.Abstractions.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT" Version="1.0.0-preview001" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Abstractions" Version="1.0.0-preview001" />
       </ItemGroup>
     </Otherwise>
   </Choose>
