@@ -2,7 +2,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <Description>Azure IIoT OPC Twin Edge Module</Description>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
