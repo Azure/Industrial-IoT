@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>Azure IIoT OPC Twin Core business logic</Description>
+    <Description>Azure Industrial IoT OPC UA Twin Core business logic</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.353.15" />

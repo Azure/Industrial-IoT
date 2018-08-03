@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         public string Url { get; set; }
 
         /// <summary>
-        /// User name to use
+        /// User name in authentication
         /// </summary>
         public string User { get; set; }
 

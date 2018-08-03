@@ -22,9 +22,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Maintains twin state for the lifetime of the twin
+    /// A simple publisher implementation.
     /// </summary>
-    public class OpcUaTwinServices : IOpcUaTwinServices, IDisposable {
+    public class OpcUaPublisherServices : IOpcUaPublisherServices, IDisposable {
 
         /// <summary>
         /// Current endpoint or null if not yet provisioned
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Create edge twin services
         /// </summary>
         /// <param name="client"></param>
-        public OpcUaTwinServices(IOpcUaClient client, ITwinProperties twin,
+        public OpcUaPublisherServices(IOpcUaClient client, ITwinProperties twin,
             IEventEmitter telemetry, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

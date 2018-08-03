@@ -153,8 +153,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register edge host module and twin state for the lifetime of the host
-            builder.RegisterType<OpcUaTwinServices>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+           // builder.RegisterType<OpcUaPublisherServices>()
+           //     .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<OpcUaPublisherStub>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterModule<EdgeHostModule>();
 
             // Register opc ua client singleton instance

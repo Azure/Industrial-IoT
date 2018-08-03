@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>Azure IIoT OPC Twin Edge business logic</Description>
+    <Description>Azure Industrial IoT OPC Edge side business logic</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Module.Framework\src\Microsoft.Azure.IIoT.Module.Framework.csproj" />

@@ -24,5 +24,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// Callback to invoke once registration finishes
         /// </summary>
         public CallbackModel Callback { get; set; }
+
+        /// <summary>
+        /// Upon discovery, activate all twins with this filter.
+        /// </summary>
+        public TwinActivationFilterModel ActivationFilter { get; set; }
     }
 }
