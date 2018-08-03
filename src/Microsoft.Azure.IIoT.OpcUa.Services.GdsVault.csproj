@@ -1,0 +1,89 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <LangVersion>7.2</LangVersion>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <AssemblyName>Microsoft.Azure.IIoT.OpcUa.Services.GdsVault</AssemblyName>
+    <RootNamespace>Microsoft.Azure.IIoT.OpcUa.Services.GdsVault</RootNamespace>
+    <Product>Microsoft Azure Industrial IoT OPC UA GDS Vault Service</Product>
+    <Authors>Azure Industrial IoT</Authors>
+    <Company>Microsoft</Company>
+    <PackageLicenseUrl>https://github.com/Azure/azure-iiot-opc-gds-service/blob/master/LICENSE</PackageLicenseUrl>
+    <Copyright>Microsoft Corp. All rights reserved.</Copyright>
+    <Description>Azure Industrial IoT common component</Description>
+    <UserSecretsId>71f9c347-48d7-4f74-8f1b-c3df149c26c8</UserSecretsId>
+    <Configurations>Debug;Release;Develop</Configurations>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netcoreapp2.1\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|AnyCPU'">
+    <DocumentationFile>bin\Debug\netcoreapp2.1\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\netcoreapp2.1\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Properties\PublishProfiles\AdvancedSettings.pubxml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="1.9.1" />
+    <PackageReference Include="Microsoft.Azure.KeyVault" Version="2.3.2" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.0.3" />
+    <PackageReference Include="Autofac" Version="4.6.2" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.2.2" />
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="2.5.0" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="Exists('..\..\UA-.NETStandard') and '$(Configuration)'=='Develop'">
+      <ItemGroup>
+        <ProjectReference Include="..\..\UA-.NETStandard\SampleApplications\Samples\GDS\ServerCommon\GlobalDiscoveryServerLibrary.csproj" />
+        <ProjectReference Include="..\..\UA-.NETStandard\SampleApplications\SDK\Opc.Ua.Configuration\Opc.Ua.Configuration.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.354.16-preview" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+  <Choose>
+    <When Condition="Exists('..\..\azure-iiot-common') and '$(Configuration)'=='Develop'">
+      <ItemGroup>
+        <ProjectReference Include="..\..\azure-iiot-common\src\Microsoft.Azure.IIoT.Services\src\Microsoft.Azure.IIoT.Services.csproj" />
+        <ProjectReference Include="..\..\azure-iiot-common\src\Microsoft.Azure.IIoT.Auth\src\Microsoft.Azure.IIoT.Auth.csproj" />
+        <ProjectReference Include="..\..\azure-iiot-common\src\Microsoft.Azure.IIoT\src\Microsoft.Azure.IIoT.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="1.0.0-preview001" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Auth" Version="1.0.0-preview001" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+  <ItemGroup>
+    <!-- "Service Include" required by IntelliJ Rider -->
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

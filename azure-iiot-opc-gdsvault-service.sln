@@ -1,0 +1,74 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2036
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{8289AFAE-0933-40EF-9D19-6FFA2DB04837}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		.travis.yml = .travis.yml
+		CONTRIBUTING.md = CONTRIBUTING.md
+		DEVELOPMENT.md = DEVELOPMENT.md
+		Dockerfile = Dockerfile
+		Dockerfile.Windows = Dockerfile.Windows
+		LICENSE = LICENSE
+		README.md = README.md
+		version.props = version.props
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.GdsVault", "src\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.csproj", "{917E4276-A66A-4725-91AD-EDA53E649A87}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test", "tests\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test.csproj", "{1CDE362E-DA4B-4593-838C-5FC1FC964653}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.App", "app\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.App.csproj", "{77256077-5C07-48C6-B497-455C758A108F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Edge", "module\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Edge.csproj", "{427DAC72-EA9A-4E69-B08E-57D7F3D62201}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api", "api-csharp\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api.csproj", "{A887CAA1-2C60-4E3A-91F8-DB60BBE4CC26}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{917E4276-A66A-4725-91AD-EDA53E649A87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{917E4276-A66A-4725-91AD-EDA53E649A87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{917E4276-A66A-4725-91AD-EDA53E649A87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{917E4276-A66A-4725-91AD-EDA53E649A87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CDE362E-DA4B-4593-838C-5FC1FC964653}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CDE362E-DA4B-4593-838C-5FC1FC964653}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CDE362E-DA4B-4593-838C-5FC1FC964653}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CDE362E-DA4B-4593-838C-5FC1FC964653}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77256077-5C07-48C6-B497-455C758A108F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77256077-5C07-48C6-B497-455C758A108F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77256077-5C07-48C6-B497-455C758A108F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77256077-5C07-48C6-B497-455C758A108F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{427DAC72-EA9A-4E69-B08E-57D7F3D62201}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{427DAC72-EA9A-4E69-B08E-57D7F3D62201}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{427DAC72-EA9A-4E69-B08E-57D7F3D62201}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{427DAC72-EA9A-4E69-B08E-57D7F3D62201}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A887CAA1-2C60-4E3A-91F8-DB60BBE4CC26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A887CAA1-2C60-4E3A-91F8-DB60BBE4CC26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A887CAA1-2C60-4E3A-91F8-DB60BBE4CC26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A887CAA1-2C60-4E3A-91F8-DB60BBE4CC26}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F947AAE7-2D6B-43C0-B5E6-824B8E4D7992}
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$0.TextStylePolicy = $2
+		$2.inheritsSet = null
+		$2.scope = text/x-csharp
+		$0.CSharpFormattingPolicy = $3
+		$3.scope = text/x-csharp
+		$0.VersionControlPolicy = $4
+	EndGlobalSection
+EndGlobal

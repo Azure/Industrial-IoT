@@ -1,0 +1,105 @@
+﻿@model Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api.Models.ApplicationRecordRegisterApiModel
+
+@{
+    ViewBag.Title = "Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Register a new Application</h2>
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    @Html.HiddenFor(model => model.ApiModel.ApplicationNames)
+    @Html.HiddenFor(model => model.ApiModel.GatewayServerUri)
+    @Html.HiddenFor(model => model.ApiModel.DiscoveryProfileUri)
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ApiModel.ApplicationUri, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.ApiModel.ApplicationUri, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.ApiModel.ApplicationUri, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ApiModel.ApplicationName, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.ApiModel.ApplicationName, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.ApiModel.ApplicationName, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ApiModel.ApplicationType, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            <div class="checkbox">
+                @Html.DropDownListFor(
+                    model => model.ApiModel.ApplicationType,
+                    new SelectList(
+                        new List<Object>{
+                            new { value = 0 , text = "Server"  },
+                            new { value = 1 , text = "Client" },
+                            new { value = 2 , text = "ClientAndServer" },
+                            new { value = 3 , text = "DiscoveryServer"}
+                        },
+                    "value",
+                    "text",
+                    Model.ApiModel.ApplicationType
+                    ),
+                    "-select-")
+                @Html.ValidationMessageFor(model => model.ApiModel.ApplicationType, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ApiModel.ProductUri, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.ApiModel.ProductUri, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.ApiModel.ProductUri, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    @for (int i = 0; i < Model.ApiModel.DiscoveryUrls.Count(); i++)
+    {
+        <div class="form-group">
+            @if (i == 0)
+            {
+                @Html.LabelFor(model => model.ApiModel.DiscoveryUrls, htmlAttributes: new { @class = "control-label col-md-2" })
+            }
+            else
+            {
+                @Html.LabelFor(model => "", htmlAttributes: new { @class = "control-label col-md-2" })
+            }
+            <div class="col-md-10">
+                @Html.HiddenFor(model => model.ApiModel.DiscoveryUrls[i])
+                @Html.EditorFor(model => model.ApiModel.DiscoveryUrls[i], new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.ApiModel.DiscoveryUrls[i], "", new { @class = "text-danger" })
+            </div>
+        </div>
+    }
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ApiModel.ServerCapabilities, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            <div class="checkbox">
+                @Html.EditorFor(model => model.ApiModel.ServerCapabilities, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.ApiModel.ServerCapabilities, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Create" class="btn btn-default" />
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+

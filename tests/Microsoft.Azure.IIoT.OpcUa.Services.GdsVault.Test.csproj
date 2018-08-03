@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <LangVersion>6</LangVersion>
+    <AssemblyName>Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test</AssemblyName>
+    <RootNamespace>Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test</RootNamespace>
+    <Configurations>Debug;Release;Develop</Configurations>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
+    <PackageReference Include="Moq" Version="4.7.63" />
+    <PackageReference Include="xunit" Version="2.2.0" />
+    <PackageReference Include="xunit.assert" Version="2.2.0" />
+    <PackageReference Include="xunit.runner.console" Version="2.2.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- "Service Include" required by IntelliJ Rider -->
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+</Project>

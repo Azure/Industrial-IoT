@@ -1,0 +1,50 @@
+﻿@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api.Models.ApplicationRecordApiModel>
+
+@{
+    ViewBag.Title = "List of Applications";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>List of Applications</h2>
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.ApplicationId)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ApplicationName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ApplicationUri)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.ApplicationId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ApplicationName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ApplicationUri)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.ApplicationId }) |
+                @Html.ActionLink("Details", "Details", new { id = item.ApplicationId }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.ApplicationId }) |
+                @Html.ActionLink("NewKeyPair", "..\\CertificateRequest\\StartNewKeyPair", new { id = item.ApplicationId }) |
+                @Html.ActionLink("SigningRequest", "..\\CertificateRequest\\StartSigning", new { id = item.ApplicationId })
+            </td>
+        </tr>
+    }
+
+</table>
+
+<p>
+    @Html.ActionLink("Register New", "Register")
+</p>

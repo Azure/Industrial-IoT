@@ -1,0 +1,79 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2036
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{8289AFAE-0933-40EF-9D19-6FFA2DB04837}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		.travis.yml = .travis.yml
+		CONTRIBUTING.md = CONTRIBUTING.md
+		DEVELOPMENT.md = DEVELOPMENT.md
+		Dockerfile = Dockerfile
+		Dockerfile.Windows = Dockerfile.Windows
+		LICENSE = LICENSE
+		README.md = README.md
+		version.props = version.props
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.GdsVault", "src\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.csproj", "{917E4276-A66A-4725-91AD-EDA53E649A87}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test", "tests\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test.csproj", "{1CDE362E-DA4B-4593-838C-5FC1FC964653}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.App", "app\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.App.csproj", "{77256077-5C07-48C6-B497-455C758A108F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Edge", "module\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Edge.csproj", "{427DAC72-EA9A-4E69-B08E-57D7F3D62201}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api", "api-csharp\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api.csproj", "{A887CAA1-2C60-4E3A-91F8-DB60BBE4CC26}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Opc.Ua.Core", "..\UA-.NETStandard\Stack\Opc.Ua.Core\Opc.Ua.Core.csproj", "{E9EC142C-3837-4E52-BBF2-918567A4F838}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Opc.Ua.Server", "..\UA-.NETStandard\SampleApplications\SDK\Opc.Ua.Server\Opc.Ua.Server.csproj", "{D8959AF8-F013-4022-8F97-BE702C7EBCC7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Opc.Ua.Configuration", "..\UA-.NETStandard\SampleApplications\SDK\Opc.Ua.Configuration\Opc.Ua.Configuration.csproj", "{5C05D270-0D28-41EC-ABE7-2295B32EBA9D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GlobalDiscoveryServerLibrary", "..\UA-.NETStandard\SampleApplications\Samples\GDS\ServerCommon\GlobalDiscoveryServerLibrary.csproj", "{76FC554F-99DE-4534-9630-F0308AB0FED4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Develop|Any CPU = Develop|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{917E4276-A66A-4725-91AD-EDA53E649A87}.Develop|Any CPU.ActiveCfg = Develop|Any CPU
+		{917E4276-A66A-4725-91AD-EDA53E649A87}.Develop|Any CPU.Build.0 = Develop|Any CPU
+		{1CDE362E-DA4B-4593-838C-5FC1FC964653}.Develop|Any CPU.ActiveCfg = Develop|Any CPU
+		{1CDE362E-DA4B-4593-838C-5FC1FC964653}.Develop|Any CPU.Build.0 = Develop|Any CPU
+		{77256077-5C07-48C6-B497-455C758A108F}.Develop|Any CPU.ActiveCfg = Develop|Any CPU
+		{77256077-5C07-48C6-B497-455C758A108F}.Develop|Any CPU.Build.0 = Develop|Any CPU
+		{427DAC72-EA9A-4E69-B08E-57D7F3D62201}.Develop|Any CPU.ActiveCfg = Develop|Any CPU
+		{427DAC72-EA9A-4E69-B08E-57D7F3D62201}.Develop|Any CPU.Build.0 = Develop|Any CPU
+		{A887CAA1-2C60-4E3A-91F8-DB60BBE4CC26}.Develop|Any CPU.ActiveCfg = Develop|Any CPU
+		{A887CAA1-2C60-4E3A-91F8-DB60BBE4CC26}.Develop|Any CPU.Build.0 = Develop|Any CPU
+		{E9EC142C-3837-4E52-BBF2-918567A4F838}.Develop|Any CPU.ActiveCfg = Develop|Any CPU
+		{E9EC142C-3837-4E52-BBF2-918567A4F838}.Develop|Any CPU.Build.0 = Develop|Any CPU
+		{D8959AF8-F013-4022-8F97-BE702C7EBCC7}.Develop|Any CPU.ActiveCfg = Develop|Any CPU
+		{D8959AF8-F013-4022-8F97-BE702C7EBCC7}.Develop|Any CPU.Build.0 = Develop|Any CPU
+		{5C05D270-0D28-41EC-ABE7-2295B32EBA9D}.Develop|Any CPU.ActiveCfg = Develop|Any CPU
+		{5C05D270-0D28-41EC-ABE7-2295B32EBA9D}.Develop|Any CPU.Build.0 = Develop|Any CPU
+		{76FC554F-99DE-4534-9630-F0308AB0FED4}.Develop|Any CPU.ActiveCfg = Develop|Any CPU
+		{76FC554F-99DE-4534-9630-F0308AB0FED4}.Develop|Any CPU.Build.0 = Develop|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F947AAE7-2D6B-43C0-B5E6-824B8E4D7992}
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$0.TextStylePolicy = $2
+		$2.inheritsSet = null
+		$2.scope = text/x-csharp
+		$0.CSharpFormattingPolicy = $3
+		$3.scope = text/x-csharp
+		$0.VersionControlPolicy = $4
+	EndGlobalSection
+EndGlobal

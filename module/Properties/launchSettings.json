@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "GdsVault.Edge.Service": {
+      "commandName": "Project",
+      "commandLineArgs": "-g http://yourgdsvaultservice.azurewebsites.net/ 
+    },
+    "GdsVault.Edge.Local": {
+      "commandName": "Project",
+      "commandLineArgs": "-g http://localhost:58801/ "
+    }
+  }
+}

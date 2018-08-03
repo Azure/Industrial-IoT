@@ -1,0 +1,60 @@
+﻿@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api.Models.CertificateRequestRecordApiModel>
+
+@{
+    ViewBag.Title = "CertificateRequests";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>List of Certificate Requests</h2>
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.RequestId)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ApplicationId)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.State)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.SubjectName)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var request in Model)
+    {
+        <tr>
+            <td>
+                @Html.ActionLink(request.RequestId, "Details", new { id = request.RequestId })
+            </td>
+            <td>
+                @Html.ActionLink(request.ApplicationId, "..\\Application\\Details", new { id = request.ApplicationId })
+            </td>
+            <td>
+                @Html.DisplayFor(requestItem => request.State)
+            </td>
+            <td>
+                @Html.DisplayFor(requestItem => request.SubjectName)
+            </td>
+            <td>
+                @if (request.State == "New")
+                {
+                    @Html.ActionLink("Approve", "Approve", new { id = request.RequestId }/*,
+                        new { onclick = "return confirm('Do you really want to approve the request " + @request.RequestId + "?')" }*/)
+                    @Html.Raw("&nbsp;|&nbsp;");
+                    @Html.ActionLink("Reject", "Reject", new { id = request.RequestId }/*,
+                        new { onclick = "return confirm('Do you really want to reject the request " + @request.RequestId + "?')" }*/)
+                    @Html.Raw("&nbsp;|&nbsp;");
+                }
+                @Html.ActionLink("Details", "Details", new { id = request.RequestId })
+            </td>
+        </tr>
+    }
+
+</table>
+
+<p>
+</p>

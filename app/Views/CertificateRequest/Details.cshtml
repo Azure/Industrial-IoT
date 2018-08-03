@@ -1,0 +1,106 @@
+﻿@model Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api.Models.CertificateRequestRecordApiModel
+
+<h2>View Certificate Request Details</h2>
+
+<div>
+    <h4>Certificate Request</h4>
+    <hr />
+    <dl class="dl-horizontal">
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RequestId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RequestId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ApplicationId)
+        </dt>
+
+        <dd>
+            @Html.ActionLink(Model.ApplicationId, "..\\Application\\Details", new { id = Model.ApplicationId })
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CertificateGroupId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CertificateGroupId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CertificateTypeId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CertificateTypeId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.State)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.State)
+        </dd>
+
+        @if (Model.SubjectName != null)
+        {
+            <dt>
+                @Html.DisplayNameFor(model => model.SubjectName)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.SubjectName)
+            </dd>
+        }
+
+        @if (Model.PrivateKeyFormat != null)
+        {
+            <dt>
+                @Html.DisplayNameFor(model => model.PrivateKeyFormat)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.PrivateKeyFormat)
+            </dd>
+        }
+
+    </dl>
+</div>
+<p>
+
+
+    @if (Model.State == "New")
+    {
+        @Html.ActionLink("Approve", "Approve", new { id = Model.RequestId }/*,
+            new { onclick = "return confirm('Do you really want to approve the request " + @Model.RequestId + "?')" }*/)
+        @Html.Raw("&nbsp;|&nbsp;");
+        @Html.ActionLink("Reject", "Reject", new { id = Model.RequestId }/*,
+            new { onclick = "return confirm('Do you really want to reject the request " + @Model.RequestId + "?')" }*/)
+        @Html.Raw("&nbsp;|&nbsp;");
+    }
+    @if (Model.State == "Approved" /*|| Model.State == "Accepted"*/)
+    {
+        @Html.ActionLink("Certificate", "DownloadCertificate", new { requestId = Model.RequestId, applicationId = Model.ApplicationId })
+        @Html.Raw("&nbsp;|&nbsp;");
+        @Html.ActionLink("Issuer", "DownloadIssuer", new { requestId = Model.RequestId })
+        @Html.Raw("&nbsp;|&nbsp;");
+        @Html.ActionLink("Crl", "DownloadIssuerCrl", new { requestId = Model.RequestId })
+        @Html.Raw("&nbsp;|&nbsp;");
+    }
+    @if (Model.State == "Approved")
+    {
+        @if (!String.IsNullOrEmpty(Model.PrivateKeyFormat))
+        {
+            @Html.ActionLink("PrivateKey", "DownloadPrivateKey", new { requestId = Model.RequestId, applicationId = Model.ApplicationId })
+            @Html.Raw("&nbsp;|&nbsp;");
+        }
+        @Html.ActionLink("Accept", "Accept", new { id = Model.RequestId })
+        @Html.Raw("&nbsp;|&nbsp;");
+    }
+    @Html.ActionLink("Back to List", "Index")
+</p>

@@ -1,0 +1,18 @@
+language: csharp
+mono: none
+dotnet: 2.1
+os: linux
+sudo: false
+dist: trusty
+cache:
+  directories:
+  - "$HOME/.nuget/"
+addons:
+  apt:
+    sources:
+    packages:
+install:
+script:
+  - dotnet restore
+  - dotnet build -c Debug
+  - dotnet build -c Release

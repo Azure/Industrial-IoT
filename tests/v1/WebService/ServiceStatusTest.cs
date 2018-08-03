@@ -1,0 +1,73 @@
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test.Helpers;
+using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test.Helpers.Http;
+using System.Net;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test.WebService
+{
+    public class ServiceStatusTest
+    {
+        private readonly ITestOutputHelper log;
+        private readonly IHttpClient httpClient;
+
+        public ServiceStatusTest(ITestOutputHelper log)
+        {
+            this.log = log;
+            this.httpClient = new HttpClient(this.log);
+        }
+
+        /// <summary>
+        /// Integration test using a real HTTP instance.
+        /// Bootstrap a real HTTP server and test a request to the
+        /// status endpoint.
+        /// </summary>
+        [Fact, Trait(Constants.Type, Constants.IntegrationTest)]
+        public void TheServiceIsHealthyViaHttpServer()
+        {
+            // Arrange
+            var address = WebServiceHost.GetBaseAddress();
+            var host = new WebHostBuilder()
+                .UseUrls(address)
+                .UseKestrel()
+                .UseStartup<Startup>()
+                .Build();
+            host.Start();
+
+            // Act
+            var request = new HttpRequest(address + "/v1/status");
+            request.AddHeader("X-Foo", "Bar");
+            var response = this.httpClient.GetAsync(request).Result;
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Integration test using a test server.
+        /// Bootstrap a test server and test a request to the
+        /// status endpoint
+        /// </summary>
+        [Fact, Trait(Constants.Type, Constants.IntegrationTest)]
+        public void TheServiceIsHealthyViaTestServer()
+        {
+            // Arrange
+            var hostBuilder = new WebHostBuilder().UseStartup<Startup>();
+
+            using (var server = new TestServer(hostBuilder))
+            {
+                // Act
+                var request = server.CreateRequest("/v1/status");
+                request.AddHeader("X-Foo", "Bar");
+                var response = request.GetAsync().Result;
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
+        }
+    }
+}

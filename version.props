@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionSuffix>preview-$([System.DateTime]::Now.ToString("yyyyMMdd"))</VersionSuffix>
+    <Copyright>Copyright © 2018 Microsoft Corp. All rights reserved.</Copyright>
+    <Company>Microsoft</Company>
+    <PackageLicenseUrl>https://github.com/Azure/azure-iiot-opc-gdsvault-service/blob/master/LICENSE</PackageLicenseUrl>
+    <Product>Microsoft Azure Industrial IoT OPC UA GdsVault Service</Product>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,111 @@
+﻿@model Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api.Models.ApplicationRecordApiModel
+
+<h2>View Application Details</h2>
+
+<div>
+    <h4>Application</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.ApplicationId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ApplicationId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ID)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ApplicationName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ApplicationName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ApplicationUri)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ApplicationUri)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ApplicationType)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ApplicationType)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ProductUri)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ProductUri)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ApplicationNames)
+        </dt>
+
+        @foreach (var applicationName in Model.ApplicationNames)
+        {
+            <dd>
+                @Html.DisplayFor(model => applicationName.Text)
+            </dd>
+        }
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DiscoveryUrls)
+        </dt>
+
+        @foreach (var discoveryUrl in Model.DiscoveryUrls)
+        {
+            <dd>
+                @Html.DisplayFor(model => discoveryUrl)
+            </dd>
+        }
+
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ServerCapabilities)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ServerCapabilities)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.GatewayServerUri)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.GatewayServerUri)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DiscoveryProfileUri)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DiscoveryProfileUri)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.ApplicationId }) |
+    @Html.ActionLink("New Key Pair", "..\\CertificateRequest\\StartNewKeyPair", new { id = Model.ApplicationId }) |
+    @Html.ActionLink("Signing Request", "..\\CertificateRequest\\StartSigning", new { id = Model.ApplicationId }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

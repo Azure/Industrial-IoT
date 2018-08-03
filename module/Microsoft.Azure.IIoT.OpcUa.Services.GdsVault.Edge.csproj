@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <Configurations>Debug;Release;Develop</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="1.9.1" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.0.3" />
+    <PackageReference Include="Mono.Options" Version="5.3.0.1" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="Exists('..\..\UA-.NETStandard') and '$(Configuration)'=='Develop'">
+      <ItemGroup>
+        <ProjectReference Include="..\..\UA-.NETStandard\SampleApplications\Samples\GDS\ServerCommon\GlobalDiscoveryServerLibrary.csproj" />
+        <ProjectReference Include="..\..\UA-.NETStandard\SampleApplications\SDK\Opc.Ua.Configuration\Opc.Ua.Configuration.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.354.16-preview" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+  <ItemGroup>
+    <ProjectReference Include="..\api-csharp\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Edge.Config.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
