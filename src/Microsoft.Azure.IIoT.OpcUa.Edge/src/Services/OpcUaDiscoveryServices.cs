@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Services {
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        public async Task<List<ApplicationRegistrationModel>> DiscoverApplicationsAsync(
+        public async Task<DiscoveryResultModel> DiscoverApplicationsAsync(
             Uri discoveryUrl) {
 
             var discovered = new List<ApplicationRegistrationModel>();
@@ -72,7 +72,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Services {
             if (discovered.Count == 0) {
                 throw new ResourceNotFoundException("Unable to find applications");
             }
-            return discovered;
+            return new DiscoveryResultModel {
+                Found = discovered,
+                TimeStamp = DateTime.UtcNow
+            };
         }
 
         /// <summary>

@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services{
     using Microsoft.Azure.IIoT.OpcUa;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -17,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services{
     public class OpcUaDiscoveryStub : IOpcUaDiscoveryServices {
 
         /// <inheritdoc/>
-        public Task<List<ApplicationRegistrationModel>> DiscoverApplicationsAsync(
+        public Task<DiscoveryResultModel> DiscoverApplicationsAsync(
             Uri discoveryUrl) {
             throw new ResourceNotFoundException("Application discovery not supported");
         }

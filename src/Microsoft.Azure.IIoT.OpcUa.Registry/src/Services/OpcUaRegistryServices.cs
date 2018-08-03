@@ -692,7 +692,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 //
                 var result = await _discover.DiscoverApplicationsAsync(
                     new Uri(request.DiscoveryUrl));
-                foreach (var discovered in result) {
+                foreach (var discovered in result.Found) {
                     Debug.Assert(discovered.Application.SupervisorId != null);
 
                     var endpoints = Enumerable.Empty<OpcUaEndpointRegistration>();
