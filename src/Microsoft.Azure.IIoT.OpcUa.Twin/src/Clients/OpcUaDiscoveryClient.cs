@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     /// </summary>
     public sealed class OpcUaDiscoveryClient : IOpcUaDiscoveryServices {
 
-        private static readonly TimeSpan kDiscoveryTimeout = TimeSpan.FromMinutes(3);
+        private static readonly TimeSpan kDiscoveryTimeout = TimeSpan.FromSeconds(20);
 
         /// <summary>
         /// Create client
