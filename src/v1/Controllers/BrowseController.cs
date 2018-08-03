@@ -29,52 +29,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="twin"></param>
-        /// <param name="adhoc"></param>
-        public BrowseController(IOpcUaBrowseServices<string> twin,
-            IOpcUaBrowseServices<EndpointModel> adhoc) {
+        public BrowseController(IOpcUaBrowseServices<string> twin) {
             _twin = twin;
-            _adhoc = adhoc;
-        }
-
-        /// <summary>
-        /// Browse a node on the endpoint as specified in the service request
-        /// using the service request's browse configuration.
-        /// </summary>
-        /// <param name="request">The service request</param>
-        /// <returns>The browse response</returns>
-        [HttpPost]
-        public async Task<BrowseResponseApiModel> BrowseByEndpointAsync(
-            [FromBody] ServiceRequestApiModel<BrowseRequestApiModel> request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            // TODO: if token type is not "none", but user/token not, take from current claims
-
-            var browseresult = await _adhoc.NodeBrowseAsync(
-                request.Endpoint.ToServiceModel(),
-                request.Content.ToServiceModel());
-            return new BrowseResponseApiModel(browseresult);
-        }
-
-        /// <summary>
-        /// Browse a node on the endpoint as specified in the service request
-        /// using the service request's browse configuration.
-        /// </summary>
-        /// <param name="request">The service request</param>
-        /// <returns>The browse response</returns>
-        [HttpPost("next")]
-        public async Task<BrowseNextResponseApiModel> BrowseNextByEndpointAsync(
-            [FromBody] ServiceRequestApiModel<BrowseNextRequestApiModel> request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            // TODO: if token type is not "none", but user/token not, take from current claims
-
-            var browseresult = await _adhoc.NodeBrowseNextAsync(
-                request.Endpoint.ToServiceModel(), request.Content.ToServiceModel());
-            return new BrowseNextResponseApiModel(browseresult);
         }
 
         /// <summary>
@@ -159,6 +115,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         }
 
         private readonly IOpcUaBrowseServices<string> _twin;
-        private readonly IOpcUaBrowseServices<EndpointModel> _adhoc;
     }
 }

@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Auth;
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -27,32 +26,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="twin"></param>
-        /// <param name="adhoc"></param>
-        public WriteController(IOpcUaNodeServices<string> twin,
-            IOpcUaNodeServices<EndpointModel> adhoc) {
+        public WriteController(IOpcUaNodeServices<string> twin) {
             _twin = twin;
-            _adhoc = adhoc;
-        }
-
-        /// <summary>
-        /// Write node value as specified in the write value request on the
-        /// server specified in the endpoint object of the service request.
-        /// </summary>
-        /// <param name="request">The service request</param>
-        /// <returns>The write value response</returns>
-        [HttpPost]
-        public async Task<ValueWriteResponseApiModel> WriteByEndpointAsync(
-            [FromBody] ServiceRequestApiModel<ValueWriteRequestApiModel> request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            // TODO: if token type is not "none", but user/token not, take from current claims
-
-            var writeResult = await _adhoc.NodeValueWriteAsync(
-                request.Endpoint.ToServiceModel(),
-                request.Content.ToServiceModel());
-            return new ValueWriteResponseApiModel(writeResult);
         }
 
         /// <summary>
@@ -74,6 +49,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         }
 
         private readonly IOpcUaNodeServices<string> _twin;
-        private readonly IOpcUaNodeServices<EndpointModel> _adhoc;
     }
 }

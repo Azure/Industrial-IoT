@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Auth;
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.AspNetCore.Authorization;
@@ -29,32 +28,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="twin"></param>
-        /// <param name="adhoc"></param>
-        public PublishController(IOpcUaPublishServices<string> twin,
-            IOpcUaPublishServices<EndpointModel> adhoc) {
-            _adhoc = adhoc;
+        public PublishController(IOpcUaPublishServices<string> twin) {
             _twin = twin;
-        }
-
-        /// <summary>
-        /// Publish node value as specified in the publish value request on the
-        /// server specified in the endpoint object of the service request.
-        /// </summary>
-        /// <param name="request">The service request</param>
-        /// <returns>The publish response</returns>
-        [HttpPost]
-        public async Task<PublishResponseApiModel> PublishAsync(
-            [FromBody] ServiceRequestApiModel<PublishRequestApiModel> request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            // TODO: if token type is not "none", but user/token not, take from current claims
-
-            var result = await _adhoc.NodePublishAsync(
-                request.Endpoint.ToServiceModel(),
-                request.Content.ToServiceModel());
-            return new PublishResponseApiModel(result);
         }
 
         /// <summary>
@@ -78,29 +53,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <summary>
         /// Returns currently published node ids.
         /// </summary>
-        /// <param name="endpoint">The endpoint to get published nodes for.</param>
-        /// <returns>The list of published nodes</returns>
-        [HttpPost("state")]
-        public async Task<PublishedNodeListApiModel> ListPublishedNodesAsync(
-            [FromBody] EndpointApiModel endpoint) {
-            if (endpoint == null) {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
-
-            // TODO: if token type is not "none", but user/token not, take from current claims
-
-            string continuationToken = null;
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
-                continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
-            }
-            var result = await _adhoc.ListPublishedNodesAsync(endpoint.ToServiceModel(),
-                continuationToken);
-            return new PublishedNodeListApiModel(result);
-        }
-
-        /// <summary>
-        /// Returns currently published node ids.
-        /// </summary>
         /// <param name="id">The identifier of the twin.</param>
         /// <returns>The list of published nodes</returns>
         [HttpGet("{id}/state")]
@@ -114,6 +66,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         }
 
         private readonly IOpcUaPublishServices<string> _twin;
-        private readonly IOpcUaPublishServices<EndpointModel> _adhoc;
     }
 }

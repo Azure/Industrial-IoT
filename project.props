@@ -1,8 +1,8 @@
 <Project>
   <PropertyGroup>
-    <Product>Azure Industrial IoT OPC Twin Services</Product>
+    <Product>Azure Industrial IoT OPC Twin Control Services</Product>
     <RepositoryUrl>https://github.com/Azure/azure-iiot-opc-twin-service</RepositoryUrl>
     <RepositoryUrl>https://github.com/Azure/azure-iot-connected-factory</RepositoryUrl>
-    <PackageTags>Azure;IoT;IIoT,.NET</PackageTags>
+    <PackageTags>Industrial;Manufacturing;OPC;OPCUA;Azure;IoT;IIoT;Twin;.NET</PackageTags>
   </PropertyGroup>
 </Project>
