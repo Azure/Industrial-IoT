@@ -43,10 +43,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// </summary>
         /// <param name="discoveryUri"></param>
         /// <returns></returns>
-        public async Task<List<ApplicationRegistrationApiModel>> DiscoverApplicationAsync(
+        public async Task<DiscoveryResponseApiModel> DiscoverApplicationAsync(
             Uri discoveryUri) {
             var result = await _validate.DiscoverApplicationsAsync(discoveryUri);
-            return result.Select(r => new ApplicationRegistrationApiModel(r)).ToList();
+            return new DiscoveryResponseApiModel(result);
         }
 
         /// <summary>

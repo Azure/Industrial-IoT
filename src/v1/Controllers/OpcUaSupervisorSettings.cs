@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     using System.Threading.Tasks;
     using System.Collections.Generic;
     using Newtonsoft.Json.Linq;
+    using System.Linq;
 
     /// <summary>
     /// Supervisor settings controller
@@ -45,6 +46,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
                     _endpoints[endpointId] = value.ToString();
                 }
             }
+            get {
+                if (!_endpoints.TryGetValue(endpointId, out var result)) {
+                    return JValue.CreateNull();
+                }
+                return result;
+            }
         }
 
         /// <summary>
@@ -63,16 +70,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// </summary>
         /// <returns></returns>
         public async Task ApplyAsync() {
-            foreach (var item in _endpoints) {
+            foreach (var item in _endpoints.ToList()) {
                 if (string.IsNullOrEmpty(item.Value)) {
-                    await _supervisor.StopTwinAsync(item.Key);
+                    try {
+                        await _supervisor.StopTwinAsync(item.Key);
+                    }
+                    catch (Exception ex) {
+                        _logger.Error($"Error stopping twin {item.Key}", () => ex);
+                    }
                 }
                 else {
-                    if (!item.Value.IsBase64()) {
-                        throw new ArgumentException(item.Key);
+                    try {
+                        if (item.Value.IsBase64()) {
+                            await _supervisor.StartTwinAsync(item.Key, item.Value);
+                            continue;
+                        }
                     }
-                    await _supervisor.StartTwinAsync(item.Key, item.Value);
+                    catch (Exception ex) {
+                        _logger.Error($"Error starting twin {item.Key}", () => ex);
+                    }
                 }
+                _endpoints.Remove(item.Value);
             }
             _endpoints.Clear();
         }
