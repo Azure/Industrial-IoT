@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>Azure IIoT IoT Hub service client</Description>
+    <Description>Azure Industrial IoT common IoT Hub service client</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Devices" Version="1.16.1" />

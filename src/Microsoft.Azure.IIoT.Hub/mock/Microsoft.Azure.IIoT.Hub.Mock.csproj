@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>Azure IIoT IoT Hub registry mocks</Description>
+    <Description>Azure Industrial IoT common IoT Hub twin registry mocking tool used in testing</Description>
     <NoWarn>1701;1702;1705;3021</NoWarn>
     <Antlr4UseCSharpGenerator>True</Antlr4UseCSharpGenerator>
   </PropertyGroup>

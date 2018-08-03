@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>Azure IIoT common edge components</Description>
+    <Description>Azure Industrial IoT edge module service framework</Description>
   </PropertyGroup>
 
   <ItemGroup>
