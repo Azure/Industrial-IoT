@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Auth;
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -27,31 +26,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="twin"></param>
-        /// <param name="adhoc"></param>
-        public CallController(IOpcUaNodeServices<string> twin,
-            IOpcUaNodeServices<EndpointModel> adhoc) {
+        public CallController(IOpcUaNodeServices<string> twin) {
             _twin = twin;
-            _adhoc = adhoc;
-        }
-
-        /// <summary>
-        /// Return method meta data as specified in the method metadata request
-        /// on the server specified in the endpoint object of the service request.
-        /// </summary>
-        /// <param name="request">The service request</param>
-        /// <returns>The method metadata response</returns>
-        [HttpPost("$metadata")]
-        public async Task<MethodMetadataResponseApiModel> GetCallMetadataEndpointAsync(
-            [FromBody] ServiceRequestApiModel<MethodMetadataRequestApiModel> request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            // TODO: if token type is not "none", but user/token not, take from current claims
-
-            var metadataresult = await _adhoc.NodeMethodGetMetadataAsync(
-                request.Endpoint.ToServiceModel(), request.Content.ToServiceModel());
-            return new MethodMetadataResponseApiModel(metadataresult);
         }
 
         /// <summary>
@@ -70,28 +46,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             var metadataresult = await _twin.NodeMethodGetMetadataAsync(
                 id, request.ToServiceModel());
             return new MethodMetadataResponseApiModel(metadataresult);
-        }
-
-        /// <summary>
-        /// Invoke method node as specified in the method call request on the
-        /// server specified in the endpoint object of the service request.
-        /// </summary>
-        /// <param name="request">The service request</param>
-        /// <returns>The method call response</returns>
-        [HttpPost]
-        public async Task<MethodCallResponseApiModel> CallByEndpointAsync(
-            [FromBody] ServiceRequestApiModel<MethodCallRequestApiModel> request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            // TODO: Permissions
-            // TODO: if token type is not "none", but user/token not, take from current claims
-
-            var callresult = await _adhoc.NodeMethodCallAsync(
-                request.Endpoint.ToServiceModel(),
-                request.Content.ToServiceModel());
-            return new MethodCallResponseApiModel(callresult);
         }
 
         /// <summary>
@@ -116,6 +70,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         }
 
         private readonly IOpcUaNodeServices<string> _twin;
-        private readonly IOpcUaNodeServices<EndpointModel> _adhoc;
     }
 }
