@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Triggers onboarding in the onboarding agent.
+    /// Onboarding client triggers registry onboarding in the onboarding agent.
     /// </summary>
     public sealed class OpcUaOnboardingTrigger : IOpcUaOnboardingServices {
 
