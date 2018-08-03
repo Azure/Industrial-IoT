@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Edge;
+    using Microsoft.Azure.IIoT.Module.Framework;
     using System;
     using System.Threading.Tasks;
     using Newtonsoft.Json.Linq;
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="logger"></param>
-        public OpcUaTwinSettings(IOpcUaTwinServices twin, ILogger logger) {
+        public OpcUaTwinSettings(IOpcUaPublisherServices twin, ILogger logger) {
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         private SecurityMode? _securityMode;
         private byte[] _validation;
 
-        private readonly IOpcUaTwinServices _twin;
+        private readonly IOpcUaPublisherServices _twin;
         private readonly ILogger _logger;
     }
 }

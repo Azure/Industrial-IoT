@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Edge;
+    using Microsoft.Azure.IIoT.Module.Framework;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Threading.Tasks;
@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// </summary>
         /// <param name="logger"></param>
         public OpcUaNodeSettings(IOpcUaBrowseServices<EndpointModel> browse,
-            IOpcUaNodeServices<EndpointModel> nodes, IOpcUaTwinServices twin,
+            IOpcUaNodeServices<EndpointModel> nodes, IOpcUaPublisherServices twin,
             ILogger logger) {
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         private readonly Dictionary<string, JToken> _action;
-        private readonly IOpcUaTwinServices _twin;
+        private readonly IOpcUaPublisherServices _twin;
         private readonly IOpcUaBrowseServices<EndpointModel> _browse;
         private readonly IOpcUaNodeServices<EndpointModel> _nodes;
         private readonly ILogger _logger;

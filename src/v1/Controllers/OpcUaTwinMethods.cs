@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Edge;
+    using Microsoft.Azure.IIoT.Module.Framework;
     using System;
     using System.Threading.Tasks;
 
@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// <param name="nodes"></param>
         /// <param name="logger"></param>
         public OpcUaTwinMethods(IOpcUaBrowseServices<EndpointModel> browse,
-            IOpcUaNodeServices<EndpointModel> nodes, IOpcUaTwinServices twin,
+            IOpcUaNodeServices<EndpointModel> nodes, IOpcUaPublisherServices twin,
             IEventEmitter events, ILogger logger) {
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
@@ -129,7 +129,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
 
         private readonly IOpcUaBrowseServices<EndpointModel> _browse;
         private readonly IOpcUaNodeServices<EndpointModel> _nodes;
-        private readonly IOpcUaTwinServices _twin;
+        private readonly IOpcUaPublisherServices _twin;
         private readonly IEventEmitter _events;
         private readonly ILogger _logger;
     }
