@@ -5,7 +5,6 @@ FROM microsoft/dotnet:2.1-sdk AS build
 WORKDIR /src
 COPY cli/Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj cli/
 COPY src/Microsoft.Azure.IIoT.OpcUa.Api.csproj src/
-COPY packages packages
 COPY NuGet.Config NuGet.Config
 RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 cli/Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj
 COPY . .
