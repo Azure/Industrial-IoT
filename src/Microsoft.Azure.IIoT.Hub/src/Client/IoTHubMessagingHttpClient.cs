@@ -53,6 +53,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 var request = NewRequest(to);
                 request.AddHeader("iothub-operation", "d2c");
                 request.AddHeader("iothub-to", to);
+                request.AddHeader("Content-Type", "application/vnd.microsoft.iothub.json");
                 request.SetContent(body);
                 var response = await _httpClient.PostAsync(request);
                 response.Validate();
