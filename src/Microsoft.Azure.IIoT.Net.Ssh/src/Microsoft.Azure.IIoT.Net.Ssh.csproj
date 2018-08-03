@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>Azure IIoT Simulation infrastructure</Description>
+    <Description>Azure Industrial IoT networking ssh services</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="SSH.NET" Version="2016.1.0" />
