@@ -4,7 +4,6 @@ WORKDIR /app
 FROM microsoft/dotnet:2.1-sdk-nanoserver-sac2016 AS build
 WORKDIR /src
 COPY src/Microsoft.Azure.IIoT.OpcUa.Modules.Twin.csproj src/
-COPY packages packages
 COPY NuGet.Config NuGet.Config
 RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.OpcUa.Modules.Twin.csproj
 COPY . .
