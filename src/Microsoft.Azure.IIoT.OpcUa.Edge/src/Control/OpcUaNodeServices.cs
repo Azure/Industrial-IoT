@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.OpcUa.Services;
 
     /// <summary>
     /// This class provides access to a servers address space providing node
@@ -50,20 +51,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services {
 
             // browse child nodes
             return await _client.ExecuteServiceAsync(endpoint, async session => {
-                var rootId = request?.NodeId?.ToNodeId(session.MessageContext) ??
-                    ObjectIds.ObjectsFolder;
-                var typeId = request?.ReferenceTypeId?.ToNodeId(session.MessageContext) ??
-                    ReferenceTypeIds.HierarchicalReferences;
+                var rootId = request?.NodeId?.ToNodeId(session.MessageContext);
+                if (NodeId.IsNull(rootId)) {
+                    rootId = ObjectIds.ObjectsFolder;
+                }
+                var typeId = request?.ReferenceTypeId?.ToNodeId(session.MessageContext);
+                if (NodeId.IsNull(typeId)) {
+                    typeId = ReferenceTypeIds.HierarchicalReferences;
+                }
                 var excludeReferences = request.MaxReferencesToReturn.HasValue &&
                     request.MaxReferencesToReturn.Value == 0;
                 var result = new BrowseResultModel();
                 if (!excludeReferences) {
-                    var direction = (request.Direction ?? Models.BrowseDirection.Forward)
+                    var direction = (request.Direction ?? OpcUa.Models.BrowseDirection.Forward)
                         .ToStackType();
                     // Browse and read children
                     result.References = new List<NodeReferenceModel>();
                     var response = session.Browse(null, null, rootId,
-                        (uint)(request.MaxReferencesToReturn ?? 0u),
+                        (request.MaxReferencesToReturn ?? 0u),
                         direction, typeId, !(request?.NoSubtypes ?? false), 0,
                         out var continuationPoint, out var references);
                     result.ContinuationToken = await AddReferencesToBrowseResult(session,
@@ -119,10 +124,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services {
                 throw new ArgumentException(nameof(request.MethodId));
             }
             return await _client.ExecuteServiceAsync(endpoint, session => {
-                var response = session.Browse(null, null, request.MethodId, 0,
+                var methodId = request.MethodId?.ToNodeId(session.MessageContext);
+                if (NodeId.IsNull(methodId)) {
+                    throw new ArgumentException(nameof(request.MethodId));
+                }
+                var response = session.Browse(null, null, methodId, 0,
                     Opc.Ua.BrowseDirection.Forward, ReferenceTypeIds.HasProperty, true, 0,
                     out var continuationPoint, out var references);
-
                 var result = new MethodMetadataResultModel();
                 foreach (var nodeReference in references) {
                     if (result.OutputArguments != null && result.InputArguments != null) {
@@ -179,9 +187,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services {
                 throw new ArgumentException(nameof(request.NodeId));
             }
             return _client.ExecuteServiceAsync(endpoint, session => {
+                var readNode = request.NodeId.ToNodeId(session.MessageContext);
+                if (NodeId.IsNull(readNode)) {
+                    throw new ArgumentException(nameof(request.NodeId));
+                }
                 var nodesToRead = new ReadValueIdCollection {
                     new ReadValueId {
-                        NodeId = request.NodeId.ToNodeId(session.MessageContext),
+                        NodeId = readNode,
                         AttributeId = Attributes.Value,
                         IndexRange = null,
                         DataEncoding = null
@@ -234,9 +246,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services {
             return _client.ExecuteServiceAsync(endpoint, session => {
                 var builtinType = TypeInfo.GetBuiltInType(request.Node.DataType,
                     session.TypeTree);
+                var writeNode = request.Node.Id.ToNodeId(session.MessageContext);
+                if (NodeId.IsNull(writeNode)) {
+                    throw new ArgumentException(nameof(request.Node.Id));
+                }
                 var nodesToWrite = new WriteValueCollection{
                     new WriteValue {
-                        NodeId = request.Node.Id.ToNodeId(session.MessageContext),
+                        NodeId = writeNode,
                         AttributeId = Attributes.Value,
                         Value = new DataValue(_codec.Decode(
                             request.Value, builtinType, request.Node.ValueRank)),
@@ -282,15 +298,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services {
                         args.Add(_codec.Decode(arg.Value, builtinType, arg.ValueRank));
                     }
                 }
+                var methodId = request.MethodId?.ToNodeId(session.MessageContext);
+                if (NodeId.IsNull(methodId)) {
+                    throw new ArgumentException(nameof(request.MethodId));
+                }
+                var objectId = request.ObjectId?.ToNodeId(session.MessageContext);
+                if (NodeId.IsNull(objectId)) {
+                    objectId = null;
+                }
                 var requests = new CallMethodRequestCollection {
                     new CallMethodRequest {
-                        ObjectId = request.ObjectId?.ToNodeId(session.MessageContext),
-                        MethodId = request.MethodId.ToNodeId(session.MessageContext),
+                        ObjectId = objectId,
+                        MethodId = methodId,
                         InputArguments = args
                     }
                 };
-                var responseHeader = session.Call(null, requests,
-                    out var results, out var diagnosticInfos);
+                var responseHeader = session.Call(null, requests, out var results,
+                    out var diagnosticInfos);
                 var result = new MethodCallResultModel();
                 if (results != null && results.Count > 0 &&
                     StatusCode.IsGood(results[0].StatusCode)) {
@@ -396,7 +420,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services {
                             Id = reference.ReferenceTypeId.AsString(
                                 session.MessageContext),
                             Direction = reference.IsForward ?
-                                Models.BrowseDirection.Forward : Models.BrowseDirection.Backward,
+                                OpcUa.Models.BrowseDirection.Forward :
+                                OpcUa.Models.BrowseDirection.Backward,
                             Target = model
                         });
                     }

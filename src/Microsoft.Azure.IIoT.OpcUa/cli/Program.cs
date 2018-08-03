@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Scanning;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Services;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;

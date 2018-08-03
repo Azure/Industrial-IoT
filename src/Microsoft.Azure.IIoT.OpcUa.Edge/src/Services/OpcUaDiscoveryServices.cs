@@ -3,13 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Services {
     using Microsoft.Azure.IIoT.OpcUa;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Opc.Ua;
     using System;
     using System.Threading.Tasks;
     using System.Collections.Generic;

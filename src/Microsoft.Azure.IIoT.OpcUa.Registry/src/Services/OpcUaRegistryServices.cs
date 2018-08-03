@@ -720,6 +720,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         }
                     }
 
+                    var patched = discovered.Endpoints.Select(e =>
+                        OpcUaEndpointRegistration.FromServiceModel(new TwinInfoModel {
+                            ApplicationId = discovered.Application.ApplicationId,
+                            Registration = new TwinRegistrationModel {
+                                Endpoint = e.Endpoint,
+                                SiteId = application.SiteId,
+                                SecurityLevel = e.SecurityLevel,
+                                Certificate = e.Certificate
+                            }
+                        }, false));
+
+                    //
+                    // Apply activation filter
+                    //
+                    var filter = request.ActivationFilter;
+                    if (filter != null) {
+                        foreach (var endpoint in patched) {
+
+                            // TODO: Get trust list entry and validate endpoint.Certificate
+
+                            var mode = endpoint.SecurityMode ?? SecurityMode.None;
+                            if (!mode.MatchesFilter(filter.SecurityMode ?? SecurityMode.Best)) {
+                                continue;
+                            }
+                            var policy = endpoint.SecurityPolicy;
+                            if (filter.SecurityPolicies != null) {
+                                if (!filter.SecurityPolicies.Any(p =>
+                                    p.EqualsIgnoreCase(endpoint.SecurityPolicy))) {
+                                    continue;
+                                }
+                            }
+                            endpoint.Activated = true;
+                        }
+                    }
+
                     //
                     // Create or patch existing application and update all endpoint twins
                     //
@@ -728,19 +763,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         OpcUaApplicationRegistration.FromServiceModel(discovered.Application,
                             false)));
                     await MergeEndpointsAsync(discovered.Application.SupervisorId,
-                        discovered.Endpoints.Select(e =>
-                            OpcUaEndpointRegistration.FromServiceModel(new TwinInfoModel {
-                                ApplicationId = discovered.Application.ApplicationId,
-                                Registration = new TwinRegistrationModel {
-                                    Endpoint = e.Endpoint,
-                                    SiteId = application.SiteId,
-                                    SecurityLevel = e.SecurityLevel,
-                                    Certificate = e.Certificate
-                                }
-                            }, false)), endpoints, true);
+                        patched, endpoints, true);
 
                     _logger.Debug("Application registered.", () => discovered);
                     registered.Add(discovered);
+
+                    foreach (var endpoint in patched.Where(e => e.Activated ?? false)) {
+                        await EnableTwinAsync(endpoint.SupervisorId, endpoint.ApplicationId, true);
+                        _logger.Debug($"Activated twin {endpoint.Id}.", () => { });
+                    }
                 }
             }
             finally {

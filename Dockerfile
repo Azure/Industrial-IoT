@@ -7,7 +7,6 @@ COPY src/Microsoft.Azure.IIoT.OpcUa/cli/Microsoft.Azure.IIoT.OpcUa.Cli.csproj sr
 COPY src/Microsoft.Azure.IIoT.OpcUa/src/Microsoft.Azure.IIoT.OpcUa.csproj src/Microsoft.Azure.IIoT.OpcUa/src/
 COPY src/Microsoft.Azure.IIoT.OpcUa.Edge/src/Microsoft.Azure.IIoT.OpcUa.Edge.csproj src/Microsoft.Azure.IIoT.OpcUa.Edge/src/
 COPY src/Microsoft.Azure.IIoT.OpcUa.Twin/src/Microsoft.Azure.IIoT.OpcUa.Twin.csproj src/Microsoft.Azure.IIoT.OpcUa.Twin/src/
-COPY packages packages
 COPY NuGet.Config NuGet.Config
 RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.OpcUa/cli/Microsoft.Azure.IIoT.OpcUa.Cli.csproj
 COPY . .
