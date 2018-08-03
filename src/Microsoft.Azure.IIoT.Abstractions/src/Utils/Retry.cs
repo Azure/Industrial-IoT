@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -17,9 +17,9 @@ namespace Microsoft.Azure.IIoT.Utils {
 
         private static readonly object Semaphore = new object();
 
-        public static int MaxRetryCount = 5;
-        public static int MaxRetryDelay = 1 * 60 * 1000; // 1 minute
-        public static int BackoffDelta = 20;
+        public static int MaxRetryCount = 10;
+        public static int MaxRetryDelay = 20 * 1000; // 20 seconds
+        public static int BackoffDelta = 50;
 
 
         /// <summary>
@@ -486,7 +486,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         private static async Task DelayOrThrow(ILogger logger, Func<Exception, bool> cont,
             Func<int, Exception, int> policy, int maxRetry, int k, Exception ex,
             CancellationToken ct) {
-            if (k > maxRetry || !cont(ex)) {
+            if ((k > maxRetry || !cont(ex)) && !(ex is ITransientException)) {
                 logger?.Info($"Give up after {k}", () => ex);
                 throw ex;
             }
