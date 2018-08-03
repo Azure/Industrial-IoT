@@ -5,14 +5,14 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Control;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Edge;
-    using Microsoft.Azure.IIoT.Edge.Client;
-    using Microsoft.Azure.IIoT.Edge.Services;
+    using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Autofac;
     using System;
     using System.Linq;
@@ -153,8 +153,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register edge host module and twin state for the lifetime of the host
-            builder.RegisterType<OpcUaTwinServices>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+           // builder.RegisterType<OpcUaPublisherServices>()
+           //     .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<OpcUaPublisherStub>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterModule<EdgeHostModule>();
 
             // Register opc ua client singleton instance

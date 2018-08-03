@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge {
     /// <summary>
     /// Specialized services provided by opc ua twin-
     /// </summary>
-    public interface IOpcUaTwinServices {
+    public interface IOpcUaPublisherServices {
 
         /// <summary>
         /// Endpoint

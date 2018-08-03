@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Edge;
+    using Microsoft.Azure.IIoT.Module.Framework;
     using Newtonsoft.Json;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -22,9 +22,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Maintains twin state for the lifetime of the twin
+    /// A simple publisher implementation.
     /// </summary>
-    public class OpcUaTwinServices : IOpcUaTwinServices, IDisposable {
+    public class OpcUaPublisherServices : IOpcUaPublisherServices, IDisposable {
 
         /// <summary>
         /// Current endpoint or null if not yet provisioned
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Create edge twin services
         /// </summary>
         /// <param name="client"></param>
-        public OpcUaTwinServices(IOpcUaClient client, ITwinProperties twin,
+        public OpcUaPublisherServices(IOpcUaClient client, ITwinProperties twin,
             IEventEmitter telemetry, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
