@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -35,26 +35,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         public bool? Activate { get; set; }
 
         /// <summary>
-        /// User name to use - if null, unchanged, empty
-        /// string to delete
+        /// Authentication to use on the twin.
         /// </summary>
-        [JsonProperty(PropertyName = "user",
+        [JsonProperty(PropertyName = "authentication",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string User { get; set; }
-
-        /// <summary>
-        /// User token to pass to server - if null, unchanged, empty
-        /// string to delete
-        /// </summary>
-        [JsonProperty(PropertyName = "token",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Token { get; set; }
-
-        /// <summary>
-        /// Type of token - if null, unchanged
-        /// </summary>
-        [JsonProperty(PropertyName = "tokenType",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public TokenType? TokenType { get; set; }
+        public AuthenticationApiModel Authentication { get; set; }
     }
 }

@@ -30,5 +30,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         [JsonProperty(PropertyName = "callback",
             NullValueHandling = NullValueHandling.Ignore)]
         public CallbackApiModel Callback { get; private set; }
+
+        /// <summary>
+        /// Upon discovery, activate all twins with this filter.
+        /// </summary>
+        [JsonProperty(PropertyName = "activationFilter",
+           NullValueHandling = NullValueHandling.Ignore)]
+        public TwinActivationFilterApiModel ActivationFilter { get; set; }
     }
 }
