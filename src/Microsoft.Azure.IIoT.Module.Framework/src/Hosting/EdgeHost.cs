@@ -4,9 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Devices.Client.Exceptions;
     using Microsoft.Azure.Devices.Shared;
     using Newtonsoft.Json.Linq;
     using System;
@@ -16,8 +19,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.Devices.Client.Exceptions;
 
     /// <summary>
     /// Edge host implementation
@@ -296,23 +297,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 CreationTimeUtc = DateTime.UtcNow
             };
             if (!string.IsNullOrEmpty(contentType)) {
-                msg.Properties.Add(kContentTypeKey, contentType);
+                msg.Properties.Add(CommonProperties.kContentType, contentType);
             }
             if (!string.IsNullOrEmpty(deviceId)) {
-                msg.Properties.Add(kDeviceIdKey, deviceId);
+                msg.Properties.Add(CommonProperties.kDeviceId, deviceId);
             }
             if (!string.IsNullOrEmpty(moduleId)) {
-                msg.Properties.Add(kModuleIdKey, moduleId);
+                msg.Properties.Add(CommonProperties.kModuleId, moduleId);
             }
-            msg.Properties.Add(kCreationTimeUtcKey, msg.CreationTimeUtc.ToString());
+            msg.Properties.Add(CommonProperties.kCreationTimeUtc,
+                msg.CreationTimeUtc.ToString());
             return msg;
         }
-
-        private const string kDeviceIdKey = "$$DeviceId";
-        private const string kModuleIdKey = "$$ModuleId";
-        private const string kMessageSchemaKey = "$$MessageSchema";
-        private const string kContentTypeKey = "$$ContentType";
-        private const string kCreationTimeUtcKey = "$$CreationTimeUtc";
 
         /// <summary>
         /// Reads the twin including desired and reported settings and applies them to the

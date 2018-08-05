@@ -9,12 +9,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
-    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -37,77 +33,44 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
 
         /// <inheritdoc/>
         public Task SendAsync(string deviceId, string moduleId,
-            IEnumerable<DeviceMessageModel> messages) {
-            if (messages == null) {
-                throw new ArgumentNullException(nameof(messages));
+            DeviceMessageModel message) {
+            if (message == null) {
+                throw new ArgumentNullException(nameof(message));
             }
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
-            if (!messages.Any()) {
-                return Task.CompletedTask;
-            }
-            var body = ToJson(messages);
             return Retry.WithExponentialBackoff(_logger, async () => {
                 var to = $"/devices/{ToResourceId(deviceId, moduleId)}/messages/events";
                 var request = NewRequest(to);
+                foreach (var property in message.Properties) {
+                    if (kHeaderMap.TryGetValue(property.Key, out var header)) {
+                        request.AddHeader(header, property.Value);
+                    }
+                    else {
+                        request.AddHeader(kHttpAppPropertyPrefix + property.Key,
+                            property.Value);
+                    }
+                }
                 request.AddHeader("iothub-operation", "d2c");
                 request.AddHeader("iothub-to", to);
-                request.AddHeader("Content-Type", "application/vnd.microsoft.iothub.json");
-                request.SetContent(body);
+                request.SetContent(message.Payload);
                 var response = await _httpClient.PostAsync(request);
                 response.Validate();
             });
         }
 
-        /// <summary>
-        /// Encoding courtesy of HttpTransportHandler.cs in Azure IoT hub SDK.
-        /// </summary>
-        /// <param name="messages"></param>
-        /// <returns></returns>
-        private static string ToJson(IEnumerable<DeviceMessageModel> messages) {
-            using (var sw = new StringWriter())
-            using (var writer = new JsonTextWriter(sw)) {
-                writer.WriteStartArray();
-                foreach (var message in messages) {
-                    writer.WriteStartObject();
-                    writer.WritePropertyName("body");
-                    writer.WriteValue(
-                        Convert.ToBase64String(
-                            Encoding.UTF8.GetBytes(message.Payload.ToString())));
-                    if (message.Properties?.Any() ?? false) {
-                        writer.WritePropertyName("properties");
-                        writer.WriteStartObject();
-                        foreach (var property in message.Properties) {
-                            if (kHeaderMap.TryGetValue(property.Key, out var header)) {
-                                writer.WritePropertyName(header);
-                            }
-                            else {
-                                writer.WritePropertyName(kHttpAppPropertyPrefix +
-                                    property.Key);
-                            }
-                            writer.WriteValue(property.Value);
-                        }
-                        writer.WriteEndObject();
-                    }
-                    writer.WriteEndObject();
-                }
-                writer.WriteEndArray();
-                return sw.ToString();
-            }
-        }
-
         private static readonly IDictionary<string, string> kHeaderMap =
             new Dictionary<string, string> {
-                { SystemPropertyNames.Ack, "iothub-ack" },
-                { SystemPropertyNames.CorrelationId, "iothub-correlationid" },
-                { SystemPropertyNames.ExpiryTimeUtc, "iothub-expiry" },
-                { SystemPropertyNames.MessageId, "iothub-messageid" },
-                { SystemPropertyNames.UserId, "iothub-userid" },
-                { SystemPropertyNames.MessageSchema, "iothub-messageschema" },
-                { SystemPropertyNames.CreationTimeUtc, "iothub-creationtimeutc" },
-                { SystemPropertyNames.ContentType, "iothub-contenttype" },
-                { SystemPropertyNames.ContentEncoding, "iothub-contentencoding" }
+                { SystemProperties.Ack, "iothub-ack" },
+                { SystemProperties.CorrelationId, "iothub-correlationid" },
+                { SystemProperties.ExpiryTimeUtc, "iothub-expiry" },
+                { SystemProperties.MessageId, "iothub-messageid" },
+                { SystemProperties.UserId, "iothub-userid" },
+                { SystemProperties.MessageSchema, "iothub-messageschema" },
+                { SystemProperties.CreationTimeUtc, "iothub-creationtimeutc" },
+                { SystemProperties.ContentType, "iothub-contenttype" },
+                { SystemProperties.ContentEncoding, "iothub-contentencoding" }
             };
         private const string kHttpAppPropertyPrefix = "iothub-app-";
     }
