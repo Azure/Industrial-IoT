@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.Net.Scanner;
+    using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Newtonsoft.Json;
@@ -18,8 +20,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Collections.Concurrent;
-    using Microsoft.Azure.IIoT.Net.Scanner;
-    using Microsoft.Azure.IIoT.Net.Models;
 
     /// <summary>
     /// Provides discovery services for the supervisor

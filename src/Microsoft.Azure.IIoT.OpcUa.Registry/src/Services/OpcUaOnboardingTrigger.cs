@@ -52,11 +52,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 Properties = new Dictionary<string, string> {
                     ["ContentType"] = kContentType,
                     ["ContentEncoding"] = kContentEncoding,
-                    [SystemPropertyNames.ContentType] = kContentType,
-                    [SystemPropertyNames.ContentEncoding] = kContentEncoding
+                    [SystemProperties.ContentType] = kContentType,
+                    [SystemProperties.ContentEncoding] = kContentEncoding
                 },
                 Payload = JToken.FromObject(request)
-            }.YieldReturn());
+            });
         }
 
         private readonly IIoTHubTwinServices _iothub;
