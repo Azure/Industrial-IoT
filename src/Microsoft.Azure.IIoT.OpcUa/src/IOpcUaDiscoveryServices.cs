@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        Task<List<ApplicationRegistrationModel>> DiscoverApplicationsAsync(
+        Task<DiscoveryResultModel> DiscoverApplicationsAsync(
             Uri discoveryUrl);
     }
 }

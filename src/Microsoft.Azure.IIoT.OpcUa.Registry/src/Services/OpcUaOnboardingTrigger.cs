@@ -15,9 +15,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Triggers onboarding in the onboarding agent.
+    /// Onboarding client triggers registry onboarding in the onboarding agent.
     /// </summary>
     public sealed class OpcUaOnboardingTrigger : IOpcUaOnboardingServices {
+
+        private const string kContentType = "application/x-registration-v1-json";
+        private const string kContentEncoding = "application/json";
 
         /// <summary>
         /// Create onboarding services
@@ -47,12 +50,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             await _events.SendAsync(OpcUaOnboarderHelper.kId, new DeviceMessageModel {
                 Properties = new Dictionary<string, string> {
-                    [SystemPropertyNames.ContentType] =
-                        "application/x-registration-v1-json",
-                    [SystemPropertyNames.ContentEncoding] =
-                        "application/json",
-                    ["caller-id"] =
-                        "onboarding-trigger",
+                    ["ContentType"] = kContentType,
+                    ["ContentEncoding"] = kContentEncoding,
+                    [SystemPropertyNames.ContentType] = kContentType,
+                    [SystemPropertyNames.ContentEncoding] = kContentEncoding
                 },
                 Payload = JToken.FromObject(request)
             }.YieldReturn());

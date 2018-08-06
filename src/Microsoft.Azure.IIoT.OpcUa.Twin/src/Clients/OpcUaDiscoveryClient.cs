@@ -14,14 +14,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Implements discovery through jobs and twin supervisor.
     /// </summary>
     public sealed class OpcUaDiscoveryClient : IOpcUaDiscoveryServices {
 
-        private static readonly TimeSpan kDiscoveryTimeout = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan kDiscoveryTimeout = TimeSpan.FromSeconds(20);
 
         /// <summary>
         /// Create client
@@ -38,12 +37,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        public async Task<List<ApplicationRegistrationModel>> DiscoverApplicationsAsync(
+        public async Task<DiscoveryResultModel> DiscoverApplicationsAsync(
             Uri discoveryUrl) {
             if (discoveryUrl == null) {
                 throw new ArgumentNullException(nameof(discoveryUrl));
             }
-            return await CallServiceOnAllSupervisors<Uri, List<ApplicationRegistrationModel>>(
+            return await CallServiceOnAllSupervisors<Uri, DiscoveryResultModel>(
                 "DiscoverApplication_V1", discoveryUrl, kDiscoveryTimeout);
         }
 
@@ -86,6 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
                         .FirstOrDefault(d => d.Outcome.Status == 200);
 
                     if (job.Status == JobStatus.Completed ||
+                        job.Status == JobStatus.Running ||
                         job.Status == JobStatus.Failed ||
                         job.Status == JobStatus.Cancelled) {
                         notCompleted = false;
