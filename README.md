@@ -52,14 +52,24 @@ For production scenarios build a [Docker](#Building-the-module-using-Docker) ima
 
 #### Development configuration
 
-When running the module stand alone (for testing or development purposes), a Module identity connection string needs to be provided to the module (something the EdgeAgent would otherwise do).  There are two ways of doing this:
+When running the module stand alone (for testing or development purposes), a Module identity scoped connection string needs to be provided to the module (something the Edgelet/EdgeAgent would otherwise do when the module is run inside the IoT Edge daemon).  
 
-1. Assuming you have a Module connection string, you can set the following environment variable on your system to it:
-    * `EdgeHubConnectionString` = { Module identity connection string }
-1. If you do not have one, you can set the following environment variables and the module will create a new Module identity for you:
-    * `EdgeDeviceId` = { The identity of the 'fake' IoT Edge *device* }
-    * `PCS_IOTHUB_CONNSTRING` = {your Azure IoT Hub connection string from [Deploy Azure Services](#deploy-azure-services)}
-        * More information on where to find your IoT Hub connection string can be found [here][iothub-connstring-blog].
+1. If you do not yet have a module scoped connection string, you can create a new module identity and retrieve one using the CLI tool [here](/cli).  Open a terminal or command line window at the repo root, then run the following which will output the connection string on success:
+
+    ``` bash
+    cd cli
+    dotnet run -c {iot hub owner connection string, e.g. $PCS_IOTHUB_CONNSTRING} --add {your desired iot edge device id} {your desired module id}
+    ```
+
+1. If you have created a module identity and want to use its connection string run this instead:
+
+    ``` bash
+    cd cli
+    dotnet run -c {iot hub owner connection string, e.g. $PCS_IOTHUB_CONNSTRING} --get {existing iot edge device id} {existing module id}
+    ```
+
+1. Now that you have the Module connection string, you can set it as environment variable on your system:
+    * `EdgeHubConnectionString` = { Module  connection string }
 
 More information on environment variables can be found [below](#Configuration-And-Environment-Variables).
 
