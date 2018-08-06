@@ -5,7 +5,7 @@ This repo contains the core business logic for the OPC Twin Industrial IIoT serv
 * [Microsoft.Azure.IIoT.OpcUa](src/Microsoft.Azure.IIoT.OpcUa/src) contains shared and common code among...
   * [Microsoft.Azure.IIoT.OpcUa.Edge](src/Microsoft.Azure.IIoT.OpcUa.Edge/src) contains the services hosted by the [OPC Twin module](https://github.com/Azure/azure-iiot-opc-twin-module).
   * [Microsoft.Azure.IIoT.OpcUa.Twin](src/Microsoft.Azure.IIoT.OpcUa.Twin/src) is the business logic behind the [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
-  * [Microsoft.Azure.IIoT.OpcUa.Registry](src/Microsoft.Azure.IIoT.OpcUa.Registry/src) is the core logic of the [OPC Twin Registry](https://github.com/Azure/azure-iiot-opc-registry-service) service.
+  * [Microsoft.Azure.IIoT.OpcUa.Registry](src/Microsoft.Azure.IIoT.OpcUa.Registry/src) is the core logic of the [OPC Twin Registry](https://github.com/Azure/azure-iiot-opc-twin-registry) service.
 
 The consuming services are part of our [Industrial IoT (IIoT) solution accelerator components](#Other-Industrial-IoT-Solution-Accelerator-components) suite.
 
@@ -29,7 +29,7 @@ The consuming services are part of our [Industrial IoT (IIoT) solution accelerat
 ## Other Industrial IoT Solution Accelerator components
 
 * [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
-* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-registry-service)
+* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-twin-registry)
 * [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
 * [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module)
 * [OPC Twin API](https://github.com/Azure/azure-iiot-opc-twin-api)
