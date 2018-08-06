@@ -19,10 +19,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime {
         private const string kIoTHubConnectionStringKey = "IoTHubConnectionString";
         /// <summary>IoT hub connection string</summary>
         public string IoTHubConnString => GetString(kIoTHubConnectionStringKey,
-            GetString(ServiceInfo.ID + "_HUB_CS", GetString("_HUB_CS", null)));
+            GetString(ServiceInfo.ID + "_HUB_CS",
+                GetString("_HUB_CS", GetString("PCS_IOTHUB_CONNSTRING", null))));
         /// <summary>Resource Id</summary>
         public string IoTHubResourceId => null;
-        /// <summary>Whether to bypass proxy</summary>
 
         /// <summary>
         /// Configuration constructor
