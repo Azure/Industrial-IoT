@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Product>Azure Industrial IoT OPC Twin Control Services</Product>
     <RepositoryUrl>https://github.com/Azure/azure-iiot-opc-twin-service</RepositoryUrl>
-    <RepositoryUrl>https://github.com/Azure/azure-iot-connected-factory</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Azure/azure-iot-pcs-remote-monitoring-dotnet</RepositoryUrl>
     <PackageTags>Industrial;Manufacturing;OPC;OPCUA;Azure;IoT;IIoT;Twin;.NET</PackageTags>
   </PropertyGroup>
 </Project>
