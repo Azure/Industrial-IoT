@@ -2,7 +2,7 @@
 
 This repository contains:
 
-1. The handcrafted C# API for both OPC Twin [Registry](https://github.com/Azure/azure-iiot-opc-twin-service) and [Service](https://github.com/Azure/azure-iiot-opc-registry-service).
+1. The handcrafted C# API for both OPC Twin [Registry](https://github.com/Azure/azure-iiot-opc-twin-service) and [Service](https://github.com/Azure/azure-iiot-opc-twin-registry).
 1. A command line interface (CLI) that allows you to exercise the API.
 1. (Coming soon) A set of AutoREST generated libraries that enable access to the above services using a wider variety of languages.
 
@@ -13,7 +13,7 @@ This repository contains:
 The command line interface (CLI) and APIs depend on the following services:
 
 * [OPC Twin Service](https://github.com/Azure/azure-iiot-opc-twin-service).
-* [OPC Registry Service](https://github.com/Azure/azure-iiot-opc-registry-service).
+* [OPC Registry Service](https://github.com/Azure/azure-iiot-opc-twin-registry).
 
 Follow the instructions at the respective link above to ensure that these dependencies are running before using the API or command line interface.
 
@@ -46,6 +46,20 @@ For more help on setting environment variables on your system:
 1. Run the `Microsoft.Azure.IIoT.OpcUa.Api.Cli` project (e.g. press F5).
 1. Type `help` to see the available options.
 
+### Building and running the CLI on the command line
+
+1. [Install .NET Core 2.1+][dotnet-install]
+1. Open a terminal window or command line window at the repo root.
+1. Set the [required environment variables](#Setup-Environment-variables-CLI)
+1. Make sure the [Prerequisites](#Prerequisites) are set up.
+1. Run the following command:
+    ```bash
+    cd src
+    cd Microsoft.Azure.IIoT.OpcUa.Api
+    cd cli
+    dotnet run console
+    ```
+
 ### Building and running the CLI using Docker
 
 1. Make sure [Docker][docker-url] is installed.
@@ -59,7 +73,7 @@ For more help on setting environment variables on your system:
 
 * OPC GDS service (Coming soon)
 * [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
-* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-registry-service)
+* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-twin-registry)
 * [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
 * OPC Twin management agent service (Coming soon)
 * OPC Twin common business logic (Coming soon)
