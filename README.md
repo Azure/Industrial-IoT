@@ -41,6 +41,19 @@ In order to run the service, some environment variables need to be created at le
 1. Start the `Microsoft.Azure.IIoT.OpcUa.Services.Twin` project (e.g. press F5).
 1. Open a browser to `http://localhost:9041/` and test the service using the services' Swagger UI or the [OPC Twin CLI](https://github.com/Azure/azure-iiot-opc-twin-api).
 
+### Building and running the service on the command line
+
+1. Make sure the [Prerequisites](#Prerequisites) are set up.
+1. [Install .NET Core 2.1+][dotnet-install]
+1. Open a terminal window or command line window at the repo root. 
+1. Set the [required environment variables](#Setup-Environment-variables) as explained [here](#Configuration-And-Environment-Variables)
+1. Run the following command:
+    ```bash
+    cd src
+    dotnet run
+    ```
+1. Open a browser to `http://localhost:9041/` and test the service using the services' Swagger UI or the [OPC Twin CLI](https://github.com/Azure/azure-iiot-opc-twin-api).
+
 ### Building and running the service using Docker
 
 1. Make sure [Docker][docker-url] is installed.
@@ -62,7 +75,7 @@ The service can be configured in its [appsettings.json](src/appsettings.json) fi
 ## Other Industrial IoT Solution Accelerator components
 
 * OPC GDS service (Coming soon)
-* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-registry-service)
+* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-twin-registry)
 * [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
 * OPC Twin management agent service (Coming soon)
 * OPC Twin common business logic (Coming soon)
