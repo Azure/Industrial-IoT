@@ -37,7 +37,7 @@ These helper libraries are used across our [Industrial IoT (IIoT) solution accel
 
 * OPC GDS service (Coming soon)
 * [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
-* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-registry-service)
+* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-twin-registry)
 * [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
 * OPC Twin management agent service (Coming soon)
 * OPC Twin common business logic (Coming soon)
