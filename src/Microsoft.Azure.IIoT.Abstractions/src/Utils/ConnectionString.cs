@@ -73,8 +73,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="connectionString"></param>
         /// <returns></returns>
         public static ConnectionString Parse(string connectionString) {
-            if (connectionString == null) {
-                throw new ArgumentException("Connection string must be non null");
+            if (string.IsNullOrEmpty(connectionString)) {
+                throw new ArgumentException("Connection string must not be null",
+                    nameof(ConnectionString));
             }
             var cs = new ConnectionString();
             foreach (var elem in connectionString.Split(';')) {
@@ -87,6 +88,22 @@ namespace Microsoft.Azure.IIoT.Utils {
                     elem.Substring(i + 1));
             }
             return cs;
+        }
+
+        /// <summary>
+        /// Try parse connection string
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <returns></returns>
+        public static bool TryParse(string connectionString, out ConnectionString cs) {
+            try {
+                cs = Parse(connectionString);
+                return true;
+            }
+            catch {
+                cs = null;
+                return false;
+            }
         }
 
         /// <summary>

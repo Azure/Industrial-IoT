@@ -178,12 +178,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// Called to apply changes
             /// </summary>
             /// <returns></returns>
-            public Task SafeApplyAsync() {
+            public async Task SafeApplyAsync() {
                 try {
-                    if (_applyMethod == null) {
-                        return Task.CompletedTask;
-                    }
-                    return (Task)_applyMethod.Invoke(Target, new object[] { });
+                    await ApplyInternalAsync();
                 }
                 catch (Exception e) {
                     _logger.Error($"Exception applying changes! Continue...", () => new {
@@ -191,8 +188,22 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         method = _applyMethod.Name,
                         exception = e
                     });
-                    // Eat exception.
-                    return Task.CompletedTask;
+                }
+            }
+
+            /// <summary>
+            /// Called to apply changes
+            /// </summary>
+            /// <returns></returns>
+            public Task ApplyInternalAsync() {
+                try {
+                    if (_applyMethod == null) {
+                        return Task.CompletedTask;
+                    }
+                    return (Task)_applyMethod.Invoke(Target, new object[] { });
+                }
+                catch (Exception e) {
+                    return Task.FromException(e);
                 }
             }
 
