@@ -17,8 +17,8 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Module.Framework" Version="1.0.0-preview004" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Net.Scan" Version="1.0.0-preview004" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Module.Framework" Version="1.0.0-preview005" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Net.Scan" Version="1.0.0-preview005" />
       </ItemGroup>
     </Otherwise>
   </Choose>
