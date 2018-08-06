@@ -26,6 +26,17 @@ The consuming services are part of our [Industrial IoT (IIoT) solution accelerat
 1. Run `dotnet build -c Release`
 1. Run `dotnet pack`
 
+## Other Industrial IoT Solution Accelerator components
+
+* [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
+* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-registry-service)
+* [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
+* [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module)
+* [OPC Twin API](https://github.com/Azure/azure-iiot-opc-twin-api)
+* OPC Twin management agent service (Coming soon)
+* OPC GDS service (Coming soon)
+* [OPC Publisher IoT Edge module](https://github.com/Azure/iot-edge-opc-publisher)
+
 ## Contributing
 
 Refer to our [contribution guidelines](CONTRIBUTING.md).
@@ -38,17 +49,6 @@ Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github
 
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the [MIT](LICENSE) License.
-
-## Other Industrial IoT Solution Accelerator components
-
-* [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
-* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-registry-service)
-* [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
-* [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module)
-* [OPC Twin API](https://github.com/Azure/azure-iiot-opc-twin-api)
-* OPC Twin management agent service (Coming soon)
-* OPC GDS service (Coming soon)
-* [OPC Publisher IoT Edge module](https://github.com/Azure/iot-edge-opc-publisher)
 
 [run-with-docker-url]: https://docs.microsoft.com/azure/iot-suite/iot-suite-remote-monitoring-deploy-local#run-the-microservices-in-docker
 [rm-arch-url]: https://docs.microsoft.com/azure/iot-suite/iot-suite-remote-monitoring-sample-walkthrough
