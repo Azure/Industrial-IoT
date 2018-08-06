@@ -2,7 +2,7 @@
 
 ![Build Status](https://msazure.visualstudio.com/_apis/public/build/definitions/b32aa71e-8ed2-41b2-9d77-5bc261222004/33979/badge)
 
-The OPC Twin module runs on the edge and provides serveral edge services to the [OPC Twin](https://github.com/Azure/azure-iiot-opc-twin-service) and [Registry](https://github.com/Azure/azure-iiot-opc-registry-service) micro services. Core of the module is the Supervisor identity.
+The OPC Twin module runs on the edge and provides serveral edge services to the [OPC Twin](https://github.com/Azure/azure-iiot-opc-twin-service) and [Registry](https://github.com/Azure/azure-iiot-opc-twin-registry) micro services. Core of the module is the Supervisor identity.
 
 The supervisor manages endpoint twins, which correspond to OPC UA server endpoints that were activated in the OPC Twin registry.  These endpoint twins translate OPC UA Json received from the Twin micro service running in the cloud into OPC UA binary messages which are sent over a stateful secure channel to the managed endpoint.
 
@@ -50,6 +50,18 @@ For production scenarios build a [Docker](#Building-the-module-using-Docker) ima
 1. Open the solution in Visual Studio or VS Code
 1. Start the `Microsoft.Azure.IIoT.OpcUa.Modules.Twin` project (e.g. press F5).
 
+### Building and running the module from the command line
+
+1. Make sure the [Prerequisites](#Prerequisites) are set up.
+1. [Install .NET Core 2.1+][dotnet-install]
+1. Open a terminal window or command line window at the repo root.
+1. Set the required environment variables as per the instructions [here](#Development-configuration).
+1. Run the following command:
+    ```bash
+    cd src
+    dotnet run
+    ```
+
 #### Development configuration
 
 When running the module stand alone (for testing or development purposes), a Module identity scoped connection string needs to be provided to the module (something the Edgelet/EdgeAgent would otherwise do when the module is run inside the IoT Edge daemon).  
@@ -86,7 +98,7 @@ The module can be configured in its [appsettings.json](src/appsettings.json) fil
 
 * OPC GDS service (Coming soon)
 * [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
-* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-registry-service)
+* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-twin-registry)
 * [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
 * OPC Twin management agent service (Coming soon)
 * OPC Twin common business logic (Coming soon)
