@@ -31,6 +31,5 @@ namespace Microsoft.Azure.IIoT.Hub {
         public const string ConnectionModuleId = "iothub-connection-module-id";
         public const string DiagId = "iothub-diag-id";
         public const string DiagCorrelationContext = "diag-correlation-context";
-
     }
 }

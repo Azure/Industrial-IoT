@@ -1,9 +1,10 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http {
+    using Microsoft.Azure.IIoT.Encoder.Models;
     using Newtonsoft.Json;
     using System;
     using System.Net.Http;
@@ -139,7 +140,7 @@ namespace Microsoft.Azure.IIoT.Http {
             request.SetContent(sourceObject, encoding, new MediaTypeHeaderValue(mediaType));
 
         private static readonly MediaTypeHeaderValue kDefaultMediaType =
-            new MediaTypeHeaderValue("application/json");
+            new MediaTypeHeaderValue(ContentEncodings.Json);
         private static readonly Encoding kDefaultEncoding = new UTF8Encoding();
     }
 }

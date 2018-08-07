@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.Module.Framework {
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.Tasks.Default;
+    using Microsoft.Azure.IIoT.Tasks;
     using Autofac;
 
     /// <summary>
@@ -36,9 +38,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
                     PropertyWiringOptions.AllowCircularDependencies);
 
             // If not already registered, register task scheduler
-            builder.RegisterType<EdgeScheduler>()
+#if USE_DEFAULT_FACTORY
+            builder.RegisterType<TaskScheduler>()
                 .AsImplementedInterfaces().SingleInstance()
                 .IfNotRegistered(typeof(ITaskScheduler));
+#else
+            builder.RegisterType<LimitingScheduler>()
+                .AsImplementedInterfaces().SingleInstance()
+                .IfNotRegistered(typeof(ITaskScheduler));
+#endif
 
             base.Load(builder);
         }

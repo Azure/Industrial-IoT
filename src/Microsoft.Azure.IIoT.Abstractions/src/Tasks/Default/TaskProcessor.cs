@@ -19,12 +19,35 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
     public class TaskProcessor : ITaskProcessor, IDisposable {
 
         /// <summary>
+        /// The processors task scheduler
+        /// </summary>
+        public ITaskScheduler Scheduler => _scheduler;
+
+        /// <summary>
         /// Create processor
         /// </summary>
         /// <param name="logger"></param>
-        public TaskProcessor(ITaskProcessorConfig config, ILogger logger) {
+        public TaskProcessor(ILogger logger) :
+            this(new DefaultConfig(), logger) {
+        }
+
+        /// <summary>
+        /// Create processor
+        /// </summary>
+        /// <param name="logger"></param>
+        public TaskProcessor(ITaskProcessorConfig config, ILogger logger) :
+            this (config, new DefaultScheduler(), logger) {
+        }
+
+        /// <summary>
+        /// Create processor
+        /// </summary>
+        /// <param name="logger"></param>
+        public TaskProcessor(ITaskProcessorConfig config, ITaskScheduler scheduler,
+            ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
             _processors = new List<ProcessorWorker>();
             for (var i = 0; i < Math.Max(1, config.MaxInstances); i++) {
                 _processors.Add(new ProcessorWorker(this));
@@ -32,13 +55,23 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         }
 
         /// <inheritdoc/>
-        public bool TrySchedule(Func<Task> job, Func<Task> checkpoint) {
+        public bool TrySchedule(Func<Task> task, Func<Task> checkpoint) {
+            if (task == null) {
+                throw new ArgumentNullException(nameof(task));
+            }
+            if (checkpoint == null) {
+                throw new ArgumentNullException(nameof(checkpoint));
+            }
+            return TrySchedule(new ProcessorWorker.Work {
+                Checkpoint = checkpoint,
+                Task = task,
+                Retries = 2 // TODO
+            });
+        }
+
+        private bool TrySchedule(ProcessorWorker.Work work) {
             return -1 != BlockingCollection<ProcessorWorker.Work>.TryAddToAny(
-                _processors.Select(p => p.Queue).ToArray(),
-                new ProcessorWorker.Work {
-                    Checkpoint = checkpoint,
-                    Process = job
-                });
+                _processors.Select(p => p.Queue).ToArray(), work);
         }
 
         /// <inheritdoc/>
@@ -58,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
                     throw new ArgumentNullException(nameof(processor));
                 Queue = new BlockingCollection<Work>(
                     Math.Max(1, processor._config.MaxQueueSize));
-                _worker = Task.Run(WorkAsync);
+                _worker = processor._scheduler.Run(WorkAsync);
             }
 
             /// <summary>
@@ -83,11 +116,19 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
                         continue;
                     }
                     try {
-                        await item.Process();
+                        await item.Task().ConfigureAwait(false);
                     }
-                    catch (AggregateException ex) {
-                        _processor._logger.Error($"Processing job failed with exception.",
+                    catch (Exception ex) {
+                        if (item.Retries == 0) {
+                            // Give up.
+                            _processor._logger.Error("Exception thrown, give up on task!",
+                                () => ex);
+                            return;
+                        }
+                        _processor._logger.Error($"Processing task failed with exception.",
                             () => ex);
+                        item.Retries--;
+                        _processor.TrySchedule(item);
                     }
                     await Try.Async(item.Checkpoint);
                 }
@@ -96,9 +137,14 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             internal class Work {
 
                 /// <summary>
+                /// Number of retries
+                /// </summary>
+                public int Retries { get; set; }
+
+                /// <summary>
                 /// Request to process
                 /// </summary>
-                public Func<Task> Process { get; set; }
+                public Func<Task> Task { get; set; }
 
                 /// <summary>
                 /// Checkpoint after completion
@@ -110,8 +156,14 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             private readonly Task _worker;
         }
 
+        internal class DefaultConfig : ITaskProcessorConfig {
+            public int MaxInstances => 1;
+            public int MaxQueueSize => 1000;
+        }
+
         private readonly ILogger _logger;
         private readonly ITaskProcessorConfig _config;
+        private readonly ITaskScheduler _scheduler;
         private readonly List<ProcessorWorker> _processors;
     }
 }

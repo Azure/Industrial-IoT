@@ -4,22 +4,19 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Tasks {
-    using System;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using System.Threading.Tasks;
 
-    public interface ITaskProcessor : IDisposable {
+    public interface ITaskScheduler {
 
         /// <summary>
-        /// The processors task scheduler
+        /// Task factory
         /// </summary>
-        ITaskScheduler Scheduler { get; }
+        TaskFactory Factory { get; }
 
         /// <summary>
-        /// Try enqueue task
+        /// Create debug dump
         /// </summary>
-        /// <param name="task"></param>
-        /// <param name="checkpoint"></param>
-        /// <returns></returns>
-        bool TrySchedule(Func<Task> task, Func<Task> checkpoint);
+        void Dump(ILogger logger);
     }
 }

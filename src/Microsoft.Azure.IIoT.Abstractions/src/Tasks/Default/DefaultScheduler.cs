@@ -3,20 +3,27 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework {
+namespace Microsoft.Azure.IIoT.Tasks.Default {
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Tasks;
     using System.Threading.Tasks;
 
-    public interface ITaskScheduler {
+    /// <summary>
+    /// Default task scheduler
+    /// </summary>
+    public class DefaultScheduler : ITaskScheduler {
 
         /// <summary>
-        /// Task factory
+        /// Provides a shared task factory
         /// </summary>
-        TaskFactory Factory { get; }
+        public TaskFactory Factory => Task.Factory;
 
         /// <summary>
         /// Create debug dump
         /// </summary>
-        void Dump(ILogger logger);
+        /// <param name="logger"></param>
+        public void Dump(ILogger logger) {
+            // No op
+        }
     }
 }

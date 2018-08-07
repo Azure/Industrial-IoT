@@ -74,6 +74,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
 
                     if (!eventData.Properties.TryGetValue(CommonProperties.kContentType,
                             out var contentType) &&
+                        !eventData.Properties.TryGetValue(EventProperties.kContentType,
+                            out contentType) &&
                         !eventData.SystemProperties.TryGetValue(
                             SystemProperties.ContentType, out contentType)) {
                         // Not our content to process
@@ -94,13 +96,13 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                     if (_factory._handlers.TryGetValue(contentType.ToString().ToLowerInvariant(),
                         out var handler)) {
                         await handler.HandleAsync(deviceId.ToString(),
-                            moduleId.ToString(), eventData.Body.Array,
+                            moduleId?.ToString(), eventData.Body.Array,
                                 () => Try.Async(() => context.CheckpointAsync(eventData)));
                         used.Add(handler);
                     }
                 }
                 foreach (var handler in used) {
-                    await Try.Async(() => handler.OnBatchCompleteAsync());
+                    await Try.Async(handler.OnBatchCompleteAsync);
                 }
             }
 

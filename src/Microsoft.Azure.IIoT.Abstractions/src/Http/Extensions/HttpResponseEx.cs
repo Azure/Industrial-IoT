@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -56,6 +56,7 @@ namespace Microsoft.Azure.IIoT.Http {
                     throw new ResourceOutOfDateException(response.GetContentAsString());
                 case HttpStatusCode.InternalServerError:
                 case HttpStatusCode.GatewayTimeout:
+                case HttpStatusCode.ServiceUnavailable:
                 case HttpStatusCode.TemporaryRedirect:
                 case (HttpStatusCode)429:
                     // Retried

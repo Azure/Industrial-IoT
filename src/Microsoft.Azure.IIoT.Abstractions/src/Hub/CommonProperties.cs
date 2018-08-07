@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         public const string kModuleId = "$$ModuleId";
         public const string kMessageSchema = "$$MessageSchema";
         public const string kContentType = "$$ContentType";
+        public const string kContentEncoding = "$$ContentEncoding";
         public const string kCreationTimeUtc = "$$CreationTimeUtc";
     }
 }

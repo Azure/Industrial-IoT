@@ -360,7 +360,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
 
                 // Process settings on controllers
-                _logger.Debug("Applying initial state.", () => desired);
+                _logger.Debug("Applying initial state.", () => { });
                 var processed = await _settings.ProcessSettingsAsync(desired);
 
                 // If there are changes, update what should be reported back.
@@ -386,7 +386,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     }
                 }
                 if (reported.Count > 0) {
-                    _logger.Debug("Reporting initial state.", () => reported);
+                    _logger.Debug("Reporting initial state.", () => { });
                     await _client.UpdateReportedPropertiesAsync(reported);
                 }
             }

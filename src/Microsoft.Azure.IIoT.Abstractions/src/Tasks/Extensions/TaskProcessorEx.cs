@@ -7,19 +7,15 @@ namespace Microsoft.Azure.IIoT.Tasks {
     using System;
     using System.Threading.Tasks;
 
-    public interface ITaskProcessor : IDisposable {
-
-        /// <summary>
-        /// The processors task scheduler
-        /// </summary>
-        ITaskScheduler Scheduler { get; }
+    public static class TaskProcessorEx {
 
         /// <summary>
         /// Try enqueue task
         /// </summary>
+        /// <param name="processor"></param>
         /// <param name="task"></param>
-        /// <param name="checkpoint"></param>
         /// <returns></returns>
-        bool TrySchedule(Func<Task> task, Func<Task> checkpoint);
+        public static bool TrySchedule(this ITaskProcessor processor,
+            Func<Task> task) => processor.TrySchedule(task, () => Task.CompletedTask);
     }
 }
