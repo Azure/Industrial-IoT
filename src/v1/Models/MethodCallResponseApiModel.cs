@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Method metadata request model for edge service api
+    /// Method call response model for edge service api
     /// </summary>
     public class MethodCallResponseApiModel {
         /// <summary>
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <summary>
         /// Output results
         /// </summary>
-        public List<string> Results { get; set; }
+        public List<JToken> Results { get; set; }
 
         /// <summary>
         /// Optional error diagnostics

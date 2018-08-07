@@ -5,10 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Control;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Scanning;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Tasks.Default;
 
     /// <summary>
     /// Main entry point
@@ -115,8 +116,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
                 .AsImplementedInterfaces();
 
             // Register discovery services
-            builder.RegisterType<OpcUaScanningServices>()
+            builder.RegisterType<OpcUaDiscoveryServices>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<TaskProcessor>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Register controllers
             builder.RegisterType<v1.Controllers.OpcUaSupervisorMethods>()
