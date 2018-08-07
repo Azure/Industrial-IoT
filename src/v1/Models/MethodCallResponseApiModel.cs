@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -10,9 +10,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Method metadata request model for webservice api
+    /// Method call response model for webservice api
     /// </summary>
     public class MethodCallResponseApiModel {
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -31,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// Output results
         /// </summary>
         [JsonProperty(PropertyName = "results")]
-        public List<string> Results { get; set; }
+        public List<JToken> Results { get; set; }
 
         /// <summary>
         /// Optional error diagnostics

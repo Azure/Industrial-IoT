@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// method arg model for webservice api
@@ -51,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// Initial value or value to use
         /// </summary>
         [JsonProperty(PropertyName = "value")]
-        public string Value { get; set; }
+        public JToken Value { get; set; }
 
         /// <summary>
         /// Data type of the value
