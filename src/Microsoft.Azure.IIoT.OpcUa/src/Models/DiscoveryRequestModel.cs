@@ -4,33 +4,25 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
 
     /// <summary>
-    /// Discovery mode to use
+    /// Manual discovery request
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum DiscoveryMode {
+    public class DiscoveryRequestModel {
 
         /// <summary>
-        /// No discovery
+        /// Id of discovery request
         /// </summary>
-        Off,
+        public string Id { get; set; }
 
         /// <summary>
-        /// Find and use local discovery server
+        /// Discovery mode to use
         /// </summary>
-        Local,
+        public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
-        /// Find and use all LDS in all connected networks
+        /// Scan configuration to use
         /// </summary>
-        Network,
-
-        /// <summary>
-        /// Perform a deep scan of all networks.
-        /// </summary>
-        Scan
+        public DiscoveryConfigModel Configuration { get; set; }
     }
 }

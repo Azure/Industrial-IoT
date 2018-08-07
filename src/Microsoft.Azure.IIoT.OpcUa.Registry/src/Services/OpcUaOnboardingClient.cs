@@ -5,35 +5,32 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Encoder.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Onboarding client triggers registry onboarding in the onboarding agent.
     /// </summary>
-    public sealed class OpcUaOnboardingTrigger : IOpcUaOnboardingServices {
-
-        private const string kContentType = "application/x-registration-v1-json";
-        private const string kContentEncoding = "application/json";
+    public sealed class OpcUaOnboardingClient : IOpcUaOnboardingServices {
 
         /// <summary>
-        /// Create onboarding services
+        /// Create onboarding client
         /// </summary>
         /// <param name="iothub"></param>
-        public OpcUaOnboardingTrigger(IIoTHubTwinServices iothub,
+        public OpcUaOnboardingClient(IIoTHubTwinServices iothub,
             IIoTHubMessagingServices events, ILogger logger) {
 
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            OpcUaOnboarderHelper.EnsureOnboarderIdExists(_iothub).Wait();
+            OpcUaOnboardingHelper.EnsureOnboarderIdExists(_iothub).Wait();
         }
 
         /// <inheritdoc/>
@@ -47,13 +44,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             if (string.IsNullOrEmpty(request.RegistrationId)) {
                 request.RegistrationId = Guid.NewGuid().ToString();
             }
+            await DiscoverAsync(new DiscoveryRequestModel {
+                Configuration = new DiscoveryConfigModel {
+                    ActivationFilter = request.ActivationFilter,
+                    Callbacks = request.Callback == null ? null :
+                        new List <CallbackModel> { request.Callback },
+                    DiscoveryUrls = new List<string> { request.DiscoveryUrl }
+                },
+                Id = request.RegistrationId,
+            });
+        }
 
-            await _events.SendAsync(OpcUaOnboarderHelper.kId, new DeviceMessageModel {
+        /// <inheritdoc/>
+        public async Task DiscoverAsync(DiscoveryRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            await _events.SendAsync(OpcUaOnboardingHelper.kId, new DeviceMessageModel {
                 Properties = new Dictionary<string, string> {
-                    ["ContentType"] = kContentType,
-                    ["ContentEncoding"] = kContentEncoding,
-                    [SystemProperties.ContentType] = kContentType,
-                    [SystemProperties.ContentEncoding] = kContentEncoding
+                    ["ContentType"] = ContentTypes.DiscoveryRequest,
+                    ["ContentEncoding"] = ContentEncodings.Json,
+                    [SystemProperties.ContentType] = ContentTypes.DiscoveryRequest,
+                    [SystemProperties.ContentEncoding] = ContentEncodings.Json
                 },
                 Payload = JToken.FromObject(request)
             });

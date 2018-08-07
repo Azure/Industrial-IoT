@@ -1,9 +1,10 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
+    using Newtonsoft.Json.Linq;
     using Opc.Ua;
 
     /// <summary>
@@ -16,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        string Encode(Variant value);
+        JToken Encode(Variant value);
 
         /// <summary>
         /// Parse string to variant
@@ -25,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="builtinType"></param>
         /// <param name="valueRank"></param>
         /// <returns></returns>
-        Variant Decode(string value, BuiltInType builtinType,
+        Variant Decode(JToken value, BuiltInType builtinType,
             int? valueRank);
     }
 }

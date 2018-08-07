@@ -3,20 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa {
+namespace Microsoft.Azure.IIoT.OpcUa.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using System.Threading.Tasks;
 
-    /// <summary>
-    /// Application discovery services
-    /// </summary>
-    public interface IOpcUaDiscoveryServices {
+    public interface IOpcUaDiscoveryClient {
 
         /// <summary>
-        /// Kick of an application discovery
+        /// Discover using discovery request.
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task DiscoverAsync(DiscoveryRequestModel request);
+        Task DiscoverAsync(string supervisorId,
+            DiscoveryRequestModel request);
     }
 }

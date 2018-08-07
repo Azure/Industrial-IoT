@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Services;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Newtonsoft.Json.Linq;
     using Opc.Ua;
@@ -15,7 +16,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.OpcUa.Services;
 
     /// <summary>
     /// This class provides access to a servers address space providing node
@@ -255,7 +255,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         NodeId = writeNode,
                         AttributeId = Attributes.Value,
                         Value = new DataValue(_codec.Decode(
-                            request.Value, builtinType, request.Node.ValueRank)),
+                            request.Value?.ToString(), builtinType, request.Node.ValueRank)),
                         IndexRange = null
                     }
                 };
@@ -295,7 +295,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     foreach (var arg in request.InputArguments) {
                         var builtinType = TypeInfo.GetBuiltInType(
                             arg.TypeId.ToNodeId(session.MessageContext), session.TypeTree);
-                        args.Add(_codec.Decode(arg.Value, builtinType, arg.ValueRank));
+                        args.Add(_codec.Decode(arg.Value?.ToString(), builtinType, arg.ValueRank));
                     }
                 }
                 var methodId = request.MethodId?.ToNodeId(session.MessageContext);
@@ -342,8 +342,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             var currentNode = session.ReadNode(nodeId);
             var model = new NodeModel {
                 Id = nodeId.AsString(session.MessageContext),
-                DisplayName = currentNode.DisplayName.ToString(),
-                Description = currentNode.Description.ToString(),
+                DisplayName = currentNode.DisplayName?.ToString(),
+                Description = currentNode.Description?.ToString(),
                 NodeClass = currentNode.NodeClass.ToServiceType(),
                 HasChildren = children
             };

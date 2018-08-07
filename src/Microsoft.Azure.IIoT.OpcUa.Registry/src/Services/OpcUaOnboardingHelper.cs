@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using System;
     using System.Threading.Tasks;
 
-    public static class OpcUaOnboarderHelper {
+    public static class OpcUaOnboardingHelper {
 
         public const string kId = "215DD51095C847C7B4311D683F782069";
 

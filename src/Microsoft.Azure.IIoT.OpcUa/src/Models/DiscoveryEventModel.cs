@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,12 +7,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
     using System;
 
     /// <summary>
-    /// Endpoint with application info when discovered
+    /// One of n events with the discovered application info
     /// </summary>
     public class DiscoveryEventModel {
 
         /// <summary>
-        /// Discovered endpoint
+        /// Timestamp of the discovery sweep.
+        /// </summary>
+        public DateTime TimeStamp { get; set; }
+
+        /// <summary>
+        /// Index in the batch with same timestamp.
+        /// </summary>
+        public int Index { get; set; }
+
+        /// <summary>
+        /// Discovered endpoint in form of twin registration
         /// </summary>
         public TwinRegistrationModel Registration { get; set; }
 
@@ -22,13 +32,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         public ApplicationInfoModel Application { get; set; }
 
         /// <summary>
-        /// Timestamp of the discovery sweep
+        /// Discovery result summary on last element
         /// </summary>
-        public DateTime TimeStamp { get; set; }
-
-        /// <summary>
-        /// Index in batch with timestamp
-        /// </summary>
-        public int Index { get; set; }
+        public DiscoveryResultModel Result { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -11,13 +11,18 @@ namespace Microsoft.Azure.IIoT.OpcUa {
     public static class Extensions {
 
         /// <summary>
-        /// Browse all items regardless of continuation.
+        /// Browse all references if max references is null and user
+        /// wants all. If user has requested maximum to return use
+        /// <see cref="IOpcUaBrowseServices{T}.NodeBrowseFirstAsync"/>
         /// </summary>
         /// <param name="service"></param>
         /// <param name="request"></param>
         /// <returns></returns>
         public static async Task<BrowseResultModel> NodeBrowseAsync<T>(
             this IOpcUaBrowseServices<T> service, T endpoint, BrowseRequestModel request) {
+            if (request.MaxReferencesToReturn != null) {
+                return await service.NodeBrowseFirstAsync(endpoint, request);
+            }
             while (true) {
                 var result = await service.NodeBrowseFirstAsync(endpoint, request);
                 while (result.ContinuationToken != null) {

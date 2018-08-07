@@ -15,5 +15,12 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// <param name="request"></param>
         /// <returns></returns>
         Task RegisterAsync(ServerRegistrationRequestModel request);
+
+        /// <summary>
+        /// Discover using discovery request.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task DiscoverAsync(DiscoveryRequestModel request);
     }
 }

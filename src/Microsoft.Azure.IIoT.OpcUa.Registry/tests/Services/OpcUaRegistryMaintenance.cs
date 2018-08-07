@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<OpcUaRegistryServices>();
 
                 // Run
-                service.ProcessDiscoveryAsync(super, found, false).Wait();
+                service.ProcessDiscoveryAsync(super, new DiscoveryResultModel(), found, false).Wait();
 
                 // Assert
                 Assert.Empty(registry.Devices);
@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<OpcUaRegistryServices>();
 
                 // Run
-                service.ProcessDiscoveryAsync(super, found, false).Wait();
+                service.ProcessDiscoveryAsync(super, new DiscoveryResultModel(), found, false).Wait();
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(existing));
@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<OpcUaRegistryServices>();
 
                 // Run
-                service.ProcessDiscoveryAsync(super, found, false).Wait();
+                service.ProcessDiscoveryAsync(super, new DiscoveryResultModel(), found, false).Wait();
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(created));
@@ -88,9 +88,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 mock.Provide<IIoTHubTwinServices>(registry);
                 var service = mock.Create<OpcUaRegistryServices>();
 
-
                 // Run
-                var t = service.ProcessDiscoveryAsync(super, found, false);
+                var t = service.ProcessDiscoveryAsync(super, new DiscoveryResultModel(), found, false);
 
                 // Assert
                 Assert.NotNull(t.Exception);
@@ -112,7 +111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<OpcUaRegistryServices>();
 
                 // Run
-                service.ProcessDiscoveryAsync(super, found, false).Wait();
+                service.ProcessDiscoveryAsync(super, new DiscoveryResultModel(), found, false).Wait();
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(created));
@@ -140,7 +139,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<OpcUaRegistryServices>();
 
                 // Run
-                service.ProcessDiscoveryAsync(super, found, false).Wait();
+                service.ProcessDiscoveryAsync(super, new DiscoveryResultModel(), found, false).Wait();
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(existing));
@@ -170,7 +169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<OpcUaRegistryServices>();
 
                 // Run
-                service.ProcessDiscoveryAsync(super, found, false).Wait();
+                service.ProcessDiscoveryAsync(super, new DiscoveryResultModel(), found, false).Wait();
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(existing));
@@ -199,7 +198,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<OpcUaRegistryServices>();
 
                 // Run
-                service.ProcessDiscoveryAsync(super, found, false).Wait();
+                service.ProcessDiscoveryAsync(super, new DiscoveryResultModel(), found, false).Wait();
 
                 // Assert
                 var inreg = ApplicationsIn(registry);
@@ -235,7 +234,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<OpcUaRegistryServices>();
 
                 // Run
-                service.ProcessDiscoveryAsync(super, found, false).Wait();
+                service.ProcessDiscoveryAsync(super, new DiscoveryResultModel(), found, false).Wait();
 
                 // Assert
                 var inreg = ApplicationsIn(registry);
@@ -270,7 +269,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<OpcUaRegistryServices>();
 
                 // Run
-                service.ProcessDiscoveryAsync(super, found, false).Wait();
+                service.ProcessDiscoveryAsync(super, new DiscoveryResultModel(), found, false).Wait();
 
                 // Assert
 
@@ -294,7 +293,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<OpcUaRegistryServices>();
 
                 // Run
-                service.ProcessDiscoveryAsync(super, found, false).Wait();
+                service.ProcessDiscoveryAsync(super, new DiscoveryResultModel(), found, false).Wait();
 
                 // Assert
                 var inreg = ApplicationsIn(registry);
@@ -323,7 +322,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<OpcUaRegistryServices>();
 
                 // Run
-                service.ProcessDiscoveryAsync(super, found, false).Wait();
+                service.ProcessDiscoveryAsync(super, new DiscoveryResultModel(), found, false).Wait();
 
                 // Assert
                 var inreg = ApplicationsIn(registry);
@@ -350,7 +349,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<OpcUaRegistryServices>();
 
                 // Run
-                service.ProcessDiscoveryAsync(super, found, true).Wait();
+                service.ProcessDiscoveryAsync(super, new DiscoveryResultModel(), found, true).Wait();
 
                 // Assert
                 Assert.Empty(ApplicationsIn(registry));

@@ -4,15 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Cli {
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Scanning;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.Module.Framework.Hosting;
+    using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -392,8 +392,8 @@ Operations (Mutually exclusive):
             var logger = new ConsoleLogger("test", LogLevel.Debug);
             var client = new OpcUaClient(logger);
 
-            var discovery = new OpcUaScanningServices(client, new ConsoleEmitter(),
-                new EdgeScheduler(), logger);
+            var discovery = new OpcUaDiscoveryServices(client, new ConsoleEmitter(),
+                new TaskProcessor(logger), logger);
 
             var rand = new Random();
             while (true) {
@@ -423,7 +423,7 @@ Operations (Mutually exclusive):
             var client = new OpcUaClient(logger);
 
             var exporter = new OpcUaExportServices(client, new ConsoleUploader(),
-                new ConsoleEmitter(), new EdgeScheduler(), logger) {
+                new ConsoleEmitter(), new LimitingScheduler(), logger) {
                 ExportIdleTime = TimeSpan.FromMilliseconds(1)
             };
             var id = await exporter.StartModelExportAsync(endpoint, "application/ua-json");

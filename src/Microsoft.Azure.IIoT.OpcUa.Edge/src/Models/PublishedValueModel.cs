@@ -1,11 +1,11 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Models {
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System;
 
     /// <summary>
@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Models {
         /// Value
         /// </summary>
         [JsonProperty]
-        public string Value { get; set; }
+        public JToken Value { get; set; }
 
         /// <summary>
         /// Source pico

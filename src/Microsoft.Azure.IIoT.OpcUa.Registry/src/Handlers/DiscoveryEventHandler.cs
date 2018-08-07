@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     public class DiscoveryEventHandler : IEventHandler {
 
         /// <inheritdoc/>
-        public string ContentType => "application/x-discovery-v1-json";
+        public string ContentType => OpcUa.Models.ContentTypes.DiscoveryEvent;
 
         /// <summary>
         /// Create handler
@@ -121,8 +121,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                 queue.Enqueue(model);
                 if (queue.Completed) {
                     // Process discoveries
-                    await _registry.ProcessDiscoveryAsync(supervisorId, queue.Endpoints,
-                        false);
+                    await _registry.ProcessDiscoveryAsync(supervisorId,
+                        queue.Result, queue.Events, false);
 
                     backlog.Remove(model.TimeStamp);
                     //
@@ -162,18 +162,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
             /// Whether the result is complete
             /// </summary>
             public bool Completed =>
-                _complete && _maxIndex == _endpoints.Count;
+                Result != null && _maxIndex == _endpoints.Count;
 
             /// <summary>
-            /// Try get results
+            /// Get events
             /// </summary>
             /// <returns></returns>
-            public IEnumerable<DiscoveryEventModel> Endpoints {
+            public IEnumerable<DiscoveryEventModel> Events {
                 get {
                     _endpoints.Sort((x, y) => x.Index - y.Index);
                     return _endpoints;
                 }
             }
+
+            /// <summary>
+            /// Result of discovery
+            /// </summary>
+            public DiscoveryResultModel Result { get; private set; }
 
             /// <summary>
             /// Create queue
@@ -195,12 +200,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                     _endpoints.Add(model);
                 }
                 else {
-                    _complete = true;
+                    Result = model.Result ?? new DiscoveryResultModel();
                 }
             }
 
             private readonly List<DiscoveryEventModel> _endpoints;
-            private bool _complete;
             private int _maxIndex;
         }
 

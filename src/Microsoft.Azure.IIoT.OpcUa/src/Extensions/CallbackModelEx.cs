@@ -13,6 +13,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
     public static class CallbackModelEx {
 
         /// <summary>
+        /// Clone
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static CallbackModel Clone(this CallbackModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new CallbackModel {
+                AuthenticationHeader = model.AuthenticationHeader,
+                Method = model.Method,
+                Uri = model.Uri
+            };
+        }
+
+        /// <summary>
         /// Equality comparison
         /// </summary>
         /// <param name="model"></param>

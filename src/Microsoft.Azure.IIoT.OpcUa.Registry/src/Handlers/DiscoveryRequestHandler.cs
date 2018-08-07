@@ -16,34 +16,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Registration request handler
+    /// Handles discovery requests received from the
+    /// <see cref="OpcUaOnboardingClient"/> instance and pushes them
+    /// to the edge.
     /// </summary>
-    public class RegistrationRequestHandler : IEventHandler {
+    public class DiscoveryRequestHandler : IEventHandler {
 
         /// <inheritdoc/>
-        public string ContentType => "application/x-registration-v1-json";
+        public string ContentType => OpcUa.Models.ContentTypes.DiscoveryRequest;
 
         /// <summary>
         /// Create handler
         /// </summary>
-        /// <param name="registry"></param>
+        /// <param name="discovery"></param>
         /// <param name="logger"></param>
-        public RegistrationRequestHandler(IOpcUaRegistryMaintenance registry,
+        public DiscoveryRequestHandler(IOpcUaDiscoveryServices discovery,
             ITaskProcessor processor, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _registry = registry ?? throw new ArgumentNullException(nameof(registry));
+            _discovery = discovery ?? throw new ArgumentNullException(nameof(discovery));
             _processor = processor ?? throw new ArgumentNullException(nameof(processor));
         }
 
         /// <inheritdoc/>
         public Task HandleAsync(string deviceId, string moduleId, byte[] payload,
             Func<Task> checkpoint) {
-            if (OpcUaOnboarderHelper.kId == deviceId.ToString()) {
+            if (OpcUaOnboardingHelper.kId == deviceId.ToString()) {
                 var json = Encoding.UTF8.GetString(payload);
-                ServerRegistrationRequestModel request;
+                DiscoveryRequestModel request;
                 try {
-                    request = JsonConvertEx.DeserializeObject<ServerRegistrationRequestModel>(json);
-                    _processor.TrySchedule(() => _registry.ProcessRegisterAsync(request), checkpoint);
+                    request = JsonConvertEx.DeserializeObject<DiscoveryRequestModel>(json);
+                    _processor.TrySchedule(() => _discovery.DiscoverAsync(request), checkpoint);
                 }
                 catch (Exception ex) {
                     _logger.Error("Failed to convert registration json",
@@ -57,7 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         public Task OnBatchCompleteAsync() => Task.CompletedTask;
 
         private readonly ILogger _logger;
-        private readonly IOpcUaRegistryMaintenance _registry;
+        private readonly IOpcUaDiscoveryServices _discovery;
         private readonly ITaskProcessor _processor;
     }
 }

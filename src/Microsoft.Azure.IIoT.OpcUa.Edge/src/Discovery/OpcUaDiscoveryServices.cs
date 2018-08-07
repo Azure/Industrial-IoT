@@ -3,77 +3,75 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Net.Scanner;
     using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Net;
+    using System.Net.NetworkInformation;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Collections.Concurrent;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Provides discovery services for the supervisor
     /// </summary>
-    public class OpcUaScanningServices : IOpcUaScanningServices, IDisposable {
+    public class OpcUaDiscoveryServices : IOpcUaScanningServices,
+        IOpcUaDiscoveryServices, IDisposable {
 
-        /// <summary>
-        /// Current discovery mode
-        /// </summary>
+        /// <inheritdoc/>
         public DiscoveryMode Mode {
-            get => Options.Mode;
-            set => Options.Mode = value;
+            get => Request.Mode;
+            set => Request = new OpcUaDiscoveryRequest(value, Request.Configuration);
         }
 
-        /// <summary>
-        /// Current configuration
-        /// </summary>
+        /// <inheritdoc/>
         public DiscoveryConfigModel Configuration {
-            get => Options.Configuration;
-            set => Options.UpdateFromModel(Options.Mode, value);
+            get => Request.Configuration;
+            set => Request = new OpcUaDiscoveryRequest(Request.Mode, value);
         }
 
         /// <summary>
-        /// Discovery configuration
+        /// Current discovery options
         /// </summary>
-        public OpcUaScanningOptions Options { get; set; } = OpcUaScanningOptions.Default;
+        internal OpcUaDiscoveryRequest Request { get; set; } = new OpcUaDiscoveryRequest();
 
         /// <summary>
         /// Create service
         /// </summary>
         /// <param name="logger"></param>
-        public OpcUaScanningServices(IOpcUaClient client, IEventEmitter events,
-            ITaskScheduler scheduler, ILogger logger) {
+        public OpcUaDiscoveryServices(IOpcUaClient client, IEventEmitter events,
+            ITaskProcessor processor, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _events = events ?? throw new ArgumentNullException(nameof(events));
-            _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
+            _processor = processor ?? throw new ArgumentNullException(nameof(processor));
             _discovered = new SortedDictionary<DateTime, List<ApplicationRegistrationModel>>();
             _setupDelay = TimeSpan.FromSeconds(10);
             _lock = new SemaphoreSlim(1);
         }
 
-        /// <summary>
-        /// Update discovery mode
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task ScanAsync() {
             try {
                 await _lock.WaitAsync();
                 await StopAsync();
                 if (Mode != DiscoveryMode.Off) {
                     _discovery = new CancellationTokenSource();
-                    _completed = _scheduler.Run(() =>
-                        RunAsync(Options.Clone(), _setupDelay, _discovery.Token));
+                    _completed = _processor.Scheduler.Run(() =>
+                        RunContinouslyAsync(Request.Clone(), _setupDelay, _discovery.Token));
                     _setupDelay = null;
                 }
             }
@@ -82,9 +80,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
             }
         }
 
-        /// <summary>
-        /// Dispose discovery services
-        /// </summary>
+        /// <inheritdoc/>
+        public Task DiscoverAsync(DiscoveryRequestModel request) {
+            if (request == null) {
+                return Task.FromException(new ArgumentNullException(nameof(request)));
+            }
+            var scheduled = _processor.TrySchedule(() =>
+                RunOnceAsync(new OpcUaDiscoveryRequest(request), CancellationToken.None));
+            if (scheduled) {
+                return Task.CompletedTask;
+            }
+            _logger.Error("Task not scheduled, internal server error!", () => { });
+            return Task.FromException(new ResourceExhaustionException(
+                "Failed to schedule task"));
+        }
+
+        /// <inheritdoc/>
         public void Dispose() {
             _lock.Wait();
             try {
@@ -115,8 +126,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
         /// Scan and discover in continuous loop
         /// </summary>
         /// <param name="ct"></param>
-        private async Task RunAsync(OpcUaScanningOptions options, TimeSpan? delay,
-            CancellationToken ct) {
+        private async Task RunContinouslyAsync(OpcUaDiscoveryRequest request,
+            TimeSpan? delay, CancellationToken ct) {
 
             if (delay != null) {
                 try {
@@ -131,28 +142,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
             // Run scans until cancelled
             while (!ct.IsCancellationRequested) {
                 try {
-                    //
-                    // Discover
-                    //
-                    var discovered = await DiscoverServersAsync(options, ct);
-                    var timestamp = DateTime.UtcNow;
-
-                    //
-                    // Update cache
-                    //
-                    lock (_discovered) {
-                        _discovered.Add(timestamp, discovered);
-                        if (_discovered.Count > 10) {
-                            _discovered.Remove(_discovered.First().Key);
-                        }
-                    }
-
-                    ct.ThrowIfCancellationRequested();
-
-                    //
-                    // Upload results
-                    //
-                    await UploadResultsAsync(discovered, timestamp, ct);
+                    await ProcessAsync(request, ct);
                 }
                 catch (OperationCanceledException) {
                     _logger.Debug("Cancelled discovery run.", () => { });
@@ -163,12 +153,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
                 }
 
                 //
-                // Delay next run
+                // Delay next processing
                 //
                 try {
                     if (!ct.IsCancellationRequested) {
                         GC.Collect();
-                        var idle = options.Configuration.IdleTimeBetweenScans ??
+                        var idle = request.Configuration.IdleTimeBetweenScans ??
                             TimeSpan.FromMinutes(3);
                         if (idle.Ticks != 0) {
                             _logger.Debug($"Idle for {idle}...", () => { });
@@ -183,24 +173,79 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
         }
 
         /// <summary>
+        /// Scan and discover one time
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        private async Task RunOnceAsync(OpcUaDiscoveryRequest request,
+            CancellationToken ct) {
+            try {
+                await ProcessAsync(request, CancellationToken.None);
+            }
+            catch (Exception ex) {
+                //
+                // Upload failure
+                //
+                var timestamp = DateTime.UtcNow;
+                var discovered = new List<ApplicationRegistrationModel>();
+                await UploadResultsAsync(request, discovered, DateTime.UtcNow,
+                    ex, ct);
+            }
+        }
+
+        /// <summary>
+        /// Process request
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task ProcessAsync(OpcUaDiscoveryRequest request,
+            CancellationToken ct) {
+            //
+            // Discover
+            //
+            var discovered = await DiscoverServersAsync(request, ct);
+            var timestamp = DateTime.UtcNow;
+
+            //
+            // Update cache
+            //
+            lock (_discovered) {
+                _discovered.Add(timestamp, discovered);
+                if (_discovered.Count > 10) {
+                    _discovered.Remove(_discovered.First().Key);
+                }
+            }
+
+            ct.ThrowIfCancellationRequested();
+
+            //
+            // Upload results
+            //
+            await UploadResultsAsync(request, discovered, timestamp,
+                null, ct);
+        }
+
+        /// <summary>
         /// Run a network discovery
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<List<ApplicationRegistrationModel>> DiscoverServersAsync(
-            OpcUaScanningOptions options, CancellationToken ct) {
-            var discoveryUrls = new ConcurrentQueue<Tuple<Uri, IPEndPoint>>();
-            if (options.Mode == DiscoveryMode.Off) {
-                return new List<ApplicationRegistrationModel>();
+            OpcUaDiscoveryRequest request, CancellationToken ct) {
+
+            var discoveryUrls = await GetDiscoveryUrlsAsync(request.DiscoveryUrls);
+            if (request.Mode == DiscoveryMode.Off) {
+                return await DiscoverServersAsync(discoveryUrls, ct);
             }
 
-            var watch = Stopwatch.StartNew();
             _logger.Info("Start discovery run...", () => { });
+            var watch = Stopwatch.StartNew();
 
             //
             // Set up scanner pipeline and start discovery
             //
-            var local = options.Mode == DiscoveryMode.Local;
+            var local = request.Mode == DiscoveryMode.Local;
 #if !NO_SCHEDULER_DUMP
             _counter = 0;
 #endif
@@ -208,9 +253,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
             using (var netscanner = new NetworkScanner(_logger, reply => {
                 _logger.Debug($"{reply.Address} found.", () => { });
                 addresses.Add(reply.Address);
-            }, local, local ? null : options.AddressRanges, options.NetworkClass,
-                options.Configuration.MaxNetworkProbes,
-                options.Configuration.NetworkProbeTimeout, ct)) {
+            }, local, local ? null : request.AddressRanges, request.NetworkClass,
+                request.Configuration.MaxNetworkProbes,
+                request.Configuration.NetworkProbeTimeout, ct)) {
 
                 // Log progress
                 using (var progress = new Timer(_ => ProgressTimer(() =>
@@ -236,22 +281,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
 #endif
             using (var portscan = new PortScanner(_logger,
                 addresses.SelectMany(address => {
-                    var ranges = options.PortRanges;
+                    var ranges = request.PortRanges;
                     if (ranges == null) {
-                        if (options.Mode == DiscoveryMode.Local) {
+                        if (request.Mode == DiscoveryMode.Local) {
                             ranges = PortRange.All;
                         }
                         else {
                             ranges = PortRange.OpcUa;
                         }
-                        if (options.Mode == DiscoveryMode.Scan) {
+                        if (request.Mode == DiscoveryMode.Scan) {
                             ranges = ranges.Concat(PortRange.Unassigned);
                         }
                     }
                     return ranges.SelectMany(x => x.GetEndpoints(address));
-                }), ports.Add, probe, options.Configuration.MaxPortProbes,
-                options.Configuration.MinPortProbesPercent,
-                options.Configuration.PortProbeTimeout, ct)) {
+                }), ports.Add, probe, request.Configuration.MaxPortProbes,
+                request.Configuration.MinPortProbesPercent,
+                request.Configuration.PortProbeTimeout, ct)) {
 
                 // Log progress
                 using (var progress = new Timer(_ => ProgressTimer(() =>
@@ -276,19 +321,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
                 ct.ThrowIfCancellationRequested();
                 var resolved = await ep.TryResolveAsync();
                 var url = new Uri($"opc.tcp://" + resolved);
-                discoveryUrls.Enqueue(Tuple.Create(url, ep));
+                discoveryUrls.Add(ep, url);
             }
             ct.ThrowIfCancellationRequested();
 
             //
             // Create application model list from discovered endpoints...
             //
+            var discovered = await DiscoverServersAsync(discoveryUrls, ct);
+            _logger.Info($"Discovery took {watch.Elapsed} and found " +
+                $"{discovered.Count} servers.", () => { });
+            return discovered;
+        }
+
+        /// <summary>
+        /// Discover servers using opcua discovery
+        /// </summary>
+        /// <param name="discoveryUrls"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task<List<ApplicationRegistrationModel>> DiscoverServersAsync(
+            Dictionary<IPEndPoint, Uri> discoveryUrls, CancellationToken ct) {
             var discovered = new List<ApplicationRegistrationModel>();
             var supervisorId = SupervisorModelEx.CreateSupervisorId(_events.DeviceId,
                 _events.ModuleId);
             foreach (var item in discoveryUrls) {
                 ct.ThrowIfCancellationRequested();
-                var url = item.Item1;
+                var url = item.Value;
                 var eps = await _client.DiscoverAsync(url, ct).ConfigureAwait(false);
                 if (!eps.Any()) {
                     continue;
@@ -297,14 +356,51 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
                     () => { });
                 // Merge results...
                 foreach (var ep in eps) {
-                    discovered.AddOrUpdate(ep.ToServiceModel(item.Item2.ToString(),
+                    discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),
                         _events.SiteId, supervisorId));
                 }
             }
             ct.ThrowIfCancellationRequested();
-            _logger.Info($"Discovery took {watch.Elapsed} and found " +
-                $"{discovered.Count} servers.", () => { });
             return discovered;
+        }
+
+        /// <summary>
+        /// Get all reachable addresses from urls
+        /// </summary>
+        /// <param name="discoveryUrls"></param>
+        /// <returns></returns>
+        private async Task<Dictionary<IPEndPoint, Uri>> GetDiscoveryUrlsAsync(
+            IEnumerable<Uri> discoveryUrls) {
+            if (discoveryUrls?.Any() ?? false) {
+                var results = await Task.WhenAll(discoveryUrls
+                    .Select(GetHostEntryAsync)
+                    .ToArray());
+                return results
+                    .Where(a => a != null)
+                    .ToDictionary(k => k.Item1, v => v.Item2);
+            }
+            return new Dictionary<IPEndPoint, Uri>();
+        }
+
+        /// <summary>
+        /// Get a reachable host address from url
+        /// </summary>
+        /// <param name="discoveryUrl"></param>
+        /// <returns></returns>
+        private Task<Tuple<IPEndPoint, Uri>> GetHostEntryAsync(
+            Uri discoveryUrl) {
+            return Try.Async(async () => {
+                var entry = await Dns.GetHostEntryAsync(discoveryUrl.DnsSafeHost);
+                foreach (var address in entry.AddressList) {
+                    var reply = await new Ping().SendPingAsync(address);
+                    if (reply.Status == IPStatus.Success) {
+                        var port = discoveryUrl.Port;
+                        return Tuple.Create(new IPEndPoint(address,
+                            port == 0 ? 4840 : port), discoveryUrl);
+                    }
+                }
+                return null;
+            });
         }
 
         /// <summary>
@@ -312,10 +408,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
         /// </summary>
         /// <param name="discovered"></param>
         /// <param name="timestamp"></param>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task UploadResultsAsync(List<ApplicationRegistrationModel> discovered,
-            DateTime timestamp, CancellationToken ct) {
+        private async Task UploadResultsAsync(OpcUaDiscoveryRequest request,
+            List<ApplicationRegistrationModel> discovered, DateTime timestamp,
+            object diagnostics, CancellationToken ct) {
             _logger.Info($"Uploading {discovered.Count} results...", () => { });
             var messages = discovered
                 .SelectMany(server => server.Endpoints
@@ -326,6 +424,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
                     }))
                 .Append(new DiscoveryEventModel {
                     Registration = null, // last
+                    Result = new DiscoveryResultModel {
+                        DiscoveryConfig = request.Configuration,
+                        Id = request.Request.Id,
+                        RegisterOnly = request.Mode == DiscoveryMode.Off,
+                        Diagnostics = diagnostics == null ? null :
+                            JToken.FromObject(diagnostics)
+                    },
                     TimeStamp = timestamp
                 })
                 .Select((discovery, i) => {
@@ -335,7 +440,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
                 .Select(discovery => Encoding.UTF8.GetBytes(
                     JsonConvertEx.SerializeObject(discovery)));
             await Task.Run(() => _events.SendAsync(
-                messages, "application/x-discovery-v1-json"), ct);
+                messages, ContentTypes.DiscoveryEvent), ct);
             _logger.Info($"{discovered.Count} results uploaded.", () => { });
         }
 
@@ -346,7 +451,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
         private void ProgressTimer(Func<string> message) {
 #if !NO_SCHEDULER_DUMP
             if ((++_counter % 500) == 0) {
-                _scheduler.Dump(_logger);
+                _processor.Scheduler.Dump(_logger);
                 if (_counter >= 2000) {
                     throw new ThreadStateException("Stuck");
                 }
@@ -367,7 +472,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Scanning {
         private readonly ILogger _logger;
         private readonly TimeSpan _progressInterval = TimeSpan.FromSeconds(3);
         private readonly IEventEmitter _events;
-        private readonly ITaskScheduler _scheduler;
+        private readonly ITaskProcessor _processor;
         private readonly IOpcUaClient _client;
 
         private const int kPortScanBatchSize = 10000;

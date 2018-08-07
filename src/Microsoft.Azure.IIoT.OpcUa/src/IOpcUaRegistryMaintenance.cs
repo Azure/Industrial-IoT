@@ -18,18 +18,11 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// provided event list from the supervisor.
         /// </summary>
         /// <param name="supervisorId"></param>
+        /// <param name="result"></param>
         /// <param name="events"></param>
         /// <param name="hardDelete"></param>
         /// <returns></returns>
-        Task ProcessDiscoveryAsync(string supervisorId,
+        Task ProcessDiscoveryAsync(string supervisorId, DiscoveryResultModel result,
             IEnumerable<DiscoveryEventModel> events, bool hardDelete);
-
-        /// <summary>
-        /// Process server registration by trying to onboard
-        /// all servers found at the requested endpoint.
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        Task ProcessRegisterAsync(ServerRegistrationRequestModel request);
     }
 }

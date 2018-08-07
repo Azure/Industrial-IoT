@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Request value write
@@ -18,7 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// <summary>
         /// Value to write
         /// </summary>
-        public string Value { get; set; }
+        public JToken Value { get; set; }
 
         /// <summary>
         /// Elevation

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -18,15 +18,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public string Encode(Variant value) {
+        public JToken Encode(Variant value) {
             if (value == Variant.Null) {
-                return "null";
+                return JValue.CreateNull();
             }
             var encoder = new JsonEncoder(ServiceMessageContext.GlobalContext, true);
             encoder.WriteVariant(nameof(value), value);
             var json = encoder.CloseAndReturnText();
-            var o = JToken.Parse(json).SelectToken("value.Body");
-            return o.ToString(Formatting.None);
+            return JToken.Parse(json).SelectToken("value.Body");
         }
 
         /// <summary>
@@ -35,22 +34,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
         /// <param name="value"></param>
         /// <param name="builtinType"></param>
         /// <returns></returns>
-        public Variant Decode(string value, BuiltInType builtinType, int? valueRank) {
-            if (string.IsNullOrEmpty(value) || value == "null") {
+        public Variant Decode(JToken value, BuiltInType builtinType, int? valueRank) {
+            if (value == null || value.Type == JTokenType.Null) {
                 return Variant.Null;
             }
             if (valueRank.HasValue && valueRank.Value != ValueRanks.Scalar) {
-                value = $"[{value.Trim().Trim('[', ']')}]";
+                if (!(value is JArray)) {
+                    value = new JArray(value);
+                }
             }
             else if (builtinType == BuiltInType.String) {
-                value = SanitizeString(value);
+                value = SanitizeString(value.ToString());
             }
-            var token = JToken.Parse(value);
             var json = new JObject {
-                { nameof(value), token }
+                { nameof(value), value }
             };
             var decoder = new JsonDecoder(json.ToString(), ServiceMessageContext.GlobalContext);
-            if (token.Type == JTokenType.Array) {
+            if (value.Type == JTokenType.Array) {
                 return ReadVariantArrayBody(decoder, nameof(value), builtinType);
             }
             return ReadVariantBody(decoder, nameof(value), builtinType);
