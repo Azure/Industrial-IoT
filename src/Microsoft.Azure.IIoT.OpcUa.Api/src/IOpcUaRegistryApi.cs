@@ -20,11 +20,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
         Task<StatusResponseApiModel> GetServiceStatusAsync();
 
         /// <summary>
-        /// Register new server for onboarding
+        /// Kick off onboarding of new server
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
         Task RegisterAsync(ServerRegistrationRequestApiModel request);
+
+        /// <summary>
+        /// Kick off a one time discovery on all supervisors
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task DiscoverAsync(DiscoveryRequestApiModel request);
 
         /// <summary>
         /// Register new application.

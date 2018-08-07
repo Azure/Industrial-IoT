@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -17,23 +17,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         /// Value read
         /// </summary>
         [JsonProperty(PropertyName = "value")]
-        public string Value { get; set; }
+        public JToken Value { get; set; }
 
-        [JsonProperty(PropertyName = "sourcePicoseconds",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public ushort? SourcePicoseconds { get; set; }
-
+        /// <summary>
+        /// Source time stamp
+        /// </summary>
         [JsonProperty(PropertyName = "sourceTimestamp",
             NullValueHandling = NullValueHandling.Ignore)]
         public DateTime? SourceTimestamp { get; set; }
 
-        [JsonProperty(PropertyName = "serverPicoseconds",
+        /// <summary>
+        /// Source pico seconds
+        /// </summary>
+        [JsonProperty(PropertyName = "sourcePicoseconds",
             NullValueHandling = NullValueHandling.Ignore)]
-        public ushort? ServerPicoseconds { get; set; }
+        public ushort? SourcePicoseconds { get; set; }
 
+        /// <summary>
+        /// Server time stamp
+        /// </summary>
         [JsonProperty(PropertyName = "serverTimestamp",
             NullValueHandling = NullValueHandling.Ignore)]
         public DateTime? ServerTimestamp { get; set; }
+
+        /// <summary>
+        /// Server pico seconds
+        /// </summary>
+        [JsonProperty(PropertyName = "serverPicoseconds",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public ushort? ServerPicoseconds { get; set; }
 
         /// <summary>
         /// Optional error diagnostics

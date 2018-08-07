@@ -138,6 +138,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                 case "add":
                                     await RegisterServerAsync(registry, options);
                                     break;
+                                case "discover":
+                                    await DiscoverServerAsync(registry, options);
+                                    break;
                                 case "update":
                                     await UpdateApplicationAsync(registry, options);
                                     break;
@@ -417,6 +420,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                             if (!r.Target.NodeClass.HasValue || r.Target.NodeClass.Value != NodeClass.Variable) {
                                 continue;
                             }
+                            Console.WriteLine($"Reading {r.Target.Id}");
                             var read = await service.NodeValueReadAsync(id,
                                 new ValueReadRequestApiModel {
                                     NodeId = r.Target.Id
@@ -497,11 +501,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <returns></returns>
         private static async Task UpdateSupervisorAsync(IOpcUaRegistryApi service,
             Dictionary<string, string> options) {
+            var activate = GetOption(options, "-a", "--activate", false);
+            var config = !activate ? null : new DiscoveryConfigApiModel {
+                ActivationFilter = new TwinActivationFilterApiModel {
+                    SecurityMode = SecurityMode.None
+                }
+            };
+
             await service.UpdateSupervisorAsync(
                 new SupervisorUpdateApiModel {
                     Id = GetOption<string>(options, "-i", "--id"),
                     SiteId = GetOption<string>(options, "-s", "--siteId", null),
-                    Discovery = GetOption<DiscoveryMode>(options, "-d", "--discovery", null)
+                    Discovery = GetOption<DiscoveryMode>(options, "-d", "--discovery", null),
+                    DiscoveryConfig = config,
                 });
         }
 
@@ -534,10 +546,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <returns></returns>
         private static async Task RegisterServerAsync(IOpcUaRegistryApi service,
             Dictionary<string, string> options) {
+            var activate = GetOption(options, "-a", "--activate", false);
             await service.RegisterAsync(
                 new ServerRegistrationRequestApiModel {
                     RegistrationId = Guid.NewGuid().ToString(),
-                    DiscoveryUrl = GetOption<string>(options, "-u", "--url")
+                    DiscoveryUrl = GetOption<string>(options, "-u", "--url"),
+                    ActivationFilter = !activate ? null : new TwinActivationFilterApiModel {
+                        SecurityMode = SecurityMode.None
+                    }
+                });
+        }
+
+        /// <summary>
+        /// Discover servers
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static async Task DiscoverServerAsync(IOpcUaRegistryApi service,
+            Dictionary<string, string> options) {
+            var activate = GetOption(options, "-a", "--activate", false);
+            await service.DiscoverAsync(
+                new DiscoveryRequestApiModel {
+                    Id = Guid.NewGuid().ToString(),
+                    Discovery = GetOption<DiscoveryMode>(options, "-d", "--discovery", null),
+                    Configuration = new DiscoveryConfigApiModel {
+                        ActivationFilter = !activate ? null : new TwinActivationFilterApiModel {
+                            SecurityMode = SecurityMode.None
+                        }
+                    }
                 });
         }
 
@@ -995,7 +1032,12 @@ Commands and Options
      add         Register server and twins through discovery url
         with ...
         -u, --url       Url of the discovery endpoint (mandatory)
-        -F, --format    Json format for result
+        -a, --activate  Activate all twins during onboarding.
+
+     discover    Discover applications and twins through config.
+        with ...
+        -d, --discovery Set discovery mode to use
+        -a, --activate  Activate all twins during onboarding.
 
      register    Register Application
         with ...
@@ -1191,6 +1233,7 @@ Commands and Options
         -i, --id        Id of twin to update (mandatory)
         -s, --siteId    Updated site of the supervisor.
         -d, --discovery Set supervisor discovery mode
+        -a, --activate  Activate all twins during onboarding.
 
      help, -h, -? --help
                 Prints out this help.
