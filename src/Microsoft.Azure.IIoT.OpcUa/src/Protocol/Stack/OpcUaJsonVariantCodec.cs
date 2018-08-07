@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
     using Opc.Ua;
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json;
+    using System;
 
     /// <summary>
     /// Json based variant codec
@@ -25,7 +26,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
             var encoder = new JsonEncoder(ServiceMessageContext.GlobalContext, true);
             encoder.WriteVariant(nameof(value), value);
             var json = encoder.CloseAndReturnText();
-            return JToken.Parse(json).SelectToken("value.Body");
+            try {
+                return JToken.Parse(json).SelectToken("value.Body");
+            }
+            catch (JsonReaderException jre) {
+                throw new FormatException($"Failed to parse '{json}'. " +
+                    "See inner exception for more details.", jre);
+            }
         }
 
         /// <summary>
