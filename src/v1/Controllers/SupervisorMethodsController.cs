@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     /// </summary>
     [Version(1)]
     [ExceptionsFilter]
-    public class OpcUaSupervisorMethods : IMethodController {
+    public class SupervisorMethodsController : IMethodController {
 
         /// <summary>
         /// Create controller with service
@@ -27,9 +27,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// <param name="validate"></param>
         /// <param name="nodes"></param>
         /// <param name="logger"></param>
-        public OpcUaSupervisorMethods(IOpcUaDiscoveryServices validate,
-            IOpcUaBrowseServices<EndpointModel> browse,
-            IOpcUaNodeServices<EndpointModel> nodes, ILogger logger) {
+        public SupervisorMethodsController(IDiscoveryServices validate,
+            IBrowseServices<EndpointModel> browse,
+            INodeServices<EndpointModel> nodes, ILogger logger) {
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
             _validate = validate ?? throw new ArgumentNullException(nameof(validate));
@@ -164,8 +164,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         private readonly ILogger _logger;
-        private readonly IOpcUaBrowseServices<EndpointModel> _browse;
-        private readonly IOpcUaNodeServices<EndpointModel> _nodes;
-        private readonly IOpcUaDiscoveryServices _validate;
+        private readonly IBrowseServices<EndpointModel> _browse;
+        private readonly INodeServices<EndpointModel> _nodes;
+        private readonly IDiscoveryServices _validate;
     }
 }

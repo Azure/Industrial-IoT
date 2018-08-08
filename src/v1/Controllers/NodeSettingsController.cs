@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     /// Twin settings controller
     /// </summary>
     [Version(1)]
-    public class OpcUaNodeSettings : ISettingsController {
+    public class NodeSettingsController : ISettingsController {
 
         /// <summary>
         /// Called to perform an action on the twin
@@ -48,8 +48,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="logger"></param>
-        public OpcUaNodeSettings(IOpcUaBrowseServices<EndpointModel> browse,
-            IOpcUaNodeServices<EndpointModel> nodes, IOpcUaPublisherServices twin,
+        public NodeSettingsController(IBrowseServices<EndpointModel> browse,
+            INodeServices<EndpointModel> nodes, IPublisherServices twin,
             ILogger logger) {
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
@@ -113,9 +113,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         private readonly Dictionary<string, JToken> _action;
-        private readonly IOpcUaPublisherServices _twin;
-        private readonly IOpcUaBrowseServices<EndpointModel> _browse;
-        private readonly IOpcUaNodeServices<EndpointModel> _nodes;
+        private readonly IPublisherServices _twin;
+        private readonly IBrowseServices<EndpointModel> _browse;
+        private readonly INodeServices<EndpointModel> _nodes;
         private readonly ILogger _logger;
     }
 }

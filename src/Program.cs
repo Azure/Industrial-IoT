@@ -85,8 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
         }
 
         /// <summary>
-        /// Autofac configuration. Find more information here:
-        /// see http://docs.autofac.org/en/latest/integration/aspnetcore.html
+        /// Autofac configuration.
         /// </summary>
         public static IContainer ConfigureContainer(IConfigurationRoot configuration) {
 
@@ -103,44 +102,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
             // Register edge framework
             builder.RegisterModule<EdgeHostModule>();
 
-            // Register opc ua client
-            builder.RegisterType<OpcUaClient>()
-                .AsImplementedInterfaces().SingleInstance();
-
             // Register opc ua services
-            builder.RegisterType<OpcUaNodeServices>()
+            builder.RegisterType<ProtocolClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<AddressSpaceServices>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<OpcUaDiscoveryServices>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<OpcUaJsonVariantCodec>()
+            builder.RegisterType<JsonVariantCodec>()
                 .AsImplementedInterfaces();
 
             // Register discovery services
-            builder.RegisterType<OpcUaDiscoveryServices>()
+            builder.RegisterType<DiscoveryServices>()
                 .AsImplementedInterfaces();
             builder.RegisterType<TaskProcessor>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register controllers
-            builder.RegisterType<v1.Controllers.OpcUaSupervisorMethods>()
+            builder.RegisterType<v1.Controllers.SupervisorMethodsController>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<v1.Controllers.OpcUaSupervisorSettings>()
+            builder.RegisterType<v1.Controllers.SupervisorSettingsController>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<v1.Controllers.OpcUaDiscoverySettings>()
+            builder.RegisterType<v1.Controllers.DiscoverySettingsController>()
                 .AsImplementedInterfaces();
 
             // Register supervisor services
-            builder.RegisterType<OpcUaSupervisorServices>()
+            builder.RegisterType<SupervisorServices>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // ... and associated twin controllers...
             builder.RegisterInstance<Action<ContainerBuilder>>(b => {
                 // Register twin controllers for scoped host instance
-                b.RegisterType<v1.Controllers.OpcUaTwinMethods>()
+                b.RegisterType<v1.Controllers.TwinMethodsController>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
-                b.RegisterType<v1.Controllers.OpcUaTwinSettings>()
+                b.RegisterType<v1.Controllers.TwinSettingsController>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
-                b.RegisterType<v1.Controllers.OpcUaNodeSettings>()
+                b.RegisterType<v1.Controllers.NodeSettingsController>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
             });
 

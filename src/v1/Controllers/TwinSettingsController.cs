@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     /// Twin settings controller
     /// </summary>
     [Version(1)]
-    public class OpcUaTwinSettings : ISettingsController {
+    public class TwinSettingsController : ISettingsController {
 
         /// <summary>
         /// Endoint url for direct server access
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="logger"></param>
-        public OpcUaTwinSettings(IOpcUaPublisherServices twin, ILogger logger) {
+        public TwinSettingsController(IPublisherServices twin, ILogger logger) {
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         private SecurityMode? _securityMode;
         private byte[] _validation;
 
-        private readonly IOpcUaPublisherServices _twin;
+        private readonly IPublisherServices _twin;
         private readonly ILogger _logger;
     }
 }
