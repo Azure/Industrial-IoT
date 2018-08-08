@@ -59,7 +59,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
 
             using (var hostScope = container.BeginLifetimeScope()) {
                 // BUGBUG: This creates 2 instances one in container one as scope
-                var events = hostScope.Resolve<IEventEmitter>();
                 var module = hostScope.Resolve<IEdgeHost>();
                 while (true) {
                     try {
@@ -109,27 +108,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
             builder.RegisterType<ProtocolClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AddressSpaceServices>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<JsonVariantCodec>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
 
             // Register discovery services
             builder.RegisterType<DiscoveryServices>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<TaskProcessor>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Register controllers
             builder.RegisterType<v1.Controllers.SupervisorMethodsController>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<v1.Controllers.SupervisorSettingsController>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<v1.Controllers.DiscoverySettingsController>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
 
             // Register supervisor services
             builder.RegisterType<SupervisorServices>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<TwinContainerFactory>()
                 .AsImplementedInterfaces().SingleInstance();
 
@@ -154,29 +153,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
                 // Create container for all twin level scopes...
                 var builder = new ContainerBuilder();
 
-                // Register logger singleton instance
+                // Register outer instances
                 builder.RegisterInstance(_logger)
                     .AsImplementedInterfaces().SingleInstance();
-
-                // Register opc ua client singleton instance
                 builder.RegisterInstance(_client)
                     .AsImplementedInterfaces().SingleInstance();
 
-                // Register edge host module and twin state for the lifetime of the host
-                // builder.RegisterType<OpcUaPublisherServices>()
-                //     .AsImplementedInterfaces().InstancePerLifetimeScope();
-
+                // Register other opc ua services
+                builder.RegisterType<JsonVariantCodec>()
+                    .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<AddressSpaceServices>()
+                    .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<ExportServices>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+#if PUBLISHER_MODULE_CONTROL
+                builder.RegisterType<PublisherModuleServices>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+                builder.RegisterType<PublisherModuleServerClient>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+#else
                 builder.RegisterType<PublisherServicesStub>()
                     .AsImplementedInterfaces().SingleInstance();
+#endif
+
+                // Register edge host
                 builder.RegisterModule<EdgeHostModule>();
 
-                // Register opc ua services
-                builder.RegisterType<AddressSpaceServices>()
-                    .AsImplementedInterfaces();
-                builder.RegisterType<JsonVariantCodec>()
-                    .AsImplementedInterfaces();
-
-                // Register twin controllers for scoped host instance
+                // Register twin controllers
                 builder.RegisterType<v1.Controllers.TwinMethodsController>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
                 builder.RegisterType<v1.Controllers.TwinSettingsController>()
