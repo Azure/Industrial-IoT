@@ -476,8 +476,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private readonly ISettingsRouter _settings;
         private readonly ILogger _logger;
         private readonly IClientFactory _factory;
-        private readonly SemaphoreSlim _lock =
-            new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
         private readonly Dictionary<string, dynamic> _reported =
             new Dictionary<string, dynamic>();
     }

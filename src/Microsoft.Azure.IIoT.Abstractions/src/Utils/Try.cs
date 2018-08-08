@@ -31,6 +31,20 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
+        public static T Op<T>(Func<T> action) {
+            try {
+                return action.Invoke();
+            }
+            catch {
+                return default(T);
+            }
+        }
+
+        /// <summary>
+        /// Try operation
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
         public static async Task<bool> Async(Func<Task> action) {
             try {
                 await action.Invoke();
