@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using Newtonsoft.Json;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
@@ -28,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
             AddEdgeSupervisor,
             ClearEdgeSupervisors,
             ClearEntireRegistry,
-            GetConnectionString
+            GetModuleConnectionString
         }
 
         /// <summary>
@@ -38,7 +37,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
         public static void Main(string[] args) {
             var op = Op.None;
             string deviceId = null, moduleId = null;
-            var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
+            var configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables().Build();
             var cs = Environment.GetEnvironmentVariable("_HUB_CS");
             if (string.IsNullOrEmpty(cs)) {
                 cs = Environment.GetEnvironmentVariable("PCS_IOTHUB_CONNSTRING");
@@ -54,13 +54,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
                                 cs = args[i];
                                 break;
                             }
-                            throw new ArgumentException("Missing arguments for connection string");
+                            throw new ArgumentException(
+                                "Missing arguments for connection string");
                         case "--add":
                         case "--get":
                             if (op != Op.None) {
-                                throw new ArgumentException("Operations are mutually exclusive");
+                                throw new ArgumentException(
+                                    "Operations are mutually exclusive");
                             }
-                            op = args[i] == "--get" ? Op.GetConnectionString : Op.AddEdgeSupervisor;
+                            op = args[i] == "--get" ?
+                                Op.GetModuleConnectionString : Op.AddEdgeSupervisor;
                             i++;
                             if (i < args.Length) {
                                 deviceId = args[i];
@@ -70,16 +73,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
                                     break;
                                 }
                             }
-                            throw new ArgumentException("Missing arguments for add/get command.");
+                            throw new ArgumentException(
+                                "Missing arguments for add/get command.");
                         case "--clear":
                             if (op != Op.None) {
-                                throw new ArgumentException("Operations are mutually exclusive");
+                                throw new ArgumentException(
+                                    "Operations are mutually exclusive");
                             }
                             op = Op.ClearEntireRegistry;
                             break;
                         case "--clear-edge":
                             if (op != Op.None) {
-                                throw new ArgumentException("Operations are mutually exclusive");
+                                throw new ArgumentException(
+                                    "Operations are mutually exclusive");
                             }
                             op = Op.ClearEdgeSupervisors;
                             break;
@@ -125,7 +131,8 @@ Operations (Mutually exclusive):
 Options:
      -c
     --connection-string
-             IoT Hub owner connection string to use to connect to IoT hub..
+             IoT Hub owner connection string to use to connect to IoT hub for
+             operations on the registry.
 
     --help
      -?
@@ -138,16 +145,20 @@ Options:
             try {
                 switch(op) {
                     case Op.AddEdgeSupervisor:
-                        AddEdgeSupervisorAsync(config, deviceId, moduleId).Wait();
+                        AddEdgeSupervisorAsync(config, deviceId, moduleId)
+                            .Wait();
                         break;
-                    case Op.GetConnectionString:
-                        GetConnectionString(config, deviceId, moduleId).Wait();
+                    case Op.GetModuleConnectionString:
+                        GetModuleConnectionStringAsync(config, deviceId, moduleId)
+                            .Wait();
                         break;
                     case Op.ClearEdgeSupervisors:
-                        ClearEdgeSupervisorsAsync(config).Wait();
+                        ClearEdgeSupervisorsAsync(config)
+                            .Wait();
                         break;
                     case Op.ClearEntireRegistry:
-                        ClearRegistryAsync(config).Wait();
+                        ClearRegistryAsync(config)
+                            .Wait();
                         break;
                 }
             }
@@ -163,8 +174,8 @@ Options:
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <returns></returns>
-        private static async Task GetConnectionString(IIoTHubConfig config,
-            string deviceId, string moduleId) {
+        private static async Task GetModuleConnectionStringAsync(
+            IIoTHubConfig config, string deviceId, string moduleId) {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }

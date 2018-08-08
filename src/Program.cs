@@ -116,19 +116,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
             builder.RegisterType<DiscoveryServices>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<TaskProcessor>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces().SingleInstance();
 
             // Register controllers
             builder.RegisterType<v1.Controllers.SupervisorMethodsController>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<v1.Controllers.SupervisorSettingsController>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<v1.Controllers.DiscoverySettingsController>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Register supervisor services
             builder.RegisterType<SupervisorServices>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<TwinContainerFactory>()
                 .AsImplementedInterfaces().SingleInstance();
 
