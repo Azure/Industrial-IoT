@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
             var codec = new JsonVariantCodec();
             var str = "\"fffffffff\"";
             var variant = codec.Decode(str, BuiltInType.String, null);
-            var expected = new Variant(str.Trim('"'));
+            var expected = new Variant(str);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(str, encoded);
@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
             var expected = new Variant(str);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal($"\"{str}\"", encoded);
+            Assert.Equal(str, encoded);
         }
 
         [Fact]

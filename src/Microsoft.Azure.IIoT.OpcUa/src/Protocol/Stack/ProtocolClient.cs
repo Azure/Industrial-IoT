@@ -596,31 +596,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
         }
 
         /// <summary>
-        /// Create application configuration for importer
+        /// Create application configuration for client
         /// </summary>
         /// <returns></returns>
         private static ApplicationConfiguration CreateApplicationConfiguration() {
             return new ApplicationConfiguration {
                 ApplicationName = "UA Core Sample Client",
                 ApplicationType = Opc.Ua.ApplicationType.Client,
-                ApplicationUri = "urn:" + Utils.GetHostName() + ":OPCFoundation:CoreSampleClient",
+                ApplicationUri = "urn:" + Utils.GetHostName() +
+                    ":OPCFoundation:CoreSampleClient",
                 SecurityConfiguration = new SecurityConfiguration {
                     ApplicationCertificate = new CertificateIdentifier {
                         StoreType = "Directory",
-                        StorePath = "OPC Foundation/CertificateStores/MachineDefault",
+                        StorePath =
+            "OPC Foundation/CertificateStores/MachineDefault",
                         SubjectName = "UA Core Sample Client"
                     },
                     TrustedPeerCertificates = new CertificateTrustList {
                         StoreType = "Directory",
-                        StorePath = "OPC Foundation/CertificateStores/UA Applications",
+                        StorePath =
+            "OPC Foundation/CertificateStores/UA Applications",
                     },
                     TrustedIssuerCertificates = new CertificateTrustList {
                         StoreType = "Directory",
-                        StorePath = "OPC Foundation/CertificateStores/UA Certificate Authorities",
+                        StorePath =
+            "OPC Foundation/CertificateStores/UA Certificate Authorities",
                     },
                     RejectedCertificateStore = new CertificateTrustList {
                         StoreType = "Directory",
-                        StorePath = "OPC Foundation/CertificateStores/RejectedCertificates",
+                        StorePath =
+            "OPC Foundation/CertificateStores/RejectedCertificates",
                     },
                     NonceLength = 32,
                     AutoAcceptUntrustedCertificates = true

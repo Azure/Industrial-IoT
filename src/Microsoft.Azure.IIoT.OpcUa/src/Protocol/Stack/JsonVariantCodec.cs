@@ -8,6 +8,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json;
     using System;
+    using Microsoft.Azure.IIoT.Utils;
+    using System.Linq;
 
     /// <summary>
     /// Json based variant codec
@@ -45,18 +47,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
             if (value == null || value.Type == JTokenType.Null) {
                 return Variant.Null;
             }
-            if (valueRank.HasValue && valueRank.Value != ValueRanks.Scalar) {
-                if (!(value is JArray)) {
-                    value = new JArray(value);
-                }
-            }
-            else if (builtinType == BuiltInType.String) {
-                value = SanitizeString(value.ToString());
-            }
+            value = Sanitize(value, builtinType, valueRank);
             var json = new JObject {
                 { nameof(value), value }
             };
-            var decoder = new JsonDecoder(json.ToString(), ServiceMessageContext.GlobalContext);
+            var decoder = new JsonDecoder(json.ToString(),
+                ServiceMessageContext.GlobalContext);
             if (value.Type == JTokenType.Array) {
                 return ReadVariantArrayBody(decoder, nameof(value), builtinType);
             }
@@ -222,12 +218,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
             return Variant.Null;
         }
 
-        private static string SanitizeString(string value) {
-            if (!value.StartsWith("\"", System.StringComparison.Ordinal)) {
-                value = "\"" + value;
-            }
-            if (!value.EndsWith("\"", System.StringComparison.Ordinal)) {
-                value += "\"";
+        /// <summary>
+        /// Helper to parse and convert a token value
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="builtinType"></param>
+        /// <param name="valueRank"></param>
+        /// <returns></returns>
+        private static JToken Sanitize(JToken value, BuiltInType builtinType,
+            int? valueRank) {
+            var array = (valueRank.HasValue && valueRank.Value != ValueRanks.Scalar);
+            if (builtinType != BuiltInType.String || array) {
+                if (!array) {
+                    value = value.ToString().TrimQuotes();
+                }
+                if (value.Type == JTokenType.String) {
+                    // Try to convert to array or other value
+                    var token = Try.Op(() => JToken.Parse(value.ToString()));
+                    if (token != null) {
+                        value = token;
+                    }
+                    if (array && !(value is JArray)) {
+                        try {
+                            value = JArray.Parse("[" + value + "]");
+                        }
+                        catch {
+                            return new JArray(value);
+                        }
+                        return new JArray(((JArray)value)
+                            .Select(t => Sanitize(t, builtinType, null)));
+                    }
+                }
             }
             return value;
         }
