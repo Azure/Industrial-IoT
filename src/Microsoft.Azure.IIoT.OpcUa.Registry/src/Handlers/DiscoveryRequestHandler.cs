@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa;
     using Microsoft.Azure.IIoT.Tasks;
@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
 
     /// <summary>
     /// Handles discovery requests received from the
-    /// <see cref="OpcUaOnboardingClient"/> instance and pushes them
+    /// <see cref="OnboardingClient"/> instance and pushes them
     /// to the edge.
     /// </summary>
     public class DiscoveryRequestHandler : IEventHandler {
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         /// </summary>
         /// <param name="discovery"></param>
         /// <param name="logger"></param>
-        public DiscoveryRequestHandler(IOpcUaDiscoveryServices discovery,
+        public DiscoveryRequestHandler(IDiscoveryServices discovery,
             ITaskProcessor processor, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _discovery = discovery ?? throw new ArgumentNullException(nameof(discovery));
@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         /// <inheritdoc/>
         public Task HandleAsync(string deviceId, string moduleId, byte[] payload,
             Func<Task> checkpoint) {
-            if (OpcUaOnboardingHelper.kId == deviceId.ToString()) {
+            if (OnboardingHelper.kId == deviceId.ToString()) {
                 var json = Encoding.UTF8.GetString(payload);
                 DiscoveryRequestModel request;
                 try {
@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         public Task OnBatchCompleteAsync() => Task.CompletedTask;
 
         private readonly ILogger _logger;
-        private readonly IOpcUaDiscoveryServices _discovery;
+        private readonly IDiscoveryServices _discovery;
         private readonly ITaskProcessor _processor;
     }
 }

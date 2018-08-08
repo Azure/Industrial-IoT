@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         /// </summary>
         /// <param name="registry"></param>
         /// <param name="logger"></param>
-        public DiscoveryEventHandler(IOpcUaRegistryMaintenance registry, ILogger logger) {
+        public DiscoveryEventHandler(IRegistryMaintenance registry, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         }
@@ -215,6 +215,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         private readonly SemaphoreSlim _queueLock = new SemaphoreSlim(1);
 
         private readonly ILogger _logger;
-        private readonly IOpcUaRegistryMaintenance _registry;
+        private readonly IRegistryMaintenance _registry;
     }
 }

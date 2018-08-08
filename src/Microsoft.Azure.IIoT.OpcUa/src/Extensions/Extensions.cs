@@ -13,13 +13,13 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// <summary>
         /// Browse all references if max references is null and user
         /// wants all. If user has requested maximum to return use
-        /// <see cref="IOpcUaBrowseServices{T}.NodeBrowseFirstAsync"/>
+        /// <see cref="IBrowseServices{T}.NodeBrowseFirstAsync"/>
         /// </summary>
         /// <param name="service"></param>
         /// <param name="request"></param>
         /// <returns></returns>
         public static async Task<BrowseResultModel> NodeBrowseAsync<T>(
-            this IOpcUaBrowseServices<T> service, T endpoint, BrowseRequestModel request) {
+            this IBrowseServices<T> service, T endpoint, BrowseRequestModel request) {
             if (request.MaxReferencesToReturn != null) {
                 return await service.NodeBrowseFirstAsync(endpoint, request);
             }
