@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace System.Xml {
-    using System.Xml.Serialization;
+    using System.Runtime.Serialization;
 
     public static class XmlElementEx {
 
@@ -16,7 +16,7 @@ namespace System.Xml {
         public static XmlElement SerializeObject(object o) {
             var doc = new XmlDocument();
             using (var writer = doc.CreateNavigator().AppendChild()) {
-                new XmlSerializer(o.GetType()).Serialize(writer, o);
+                new DataContractSerializer(o.GetType()).WriteObject(writer, o);
             }
             return doc.DocumentElement;
         }
@@ -27,8 +27,8 @@ namespace System.Xml {
         /// <param name="element"></param>
         /// <returns></returns>
         public static T ToObject<T>(this XmlElement element) {
-            var serializer = new XmlSerializer(typeof(T));
-            return (T)serializer.Deserialize(new XmlNodeReader(element));
+            var serializer = new DataContractSerializer(typeof(T));
+            return (T)serializer.ReadObject(new XmlNodeReader(element));
         }
     }
 }
