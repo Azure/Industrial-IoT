@@ -16,16 +16,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Access the edge publisher via proxy and configures it to publish to its
-    /// device identity endpoint. (V1 functionality)
+    /// Access the edge publisher via its OPC UA server and configures it
+    /// to publish to its device identity endpoint. (V1 functionality)
     /// </summary>
-    public class PublisherServerClient : IPublishServices<EndpointModel> {
+    public class PublisherModuleServerClient : IPublishServices<EndpointModel> {
 
         /// <summary>
         /// Create client service to control publisher
         /// </summary>
         /// <param name="client"></param>
-        public PublisherServerClient(ISessionServices client, ILogger logger) {
+        public PublisherModuleServerClient(ISessionServices client, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }

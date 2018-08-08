@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     /// <summary>
     /// Twin as peer of publisher module
     /// </summary>
-    public class PublisherStub : IPublisherServices {
+    public class PublisherServicesStub : IPublisherServices {
 
         /// <summary>
         /// Current endpoint or null if not yet provisioned

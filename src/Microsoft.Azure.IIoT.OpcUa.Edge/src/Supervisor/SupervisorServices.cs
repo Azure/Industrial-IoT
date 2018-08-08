@@ -4,10 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Control;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module.Framework;
@@ -28,14 +24,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         /// <summary>
         /// Create twin supervisor creating and managing twin instances
         /// </summary>
-        public SupervisorServices(IClientManagement client, IEdgeConfig config,
-            IEventEmitter events, Action<ContainerBuilder> inject, ILogger logger) {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
+        public SupervisorServices(IContainerFactory factory, IEdgeConfig config,
+            IEventEmitter events, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _events = events ?? throw new ArgumentNullException(nameof(events));
-
-            _container = CreateTwinContainer(client, logger, inject);
+            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            _container = _factory.Create();
         }
 
         /// <summary>
@@ -138,42 +133,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         }
 
         /// <summary>
-        /// Build di container for twins
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="logger"></param>
-        /// <returns></returns>
-        private static IContainer CreateTwinContainer(IClientManagement client,
-            ILogger logger, Action<ContainerBuilder> inject) {
-            // Create container for all twin level scopes...
-            var builder = new ContainerBuilder();
-
-            // Register logger singleton instance
-            builder.RegisterInstance(logger)
-                .AsImplementedInterfaces().SingleInstance();
-
-            // Register edge host module and twin state for the lifetime of the host
-           // builder.RegisterType<OpcUaPublisherServices>()
-           //     .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<PublisherStub>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterModule<EdgeHostModule>();
-
-            // Register opc ua client singleton instance
-            builder.RegisterInstance(client)
-                .AsImplementedInterfaces().SingleInstance();
-            // Register opc ua services
-            builder.RegisterType<AddressSpaceServices>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<JsonVariantCodec>()
-                .AsImplementedInterfaces();
-
-            // Build twin container
-            inject?.Invoke(builder);
-            return builder.Build();
-        }
-
-        /// <summary>
         /// Twin host configuration wrapper
         /// </summary>
         private class TwinConfig : IEdgeConfig {
@@ -241,10 +200,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
             }
         }
 
-        private readonly IClientManagement _client;
         private readonly ILogger _logger;
         private readonly IEdgeConfig _config;
         private readonly IEventEmitter _events;
+        private readonly IContainerFactory _factory;
         private readonly IContainer _container;
 
         private readonly SemaphoreSlim _lock =

@@ -27,8 +27,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
     /// <summary>
     /// Opc ua stack based client
     /// </summary>
-    public class ProtocolClient : IClientManagement, ISessionServices,
-        IDiscoveryProtocol {
+    public class ProtocolClient : IProtocolClient, ISessionServices,
+        IEndpointDiscovery {
 
         /// <summary>
         /// Client public certificate

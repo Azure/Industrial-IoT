@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     /// <summary>
     /// A simple publisher implementation.
     /// </summary>
-    public class PublisherServices : IPublisherServices, IDisposable {
+    public class InProcessPublisherServices : IPublisherServices, IDisposable {
 
         /// <summary>
         /// Current endpoint or null if not yet provisioned
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Create edge twin services
         /// </summary>
         /// <param name="client"></param>
-        public PublisherServices(ISessionServices client, ITwinProperties twin,
+        public InProcessPublisherServices(ISessionServices client, ITwinProperties twin,
             IEventEmitter telemetry, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

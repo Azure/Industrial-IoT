@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// Create service
         /// </summary>
         /// <param name="logger"></param>
-        public DiscoveryServices(IDiscoveryProtocol client, IEventEmitter events,
+        public DiscoveryServices(IEndpointDiscovery client, IEventEmitter events,
             ITaskProcessor processor, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _client = client ?? throw new ArgumentNullException(nameof(client));
@@ -473,7 +473,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         private readonly TimeSpan _progressInterval = TimeSpan.FromSeconds(3);
         private readonly IEventEmitter _events;
         private readonly ITaskProcessor _processor;
-        private readonly IDiscoveryProtocol _client;
+        private readonly IEndpointDiscovery _client;
 
         private const int kPortScanBatchSize = 10000;
     }

@@ -9,11 +9,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System.Threading;
     using System.Threading.Tasks;
 
-    public interface IDiscoveryProtocol {
+    public interface IEndpointDiscovery {
 
         /// <summary>
-        /// Try to get all offered endpoints from all servers discoverable
-        /// using the provided endpoint url.
+        /// Try to get all offered endpoints from all servers
+        /// discoverable using the provided endpoint url.
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
