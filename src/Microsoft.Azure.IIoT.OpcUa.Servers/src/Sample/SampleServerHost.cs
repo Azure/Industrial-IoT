@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
-    using MemoryBuffer;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
@@ -14,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
@@ -97,9 +97,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
             _logger.Info("Starting server...", () => { });
             ApplicationInstance.MessageDlg = new DummyDialog();
 
-            var application = new ApplicationInstance(
-                ApplicationInstance.FixupAppConfig(CreateServerConfiguration(ports)));
-            var config = application.ApplicationConfiguration;
+            var config = ApplicationInstance.FixupAppConfig(
+                CreateServerConfiguration(ports));
 
             // Create cert
             var cert = CertificateFactory.CreateCertificate(
@@ -127,6 +126,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
                 }
             };
 
+            var application = new ApplicationInstance(config);
+
             // check the application certificate.
             var haveAppCertificate =
                 await application.CheckApplicationInstanceCertificate(false, 0);
@@ -136,8 +137,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
             }
 
             // start the server.
-            _server = new SampleServer();
+            _server = new Server(_logger);
             await application.Start(_server);
+
+            foreach (var ep in config.ServerConfiguration.BaseAddresses) {
+                _logger.Info($"Listening on {ep}", () => { });
+            }
 
             // start the status thread
             _cts = new CancellationTokenSource();
@@ -156,11 +161,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
         /// <returns></returns>
         private static ApplicationConfiguration CreateServerConfiguration(
             IEnumerable<int> ports) {
+
+            var extensions = new List<object> {
+                new MemoryBuffer.MemoryBufferConfiguration {
+                    Buffers = new MemoryBuffer.MemoryBufferInstanceCollection {
+                        new MemoryBuffer.MemoryBufferInstance {
+                            Name = "UInt32",
+                            TagCount = 100,
+                            DataType = "UInt32"
+                        },
+                        new MemoryBuffer.MemoryBufferInstance {
+                            Name = "Double",
+                            TagCount = 100,
+                            DataType = "Double"
+                        },
+                    }
+                }
+            };
+
             return new ApplicationConfiguration {
                 ApplicationName = "UA Core Sample Server",
                 ApplicationType = ApplicationType.Server,
                 ApplicationUri =
             $"urn:{Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
+
+                Extensions = new XmlElementCollection(
+                    extensions.Select(XmlElementEx.SerializeObject)),
 
                 ProductUri = "http://opcfoundation.org/UA/SampleServer",
                 SecurityConfiguration = new SecurityConfiguration {
@@ -198,6 +224,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
                     SecurityTokenLifetime = 3600000
                 },
                 ServerConfiguration = new ServerConfiguration {
+
+                    // Sample server specific
+                    ServerProfileArray = new StringCollection {
+                         "Standard UA Server Profile",
+                         "Data Access Server Facet",
+                         "Method Server Facet"
+                    },
+                    ServerCapabilities = new StringCollection {
+                        "DA"
+                    },
+                    SupportedPrivateKeyFormats = new StringCollection {
+                        "PFX", "PEM"
+                    },
+
                     NodeManagerSaveFile = "nodes.xml",
                     DiagnosticsEnabled = false,
                     ShutdownDelay = 5,
@@ -257,45 +297,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
                     MaxPublishRequestCount = 20,
                     MaxSubscriptionCount = 100,
                     MaxEventQueueSize = 10000,
-                    MinSubscriptionLifetime = 10000,
-
-                    // Sample server specific
-                    ServerProfileArray = new StringCollection {
-                         "Standard UA Server Profile",
-                         "Data Access Server Facet",
-                         "Method Server Facet"
-                    },
-                    ServerCapabilities = new StringCollection {
-                        "DA"
-                    },
-                    SupportedPrivateKeyFormats = new StringCollection {
-                        "PFX", "PEM"
-                    },
-                    MaxTrustListSize = 0
+                    MinSubscriptionLifetime = 10000
 
                     // Do not register with LDS
                 },
                 TraceConfiguration = new TraceConfiguration {
                     TraceMasks = 1
-                },
-
-                // Address space configuration
-                Extensions = new XmlElementCollection {
-                    XmlElementEx.SerializeObject(
-                        new MemoryBufferConfiguration {
-                            Buffers = new MemoryBufferInstanceCollection {
-                                new MemoryBufferInstance {
-                                    Name = "UInt32",
-                                    TagCount = 100,
-                                    DataType = "UInt32"
-                                },
-                                new MemoryBufferInstance {
-                                    Name = "Double",
-                                    TagCount = 100,
-                                    DataType = "Double"
-                                },
-                            }
-                        })
                 }
             };
         }
@@ -352,6 +359,96 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
             }
         }
 
+        class Server : SampleServer {
+
+            /// <inheritdoc/>
+            class MemoryBufferNodeManager : MemoryBuffer.MemoryBufferNodeManager {
+                /// <inheritdoc/>
+                public MemoryBufferNodeManager(IServerInternal server,
+                    ApplicationConfiguration configuration) :
+                    base(server, configuration) {
+                }
+
+                /// <inheritdoc/>
+                protected override NodeStateCollection LoadPredefinedNodes(
+                    ISystemContext context) {
+                    var predefinedNodes = new NodeStateCollection();
+                    predefinedNodes.LoadFromBinaryResource(context,
+            typeof(TestData.TestDataNodeManager).Assembly.GetName().Name +
+            ".Sample.External.MemoryBuffer.MemoryBuffer.PredefinedNodes.uanodes",
+                        typeof(TestData.TestDataNodeManager).Assembly, true);
+                    return predefinedNodes;
+                }
+            }
+
+            /// <inheritdoc/>
+            class TestDataNodeManager : TestData.TestDataNodeManager {
+                /// <inheritdoc/>
+                public TestDataNodeManager(IServerInternal server,
+                    ApplicationConfiguration configuration) :
+                    base(server, configuration) {
+                }
+
+                /// <inheritdoc/>
+                protected override NodeStateCollection LoadPredefinedNodes(
+                    ISystemContext context) {
+                    var predefinedNodes = new NodeStateCollection();
+                    predefinedNodes.LoadFromBinaryResource(context,
+            typeof(TestData.TestDataNodeManager).Assembly.GetName().Name +
+            ".Sample.External.TestData.TestData.PredefinedNodes.uanodes",
+                        typeof(TestData.TestDataNodeManager).Assembly, true);
+                    return predefinedNodes;
+                }
+            }
+
+            /// <inheritdoc/>
+            class BoilerNodeManager : Boiler.BoilerNodeManager {
+                /// <inheritdoc/>
+                public BoilerNodeManager(IServerInternal server,
+                    ApplicationConfiguration configuration) :
+                    base(server, configuration) {
+                }
+
+                /// <inheritdoc/>
+                protected override NodeStateCollection LoadPredefinedNodes(
+                    ISystemContext context) {
+                    var predefinedNodes = new NodeStateCollection();
+                    predefinedNodes.LoadFromBinaryResource(context,
+            typeof(TestData.TestDataNodeManager).Assembly.GetName().Name +
+            ".Sample.External.Boiler.Boiler.PredefinedNodes.uanodes",
+                        typeof(TestData.TestDataNodeManager).Assembly, true);
+                    return predefinedNodes;
+                }
+            }
+
+            /// <summary>
+            /// Create server host
+            /// </summary>
+            /// <param name="logger"></param>
+            public Server(ILogger logger) {
+                _logger = logger;
+            }
+
+            /// <inheritdoc/>
+            protected override MasterNodeManager CreateMasterNodeManager(
+                IServerInternal server, ApplicationConfiguration configuration) {
+                _logger.Info("Creating the Node Managers.", () => { });
+                var nodeManagers = new List<INodeManager> {
+
+                    new TestDataNodeManager(server, configuration),
+                    new MemoryBufferNodeManager(server, configuration),
+                    new BoilerNodeManager(server, configuration),
+
+                    // ...
+                };
+                return new MasterNodeManager(server, configuration, null,
+                    nodeManagers.ToArray());
+            }
+
+            private readonly ILogger _logger;
+        }
+
+        /// <inheritdoc/>
         private class DummyDialog : IApplicationMessageDlg {
             /// <inheritdoc/>
             public override void Message(string text, bool ask) { }
@@ -359,7 +456,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
             public override Task<bool> ShowAsync() => Task.FromResult(true);
         }
 
-        private SampleServer _server;
+        private Server _server;
         private Task _statusLogger;
         private DateTime lastEventTime;
         private CancellationTokenSource _cts;

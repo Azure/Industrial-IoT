@@ -100,7 +100,9 @@ Options:
         /// <returns></returns>
         private static async Task RunSampleServer(IEnumerable<int> ports) {
             var logger = new ConsoleLogger(null, LogLevel.Debug);
-            using (var server = new SampleServerHost(logger)) {
+            using (var server = new SampleServerHost(logger) {
+                AutoAccept = true
+            }) {
                 await server.StartAsync(ports);
 
                 Console.WriteLine("Hit any key to exit...");

@@ -422,26 +422,34 @@ namespace Opc.Ua.Extensions {
         /// <param name="text"></param>
         /// <returns></returns>
         private static object ParseIdentifier(string text) {
-            if (text.Length > 1) {
+            if (text != null && text.Length > 1) {
                 if (text[1] == '=' ||
                     text[1] == '_') {
                     try {
-                        switch (text[0]) {
-                            case 'i':
-                                return Convert.ToUInt32(
-                                    text.Substring(2), CultureInfo.InvariantCulture);
-                            case 'b':
-                                return Convert.FromBase64String(
-                                    text.Substring(2));
-                            case 'g':
-                                return Guid.Parse(
-                                    text.Substring(2));
-                            case 's':
-                                return text.Substring(2);
-                        }
+                        return ParseIdentifier(text[0], text.Substring(2));
                     }
-                    catch(FormatException) { }
+                    catch (FormatException) {
+                    }
                 }
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Parse identfier from string
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        private static object ParseIdentifier(char type, string text) {
+            switch (type) {
+                case 'i':
+                    return Convert.ToUInt32(text, CultureInfo.InvariantCulture);
+                case 'b':
+                    return Convert.FromBase64String(text);
+                case 'g':
+                    return Guid.Parse(text);
+                case 's':
+                    return text.UrlDecode();
             }
             return 0;
         }
