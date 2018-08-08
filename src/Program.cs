@@ -20,6 +20,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
     using System.Runtime.Loader;
     using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.Tasks.Default;
+    using Microsoft.Azure.IIoT.OpcUa.Edge;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
 
     /// <summary>
     /// Main entry point
@@ -127,19 +130,66 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
             // Register supervisor services
             builder.RegisterType<SupervisorServices>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            // ... and associated twin controllers...
-            builder.RegisterInstance<Action<ContainerBuilder>>(b => {
-                // Register twin controllers for scoped host instance
-                b.RegisterType<v1.Controllers.TwinMethodsController>()
-                    .AsImplementedInterfaces().InstancePerLifetimeScope();
-                b.RegisterType<v1.Controllers.TwinSettingsController>()
-                    .AsImplementedInterfaces().InstancePerLifetimeScope();
-                b.RegisterType<v1.Controllers.NodeSettingsController>()
-                    .AsImplementedInterfaces().InstancePerLifetimeScope();
-            });
+            builder.RegisterType<TwinContainerFactory>()
+                .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
+        }
+
+        public class TwinContainerFactory : IContainerFactory {
+
+            /// <summary>
+            /// Create twin container factory
+            /// </summary>
+            /// <param name="client"></param>
+            /// <param name="logger"></param>
+            public TwinContainerFactory(IProtocolClient client, ILogger logger) {
+                _client = client ?? throw new ArgumentNullException(nameof(client));
+                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            }
+
+            /// <inheritdoc/>
+            public IContainer Create() {
+
+                // Create container for all twin level scopes...
+                var builder = new ContainerBuilder();
+
+                // Register logger singleton instance
+                builder.RegisterInstance(_logger)
+                    .AsImplementedInterfaces().SingleInstance();
+
+                // Register opc ua client singleton instance
+                builder.RegisterInstance(_client)
+                    .AsImplementedInterfaces().SingleInstance();
+
+                // Register edge host module and twin state for the lifetime of the host
+                // builder.RegisterType<OpcUaPublisherServices>()
+                //     .AsImplementedInterfaces().InstancePerLifetimeScope();
+
+                builder.RegisterType<PublisherServicesStub>()
+                    .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterModule<EdgeHostModule>();
+
+                // Register opc ua services
+                builder.RegisterType<AddressSpaceServices>()
+                    .AsImplementedInterfaces();
+                builder.RegisterType<JsonVariantCodec>()
+                    .AsImplementedInterfaces();
+
+                // Register twin controllers for scoped host instance
+                builder.RegisterType<v1.Controllers.TwinMethodsController>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+                builder.RegisterType<v1.Controllers.TwinSettingsController>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+                builder.RegisterType<v1.Controllers.NodeSettingsController>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+
+                // Build twin container
+                return builder.Build();
+            }
+
+            private readonly IProtocolClient _client;
+            private readonly ILogger _logger;
         }
     }
 }
