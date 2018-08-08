@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
     /// <summary>
     /// Represents OPC twin service api functions
     /// </summary>
-    public interface IOpcUaTwinApi {
+    public interface ITwinServiceApi {
 
         /// <summary>
         /// Returns status of the service

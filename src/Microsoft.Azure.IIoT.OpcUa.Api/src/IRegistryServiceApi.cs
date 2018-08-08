@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
     /// <summary>
     /// Registry api calls
     /// </summary>
-    public interface IOpcUaRegistryApi {
+    public interface IRegistryServiceApi {
 
         /// <summary>
         /// Returns status of the service

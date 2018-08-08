@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
     /// <summary>
     /// Implementation of v1 service adapter.
     /// </summary>
-    public class OpcUaRegistryApiClient : IOpcUaRegistryApi {
+    public class RegistryServiceClient : IRegistryServiceApi {
 
         /// <summary>
         /// Create service client
@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public OpcUaRegistryApiClient(IHttpClient httpClient, IOpcUaRegistryConfig config,
+        public RegistryServiceClient(IHttpClient httpClient, IRegistryConfig config,
             ILogger logger) :
             this (httpClient, config.OpcUaRegistryServiceUrl,
                 config.OpcUaRegistryServiceResourceId, logger){
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="serviceUri"></param>
         /// <param name="resourceId"></param>
         /// <param name="logger"></param>
-        public OpcUaRegistryApiClient(IHttpClient httpClient, string serviceUri,
+        public RegistryServiceClient(IHttpClient httpClient, string serviceUri,
             string resourceId, ILogger logger) {
             _httpClient = httpClient;
             _logger = logger;

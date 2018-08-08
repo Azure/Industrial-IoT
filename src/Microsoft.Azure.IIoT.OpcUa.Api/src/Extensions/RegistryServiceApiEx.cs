@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    public static class OpcUaRegistryApiEx {
+    public static class RegistryServiceApiEx {
 
         /// <summary>
         /// Find twins
@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
         /// <param name="service"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<TwinInfoApiModel>> QueryAllTwinsAsync(
-            this IOpcUaRegistryApi service, TwinRegistrationQueryApiModel query,
+            this IRegistryServiceApi service, TwinRegistrationQueryApiModel query,
             bool? onlyServerState = null) {
             var registrations = new List<TwinInfoApiModel>();
             var result = await service.QueryTwinsAsync(query, onlyServerState, null);
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<TwinInfoApiModel>> ListAllTwinsAsync(
-            this IOpcUaRegistryApi service, bool? onlyServerState = null) {
+            this IRegistryServiceApi service, bool? onlyServerState = null) {
             var registrations = new List<TwinInfoApiModel>();
             var result = await service.ListTwinsAsync(null, onlyServerState, null);
             registrations.AddRange(result.Items);
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
         /// <param name="service"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<ApplicationInfoApiModel>> QueryAllApplicationsAsync(
-            this IOpcUaRegistryApi service, ApplicationRegistrationQueryApiModel query) {
+            this IRegistryServiceApi service, ApplicationRegistrationQueryApiModel query) {
             var registrations = new List<ApplicationInfoApiModel>();
             var result = await service.QueryApplicationsAsync(query, null);
             registrations.AddRange(result.Items);
@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
         /// <param name="service"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<ApplicationInfoApiModel>> ListAllApplicationsAsync(
-            this IOpcUaRegistryApi service) {
+            this IRegistryServiceApi service) {
             var registrations = new List<ApplicationInfoApiModel>();
             var result = await service.ListApplicationsAsync(null, null);
             registrations.AddRange(result.Items);
@@ -88,7 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
         /// <param name="service"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<string>> ListAllSitesAsync(
-            this IOpcUaRegistryApi service) {
+            this IRegistryServiceApi service) {
             var sites = new List<string>();
             var result = await service.ListSitesAsync(null, null);
             sites.AddRange(result.Sites);
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
         /// <param name="service"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<SupervisorApiModel>> ListAllSupervisorsAsync(
-            this IOpcUaRegistryApi service) {
+            this IRegistryServiceApi service) {
             var registrations = new List<SupervisorApiModel>();
             var result = await service.ListSupervisorsAsync(null, null);
             registrations.AddRange(result.Items);

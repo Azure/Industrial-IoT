@@ -60,11 +60,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register twin services and ...
-            builder.RegisterType<OpcUaTwinApiClient>()
+            builder.RegisterType<TwinServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // registry services and ...
-            builder.RegisterType<OpcUaRegistryApiClient>()
+            builder.RegisterType<RegistryServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
@@ -96,8 +96,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         /// <param name="args">command-line arguments</param>
         public static async Task RunAsync(string[] args, IComponentContext context) {
-            var twin = context.Resolve<IOpcUaTwinApi>();
-            var registry = context.Resolve<IOpcUaRegistryApi>();
+            var twin = context.Resolve<ITwinServiceApi>();
+            var registry = context.Resolve<IRegistryServiceApi>();
             var interactive = false;
             do {
                 if (interactive) {
@@ -301,7 +301,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task MethodCallAsync(IOpcUaTwinApi service,
+        private static async Task MethodCallAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.NodeMethodCallAsync(
                 GetOption<string>(options, "-i", "--id"),
@@ -320,7 +320,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task MethodMetadataAsync(IOpcUaTwinApi service,
+        private static async Task MethodMetadataAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.NodeMethodGetMetadataAsync(
                 GetOption<string>(options, "-i", "--id"),
@@ -336,7 +336,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task WriteAsync(IOpcUaTwinApi service,
+        private static async Task WriteAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.NodeValueWriteAsync(
                 GetOption<string>(options, "-i", "--id"),
@@ -356,7 +356,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task ReadAsync(IOpcUaTwinApi service,
+        private static async Task ReadAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.NodeValueReadAsync(
                 GetOption<string>(options, "-i", "--id"),
@@ -372,7 +372,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task PublishAsync(IOpcUaTwinApi service,
+        private static async Task PublishAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.NodePublishAsync(
                 GetOption<string>(options, "-i", "--id"),
@@ -390,7 +390,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task BrowseAsync(IOpcUaTwinApi service,
+        private static async Task BrowseAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             var id = GetOption<string>(options, "-i", "--id");
             var recursive = GetOption(options, "-r", "--recursive", false);
@@ -443,7 +443,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task ListNodesAsync(IOpcUaTwinApi service,
+        private static async Task ListNodesAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             if (GetOption(options, "-A", "--all", false)) {
                 var result = await service.ListAllPublishedNodesAsync(
@@ -465,7 +465,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task ListSupervisorsAsync(IOpcUaRegistryApi service,
+        private static async Task ListSupervisorsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             if (GetOption(options, "-A", "--all", false)) {
                 var result = await service.ListAllSupervisorsAsync();
@@ -486,7 +486,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task GetSupervisorAsync(IOpcUaRegistryApi service,
+        private static async Task GetSupervisorAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.GetSupervisorAsync(
                 GetOption<string>(options, "-i", "--id"));
@@ -499,7 +499,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task UpdateSupervisorAsync(IOpcUaRegistryApi service,
+        private static async Task UpdateSupervisorAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var activate = GetOption(options, "-a", "--activate", false);
             var config = !activate ? null : new DiscoveryConfigApiModel {
@@ -523,7 +523,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task RegisterApplicationAsync(IOpcUaRegistryApi service,
+        private static async Task RegisterApplicationAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.RegisterAsync(
                 new ApplicationRegistrationRequestApiModel {
@@ -544,7 +544,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task RegisterServerAsync(IOpcUaRegistryApi service,
+        private static async Task RegisterServerAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var activate = GetOption(options, "-a", "--activate", false);
             await service.RegisterAsync(
@@ -563,7 +563,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task DiscoverServerAsync(IOpcUaRegistryApi service,
+        private static async Task DiscoverServerAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var activate = GetOption(options, "-a", "--activate", false);
             await service.DiscoverAsync(
@@ -584,7 +584,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task UpdateApplicationAsync(IOpcUaRegistryApi service,
+        private static async Task UpdateApplicationAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             await service.UpdateApplicationAsync(
                 new ApplicationRegistrationUpdateApiModel {
@@ -600,7 +600,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static Task UnregisterApplicationAsync(IOpcUaRegistryApi service,
+        private static Task UnregisterApplicationAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             return service.UnregisterApplicationAsync(
                 GetOption<string>(options, "-i", "--id"));
@@ -612,7 +612,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static Task PurgeDisabledApplicationsAsync(IOpcUaRegistryApi service,
+        private static Task PurgeDisabledApplicationsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             return service.PurgeDisabledApplicationsAsync(
                 GetOption<TimeSpan>(options, "-f", "--for"));
@@ -624,7 +624,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task ListApplicationsAsync(IOpcUaRegistryApi service,
+        private static async Task ListApplicationsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             if (GetOption(options, "-A", "--all", false)) {
                 var result = await service.ListAllApplicationsAsync();
@@ -645,7 +645,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task ListSitesAsync(IOpcUaRegistryApi service,
+        private static async Task ListSitesAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             if (GetOption(options, "-A", "--all", false)) {
                 var result = await service.ListAllSitesAsync();
@@ -666,7 +666,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task QueryApplicationsAsync(IOpcUaRegistryApi service,
+        private static async Task QueryApplicationsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var query = new ApplicationRegistrationQueryApiModel {
                 ApplicationUri = GetOption<string>(options, "-u", "--uri", null),
@@ -692,7 +692,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task GetApplicationAsync(IOpcUaRegistryApi service,
+        private static async Task GetApplicationAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.GetApplicationAsync(
                 GetOption<string>(options, "-i", "--id"));
@@ -705,7 +705,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task ListTwinsAsync(IOpcUaRegistryApi service,
+        private static async Task ListTwinsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             if (GetOption(options, "-A", "--all", false)) {
                 var result = await service.ListAllTwinsAsync(
@@ -728,7 +728,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task QueryTwinsAsync(IOpcUaRegistryApi service,
+        private static async Task QueryTwinsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var query = new TwinRegistrationQueryApiModel {
                 Url = GetOption<string>(options, "-u", "--uri", null),
@@ -757,7 +757,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task ActivateTwinsAsync(IOpcUaRegistryApi service,
+        private static async Task ActivateTwinsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options, bool enable) {
 
             // Activate all sign and encrypt twins
@@ -779,7 +779,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task GetTwinAsync(IOpcUaRegistryApi service,
+        private static async Task GetTwinAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.GetTwinAsync(
                 GetOption<string>(options, "-i", "--id"),
@@ -793,7 +793,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="service"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task UpdateTwinAsync(IOpcUaRegistryApi service,
+        private static async Task UpdateTwinAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             await service.UpdateTwinAsync(
                 new TwinRegistrationUpdateApiModel {
@@ -810,8 +810,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <param name="registry"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task GetStatusAsync(IOpcUaTwinApi twin,
-            IOpcUaRegistryApi registry,
+        private static async Task GetStatusAsync(ITwinServiceApi twin,
+            IRegistryServiceApi registry,
             Dictionary<string, string> options) {
             try {
                 var result = await twin.GetServiceStatusAsync();
@@ -928,7 +928,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Configuration - wraps a configuration root
         /// </summary>
-        private class ApiConfig : IOpcUaTwinConfig, IOpcUaRegistryConfig, IClientConfig {
+        private class ApiConfig : ITwinConfig, IRegistryConfig, IClientConfig {
 
             /// <summary>
             /// Configuration
