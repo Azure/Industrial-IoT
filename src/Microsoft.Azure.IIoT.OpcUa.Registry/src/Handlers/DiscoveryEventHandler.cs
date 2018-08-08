@@ -47,7 +47,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                 return;
             }
             try {
-                // eventData.Properties.TryGetValue("$$ModuleId", out var moduleId);
                 var supervisorId = SupervisorModelEx.CreateSupervisorId(
                     deviceId, moduleId?.ToString());
 
