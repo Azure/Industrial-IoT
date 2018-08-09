@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Control;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -105,11 +105,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
             builder.RegisterModule<EdgeHostModule>();
 
             // Register opc ua services
-            builder.RegisterType<ProtocolClient>()
+            builder.RegisterType<ClientServices>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AddressSpaceServices>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<JsonVariantCodec>()
+            builder.RegisterType<ValueEncoder>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register discovery services
@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
             /// </summary>
             /// <param name="client"></param>
             /// <param name="logger"></param>
-            public TwinContainerFactory(IProtocolClient client, ILogger logger) {
+            public TwinContainerFactory(IClientHost client, ILogger logger) {
                 _client = client ?? throw new ArgumentNullException(nameof(client));
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             }
@@ -160,7 +160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
                     .AsImplementedInterfaces().SingleInstance();
 
                 // Register other opc ua services
-                builder.RegisterType<JsonVariantCodec>()
+                builder.RegisterType<ValueEncoder>()
                     .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<AddressSpaceServices>()
                     .AsImplementedInterfaces().SingleInstance();
@@ -191,7 +191,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
                 return builder.Build();
             }
 
-            private readonly IProtocolClient _client;
+            private readonly IClientHost _client;
             private readonly ILogger _logger;
         }
     }
