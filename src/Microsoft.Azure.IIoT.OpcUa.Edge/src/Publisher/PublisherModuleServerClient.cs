@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Create client service to control publisher
         /// </summary>
         /// <param name="client"></param>
-        public PublisherModuleServerClient(ISessionServices client, ILogger logger) {
+        public PublisherModuleServerClient(IEndpointServices client, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -162,7 +162,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         internal class PublishedNodesCollection : List<NodeLookup> {
         }
 
-        private readonly ISessionServices _client;
+        private readonly IEndpointServices _client;
         private readonly ILogger _logger;
     }
 }

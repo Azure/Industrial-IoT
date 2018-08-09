@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Create edge twin services
         /// </summary>
         /// <param name="client"></param>
-        public InProcessPublisherServices(ISessionServices client, ITwinProperties twin,
+        public InProcessPublisherServices(IEndpointServices client, ITwinProperties twin,
             IEventEmitter telemetry, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -596,7 +596,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
             new BlockingCollection<TwinServiceCommand>();
         private Task _runner;
 
-        private readonly ISessionServices _client;
+        private readonly IEndpointServices _client;
         private readonly ILogger _logger;
         private readonly ITwinProperties _twin;
         private readonly IEventEmitter _telemetry;

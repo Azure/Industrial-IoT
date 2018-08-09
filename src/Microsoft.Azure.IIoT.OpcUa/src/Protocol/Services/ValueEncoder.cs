@@ -3,18 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
-    using Opc.Ua;
-    using Newtonsoft.Json.Linq;
-    using Newtonsoft.Json;
-    using System;
+namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.Utils;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
+    using Opc.Ua;
+    using Opc.Ua.Encoders;
+    using System;
     using System.Linq;
 
     /// <summary>
     /// Json based variant codec
     /// </summary>
-    public class JsonVariantCodec : IVariantCodec {
+    public class ValueEncoder : IValueEncoder {
 
         /// <summary>
         /// Formats a variant as string
@@ -25,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
             if (value == Variant.Null) {
                 return JValue.CreateNull();
             }
-            var encoder = new JsonEncoder(ServiceMessageContext.GlobalContext, true);
+            var encoder = new JsonEncoderEx(ServiceMessageContext.GlobalContext);
             encoder.WriteVariant(nameof(value), value);
             var json = encoder.CloseAndReturnText();
             try {

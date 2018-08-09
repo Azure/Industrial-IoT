@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     /// <summary>
     /// Variant codec
     /// </summary>
-    public interface IVariantCodec {
+    public interface IValueEncoder {
 
         /// <summary>
         /// Format variant as string

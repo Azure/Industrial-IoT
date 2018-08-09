@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Opc.Ua;
+    using Opc.Ua.Encoders;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
         /// <summary>
         /// Create service
         /// </summary>
-        public ExportServices(ISessionServices client, IBlobUpload upload,
+        public ExportServices(IEndpointServices client, IBlobUpload upload,
             IEventEmitter events, ITaskScheduler scheduler, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _upload = upload ?? throw new ArgumentNullException(nameof(upload));
@@ -261,11 +261,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
                 throw new ArgumentNullException(nameof(contentType));
             }
             switch (contentType.ToLowerInvariant()) {
-                case ModelEncoder.MimeTypeUaJson:
+                case TypeSerializer.MimeTypeUaJson:
                     return ".ua.json";
-                case ModelEncoder.MimeTypeUaBinary:
+                case TypeSerializer.MimeTypeUaBinary:
                     return ".ua.bin";
-                case ModelEncoder.MimeTypeUaXml:
+                case TypeSerializer.MimeTypeUaXml:
                     return ".ua.xml";
                 default:
                     throw new ArgumentException(nameof(contentType));
@@ -280,7 +280,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
         private string CreateId(EndpointModel endpoint) =>
             $"{_events.DeviceId}_{endpoint.Url}".ToSha1Hash();
 
-        private readonly ISessionServices _client;
+        private readonly IEndpointServices _client;
         private readonly IBlobUpload _upload;
         private readonly IEventEmitter _events;
         private readonly ITaskScheduler _scheduler;

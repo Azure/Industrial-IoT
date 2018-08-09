@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
+namespace Opc.Ua.Encoders {
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -15,10 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
     /// Encoder wrapper to encode model
     /// </summary>
     public class ModelEncoder : IEncoder, IDisposable {
-
-        public const string MimeTypeUaJson = "application/ua+json";
-        public const string MimeTypeUaBinary = "application/ua+binary";
-        public const string MimeTypeUaXml = "application/ua+xml";
 
         /// <summary>
         /// Create wrapper
@@ -337,13 +333,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
                 throw new ArgumentNullException(nameof(stream));
             }
             switch (contentType.ToLowerInvariant()) {
-                case MimeTypeUaJson:
-                    return new JsonEncoder(context, true,
-                        new StreamWriter(stream));
-                case MimeTypeUaBinary:
+                case TypeSerializer.MimeTypeUaJson:
+                    return new JsonEncoderEx(context, new StreamWriter(stream));
+                case TypeSerializer.MimeTypeUaBinary:
                     return new BinaryEncoder(stream,
                         context);
-                case MimeTypeUaXml:
+                case TypeSerializer.MimeTypeUaXml:
                     return new XmlEncoder((Type)null, XmlWriter.Create(stream),
                         context);
                 default:
@@ -385,8 +380,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
             public bool IsEqual(IEncodeable encodeable) =>
                 _wrapped.IsEqual(encodeable);
 
-            private IEncoder _encoder;
-            private IEncodeable _wrapped;
+            private readonly IEncoder _encoder;
+            private readonly IEncodeable _wrapped;
         }
 
         private readonly IEncoder _wrapped;

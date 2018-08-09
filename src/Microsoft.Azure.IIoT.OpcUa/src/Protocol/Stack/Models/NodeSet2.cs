@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -153,7 +153,7 @@ namespace Opc.Ua.Models {
         }
 
         /// <summary>
-        /// For every loaded xml ua node, create a node object that can 
+        /// For every loaded xml ua node, create a node object that can
         /// be encoded.
         /// </summary>
         /// <param name="uaNode"></param>
@@ -260,7 +260,7 @@ namespace Opc.Ua.Models {
             }
 
             decoder.SetMappingTables(namespaceUris, serverUris);
-            var value = decoder.ReadVariantContents(out TypeInfo typeInfo);
+            var value = decoder.ReadVariantContents(out var typeInfo);
             var result = new Variant(value, typeInfo);
             decoder.Close();
             return result;
@@ -273,7 +273,7 @@ namespace Opc.Ua.Models {
         /// <param name="context"></param>
         /// <param name="lookupAlias"></param>
         /// <returns></returns>
-        private NodeId DecodeNodeId(string source, ISystemContext context, 
+        private NodeId DecodeNodeId(string source, ISystemContext context,
             bool lookupAlias = true) {
             if (string.IsNullOrEmpty(source)) {
                 return NodeId.Null;

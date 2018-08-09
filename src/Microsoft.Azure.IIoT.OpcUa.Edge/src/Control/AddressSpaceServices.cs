@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         /// <param name="client"></param>
         /// <param name="codec"></param>
         /// <param name="logger"></param>
-        public AddressSpaceServices(ISessionServices client, IVariantCodec codec,
+        public AddressSpaceServices(IEndpointServices client, IValueEncoder codec,
             ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
@@ -436,7 +436,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         }
 
         private readonly ILogger _logger;
-        private readonly IVariantCodec _codec;
-        private readonly ISessionServices _client;
+        private readonly IValueEncoder _codec;
+        private readonly IEndpointServices _client;
     }
 }

@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework;
@@ -390,7 +390,7 @@ Operations (Mutually exclusive):
         private static async Task TestOpcUaDiscoveryService(string addressRanges,
             bool stress) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var client = new ProtocolClient(logger);
+            var client = new ClientServices(logger);
 
             var discovery = new DiscoveryServices(client, new ConsoleEmitter(),
                 new TaskProcessor(logger), logger);
@@ -420,7 +420,7 @@ Operations (Mutually exclusive):
         /// <returns></returns>
         private static async Task TestOpcUaModelExportService(EndpointModel endpoint) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var client = new ProtocolClient(logger);
+            var client = new ClientServices(logger);
 
             var exporter = new ExportServices(client, new ConsoleUploader(),
                 new ConsoleEmitter(), new LimitingScheduler(), logger) {
@@ -438,7 +438,7 @@ Operations (Mutually exclusive):
         /// <returns></returns>
         private static async Task TestOpcUaServerClient(EndpointModel endpoint) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var client = new ProtocolClient(logger);
+            var client = new ClientServices(logger);
             await client.ExecuteServiceAsync(endpoint, async session => {
                 var mask = (uint)Opc.Ua.NodeClass.Variable | (uint)Opc.Ua.NodeClass.Object |
                     (uint)Opc.Ua.NodeClass.Method;

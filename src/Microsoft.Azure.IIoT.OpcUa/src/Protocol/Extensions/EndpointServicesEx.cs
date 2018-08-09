@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System;
     using Opc.Ua.Client;
 
-    public static class SessionServicesEx {
+    public static class EndpointServicesEx {
 
         /// <summary>
         /// Overload that does not continue on exception but throws.
@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="endpoint"></param>
         /// <param name="service"></param>
         /// <returns></returns>
-        public static Task<T> ExecuteServiceAsync<T>(this ISessionServices client,
+        public static Task<T> ExecuteServiceAsync<T>(this IEndpointServices client,
             EndpointModel endpoint, Func<Session, Task<T>> service) {
             return client.ExecuteServiceAsync(endpoint, service, _ => true);
         }

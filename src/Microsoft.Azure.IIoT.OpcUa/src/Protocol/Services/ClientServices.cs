@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
+namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
@@ -25,15 +25,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Opc ua stack based client
+    /// Opc ua stack based client services
     /// </summary>
-    public class ProtocolClient : IProtocolClient, ISessionServices,
+    public class ClientServices : IClientHost, IEndpointServices,
         IEndpointDiscovery {
 
         /// <summary>
         /// Client public certificate
         /// </summary>
-        public X509Certificate2 Certificate => _clientCert; // TODO
+        public X509Certificate2 Certificate => _clientCert;
 
         /// <summary>
         /// Update client certificate
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack {
         /// Create stack
         /// </summary>
         /// <param name="logger"></param>
-        public ProtocolClient(ILogger logger) {
+        public ClientServices(ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _cache = new ConcurrentDictionary<SessionKey, ImmutableQueue<ServerSession>>();
 

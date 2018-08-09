@@ -74,8 +74,7 @@ namespace Opc.Ua.Models {
             if (ReferenceEquals(this, encodeable)) {
                 return true;
             }
-            var value = encodeable as GenericReference;
-            if (value == null) {
+            if (!(encodeable is GenericReference value)) {
                 return false;
             }
             if (!Utils.IsEqual(ReferenceTypeId, value.ReferenceTypeId)) {

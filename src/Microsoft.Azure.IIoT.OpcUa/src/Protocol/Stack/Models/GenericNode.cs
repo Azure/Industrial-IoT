@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -38,7 +38,7 @@ namespace Opc.Ua.Models {
         /// <summary>
         /// Constructor
         /// </summary>
-        public GenericNode(ExpandedNodeId nodeId, NodeClass nodeClass, 
+        public GenericNode(ExpandedNodeId nodeId, NodeClass nodeClass,
             QualifiedName browseName) :
             this(nodeId, new NamespaceTable()) {
             _attributes[Attributes.NodeClass] =
@@ -59,7 +59,7 @@ namespace Opc.Ua.Models {
             foreach (var identifier in Attributes.GetIdentifiers()) {
                 _attributes.Add(identifier, null);
             }
-            _attributes[Attributes.NodeId] = 
+            _attributes[Attributes.NodeId] =
                 new DataValue(new Variant(nodeId.ToNodeId(namespaces)));
         }
 
@@ -78,12 +78,12 @@ namespace Opc.Ua.Models {
         /// <summary>
         /// Returns symbolic name
         /// </summary>
-        public string SymbolicName { get; set; } = string.Empty;
+        public string SymbolicName { get; set; }
 
         /// <summary>
         /// Modelling rule identifier
         /// </summary>
-        public NodeId ModellingRule { get; set; } = Opc.Ua.NodeId.Null;
+        public NodeId ModellingRule { get; set; }
 
         /// <summary>
         /// Index operator to set or get raw attribute values
@@ -125,7 +125,7 @@ namespace Opc.Ua.Models {
             GetAttribute<DataTypeDefinition>(Attributes.DataTypeDefinition)?.TypeId;
 
         /// <summary cref="IEncodeable.TypeId" />
-        public ExpandedNodeId TypeId => 
+        public ExpandedNodeId TypeId =>
             DataTypeIds.Node;
 
         /// <summary cref="IEncodeable.BinaryEncodingId" />
@@ -139,19 +139,17 @@ namespace Opc.Ua.Models {
         /// <summary cref="IEncodeable.Decode(IDecoder)" />
         public virtual void Decode(IDecoder decoder) {
             decoder.PushNamespace(Namespaces.OpcUa);
-            var nodeClass = Class;
+            // first read node class
+            var field = Attributes.GetBrowseName(Attributes.NodeClass);
+            var nodeClass = (NodeClass)_attributeMap.Decode(decoder, Attributes.NodeClass);
             if (nodeClass == NodeClass.Unspecified) {
-                // first read node class
-                var field = Attributes.GetBrowseName(Attributes.NodeClass);
-                nodeClass = (NodeClass)decoder.ReadEnumerated(field, typeof(NodeClass));
-                if (nodeClass != NodeClass.Unspecified) {
-                    SetAttribute(Attributes.NodeClass, nodeClass);
-                }
-                else {
-                    throw new ServiceResultException(StatusCodes.BadNodeClassInvalid);
-                }
+                throw new ServiceResultException(StatusCodes.BadNodeClassInvalid);
             }
+            SetAttribute(Attributes.NodeClass, nodeClass);
             foreach (var attributeId in _attributeMap.GetNodeClassAttributes(Class)) {
+                if (attributeId == Attributes.NodeClass) {
+                    continue; // Read already first
+                }
                 var value = _attributeMap.Decode(decoder, attributeId);
                 if (value != null) {
                     if (value is DataValue dataValue) {
@@ -170,94 +168,22 @@ namespace Opc.Ua.Models {
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
         public virtual void Encode(IEncoder encoder) {
             encoder.PushNamespace(Namespaces.OpcUa);
-            foreach (var attribute in _attributes.Keys) {
-                var optional = false;
-                var defaultValue = _attributeMap.GetDefault(NodeClass, attribute, ref optional);
-                if (defaultValue == null ||
-                    (_attributes[attribute]?.WrappedValue == null && optional)) {
-                    continue;
+
+            // Write node class as first element since we need to look it up on decode.
+            _attributeMap.Encode(encoder, Attributes.NodeClass, NodeClass);
+            foreach (var attributeId in _attributeMap.GetNodeClassAttributes(Class)) {
+                if (attributeId == Attributes.NodeClass) {
+                    continue; // Read already first
                 }
-                var field = Attributes.GetBrowseName(attribute);
-                switch (attribute) {
-                    case Attributes.DisplayName:
-                    case Attributes.InverseName:
-                    case Attributes.Description:
-                        encoder.WriteLocalizedText(field,
-                            GetAttributeOrThis<LocalizedText>(attribute, defaultValue));
-                        break;
-                    case Attributes.WriteMask:
-                    case Attributes.UserWriteMask:
-#if UA_1_04
-                    case Attributes.AccessLevelEx:
-#endif
-                        encoder.WriteUInt32(field,
-                            GetAttributeOrThis<uint>(attribute, defaultValue));
-                        break;
-                    case Attributes.NodeId:
-                    case Attributes.DataType:
-                        encoder.WriteNodeId(field,
-                            GetAttributeOrThis<NodeId>(attribute, defaultValue));
-                        break;
-                    case Attributes.NodeClass:
-                        encoder.WriteEnumerated(field,
-                           GetAttributeOrThis<NodeClass>(attribute, defaultValue));
-                        break;
-                    case Attributes.ValueRank:
-                        encoder.WriteInt32(field,
-                            GetAttributeOrThis<int>(attribute, defaultValue));
-                        break;
-                    case Attributes.BrowseName:
-                        encoder.WriteQualifiedName(field,
-                            GetAttributeOrThis<QualifiedName>(attribute, defaultValue));
-                        break;
-                    case Attributes.Historizing:
-                    case Attributes.Executable:
-                    case Attributes.UserExecutable:
-                    case Attributes.IsAbstract:
-                    case Attributes.Symmetric:
-                    case Attributes.ContainsNoLoops:
-                        encoder.WriteBoolean(field,
-                            GetAttributeOrThis<bool>(attribute, defaultValue));
-                        break;
-                    case Attributes.EventNotifier:
-                    case Attributes.AccessLevel:
-                    case Attributes.UserAccessLevel:
-                        encoder.WriteByte(field,
-                            GetAttributeOrThis<byte>(attribute, defaultValue));
-                        break;
-                    case Attributes.MinimumSamplingInterval:
-                        encoder.WriteDouble(field,
-                            GetAttributeOrThis<double>(attribute, defaultValue));
-                        break;
-                    case Attributes.ArrayDimensions:
-                        encoder.WriteUInt32Array(field,
-                            GetAttributeOrThis<uint[]>(attribute, defaultValue));
-                        break;
-#if UA_1_04
-                    case Attributes.AccessRestrictions:
-                        encoder.WriteUInt16(field,
-                            GetAttributeOrThis<ushort>(attribute, defaultValue));
-                        break;
-                    case Attributes.RolePermissions:
-                    case Attributes.UserRolePermissions:
-                        // Always optional
-                        encoder.WriteEncodeableArray(field,
-                            GetAttributeOrThis<RolePermissionTypeCollection>(attribute, null)?.ToArray(),
-                            typeof(RolePermissionTypeCollection));
-                        break;
-#endif
-                    case Attributes.DataTypeDefinition:
-                        // Always optional
-                        encoder.WriteExtensionObject(field,
-                            GetAttributeOrThis<ExtensionObject>(attribute, null));
-                        break;
-                    case Attributes.Value:
-                    default:
-                        if (_attributes[attribute]?.WrappedValue != null) {
-                            encoder.WriteVariant(field, _attributes[attribute].WrappedValue);
-                        }
-                        break;
+                object value = null;
+                if (_attributes.TryGetValue(attributeId, out var result)) {
+                    value = result.WrappedValue.Value;
                 }
+                if (value == null) {
+                    var optional = false;
+                    value = _attributeMap.GetDefault(NodeClass, attributeId, ref optional);
+                }
+                _attributeMap.Encode(encoder, attributeId, value);
             }
             encoder.WriteString("SymbolicName", SymbolicName);
             encoder.WriteNodeId("ModellingRule", ModellingRule);
@@ -266,10 +192,36 @@ namespace Opc.Ua.Models {
 
         /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
         public bool IsEqual(IEncodeable encodeable) {
-            if (encodeable is GenericNode node && node._attributes != null) {
-                return _attributes.SequenceEqual(node._attributes);
+            if (!(encodeable is GenericNode node)) {
+                return false;
             }
-            return false;
+            if (ReferenceEquals(node._attributes, _attributes)) {
+                return true;
+            }
+            if (node.NodeClass != NodeClass) {
+                return false;
+            }
+            if (_attributes.SequenceEqual(node._attributes)) {
+                return true;
+            }
+            var optional = false;
+            var attributes = _attributeMap.GetNodeClassAttributes(NodeClass);
+            foreach (var attributeId in attributes) {
+                var defaultObject = _attributeMap.GetDefault(
+                    NodeClass, attributeId, ref optional);
+                object o1 = null;
+                object o2 = null;
+                if (_attributes.TryGetValue(attributeId, out var dataValue)) {
+                    o1 = dataValue.Value;
+                }
+                if (node._attributes.TryGetValue(attributeId, out dataValue)) {
+                    o2 = dataValue.Value;
+                }
+                if (!Utils.IsEqual((o1 ?? defaultObject), (o2 ?? defaultObject))) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>
@@ -288,7 +240,7 @@ namespace Opc.Ua.Models {
         /// <param name="continueOnError">Continue on read attribute error</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task ReadAsync(Session session, bool continueOnError, 
+        public async Task ReadAsync(Session session, bool continueOnError,
             CancellationToken cancellationToken) {
             var readValueCollection = new ReadValueIdCollection();
             foreach (var attributeId in _attributes.Keys) {
@@ -301,7 +253,7 @@ namespace Opc.Ua.Models {
             DataValueCollection values = null;
             DiagnosticInfoCollection diagnosticInfoCollection = null;
             var readResponse = await Task.Run(() => {
-                return session.Read(null, 0, TimestampsToReturn.Source, readValueCollection, 
+                return session.Read(null, 0, TimestampsToReturn.Source, readValueCollection,
                     out values, out diagnosticInfoCollection);
             }, cancellationToken);
 
@@ -310,7 +262,7 @@ namespace Opc.Ua.Models {
             for (var i = 0; i < readValueCollection.Count; i++) {
                 var attributeId = readValueCollection[i].AttributeId;
                 if (!DataValue.IsGood(values[i])) {
-                    if (values[i].StatusCode != StatusCodes.BadAttributeIdInvalid && 
+                    if (values[i].StatusCode != StatusCodes.BadAttributeIdInvalid &&
                         attributeId != Attributes.Value) {
                         Trace.TraceError($"Error code {values[i].StatusCode} " +
                             $"reading {Attributes.GetBrowseName(attributeId)} on {LocalId}: " +
@@ -361,7 +313,7 @@ namespace Opc.Ua.Models {
         /// <param name="attribute"></param>
         /// <returns></returns>
         public T GetAttribute<T>(uint attribute) {
-            if (_attributes.TryGetValue(attribute, out DataValue result) && 
+            if (_attributes.TryGetValue(attribute, out var result) &&
                 result != null) {
                 return result.Get<T>();
             }
@@ -375,7 +327,7 @@ namespace Opc.Ua.Models {
         }
 
         /// <summary>
-        /// Set 
+        /// Set
         /// </summary>
         /// <param name="attribute"></param>
         /// <returns></returns>
@@ -416,7 +368,7 @@ namespace Opc.Ua.Models {
         /// <param name="attribute"></param>
         /// <returns></returns>
         protected T GetAttributeOrThis<T>(uint attribute, object defaultValue) {
-            if (_attributes.TryGetValue(attribute, out DataValue result)) {
+            if (_attributes.TryGetValue(attribute, out var result)) {
                 return result.Get((T)defaultValue);
             }
             return (T)defaultValue;

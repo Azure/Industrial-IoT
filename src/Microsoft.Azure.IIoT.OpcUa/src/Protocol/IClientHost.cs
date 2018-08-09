@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
 
-    public interface IProtocolClient {
+    public interface IClientHost {
 
         /// <summary>
         /// Returns the client certificate

@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Opc.Ua;
     using System.Collections.Generic;
 
-    public static class EndpointDescriptionEx {
+    public static class StackModelsEx {
 
         /// <summary>
         /// Convert endpoint description to application registration

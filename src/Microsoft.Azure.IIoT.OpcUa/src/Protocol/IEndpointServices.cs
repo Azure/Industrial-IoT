@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System;
     using System.Threading.Tasks;
 
-    public interface ISessionServices {
+    public interface IEndpointServices {
 
         /// <summary>
         /// Execute the service on the provided session.
