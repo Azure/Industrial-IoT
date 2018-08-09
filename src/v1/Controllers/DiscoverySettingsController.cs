@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     /// Discovery settings controller
     /// </summary>
     [Version(1)]
-    public class OpcUaDiscoverySettings : ISettingsController {
+    public class DiscoverySettingsController : ISettingsController {
 
         /// <summary>
         /// Enable or disable discovery on supervisor
@@ -122,7 +122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// </summary>
         /// <param name="discovery"></param>
         /// <param name="logger"></param>
-        public OpcUaDiscoverySettings(IOpcUaScanningServices discovery, ILogger logger) {
+        public DiscoverySettingsController(IScannerServices discovery, ILogger logger) {
             _discovery = discovery ?? throw new ArgumentNullException(nameof(discovery));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -133,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// <returns></returns>
         public Task ApplyAsync() => _discovery.ScanAsync();
 
-        private readonly IOpcUaScanningServices _discovery;
+        private readonly IScannerServices _discovery;
         private readonly ILogger _logger;
     }
 }

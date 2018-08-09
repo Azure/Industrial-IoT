@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     /// Supervisor settings controller
     /// </summary>
     [Version(1)]
-    public class OpcUaSupervisorSettings : ISettingsController {
+    public class SupervisorSettingsController : ISettingsController {
 
         /// <summary>
         /// Called based on the reported connected property.
@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// </summary>
         /// <param name="supervisor"></param>
         /// <param name="logger"></param>
-        public OpcUaSupervisorSettings(IOpcUaSupervisorServices supervisor, ILogger logger) {
+        public SupervisorSettingsController(ISupervisorServices supervisor, ILogger logger) {
             _supervisor = supervisor ?? throw new ArgumentNullException(nameof(supervisor));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _endpoints = new Dictionary<string, string>();
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         private readonly Dictionary<string, string> _endpoints;
-        private readonly IOpcUaSupervisorServices _supervisor;
+        private readonly ISupervisorServices _supervisor;
         private readonly ILogger _logger;
     }
 }

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Runtime {
     /// Simple helper capturing uptime information
     /// </summary>
     public static class Uptime {
+
         /// <summary>
         /// When the service started
         /// </summary>

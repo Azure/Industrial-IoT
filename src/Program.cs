@@ -5,11 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Control;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Scanning;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -19,6 +19,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Tasks.Default;
+    using Microsoft.Azure.IIoT.OpcUa.Edge;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
 
     /// <summary>
     /// Main entry point
@@ -55,7 +59,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
 
             using (var hostScope = container.BeginLifetimeScope()) {
                 // BUGBUG: This creates 2 instances one in container one as scope
-                var events = hostScope.Resolve<IEventEmitter>();
                 var module = hostScope.Resolve<IEdgeHost>();
                 while (true) {
                     try {
@@ -84,8 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
         }
 
         /// <summary>
-        /// Autofac configuration. Find more information here:
-        /// see http://docs.autofac.org/en/latest/integration/aspnetcore.html
+        /// Autofac configuration.
         /// </summary>
         public static IContainer ConfigureContainer(IConfigurationRoot configuration) {
 
@@ -102,46 +104,95 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
             // Register edge framework
             builder.RegisterModule<EdgeHostModule>();
 
-            // Register opc ua client
-            builder.RegisterType<OpcUaClient>()
-                .AsImplementedInterfaces().SingleInstance();
-
             // Register opc ua services
-            builder.RegisterType<OpcUaNodeServices>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<OpcUaDiscoveryServices>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<OpcUaJsonVariantCodec>()
-                .AsImplementedInterfaces();
+            builder.RegisterType<ClientServices>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<AddressSpaceServices>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ValueEncoder>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Register discovery services
-            builder.RegisterType<OpcUaScanningServices>()
-                .AsImplementedInterfaces();
-
-            // Register controllers
-            builder.RegisterType<v1.Controllers.OpcUaSupervisorMethods>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<v1.Controllers.OpcUaSupervisorSettings>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<v1.Controllers.OpcUaDiscoverySettings>()
-                .AsImplementedInterfaces();
-
-            // Register supervisor services
-            builder.RegisterType<OpcUaSupervisorServices>()
+            builder.RegisterType<DiscoveryServices>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<TaskProcessor>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // ... and associated twin controllers...
-            builder.RegisterInstance<Action<ContainerBuilder>>(b => {
-                // Register twin controllers for scoped host instance
-                b.RegisterType<v1.Controllers.OpcUaTwinMethods>()
-                    .AsImplementedInterfaces().InstancePerLifetimeScope();
-                b.RegisterType<v1.Controllers.OpcUaTwinSettings>()
-                    .AsImplementedInterfaces().InstancePerLifetimeScope();
-                b.RegisterType<v1.Controllers.OpcUaNodeSettings>()
-                    .AsImplementedInterfaces().InstancePerLifetimeScope();
-            });
+            // Register controllers
+            builder.RegisterType<v1.Controllers.SupervisorMethodsController>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<v1.Controllers.SupervisorSettingsController>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<v1.Controllers.DiscoverySettingsController>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+
+            // Register supervisor services
+            builder.RegisterType<SupervisorServices>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<TwinContainerFactory>()
+                .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
+        }
+
+        public class TwinContainerFactory : IContainerFactory {
+
+            /// <summary>
+            /// Create twin container factory
+            /// </summary>
+            /// <param name="client"></param>
+            /// <param name="logger"></param>
+            public TwinContainerFactory(IClientHost client, ILogger logger) {
+                _client = client ?? throw new ArgumentNullException(nameof(client));
+                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            }
+
+            /// <inheritdoc/>
+            public IContainer Create() {
+
+                // Create container for all twin level scopes...
+                var builder = new ContainerBuilder();
+
+                // Register outer instances
+                builder.RegisterInstance(_logger)
+                    .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterInstance(_client)
+                    .AsImplementedInterfaces().SingleInstance();
+
+                // Register other opc ua services
+                builder.RegisterType<ValueEncoder>()
+                    .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<AddressSpaceServices>()
+                    .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<ExportServices>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+#if PUBLISHER_MODULE_CONTROL
+                builder.RegisterType<PublisherModuleServices>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+                builder.RegisterType<PublisherModuleServerClient>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+#else
+                builder.RegisterType<PublisherServicesStub>()
+                    .AsImplementedInterfaces().SingleInstance();
+#endif
+
+                // Register edge host
+                builder.RegisterModule<EdgeHostModule>();
+
+                // Register twin controllers
+                builder.RegisterType<v1.Controllers.TwinMethodsController>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+                builder.RegisterType<v1.Controllers.TwinSettingsController>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+                builder.RegisterType<v1.Controllers.NodeSettingsController>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+
+                // Build twin container
+                return builder.Build();
+            }
+
+            private readonly IClientHost _client;
+            private readonly ILogger _logger;
         }
     }
 }
