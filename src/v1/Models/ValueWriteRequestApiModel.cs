@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
@@ -53,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// </summary>
         [JsonProperty(PropertyName = "value")]
         [Required]
-        public string Value { get; set; }
+        public JToken Value { get; set; }
 
         /// <summary>
         /// Optional User elevation

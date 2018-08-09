@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="twin"></param>
-        public BrowseController(IOpcUaBrowseServices<string> twin) {
+        public BrowseController(IBrowseServices<string> twin) {
             _twin = twin;
         }
 
@@ -114,6 +114,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             return new BrowseNextResponseApiModel(browseresult);
         }
 
-        private readonly IOpcUaBrowseServices<string> _twin;
+        private readonly IBrowseServices<string> _twin;
     }
 }

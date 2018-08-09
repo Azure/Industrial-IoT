@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="twin"></param>
-        public WriteController(IOpcUaNodeServices<string> twin) {
+        public WriteController(INodeServices<string> twin) {
             _twin = twin;
         }
 
@@ -48,6 +48,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             return new ValueWriteResponseApiModel(writeResult);
         }
 
-        private readonly IOpcUaNodeServices<string> _twin;
+        private readonly INodeServices<string> _twin;
     }
 }

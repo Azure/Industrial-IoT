@@ -197,13 +197,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Opc ua services
-            builder.RegisterType<OpcUaRegistryServices>()
+            builder.RegisterType<RegistryServices>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<OpcUaTwinClient>()
+            builder.RegisterType<TwinClient>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<OpcUaSupervisorClient>()
+            builder.RegisterType<SupervisorClient>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<OpcUaDiscoveryClient>()
+            builder.RegisterType<DiscoveryClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
