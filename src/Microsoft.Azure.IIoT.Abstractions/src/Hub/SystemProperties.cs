@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Hub {
     /// <summary>
     /// IoT hub Message system property names
     /// </summary>
-    public static class SystemPropertyNames {
+    public static class SystemProperties {
 
         public const string MessageId = "message-id";
         public const string LockToken = "iothub-messagelocktoken";

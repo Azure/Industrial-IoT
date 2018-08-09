@@ -3,20 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework {
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using System.Threading.Tasks;
+namespace Microsoft.Azure.IIoT.Tasks {
 
-    public interface ITaskScheduler {
+    public interface ITaskProcessorConfig {
 
         /// <summary>
-        /// Task factory
+        /// Max instances of processors that should run.
         /// </summary>
-        TaskFactory Factory { get; }
+        int MaxInstances { get; }
 
         /// <summary>
-        /// Create debug dump
+        /// Max queue size per processor
         /// </summary>
-        void Dump(ILogger logger);
+        int MaxQueueSize { get; }
     }
 }

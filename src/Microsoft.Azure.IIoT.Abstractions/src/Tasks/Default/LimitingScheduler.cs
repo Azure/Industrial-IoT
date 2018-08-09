@@ -3,19 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
+namespace Microsoft.Azure.IIoT.Tasks.Default {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Provides a task scheduler that ensures a maximum concurrency level
     /// while running on top of the ThreadPool.
     /// </summary>
-    public class EdgeScheduler : ITaskScheduler {
+    public class LimitingScheduler : ITaskScheduler {
 
         /// <summary>
         /// Provides a shared task factory
@@ -26,15 +26,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Initialize factory
         /// </summary>
         /// <returns></returns>
-        static EdgeScheduler() {
-#if USE_DEFAULT_FACTORY
-            return Task.Factory;
-#else
+        static LimitingScheduler() {
             _scheduler = new LimitingTaskScheduler(Environment.ProcessorCount);
             _factory = new TaskFactory(CancellationToken.None,
                 TaskCreationOptions.DenyChildAttach, TaskContinuationOptions.None,
                     _scheduler);
-#endif
         }
 
         /// <summary>

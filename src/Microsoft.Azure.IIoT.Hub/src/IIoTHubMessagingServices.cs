@@ -14,14 +14,14 @@ namespace Microsoft.Azure.IIoT.Hub {
     public interface IIoTHubMessagingServices {
 
         /// <summary>
-        /// Inject the provided messages on behalf of
+        /// Send the provided message on behalf of
         /// the device and module id
         /// </summary>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
-        /// <param name="messages"></param>
+        /// <param name="message"></param>
         /// <returns></returns>
         Task SendAsync(string deviceId, string moduleId,
-            IEnumerable<DeviceMessageModel> messages);
+            DeviceMessageModel message);
     }
 }

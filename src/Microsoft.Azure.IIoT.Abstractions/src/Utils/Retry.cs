@@ -18,29 +18,39 @@ namespace Microsoft.Azure.IIoT.Utils {
         private static readonly object Semaphore = new object();
 
         public static int MaxRetryCount = 10;
-        public static int MaxRetryDelay = 20 * 1000; // 20 seconds
-        public static int BackoffDelta = 50;
-
 
         /// <summary>
         /// Default exponential policy with 20% jitter
         /// </summary>
         public static Func<int, Exception, int> Exponential => (k, ex) => {
-            var r = new Random();
-            var increment = (int)((Math.Pow(2, k) - 1) *
-                r.Next((int)(BackoffDelta * 0.8), (int)(BackoffDelta * 1.2)));
-            return Math.Min(increment, MaxRetryDelay);
+            if (k > ExponentialMaxRetryCount) {
+                k = ExponentialMaxRetryCount;
+            }
+            var backoff = r.Next(
+                (int)(ExponentialBackoffIncrement * 0.8),
+                (int)(ExponentialBackoffIncrement * 1.2));
+            var exp = 0.5 * (Math.Pow(2, k) - 1);
+            var result = (int)(exp * backoff);
+            System.Diagnostics.Debug.Assert(result > 0);
+            return result;
         };
+        private static Random r = new Random();
+        public static int ExponentialMaxRetryCount = 13;
+        public static int ExponentialBackoffIncrement = 10;
 
         /// <summary>
         /// Default linear policy
         /// </summary>
-        public static Func<int, Exception, int> Linear => (k, ex) => k * BackoffDelta;
+        public static Func<int, Exception, int> Linear => (k, ex) =>
+            Math.Min(k, LinearMaxRetryDelayCount) * LinearBackoffDelta;
+        public static int LinearMaxRetryDelayCount = 20;
+        public static int LinearBackoffDelta = 1000;
 
         /// <summary>
         /// No backoff - just wait backoff delta
         /// </summary>
-        public static Func<int, Exception, int> NoBackoff => (k, ex) => BackoffDelta;
+        public static Func<int, Exception, int> NoBackoff => (k, ex) => NoBackoffDelta;
+        public static int NoBackoffDelta = 1000;
 
         /// <summary>
         /// Retries a piece of work
