@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Encoder {
     using System;
     using System.Collections.Generic;
     using System.Threading;
-    using System.Threading.Tasks;
     using System.Xml;
 
     /// <summary>
@@ -20,24 +19,23 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// Begin writing
         /// </summary>
         /// <param name="sourceIri"></param>
-        Task BeginAsync(string sourceIri);
+        void Begin(string sourceIri);
 
         /// <summary>
-        /// WriteAsync an object and all object members
+        /// Write an object and all object members
         /// </summary>
         /// <param name="propertyIri"></param>
         /// <param name="objectIri"></param>
         /// <param name="typeIri"></param>
-        Task BeginObjectAsync(string propertyIri, string objectIri,
-            string typeIri, CancellationToken ct);
+        void BeginObject(string propertyIri, string objectIri,
+            string typeIri);
 
         /// <summary>
         /// Writes a null
         /// </summary>
         /// <param name="propertyIri"></param>
         /// <returns>whether value was written</returns>
-        Task WriteNilAsync(string propertyIri,
-            CancellationToken ct);
+        void WriteNil(string propertyIri);
 
         /// <summary>
         /// Writes a boolean value
@@ -45,8 +43,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, bool value,
-            CancellationToken ct);
+        void Write(string propertyIri, bool value);
 
         /// <summary>
         /// Writes a byte value
@@ -54,8 +51,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, byte value,
-            CancellationToken ct);
+        void Write(string propertyIri, byte value);
 
         /// <summary>
         /// Writes a binary value
@@ -63,8 +59,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, byte[] value,
-            CancellationToken ct);
+        void Write(string propertyIri, byte[] value);
 
         /// <summary>
         /// Writes a time value
@@ -72,8 +67,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, DateTime value,
-            CancellationToken ct);
+        void Write(string propertyIri, DateTime value);
 
         /// <summary>
         /// Writes a duration value
@@ -81,8 +75,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, TimeSpan value,
-            CancellationToken ct);
+        void Write(string propertyIri, TimeSpan value);
 
         /// <summary>
         /// Writes a double
@@ -90,8 +83,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, double value,
-            CancellationToken ct);
+        void Write(string propertyIri, double value);
 
         /// <summary>
         /// Writes a uri value
@@ -100,8 +92,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="value"></param>
         /// <param name="isResource"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, Uri value, bool isResource,
-            CancellationToken ct);
+        void Write(string propertyIri, Uri value, bool isResource);
 
         /// <summary>
         /// Writes float
@@ -109,8 +100,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, float value,
-            CancellationToken ct);
+        void Write(string propertyIri, float value);
 
         /// <summary>
         /// Writes a decimal
@@ -118,8 +108,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, decimal value,
-            CancellationToken ct);
+        void Write(string propertyIri, decimal value);
 
         /// <summary>
         /// Writes a guid
@@ -127,8 +116,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, Guid value,
-            CancellationToken ct);
+        void Write(string propertyIri, Guid value);
 
         /// <summary>
         /// Writes a 32 bit integer
@@ -136,8 +124,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, int value,
-            CancellationToken ct);
+        void Write(string propertyIri, int value);
 
         /// <summary>
         /// Writes a signed 64 bit integer
@@ -145,8 +132,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, long value,
-            CancellationToken ct);
+        void Write(string propertyIri, long value);
 
         /// <summary>
         /// Writes a signed byte
@@ -154,8 +140,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, sbyte value,
-            CancellationToken ct);
+        void Write(string propertyIri, sbyte value);
 
         /// <summary>
         /// Writes a short
@@ -163,8 +148,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, short value,
-            CancellationToken ct);
+        void Write(string propertyIri, short value);
 
         /// <summary>
         /// Writes a string
@@ -172,8 +156,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, string value,
-            CancellationToken ct);
+        void Write(string propertyIri, string value);
 
         /// <summary>
         /// Writes a string
@@ -182,8 +165,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="value"></param>
         /// <param name="language"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, string value, string language,
-            CancellationToken ct);
+        void Write(string propertyIri, string value, string language);
 
         /// <summary>
         /// Writes a 32 bit unsigned integer
@@ -191,8 +173,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, uint value,
-            CancellationToken ct);
+        void Write(string propertyIri, uint value);
 
         /// <summary>
         /// Writes a 64 bit unsigned integer
@@ -200,8 +181,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, ulong value,
-            CancellationToken ct);
+        void Write(string propertyIri, ulong value);
 
         /// <summary>
         /// Writes an enumeration value
@@ -209,8 +189,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, Enum value,
-            CancellationToken ct);
+        void Write(string propertyIri, Enum value);
 
         /// <summary>
         /// Writes a unsigned short
@@ -218,8 +197,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync(string propertyIri, ushort value,
-            CancellationToken ct);
+        void Write(string propertyIri, ushort value);
 
         /// <summary>
         /// Writes an xml element
@@ -227,8 +205,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteXmlAsync(string propertyIri, XmlElement value,
-            CancellationToken ct);
+        void WriteXml(string propertyIri, XmlElement value);
 
         /// <summary>
         /// Writes json token
@@ -236,8 +213,7 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="propertyIri"></param>
         /// <param name="value"></param>
         /// <returns>whether value was written</returns>
-        Task WriteJsonAsync(string propertyIri, JToken value,
-            CancellationToken ct);
+        void WriteJson(string propertyIri, JToken value);
 
         /// <summary>
         /// Writes a list of elements using write function.
@@ -247,8 +223,8 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <param name="values"></param>
         /// <param name="writer"></param>
         /// <returns>whether value was written</returns>
-        Task WriteAsync<T>(string propertyIri, IEnumerable<T> values,
-            Func<string, T, CancellationToken, Task> writer, CancellationToken ct);
+        void Write<T>(string propertyIri, IEnumerable<T> values,
+            Action<string, T> writer);
 
         /// <summary>
         /// Complete current object
@@ -258,6 +234,6 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <summary>
         /// End writing
         /// </summary>
-        Task EndAsync();
+        void End();
     }
 }

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,8 +7,6 @@ namespace Microsoft.Azure.IIoT.Encoder {
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
     using System.Xml;
 
     /// <summary>
@@ -20,13 +18,13 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// Begin reading from graph
         /// </summary>
         /// <param name="sourceIri"></param>
-        Task BeginAsync(string sourceIri);
+        void Begin(string sourceIri);
 
         /// <summary>
         /// Find the subject using the subject iri.
         /// </summary>
         /// <returns>null if subject does not exist</returns>
-        Task<object> GetSubjectAsync(string subjectIri);
+        object GetSubject(string subjectIri);
 
         /// <summary>
         /// Pushes a new subject onto the stack to read.
@@ -49,196 +47,158 @@ namespace Microsoft.Azure.IIoT.Encoder {
         /// <summary>
         /// Read date time offsets UTC
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<DateTime?> ReadDateTimeAsync(CancellationToken ct);
+        DateTime? ReadDateTime();
 
         /// <summary>
         /// Returns all timespan values (duration)
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<TimeSpan?> ReadTimeSpanAsync(CancellationToken ct);
+        TimeSpan? ReadTimeSpan();
 
         /// <summary>
         /// Read bools
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<bool?> ReadBooleanAsync(CancellationToken ct);
+        bool? ReadBoolean();
 
         /// <summary>
         /// Read bytes
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<byte?> ReadByteAsync(CancellationToken ct);
+        byte? ReadByte();
 
         /// <summary>
         /// Read chars
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<char?> ReadCharAsync(CancellationToken ct);
+        char? ReadChar();
 
         /// <summary>
         /// Read decimals
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<decimal?> ReadDecimalAsync(CancellationToken ct);
+        decimal? ReadDecimal();
 
         /// <summary>
         /// Read doubles
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<double?> ReadDoubleAsync(CancellationToken ct);
+        double? ReadDouble();
 
         /// <summary>
         /// Read floats
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<float?> ReadFloatAsync(CancellationToken ct);
+        float? ReadFloat();
 
         /// <summary>
         /// Read ints
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<int?> ReadInt32Async(CancellationToken ct);
+        int? ReadInt32();
 
         /// <summary>
         /// Read longs
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<long?> ReadInt64Async(CancellationToken ct);
+        long? ReadInt64();
 
         /// <summary>
         /// Read shorts
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<short?> ReadInt16Async(CancellationToken ct);
+        short? ReadInt16();
 
         /// <summary>
         /// Read signed bytes
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<sbyte?> ReadSByteAsync(CancellationToken ct);
+        sbyte? ReadSByte();
 
         /// <summary>
         /// Read unsigned ints
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<uint?> ReadUInt32Async(CancellationToken ct);
+        uint? ReadUInt32();
 
         /// <summary>
         /// Read unsigned longs
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<ulong?> ReadUInt64Async(CancellationToken ct);
+        ulong? ReadUInt64();
 
         /// <summary>
         /// Read unsigned shorts
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<ushort?> ReadUInt16Async(CancellationToken ct);
+        ushort? ReadUInt16();
 
         /// <summary>
         /// Read guids
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<Guid?> ReadGuidAsync(CancellationToken ct);
+        Guid? ReadGuid();
 
         /// <summary>
-        /// read object token
         /// </summary>
         /// <returns></returns>
-        Task<object> ReadObjectAsync(CancellationToken ct);
+        object ReadObject();
 
         /// <summary>
         /// Read buffer
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<byte[]> ReadBufferAsync(CancellationToken ct);
+        byte[] ReadBuffer();
 
         /// <summary>
         /// Read strings
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<string> ReadStringAsync(CancellationToken ct);
+        string ReadString();
 
         /// <summary>
         /// Reads strings with locale
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<Tuple<string, string>> ReadStringWithLocaleAsync(
-            CancellationToken ct);
+        string ReadString(out string locale);
 
         /// <summary>
         /// Read uri links, either resources, or pure uris
         /// </summary>
         /// <param name="isResource"></param>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<Uri> ReadUriAsync(bool isResource, CancellationToken ct);
+        Uri ReadUri(bool isResource);
 
         /// <summary>
         /// Read enums of specified enum type
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<Enum> ReadEnumAsync(Type enumType, CancellationToken ct);
+        Enum ReadEnum(Type enumType);
 
         /// <summary>
         /// Read xml elements
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<XmlElement> ReadXmlElementAsync(CancellationToken ct);
+        XmlElement ReadXmlElement();
 
         /// <summary>
         /// Read json tokens
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<JToken> ReadJsonTokenAsync(CancellationToken ct);
+        JToken ReadJsonToken();
 
         /// <summary>
         /// Reads ordered lists of elements using a reader
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="ct"></param>
         /// <param name="reader"></param>
         /// <returns>whether value was written</returns>
-        Task<IList<T>> ReadListAsync<T>(
-            Func<CancellationToken, Task<T>> reader, CancellationToken ct);
-
-        /// <summary>
-        /// Reads multiple items with same predicate using
-        /// a reader.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="ct"></param>
-        /// <param name="reader"></param>
-        /// <returns>whether value was written</returns>
-        Task<IEnumerable<T>> ReadAsync<T>(
-            Func<CancellationToken, Task<T>> reader, CancellationToken ct);
+        IList<T> ReadArray<T>(Func<T> reader);
 
         /// <summary>
         /// End reading
         /// </summary>
-        Task EndAsync();
+        void End();
     }
 }
