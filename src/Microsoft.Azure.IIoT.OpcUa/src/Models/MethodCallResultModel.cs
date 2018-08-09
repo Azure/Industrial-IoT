@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// <summary>
         /// Resulting output values of method call
         /// </summary>
-        public List<string> Results { get; set; }
+        public List<JToken> Results { get; set; }
 
         /// <summary>
         /// Diagnostics in case of error

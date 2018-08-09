@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -15,15 +15,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// <summary>
         /// Value read
         /// </summary>
-        public string Value { get; set; }
+        public JToken Value { get; set; }
 
-        public ushort? SourcePicoseconds { get; set; }
-
+        /// <summary>
+        /// Source time stamp
+        /// </summary>
         public DateTime? SourceTimestamp { get; set; }
 
-        public ushort? ServerPicoseconds { get; set; }
+        /// <summary>
+        /// Source pico
+        /// </summary>
+        public ushort? SourcePicoseconds { get; set; }
 
+        /// <summary>
+        /// Server time stamp
+        /// </summary>
         public DateTime? ServerTimestamp { get; set; }
+
+        /// <summary>
+        /// Server pico
+        /// </summary>
+        public ushort? ServerPicoseconds { get; set; }
 
         /// <summary>
         /// Diagnostics data in case of error

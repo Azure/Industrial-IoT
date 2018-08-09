@@ -4,22 +4,33 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
-    using System;
-    using System.Collections.Generic;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// For manual discovery requests
+    /// Result of a discovery run - part of last event element
+    /// in batch
     /// </summary>
     public class DiscoveryResultModel {
 
         /// <summary>
-        /// Discovered endpoint
+        /// Id of discovery request
         /// </summary>
-        public List<ApplicationRegistrationModel> Found { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
-        /// Timestamp of the discovery sweep
+        /// Configuration used during discovery
         /// </summary>
-        public DateTime TimeStamp { get; set; }
+        public DiscoveryConfigModel DiscoveryConfig { get; set; }
+
+        /// <summary>
+        /// If true, only register, do not unregister based
+        /// on these events.
+        /// </summary>
+        public bool? RegisterOnly { get; set; }
+
+        /// <summary>
+        /// If discovery failed, diagnostic information
+        /// </summary>
+        public JToken Diagnostics { get; set; }
     }
 }

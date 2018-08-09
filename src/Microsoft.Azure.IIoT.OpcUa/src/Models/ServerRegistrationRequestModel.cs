@@ -11,14 +11,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
     public class ServerRegistrationRequestModel {
 
         /// <summary>
-        /// User defined registration id
-        /// </summary>
-        public string RegistrationId { get; set; }
-
-        /// <summary>
         /// Discovery url to use for registration
         /// </summary>
         public string DiscoveryUrl { get; set; }
+
+        /// <summary>
+        /// User defined registration id
+        /// </summary>
+        public string RegistrationId { get; set; }
 
         /// <summary>
         /// Callback to invoke once registration finishes

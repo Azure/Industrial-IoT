@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Utils;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
 
     public static class RegistryServicesEx {
@@ -16,8 +17,8 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// </summary>
         /// <param name="service"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<TwinInfoModel>> QueryAllTwinsAsync(
-            this IOpcUaTwinRegistry service, TwinRegistrationQueryModel query,
+        public static async Task<List<TwinInfoModel>> QueryAllTwinsAsync(
+            this ITwinRegistry service, TwinRegistrationQueryModel query,
             bool onlyServerState = false) {
             var registrations = new List<TwinInfoModel>();
             var result = await service.QueryTwinsAsync(query, onlyServerState, null);
@@ -36,8 +37,8 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// <param name="service"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<TwinInfoModel>> ListAllTwinsAsync(
-            this IOpcUaTwinRegistry service, bool onlyServerState = false) {
+        public static async Task<List<TwinInfoModel>> ListAllTwinsAsync(
+            this ITwinRegistry service, bool onlyServerState = false) {
             var registrations = new List<TwinInfoModel>();
             var result = await service.ListTwinsAsync(null, onlyServerState, null);
             registrations.AddRange(result.Items);
@@ -54,8 +55,8 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// </summary>
         /// <param name="service"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<ApplicationInfoModel>> QueryAllApplicationsAsync(
-            this IOpcUaApplicationRegistry service, ApplicationRegistrationQueryModel query) {
+        public static async Task<List<ApplicationInfoModel>> QueryAllApplicationsAsync(
+            this IApplicationRegistry service, ApplicationRegistrationQueryModel query) {
             var registrations = new List<ApplicationInfoModel>();
             var result = await service.QueryApplicationsAsync(query, null);
             registrations.AddRange(result.Items);
@@ -71,8 +72,8 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// </summary>
         /// <param name="service"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<ApplicationInfoModel>> ListAllApplicationsAsync(
-            this IOpcUaApplicationRegistry service) {
+        public static async Task<List<ApplicationInfoModel>> ListAllApplicationsAsync(
+            this IApplicationRegistry service) {
             var registrations = new List<ApplicationInfoModel>();
             var result = await service.ListApplicationsAsync(null, null);
             registrations.AddRange(result.Items);
@@ -88,8 +89,8 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// </summary>
         /// <param name="service"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<ApplicationRegistrationModel>> ListAllRegistrationsAsync(
-            this IOpcUaApplicationRegistry service) {
+        public static async Task<List<ApplicationRegistrationModel>> ListAllRegistrationsAsync(
+            this IApplicationRegistry service) {
             var registrations = new List<ApplicationRegistrationModel>();
             var infos = await service.ListAllApplicationsAsync();
             foreach (var info in infos) {
@@ -105,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// <param name="service"></param>
         /// <returns></returns>
         public static async Task UnregisterAllApplicationsAsync(
-            this IOpcUaApplicationRegistry service) {
+            this IApplicationRegistry service) {
             var apps = await service.ListAllApplicationsAsync();
             foreach (var app in apps) {
                 await Try.Async(() => service.UnregisterApplicationAsync(
@@ -118,8 +119,8 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// </summary>
         /// <param name="service"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<string>> ListAllSitesAsync(
-            this IOpcUaApplicationRegistry service) {
+        public static async Task<List<string>> ListAllSitesAsync(
+            this IApplicationRegistry service) {
             var sites = new List<string>();
             var result = await service.ListSitesAsync(null, null);
             sites.AddRange(result.Sites);
@@ -135,16 +136,33 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// </summary>
         /// <param name="service"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<SupervisorModel>> ListAllSupervisorsAsync(
-            this IOpcUaSupervisorRegistry service) {
-            var registrations = new List<SupervisorModel>();
+        public static async Task<List<SupervisorModel>> ListAllSupervisorsAsync(
+            this ISupervisorRegistry service) {
+            var supervisors = new List<SupervisorModel>();
             var result = await service.ListSupervisorsAsync(null, null);
-            registrations.AddRange(result.Items);
+            supervisors.AddRange(result.Items);
             while (result.ContinuationToken != null) {
                 result = await service.ListSupervisorsAsync(result.ContinuationToken, null);
-                registrations.AddRange(result.Items);
+                supervisors.AddRange(result.Items);
             }
-            return registrations;
+            return supervisors;
+        }
+
+        /// <summary>
+        /// Returns all supervisor ids from the registry
+        /// </summary>
+        /// <param name="service"></param>
+        /// <returns></returns>
+        public static async Task<List<string>> ListAllSupervisorIdsAsync(
+            this ISupervisorRegistry service) {
+            var supervisors = new List<string>();
+            var result = await service.ListSupervisorsAsync(null, null);
+            supervisors.AddRange(result.Items.Select(s => s.Id));
+            while (result.ContinuationToken != null) {
+                result = await service.ListSupervisorsAsync(result.ContinuationToken, null);
+                supervisors.AddRange(result.Items.Select(s => s.Id));
+            }
+            return supervisors;
         }
     }
 }

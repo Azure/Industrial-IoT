@@ -1,8 +1,7 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
     using Newtonsoft.Json;
@@ -15,12 +14,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
     public enum DiscoveryMode {
 
         /// <summary>
-        /// Disable discovery
+        /// No discovery
         /// </summary>
         Off,
 
         /// <summary>
-        /// Use local discovery server
+        /// Find and use local discovery server
         /// </summary>
         Local,
 

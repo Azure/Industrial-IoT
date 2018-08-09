@@ -4,15 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Cli {
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Scanning;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Stack;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.Module.Framework.Hosting;
+    using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
         /// <summary>
         /// Test configuration
         /// </summary>
-        private class OpcUaTestConfig : IIoTHubConfig {
+        private class IoTHubTestConfig : IIoTHubConfig {
             public string IoTHubConnString => Environment.GetEnvironmentVariable("_HUB_CS");
             public string IoTHubResourceId => null;
         }
@@ -279,7 +279,7 @@ Operations (Mutually exclusive):
         /// <returns></returns>
         private static async Task MakeEdgeSupervisor(string deviceId, string moduleId) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var config = new OpcUaTestConfig();
+            var config = new IoTHubTestConfig();
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
 
@@ -305,7 +305,7 @@ Operations (Mutually exclusive):
         /// <returns></returns>
         private static async Task ClearEdgeSupervisors() {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var config = new OpcUaTestConfig();
+            var config = new IoTHubTestConfig();
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
 
@@ -336,7 +336,7 @@ Operations (Mutually exclusive):
         /// <returns></returns>
         private static async Task ClearRegistry() {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var config = new OpcUaTestConfig();
+            var config = new IoTHubTestConfig();
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
 
@@ -360,7 +360,7 @@ Operations (Mutually exclusive):
             var scanning = new ScanServices(logger);
             var results = await scanning.ScanAsync(
                 PortRange.All.SelectMany(r => r.GetEndpoints(addresses.First())),
-                opc ? new OpcUaServerProbe(logger) : null, cts.Token);
+                opc ? new ServerProbe(logger) : null, cts.Token);
             foreach(var result in results) {
                 Console.WriteLine($"Found {result} open.");
             }
@@ -390,10 +390,10 @@ Operations (Mutually exclusive):
         private static async Task TestOpcUaDiscoveryService(string addressRanges,
             bool stress) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var client = new OpcUaClient(logger);
+            var client = new ClientServices(logger);
 
-            var discovery = new OpcUaScanningServices(client, new ConsoleEmitter(),
-                new EdgeScheduler(), logger);
+            var discovery = new DiscoveryServices(client, new ConsoleEmitter(),
+                new TaskProcessor(logger), logger);
 
             var rand = new Random();
             while (true) {
@@ -420,10 +420,10 @@ Operations (Mutually exclusive):
         /// <returns></returns>
         private static async Task TestOpcUaModelExportService(EndpointModel endpoint) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var client = new OpcUaClient(logger);
+            var client = new ClientServices(logger);
 
-            var exporter = new OpcUaExportServices(client, new ConsoleUploader(),
-                new ConsoleEmitter(), new EdgeScheduler(), logger) {
+            var exporter = new ExportServices(client, new ConsoleUploader(),
+                new ConsoleEmitter(), new LimitingScheduler(), logger) {
                 ExportIdleTime = TimeSpan.FromMilliseconds(1)
             };
             var id = await exporter.StartModelExportAsync(endpoint, "application/ua-json");
@@ -438,7 +438,7 @@ Operations (Mutually exclusive):
         /// <returns></returns>
         private static async Task TestOpcUaServerClient(EndpointModel endpoint) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
-            var client = new OpcUaClient(logger);
+            var client = new ClientServices(logger);
             await client.ExecuteServiceAsync(endpoint, async session => {
                 var mask = (uint)Opc.Ua.NodeClass.Variable | (uint)Opc.Ua.NodeClass.Object |
                     (uint)Opc.Ua.NodeClass.Method;

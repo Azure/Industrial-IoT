@@ -1,10 +1,11 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
     using System;
+    using System.Collections.Generic;
 
     public class DiscoveryConfigModel {
 
@@ -47,5 +48,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// Delay time between discovery sweeps
         /// </summary>
         public TimeSpan? IdleTimeBetweenScans { get; set; }
+
+        /// <summary>
+        /// List of preset discovery urls to use
+        /// </summary>
+        public List<string> DiscoveryUrls { get; set; }
+
+        /// <summary>
+        /// Callbacks to invoke once onboarding finishes
+        /// </summary>
+        public List<CallbackModel> Callbacks { get; set; }
+
+        /// <summary>
+        /// Activate all twins with this filter during onboarding.
+        /// </summary>
+        public TwinActivationFilterModel ActivationFilter { get; set; }
     }
 }

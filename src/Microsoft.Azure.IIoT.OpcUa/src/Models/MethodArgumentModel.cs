@@ -1,7 +1,9 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
+
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
 
@@ -23,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// <summary>
         /// Initial value or value to use
         /// </summary>
-        public string Value { get; set; }
+        public JToken Value { get; set; }
 
         /// <summary>
         /// Human readable name of the type to provide

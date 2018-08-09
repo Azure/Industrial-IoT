@@ -1,10 +1,11 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Models {
     using Opc.Ua;
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -80,9 +81,7 @@ namespace Opc.Ua.Models {
                         return decoder.ReadLocalizedText(field);
                     case Attributes.WriteMask:
                     case Attributes.UserWriteMask:
-#if UA_1_04
                     case Attributes.AccessLevelEx:
-#endif
                         var uint32Value = decoder.ReadUInt32(field);
                         if (uint32Value != 0) {
                             return 0;
@@ -96,8 +95,7 @@ namespace Opc.Ua.Models {
                         }
                         break;
                     case Attributes.NodeClass:
-                        // Got it already...
-                        break;
+                        return decoder.ReadEnumerated(field, typeof(NodeClass));
                     case Attributes.ValueRank:
                         var int32Value = decoder.ReadInt32(field);
                         if (int32Value != 0) {
@@ -137,11 +135,10 @@ namespace Opc.Ua.Models {
                         break;
                     case Attributes.ArrayDimensions:
                         var uint32array = decoder.ReadUInt32Array(field);
-                        if (uint32array != null) {
+                        if (uint32array != null && uint32array.Count > 0) {
                             return uint32array;
                         }
                         break;
-#if UA_1_04
                     case Attributes.AccessRestrictions:
                         var uint16Value = decoder.ReadUInt16(field);
                         if (uint16Value != 0) {
@@ -151,12 +148,11 @@ namespace Opc.Ua.Models {
                     case Attributes.RolePermissions:
                     case Attributes.UserRolePermissions:
                         var encodableArray = decoder.ReadEncodeableArray(field,
-                            typeof(RolePermissionTypeCollection));
-                        if (encodableArray != null) {
+                            typeof(RolePermissionType));
+                        if (encodableArray != null && encodableArray.Length > 0) {
                             return encodableArray;
                         }
                         break;
-#endif
                     case Attributes.DataTypeDefinition:
                         var extensionObject = decoder.ReadExtensionObject(field);
                         if (extensionObject != null) {
@@ -196,9 +192,7 @@ namespace Opc.Ua.Models {
                         break;
                     case Attributes.WriteMask:
                     case Attributes.UserWriteMask:
-#if UA_1_04
                     case Attributes.AccessLevelEx:
-#endif
                         encoder.WriteUInt32(field, (uint)value);
                         break;
                     case Attributes.NodeId:
@@ -233,7 +227,6 @@ namespace Opc.Ua.Models {
                     case Attributes.ArrayDimensions:
                         encoder.WriteUInt32Array(field, (uint[])value);
                         break;
-#if UA_1_04
                     case Attributes.AccessRestrictions:
                         encoder.WriteUInt16(field, (ushort)value);
                         break;
@@ -241,17 +234,22 @@ namespace Opc.Ua.Models {
                     case Attributes.UserRolePermissions:
                         // Always optional
                         encoder.WriteEncodeableArray(field, (IEncodeable[])value,
-                            typeof(RolePermissionTypeCollection));
+                            typeof(RolePermissionType));
                         break;
-#endif
                     case Attributes.DataTypeDefinition:
                         // Always optional
                         encoder.WriteExtensionObject(field, (ExtensionObject)value);
                         break;
                     case Attributes.Value:
-                    default:
-                        encoder.WriteVariant(field, ((DataValue)value).WrappedValue);
+                        if (value is Variant v) {
+                            encoder.WriteVariant(field, v);
+                        }
+                        else {
+                            encoder.WriteVariant(field, new Variant(value));
+                        }
                         break;
+                    default:
+                        throw new ArgumentException(nameof(attribute));
                 }
             }
             finally {
@@ -265,45 +263,43 @@ namespace Opc.Ua.Models {
         /// </summary>
         public AttributeMap() {
 
-            _map[Variable, Attributes.AccessLevel] = 
+            _map[Variable, Attributes.AccessLevel] =
                 new MapEntry((byte)1);
             _map[Variable, Attributes.ArrayDimensions] =
                 new MapEntry(new uint[0], true);
-            _map[Variable, Attributes.BrowseName] = new 
+            _map[Variable, Attributes.BrowseName] = new
                 MapEntry(QualifiedName.Null);
-            _map[Variable, Attributes.DataType] = new 
+            _map[Variable, Attributes.DataType] = new
                 MapEntry(Opc.Ua.NodeId.Null);
             _map[Variable, Attributes.Description] = new
                 MapEntry(LocalizedText.Null, true);
-            _map[Variable, Attributes.DisplayName] = new 
+            _map[Variable, Attributes.DisplayName] = new
                 MapEntry(LocalizedText.Null);
             _map[Variable, Attributes.Historizing] = new
                 MapEntry(false);
-            _map[Variable, Attributes.MinimumSamplingInterval] = 
+            _map[Variable, Attributes.MinimumSamplingInterval] =
                 new MapEntry((double)-1, true);
-            _map[Variable, Attributes.NodeClass] = 
+            _map[Variable, Attributes.NodeClass] =
                 new MapEntry(NodeClass.Variable);
-            _map[Variable, Attributes.NodeId] = 
+            _map[Variable, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
             _map[Variable, Attributes.UserAccessLevel] =
                 new MapEntry((byte)1, true);
-#if UA_1_04
             _map[Variable, Attributes.AccessLevelEx] =
                 new MapEntry((uint)0, true);
             _map[Variable, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[Variable, Attributes.RolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
-            _map[Variable, Attributes.UserRolePermissions] = 
+            _map[Variable, Attributes.UserRolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
-#endif
-            _map[Variable, Attributes.UserWriteMask] = 
+            _map[Variable, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[Variable, Attributes.Value] = new
                 MapEntry(Variant.Null);
-            _map[Variable, Attributes.ValueRank] = 
+            _map[Variable, Attributes.ValueRank] =
                 new MapEntry(ValueRanks.Scalar);
-            _map[Variable, Attributes.WriteMask] = 
+            _map[Variable, Attributes.WriteMask] =
                 new MapEntry((uint)0, true);
 
             _map[VariableType, Attributes.ArrayDimensions] =
@@ -322,14 +318,12 @@ namespace Opc.Ua.Models {
                 new MapEntry(NodeClass.VariableType);
             _map[VariableType, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
-#if UA_1_04
             _map[VariableType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[VariableType, Attributes.RolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
             _map[VariableType, Attributes.UserRolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
-#endif
             _map[VariableType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[VariableType, Attributes.Value] =
@@ -351,14 +345,12 @@ namespace Opc.Ua.Models {
                 new MapEntry(NodeClass.Object);
             _map[Object, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
-#if UA_1_04
             _map[Object, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[Object, Attributes.RolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
             _map[Object, Attributes.UserRolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
-#endif
             _map[Object, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[Object, Attributes.WriteMask] =
@@ -376,14 +368,12 @@ namespace Opc.Ua.Models {
                 new MapEntry(NodeClass.ObjectType);
             _map[ObjectType, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
-#if UA_1_04
             _map[ObjectType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[ObjectType, Attributes.RolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
             _map[ObjectType, Attributes.UserRolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
-#endif
             _map[ObjectType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[ObjectType, Attributes.WriteMask] =
@@ -405,14 +395,12 @@ namespace Opc.Ua.Models {
                 new MapEntry(NodeId.Null);
             _map[ReferenceType, Attributes.Symmetric] =
                 new MapEntry(true);
-#if UA_1_04
             _map[ReferenceType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[ReferenceType, Attributes.RolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
             _map[ReferenceType, Attributes.UserRolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
-#endif
             _map[ReferenceType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[ReferenceType, Attributes.WriteMask] =
@@ -432,14 +420,12 @@ namespace Opc.Ua.Models {
                 new MapEntry(NodeClass.DataType);
             _map[DataType, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
-#if UA_1_04
             _map[DataType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[DataType, Attributes.RolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
             _map[DataType, Attributes.UserRolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
-#endif
             _map[DataType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[DataType, Attributes.WriteMask] =
@@ -459,14 +445,12 @@ namespace Opc.Ua.Models {
                 new MapEntry(NodeId.Null);
             _map[Method, Attributes.UserExecutable] =
                 new MapEntry(false);
-#if UA_1_04
             _map[Method, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[Method, Attributes.RolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
             _map[Method, Attributes.UserRolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
-#endif
             _map[Method, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[Method, Attributes.WriteMask] =
@@ -486,14 +470,12 @@ namespace Opc.Ua.Models {
                 new MapEntry(NodeClass.View);
             _map[View, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
-#if UA_1_04
             _map[View, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[View, Attributes.RolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
             _map[View, Attributes.UserRolePermissions] =
                 new MapEntry(new RolePermissionType[0], true);
-#endif
             _map[View, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[View, Attributes.WriteMask] =
