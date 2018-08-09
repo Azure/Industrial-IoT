@@ -5,30 +5,31 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Value write request model for webservice api
+    /// Discovery request
     /// </summary>
-    public class ValueWriteRequestApiModel {
+    public class DiscoveryRequestApiModel {
 
         /// <summary>
-        /// Node information to allow writing - from browse.
+        /// Id of discovery request
         /// </summary>
-        [JsonProperty(PropertyName = "node")]
-        public NodeApiModel Node { get; set; }
-
-        /// <summary>
-        /// Value to write in opc json
-        /// </summary>
-        [JsonProperty(PropertyName = "value")]
-        public JToken Value { get; set; }
-
-        /// <summary>
-        /// Optional User elevation
-        /// </summary>
-        [JsonProperty(PropertyName = "elevation",
+        [JsonProperty(PropertyName = "id",
             NullValueHandling = NullValueHandling.Ignore)]
-        public AuthenticationApiModel Elevation { get; set; }
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Discovery mode to use
+        /// </summary>
+        [JsonProperty(PropertyName = "discovery",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public DiscoveryMode? Discovery { get; set; }
+
+        /// <summary>
+        /// Scan configuration to use
+        /// </summary>
+        [JsonProperty(PropertyName = "configuration",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public DiscoveryConfigApiModel Configuration { get; set; }
     }
 }

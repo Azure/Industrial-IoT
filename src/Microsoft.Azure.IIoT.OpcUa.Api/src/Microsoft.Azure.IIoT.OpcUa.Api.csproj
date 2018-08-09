@@ -17,7 +17,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Abstractions" Version="1.0.0-preview004" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Abstractions" Version="1.0.0-preview005" />
       </ItemGroup>
     </Otherwise>
   </Choose>

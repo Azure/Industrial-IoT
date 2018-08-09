@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
     /// <summary>
     /// Implementation of v1 service adapter.
     /// </summary>
-    public class OpcUaRegistryApiClient : IOpcUaRegistryApi {
+    public class RegistryServiceClient : IRegistryServiceApi {
 
         /// <summary>
         /// Create service client
@@ -22,8 +22,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public OpcUaRegistryApiClient(IHttpClient httpClient,
-            IOpcUaRegistryConfig config, ILogger logger) :
+        public RegistryServiceClient(IHttpClient httpClient, IRegistryConfig config,
+            ILogger logger) :
             this (httpClient, config.OpcUaRegistryServiceUrl,
                 config.OpcUaRegistryServiceResourceId, logger){
         }
@@ -35,8 +35,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="serviceUri"></param>
         /// <param name="resourceId"></param>
         /// <param name="logger"></param>
-        public OpcUaRegistryApiClient(IHttpClient httpClient,
-            string serviceUri, string resourceId, ILogger logger) {
+        public RegistryServiceClient(IHttpClient httpClient, string serviceUri,
+            string resourceId, ILogger logger) {
             _httpClient = httpClient;
             _logger = logger;
             _serviceUri = serviceUri;
@@ -145,6 +145,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
                 throw new ArgumentNullException(nameof(content.DiscoveryUrl));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/applications",
+                _resourceId);
+            request.SetContent(content);
+            request.Options.Timeout = 60000;
+            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
+            response.Validate();
+        }
+
+        /// <summary>
+        /// Kick off a one time discovery on all supervisors
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public async Task DiscoverAsync(DiscoveryRequestApiModel content) {
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            var request = _httpClient.NewRequest($"{_serviceUri}/applications/discover",
                 _resourceId);
             request.SetContent(content);
             request.Options.Timeout = 60000;

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,16 +8,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
     /// <summary>
     /// Configuration for service
     /// </summary>
-    public interface IOpcUaRegistryConfig {
+    public interface ITwinConfig {
 
         /// <summary>
-        /// Opc registry service url
+        /// Opc twin service url
         /// </summary>
-        string OpcUaRegistryServiceUrl { get; }
+        string OpcUaTwinServiceUrl { get; }
 
         /// <summary>
-        /// Resource id of registry service
+        /// The twin service resource id
         /// </summary>
-        string OpcUaRegistryServiceResourceId { get; }
+        string OpcUaTwinServiceResourceId { get; }
     }
 }

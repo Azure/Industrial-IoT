@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
     /// <summary>
     /// Implementation of v1 service adapter.
     /// </summary>
-    public class OpcUaTwinApiClient : IOpcUaTwinApi {
+    public class TwinServiceClient : ITwinServiceApi {
 
         /// <summary>
         /// Create service client
@@ -22,10 +22,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public OpcUaTwinApiClient(IHttpClient httpClient,
-            IOpcUaRegistryConfig config, ILogger logger) :
-            this(httpClient, config.OpcUaRegistryServiceUrl,
-                config.OpcUaRegistryServiceResourceId, logger) {
+        public TwinServiceClient(IHttpClient httpClient, ITwinConfig config,
+            ILogger logger) :
+            this(httpClient, config.OpcUaTwinServiceUrl,
+                config.OpcUaTwinServiceResourceId, logger) {
         }
 
         /// <summary>
@@ -35,8 +35,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="serviceUri"></param>
         /// <param name="resourceId"></param>
         /// <param name="logger"></param>
-        public OpcUaTwinApiClient(IHttpClient httpClient,
-            string serviceUri, string resourceId, ILogger logger) {
+        public TwinServiceClient(IHttpClient httpClient, string serviceUri,
+            string resourceId, ILogger logger) {
             _httpClient = httpClient;
             _logger = logger;
             _serviceUri = serviceUri;

@@ -1,13 +1,14 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using Newtonsoft.Json;
+    using System.Collections.Generic;
 
     /// <summary>
-    /// Discovery request api model
+    /// Discovery configuration api model
     /// </summary>
     public class DiscoveryConfigApiModel {
 
@@ -66,5 +67,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         [JsonProperty(PropertyName = "idleTimeBetweenScansSec",
             NullValueHandling = NullValueHandling.Ignore)]
         public int? IdleTimeBetweenScansSec { get; set; }
+
+        /// <summary>
+        /// List of preset discovery urls to use
+        /// </summary>
+        [JsonProperty(PropertyName = "discoveryUrls",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<string> DiscoveryUrls { get; set; }
+
+        /// <summary>
+        /// Callbacks to invoke once onboarding finishes
+        /// </summary>
+        [JsonProperty(PropertyName = "callbacks",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<CallbackApiModel> Callbacks { get; set; }
+
+        /// <summary>
+        /// Activate all twins with this filter during onboarding.
+        /// </summary>
+        [JsonProperty(PropertyName = "activationFilter",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public TwinActivationFilterApiModel ActivationFilter { get; set; }
     }
 }
