@@ -34,7 +34,7 @@ In order to run the service, some environment variables need to be created at le
 1. Make sure the [Prerequisites](#Prerequisites) are set up.
 1. [Install .NET Core 2.1+][dotnet-install]
 1. Install any recent edition of Visual Studio (Windows/MacOS) or Visual Studio Code (Windows/MacOS/Linux).
-   * If you already have Visual Studio installed, then ensure you have [.NET Core Tools for Visual Studio 2017] [dotnetcore-tools-url] installed (Windows only).
+   * If you already have Visual Studio installed, then ensure you have [.NET Core Tools for Visual Studio 2017][dotnetcore-tools-url] installed (Windows only).
    * If you already have VS Code installed, then ensure you have the [C# for Visual Studio Code (powered by OmniSharp)][omnisharp-url] extension installed.
 1. Set the [required environment variables](#Setup-Environment-variables) as explained [here](#Configuration-And-Environment-Variables)
 1. Open the solution in Visual Studio or VS Code
