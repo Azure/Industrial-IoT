@@ -37,7 +37,7 @@ For more help on setting environment variables on your system:
 
 1. [Install .NET Core 2.1+][dotnet-install]
 1. Install any recent edition of Visual Studio (Windows/MacOS) or Visual Studio Code (Windows/MacOS/Linux).
-   * If you already have Visual Studio installed, then ensure you have [.NET Core Tools for Visual Studio 2017] [dotnetcore-tools-url] installed (Windows only).
+   * If you already have Visual Studio installed, then ensure you have [.NET Core Tools for Visual Studio 2017][dotnetcore-tools-url] installed (Windows only).
    * If you already have VS Code installed, then ensure you have the [C# for Visual Studio Code (powered by OmniSharp)][omnisharp-url] extension installed.
 1. Set the [required environment variables](#Setup-Environment-variables-CLI)
 1. Open the solution in Visual Studio or VS Code
