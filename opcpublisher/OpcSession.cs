@@ -428,6 +428,8 @@ namespace OpcPublisher
 
         public static Int32 NodeConfigVersion = 0;
 
+        public static int SessionConnectWaitSec { get; set; } = 10;
+
         public Uri EndpointUrl;
 
         public Session OpcUaClientSession;
@@ -445,6 +447,8 @@ namespace OpcPublisher
         public uint SessionTimeout { get; }
 
         public bool UseSecurity { get; set; } = true;
+
+        public AutoResetEvent ConnectAndMonitorSession;
 
         public int GetNumberOfOpcSubscriptions()
         {
@@ -507,46 +511,70 @@ namespace OpcPublisher
             MissedKeepAlives = 0;
             PublishingInterval = OpcPublishingInterval;
             UseSecurity = useSecurity;
+            ConnectAndMonitorSession = new AutoResetEvent(false);
             _sessionCancelationTokenSource = new CancellationTokenSource();
             _sessionCancelationToken = _sessionCancelationTokenSource.Token;
             _opcSessionSemaphore = new SemaphoreSlim(1);
             _namespaceTable = new NamespaceTable();
             _telemetryConfiguration = GetEndpointTelemetryConfiguration(endpointUrl.AbsoluteUri);
+            Task.Run(ConnectAndMonitorAsync);
         }
 
         /// <summary>
-        /// This task is executed regularily and ensures:
+        /// This task is started when a session is configured and is running till session shutdown and ensures:
         /// - disconnected sessions are reconnected.
         /// - monitored nodes are no longer monitored if requested to do so.
         /// - monitoring for a node starts if it is required.
         /// - unused subscriptions (without any nodes to monitor) are removed.
         /// - sessions with out subscriptions are removed.
         /// </summary>
-        public async Task ConnectAndMonitorAsync(CancellationToken ct)
+        public async Task ConnectAndMonitorAsync()
         {
             uint lastNodeConfigVersion = 0;
-            try
+            WaitHandle[] connectAndMonitorEvents = new WaitHandle[] 
             {
-                await ConnectSessionAsync(ct);
+                _sessionCancelationToken.WaitHandle,
+                ConnectAndMonitorSession
+            };
 
-                await MonitorNodesAsync(ct);
-
-                await StopMonitoringNodesAsync(ct);
-
-                await RemoveUnusedSubscriptionsAsync(ct);
-
-                await RemoveUnusedSessionsAsync(ct);
-
-                // update the config file if required
-                if (NodeConfigVersion != lastNodeConfigVersion)
+            // run till session is closed
+            while (!_sessionCancelationToken.IsCancellationRequested)
+            {
+                try
                 {
-                    lastNodeConfigVersion = (uint)NodeConfigVersion;
-                    await UpdateNodeConfigurationFileAsync();
+                    // wait till:
+                    // - cancelation is requested
+                    // - got signaled because we need to check for pending session activity
+                    // - timeout to try to reestablish any disconnected sessions
+                    WaitHandle.WaitAny(connectAndMonitorEvents, SessionConnectWaitSec * 1000);
+
+                    // step out on cancel
+                    if (_sessionCancelationToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    await ConnectSessionAsync(_sessionCancelationToken);
+
+                    await MonitorNodesAsync(_sessionCancelationToken);
+
+                    await StopMonitoringNodesAsync(_sessionCancelationToken);
+
+                    await RemoveUnusedSubscriptionsAsync(_sessionCancelationToken);
+
+                    await RemoveUnusedSessionsAsync(_sessionCancelationToken);
+
+                    // update the config file if required
+                    if (NodeConfigVersion != lastNodeConfigVersion)
+                    {
+                        lastNodeConfigVersion = (uint)NodeConfigVersion;
+                        await UpdateNodeConfigurationFileAsync();
+                    }
                 }
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e, "Error in ConnectAndMonitorAsync.");
+                catch (Exception e)
+                {
+                    Logger.Error(e, "Error in ConnectAndMonitorAsync.");
+                }
             }
         }
 
@@ -821,20 +849,20 @@ namespace OpcPublisher
                                 case StatusCodes.BadNodeIdInvalid:
                                 case StatusCodes.BadNodeIdUnknown:
                                     {
-                                        Logger.Error($"Failed to monitor node '{currentNodeId.Identifier}' on endpoint '{EndpointUrl}'.");
+                                        Logger.Error($"Failed to monitor node '{currentNodeId}' on endpoint '{EndpointUrl}'.");
                                         Logger.Error($"OPC UA ServiceResultException is '{sre.Result}'. Please check your publisher configuration for this node.");
                                         break;
                                     }
                                 default:
                                     {
-                                        Logger.Error($"Unhandled OPC UA ServiceResultException '{sre.Result}' when monitoring node '{currentNodeId.Identifier}' on endpoint '{EndpointUrl}'. Continue.");
+                                        Logger.Error($"Unhandled OPC UA ServiceResultException '{sre.Result}' when monitoring node '{currentNodeId}' on endpoint '{EndpointUrl}'. Continue.");
                                         break;
                                     }
                             }
                         }
                         catch (Exception e)
                         {
-                            Logger.Error(e, $"Failed to monitor node '{currentNodeId.Identifier}' on endpoint '{EndpointUrl}'");
+                            Logger.Error(e, $"Failed to monitor node '{currentNodeId}' on endpoint '{EndpointUrl}'");
                         }
                     }
                     opcSubscription.OpcUaClientSubscription.SetPublishingMode(true);
@@ -1133,7 +1161,7 @@ namespace OpcPublisher
                     Logger.Debug($"{logPrefix} Added item with nodeId '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' for monitoring.");
 
                     // trigger the actual OPC communication with the server to be done
-                    Task t = Task.Run(async () => await ConnectAndMonitorAsync(ct));
+                    ConnectAndMonitorSession.Set();
                     return HttpStatusCode.Accepted;
                 }
                 else
@@ -1211,7 +1239,7 @@ namespace OpcPublisher
                 }
 
                 // trigger the actual OPC communication with the server to be done
-                Task t = Task.Run(async () => await ConnectAndMonitorAsync(ct));
+                ConnectAndMonitorSession.Set();
             }
             catch (Exception e)
             {

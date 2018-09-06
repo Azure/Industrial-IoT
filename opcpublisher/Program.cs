@@ -105,10 +105,10 @@ namespace OpcPublisher
                             }
                          },
                         { "ic|iotcentral", $"publisher will send OPC UA data in IoTCentral compatible format (DisplayName of a node is used as key, this key is the Field name in IoTCentral). you need to ensure that all DisplayName's are unique. (Auto enables fetch display name)\nDefault: {IotCentralMode}", b => IotCentralMode = FetchOpcNodeDisplayName = b != null },
-                        { "sw|sessionconnectwait=", $"specify the wait time in seconds publisher is trying to connect to disconnected endpoints and starts monitoring unmonitored items\nMin: 10\nDefault: {_publisherSessionConnectWaitSec}", (int i) => {
+                        { "sw|sessionconnectwait=", $"specify the wait time in seconds publisher is trying to connect to disconnected endpoints and starts monitoring unmonitored items\nMin: 10\nDefault: {SessionConnectWaitSec}", (int i) => {
                                 if (i > 10)
                                 {
-                                    _publisherSessionConnectWaitSec = i;
+                                    SessionConnectWaitSec = i;
                                 }
                                 else
                                 {
@@ -587,8 +587,8 @@ namespace OpcPublisher
                     return;
                 }
 
-                // kick off the task to maintain all sessions
-                Task sessionConnectorAsync = Task.Run(async () => await SessionConnectorAsync(ShutdownTokenSource.Token));
+                // kick off OPC session creation and node monitoring
+                await SessionStartAsync();
 
                 // Show notification on session events
                 _publisherServer.CurrentInstance.SessionManager.SessionActivated += ServerEventStatus;
@@ -620,13 +620,10 @@ namespace OpcPublisher
                 ShutdownTokenSource.Cancel();
                 Logger.Information("Publisher is shutting down...");
 
-                // Wait for session connector completion
-                await sessionConnectorAsync;
-
                 // stop the server
                 _publisherServer.Stop();
 
-                // Clean up Publisher sessions
+                // shutdown all OPC sessions
                 await SessionShutdownAsync();
 
                 // shutdown the IoTHub messaging
@@ -655,40 +652,22 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Kicks of the work horse of the publisher regularily for all sessions.
+        /// Start all sessions.
         /// </summary>
-        public static async Task SessionConnectorAsync(CancellationToken ct)
+        public async static Task SessionStartAsync()
         {
-            while (true)
+            try
             {
-                try
-                {
-                    // get tasks for all disconnected sessions and start them
-                    Task[] singleSessionHandlerTaskList;
-                    try
-                    {
-                        await OpcSessionsListSemaphore.WaitAsync();
-                        singleSessionHandlerTaskList = OpcSessions.Select(s => s.ConnectAndMonitorAsync(ct)).ToArray();
-                    }
-                    finally
-                    {
-                        OpcSessionsListSemaphore.Release();
-                    }
-                    Task.WaitAll(singleSessionHandlerTaskList);
-                }
-                catch (Exception e)
-                {
-                    Logger.Error(e, $"Failed to connect and monitor a disconnected server. {(e.InnerException != null ? e.InnerException.Message : "")}");
-                }
-                try
-                {
-                    await Task.Delay(_publisherSessionConnectWaitSec * 1000, ct);
-                }
-                catch { }
-                if (ct.IsCancellationRequested)
-                {
-                    return;
-                }
+                await OpcSessionsListSemaphore.WaitAsync();
+                OpcSessions.ForEach(s => s.ConnectAndMonitorSession.Set());
+            }
+            catch (Exception e)
+            {
+                Logger.Fatal(e, "Failed to start all sessions.");
+            }
+            finally
+            {
+                OpcSessionsListSemaphore.Release();
             }
         }
 
@@ -734,8 +713,8 @@ namespace OpcPublisher
                     Logger.Information($"There are still {sessionCount} sessions alive. Ignore and continue shutdown.");
                     return;
                 }
-                Logger.Information($"Publisher is shutting down. Wait {_publisherSessionConnectWaitSec} seconds, since there are stil {sessionCount} sessions alive...");
-                await Task.Delay(_publisherSessionConnectWaitSec * 1000);
+                Logger.Information($"Publisher is shutting down. Wait {SessionConnectWaitSec} seconds, since there are stil {sessionCount} sessions alive...");
+                await Task.Delay(SessionConnectWaitSec * 1000);
             }
         }
 
@@ -893,7 +872,6 @@ namespace OpcPublisher
         }
 
         private static PublisherServer _publisherServer;
-        private static int _publisherSessionConnectWaitSec = 10;
         private static bool _noShutdown = false;
         private static bool _installOnly = false;
         private static string _logFileName = $"{Utils.GetHostName()}-publisher.log";

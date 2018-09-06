@@ -306,6 +306,12 @@ namespace OpcPublisher
                         Logger.Error(e, $"{logPrefix} Exception while trying to configure publishing node '{(isNodeIdFormat ? nodeId.ToString() : expandedNodeId.ToString())}'");
                         return (new MethodResponse((int)HttpStatusCode.InternalServerError));
                     }
+
+                    // stop when we encounter a problem
+                    if (statusCode != HttpStatusCode.OK && statusCode != HttpStatusCode.Accepted)
+                    {
+                        break;
+                    }
                 }
             }
             catch (AggregateException e)
@@ -406,13 +412,13 @@ namespace OpcPublisher
 
                         if (isNodeIdFormat)
                         {
-                            // stop monitoring the node, execute syncronously
+                            // stop monitoring the node, execute synchronously
                             Logger.Information($"{logPrefix} Request to stop monitoring item with NodeId '{nodeId.ToString()}')");
                             statusCode = await opcSession.RequestMonitorItemRemovalAsync(nodeId, null, ShutdownTokenSource.Token);
                         }
                         else
                         {
-                            // stop monitoring the node, execute syncronously
+                            // stop monitoring the node, execute synchronously
                             Logger.Information($"{logPrefix} Request to stop monitoring item with ExpandedNodeId '{expandedNodeId.ToString()}')");
                             statusCode = await opcSession.RequestMonitorItemRemovalAsync(null, expandedNodeId, ShutdownTokenSource.Token);
                         }
