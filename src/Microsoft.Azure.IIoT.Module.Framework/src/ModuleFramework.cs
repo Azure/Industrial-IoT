@@ -11,9 +11,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
     using Autofac;
 
     /// <summary>
-    /// Edge host module
+    /// Injected module framework module
     /// </summary>
-    public class EdgeHostModule : Module {
+    public class ModuleFramework : Module {
 
         /// <summary>
         /// Load the module
@@ -21,10 +21,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
         /// <param name="builder"></param>
         protected override void Load(ContainerBuilder builder) {
 
-            // Register edge framework
+            // Register sdk and host
             builder.RegisterType<IoTSdkFactory>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<EdgeHost>()
+            builder.RegisterType<ModuleHost>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Auto wire property for circular dependency resolution

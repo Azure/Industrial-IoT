@@ -16,6 +16,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Storage.Services {
     using System.Linq;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Storage resource factory
+    /// </summary>
     public class StorageFactory : BaseFactory, IStorageFactory {
 
         /// <summary>
@@ -76,15 +79,17 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Storage.Services {
         }
 
         /// <summary>
-        /// Virtual machine resource
+        /// Storage resource
         /// </summary>
         private class StorageResource : IStorageResource {
 
             /// <summary>
-            /// Create iot hub
+            /// Create resource
             /// </summary>
             /// <param name="manager"></param>
             /// <param name="resourceGroup"></param>
+            /// <param name="keys"></param>
+            /// <param name="logger"></param>
             /// <param name="storage"></param>
             public StorageResource(StorageFactory manager,
                 IResourceGroupResource resourceGroup, IStorageAccount storage,

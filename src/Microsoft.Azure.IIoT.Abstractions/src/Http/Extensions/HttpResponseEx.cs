@@ -10,6 +10,9 @@ namespace Microsoft.Azure.IIoT.Http {
     using System.Net;
     using System.Text;
 
+    /// <summary>
+    /// Http response extensions
+    /// </summary>
     public static class HttpResponseEx {
 
         /// <summary>
@@ -68,23 +71,6 @@ namespace Microsoft.Azure.IIoT.Http {
             }
         }
 
-        public static bool IsBadRequest(this IHttpResponse response) =>
-            response.StatusCode == HttpStatusCode.BadRequest;
-        public static bool IsUnauthorized(this IHttpResponse response) =>
-            response.StatusCode == HttpStatusCode.Unauthorized;
-        public static bool IsForbidden(this IHttpResponse response) =>
-            response.StatusCode == HttpStatusCode.Forbidden;
-        public static bool IsNotFound(this IHttpResponse response) =>
-            response.StatusCode == HttpStatusCode.NotFound;
-        public static bool IsTimeout(this IHttpResponse response) =>
-            response.StatusCode == HttpStatusCode.RequestTimeout;
-        public static bool IsConflict(this IHttpResponse response) =>
-            response.StatusCode == HttpStatusCode.Conflict;
-        public static bool IsServerError(this IHttpResponse response) =>
-            response.StatusCode >= HttpStatusCode.InternalServerError;
-        public static bool IsServiceUnavailable(this IHttpResponse response) =>
-            response.StatusCode == HttpStatusCode.ServiceUnavailable;
-
         /// <summary>
         /// Response is not completed
         /// </summary>
@@ -114,8 +100,11 @@ namespace Microsoft.Azure.IIoT.Http {
             }
         }
 
-        public static bool IsSuccess(this IHttpResponse response) =>
-            (int)response.StatusCode >= 200 && (int)response.StatusCode <= 299;
+        /// <summary>
+        /// True if request resulted in error
+        /// </summary>
+        /// <param name="response"></param>
+        /// <returns></returns>
         public static bool IsError(this IHttpResponse response) =>
             (int)response.StatusCode >= 400 || response.StatusCode == 0;
 

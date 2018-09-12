@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -65,6 +65,7 @@ namespace MsgPack {
         /// Constructor
         /// </summary>
         /// <param name="strm"></param>
+        /// <param name="owner"></param>
         public Reader(Stream strm, bool owner = false) {
             _strm = strm;
             _owner = owner;
@@ -74,8 +75,8 @@ namespace MsgPack {
         /// Whether coming is an array
         /// </summary>
         public bool IsArray => _type == Types.FixArray ||
-                    _type == Types.Array16 ||
-                    _type == Types.Array32;
+            _type == Types.Array16 ||
+            _type == Types.Array32;
 
         /// <summary>
         /// Type safe read of array length
@@ -94,8 +95,8 @@ namespace MsgPack {
         /// Whether coming is a map
         /// </summary>
         public bool IsMap => _type == Types.FixMap ||
-                    _type == Types.Map16 ||
-                    _type == Types.Map32;
+            _type == Types.Map16 ||
+            _type == Types.Map32;
 
         /// <summary>
         /// Type safe read of map length
@@ -192,8 +193,8 @@ namespace MsgPack {
         /// <summary>
         /// Last read value is boolean
         /// </summary>
-        public bool IsBoolean => _type == Types.True ||
-                    _type == Types.False;
+        public bool IsBoolean =>
+            _type == Types.True || _type == Types.False;
 
         /// <summary>
         /// Type safe read of bool
@@ -208,11 +209,12 @@ namespace MsgPack {
             return Boolean;
         }
 
+        /// <summary>
+        /// Whether next value is unsigned
+        /// </summary>
         public bool IsUnsigned => _type == Types.PositiveFixNum ||
-                    _type == Types.Uint8 ||
-                    _type == Types.UInt16 ||
-                    _type == Types.UInt32 ||
-                    _type == Types.UInt64;
+            _type == Types.Uint8 || _type == Types.UInt16 ||
+            _type == Types.UInt32 || _type == Types.UInt64;
 
         /// <summary>
         /// Type safe read of byte
@@ -591,6 +593,7 @@ namespace MsgPack {
             }
         }
 
+        /// <inheritdoc/>
         public void Dispose() {
             if (_owner) {
                 ((IDisposable)_strm).Dispose();

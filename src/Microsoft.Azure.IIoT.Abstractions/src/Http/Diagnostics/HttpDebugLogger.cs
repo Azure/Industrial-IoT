@@ -12,6 +12,9 @@ namespace Microsoft.Azure.IIoT.Http.Diagnostics {
     using System.Net.Http;
     using System.Threading;
 
+    /// <summary>
+    /// Insertable Logging handler
+    /// </summary>
     public class HttpDebugLogger : HttpMessageHandlerBase {
 
         /// <summary>

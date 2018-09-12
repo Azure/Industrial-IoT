@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -173,6 +173,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             /// Get next endpoint
             /// </summary>
             /// <param name="ep"></param>
+            /// <param name="timeout"></param>
             /// <returns></returns>
             protected override bool Next(out IPEndPoint ep, out int timeout) {
                 if (!_scanner.Next(out ep)) {
@@ -244,7 +245,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// improvement is linear, e.g. all ports on a Windows PC are scanned in
         /// around 16 seconds.
         /// </summary>
-        private const int kDefaultMaxProbeCount = 3000;
+        private const int kDefaultMaxProbeCount = 500;
 
         /// <summary>
         /// By default ensure at least 80% probes are going.

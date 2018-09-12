@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -31,6 +31,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         public override bool CanConvert(Type objectType) =>
             typeof(Exception).IsAssignableFrom(objectType);
 
+        /// <inheritdoc/>
         public override bool CanRead => false;
 
         /// <summary>
@@ -45,6 +46,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             object existingValue, JsonSerializer serializer) =>
             throw new NotImplementedException();
 
+        /// <inheritdoc/>
         public override bool CanWrite => true;
 
         /// <summary>

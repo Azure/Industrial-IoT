@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Send telemetry events
+    /// </summary>
     public interface IEventEmitter {
 
         /// <summary>
@@ -28,6 +31,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
         /// Send event
         /// </summary>
         /// <param name="data"></param>
+        /// <param name="contentType"></param>
         /// <returns></returns>
         Task SendAsync(byte[] data, string contentType);
 
@@ -35,6 +39,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
         /// Send batch of events
         /// </summary>
         /// <param name="batch"></param>
+        /// <param name="contentType"></param>
         /// <returns></returns>
         Task SendAsync(IEnumerable<byte[]> batch,
             string contentType);

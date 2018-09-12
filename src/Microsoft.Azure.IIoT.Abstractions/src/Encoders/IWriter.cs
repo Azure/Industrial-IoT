@@ -3,11 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Encoder {
+namespace Microsoft.Azure.IIoT.Encoders {
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
-    using System.Threading;
     using System.Xml;
 
     /// <summary>

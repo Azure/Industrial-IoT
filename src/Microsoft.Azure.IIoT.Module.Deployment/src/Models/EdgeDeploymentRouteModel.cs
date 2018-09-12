@@ -6,6 +6,9 @@
 namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
     using Newtonsoft.Json;
 
+    /// <summary>
+    /// IotEdge deployment route
+    /// </summary>
     public class EdgeDeploymentRouteModel {
 
         /// <summary>

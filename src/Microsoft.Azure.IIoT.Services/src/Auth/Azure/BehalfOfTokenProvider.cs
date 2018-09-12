@@ -50,6 +50,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
         /// Obtain token from user
         /// </summary>
         /// <param name="resource"></param>
+        /// <param name="scopes"></param>
         /// <returns></returns>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
@@ -101,6 +102,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
         /// </summary>
         /// <param name="tenantId"></param>
         /// <param name="cache"></param>
+        /// <param name="authority"></param>
         /// <returns></returns>
         private static AuthenticationContext CreateAuthenticationContext(
             string authority, string tenantId, TokenCache cache) {

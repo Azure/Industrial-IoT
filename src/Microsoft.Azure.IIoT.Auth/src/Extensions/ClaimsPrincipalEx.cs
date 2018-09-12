@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,8 +6,15 @@
 namespace System.Security.Claims {
     using System;
 
+    /// <summary>
+    /// Model extensions
+    /// </summary>
     public static class ClaimsPrincipalEx {
 
+        /// <summary>
+        /// Get current user name
+        /// </summary>
+        /// <returns></returns>
         public static string GetUserName() => ClaimsPrincipal.Current.GetUserName();
 
         /// <summary>

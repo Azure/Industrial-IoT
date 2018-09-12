@@ -8,14 +8,17 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
     using Docker.DotNet.Models;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.IO;
     using Newtonsoft.Json;
 
+    /// <summary>
+    /// Edge deployment extensions
+    /// </summary>
     public static class EdgeDeploymentEx {
 
         /// <summary>
         /// Add image
         /// </summary>
+        /// <param name="deployment"></param>
         /// <param name="name"></param>
         /// <param name="imageName"></param>
         /// <param name="version"></param>
@@ -42,6 +45,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Add image
         /// </summary>
+        /// <param name="deployment"></param>
         /// <param name="name"></param>
         /// <param name="imageName"></param>
         /// <param name="version"></param>
@@ -59,6 +63,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Add image
         /// </summary>
+        /// <param name="deployment"></param>
         /// <param name="name"></param>
         /// <param name="imageName"></param>
         /// <param name="version"></param>
@@ -75,6 +80,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Add image
         /// </summary>
+        /// <param name="deployment"></param>
         /// <param name="name"></param>
         /// <param name="imageName"></param>
         /// <param name="version"></param>
@@ -87,6 +93,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Add image
         /// </summary>
+        /// <param name="deployment"></param>
         /// <param name="name"></param>
         /// <param name="imageName"></param>
         /// <param name="properties"></param>
@@ -97,6 +104,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Add image
         /// </summary>
+        /// <param name="deployment"></param>
         /// <param name="name"></param>
         /// <param name="imageName"></param>
         public static IEdgeDeployment WithModule(this IEdgeDeployment deployment,
@@ -106,6 +114,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Add image
         /// </summary>
+        /// <param name="deployment"></param>
         /// <param name="name"></param>
         /// <param name="imageName"></param>
         /// <param name="createOptions"></param>
@@ -118,6 +127,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Add image
         /// </summary>
+        /// <param name="deployment"></param>
         /// <param name="name"></param>
         /// <param name="imageName"></param>
         /// <param name="createOptions"></param>
@@ -128,6 +138,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Add a route
         /// </summary>
+        /// <param name="deployment"></param>
         /// <param name="name"></param>
         /// <param name="from"></param>
         /// <param name="to"></param>
@@ -156,6 +167,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// With deployment manifest
         /// </summary>
+        /// <param name="deployment"></param>
         /// <param name="manifest"></param>
         /// <returns></returns>
         public static IEdgeDeployment WithManifest(this IEdgeDeployment deployment,
@@ -176,6 +188,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Apply manifest from stream
         /// </summary>
+        /// <param name="deployment"></param>
         /// <param name="manifestJson"></param>
         /// <returns></returns>
         public static IEdgeDeployment WithManifest(this IEdgeDeployment deployment,
@@ -185,6 +198,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Apply manifest
         /// </summary>
+        /// <param name="deployment"></param>
         /// <param name="manifest"></param>
         /// <returns></returns>
         public static Task ApplyAsync(this IEdgeDeployment deployment,
@@ -195,6 +209,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Apply manifest
         /// </summary>
+        /// <param name="deployment"></param>
         /// <param name="manifestJson"></param>
         /// <returns></returns>
         public static Task ApplyAsync(this IEdgeDeployment deployment,

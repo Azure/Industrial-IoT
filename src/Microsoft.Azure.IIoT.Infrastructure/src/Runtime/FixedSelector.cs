@@ -6,8 +6,17 @@
 namespace Microsoft.Azure.IIoT.Infrastructure.Runtime {
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Select from configuration
+    /// </summary>
     public class FixedSelector : ISubscriptionInfoSelector {
 
+        /// <summary>
+        /// Create selector
+        /// </summary>
+        /// <param name="environment"></param>
+        /// <param name="subscription"></param>
+        /// <param name="region"></param>
         public FixedSelector(string environment = null,
             string subscription = null, string region = null) {
             _environment = environment;

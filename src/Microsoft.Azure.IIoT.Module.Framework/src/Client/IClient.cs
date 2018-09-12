@@ -18,11 +18,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     public interface IClient : IDisposable {
 
         /// <summary>
-        /// Update product info
-        /// </summary>
-        string ProductInfo { get; set; }
-
-        /// <summary>
         /// Sends an event to device hub
         /// </summary>
         /// <returns>The message containing the event</returns>
@@ -144,5 +139,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         Task CloseAsync();
     }
 
+    /// <summary>
+    /// Stream callback definition
+    /// </summary>
+    /// <param name="userContext"></param>
     public delegate void StreamCallback(object userContext);
 }

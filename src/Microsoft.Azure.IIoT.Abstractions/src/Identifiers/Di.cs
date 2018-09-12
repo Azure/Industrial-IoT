@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -75,9 +75,21 @@ namespace Microsoft.Azure.IIoT.Identifiers {
         public override bool Equals(object obj) =>
             obj is Di di && CSI == di.CSI && IC == di.IC;
 
+        /// <summary>
+        /// Equality
+        /// </summary>
+        /// <param name="di1"></param>
+        /// <param name="di2"></param>
+        /// <returns></returns>
         public static bool operator ==(Di di1, Di di2) =>
             EqualityComparer<Di>.Default.Equals(di1, di2);
 
+        /// <summary>
+        /// Inequality
+        /// </summary>
+        /// <param name="di1"></param>
+        /// <param name="di2"></param>
+        /// <returns></returns>
         public static bool operator !=(Di di1, Di di2) =>
             !(di1 == di2);
 

@@ -6,6 +6,9 @@
 namespace System.Xml {
     using System.Runtime.Serialization;
 
+    /// <summary>
+    /// Xml element extensions
+    /// </summary>
     public static class XmlElementEx {
 
         /// <summary>

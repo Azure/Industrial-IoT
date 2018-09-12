@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,6 +6,10 @@
 namespace System.Collections.Generic {
     using System;
 
+    /// <summary>
+    /// Lambda comparer
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class FuncCompare<T> : IEqualityComparer<T> {
 
         /// <summary>

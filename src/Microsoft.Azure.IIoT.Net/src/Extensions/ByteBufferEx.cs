@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -9,6 +9,9 @@ namespace Microsoft.Azure.IIoT.Net {
     using System.Net;
     using System.Text;
 
+    /// <summary>
+    /// Buffer extensions
+    /// </summary>
     public static class ByteBufferEx {
 
         /// <summary>
@@ -39,6 +42,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// </summary>
         /// <param name="data"></param>
         /// <param name="offset"></param>
+        /// <param name="netOrder"></param>
         /// <returns></returns>
         public static ushort ReadUInt16(this byte[] data, ref int offset,
             bool netOrder = false) {
@@ -52,6 +56,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// </summary>
         /// <param name="data"></param>
         /// <param name="offset"></param>
+        /// <param name="netOrder"></param>
         /// <returns></returns>
         public static uint ReadUInt32(this byte[] data, ref int offset,
             bool netOrder = false) {
@@ -88,63 +93,67 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Write uint 8
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="stream"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static void WriteUInt8(this Stream data, byte value) {
-            data.WriteByte(value);
+        public static void WriteUInt8(this Stream stream, byte value) {
+            stream.WriteByte(value);
         }
 
         /// <summary>
         /// Write uint 32
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="stream"></param>
         /// <param name="value"></param>
+        /// <param name="netOrder"></param>
         /// <returns></returns>
-        public static void WriteUInt32(this Stream data, uint value,
+        public static void WriteUInt32(this Stream stream, uint value,
             bool netOrder = false) {
-            data.WriteByteArray(value.ToBytes(netOrder));
+            stream.WriteByteArray(value.ToBytes(netOrder));
         }
 
         /// <summary>
         /// Write uint 16
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="stream"></param>
         /// <param name="value"></param>
+        /// <param name="netOrder"></param>
         /// <returns></returns>
-        public static void WriteUInt16(this Stream data, ushort value,
+        public static void WriteUInt16(this Stream stream, ushort value,
             bool netOrder = false) {
-            data.WriteByteArray(value.ToBytes(netOrder));
+            stream.WriteByteArray(value.ToBytes(netOrder));
         }
 
         /// <summary>
         /// Write buffer
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="stream"></param>
         /// <param name="value"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public static void WriteByteArray(this Stream data, byte[] value,
+        public static void WriteByteArray(this Stream stream, byte[] value,
             int? length = null) {
 
             var len = value?.Length ?? 0;
             if (len > 0) {
-                data.Write(value, 0, value.Length);
+                stream.Write(value, 0, value.Length);
             }
 
             var padding = (length ?? len) - len;
             if (padding > 0) {
-                data.WritePadding(0, padding);
+                stream.WritePadding(0, padding);
             }
         }
 
         /// <summary>
         /// Write padding
         /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="pad"></param>
         /// <param name="length"></param>
-        public static void WritePadding(this Stream data, byte pad, int length) {
+        public static void WritePadding(this Stream stream, byte pad, int length) {
             for (var i = 0; i < length; i++) {
-                data.WriteUInt8(pad);
+                stream.WriteUInt8(pad);
             }
         }
 
@@ -153,6 +162,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// </summary>
         /// <param name="data"></param>
         /// <param name="netOrder"></param>
+        /// <param name="offset"></param>
         /// <returns></returns>
         public static uint ToUInt32(this byte[] data, bool netOrder = false,
             int offset = 0) {
@@ -170,6 +180,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// Read uint 16
         /// </summary>
         /// <param name="data"></param>
+        /// <param name="netOrder"></param>
         /// <param name="offset"></param>
         /// <returns></returns>
         public static ushort ToUInt16(this byte[] data, bool netOrder = false,
@@ -189,6 +200,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// </summary>
         /// <param name="encoding"></param>
         /// <param name="data"></param>
+        /// <param name="offset"></param>
         /// <returns></returns>
         public static string ToEncodedString(this byte[] data,
             Encoding encoding = null, int offset = 0) {
@@ -246,7 +258,7 @@ namespace Microsoft.Azure.IIoT.Net {
 
 
         /// <summary>
-        /// Equals
+        /// Equality
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="other"></param>

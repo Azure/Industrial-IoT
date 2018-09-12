@@ -9,6 +9,9 @@ namespace System.Linq {
     using System.Collections;
     using System.Reflection;
 
+    /// <summary>
+    /// Enumerable extensions
+    /// </summary>
     public static class EnumerableEx {
 
         /// <summary>
@@ -41,7 +44,6 @@ namespace System.Linq {
         /// <summary>
         /// Flattens a enumerable of enumerables
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static IEnumerable Flatten(this IEnumerable obj) {
@@ -168,6 +170,7 @@ namespace System.Linq {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="enumerable"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
         public static Array ToArray<T>(this IEnumerable<T> enumerable, Type type) {
             if (enumerable == null) {
@@ -224,6 +227,7 @@ namespace System.Linq {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source"></param>
+        /// <param name="thiz"></param>
         /// <param name="checkSingle"></param>
         /// <returns></returns>
         public static T OneOrThis<T>(this IEnumerable<T> source,

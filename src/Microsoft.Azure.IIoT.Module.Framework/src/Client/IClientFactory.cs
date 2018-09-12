@@ -28,9 +28,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         IRetryPolicy RetryPolicy { get; set; }
 
         /// <summary>
-        /// Create module client
+        /// Create client
         /// </summary>
+        /// <param name="product"></param>
         /// <returns></returns>
-        Task<IClient> CreateAsync();
+        Task<IClient> CreateAsync(string product);
     }
 }

@@ -10,6 +10,9 @@ namespace Newtonsoft.Json {
     using System;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Json convert helpers
+    /// </summary>
     public static class JsonConvertEx {
 
         /// <summary>

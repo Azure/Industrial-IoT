@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
     using System;
     using System.Linq;
 
+    /// <summary>
+    /// Twin properties extensions
+    /// </summary>
     public static class TwinPropertiesEx {
 
         /// <summary>

@@ -6,9 +6,11 @@
 namespace System.Net {
     using Microsoft.Azure.IIoT.Net.Models;
     using System.Collections.Generic;
-    using System.Net.Sockets;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Ip address extensions
+    /// </summary>
     public static class IPAddressEx {
 
         /// <summary>

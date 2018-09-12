@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -10,28 +10,111 @@ namespace Microsoft.Azure.IIoT.Identifiers {
     /// Code space identifier values according to ISO 22745
     /// </summary>
     public enum Csi {
+
+        /// <summary>
+        /// Undefined
+        /// </summary>
         Undefined,
+
+        /// <summary>
+        /// Concept type
+        /// </summary>
         ConceptType,
+
+        /// <summary>
+        /// Term
+        /// </summary>
         Term,
+
+        /// <summary>
+        /// Definition
+        /// </summary>
         Definition,
+
+        /// <summary>
+        /// Image
+        /// </summary>
         Image,
+
+        /// <summary>
+        /// Abbreviation
+        /// </summary>
         Abbreviation,
+
+        /// <summary>
+        /// Graphical
+        /// </summary>
         GraphicalSymbol,
+
+        /// <summary>
+        /// Textual
+        /// </summary>
         TextualSymbol,
+
+        /// <summary>
+        /// Language
+        /// </summary>
         Language,
+
+        /// <summary>
+        /// Org
+        /// </summary>
         Organization,
+
+        /// <summary>
+        /// Class
+        /// </summary>
         Class,
+
+        /// <summary>
+        /// Property
+        /// </summary>
         Property,
+
+        /// <summary>
+        /// Uom
+        /// </summary>
         UnitOfMeasure,
+
+        /// <summary>
+        /// Property value
+        /// </summary>
         PropertyValue,
+
+        /// <summary>
+        /// Currency
+        /// </summary>
         Currency,
+
+        /// <summary>
+        /// Data type
+        /// </summary>
         DataType,
+
+        /// <summary>
+        /// Ontology
+        /// </summary>
         Ontology,
+
+        /// <summary>
+        /// Aspect of Conversion
+        /// </summary>
         AspectOfConversion,
+
+        /// <summary>
+        /// Template
+        /// </summary>
         Template,
+
+        /// <summary>
+        /// Quantity
+        /// </summary>
         Quantity
     }
 
+    /// <summary>
+    /// Csi type extensions
+    /// </summary>
     public static class CsiEx {
 
         /// <summary>

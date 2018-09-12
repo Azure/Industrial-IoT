@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,8 +8,12 @@ namespace System.Security.Claims {
     using System.Collections.Generic;
     using System.Linq;
 
+    /// <summary>
+    /// Model extensions
+    /// </summary>
     public static class ClaimExtensions {
 
+        /// <summary>Upn claim constant</summary>
         public const string UpnClaimSchema = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn";
 
         /// <summary>

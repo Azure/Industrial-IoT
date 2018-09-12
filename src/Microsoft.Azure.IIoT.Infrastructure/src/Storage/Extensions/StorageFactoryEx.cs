@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Storage {
     using Microsoft.Azure.IIoT.Utils;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Storage factory extensions
+    /// </summary>
     public static class StorageFactoryEx {
 
         /// <summary>
@@ -19,6 +22,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Storage {
         /// <summary>
         /// Get or create new storage in a resource group.
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="resourceGroup"></param>
         /// <param name="name"></param>
         /// <returns></returns>

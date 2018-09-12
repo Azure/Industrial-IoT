@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,12 +6,16 @@
 namespace Microsoft.Azure.IIoT.Utils {
     using Microsoft.Azure.IIoT.Hub;
 
+    /// <summary>
+    /// Connection string extensions
+    /// </summary>
     public static class ConnectionStringEx {
 
         /// <summary>
         /// IoTHubOwner connection string to configuration
         /// </summary>
         /// <param name="cs"></param>
+        /// <param name="resourceId"></param>
         /// <returns></returns>
         public static IIoTHubConfig ToIoTHubConfig(this ConnectionString cs,
             string resourceId = null) => ToIoTHubConfig(cs.ToString(), resourceId);
@@ -20,6 +24,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// IoTHubOwner connection string to configuration
         /// </summary>
         /// <param name="cs"></param>
+        /// <param name="resourceId"></param>
         /// <returns></returns>
         public static IIoTHubConfig ToIoTHubConfig(this string cs,
             string resourceId = null) => new IoTHubConfig {

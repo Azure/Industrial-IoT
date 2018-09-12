@@ -6,6 +6,9 @@
 namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
     using Newtonsoft.Json;
 
+    /// <summary>
+    /// IotEdge Store and forward configuration
+    /// </summary>
     public class EdgeHubStoreAndForwardModel {
 
         /// <summary>

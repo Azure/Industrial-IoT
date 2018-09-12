@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,6 +8,9 @@ namespace System {
     using System.Linq;
     using System.Security;
 
+    /// <summary>
+    /// Console extensions
+    /// </summary>
     public static class ConsoleEx {
 
         /// <summary>
@@ -15,6 +18,7 @@ namespace System {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="items"></param>
+        /// <param name="toString"></param>
         /// <param name="exit"></param>
         /// <returns></returns>
         public static T Select<T>(IEnumerable<T> items, Func<T, string> toString,

@@ -10,6 +10,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
     using System;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Factory creating deployments for iotedge.
+    /// </summary>
     public class EdgeDeploymentFactory : IEdgeDeploymentFactory {
 
         /// <summary>
@@ -34,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
             new EdgeFleetDeployment(this, name, condition, priority, configuration);
 
         /// <summary>
-        /// Device deployment
+        /// Single Deployment
         /// </summary>
         private class EdgeDeviceDeployment : EdgeDeploymentBase {
 
@@ -43,6 +46,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
             /// </summary>
             /// <param name="factory"></param>
             /// <param name="deviceId"></param>
+            /// <param name="configuration"></param>
             public EdgeDeviceDeployment(EdgeDeploymentFactory factory,
                 string deviceId, ConfigurationContentModel configuration) :
                 base(configuration, factory._logger) {
@@ -69,6 +73,8 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
             /// <param name="factory"></param>
             /// <param name="name"></param>
             /// <param name="condition"></param>
+            /// <param name="priority"></param>
+            /// <param name="configuration"></param>
             public EdgeFleetDeployment(EdgeDeploymentFactory factory, string name,
                 string condition, int priority, ConfigurationContentModel configuration) :
                 base(configuration, factory._logger) {

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,6 +8,9 @@ namespace Microsoft.Extensions.Primitives {
     using System.Collections.Generic;
     using System.Linq;
 
+    /// <summary>
+    /// Http response extensions
+    /// </summary>
     public static class HttpResponseEx {
 
         /// <summary>
@@ -16,7 +19,7 @@ namespace Microsoft.Extensions.Primitives {
         /// <param name="response"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public static void AddHeader(this HttpResponse response, 
+        public static void AddHeader(this HttpResponse response,
             string key, string value) {
             if (!response.Headers.ContainsKey(key)) {
                 response.Headers[key] = value;

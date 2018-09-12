@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
         /// <summary>
         /// Create credentials
         /// </summary>
+        /// <param name="provider"></param>
         /// <param name="config"></param>
         public TokenProviderCredentials(ITokenProvider provider,
             IClientConfig config) : this (config) {
@@ -85,6 +86,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
             }
         }
 
+        /// <summary>Configuration to be used by derived classes</summary>
         protected readonly IClientConfig _config;
         private readonly ITokenProvider _provider;
         private readonly Dictionary<string, Tuple<DateTime, AzureCredentials>> _credentials =

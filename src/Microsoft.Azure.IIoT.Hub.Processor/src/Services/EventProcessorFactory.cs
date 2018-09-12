@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             /// <inheritdoc/>
             public async Task ProcessEventsAsync(PartitionContext context,
                 IEnumerable<EventData> messages) {
-                if (messages == null) {
+                if (messages == null || !messages.Any()) {
                     return;
                 }
 

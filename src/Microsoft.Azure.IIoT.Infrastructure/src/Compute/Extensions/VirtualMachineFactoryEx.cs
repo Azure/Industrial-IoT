@@ -8,6 +8,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
     using Microsoft.Azure.IIoT.Utils;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Virtual machine factory extensions
+    /// </summary>
     public static class VirtualMachineFactoryEx {
 
         /// <summary>
@@ -47,8 +50,11 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
         /// <summary>
         /// Get or create new vm in a resource group.
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="resourceGroup"></param>
         /// <param name="name"></param>
+        /// <param name="network"></param>
+        /// <param name="image"></param>
         /// <returns></returns>
         public static async Task<IVirtualMachineResource> GetOrCreateAsync(
             this IVirtualMachineFactory service, IResourceGroupResource resourceGroup,
@@ -63,8 +69,10 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
         /// <summary>
         /// Get or create new ubuntu server 16.04 LTS vm in a resource group.
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="resourceGroup"></param>
         /// <param name="name"></param>
+        /// <param name="network"></param>
         /// <returns></returns>
         public static  Task<IVirtualMachineResource> GetOrCreateXenialAsync(
             this IVirtualMachineFactory service, IResourceGroupResource resourceGroup,
@@ -74,8 +82,10 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
         /// <summary>
         /// Get or create new ubuntu server 16.04 LTS vm in a resource group.
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="resourceGroup"></param>
         /// <param name="name"></param>
+        /// <param name="network"></param>
         /// <returns></returns>
         public static Task<IVirtualMachineResource> GetOrCreateBionicAsync(
             this IVirtualMachineFactory service, IResourceGroupResource resourceGroup,

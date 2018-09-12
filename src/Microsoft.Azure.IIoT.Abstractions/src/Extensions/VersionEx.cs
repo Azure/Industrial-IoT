@@ -5,8 +5,10 @@
 
 namespace System {
     using Reflection;
-    using System.Collections.Generic;
 
+    /// <summary>
+    /// Version extensions
+    /// </summary>
     public static class VersionEx {
 
         /// <summary>

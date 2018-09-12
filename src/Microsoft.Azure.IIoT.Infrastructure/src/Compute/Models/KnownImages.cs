@@ -5,8 +5,14 @@
 
 namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
 
+    /// <summary>
+    /// Constants for known images
+    /// </summary>
     public static class KnownImages {
 
+        /// <summary>
+        /// Ubuntu 14.04
+        /// </summary>
         public static readonly VirtualMachineImage Ubuntu_14_04_lts =
             new VirtualMachineImage {
                 Offer = "UbuntuServer",
@@ -15,6 +21,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
                 IsLinux = true
             };
 
+        /// <summary>
+        /// Ubuntu 16.04
+        /// </summary>
         public static readonly VirtualMachineImage Ubuntu_16_04_lts =
             new VirtualMachineImage {
                 Offer = "UbuntuServer",
@@ -23,6 +32,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
                 IsLinux = true
             };
 
+        /// <summary>
+        /// Ubuntu 18.04
+        /// </summary>
         public static readonly VirtualMachineImage Ubuntu_18_04_lts =
             new VirtualMachineImage {
                 Offer = "UbuntuServer",

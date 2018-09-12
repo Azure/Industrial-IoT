@@ -6,6 +6,9 @@
 namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
     using Newtonsoft.Json;
 
+    /// <summary>
+    /// IotEdge Agent module settings
+    /// </summary>
     public class EdgeAgentModuleSettingsModel {
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,11 +8,15 @@ namespace Microsoft.Azure.IIoT.Hub {
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Configuration services extensions
+    /// </summary>
     public static class IoTHubConfigurationServicesEx {
 
         /// <summary>
         /// Delete configuration
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="configurationId"></param>
         /// <returns></returns>
         public static Task DeleteConfigurationAsync(
@@ -22,6 +26,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Delete configuration
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
         public static Task DeleteConfigurationAsync(

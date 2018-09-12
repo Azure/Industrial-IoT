@@ -6,6 +6,9 @@
 namespace System {
     using System.Web;
 
+    /// <summary>
+    /// Uri extensions
+    /// </summary>
     public static class UriEx {
 
         /// <summary>

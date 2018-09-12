@@ -62,6 +62,7 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
         /// Obtain token from user
         /// </summary>
         /// <param name="resource"></param>
+        /// <param name="scopes"></param>
         /// <returns></returns>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
@@ -99,7 +100,9 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
         /// <summary>
         /// Helper to create authentication context
         /// </summary>
+        /// <param name="authority"></param>
         /// <param name="tenantId"></param>
+        /// <param name="store"></param>
         /// <returns></returns>
         private static AuthenticationContext CreateAuthenticationContext(
             string authority, string tenantId, ITokenCacheProvider store) {
@@ -116,14 +119,19 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
             return ctx;
         }
 
+        /// <inheritdoc/>
         public Task InvalidateAsync(string resource) {
             return Task.CompletedTask;
         }
 
-        private const string kAuthority = "https://login.microsoftonline.com/";
+        /// <summary>Logger for derived class</summary>
         protected readonly ILogger _logger;
+        /// <summary>Configuration for derived class</summary>
         protected readonly IClientConfig _config;
+        /// <summary>Callback for derived class</summary>
         protected readonly Action<string, DateTimeOffset, string> _callback;
+
+        private const string kAuthority = "https://login.microsoftonline.com/";
         private readonly ITokenCacheProvider _store;
     }
 }

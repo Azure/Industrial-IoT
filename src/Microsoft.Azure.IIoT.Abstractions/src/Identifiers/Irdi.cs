@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -54,6 +54,7 @@ namespace Microsoft.Azure.IIoT.Identifiers {
         /// Parse Irdi
         /// </summary>
         /// <param name="value"></param>
+        /// <param name="skipVersion"></param>
         /// <returns></returns>
         public static Irdi Parse(string value, bool skipVersion = false) {
             if (value == null) {
@@ -74,6 +75,8 @@ namespace Microsoft.Azure.IIoT.Identifiers {
         /// Try parse Irdi
         /// </summary>
         /// <param name="value"></param>
+        /// <param name="skipVersion"></param>
+        /// <param name="irdi"></param>
         /// <returns></returns>
         public static bool TryParse(string value, bool skipVersion, out Irdi irdi) {
             try {
@@ -90,6 +93,7 @@ namespace Microsoft.Azure.IIoT.Identifiers {
         /// Try parse Irdi
         /// </summary>
         /// <param name="value"></param>
+        /// <param name="irdi"></param>
         /// <returns></returns>
         public static bool TryParse(string value, out Irdi irdi) =>
             TryParse(value, false, out irdi);
@@ -104,9 +108,21 @@ namespace Microsoft.Azure.IIoT.Identifiers {
         public override bool Equals(object obj) =>
             obj is Irdi irdi && VI == irdi.VI && DI == irdi.DI && RAI == irdi.RAI;
 
+        /// <summary>
+        /// Equality operator
+        /// </summary>
+        /// <param name="irdi1"></param>
+        /// <param name="irdi2"></param>
+        /// <returns></returns>
         public static bool operator ==(Irdi irdi1, Irdi irdi2) =>
             EqualityComparer<Irdi>.Default.Equals(irdi1, irdi2);
 
+        /// <summary>
+        /// Inequality operator
+        /// </summary>
+        /// <param name="irdi1"></param>
+        /// <param name="irdi2"></param>
+        /// <returns></returns>
         public static bool operator !=(Irdi irdi1, Irdi irdi2) =>
             !(irdi1 == irdi2);
 

@@ -6,12 +6,16 @@
 namespace Microsoft.Azure.IIoT.Module.Deployment {
     using Microsoft.Azure.IIoT.Hub.Models;
 
+    /// <summary>
+    /// Creates edge deployments
+    /// </summary>
     public interface IEdgeDeploymentFactory {
 
         /// <summary>
-        /// Create edge deployment for selected edge device.
+        /// Create deployment for selected iotedge device.
         /// </summary>
         /// <param name="deviceId"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
         IEdgeDeployment Create(string deviceId,
             ConfigurationContentModel configuration);
@@ -23,6 +27,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="name"></param>
         /// <param name="condition"></param>
         /// <param name="priority"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
         IEdgeDeployment Create(string name, string condition,
             int priority, ConfigurationContentModel configuration);

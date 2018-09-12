@@ -7,6 +7,9 @@ namespace System.Collections.Generic {
     using System;
     using System.Linq;
 
+    /// <summary>
+    /// Dictionary extensions
+    /// </summary>
     public static class DictionaryEx {
 
         /// <summary>
@@ -16,6 +19,7 @@ namespace System.Collections.Generic {
         /// <typeparam name="V"></typeparam>
         /// <param name="dict"></param>
         /// <param name="that"></param>
+        /// <param name="equality"></param>
         /// <returns></returns>
         public static bool DictionaryEqualsSafe<K, V>(this IDictionary<K, V> dict,
             IDictionary<K, V> that, Func<V, V, bool> equality) {
@@ -50,15 +54,16 @@ namespace System.Collections.Generic {
         /// </summary>
         /// <typeparam name="K"></typeparam>
         /// <typeparam name="V"></typeparam>
+        /// <param name="dict"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public static void AddOrUpdate<K, V>(this IDictionary<K, V> dictionary,
+        public static void AddOrUpdate<K, V>(this IDictionary<K, V> dict,
             K key, V value) {
-            if (dictionary.ContainsKey(key)) {
-                dictionary[key] = value;
+            if (dict.ContainsKey(key)) {
+                dict[key] = value;
             }
             else {
-                dictionary.Add(key, value);
+                dict.Add(key, value);
             }
         }
 
@@ -67,29 +72,30 @@ namespace System.Collections.Generic {
         /// </summary>
         /// <typeparam name="K"></typeparam>
         /// <typeparam name="V"></typeparam>
-        /// <param name="dictionary"></param>
+        /// <param name="dict"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static V GetOrCreate<K, V>(this IDictionary<K, V> dictionary, K key)
+        public static V GetOrCreate<K, V>(this IDictionary<K, V> dict, K key)
             where V : new() {
-            if (dictionary.TryGetValue(key, out var result)) {
+            if (dict.TryGetValue(key, out var result)) {
                 return result;
             }
             result = new V();
-            dictionary[key] = result;
+            dict[key] = result;
             return result;
         }
 
         /// <summary>
         /// Add range to dictionary
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="dictionary"></param>
+        /// <typeparam name="K"></typeparam>
+        /// <typeparam name="V"></typeparam>
+        /// <param name="dict"></param>
         /// <param name="enumerable"></param>
-        public static void AddRange<K, V>(this IDictionary<K, V> dictionary,
+        public static void AddRange<K, V>(this IDictionary<K, V> dict,
             IEnumerable<KeyValuePair<K, V>> enumerable) {
             foreach (var item in enumerable) {
-                dictionary.Add(item);
+                dict.Add(item);
             }
         }
     }

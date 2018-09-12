@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,11 +8,15 @@ namespace System {
     using System.Linq;
     using System.Text;
 
+    /// <summary>
+    /// String helper extensions
+    /// </summary>
     public static class StringEx {
 
         /// <summary>
         /// Helper to create a unique name
         /// </summary>
+        /// <param name="len"></param>
         /// <param name="prefix"></param>
         /// <returns></returns>
         public static string CreateUnique(int len, string prefix = "") =>
@@ -33,6 +37,7 @@ namespace System {
         /// </summary>
         /// <param name="str"></param>
         /// <param name="to"></param>
+        /// <param name="ignoreCase"></param>
         /// <returns></returns>
         public static bool AnyOf(this string str, IEnumerable<string> to,
             bool ignoreCase = false) => to.Any(s => s.Equals(str, ignoreCase ?

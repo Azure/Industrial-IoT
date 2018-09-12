@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -9,6 +9,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
     using Microsoft.Rest;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Provides credentials for azure management
+    /// </summary>
     public interface ICredentialProvider {
 
         /// <summary>

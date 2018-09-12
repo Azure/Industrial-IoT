@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.ServiceBus {
     using Microsoft.Azure.IIoT.Utils;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Service bus factory extension
+    /// </summary>
     public static class ServiceBusFactoryEx {
 
         /// <summary>
@@ -19,6 +22,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.ServiceBus {
         /// <summary>
         /// Get or create new service bus namespace in a resource group.
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="resourceGroup"></param>
         /// <param name="name"></param>
         /// <returns></returns>

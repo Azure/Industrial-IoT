@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Tasks {
     using System;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Task processor extensions
+    /// </summary>
     public static class TaskProcessorEx {
 
         /// <summary>

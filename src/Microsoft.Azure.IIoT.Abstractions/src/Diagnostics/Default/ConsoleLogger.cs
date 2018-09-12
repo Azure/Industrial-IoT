@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     using System;
 
     /// <summary>
-    /// Logger implementation
+    /// Console Logger implementation
     /// </summary>
     public class ConsoleLogger : BaseLogger {
 
@@ -15,7 +15,15 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// Create logger
         /// </summary>
         public ConsoleLogger() :
-            this(Guid.NewGuid().ToString(), LogLevel.Debug) {
+            this(null) {
+        }
+
+        /// <summary>
+        /// Create logger
+        /// </summary>
+        /// <param name="config">Log configuration</param>
+        public ConsoleLogger(ILogConfig config) :
+            this(config?.ProcessId, config?.LogLevel ?? LogLevel.Debug) {
         }
 
         /// <summary>
@@ -28,37 +36,26 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             _logLevel = loggingLevel;
         }
 
-        /// <summary>
-        /// Log debug
-        /// </summary>
-        /// <param name="message"></param>
+        /// <inheritdoc/>
         protected override sealed void Debug(Func<string> message) =>
             Write(_logLevel <= LogLevel.Debug, "[DEBUG]", message);
 
-        /// <summary>
-        /// Log info
-        /// </summary>
-        /// <param name="message"></param>
+        /// <inheritdoc/>
         protected override sealed void Info(Func<string> message) =>
              Write(_logLevel <= LogLevel.Info, " [INFO]", message);
 
-        /// <summary>
-        /// Log warning
-        /// </summary>
-        /// <param name="message"></param>
+        /// <inheritdoc/>
         protected override sealed void Warn(Func<string> message) =>
              Write(_logLevel <= LogLevel.Warn, " [WARN]", message);
 
-        /// <summary>
-        /// Log error
-        /// </summary>
-        /// <param name="message"></param>
+        /// <inheritdoc/>
         protected override sealed void Error(Func<string> message) =>
             Write(_logLevel <= LogLevel.Error, "[ERROR]", message);
 
         /// <summary>
         /// Write message to console
         /// </summary>
+        /// <param name="enabled"></param>
         /// <param name="level"></param>
         /// <param name="message"></param>
         private void Write(bool enabled, string level, Func<string> message) {
@@ -67,6 +64,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             }
         }
 
+        /// <summary>Enabled min log level</summary>
         protected readonly LogLevel _logLevel;
     }
 }

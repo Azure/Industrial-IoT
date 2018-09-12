@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
         /// </summary>
         /// <param name="cache">Cache</param>
         /// <param name="dp">protector</param>
+        /// <param name="logger"></param>
         public DistributedTokenCache(IDistributedCache cache,
             IDataProtectionProvider dp, ILogger logger) {
             _dp = dp ?? throw new ArgumentNullException(nameof(dp));
@@ -29,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
         }
 
         /// <inheritdoc/>
-        public TokenCache GetCache(string name) => 
+        public TokenCache GetCache(string name) =>
             new DistributedTokenCacheEntry(this, name);
 
         /// <summary>
@@ -42,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
             /// </summary>
             /// <param name="cacheKey">Key in cache</param>
             /// <param name="store">cache to create entry in</param>
-            public DistributedTokenCacheEntry(DistributedTokenCache store, 
+            public DistributedTokenCacheEntry(DistributedTokenCache store,
                 string cacheKey) {
                 var protector = store._dp.CreateProtector(GetType().FullName);
 

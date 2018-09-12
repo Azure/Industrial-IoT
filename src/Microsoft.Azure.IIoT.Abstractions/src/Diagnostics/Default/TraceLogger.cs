@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -16,42 +16,30 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// Create logger
         /// </summary>
         public TraceLogger() :
-            base(Guid.NewGuid().ToString()) {
+            this(null) {
         }
 
         /// <summary>
         /// Create logger
         /// </summary>
-        /// <param name="processId"></param>
-        public TraceLogger(string processId) :
-            base(processId) {
+        /// <param name="config"></param>
+        public TraceLogger(ILogConfig config) :
+            base(config?.ProcessId) {
         }
 
-        /// <summary>
-        /// Log debug
-        /// </summary>
-        /// <param name="message"></param>
+        /// <inheritdoc/>
         protected override sealed void Debug(Func<string> message) =>
             Trace.WriteLine(message());
 
-        /// <summary>
-        /// Log info
-        /// </summary>
-        /// <param name="message"></param>
+        /// <inheritdoc/>
         protected override sealed void Info(Func<string> message) =>
             Trace.TraceInformation(message());
 
-        /// <summary>
-        /// Log warning
-        /// </summary>
-        /// <param name="message"></param>
+        /// <inheritdoc/>
         protected override sealed void Warn(Func<string> message) =>
             Trace.TraceWarning(message());
 
-        /// <summary>
-        /// Log error
-        /// </summary>
-        /// <param name="message"></param>
+        /// <inheritdoc/>
         protected override sealed void Error(Func<string> message) =>
             Trace.TraceError(message());
     }

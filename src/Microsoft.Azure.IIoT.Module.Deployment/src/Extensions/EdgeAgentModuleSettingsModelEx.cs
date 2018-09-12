@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
     using Docker.DotNet.Models;
     using Newtonsoft.Json;
 
+    /// <summary>
+    /// Settings extensions
+    /// </summary>
     public static class EdgeAgentModuleSettingsModelEx {
 
         /// <summary>
@@ -21,13 +24,14 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
         /// <summary>
         /// Create with creation options
         /// </summary>
+        /// <param name="registry"></param>
         /// <param name="imageName"></param>
         /// <param name="version"></param>
         /// <param name="createOptions"></param>
         /// <returns></returns>
         public static EdgeAgentModuleSettingsModel Create(string registry, string imageName,
             string version, CreateContainerParameters createOptions) =>
-            Create($"{registry}/{imageName}:{(version ?? "latest")}", createOptions);
+            Create($"{registry}/{imageName}:{version ?? "latest"}", createOptions);
 
         /// <summary>
         /// Create with creation options
@@ -38,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
         /// <returns></returns>
         public static EdgeAgentModuleSettingsModel Create(string imageName,
             string version, CreateContainerParameters createOptions) =>
-            Create($"{imageName}:{(version ?? "latest")}", createOptions);
+            Create($"{imageName}:{version ?? "latest"}", createOptions);
 
         /// <summary>
         /// Create with creation options

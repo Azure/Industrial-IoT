@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,12 +7,17 @@ namespace System.Collections.Generic {
     using System;
     using System.Collections;
 
+    /// <summary>
+    /// List extensions
+    /// </summary>
     public static class ListEx {
 
+        private static readonly Random rng = new Random();
         /// <summary>
         /// Shuffle list
         /// </summary>
-        private static readonly Random rng = new Random();
+        /// <param name="list"></param>
+        /// <returns></returns>
         public static IList<T> Shuffle<T>(this IList<T> list) {
             var n = list.Count;
             while (n > 1) {
@@ -29,6 +34,7 @@ namespace System.Collections.Generic {
         /// <summary>
         /// Adds enum range to list
         /// </summary>
+        /// <param name="list"></param>
         /// <param name="enumerable"></param>
         /// <returns></returns>
         public static void AddRange(this IList list, IEnumerable enumerable) {
@@ -40,6 +46,7 @@ namespace System.Collections.Generic {
         /// <summary>
         /// Adds enum range to list
         /// </summary>
+        /// <param name="list"></param>
         /// <param name="enumerable"></param>
         /// <returns></returns>
         public static void AddRange(this IList<object> list, IEnumerable enumerable) {
@@ -51,6 +58,7 @@ namespace System.Collections.Generic {
         /// <summary>
         /// Adds enum range to list
         /// </summary>
+        /// <param name="list"></param>
         /// <param name="enumerable"></param>
         /// <returns></returns>
         public static void AddRange<T>(this IList<T> list, IEnumerable<T> enumerable) {

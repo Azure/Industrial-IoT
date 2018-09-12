@@ -7,6 +7,10 @@ namespace Microsoft.Azure.IIoT.Tasks {
     using System;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// A task processor schedules processing of tasks using a
+    /// scheduler.
+    /// </summary>
     public interface ITaskProcessor : IDisposable {
 
         /// <summary>

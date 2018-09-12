@@ -6,6 +6,9 @@
 namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
     using Newtonsoft.Json;
 
+    /// <summary>
+    /// Registry credentials
+    /// </summary>
     public class RegistryCredentialsModel {
 
         /// <summary>

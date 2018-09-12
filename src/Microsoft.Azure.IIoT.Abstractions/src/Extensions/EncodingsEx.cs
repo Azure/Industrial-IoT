@@ -9,6 +9,10 @@ namespace Microsoft.Azure.IIoT {
     using System.Linq;
     using System.Text;
 
+    /// <summary>
+    /// Helper utility extensions of several types to support simple
+    /// encoding and decoding where the type itself cannot be stored as is.
+    /// </summary>
     public static class EncodingsEx {
 
         /// <summary>

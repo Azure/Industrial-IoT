@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -27,6 +27,7 @@ namespace Swashbuckle.AspNetCore.Swagger {
         /// </summary>
         /// <param name="services"></param>
         /// <param name="config"></param>
+        /// <param name="info"></param>
         public static void AddSwagger(this IServiceCollection services,
             ISwaggerConfig config, Info info) {
 
@@ -39,8 +40,11 @@ namespace Swashbuckle.AspNetCore.Swagger {
 
             // Generate swagger documentation
             services.AddSwaggerGen(options => {
-                // Add info
+                // Generate doc for version
                 options.SwaggerDoc(info.Version, info);
+
+                // Add annotations
+                options.EnableAnnotations();
 
                 // Add help
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory,
@@ -78,6 +82,8 @@ namespace Swashbuckle.AspNetCore.Swagger {
         /// Use swagger in application
         /// </summary>
         /// <param name="app"></param>
+        /// <param name="config"></param>
+        /// <param name="info"></param>
         public static void UseSwagger(this IApplicationBuilder app,
             ISwaggerConfig config, Info info) {
 
@@ -92,6 +98,7 @@ namespace Swashbuckle.AspNetCore.Swagger {
             app.UseSwagger(options => {
                 options.PreSerializeFilters.Add((doc, request) =>
                     doc.Host = request.Host.Value);
+                options.RouteTemplate = "{documentName}/swagger.json";
             });
             if (!config.UIEnabled) {
                 return;
@@ -109,7 +116,7 @@ namespace Swashbuckle.AspNetCore.Swagger {
                         });
                 }
                 options.RoutePrefix = "";
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", info.Version);
+                options.SwaggerEndpoint("v1/swagger.json", info.Version);
             });
         }
 
@@ -149,7 +156,7 @@ namespace Swashbuckle.AspNetCore.Swagger {
             /// <param name="operation"></param>
             /// <param name="context"></param>
             public void Apply(Operation operation, OperationFilterContext context) {
-                var descriptor = context.ApiDescription.ActionDescriptor as 
+                var descriptor = context.ApiDescription.ActionDescriptor as
                     ControllerActionDescriptor;
                 var claims = descriptor.GetRequiredPolicyGlaims(_options.Value);
                 if (claims.Any()) {

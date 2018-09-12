@@ -4,18 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http {
-    using Microsoft.Azure.IIoT.Encoder.Models;
+    using Microsoft.Azure.IIoT;
     using Newtonsoft.Json;
     using System;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Text;
 
+    /// <summary>
+    /// Http request extensions
+    /// </summary>
     public static class HttpRequestEx {
 
         /// <summary>
         /// Add header value
         /// </summary>
+        /// <param name="request"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns>this</returns>
@@ -32,6 +36,7 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <summary>
         /// Set content
         /// </summary>
+        /// <param name="request"></param>
         /// <param name="content"></param>
         /// <param name="encoding"></param>
         /// <param name="mediaType"></param>
@@ -47,6 +52,7 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <summary>
         /// Set content
         /// </summary>
+        /// <param name="request"></param>
         /// <param name="content"></param>
         /// <param name="type"></param>
         /// <returns>this</returns>
@@ -60,6 +66,7 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <summary>
         /// Set content
         /// </summary>
+        /// <param name="request"></param>
         /// <param name="content"></param>
         /// <param name="type"></param>
         /// <returns>this</returns>
@@ -70,6 +77,7 @@ namespace Microsoft.Azure.IIoT.Http {
         /// Set content as type
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="request"></param>
         /// <param name="sourceObject"></param>
         /// <param name="encoding"></param>
         /// <param name="mediaType"></param>
@@ -140,7 +148,7 @@ namespace Microsoft.Azure.IIoT.Http {
             request.SetContent(sourceObject, encoding, new MediaTypeHeaderValue(mediaType));
 
         private static readonly MediaTypeHeaderValue kDefaultMediaType =
-            new MediaTypeHeaderValue(ContentEncodings.Json);
+            new MediaTypeHeaderValue(ContentEncodings.MimeTypeJson);
         private static readonly Encoding kDefaultEncoding = new UTF8Encoding();
     }
 }

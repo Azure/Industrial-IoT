@@ -6,6 +6,9 @@
 namespace System {
     using System.ComponentModel;
 
+    /// <summary>
+    /// Base object extensions
+    /// </summary>
     public static class ObjectEx {
 
         /// <summary>
@@ -38,8 +41,8 @@ namespace System {
         /// <summary>
         /// Using type converter, convert type
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="value"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
         public static object As(this object value, Type type) {
             var converter = TypeDescriptor.GetConverter(type);

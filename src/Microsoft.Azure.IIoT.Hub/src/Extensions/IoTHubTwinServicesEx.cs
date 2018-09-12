@@ -12,11 +12,15 @@ namespace Microsoft.Azure.IIoT.Hub {
     using System.Linq;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Twin services extensions
+    /// </summary>
     public static class IoTHubTwinServicesEx {
 
         /// <summary>
         /// Returns device connection string
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <param name="primary"></param>
         /// <returns></returns>
@@ -34,6 +38,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Returns module connection string
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <param name="primary"></param>
@@ -53,6 +58,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Returns devices matching a query string
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="query"></param>
         /// <param name="continuation"></param>
         /// <returns></returns>
@@ -63,8 +69,10 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Query twins
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="query"></param>
         /// <param name="continuation"></param>
+        /// <param name="pageSize"></param>
         /// <returns></returns>
         public static async Task<DeviceTwinListModel> QueryDeviceTwinsAsync(
             this IIoTHubTwinServices service, string query, string continuation,
@@ -100,6 +108,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Returns results matching a query string
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="query"></param>
         /// <param name="continuation"></param>
         /// <returns></returns>
@@ -173,6 +182,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Update device property through twin
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <param name="property"></param>
@@ -189,6 +199,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Update device property through twin
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <param name="property"></param>
         /// <param name="value"></param>
@@ -200,6 +211,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Update device properties through twin
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <param name="properties"></param>
@@ -211,6 +223,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Update device properties through twin
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
@@ -221,6 +234,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Returns twin
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <returns></returns>
         public static Task<DeviceTwinModel> GetAsync(this IIoTHubTwinServices service,
@@ -229,6 +243,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Returns registration info
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <returns></returns>
         public static Task<DeviceModel> GetRegistrationAsync(this IIoTHubTwinServices service,
@@ -237,6 +252,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Call device method on twin
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
@@ -247,6 +263,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Delete twin
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <returns></returns>
         public static Task DeleteAsync(this IIoTHubTwinServices service, string deviceId) =>
@@ -255,7 +272,9 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Delete twin
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
         /// <returns></returns>
         public static Task DeleteAsync(this IIoTHubTwinServices service, string deviceId,
             string moduleId) => service.DeleteAsync(deviceId, moduleId, null);

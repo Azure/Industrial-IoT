@@ -8,11 +8,15 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Virtual machine resource extensions
+    /// </summary>
     public static class VirtualMachineResourceEx {
 
         /// <summary>
         /// Opens a shell to the vm (default ssh port 22)
         /// </summary>
+        /// <param name="resource"></param>
         /// <param name="ct">Cancel opening or
         /// else it will run forever</param>
         /// <returns></returns>

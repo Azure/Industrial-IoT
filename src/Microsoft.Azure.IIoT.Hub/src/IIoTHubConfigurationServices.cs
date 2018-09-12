@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -28,6 +28,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// update an existing one.
         /// </summary>
         /// <param name="configuration"></param>
+        /// <param name="forceUpdate"></param>
         /// <returns>new device</returns>
         Task<ConfigurationModel> CreateOrUpdateConfigurationAsync(
             ConfigurationModel configuration, bool forceUpdate);

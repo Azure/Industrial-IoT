@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -17,8 +17,9 @@ namespace Microsoft.Azure.IIoT.Http {
         /// Create message handler
         /// </summary>
         /// <param name="resourceId"></param>
+        /// <param name="handler"></param>
         /// <returns></returns>
-        TimeSpan Create(string resourceId, 
+        TimeSpan Create(string resourceId,
             out HttpMessageHandler handler);
     }
 }

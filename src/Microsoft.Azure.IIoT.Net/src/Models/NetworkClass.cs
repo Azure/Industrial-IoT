@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,9 +6,15 @@
 namespace Microsoft.Azure.IIoT.Net.Models {
     using System;
 
+    /// <summary>
+    /// Network class flags for network selection
+    /// </summary>
     [Flags]
     public enum NetworkClass {
 
+        /// <summary>
+        /// None class
+        /// </summary>
         None = 0x0,
 
         /// <summary>

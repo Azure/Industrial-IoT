@@ -12,6 +12,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
     using System.Threading.Tasks;
     using Newtonsoft.Json;
 
+    /// <summary>
+    /// Edge deployment base implementation
+    /// </summary>
     public class EdgeDeploymentBase : IEdgeDeployment {
 
         /// <summary>
@@ -139,6 +142,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         private const string kDefaultRouteName = "default";
         private const string kDefaultRoute = "FROM messages/* INTO $upstream";
 
+        /// <summary>Configuration content to be used by derived classes</summary>
         protected readonly ConfigurationContentModel _configuration;
         private readonly EdgeAgentConfigurationModel _edgeAgent;
         private readonly EdgeHubConfigurationModel _edgeHub;

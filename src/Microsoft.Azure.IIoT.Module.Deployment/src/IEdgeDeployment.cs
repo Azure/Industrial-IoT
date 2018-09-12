@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
     using Microsoft.Azure.IIoT.Module.Deployment.Models;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// IotEdge deployment
+    /// </summary>
     public interface IEdgeDeployment {
 
         /// <summary>

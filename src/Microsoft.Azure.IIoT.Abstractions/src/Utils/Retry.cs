@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.Utils {
 
         private static readonly object Semaphore = new object();
 
+        /// <summary>Retry count max</summary>
         public static int MaxRetryCount = 10;
 
         /// <summary>
@@ -35,7 +36,9 @@ namespace Microsoft.Azure.IIoT.Utils {
             return result;
         };
         private static Random r = new Random();
+        /// <summary>Max retry count for exponential policy</summary>
         public static int ExponentialMaxRetryCount = 13;
+        /// <summary>Exponential backoff increment</summary>
         public static int ExponentialBackoffIncrement = 10;
 
         /// <summary>
@@ -43,18 +46,22 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         public static Func<int, Exception, int> Linear => (k, ex) =>
             Math.Min(k, LinearMaxRetryDelayCount) * LinearBackoffDelta;
+        /// <summary>Max retry multiplier</summary>
         public static int LinearMaxRetryDelayCount = 20;
+        /// <summary>Incremental delay</summary>
         public static int LinearBackoffDelta = 1000;
 
         /// <summary>
         /// No backoff - just wait backoff delta
         /// </summary>
         public static Func<int, Exception, int> NoBackoff => (k, ex) => NoBackoffDelta;
+        /// <summary>Time between retry</summary>
         public static int NoBackoffDelta = 1000;
 
         /// <summary>
         /// Retries a piece of work
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <param name="cont"></param>
@@ -106,6 +113,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retries a piece of work
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <param name="cont"></param>
@@ -157,6 +165,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with linear backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <param name="cont"></param>
@@ -168,6 +177,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with linear backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -178,6 +188,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with linear backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="work"></param>
         /// <returns></returns>
         public static Task WithLinearBackoff(ILogger logger, Func<Task> work) =>
@@ -186,6 +197,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with linear backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="cont"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -197,6 +209,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with linear backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <param name="cont"></param>
@@ -209,6 +222,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with linear backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -220,6 +234,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with linear backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="work"></param>
         /// <returns></returns>
         public static Task<T> WithLinearBackoff<T>(ILogger logger, Func<Task<T>> work) =>
@@ -229,6 +244,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with linear backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="cont"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -240,6 +256,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with exponential backoff
         /// </summary>
         /// <param name="ct"></param>
+        /// <param name="logger"></param>
         /// <param name="work"></param>
         /// <param name="cont"></param>
         /// <returns></returns>
@@ -250,6 +267,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with exponential backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -260,6 +278,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with exponential backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="work"></param>
         /// <returns></returns>
         public static Task WithExponentialBackoff(ILogger logger, Func<Task> work) =>
@@ -268,6 +287,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with exponential backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="cont"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -279,6 +299,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with exponential backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <param name="cont"></param>
@@ -291,6 +312,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with exponential backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -302,6 +324,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with exponential backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="work"></param>
         /// <returns></returns>
         public static Task<T> WithExponentialBackoff<T>(ILogger logger, Func<Task<T>> work) =>
@@ -311,6 +334,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with exponential backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="cont"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -321,6 +345,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with linear backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <param name="cont"></param>
@@ -332,6 +357,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with linear backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -342,6 +368,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with linear backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="work"></param>
         /// <returns></returns>
         public static Task WithLinearBackoff(ILogger logger, Action work) =>
@@ -350,6 +377,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with linear backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="cont"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -361,6 +389,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with linear backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <param name="cont"></param>
@@ -373,6 +402,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with linear backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -384,6 +414,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with linear backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="work"></param>
         /// <returns></returns>
         public static Task<T> WithLinearBackoff<T>(ILogger logger, Func<T> work) =>
@@ -393,6 +424,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with linear backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="cont"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -404,6 +436,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with exponential backoff
         /// </summary>
         /// <param name="ct"></param>
+        /// <param name="logger"></param>
         /// <param name="work"></param>
         /// <param name="cont"></param>
         /// <returns></returns>
@@ -414,6 +447,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with exponential backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -424,6 +458,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with exponential backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="work"></param>
         /// <returns></returns>
         public static Task WithExponentialBackoff(ILogger logger, Action work) =>
@@ -432,6 +467,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with exponential backoff
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="cont"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -443,6 +479,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with exponential backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <param name="cont"></param>
@@ -455,6 +492,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with exponential backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <returns></returns>
@@ -466,6 +504,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with exponential backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="work"></param>
         /// <returns></returns>
         public static Task<T> WithExponentialBackoff<T>(ILogger logger, Func<T> work) =>
@@ -475,6 +514,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Retry with exponential backoff
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
         /// <param name="cont"></param>
         /// <param name="work"></param>
         /// <returns></returns>

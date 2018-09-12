@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,6 +8,9 @@ namespace Microsoft.Azure.IIoT.Net {
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Creates shells that can be used to interact with systems.
+    /// </summary>
     public interface IShellFactory {
 
         /// <summary>

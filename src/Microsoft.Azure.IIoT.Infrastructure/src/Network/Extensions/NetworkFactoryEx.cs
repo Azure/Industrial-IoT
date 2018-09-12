@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network {
     using Microsoft.Azure.IIoT.Utils;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Shell factory extensions
+    /// </summary>
     public static class StorageFactoryEx {
 
         /// <summary>
@@ -19,8 +22,11 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network {
         /// <summary>
         /// Get or create new storage in a resource group.
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="resourceGroup"></param>
         /// <param name="name"></param>
+        /// <param name="addressSpace"></param>
+        /// <param name="secure"></param>
         /// <returns></returns>
         public static async Task<INetworkResource> GetOrCreateAsync(
             this INetworkFactory service, IResourceGroupResource resourceGroup,

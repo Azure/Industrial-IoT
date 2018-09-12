@@ -9,11 +9,15 @@ namespace Microsoft.Azure.IIoT.Storage {
     using System.Linq;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Persistence provider extensions
+    /// </summary>
     public static class PersistenceProviderEx {
 
         /// <summary>
         /// Writes key value to storage.
         /// </summary>
+        /// <param name="provider"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -27,9 +31,11 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// Run task that requires a parameter
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <typeparam name="V"></typeparam>
         /// <param name="provider"></param>
         /// <param name="id"></param>
         /// <param name="task"></param>
+        /// <param name="defaultValue"></param>
         /// <returns></returns>
         public static async Task<T> RunTaskAsync<T, V>(this IPersistenceProvider provider,
             string id, Func<V, Task<T>> task, V defaultValue) where V : class {

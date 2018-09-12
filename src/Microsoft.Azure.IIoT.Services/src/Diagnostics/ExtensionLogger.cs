@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -16,10 +16,31 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// <summary>
         /// Create logger
         /// </summary>
-        /// <param name="processId"></param>
-        public ExtensionLogger(IAspLogger logger, string processId) :
-            base(processId) {
-            _logger = logger;
+        /// <param name="factory"></param>
+        public ExtensionLogger(ILoggerFactory factory) :
+            this(factory, null) {
+        }
+
+        /// <summary>
+        /// Create logger
+        /// </summary>
+        /// <param name="factory"></param>
+        /// <param name="config"></param>
+        public ExtensionLogger(ILoggerFactory factory, ILogConfig config) :
+            this(config?.ProcessId ?? "log", factory) {
+        }
+
+        /// <summary>
+        /// Create logger
+        /// </summary>
+        /// <param name="factory"></param>
+        /// <param name="category"></param>
+        internal ExtensionLogger(string category, ILoggerFactory factory) :
+            base(category) {
+            if (factory == null) {
+                throw new ArgumentNullException(nameof(factory));
+            }
+            _logger = factory.CreateLogger(category);
         }
 
         /// <summary>

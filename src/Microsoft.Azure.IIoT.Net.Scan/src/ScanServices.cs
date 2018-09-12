@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -30,7 +30,13 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// Create scanner
         /// </summary>
         /// <param name="replies"></param>
+        /// <param name="local"></param>
+        /// <param name="addresses"></param>
+        /// <param name="netclass"></param>
+        /// <param name="maxProbeCount"></param>
+        /// <param name="timeout"></param>
         /// <param name="ct"></param>
+        /// <returns></returns>
         public async Task ScanAsync(Action<PingReply> replies, bool local,
             IEnumerable<AddressRange> addresses, NetworkClass netclass,
             int? maxProbeCount, TimeSpan? timeout, CancellationToken ct) {

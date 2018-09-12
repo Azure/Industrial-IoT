@@ -9,11 +9,15 @@ namespace System {
     using System.Collections.Generic;
     using System.Linq;
 
+    /// <summary>
+    /// Assembly type extensions
+    /// </summary>
     public static class AssemblyEx {
 
         /// <summary>
         /// Read embedded resource as buffer
         /// </summary>
+        /// <param name="assembly"></param>
         /// <param name="resourceId"></param>
         /// <returns></returns>
         public static ArraySegment<byte> GetManifestResource(this Assembly assembly,
@@ -30,6 +34,8 @@ namespace System {
         /// <summary>
         /// Read all embedded resources as resource id and buffer tuples.
         /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="extension"></param>
         /// <returns></returns>
         public static IEnumerable<Tuple<string, ArraySegment<byte>>> GetManifestResources(
             this Assembly assembly, string extension = null) => assembly

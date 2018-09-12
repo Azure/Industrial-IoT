@@ -9,6 +9,9 @@ namespace Microsoft.Azure.IIoT.Net.Models {
     using System.Linq;
     using System.Net;
 
+    /// <summary>
+    /// Represents a range of ipv4 addresses
+    /// </summary>
     public class AddressRange {
 
         /// <summary>
@@ -38,7 +41,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <param name="high"></param>
         /// <param name="nic"></param>
         public AddressRange(uint low, uint high,
-            string nic = "unknown") {
+            string nic = "custom range") {
             Nic = nic;
             Low = _cur = low > high ? high : low;
             High = high < low ? low : high;
@@ -51,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <param name="address"></param>
         /// <param name="suffix"></param>
         public AddressRange(IPAddress address, int suffix,
-            string nic = "unknown") {
+            string nic = "custom range") {
             if (address == null) {
                 throw new ArgumentNullException(nameof(address));
             }
@@ -63,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                     address.GetAddressBytes(), 0));
             var mask = 0xffffffff << (32 - suffix);
             High = curAddr | ~mask;
-            Low = _cur = (curAddr & mask);
+            Low = _cur = curAddr & mask;
             Nic = nic;
 
             System.Diagnostics.Debug.Assert(Low <= High);
@@ -75,6 +78,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// </summary>
         /// <param name="itf"></param>
         /// <param name="localOnly"></param>
+        /// <param name="suffix"></param>
         public AddressRange(NetInterface itf,
             bool localOnly = false, int? suffix = null) {
 
@@ -96,17 +100,13 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             else {
                 // Add entire network
                 High = curAddr | ~mask;
-                Low = _cur = (curAddr & mask);
+                Low = _cur = curAddr & mask;
             }
             System.Diagnostics.Debug.Assert(Low <= High);
             System.Diagnostics.Debug.Assert(High != 0);
         }
 
-        /// <summary>
-        /// Equality
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override bool Equals(object obj) {
             if (!(obj is AddressRange range)) {
                 return false;
@@ -114,15 +114,14 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             return Low == range.Low && High == range.High;
         }
 
+        /// <inheritdoc/>
         public static bool operator ==(AddressRange range1, AddressRange range2) =>
             EqualityComparer<AddressRange>.Default.Equals(range1, range2);
+        /// <inheritdoc/>
         public static bool operator !=(AddressRange range1, AddressRange range2) =>
             !(range1 == range2);
 
-        /// <summary>
-        /// Hash
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = 2082053542;
             hashCode = hashCode * -1521134295 + Low.GetHashCode();
@@ -130,10 +129,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             return hashCode;
         }
 
-        /// <summary>
-        /// Stringify
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override string ToString() =>
             $"{(IPv4Address)Low}-{(IPv4Address)High} [{Nic}]";
 
@@ -202,6 +198,10 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                 batch.Add(_cur++);
             }
         }
+
+        /// <summary>
+        /// Reset range
+        /// </summary>
         public void Reset() => _cur = 0;
         private uint _cur;
     }

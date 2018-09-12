@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -25,6 +25,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <param name="next"></param>
         /// <param name="resourceId"></param>
         /// <param name="handlers"></param>
+        /// <param name="proxy"></param>
         /// <param name="logger"></param>
         public HttpHandlerDelegate(HttpMessageHandler next, string resourceId,
             IEnumerable<IHttpHandler> handlers,
@@ -100,12 +101,12 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken) {
             foreach (var h in _handlers) {
-                await h.OnRequestAsync(_resourceId, 
+                await h.OnRequestAsync(_resourceId,
                     request.Headers, request.Content, cancellationToken);
             }
             var response = await base.SendAsync(request, cancellationToken);
             foreach (var h in _handlers) {
-                await h.OnResponseAsync(_resourceId, response.StatusCode, 
+                await h.OnResponseAsync(_resourceId, response.StatusCode,
                     response.Headers, response.Content, cancellationToken);
             }
             return response;

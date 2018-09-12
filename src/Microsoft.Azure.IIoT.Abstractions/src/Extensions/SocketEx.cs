@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,6 +7,9 @@ namespace System.Net.Sockets {
     using Microsoft.Azure.IIoT.Utils;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Socket extensions
+    /// </summary>
     public static class SocketEx {
 
         /// <summary>

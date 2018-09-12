@@ -5,10 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.Net {
     using System;
-    using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Secure shell extensions
+    /// </summary>
     public static class SecureShellEx {
 
         /// <summary>

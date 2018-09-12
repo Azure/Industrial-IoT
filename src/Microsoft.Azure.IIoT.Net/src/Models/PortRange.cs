@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -53,11 +53,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <returns></returns>
         public PortRange Copy() => new PortRange(_lower, _upper);
 
-        /// <summary>
-        /// Equality
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override bool Equals(object obj) {
             if (!(obj is PortRange range)) {
                 return false;
@@ -65,15 +61,14 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             return _lower == range._lower && _upper == range._upper;
         }
 
+        /// <inheritdoc/>
         public static bool operator ==(PortRange range1, PortRange range2) =>
             EqualityComparer<PortRange>.Default.Equals(range1, range2);
+        /// <inheritdoc/>
         public static bool operator !=(PortRange range1, PortRange range2) =>
             !(range1 == range2);
 
-        /// <summary>
-        /// Get hash
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = -1389615925;
             hashCode = hashCode * -1521134295 +

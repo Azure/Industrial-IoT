@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,11 +8,15 @@ namespace Microsoft.Azure.IIoT.Net {
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Shell factory extensions
+    /// </summary>
     public static class ShellFactoryEx {
 
         /// <summary>
         /// Open shell to destination
         /// </summary>
+        /// <param name="factory"></param>
         /// <param name="host"></param>
         /// <param name="port"></param>
         /// <param name="userName"></param>
@@ -26,6 +30,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Open shell to destination
         /// </summary>
+        /// <param name="factory"></param>
         /// <param name="host"></param>
         /// <param name="userName"></param>
         /// <param name="password"></param>
@@ -38,6 +43,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Open shell to destination
         /// </summary>
+        /// <param name="factory"></param>
         /// <param name="host"></param>
         /// <param name="userName"></param>
         /// <param name="password"></param>
@@ -49,6 +55,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Open shell to destination
         /// </summary>
+        /// <param name="factory"></param>
         /// <param name="host"></param>
         /// <param name="credentials"></param>
         /// <param name="ct"></param>
@@ -60,6 +67,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Open shell to destination
         /// </summary>
+        /// <param name="factory"></param>
         /// <param name="host"></param>
         /// <param name="credentials"></param>
         /// <returns></returns>

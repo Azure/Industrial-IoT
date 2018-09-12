@@ -17,6 +17,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
     using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.Infrastructure.Services;
 
+    /// <summary>
+    /// Iot hub resource factory
+    /// </summary>
     public class IoTHubFactory : BaseFactory, IIoTHubFactory {
 
         /// <summary>
@@ -68,7 +71,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
                 .FirstOrDefault(x => x.Name.Value.Equals("paidIotHubCount"));
             if (limit?.Limit == limit?.CurrentValue) {
                 throw new ExternalDependencyException(
-                    $"Subscription limit reached at {(limit?.Limit ?? -1)}");
+                    $"Subscription limit reached at {limit?.Limit ?? -1}");
             }
 
             // Check name - null means we need to create one
@@ -131,6 +134,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
             /// <param name="name"></param>
             /// <param name="properties"></param>
             /// <param name="rule"></param>
+            /// <param name="logger"></param>
             public IoTHubResource(IoTHubFactory manager,
                 IResourceGroupResource resourceGroup, string name,
                 IotHubProperties properties, ILogger logger,

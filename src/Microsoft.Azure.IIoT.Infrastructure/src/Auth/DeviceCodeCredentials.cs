@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
         /// Create console output device code provider
         /// </summary>
         /// <param name="config"></param>
+        /// <param name="logger"></param>
         public DeviceCodeCredentials(IClientConfig config, ILogger logger) :
             this((c, exp, msg) => Console.WriteLine(msg), config, logger) {
         }
@@ -29,6 +30,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
         /// </summary>
         /// <param name="callback"></param>
         /// <param name="config"></param>
+        /// <param name="logger"></param>
         public DeviceCodeCredentials(Action<string, DateTimeOffset, string> callback,
             IClientConfig config, ILogger logger) :
             base(new DeviceCodeTokenProvider(callback, config, null, logger), config) {

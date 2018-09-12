@@ -6,6 +6,9 @@
 namespace Microsoft.Azure.IIoT.Module.Framework {
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Blob upload service
+    /// </summary>
     public interface IBlobUpload {
 
         /// <summary>

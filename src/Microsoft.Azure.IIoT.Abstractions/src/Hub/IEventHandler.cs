@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Hub {
     using System;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Handles events from source
+    /// </summary>
     public interface IEventHandler {
 
         /// <summary>

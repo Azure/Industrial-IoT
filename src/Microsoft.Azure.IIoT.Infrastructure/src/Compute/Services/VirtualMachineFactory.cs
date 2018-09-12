@@ -24,12 +24,16 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Virtual machine factory implementation
+    /// </summary>
     public class VirtualMachineFactory : BaseFactory, IVirtualMachineFactory {
 
         /// <summary>
         /// Create virtual machine factory
         /// </summary>
         /// <param name="creds"></param>
+        /// <param name="selector"></param>
         /// <param name="logger"></param>
         public VirtualMachineFactory(ICredentialProvider creds,
             ISubscriptionInfoSelector selector, ILogger logger) :
@@ -40,6 +44,8 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
         /// Create virtual machine factory
         /// </summary>
         /// <param name="creds"></param>
+        /// <param name="selector"></param>
+        /// <param name="shell"></param>
         /// <param name="logger"></param>
         public VirtualMachineFactory(ICredentialProvider creds,
             ISubscriptionInfoSelector selector, IShellFactory shell,
@@ -67,9 +73,8 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                 return null;
             }
 
-            // TODO: Create a root user/pw to access vm using ssh.
             var user = VirtualMachineResource.kDefaultUser;
-            var pw = VirtualMachineResource.kDefaultPassword;
+            var pw = "Vm$" + name.ToSha1Hash().Substring(0, 3);
 
             return new VirtualMachineResource(this, resourceGroup, vm,
                 user, pw, _logger);
@@ -88,9 +93,8 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
             name = await client.VirtualMachines.SelectResourceNameAsync(resourceGroup.Name,
                 "vm", name);
 
-            // TODO: Create a root user/pw to access vm using ssh.
             var user = VirtualMachineResource.kDefaultUser;
-            var pw = VirtualMachineResource.kDefaultPassword;
+            var pw = "Vm$" + name.ToSha1Hash().Substring(0, 3); 
 
             if (image == null) {
                 image = KnownImages.Ubuntu_16_04_lts;
@@ -209,16 +213,16 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
         private class VirtualMachineResource : IVirtualMachineResource {
 
             public const string kDefaultUser = "sshuser";
-            public const string kDefaultPassword = "Passw0rdPassw0rd";
 
             /// <summary>
-            /// Create iot hub
+            /// Create resource
             /// </summary>
             /// <param name="manager"></param>
             /// <param name="resourceGroup"></param>
             /// <param name="vm"></param>
             /// <param name="user"></param>
             /// <param name="password"></param>
+            /// <param name="logger"></param>
             public VirtualMachineResource(VirtualMachineFactory manager,
                 IResourceGroupResource resourceGroup, IVirtualMachine vm,
                 string user, string password, ILogger logger) {
@@ -464,11 +468,11 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
         private static bool Satisfies(ResourceSkuCapabilities capabilitiy) {
             switch (capabilitiy.Name) {
                 case "OSVhdSizeMB":
-                    return (double.Parse(capabilitiy.Value) >= 100 * 1024);
+                    return double.Parse(capabilitiy.Value) >= 100 * 1024;
                 case "vCPUs":
-                    return (double.Parse(capabilitiy.Value) >= 4);
+                    return double.Parse(capabilitiy.Value) >= 4;
                 case "MemoryGB":
-                    return (double.Parse(capabilitiy.Value) >= 4);
+                    return double.Parse(capabilitiy.Value) >= 4;
                 case "LowPriorityCapable":
                 case "MaxDataDiskCount":
                 case "MaxResourceVolumeMB":

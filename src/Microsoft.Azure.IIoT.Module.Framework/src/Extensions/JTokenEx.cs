@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
     using Newtonsoft.Json.Linq;
     using System;
 
+    /// <summary>
+    /// Json token extensions
+    /// </summary>
     public static class JTokenEx {
 
         /// <summary>

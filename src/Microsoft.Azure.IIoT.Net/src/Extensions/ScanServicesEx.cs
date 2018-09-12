@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Scan entire network
         /// </summary>
+        /// <param name="services"></param>
         /// <param name="netclass"></param>
         /// <param name="ct"></param>
         public static async Task<IEnumerable<PingReply>> ScanAsync(
@@ -32,6 +33,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Scan network
         /// </summary>
+        /// <param name="services"></param>
         /// <param name="replies"></param>
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
@@ -41,6 +43,8 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Create scanner
         /// </summary>
+        /// <param name="services"></param>
+        /// <param name="netclass"></param>
         /// <param name="replies"></param>
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
@@ -50,6 +54,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Create scanner
         /// </summary>
+        /// <param name="services"></param>
+        /// <param name="netclass"></param>
+        /// <param name="local"></param>
         /// <param name="replies"></param>
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
@@ -59,6 +66,8 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Create scanner
         /// </summary>
+        /// <param name="services"></param>
+        /// <param name="addresses"></param>
         /// <param name="replies"></param>
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
@@ -70,6 +79,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Create scanner with default port probe
         /// </summary>
+        /// <param name="services"></param>
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <param name="ct"></param>
@@ -80,6 +90,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Create scanner
         /// </summary>
+        /// <param name="services"></param>
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <param name="portProbe"></param>

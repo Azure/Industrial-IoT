@@ -12,6 +12,10 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Implementation of event processor host interface to host event
+    /// processors.
+    /// </summary>
     public class EventProcessorHost : IDisposable, IEventProcessorHost {
 
         /// <summary>
@@ -31,6 +35,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         /// <param name="factory"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
+        /// <param name="checkpoint"></param>
+        /// <param name="lease"></param>
         public EventProcessorHost(IEventProcessorFactory factory,
             IEventProcessorConfig config, ICheckpointManager checkpoint,
             ILeaseManager lease, ILogger logger) {
@@ -127,7 +133,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         /// Helper to get connection string and validate configuration
         /// </summary>
         private string GetEventHubConnectionString() {
-            if (_config.EventHubConnString != null) {
+            if (!string.IsNullOrEmpty(_config.EventHubConnString)) {
                 try {
                     var csb = new EventHubsConnectionStringBuilder(
                         _config.EventHubConnString);
@@ -141,7 +147,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                 }
                 catch {
                     throw new InvalidConfigurationException(
-                        "Invalid Event hub connection string configured.");
+                        "Invalid Event hub connection string " +
+                        $"{_config.EventHubConnString} configured.");
                 }
             }
             throw new InvalidConfigurationException(

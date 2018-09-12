@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -18,6 +18,7 @@ namespace Newtonsoft.Json {
         /// <param name="reader"></param>
         /// <param name="objectType"></param>
         /// <param name="existingValue"></param>
+        /// <param name="hasExistingValue"></param>
         /// <param name="serializer"></param>
         /// <returns></returns>
         public override PhysicalAddress ReadJson(JsonReader reader, Type objectType,

@@ -11,6 +11,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Services {
     using System;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Base factory
+    /// </summary>
     public abstract class BaseFactory {
 
         /// <summary>
@@ -47,7 +50,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Services {
                 .WithSubscription(subscriptionId);
         }
 
+        /// <summary>Credentials to be used by derived classes</summary>
         protected readonly ICredentialProvider _creds;
+        /// <summary>Logger to be used by derived classes</summary>
         protected readonly ILogger _logger;
     }
 }

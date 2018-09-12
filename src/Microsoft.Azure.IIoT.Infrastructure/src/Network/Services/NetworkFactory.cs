@@ -17,6 +17,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network.Services {
     using System.Linq;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Network resource factory
+    /// </summary>
     public class NetworkFactory : BaseFactory, INetworkFactory {
 
         /// <summary>
@@ -88,16 +91,17 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network.Services {
         }
 
         /// <summary>
-        /// Virtual machine resource
+        /// Network resource
         /// </summary>
         private class NetworkResource : INetworkResource {
 
             /// <summary>
-            /// Create iot hub
+            /// Create resource
             /// </summary>
             /// <param name="manager"></param>
             /// <param name="resourceGroup"></param>
             /// <param name="network"></param>
+            /// <param name="logger"></param>
             public NetworkResource(NetworkFactory manager,
                 IResourceGroupResource resourceGroup, INetwork network,
                 ILogger logger) {

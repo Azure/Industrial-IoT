@@ -9,6 +9,9 @@ namespace Microsoft.Azure.IIoT.Utils {
     using System.Collections.Generic;
     using System.Threading;
 
+    /// <summary>
+    /// Helper class to wrap operations in try catch
+    /// </summary>
     public static class Try {
 
         /// <summary>
@@ -125,7 +128,6 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Try all options until one is working
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="options"></param>
         /// <returns></returns>
         public static async Task Options(params Func<Task>[] options) {

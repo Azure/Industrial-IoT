@@ -15,6 +15,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.ServiceBus.Services {
     using System.Linq;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Service bus resource factory
+    /// </summary>
     public class ServiceBusFactory : BaseFactory, IServiceBusFactory {
 
         /// <summary>
@@ -96,16 +99,18 @@ namespace Microsoft.Azure.IIoT.Infrastructure.ServiceBus.Services {
         }
 
         /// <summary>
-        /// Virtual machine resource
+        /// Service bus resource
         /// </summary>
         private class ServiceBusResource : IServiceBusResource {
 
             /// <summary>
-            /// Create iot hub
+            /// Create resource
             /// </summary>
             /// <param name="manager"></param>
             /// <param name="resourceGroup"></param>
             /// <param name="nameSpace"></param>
+            /// <param name="result"></param>
+            /// <param name="logger"></param>
             public ServiceBusResource(ServiceBusFactory manager,
                 IResourceGroupResource resourceGroup, IServiceBusNamespace nameSpace,
                 Dictionary<string, IAuthorizationKeys> result, ILogger logger) {

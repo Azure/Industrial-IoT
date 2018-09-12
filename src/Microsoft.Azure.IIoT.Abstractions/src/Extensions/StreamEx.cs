@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -9,6 +9,9 @@ namespace System.IO {
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Stream extensions
+    /// </summary>
     public static class StreamEx {
 
         /// <summary>
@@ -57,6 +60,7 @@ namespace System.IO {
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="buffer"></param>
+        /// <param name="offset"></param>
         /// <returns></returns>
         public static void Write(this Stream stream, byte[] buffer, int offset) =>
             stream.Write(buffer, offset, buffer.Length - offset);
@@ -75,6 +79,7 @@ namespace System.IO {
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="buffer"></param>
+        /// <param name="offset"></param>
         /// <returns></returns>
         public static Task WriteAsync(this Stream stream, byte[] buffer, int offset) =>
             stream.WriteAsync(buffer, offset, buffer.Length - offset);
@@ -93,6 +98,7 @@ namespace System.IO {
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="buffer"></param>
+        /// <param name="offset"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public static Task WriteAsync(this Stream stream, byte[] buffer, int offset,
@@ -115,6 +121,7 @@ namespace System.IO {
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="buffer"></param>
+        /// <param name="offset"></param>
         /// <returns></returns>
         public static int Read(this Stream stream, byte[] buffer, int offset) =>
             stream.Read(buffer, offset, buffer.Length - offset);
@@ -133,6 +140,7 @@ namespace System.IO {
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="buffer"></param>
+        /// <param name="offset"></param>
         /// <returns></returns>
         public static Task<int> ReadAsync(this Stream stream, byte[] buffer, int offset) =>
             stream.ReadAsync(buffer, offset, buffer.Length - offset);
@@ -151,6 +159,7 @@ namespace System.IO {
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="buffer"></param>
+        /// <param name="offset"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public static Task<int> ReadAsync(this Stream stream, byte[] buffer, int offset,

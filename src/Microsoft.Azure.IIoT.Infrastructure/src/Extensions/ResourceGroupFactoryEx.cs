@@ -7,11 +7,16 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
     using Microsoft.Azure.IIoT.Utils;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Resource group factory extensions
+    /// </summary>
     public static class ResourceGroupFactoryEx {
 
         /// <summary>
         /// create randomly named resource group
         /// </summary>
+        /// <param name="service"></param>
+        /// <param name="resourceGroup"></param>
         /// <param name="deleteOnDispose"></param>
         /// <returns></returns>
         public static Task<IResourceGroupResource> CreateAsync(
@@ -22,6 +27,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <summary>
         /// create randomly named resource group
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="deleteOnDispose"></param>
         /// <returns></returns>
         public static Task<IResourceGroupResource> CreateAsync(
@@ -32,6 +38,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// create named resource group that is non auto-delete
         /// on dispose in specified subscription.
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="resourceGroup"></param>
         /// <param name="subscription"></param>
         /// <returns></returns>
@@ -43,6 +50,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <summary>
         /// create non auto-delete on dispose resource group
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="resourceGroup"></param>
         /// <returns></returns>
         public static Task<IResourceGroupResource> CreateAsync(
@@ -53,6 +61,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// create non auto-delete on dispose randomly named
         /// resource group
         /// </summary>
+        /// <param name="service"></param>
         /// <returns></returns>
         public static Task<IResourceGroupResource> CreateAsync(
             this IResourceGroupFactory service) =>
@@ -61,6 +70,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <summary>
         /// Get non auto-delete on dispose resource group
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="resourceGroup"></param>
         /// <param name="subscription"></param>
         /// <returns></returns>
@@ -72,6 +82,8 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <summary>
         /// Get named resource group
         /// </summary>
+        /// <param name="service"></param>
+        /// <param name="resourceGroup"></param>
         /// <param name="deleteOnDispose"></param>
         /// <returns></returns>
         public static Task<IResourceGroupResource> GetAsync(
@@ -82,6 +94,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <summary>
         /// Get non auto-delete on dispose resource group
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="resourceGroup"></param>
         /// <returns></returns>
         public static Task<IResourceGroupResource> GetAsync(
@@ -91,6 +104,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <summary>
         /// Get or create new  named resource group
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="resourceGroup"></param>
         /// <param name="deleteOnDispose"></param>
         /// <param name="subscriptionInfo"></param>

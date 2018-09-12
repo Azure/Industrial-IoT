@@ -12,6 +12,9 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Secure shell implementation
+    /// </summary>
     public class SshSecureShell : ISecureShell {
 
         /// <summary>
@@ -21,6 +24,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
         /// <param name="port">the ssh port</param>
         /// <param name="userName">the ssh user name</param>
         /// <param name="password">the ssh password</param>
+        /// <param name="logger">the ssh password</param>
         public SshSecureShell(string host, int port, string userName, string password,
             ILogger logger) {
             _logger = logger;
@@ -113,7 +117,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
                     _scpClient.Download(target, mstream);
                     _logger.Debug($"SCP> {target} downloaded.", () => { });
                     mstream.Position = 0;
-                    return (new StreamReader(mstream)).ReadToEnd();
+                    return new StreamReader(mstream).ReadToEnd();
                 }
             }, ct);
         }

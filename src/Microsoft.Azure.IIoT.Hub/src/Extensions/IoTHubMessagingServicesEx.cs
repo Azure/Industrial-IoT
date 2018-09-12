@@ -7,11 +7,15 @@ namespace Microsoft.Azure.IIoT.Hub {
     using Microsoft.Azure.IIoT.Hub.Models;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Messaging service extensions
+    /// </summary>
     public static class IoTHubMessagingServicesEx {
 
         /// <summary>
         /// Send messages for device
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <param name="message"></param>
         /// <returns></returns>

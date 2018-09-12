@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -278,8 +278,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
             // Where
             if (context.expr() != null) {
-                var where = ((Expression<Func<T, bool>>)Expression.Lambda(
-                    ParseWhereExpression(pe, context.expr()), pe));
+                var where = (Expression<Func<T, bool>>)Expression.Lambda(
+                    ParseWhereExpression(pe, context.expr()), pe);
                 var compiled = where.Compile();
                 records = records.Where(compiled);
             }
@@ -290,7 +290,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <summary>
         /// Project
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="records"></param>
         /// <param name="context"></param>
         /// <returns></returns>
@@ -372,6 +371,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <summary>
         /// Parse expression
         /// </summary>
+        /// <param name="parameter"></param>
         /// <param name="context"></param>
         /// <returns></returns>
         private Expression ParseWhereExpression(ParameterExpression parameter,
@@ -404,6 +404,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <summary>
         /// Parse scalar function
         /// </summary>
+        /// <param name="parameter"></param>
         /// <param name="context"></param>
         /// <returns></returns>
         private Expression ParseScalarFunction(ParameterExpression parameter,
@@ -425,6 +426,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <summary>
         /// Parse comparison expression
         /// </summary>
+        /// <param name="parameter"></param>
         /// <param name="context"></param>
         /// <returns></returns>
         private Expression ParseComparisonExpression(ParameterExpression parameter,
@@ -491,6 +493,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="aggregateResultColumnNames"></param>
+        /// <param name="parameter"></param>
         /// <returns></returns>
         private Expression ParseParameterBinding(ParameterExpression parameter,
             SqlSelectParser.ColumnNameContext context, List<string> aggregateResultColumnNames = null) {
@@ -628,17 +631,33 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// </summary>
         public class JsonToken {
 
+            /// <summary>
+            /// Create token
+            /// </summary>
+            /// <param name="jtoken"></param>
             public JsonToken(JToken jtoken) {
                 _jtoken = jtoken;
             }
 
+            /// <summary>
+            /// Implicit conversion to <see cref="JToken"/>
+            /// </summary>
+            /// <param name="t"></param>
             public static implicit operator JToken(JsonToken t) => t._jtoken;
+
+            /// <summary>
+            /// Implicit conversion from <see cref="JToken"/>
+            /// </summary>
+            /// <param name="t"></param>
             public static implicit operator JsonToken(JToken t) => new JsonToken(t);
 
+            /// <inheritdoc/>
             public override int GetHashCode() => JToken.EqualityComparer.GetHashCode(_jtoken);
 
+            /// <inheritdoc/>
             public override string ToString() => _jtoken.ToString();
 
+            /// <inheritdoc/>
             public static bool operator ==(JsonToken helper1, JsonToken helper2) {
                 if (helper1?._jtoken == null || helper2?._jtoken == null) {
                     return helper1?._jtoken == helper2?._jtoken;
@@ -646,9 +665,11 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 return JToken.DeepEquals(helper1._jtoken, helper2._jtoken);
             }
 
+            /// <inheritdoc/>
             public static bool operator !=(JsonToken helper1, JsonToken helper2) =>
                 !(helper1 == helper2);
 
+            /// <inheritdoc/>
             public override bool Equals(object obj) {
                 var helper = obj as JsonToken;
                 if (helper?._jtoken == null || _jtoken == null) {

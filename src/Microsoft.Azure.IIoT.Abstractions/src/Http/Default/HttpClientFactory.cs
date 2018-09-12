@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -98,6 +98,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// <param name="name"></param>
             /// <param name="handler"></param>
             /// <param name="lifetime"></param>
+            /// <param name="expirationCallback"></param>
             private ActiveHandlerEntry(string name, HttpMessageHandler handler,
                 TimeSpan lifetime, Action<ActiveHandlerEntry> expirationCallback) :
                 base(handler) {
@@ -113,6 +114,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// </summary>
             /// <param name="name"></param>
             /// <param name="factory"></param>
+            /// <param name="expirationCallback"></param>
             /// <returns></returns>
             public static ActiveHandlerEntry Create(IHttpHandlerFactory factory,
                 string name, Action<ActiveHandlerEntry> expirationCallback) {

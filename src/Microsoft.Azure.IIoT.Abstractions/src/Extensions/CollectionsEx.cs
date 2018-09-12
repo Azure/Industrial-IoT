@@ -6,9 +6,10 @@
 namespace System.Collections.Generic {
     using System;
     using System.Linq;
-    using System.Collections;
-    using System.Reflection;
 
+    /// <summary>
+    /// Collection extensions
+    /// </summary>
     public static class CollectionsEx {
 
         /// <summary>
@@ -25,6 +26,7 @@ namespace System.Collections.Generic {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="seq"></param>
+        /// <param name="hash"></param>
         /// <returns></returns>
         public static int GetHashCodeSafe<T>(this IEnumerable<T> seq, Func<T, int> hash) {
             var hashCode = -932366343;

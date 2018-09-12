@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,6 +7,9 @@ namespace System.Collections.Generic {
     using System.Collections;
     using System.Linq;
 
+    /// <summary>
+    /// Set extensions
+    /// </summary>
     public static class SetEx {
 
         /// <summary>
@@ -41,6 +44,7 @@ namespace System.Collections.Generic {
         /// <summary>
         /// Adds enum range to list
         /// </summary>
+        /// <param name="set"></param>
         /// <param name="enumerable"></param>
         /// <returns></returns>
         public static void AddRange(this ISet<object> set, IEnumerable enumerable) {

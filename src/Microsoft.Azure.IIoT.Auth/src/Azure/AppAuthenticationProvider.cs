@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -42,6 +42,7 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
         /// provider framework.
         /// </summary>
         /// <param name="resource"></param>
+        /// <param name="scopes"></param>
         /// <returns></returns>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
@@ -79,10 +80,13 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
             return cs;
         }
 
+        /// <inheritdoc/>
         protected virtual string NoClientIdRunAs() => null;
 
         private const string kAuthority = "https://login.microsoftonline.com/";
+        /// <summary>Configuration for derived class</summary>
         protected readonly IClientConfig _config;
+        /// <summary>Token provider for derived class</summary>
         protected readonly AzureServiceTokenProvider _provider;
     }
 }

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -21,6 +21,7 @@ namespace MsgPack {
         /// Constructor
         /// </summary>
         /// <param name="strm"></param>
+        /// <param name="owner"></param>
         public Writer(Stream strm, bool owner = false) {
             _strm = strm;
             _owner = owner;
@@ -83,11 +84,11 @@ namespace MsgPack {
             _buffer[0] = (byte)Types.Int16;
             if (BitConverter.IsLittleEndian) {
                 _buffer[1] = (byte)(val >> 8);
-                _buffer[2] = (byte)(val);
+                _buffer[2] = (byte)val;
             }
             else {
                 _buffer[2] = (byte)(val >> 8);
-                _buffer[1] = (byte)(val);
+                _buffer[1] = (byte)val;
             }
             return _strm.WriteAsync(_buffer, 0, 3, ct);
         }
@@ -110,13 +111,13 @@ namespace MsgPack {
                 _buffer[1] = (byte)(val >> 24);
                 _buffer[2] = (byte)(val >> 16);
                 _buffer[3] = (byte)(val >> 8);
-                _buffer[4] = (byte)(val);
+                _buffer[4] = (byte)val;
             }
             else {
                 _buffer[4] = (byte)(val >> 24);
                 _buffer[3] = (byte)(val >> 16);
                 _buffer[2] = (byte)(val >> 8);
-                _buffer[1] = (byte)(val);
+                _buffer[1] = (byte)val;
             }
             return _strm.WriteAsync(_buffer, 0, 5, ct);
         }
@@ -143,7 +144,7 @@ namespace MsgPack {
                 _buffer[5] = (byte)(val >> 24);
                 _buffer[6] = (byte)(val >> 16);
                 _buffer[7] = (byte)(val >> 8);
-                _buffer[8] = (byte)(val);
+                _buffer[8] = (byte)val;
             }
             else {
                 _buffer[8] = (byte)(val >> 56);
@@ -153,7 +154,7 @@ namespace MsgPack {
                 _buffer[4] = (byte)(val >> 24);
                 _buffer[3] = (byte)(val >> 16);
                 _buffer[2] = (byte)(val >> 8);
-                _buffer[1] = (byte)(val);
+                _buffer[1] = (byte)val;
             }
             return _strm.WriteAsync(_buffer, 0, 9, ct);
         }
@@ -187,11 +188,11 @@ namespace MsgPack {
             _buffer[0] = (byte)Types.UInt16;
             if (BitConverter.IsLittleEndian) {
                 _buffer[1] = (byte)(val >> 8);
-                _buffer[2] = (byte)(val);
+                _buffer[2] = (byte)val;
             }
             else {
                 _buffer[2] = (byte)(val >> 8);
-                _buffer[1] = (byte)(val);
+                _buffer[1] = (byte)val;
             }
             return _strm.WriteAsync(_buffer, 0, 3, ct);
         }
@@ -338,11 +339,11 @@ namespace MsgPack {
                 _buffer[0] = (byte)Types.Bin16;
                 if (BitConverter.IsLittleEndian) {
                     _buffer[1] = (byte)(size >> 8);
-                    _buffer[2] = (byte)(size);
+                    _buffer[2] = (byte)size;
                 }
                 else {
                     _buffer[2] = (byte)(size >> 8);
-                    _buffer[1] = (byte)(size);
+                    _buffer[1] = (byte)size;
                 }
                 return _strm.WriteAsync(_buffer, 0, 3, ct);
             }
@@ -351,13 +352,13 @@ namespace MsgPack {
                 _buffer[1] = (byte)(size >> 24);
                 _buffer[2] = (byte)(size >> 16);
                 _buffer[3] = (byte)(size >> 8);
-                _buffer[4] = (byte)(size);
+                _buffer[4] = (byte)size;
             }
             else {
                 _buffer[4] = (byte)(size >> 24);
                 _buffer[3] = (byte)(size >> 16);
                 _buffer[2] = (byte)(size >> 8);
-                _buffer[1] = (byte)(size);
+                _buffer[1] = (byte)size;
             }
             return _strm.WriteAsync(_buffer, 0, 5, ct);
         }
@@ -388,11 +389,11 @@ namespace MsgPack {
                 _buffer[0] = (byte)Types.Array16;
                 if (BitConverter.IsLittleEndian) {
                     _buffer[1] = (byte)(size >> 8);
-                    _buffer[2] = (byte)(size);
+                    _buffer[2] = (byte)size;
                 }
                 else {
                     _buffer[2] = (byte)(size >> 8);
-                    _buffer[1] = (byte)(size);
+                    _buffer[1] = (byte)size;
                 }
                 return _strm.WriteAsync(_buffer, 0, 3, ct);
             }
@@ -401,13 +402,13 @@ namespace MsgPack {
                 _buffer[1] = (byte)(size >> 24);
                 _buffer[2] = (byte)(size >> 16);
                 _buffer[3] = (byte)(size >> 8);
-                _buffer[4] = (byte)(size);
+                _buffer[4] = (byte)size;
             }
             else {
                 _buffer[4] = (byte)(size >> 24);
                 _buffer[3] = (byte)(size >> 16);
                 _buffer[2] = (byte)(size >> 8);
-                _buffer[1] = (byte)(size);
+                _buffer[1] = (byte)size;
             }
             return _strm.WriteAsync(_buffer, 0, 5, ct);
         }
@@ -427,11 +428,11 @@ namespace MsgPack {
                 _buffer[0] = (byte)Types.Map16;
                 if (BitConverter.IsLittleEndian) {
                     _buffer[1] = (byte)(size >> 8);
-                    _buffer[2] = (byte)(size);
+                    _buffer[2] = (byte)size;
                 }
                 else {
                     _buffer[2] = (byte)(size >> 8);
-                    _buffer[1] = (byte)(size);
+                    _buffer[1] = (byte)size;
                 }
                 return _strm.WriteAsync(_buffer, 0, 3, ct);
             }
@@ -440,13 +441,13 @@ namespace MsgPack {
                 _buffer[1] = (byte)(size >> 24);
                 _buffer[2] = (byte)(size >> 16);
                 _buffer[3] = (byte)(size >> 8);
-                _buffer[4] = (byte)(size);
+                _buffer[4] = (byte)size;
             }
             else {
                 _buffer[4] = (byte)(size >> 24);
                 _buffer[3] = (byte)(size >> 16);
                 _buffer[2] = (byte)(size >> 8);
-                _buffer[1] = (byte)(size);
+                _buffer[1] = (byte)size;
             }
             return _strm.WriteAsync(_buffer, 0, 5, ct);
         }
@@ -483,11 +484,11 @@ namespace MsgPack {
                 _buffer[0] = (byte)Types.Str16;
                 if (BitConverter.IsLittleEndian) {
                     _buffer[1] = (byte)(size >> 8);
-                    _buffer[2] = (byte)(size);
+                    _buffer[2] = (byte)size;
                 }
                 else {
                     _buffer[2] = (byte)(size >> 8);
-                    _buffer[1] = (byte)(size);
+                    _buffer[1] = (byte)size;
                 }
                 return _strm.WriteAsync(_buffer, 0, 3, ct);
             }
@@ -496,13 +497,13 @@ namespace MsgPack {
                 _buffer[1] = (byte)(size >> 24);
                 _buffer[2] = (byte)(size >> 16);
                 _buffer[3] = (byte)(size >> 8);
-                _buffer[4] = (byte)(size);
+                _buffer[4] = (byte)size;
             }
             else {
                 _buffer[4] = (byte)(size >> 24);
                 _buffer[3] = (byte)(size >> 16);
                 _buffer[2] = (byte)(size >> 8);
-                _buffer[1] = (byte)(size);
+                _buffer[1] = (byte)size;
             }
             return _strm.WriteAsync(_buffer, 0, 5, ct);
         }
@@ -550,7 +551,7 @@ namespace MsgPack {
                 info.AsType(), typeof(CancellationToken)
             }).Invoke(this, new object[] { val, ct });
 
-
+        /// <inheritdoc/>
         public void Dispose() {
             if (_owner) {
                 ((IDisposable)_strm).Dispose();

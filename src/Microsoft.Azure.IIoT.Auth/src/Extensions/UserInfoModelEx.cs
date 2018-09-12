@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,6 +8,9 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
     using System.Collections.Generic;
     using System.Security.Claims;
 
+    /// <summary>
+    /// Model extensions
+    /// </summary>
     public static class UserInfoModelEx {
 
         /// <summary>
@@ -33,6 +36,7 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
         /// Convert to user model
         /// </summary>
         /// <param name="claims"></param>
+        /// <param name="existing"></param>
         /// <returns></returns>
         public static UserInfoModel ToUserInfo(
             this IEnumerable<Claim> claims, UserInfoModel existing = null) {

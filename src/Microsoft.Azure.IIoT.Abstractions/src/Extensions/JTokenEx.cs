@@ -10,6 +10,9 @@ namespace Newtonsoft.Json.Linq {
     using System.IO;
     using System.Text.RegularExpressions;
 
+    /// <summary>
+    /// Json token extensions
+    /// </summary>
     public static class JTokenEx {
 
         /// <summary>

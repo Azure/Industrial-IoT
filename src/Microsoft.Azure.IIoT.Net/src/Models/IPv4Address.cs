@@ -8,6 +8,9 @@ namespace Microsoft.Azure.IIoT.Net.Models {
     using System.Collections.Generic;
     using System.Net;
 
+    /// <summary>
+    /// IPV4 address
+    /// </summary>
     public class IPv4Address : IPAddress, IComparable<IPv4Address>,
         IComparable<IPAddress> {
 
@@ -38,35 +41,70 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         }
 
         /// <summary>
-        /// Convert to and from uint as well as increment and decrement operators
+        /// Convert to and from uint
         /// </summary>
         /// <param name="value"></param>
         public static implicit operator uint(IPv4Address value) => (uint)
             NetworkToHostOrder((int)BitConverter.ToUInt32(value.GetAddressBytes(), 0));
+
+        /// <summary>
+        /// Convert back to address from uint
+        /// </summary>
+        /// <param name="value"></param>
         public static implicit operator IPv4Address(uint value) =>
             new IPv4Address((uint)HostToNetworkOrder((int)value));
+
+        /// <summary>
+        /// Convert from long
+        /// </summary>
+        /// <param name="value"></param>
         public static explicit operator long(IPv4Address value) =>
             NetworkToHostOrder((int)BitConverter.ToUInt32(value.GetAddressBytes(), 0));
+
+        /// <summary>
+        /// Convert back to address from long
+        /// </summary>
+        /// <param name="value"></param>
         public static explicit operator IPv4Address(long value) =>
             new IPv4Address((uint)HostToNetworkOrder((int)value));
 
+        /// <summary>
+        /// Add
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="x"></param>
+        /// <returns></returns>
         public static IPv4Address operator +(IPv4Address value, int x) =>
             new IPv4Address((uint)((uint)value + x));
+
+        /// <summary>
+        /// Subtract
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="x"></param>
+        /// <returns></returns>
         public static IPv4Address operator -(IPv4Address value, int x) =>
             new IPv4Address((uint)((uint)value - x));
 
+        /// <summary>
+        /// Increment by 1
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static IPv4Address operator ++(IPv4Address value) => value + 1;
-        public static IPv4Address operator --(IPv4Address value) => value - 1;
 
         /// <summary>
-        /// Equality
+        /// Decrement by 1
         /// </summary>
-        /// <param name="addr1"></param>
-        /// <param name="addr2"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
+        public static IPv4Address operator --(IPv4Address value) => value - 1;
+
+        /// <inheritdoc/>
         public static bool operator ==(IPv4Address addr1, IPv4Address addr2) =>
             EqualityComparer<IPv4Address>.Default.Equals(addr1, addr2);
 
+        /// <inheritdoc/>
         public static bool operator !=(IPv4Address addr1, IPv4Address addr2) =>
             !(addr1 == addr2);
 

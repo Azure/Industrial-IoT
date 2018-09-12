@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Desired edge hub configuration
+    /// Desired iotedge hub configuration
     /// </summary>
     public class EdgeHubConfigurationModel {
 

@@ -14,13 +14,23 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// </summary>
     public class ConnectionString {
 
+        /// <summary>
+        /// Identifies a part of the connection string
+        /// </summary>
         public enum Id {
+            /// <summary>Host name</summary>
             HostName,
+            /// <summary>Device Id</summary>
             DeviceId,
+            /// <summary>Module Id</summary>
             ModuleId,
+            /// <summary>Key Name</summary>
             SharedAccessKeyName,
+            /// <summary>Shared access key</summary>
             SharedAccessKey,
+            /// <summary>Endpoint</summary>
             Endpoint,
+            /// <summary>Shared access token</summary>
             SharedAccessToken
         }
 
@@ -94,6 +104,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Try parse connection string
         /// </summary>
         /// <param name="connectionString"></param>
+        /// <param name="cs"></param>
         /// <returns></returns>
         public static bool TryParse(string connectionString, out ConnectionString cs) {
             try {

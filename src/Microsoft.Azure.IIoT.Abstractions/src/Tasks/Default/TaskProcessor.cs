@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
 
     /// <summary>
     /// A task (or job) processor build on top of an in memory
-    /// <see cref="BlockingCollection{T}>"/>
+    /// BlockingCollection
     /// </summary>
     public class TaskProcessor : ITaskProcessor, IDisposable {
 
@@ -34,6 +34,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         /// <summary>
         /// Create processor
         /// </summary>
+        /// <param name="config"></param>
         /// <param name="logger"></param>
         public TaskProcessor(ITaskProcessorConfig config, ILogger logger) :
             this (config, new DefaultScheduler(), logger) {
@@ -42,6 +43,8 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         /// <summary>
         /// Create processor
         /// </summary>
+        /// <param name="config"></param>
+        /// <param name="scheduler"></param>
         /// <param name="logger"></param>
         public TaskProcessor(ITaskProcessorConfig config, ITaskScheduler scheduler,
             ILogger logger) {

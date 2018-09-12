@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,6 +7,9 @@ namespace Microsoft.AspNetCore.Authorization {
     using System;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Authorization policy builder extensions
+    /// </summary>
     public static class AuthorizationPolicyBuilderEx {
 
         /// <summary>
@@ -33,7 +36,7 @@ namespace Microsoft.AspNetCore.Authorization {
         /// </summary>
         /// <param name="options"></param>
         /// <param name="policies"></param>
-        public static void AddNoOpPolicies(this AuthorizationOptions options, 
+        public static void AddNoOpPolicies(this AuthorizationOptions options,
             IEnumerable<string> policies) {
             foreach(var policy in policies) {
                 options.AddPolicy(policy, builder => builder.RequireNothing());

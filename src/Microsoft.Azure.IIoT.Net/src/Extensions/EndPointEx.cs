@@ -6,6 +6,9 @@
 namespace System.Net {
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Endpoint extensions
+    /// </summary>
     public static class EndPointEx {
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -94,7 +94,7 @@ namespace System.Collections.Generic {
         [Fact]
         public void SequenceEqualsReturnsFalseWhenSequenceNotSame1() {
             List<string> test1 = new List<string> { "serf", "sated" };
-            List<string> test2 = new List<string> { "serf", "sated", "sucks" };
+            List<string> test2 = new List<string> { "serf", "sated", "data" };
 
             var result = test1.SequenceEqualsSafe(test2);
             Assert.False(result);

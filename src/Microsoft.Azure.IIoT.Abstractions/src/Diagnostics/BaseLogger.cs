@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// </summary>
         /// <param name="processId"></param>
         protected BaseLogger(string processId) {
-            _processId = processId;
+            _processId = processId ?? Guid.NewGuid().ToString();
         }
 
         /// <summary>
@@ -90,9 +90,13 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             Error(() => Write(context.GetMethodInfo(), message + " " +
                 JsonConvertEx.SerializeObject(context.Invoke())));
 
+        /// <inheritdoc/>
         protected abstract void Debug(Func<string> message);
+        /// <inheritdoc/>
         protected abstract void Info(Func<string> message);
+        /// <inheritdoc/>
         protected abstract void Warn(Func<string> message);
+        /// <inheritdoc/>
         protected abstract void Error(Func<string> message);
 
         /// <summary>
@@ -120,6 +124,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             return $"[{_processId}][{time}][{classname}:{methodname}] {text}";
         }
 
+        /// <summary>Process id used during logging</summary>
         protected readonly string _processId;
     }
 }

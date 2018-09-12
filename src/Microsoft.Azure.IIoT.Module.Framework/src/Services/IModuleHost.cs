@@ -10,15 +10,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Services {
     /// <summary>
     /// Encapsulates a runnable module
     /// </summary>
-    public interface IEdgeHost : IDisposable {
+    public interface IModuleHost : IDisposable {
 
         /// <summary>
         /// Start service
         /// </summary>
         /// <param name="type"></param>
         /// <param name="siteId"></param>
+        /// <param name="serviceInfo"></param>
         /// <returns></returns>
-        Task StartAsync(string type, string siteId);
+        Task StartAsync(string type, string siteId, string serviceInfo);
 
         /// <summary>
         /// Stop service

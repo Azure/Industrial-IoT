@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Model extensions
+    /// </summary>
     public static class DeviceTwinModelEx {
 
         /// <summary>

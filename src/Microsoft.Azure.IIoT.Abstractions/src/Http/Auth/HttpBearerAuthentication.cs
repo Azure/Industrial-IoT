@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -14,6 +14,9 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
     using System.Net.Http;
     using System.Threading;
 
+    /// <summary>
+    /// Bearer authentication handler
+    /// </summary>
     public class HttpBearerAuthentication : HttpMessageHandlerBase {
 
         /// <summary>

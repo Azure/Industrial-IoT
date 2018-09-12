@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub {
     using Microsoft.Azure.IIoT.Utils;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Iot hub factory extensions
+    /// </summary>
     public static class IoTHubFactoryEx {
 
         /// <summary>
@@ -19,6 +22,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub {
         /// <summary>
         /// Get or create new hub in a resource group.
         /// </summary>
+        /// <param name="service"></param>
         /// <param name="resourceGroup"></param>
         /// <param name="name"></param>
         /// <returns></returns>

@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Tasks {
     using Microsoft.Azure.IIoT.Diagnostics;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Injectable task scheduler implementations
+    /// </summary>
     public interface ITaskScheduler {
 
         /// <summary>

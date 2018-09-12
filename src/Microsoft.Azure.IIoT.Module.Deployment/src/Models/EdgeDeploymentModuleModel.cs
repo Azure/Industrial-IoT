@@ -8,6 +8,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// IotEdge deployment module
+    /// </summary>
     public class EdgeDeploymentModuleModel {
 
         /// <summary>

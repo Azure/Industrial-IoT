@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
         /// Create versioning attribute
         /// </summary>
         /// <param name="major"></param>
+        /// <param name="minor"></param>
         public VersionAttribute(int major, int minor) {
             Set(major, minor, null);
         }
@@ -31,6 +32,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
         /// Create versioning attribute
         /// </summary>
         /// <param name="major"></param>
+        /// <param name="minor"></param>
+        /// <param name="revision"></param>
         public VersionAttribute(int major, int minor, int revision) {
             Set(major, minor, revision);
         }
@@ -61,10 +64,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
             var version = major.ToString();
             var numeric = (uint)major << 32;
             if (minor != null) {
-                version += ("." + minor.ToString());
-                numeric |= ((uint)minor << 16);
+                version += "." + minor.ToString();
+                numeric |= (uint)minor << 16;
                 if (revision != null) {
-                    version += ("." + revision.ToString());
+                    version += "." + revision.ToString();
                     numeric |= (uint)revision;
                 }
             }

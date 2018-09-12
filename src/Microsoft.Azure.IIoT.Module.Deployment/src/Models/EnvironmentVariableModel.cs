@@ -11,6 +11,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
     /// </summary>
     public class EnvironmentVariableModel {
 
+        /// <summary>
+        /// Value
+        /// </summary>
         [JsonProperty("value")]
         public string Value { get; set; }
     }

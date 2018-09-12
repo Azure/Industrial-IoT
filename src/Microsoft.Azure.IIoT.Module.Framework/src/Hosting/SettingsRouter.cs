@@ -263,6 +263,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// Called to read setting
             /// </summary>
             /// <param name="property"></param>
+            /// <param name="value"></param>
             /// <returns></returns>
             public bool Get(string property, out dynamic value) {
                 Exception e = null;
@@ -294,6 +295,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// </summary>
             /// <param name="controller"></param>
             /// <param name="property"></param>
+            /// <param name="indexed"></param>
             /// <param name="logger"></param>
             public PropertyInvoker(Controller controller, PropertyInfo property,
                 bool indexed, ILogger logger) {
@@ -335,6 +337,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// Called when a service is invoked
             /// </summary>
             /// <param name="property"></param>
+            /// <param name="value"></param>
             /// <returns></returns>
             public bool Get(string property, out dynamic value) {
                 try {

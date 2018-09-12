@@ -8,14 +8,19 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
     using Newtonsoft.Json;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Edge deployment factory extensions
+    /// </summary>
     public static class EdgeDeploymentFactoryEx {
 
         /// <summary>
         /// Create deployment for a fleet of devices identified by
         /// the target condition and given the desired name.
         /// </summary>
+        /// <param name="factory"></param>
         /// <param name="name"></param>
         /// <param name="condition"></param>
+        /// <param name="priority"></param>
         /// <returns></returns>
         public static IEdgeDeployment Create(this IEdgeDeploymentFactory factory,
             string name, string condition, int priority = 0) =>
@@ -25,6 +30,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// Create deployment for a fleet of devices identified by
         /// the target condition and given the desired name.
         /// </summary>
+        /// <param name="factory"></param>
         /// <param name="name"></param>
         /// <param name="condition"></param>
         /// <param name="priority"></param>
@@ -39,6 +45,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// Create deployment for a fleet of devices identified by
         /// the target condition and given the desired name.
         /// </summary>
+        /// <param name="factory"></param>
         /// <param name="name"></param>
         /// <param name="condition"></param>
         /// <param name="deploymentJson"></param>
@@ -72,6 +79,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Create and apply deployment to single device
         /// </summary>
+        /// <param name="factory"></param>
         /// <param name="manifestJson"></param>
         /// <param name="deviceId"></param>
         /// <returns></returns>
@@ -82,6 +90,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Deploy to single device
         /// </summary>
+        /// <param name="factory"></param>
         /// <param name="deploymentJson"></param>
         /// <param name="deviceId"></param>
         /// <returns></returns>
@@ -92,6 +101,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Deploy to fleet of devices
         /// </summary>
+        /// <param name="factory"></param>
         /// <param name="manifestJson"></param>
         /// <param name="name"></param>
         /// <param name="condition"></param>
@@ -105,6 +115,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Deploy to fleet of devices
         /// </summary>
+        /// <param name="factory"></param>
         /// <param name="deploymentJson"></param>
         /// <param name="name"></param>
         /// <param name="condition"></param>

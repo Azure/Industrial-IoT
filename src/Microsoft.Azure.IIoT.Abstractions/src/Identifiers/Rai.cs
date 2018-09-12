@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -123,7 +123,7 @@ namespace Microsoft.Azure.IIoT.Identifiers {
         /// </summary>
         /// <returns></returns>
         public override string ToString() =>
-            $"{_icd}{_sep}{OI}{_sep}{(OPI ?? "")}{_sep}{(_opis ?? "")}{_sep}{(AI ?? "")}".Trim(_sep);
+            $"{_icd}{_sep}{OI}{_sep}{OPI ?? ""}{_sep}{_opis ?? ""}{_sep}{AI ?? ""}".Trim(_sep);
 
         /// <summary>
         /// Equality
@@ -133,9 +133,21 @@ namespace Microsoft.Azure.IIoT.Identifiers {
         public override bool Equals(object obj) =>
             obj is Rai rai && ICD == rai.ICD && AI == rai.AI && OI == rai.OI;
 
+        /// <summary>
+        /// Equality operator
+        /// </summary>
+        /// <param name="rai1"></param>
+        /// <param name="rai2"></param>
+        /// <returns></returns>
         public static bool operator ==(Rai rai1, Rai rai2) =>
             EqualityComparer<Rai>.Default.Equals(rai1, rai2);
 
+        /// <summary>
+        /// Inequality operator
+        /// </summary>
+        /// <param name="rai1"></param>
+        /// <param name="rai2"></param>
+        /// <returns></returns>
         public static bool operator !=(Rai rai1, Rai rai2) =>
             !(rai1 == rai2);
 

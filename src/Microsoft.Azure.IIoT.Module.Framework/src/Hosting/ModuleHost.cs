@@ -21,9 +21,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Edge host implementation
+    /// Module host implementation
     /// </summary>
-    public class EdgeHost : IEdgeHost, ITwinProperties, IEventEmitter, IBlobUpload {
+    public class ModuleHost : IModuleHost, ITwinProperties, IEventEmitter, IBlobUpload {
 
         /// <summary>
         /// Twin properties
@@ -46,12 +46,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public string SiteId { get; private set; }
 
         /// <summary>
-        /// Create edge service module
+        /// Create module host
         /// </summary>
         /// <param name="factory"></param>
+        /// <param name="settings"></param>
         /// <param name="logger"></param>
         /// <param name="router"></param>
-        public EdgeHost(IMethodRouter router, ISettingsRouter settings, IClientFactory factory,
+        public ModuleHost(IMethodRouter router, ISettingsRouter settings, IClientFactory factory,
             ILogger logger) {
             _router = router ?? throw new ArgumentNullException(nameof(router));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -78,15 +79,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         catch (IotHubCommunicationException) { }
                         catch (UnauthorizedException) { }
                         catch (Exception se) {
-                            _logger.Error("Edge Host not cleanly disconnected.",
+                            _logger.Error("Module Host not cleanly disconnected.",
                                 () => se);
                         }
                         _client.Dispose();
                     }
-                    _logger.Info($"Edge Host stopped @{SiteId}.", () => { });
+                    _logger.Info($"Module Host stopped @{SiteId}.", () => { });
                 }
                 catch (Exception ce) {
-                    _logger.Error("Edge Host stopping caused exception.",
+                    _logger.Error("Module Host stopping caused exception.",
                         () => ce);
                 }
                 finally {
@@ -104,14 +105,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Start service
         /// </summary>
         /// <returns></returns>
-        public async Task StartAsync(string type, string siteId) {
+        public async Task StartAsync(string type, string siteId, string serviceInfo) {
             if (_client == null) {
                 try {
                     await _lock.WaitAsync();
                     if (_client == null) {
                         // Create client
-                        _logger.Debug("Starting Edge Host...", () => { });
-                        _client = await _factory.CreateAsync();
+                        _logger.Debug("Starting Module Host...", () => { });
+                        _client = await _factory.CreateAsync(serviceInfo);
                         DeviceId = _factory.DeviceId;
                         ModuleId = _factory.ModuleId;
 
@@ -139,7 +140,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         await _client.UpdateReportedPropertiesAsync(twinSettings);
 
                         // Done...
-                        _logger.Info($"Edge Host started @{SiteId}).", () => { });
+                        _logger.Info($"Module Host started @{SiteId}).", () => { });
                         return;
                     }
                 }
@@ -445,6 +446,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Process default settings
         /// </summary>
         /// <param name="key"></param>
+        /// <param name="processed"></param>
         /// <param name="value"></param>
         /// <returns></returns>
         private bool ProcessEdgeHostSettings(string key, dynamic value,

@@ -9,6 +9,9 @@ namespace Microsoft.Azure.IIoT.Net {
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Represents a shell that can be used to interact with a system.
+    /// </summary>
     public interface ISecureShell : IDisposable {
 
         /// <summary>
@@ -20,6 +23,8 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="output">The output writer</param>
         /// <param name="width">Terminal width</param>
         /// <param name="height">Terminal height</param>
+        /// <param name="cols">Terminal columns</param>
+        /// <param name="rows">Terminal rows</param>
         /// <param name="ct">A cancellation token to cancel the binding
         /// </param>
         /// <returns>Cancellation token to stop the shell or notify the user

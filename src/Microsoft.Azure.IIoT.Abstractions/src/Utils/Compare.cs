@@ -6,6 +6,9 @@
 namespace System.Collections.Generic {
     using System;
 
+    /// <summary>
+    /// Compare helper
+    /// </summary>
     public static class Compare {
 
         /// <summary>
@@ -16,6 +19,5 @@ namespace System.Collections.Generic {
         /// <returns></returns>
         public static IEqualityComparer<T> Using<T>(Func<T, T, bool> func) =>
             new FuncCompare<T>(func);
-
     }
 }

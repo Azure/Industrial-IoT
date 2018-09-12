@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Desired edge agent configuration
+    /// Desired iotedge agent configuration
     /// </summary>
     public class EdgeAgentConfigurationModel {
 

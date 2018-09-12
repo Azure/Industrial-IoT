@@ -26,10 +26,13 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// <param name="logger"></param>
         protected IoTHubHttpClientBase(IHttpClient httpClient,
             IIoTHubConfig config, ILogger logger) {
-            _httpClient = httpClient;
-            _logger = logger;
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            if (config == null) {
+                throw new ArgumentNullException(nameof(config));
+            }
             if (string.IsNullOrEmpty(config.IoTHubConnString)) {
-                throw new ArgumentException(nameof(config));
+                throw new ArgumentException(nameof(config.IoTHubConnString));
             }
             _resourceId = config.IoTHubResourceId;
             _hubConnectionString = ConnectionString.Parse(config.IoTHubConnString);
@@ -90,9 +93,13 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         const string kApiVersion = "2018-06-30";
         const string kClientId = "OpcTwin";
 
+        /// <summary>Hub connection string to use</summary>
         protected readonly ConnectionString _hubConnectionString;
+        /// <summary>resource id to use in derived class</summary>
         protected readonly string _resourceId;
+        /// <summary>Http client to use in derived class</summary>
         protected readonly IHttpClient _httpClient;
+        /// <summary>Logger to use in derived class</summary>
         protected readonly ILogger _logger;
     }
 }

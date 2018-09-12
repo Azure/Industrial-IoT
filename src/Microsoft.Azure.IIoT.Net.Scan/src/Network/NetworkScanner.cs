@@ -44,6 +44,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="replies"></param>
+        /// <param name="netclass"></param>
         /// <param name="ct"></param>
         public NetworkScanner(ILogger logger, Action<PingReply> replies,
             NetworkClass netclass, CancellationToken ct) :
@@ -55,6 +56,8 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="replies"></param>
+        /// <param name="local"></param>
+        /// <param name="netclass"></param>
         /// <param name="ct"></param>
         public NetworkScanner(ILogger logger, Action<PingReply> replies,
             bool local, NetworkClass netclass, CancellationToken ct) :
@@ -66,6 +69,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="replies"></param>
+        /// <param name="addresses"></param>
         /// <param name="ct"></param>
         public NetworkScanner(ILogger logger, Action<PingReply> replies,
             IEnumerable<AddressRange> addresses, CancellationToken ct) :
@@ -79,6 +83,11 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="replies"></param>
+        /// <param name="local"></param>
+        /// <param name="addresses"></param>
+        /// <param name="netclass"></param>
+        /// <param name="maxProbeCount"></param>
+        /// <param name="timeout"></param>
         /// <param name="ct"></param>
         public NetworkScanner(ILogger logger, Action<PingReply> replies,
             bool local, IEnumerable<AddressRange> addresses, NetworkClass netclass,

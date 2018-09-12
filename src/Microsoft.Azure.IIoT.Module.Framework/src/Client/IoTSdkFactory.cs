@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using System.Threading;
 
     /// <summary>
-    /// Create clients from device sdk
+    /// Injectable factory that creates clients from device sdk
     /// </summary>
     public class IoTSdkFactory : IClientFactory {
 
@@ -33,20 +33,20 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         public IRetryPolicy RetryPolicy { get; set; }
 
         /// <summary>
-        /// Create edge service module
+        /// Create sdk factory
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public IoTSdkFactory(IEdgeConfig config, ILogger logger) {
+        public IoTSdkFactory(IModuleConfig config, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            // The Edge runtime injects this as an environment variable
+            // The runtime injects this as an environment variable
             var deviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
             var moduleId = Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
             var ehubHost = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
             try {
-                if (!string.IsNullOrEmpty(config.HubConnectionString)) {
-                    _cs = IotHubConnectionStringBuilder.Create(config.HubConnectionString);
+                if (!string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
+                    _cs = IotHubConnectionStringBuilder.Create(config.EdgeHubConnectionString);
                     if (string.IsNullOrEmpty(_cs.DeviceId)) {
                         throw new InvalidConfigurationException(
                             "Connection string is not a device or module connection string.");
@@ -63,9 +63,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             catch (Exception e) {
                 var ex = new InvalidConfigurationException(
                     "The host configuration is incomplete and is missing a " +
-                    "connection string for Azure IoT Edge or IoT Hub. " +
-                    "You either have to run the host under the control of the " +
-                    "edge hub, or manually set the 'EdgeHubConnectionString' " +
+                    "connection string for Azure IoTEdge or IoTHub. " +
+                    "You either have to run the host under the control of " +
+                    "EdgeAgent, or manually set the 'EdgeHubConnectionString' " +
                     "environment variable or configure the connection string " +
                     "value in your 'appsettings.json' configuration file.", e);
                 _logger.Error("Bad configuration", () => ex);
@@ -89,7 +89,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
             else if (!string.IsNullOrEmpty(ehubHost) || !string.IsNullOrEmpty(moduleId)) {
                 if (ehubHost != null) {
-                    // Running in edge context - can only use mqtt over tcp at this point
+                    // Running in iotedged context - can only use mqtt over tcp at this point
                     _transport = TransportOption.MqttOverTcp;
                 }
                 else {
@@ -107,10 +107,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <summary>
-        /// Create and open a DeviceClient using the connection string
+        /// Create and open client using the connection string
         /// </summary>
+        /// <param name="product"></param>
         /// <returns>Device client</returns>
-        public async Task<IClient> CreateAsync() {
+        public async Task<IClient> CreateAsync(string product) {
 
             // Configure transport settings
             var transportSettings = new List<ITransportSettings>();
@@ -145,24 +146,25 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             if (transportSettings.Count != 0) {
                 return await Try.Options(transportSettings
                     .Select<ITransportSettings, Func<Task<IClient>>>(t =>
-                         () => CreateAdapterAsync(t))
+                         () => CreateAdapterAsync(product, t))
                     .ToArray());
             }
-            return await CreateAdapterAsync();
+            return await CreateAdapterAsync(product);
         }
 
         /// <summary>
         /// Create client
         /// </summary>
+        /// <param name="product"></param>
         /// <param name="transportSetting"></param>
         /// <returns></returns>
-        private Task<IClient> CreateAdapterAsync(
+        private Task<IClient> CreateAdapterAsync(string product,
             ITransportSettings transportSetting = null) {
             if (_cs != null && string.IsNullOrEmpty(_cs.ModuleId)) {
-                return DeviceClientAdapter.CreateAsync(_cs, transportSetting,
+                return DeviceClientAdapter.CreateAsync(product, _cs, transportSetting,
                     _timeout, RetryPolicy, _logger);
             }
-            return ModuleClientAdapter.CreateAsync(_cs, transportSetting,
+            return ModuleClientAdapter.CreateAsync(product, _cs, transportSetting,
                 _timeout, RetryPolicy, _logger);
         }
 
@@ -183,12 +185,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <summary>
             /// Factory
             /// </summary>
+            /// <param name="product"></param>
             /// <param name="cs"></param>
             /// <param name="transportSetting"></param>
             /// <param name="timeout"></param>
+            /// <param name="retry"></param>
             /// <param name="logger"></param>
             /// <returns></returns>
-            public static async Task<IClient> CreateAsync(
+            public static async Task<IClient> CreateAsync(string product,
                 IotHubConnectionStringBuilder cs, ITransportSettings transportSetting,
                 TimeSpan timeout, IRetryPolicy retry, ILogger logger) {
 
@@ -203,14 +207,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     client.SetRetryPolicy(retry);
                 }
                 client.DiagnosticSamplingPercentage = 5;
+                client.ProductInfo = product;
                 await client.OpenAsync();
                 return new ModuleClientAdapter(client);
-            }
-
-            /// <inheritdoc />
-            public string ProductInfo {
-                get => _client.ProductInfo;
-                set => _client.ProductInfo = value;
             }
 
             /// <inheritdoc />
@@ -314,12 +313,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <summary>
             /// Factory
             /// </summary>
+            /// <param name="product"></param>
             /// <param name="cs"></param>
             /// <param name="transportSetting"></param>
             /// <param name="timeout"></param>
+            /// <param name="retry"></param>
             /// <param name="logger"></param>
             /// <returns></returns>
-            public static async Task<IClient> CreateAsync(
+            public static async Task<IClient> CreateAsync(string product,
                 IotHubConnectionStringBuilder cs, ITransportSettings transportSetting,
                 TimeSpan timeout, IRetryPolicy retry, ILogger logger) {
                 var client = Create(cs, transportSetting);
@@ -332,14 +333,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     client.SetRetryPolicy(retry);
                 }
                 client.DiagnosticSamplingPercentage = 5;
+                client.ProductInfo = product;
                 await client.OpenAsync();
                 return new DeviceClientAdapter(client);
-            }
-
-            /// <inheritdoc />
-            public string ProductInfo {
-                get => _client.ProductInfo;
-                set => _client.ProductInfo = value;
             }
 
             /// <inheritdoc />
@@ -425,7 +421,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
         /// <summary>
         /// Add certificate in local cert store for use by client for secure connection
-        /// to IoT Edge runtime
+        /// to iotedge runtime
         /// </summary>
         private void InstallCert(string certPath) {
             if (!File.Exists(certPath)) {

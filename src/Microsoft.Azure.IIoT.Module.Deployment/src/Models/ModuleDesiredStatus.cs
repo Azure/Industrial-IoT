@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
 
+    /// <summary>
+    /// Desired module status
+    /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
     public enum ModuleDesiredStatus {
 

@@ -8,6 +8,9 @@ namespace Microsoft.Azure.Management.Fluent {
     using System;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Azure management fluent extensions
+    /// </summary>
     public static class FluentExtensions {
 
         /// <summary>

@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
     using System.Collections.Generic;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
+    /// <summary>
+    /// Twin properties
+    /// </summary>
     public class TwinPropertiesModel {
 
         /// <summary>
