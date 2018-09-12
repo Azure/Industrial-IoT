@@ -12,9 +12,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
     public enum SecurityMode {
+
+        /// <summary>
+        /// Best
+        /// </summary>
         Best,
+
+        /// <summary>
+        /// Sign
+        /// </summary>
         Sign,
+
+        /// <summary>
+        /// Sign and Encrypt
+        /// </summary>
         SignAndEncrypt,
+
+        /// <summary>
+        /// No security
+        /// </summary>
         None
     }
 

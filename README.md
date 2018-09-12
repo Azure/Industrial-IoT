@@ -71,7 +71,7 @@ For more help on setting environment variables on your system:
 
 ## Other Industrial IoT Solution Accelerator components
 
-* OPC GDS service (Coming soon)
+* OPC GDS Vault service (Coming soon)
 * [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
 * [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-twin-registry)
 * [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)

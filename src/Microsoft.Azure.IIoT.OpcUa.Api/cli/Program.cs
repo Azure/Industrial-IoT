@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Linq;
+    using System.Diagnostics;
 
     /// <summary>
     /// Api command line interface
@@ -28,8 +29,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Configure Dependency injection
         /// </summary>
-        /// <param name="configuration"></param>
-        /// <returns></returns>
         public static IContainer ConfigureContainer(IConfigurationRoot configuration) {
             var builder = new ContainerBuilder();
 
@@ -73,7 +72,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Main entry point
         /// </summary>
-        /// <param name="args"></param>
         public static void Main(string[] args) {
 
             // Load hosting configuration
@@ -94,7 +92,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Run client
         /// </summary>
-        /// <param name="args">command-line arguments</param>
         public static async Task RunAsync(string[] args, IComponentContext context) {
             var twin = context.Resolve<ITwinServiceApi>();
             var registry = context.Resolve<IRegistryServiceApi>();
@@ -298,9 +295,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Call method
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task MethodCallAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.NodeMethodCallAsync(
@@ -317,9 +311,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Read value
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task MethodMetadataAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.NodeMethodGetMetadataAsync(
@@ -333,9 +324,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Write value
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task WriteAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.NodeValueWriteAsync(
@@ -353,9 +341,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Read value
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task ReadAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.NodeValueReadAsync(
@@ -369,9 +354,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Publish node
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task PublishAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.NodePublishAsync(
@@ -387,62 +369,80 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Browse nodes
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task BrowseAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             var id = GetOption<string>(options, "-i", "--id");
+            var silent = GetOption(options, "-s", "--silent", false);
             var recursive = GetOption(options, "-r", "--recursive", false);
             var request = new BrowseRequestApiModel {
+                TargetNodesOnly = GetOption<bool>(options, "-t", "--targets", null),
                 MaxReferencesToReturn = GetOption<uint>(options, "-x", "--maxrefs", null),
                 Direction = GetOption<BrowseDirection>(options, "-d", "--direction", null)
             };
-            var nodes = new Queue<string>();
-            nodes.Enqueue(GetOption<string>(options, "-n", "--nodeid", null));
-            var visited = new HashSet<string>();
+            var nodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            nodes.Add(GetOption<string>(options, "-n", "--nodeid", null));
+            var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var nodesRead = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var errors = 0;
+            var sw = Stopwatch.StartNew();
             while (nodes.Count > 0) {
-                request.NodeId = nodes.Dequeue();
+                request.NodeId = nodes.First();
+                nodes.Remove(request.NodeId);
                 try {
                     var result = await service.NodeBrowseAsync(id, request);
                     visited.Add(request.NodeId);
-                    PrintResult(options, result);
+                    if (!silent) {
+                        PrintResult(options, result);
+                    }
 
                     // Do recursive browse
                     if (recursive) {
                         foreach (var r in result.References) {
                             if (!visited.Contains(r.Id)) {
-                                nodes.Enqueue(r.Id);
+                                nodes.Add(r.Id);
                             }
                             if (!visited.Contains(r.Target.Id)) {
-                                nodes.Enqueue(r.Target.Id);
+                                nodes.Add(r.Target.Id);
                             }
-                            if (!r.Target.NodeClass.HasValue || r.Target.NodeClass.Value != NodeClass.Variable) {
+                            if (nodesRead.Contains(r.Target.Id)) {
+                                continue; // We have read this one already
+                            }
+                            if (!r.Target.NodeClass.HasValue ||
+                                r.Target.NodeClass.Value != NodeClass.Variable) {
                                 continue;
                             }
-                            Console.WriteLine($"Reading {r.Target.Id}");
-                            var read = await service.NodeValueReadAsync(id,
-                                new ValueReadRequestApiModel {
-                                    NodeId = r.Target.Id
-                                });
-                            PrintResult(options, read);
+                            if (!silent) {
+                                Console.WriteLine($"Reading {r.Target.Id}");
+                            }
+                            try {
+                                nodesRead.Add(r.Target.Id);
+                                var read = await service.NodeValueReadAsync(id,
+                                    new ValueReadRequestApiModel {
+                                        NodeId = r.Target.Id
+                                    });
+                                if (!silent) {
+                                    PrintResult(options, read);
+                                }
+                            }
+                            catch (Exception ex) {
+                                Console.WriteLine($"Reading {r.Target.Id} resulted in {ex}");
+                                errors++;
+                            }
                         }
                     }
                 }
                 catch(Exception e) {
-                    Console.WriteLine("==================");
-                    Console.WriteLine(e);
-                    Console.WriteLine("==================");
+                    Console.WriteLine($"Browse {request.NodeId} resulted in {e}");
+                    errors++;
                 }
             }
+            Console.WriteLine($"Browse took {sw.Elapsed}. Visited " +
+                $"{visited.Count} nodes and read {nodesRead.Count} of them with {errors} errors.");
         }
 
         /// <summary>
         /// List published nodes
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task ListNodesAsync(ITwinServiceApi service,
             Dictionary<string, string> options) {
             if (GetOption(options, "-A", "--all", false)) {
@@ -462,9 +462,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// List supervisor registrations
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task ListSupervisorsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             if (GetOption(options, "-A", "--all", false)) {
@@ -483,9 +480,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Get supervisor
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task GetSupervisorAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.GetSupervisorAsync(
@@ -496,17 +490,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Update twin
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task UpdateSupervisorAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
-            var activate = GetOption(options, "-a", "--activate", false);
-            var config = !activate ? null : new DiscoveryConfigApiModel {
-                ActivationFilter = new TwinActivationFilterApiModel {
+            var config = new DiscoveryConfigApiModel();
+
+            if (GetOption(options, "-a", "--activate", false)) {
+                config.ActivationFilter = new TwinActivationFilterApiModel {
                     SecurityMode = SecurityMode.None
+                };
+            }
+
+            var addressRange = GetOption<string>(options, "-r", "--address-ranges", null);
+            if (addressRange != null) {
+                if (addressRange == "true") {
+                    config.AddressRangesToScan = "";
                 }
-            };
+                else {
+                    config.AddressRangesToScan = addressRange;
+                }
+            }
+
+            var portRange = GetOption<string>(options, "-p", "--port-ranges", null);
+            if (portRange != null) {
+                if (portRange == "true") {
+                    config.PortRangesToScan = "";
+                }
+                else {
+                    config.PortRangesToScan = portRange;
+                }
+            }
+
+            var netProbes = GetOption<int>(options, "-R", "--address-probes", null);
+            if (netProbes != null && netProbes != 0) {
+                config.MaxNetworkProbes = netProbes;
+            }
+
+            var portProbes = GetOption<int>(options, "-P", "--port-probes", null);
+            if (portProbes != null && portProbes != 0) {
+                config.MaxPortProbes = portProbes;
+            }
 
             await service.UpdateSupervisorAsync(
                 new SupervisorUpdateApiModel {
@@ -520,9 +542,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Registers application
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task RegisterApplicationAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.RegisterAsync(
@@ -541,9 +560,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Registers server
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task RegisterServerAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var activate = GetOption(options, "-a", "--activate", false);
@@ -560,9 +576,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Discover servers
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task DiscoverServerAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var activate = GetOption(options, "-a", "--activate", false);
@@ -581,9 +594,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Update application
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task UpdateApplicationAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             await service.UpdateApplicationAsync(
@@ -597,9 +607,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Unregister application
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static Task UnregisterApplicationAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             return service.UnregisterApplicationAsync(
@@ -609,9 +616,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Purge disabled applications not seen since specified amount of time.
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static Task PurgeDisabledApplicationsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             return service.PurgeDisabledApplicationsAsync(
@@ -621,9 +625,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// List applications
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task ListApplicationsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             if (GetOption(options, "-A", "--all", false)) {
@@ -642,9 +643,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// List sites
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task ListSitesAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             if (GetOption(options, "-A", "--all", false)) {
@@ -663,9 +661,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Query applications
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task QueryApplicationsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var query = new ApplicationRegistrationQueryApiModel {
@@ -689,9 +684,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Get application
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task GetApplicationAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.GetApplicationAsync(
@@ -702,9 +694,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// List twin registrations
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task ListTwinsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             if (GetOption(options, "-A", "--all", false)) {
@@ -725,9 +714,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Query twins
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task QueryTwinsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var query = new TwinRegistrationQueryApiModel {
@@ -754,9 +740,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Activate or deactivate twins
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task ActivateTwinsAsync(IRegistryServiceApi service,
             Dictionary<string, string> options, bool enable) {
 
@@ -776,9 +759,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Get twin
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task GetTwinAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             var result = await service.GetTwinAsync(
@@ -790,9 +770,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Update twin
         /// </summary>
-        /// <param name="service"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task UpdateTwinAsync(IRegistryServiceApi service,
             Dictionary<string, string> options) {
             await service.UpdateTwinAsync(
@@ -806,10 +783,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Get status
         /// </summary>
-        /// <param name="twin"></param>
-        /// <param name="registry"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static async Task GetStatusAsync(ITwinServiceApi twin,
             IRegistryServiceApi registry,
             Dictionary<string, string> options) {
@@ -832,9 +805,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Print result
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="options"></param>
-        /// <param name="status"></param>
         private static void PrintResult<T>(Dictionary<string, string> options, T status) {
             Console.WriteLine("==================");
             Console.WriteLine(JsonConvert.SerializeObject(status,
@@ -845,11 +815,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Get option value
         /// </summary>
-        /// <param name="options"></param>
-        /// <param name="key1"></param>
-        /// <param name="key2"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
         private static T GetOption<T>(Dictionary<string, string> options,
             string key1, string key2, T defaultValue) {
             if (!options.TryGetValue(key1, out var value) &&
@@ -862,10 +827,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Get mandatory option value
         /// </summary>
-        /// <param name="options"></param>
-        /// <param name="key1"></param>
-        /// <param name="key2"></param>
-        /// <returns></returns>
         private static T GetOption<T>(Dictionary<string, string> options,
             string key1, string key2) {
             if (!options.TryGetValue(key1, out var value) &&
@@ -878,10 +839,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Get mandatory option value
         /// </summary>
-        /// <param name="options"></param>
-        /// <param name="key1"></param>
-        /// <param name="key2"></param>
-        /// <returns></returns>
         private static T? GetOption<T>(Dictionary<string, string> options,
             string key1, string key2, T? defaultValue) where T : struct {
             if (!options.TryGetValue(key1, out var value) &&
@@ -897,8 +854,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Helper to collect options
         /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
         private static Dictionary<string, string> CollectOptions(int offset,
             string[] args) {
             var options = new Dictionary<string, string>();
@@ -942,19 +897,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             /// <summary>OPC twin endpoint url</summary>
             public string OpcUaTwinServiceUrl =>
                 Configuration.GetValue(kOpcUaTwinServiceUrlKey,
-                    "http://localhost:9041/v1");
+                    Configuration.GetValue("OPC_TWIN_SERVICE_URL",
+                        "http://localhost:9041"));
             /// <summary>OPC twin endpoint url</summary>
             public string OpcUaRegistryServiceUrl =>
                 Configuration.GetValue(kOpcUaRegistryServiceUrlKey,
-                    "http://localhost:9042/v1");
+                    Configuration.GetValue("OPC_TWIN_REGISTRY_URL",
+                        "http://localhost:9042"));
 
             public string OpcUaTwinServiceResourceId =>
                 Configuration.GetValue(kOpcUaTwinServiceIdKey,
-                    Configuration.GetValue("IIOT_OPCUA_TWIN_APP_ID",
+                    Configuration.GetValue("OPC_TWIN_APP_ID",
                          Configuration.GetValue<string>("IIOT_AUTH_APP_ID")));
             public string OpcUaRegistryServiceResourceId =>
                 Configuration.GetValue(kOpcUaRegistryServiceIdKey,
-                    Configuration.GetValue("IIOT_OPCUA_REGISTRY_APP_ID",
+                    Configuration.GetValue("OPC_REGISTRY_APP_ID",
                          Configuration.GetValue<string>("IIOT_AUTH_APP_ID")));
 
             /// <summary>
@@ -963,11 +920,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
 
             public string ClientId =>
                 Configuration.GetValue(kOpcUaTwinServiceIdKey,
-                    Configuration.GetValue("IIOT_OPCUA_TWIN_CLI_APP_ID",
+                    Configuration.GetValue("OPC_TWIN_CLI_APP_ID",
                          Configuration.GetValue<string>("IIOT_AUTH_CLIENT_ID")));
 
             public string TenantId =>
-                Configuration.GetValue<string>("IIOT_AAD_TENANT_ID");
+                Configuration.GetValue<string>("OPC_TWIN_CLI_TENANT_ID");
 
             public string Authority => null;
             public string ClientSecret => null;
@@ -1151,6 +1108,8 @@ Commands and Options
         -x, --maxrefs   Max number of references
         -x, --direction Browse direction (Forward, Backward, Both)
         -r, --recursive Browse recursively and read node values
+        -t, --targets   Only return target nodes
+        -s, --silent    Only show errors
         -F, --format    Json format for result
 
      next        Browse next nodes
@@ -1234,6 +1193,14 @@ Commands and Options
         -s, --siteId    Updated site of the supervisor.
         -d, --discovery Set supervisor discovery mode
         -a, --activate  Activate all twins during onboarding.
+        -p, --port-ranges
+                        Port ranges to scan.
+        -r, --address-ranges
+                        Address range to scan.
+        -P, --port-probes
+                        Max port probes to use.
+        -R, --address-probes
+                        Max networking probes to use.
 
      help, -h, -? --help
                 Prints out this help.

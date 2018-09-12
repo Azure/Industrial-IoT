@@ -8,6 +8,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Twin service api extensions
+    /// </summary>
     public static class TwinServiceApiEx {
 
         /// <summary>

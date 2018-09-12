@@ -13,8 +13,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
     public enum TokenType {
+
+        /// <summary>
+        /// No token
+        /// </summary>
         None,
+
+        /// <summary>
+        /// User name password
+        /// </summary>
         UserNamePassword,
+
+        /// <summary>
+        /// Certificate
+        /// </summary>
         X509Certificate
     }
 

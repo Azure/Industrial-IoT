@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Implementation of v1 service adapter.
+    /// Implementation of v1 registry service api.
     /// </summary>
     public class RegistryServiceClient : IRegistryServiceApi {
 
@@ -37,15 +37,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="logger"></param>
         public RegistryServiceClient(IHttpClient httpClient, string serviceUri,
             string resourceId, ILogger logger) {
-            _httpClient = httpClient;
-            _logger = logger;
-            _serviceUri = serviceUri;
-            _resourceId = resourceId;
-
-            if (string.IsNullOrEmpty(_serviceUri)) {
+            if (string.IsNullOrEmpty(serviceUri)) {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the registry micro service.");
             }
+            _serviceUri = serviceUri;
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _resourceId = resourceId;
         }
 
         /// <summary>
@@ -53,10 +52,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// </summary>
         /// <returns></returns>
         public async Task<StatusResponseApiModel> GetServiceStatusAsync() {
-            var request = _httpClient.NewRequest($"{_serviceUri}/status", _resourceId);
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/status", _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<StatusResponseApiModel>(response.GetContentAsString());
+            return JsonConvertEx.DeserializeObject<StatusResponseApiModel>(
+                response.GetContentAsString());
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <returns></returns>
         public async Task<SupervisorListApiModel> ListSupervisorsAsync(string continuation,
             int? pageSize) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/supervisors", _resourceId);
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/supervisors", _resourceId);
             if (continuation != null) {
                 request.AddHeader(kContinuationTokenHeaderKey, continuation);
             }
@@ -76,7 +76,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             }
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<SupervisorListApiModel>(response.GetContentAsString());
+            return JsonConvertEx.DeserializeObject<SupervisorListApiModel>(
+                response.GetContentAsString());
         }
 
         /// <summary>
@@ -87,7 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <returns></returns>
         public async Task<SupervisorListApiModel> QuerySupervisorsAsync(
             SupervisorQueryApiModel query, int? pageSize) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/supervisors/query",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/supervisors/query",
                 _resourceId);
             if (pageSize != null) {
                 request.AddHeader(kPageSizeHeaderKey, pageSize.ToString());
@@ -109,11 +110,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (string.IsNullOrEmpty(supervisorId)) {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/supervisors/{supervisorId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/supervisors/{supervisorId}",
                 _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<SupervisorApiModel>(response.GetContentAsString());
+            return JsonConvertEx.DeserializeObject<SupervisorApiModel>(
+                response.GetContentAsString());
         }
 
         /// <summary>
@@ -125,7 +127,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/supervisors",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/supervisors",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PatchAsync(request).ConfigureAwait(false);
@@ -144,7 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (content.DiscoveryUrl == null) {
                 throw new ArgumentNullException(nameof(content.DiscoveryUrl));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/applications",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications",
                 _resourceId);
             request.SetContent(content);
             request.Options.Timeout = 60000;
@@ -161,7 +163,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/applications/discover",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications/discover",
                 _resourceId);
             request.SetContent(content);
             request.Options.Timeout = 60000;
@@ -182,7 +184,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (content.ApplicationUri == null) {
                 throw new ArgumentNullException(nameof(content.ApplicationUri));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/applications",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PutAsync(request).ConfigureAwait(false);
@@ -200,7 +202,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/applications",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PatchAsync(request).ConfigureAwait(false);
@@ -214,7 +216,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <returns></returns>
         public async Task<ApplicationRegistrationApiModel> GetApplicationAsync(
             string applicationId) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/applications/{applicationId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications/{applicationId}",
                 _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -230,7 +232,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <returns></returns>
         public async Task<ApplicationInfoListApiModel> QueryApplicationsAsync(
             ApplicationRegistrationQueryApiModel query, int? pageSize) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/applications/query",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications/query",
                 _resourceId);
             if (pageSize != null) {
                 request.AddHeader(kPageSizeHeaderKey, pageSize.ToString());
@@ -250,7 +252,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <returns></returns>
         public async Task<ApplicationInfoListApiModel> ListApplicationsAsync(
             string continuation, int? pageSize) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/applications",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications",
                 _resourceId);
             if (continuation != null) {
                 request.AddHeader(kContinuationTokenHeaderKey, continuation);
@@ -272,7 +274,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <returns></returns>
         public async Task<ApplicationSiteListApiModel> ListSitesAsync(
             string continuation, int? pageSize) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/applications/sites",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications/sites",
                 _resourceId);
             if (continuation != null) {
                 request.AddHeader(kContinuationTokenHeaderKey, continuation);
@@ -295,7 +297,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (string.IsNullOrEmpty(applicationId)) {
                 throw new ArgumentNullException(nameof(applicationId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/applications/{applicationId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications/{applicationId}",
                 _resourceId);
             var response = await _httpClient.DeleteAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -308,7 +310,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <returns></returns>
         public async Task PurgeDisabledApplicationsAsync(TimeSpan notSeenFor) {
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/applications?notSeenFor={notSeenFor}", _resourceId);
+                $"{_serviceUri}/v1/applications?notSeenFor={notSeenFor}", _resourceId);
             var response = await _httpClient.DeleteAsync(request).ConfigureAwait(false);
             response.Validate();
         }
@@ -322,7 +324,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <returns></returns>
         public async Task<TwinInfoListApiModel> ListTwinsAsync(string continuation,
             bool? onlyServerState, int? pageSize) {
-            var uri = new UriBuilder($"{_serviceUri}/twins");
+            var uri = new UriBuilder($"{_serviceUri}/v1/twins");
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
@@ -347,7 +349,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <returns></returns>
         public async Task<TwinInfoListApiModel> QueryTwinsAsync(TwinRegistrationQueryApiModel query,
             bool? onlyServerState, int? pageSize) {
-            var uri = new UriBuilder($"{_serviceUri}/twins/query");
+            var uri = new UriBuilder($"{_serviceUri}/v1/twins/query");
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
@@ -373,7 +375,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (string.IsNullOrEmpty(twinId)) {
                 throw new ArgumentNullException(nameof(twinId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/twins/{twinId}");
+            var uri = new UriBuilder($"{_serviceUri}/v1/twins/{twinId}");
 
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
@@ -381,7 +383,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<TwinInfoApiModel>(response.GetContentAsString());
+            return JsonConvertEx.DeserializeObject<TwinInfoApiModel>(
+                response.GetContentAsString());
         }
 
         /// <summary>
@@ -393,7 +396,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/twins",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/twins",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PatchAsync(request).ConfigureAwait(false);

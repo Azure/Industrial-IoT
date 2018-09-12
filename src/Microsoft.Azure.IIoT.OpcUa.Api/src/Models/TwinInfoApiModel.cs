@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -25,14 +25,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         public string ApplicationId { get; set; }
 
         /// <summary>
-        /// Whether edge is activated on this registration
+        /// Whether twin is activated on this registration
         /// </summary>
         [JsonProperty(PropertyName = "activated",
             NullValueHandling = NullValueHandling.Ignore)]
         public bool? Activated { get; set; }
 
         /// <summary>
-        /// Whether edge is connected on this registration
+        /// Whether twin is connected on this registration
         /// </summary>
         [JsonProperty(PropertyName = "connected",
             NullValueHandling = NullValueHandling.Ignore)]
