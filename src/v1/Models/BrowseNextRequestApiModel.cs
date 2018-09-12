@@ -43,19 +43,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         }
 
         /// <summary>
-        /// Continuation token to use
+        /// Continuation token from previews browse request.
+        /// (mandatory)
         /// </summary>
         [JsonProperty(PropertyName = "continuationToken")]
         [Required]
         public string ContinuationToken { get; set; }
 
         /// <summary>
-        /// Whether to abort browse and release
+        /// Whether to abort browse and release.
+        /// (default: false)
         /// </summary>
         [JsonProperty(PropertyName = "abort",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DefaultValue(false)]
         public bool? Abort { get; set; }
+
+        /// <summary>
+        /// Whether to collapse all references into a set of
+        /// unique target nodes and not show reference
+        /// information.
+        /// (default is false)
+        /// </summary>
+        [JsonProperty(PropertyName = "targetNodesOnly",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(false)]
+        public bool? TargetNodesOnly { get; set; }
 
         /// <summary>
         /// Optional User elevation

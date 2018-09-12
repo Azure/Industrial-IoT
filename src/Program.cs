@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -20,23 +20,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
         /// <param name="args"></param>
         public static void Main(string[] args) {
 
-            // Load hosting configuration
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddCommandLine(args)
-                .AddEnvironmentVariables("ASPNETCORE_")
-                .AddJsonFile("hosting.json", true)
-                .AddInMemoryCollection(new Dictionary<string, string> {
-                    { "urls", "http://*:9041" }
-                })
-                .Build();
-
-            // Build host
             var host = new WebHostBuilder()
-                .UseConfiguration(config)
-                .UseKestrel(options => {
-                    options.AddServerHeader = false;
-                })
+                .UseConfiguration(new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddCommandLine(args)
+                    .AddEnvironmentVariables("ASPNETCORE_")
+                    .AddJsonFile("hosting.json", true)
+                    .AddInMemoryCollection(new Dictionary<string, string> {
+                        { "urls", "http://*:9041" }
+                    })
+                    .Build())
+                .ConfigureAppConfiguration((_, b) => b
+                    .AddEnvironmentVariables()
+                    .AddCommandLine(args))
+                .UseKestrel(o => o.AddServerHeader = false)
                 .UseIISIntegration()
                 .UseStartup<Startup>()
                 .Build();

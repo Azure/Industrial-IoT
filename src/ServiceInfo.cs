@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
         /// <summary>
         /// ID
         /// </summary>
-        public const string ID = "IIOT_OPCUA_TWIN";
+        public const string ID = "OPC_TWIN";
 
         /// <summary>
         /// Name of service

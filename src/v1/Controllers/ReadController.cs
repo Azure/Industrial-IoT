@@ -31,8 +31,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// Read node value as specified in the read value request on the
-        /// server specified by the twin id.
+        /// Read node value as specified in the read value request on the server
+        /// endpoint specified by the twin id.
+        /// The twin must be activated and connected and twin and server must trust
+        /// each other.
         /// </summary>
         /// <param name="id">The identifier of the twin.</param>
         /// <param name="request">The read value request</param>
@@ -49,8 +51,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// Get node value from the node id passed through query on the
-        /// server specified by the twin id.
+        /// Get node value from the node id passed through query on the server
+        /// endpoint specified by the twin id.
+        /// The twin must be activated and connected and twin and server must trust
+        /// each other.
         /// </summary>
         /// <param name="id">The identifier of the twin.</param>
         /// <param name="nodeId">The node to read</param>

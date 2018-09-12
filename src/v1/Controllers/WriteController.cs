@@ -31,8 +31,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// Write node value as specified in the write value request on the
-        /// server specified by the twin id.
+        /// Write node value as specified in the write value request on the server
+        /// endpoint specified by the twin id.
+        /// The twin must be activated and connected and twin and server must trust
+        /// each other.
         /// </summary>
         /// <param name="id">The identifier of the twin.</param>
         /// <param name="request">The write value request</param>

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -32,15 +32,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// <summary>
         /// Reference Type id
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
-        [Required]
+        [JsonProperty(PropertyName = "id",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string Id { get; set; }
 
         /// <summary>
         /// Browse name of reference
         /// </summary>
-        [JsonProperty(PropertyName = "browseName")]
-        [Required]
+        [JsonProperty(PropertyName = "browseName",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string BrowseName { get; set; }
 
         /// <summary>

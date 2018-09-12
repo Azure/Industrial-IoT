@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime {
         /// <summary>IoT hub connection string</summary>
         public string IoTHubConnString => GetString(kIoTHubConnectionStringKey,
             GetString(ServiceInfo.ID + "_HUB_CS",
-                GetString("_HUB_CS", GetString("PCS_IOTHUB_CONNSTRING", null))));
+                GetString("PCS_IOTHUB_CONNSTRING", GetString("_HUB_CS", null))));
         /// <summary>Resource Id</summary>
         public string IoTHubResourceId => null;
 
