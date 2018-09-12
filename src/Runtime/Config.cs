@@ -4,23 +4,23 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Runtime {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
 
     /// <summary>
-    /// Web service configuration - wraps a configuration root
+    /// Wraps a configuration root
     /// </summary>
-    public class Config : ConfigBase, IEdgeConfig {
+    public class Config : LogConfig, IModuleConfig {
 
         /// <summary>
-        /// Edge module configuration
+        /// Module configuration
         /// </summary>
         private const string EDGEHUB_CONNSTRING_KEY = "EdgeHubConnectionString";
         /// <summary>Hub connection string</summary>
-        public string HubConnectionString =>
+        public string EdgeHubConnectionString =>
             GetString(EDGEHUB_CONNSTRING_KEY);
         /// <summary>Whether to bypass cert validation</summary>
         public bool BypassCertVerification =>

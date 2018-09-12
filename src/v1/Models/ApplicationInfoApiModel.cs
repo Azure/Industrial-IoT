@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Application info model for edge service api
+    /// Application info model for twin module
     /// </summary>
     public class ApplicationInfoApiModel {
 

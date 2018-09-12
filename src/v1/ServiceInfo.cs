@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
 
     /// <summary>
-    /// Edge service information
+    /// Twin Module information
     /// </summary>
     public static class ServiceInfo {
 
@@ -33,6 +33,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
         /// <summary>
         /// Description of service
         /// </summary>
-        public const string DESCRIPTION = "Opc Twin Command/Control Micro Service (Edge)";
+        public const string DESCRIPTION = "Opc Twin Command/Control Micro Service (Module)";
     }
 }
