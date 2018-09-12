@@ -10,7 +10,6 @@
     <Compile Remove="IntegrationTests\JobStatusTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="InjectModuleInitializer" Version="1.5.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
     <PackageReference Include="Moq" Version="4.9.0" />
     <PackageReference Include="xunit" Version="2.4.0" />

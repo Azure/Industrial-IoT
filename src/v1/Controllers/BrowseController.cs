@@ -34,8 +34,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// Browse a node on the twin specified by the passed in id
-        /// using the specified browse configuration.
+        /// Browse a node on the twin specified by the passed in id using the
+        /// specified browse configuration.
+        /// The twin must be activated and connected and twin and server must trust
+        /// each other.
         /// </summary>
         /// <param name="id">The identifier of the twin.</param>
         /// <param name="request">The browse request</param>
@@ -52,8 +54,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// Browse next set of references on the twin specified by the
-        /// passed in id.
+        /// Browse next set of references on the twin specified by the passed in id.
+        /// The twin must be activated and connected and twin and server must trust
+        /// each other.
         /// </summary>
         /// <param name="id">The identifier of the twin.</param>
         /// <returns>The browse response</returns>
@@ -73,7 +76,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// Browse node by node id on the twin specified by the passed in id.
+        /// Browse the set of unique hierarchically referenced target nodes on the
+        /// twin specified by the passed in id.
+        /// The root node id to browse from can be provided as part of the query
+        /// parameters.
+        /// If it is not provided, the ObjectRoot node is browsed. Note that this
+        /// is the same as the POST method with the model containing the node id
+        /// and the targetNodesOnly flag set to true.
+        /// The twin must be activated and connected and twin and server must trust
+        /// each other.
         /// </summary>
         /// <param name="id">The identifier of the twin.</param>
         /// <param name="nodeId">The node to browse or omit to browse
@@ -85,15 +96,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             if (string.IsNullOrEmpty(nodeId)) {
                 nodeId = null;
             }
-            var request = new BrowseRequestApiModel { NodeId = nodeId };
-            var browseresult = await _twin.NodeBrowseAsync(
-                id, request.ToServiceModel());
+            var request = new BrowseRequestModel {
+                NodeId = nodeId,
+                TargetNodesOnly = true
+            };
+            var browseresult = await _twin.NodeBrowseAsync(id, request);
             return new BrowseResponseApiModel(browseresult);
         }
 
         /// <summary>
-        /// Browse next set of references on the twin specified by the
-        /// passed in id.
+        /// Browse next set of hierarchically referenced target nodes on the twin
+        /// specified by the passed in id. Note that this is the same as the POST
+        /// method with the model containing the continuation token and the
+        /// targetNodesOnly flag set to true.
+        /// The twin must be activated and connected and twin and server must trust
+        /// each other.
         /// </summary>
         /// <param name="id">The identifier of the twin.</param>
         /// <returns>The browse response</returns>
@@ -109,8 +126,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             if (string.IsNullOrEmpty(continuationToken)) {
                 throw new ArgumentNullException(nameof(continuationToken));
             }
-            var browseresult = await _twin.NodeBrowseNextAsync(
-                id, new BrowseNextRequestModel { ContinuationToken = continuationToken });
+            var request = new BrowseNextRequestModel {
+                ContinuationToken = continuationToken,
+                TargetNodesOnly = true
+            };
+            var browseresult = await _twin.NodeBrowseNextAsync(id, request);
             return new BrowseNextResponseApiModel(browseresult);
         }
 

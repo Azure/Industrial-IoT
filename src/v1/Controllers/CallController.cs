@@ -33,6 +33,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <summary>
         /// Return method meta data as specified in the method metadata request
         /// on the server specified by the twin id.
+        /// The twin must be activated and connected and twin and server must trust
+        /// each other.
         /// </summary>
         /// <param name="id">The identifier of the twin.</param>
         /// <param name="request">The method metadata request</param>
@@ -51,6 +53,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <summary>
         /// Invoke method node as specified in the method call request on the
         /// server specified by the twin id.
+        /// The twin must be activated and connected and twin and server must trust
+        /// each other.
         /// </summary>
         /// <param name="id">The identifier of the twin.</param>
         /// <param name="request">The method call request</param>
