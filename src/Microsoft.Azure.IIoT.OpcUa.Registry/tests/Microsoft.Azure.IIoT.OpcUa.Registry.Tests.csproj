@@ -23,7 +23,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Mock" Version="1.0.0-preview007" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Mock" Version="1.0.0-preview008" />
       </ItemGroup>
     </Otherwise>
   </Choose>
