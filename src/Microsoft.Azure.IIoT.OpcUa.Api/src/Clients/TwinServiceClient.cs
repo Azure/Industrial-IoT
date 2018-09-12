@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Implementation of v1 service adapter.
+    /// Implementation of v1 twin service api.
     /// </summary>
     public class TwinServiceClient : ITwinServiceApi {
 
@@ -37,15 +37,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="logger"></param>
         public TwinServiceClient(IHttpClient httpClient, string serviceUri,
             string resourceId, ILogger logger) {
-            _httpClient = httpClient;
-            _logger = logger;
-            _serviceUri = serviceUri;
-            _resourceId = resourceId;
-
-            if (string.IsNullOrEmpty(_serviceUri)) {
+            if (string.IsNullOrEmpty(serviceUri)) {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the twin micro service.");
             }
+            _serviceUri = serviceUri;
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _resourceId = resourceId;
         }
 
         /// <summary>
@@ -53,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
         /// </summary>
         /// <returns></returns>
         public async Task<StatusResponseApiModel> GetServiceStatusAsync() {
-            var request = _httpClient.NewRequest($"{_serviceUri}/status",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/status",
                 _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -73,7 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (string.IsNullOrEmpty(twinId)) {
                 throw new ArgumentNullException(nameof(twinId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/browse/{twinId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/browse/{twinId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
@@ -99,7 +98,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (content.ContinuationToken == null) {
                 throw new ArgumentNullException(nameof(content.ContinuationToken));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/browse/{twinId}/next",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/browse/{twinId}/next",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
@@ -125,7 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (string.IsNullOrEmpty(content.NodeId)) {
                 throw new ArgumentNullException(nameof(content.NodeId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/publish/{twinId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/publish/{twinId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
@@ -145,7 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (string.IsNullOrEmpty(twinId)) {
                 throw new ArgumentNullException(nameof(twinId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/publish/{twinId}/state",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/publish/{twinId}/state",
                 _resourceId);
             if (continuation != null) {
                 request.AddHeader(kContinuationTokenHeaderKey, continuation);
@@ -173,7 +172,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (string.IsNullOrEmpty(content.NodeId)) {
                 throw new ArgumentException(nameof(content.NodeId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/read/{twinId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/read/{twinId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
@@ -208,7 +207,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (string.IsNullOrEmpty(content.Node.DataType)) {
                 throw new ArgumentException(nameof(content.Node.DataType));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/write/{twinId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/write/{twinId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
@@ -234,7 +233,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (string.IsNullOrEmpty(content.MethodId)) {
                 throw new ArgumentNullException(nameof(content.MethodId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/call/{twinId}/$metadata",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/call/{twinId}/$metadata",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
@@ -260,7 +259,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (string.IsNullOrEmpty(content.MethodId)) {
                 throw new ArgumentNullException(nameof(content.MethodId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/call/{twinId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/call/{twinId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);

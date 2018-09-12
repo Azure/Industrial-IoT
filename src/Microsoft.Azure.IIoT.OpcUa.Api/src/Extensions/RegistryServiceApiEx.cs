@@ -8,12 +8,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Registry api extensions
+    /// </summary>
     public static class RegistryServiceApiEx {
 
         /// <summary>
         /// Find twins
         /// </summary>
         /// <param name="service"></param>
+        /// <param name="query"></param>
+        /// <param name="onlyServerState"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<TwinInfoApiModel>> QueryAllTwinsAsync(
             this IRegistryServiceApi service, TwinRegistrationQueryApiModel query,
@@ -52,6 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api {
         /// Find applications
         /// </summary>
         /// <param name="service"></param>
+        /// <param name="query"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<ApplicationInfoApiModel>> QueryAllApplicationsAsync(
             this IRegistryServiceApi service, ApplicationRegistrationQueryApiModel query) {

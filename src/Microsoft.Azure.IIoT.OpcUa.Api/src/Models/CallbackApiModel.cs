@@ -13,9 +13,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
     public enum CallbackMethodType {
+
+        /// <summary>
+        /// Get
+        /// </summary>
         Get,
+
+        /// <summary>
+        /// Post
+        /// </summary>
         Post,
+
+        /// <summary>
+        /// Put
+        /// </summary>
         Put,
+
+        /// <summary>
+        /// Delete
+        /// </summary>
         Delete
     }
 

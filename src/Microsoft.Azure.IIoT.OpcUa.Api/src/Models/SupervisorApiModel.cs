@@ -6,16 +6,31 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Discovery mode to use
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
     public enum DiscoveryMode {
+
+        /// <summary>
+        /// Off
+        /// </summary>
         Off,
+
+        /// <summary>
+        /// Local
+        /// </summary>
         Local,
+
+        /// <summary>
+        /// Network
+        /// </summary>
         Network,
+
+        /// <summary>
+        /// Scan
+        /// </summary>
         Scan
     }
 
@@ -52,13 +67,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
         /// <summary>
-        /// Discovery callbacks currently registered
-        /// </summary>
-        [JsonProperty(PropertyName = "discoveryCallbacks",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public List<CallbackApiModel> DiscoveryCallbacks { get; set; }
-
-        /// <summary>
         /// Supervisor public client cert
         /// </summary>
         [JsonProperty(PropertyName = "certificate",
@@ -67,14 +75,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
 
         /// <summary>
         /// Whether the registration is out of sync between
-        /// client (edge) and server (service) (default: false).
+        /// client (module) and server (service) (default: false).
         /// </summary>
         [JsonProperty(PropertyName = "outOfSync",
             NullValueHandling = NullValueHandling.Ignore)]
         public bool? OutOfSync { get; set; }
 
         /// <summary>
-        /// Whether edge is connected on this registration
+        /// Whether supervisor is connected on this registration
         /// </summary>
         [JsonProperty(PropertyName = "connected",
             NullValueHandling = NullValueHandling.Ignore)]
