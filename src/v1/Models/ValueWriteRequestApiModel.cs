@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Value write request model for edge service api
+    /// Value write request model for twin module
     /// </summary>
     public class ValueWriteRequestApiModel {
 

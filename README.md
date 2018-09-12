@@ -83,11 +83,9 @@ When running the module stand alone (for testing or development purposes), a Mod
 1. Now that you have the Module connection string, you can set it as environment variable on your system:
     * `EdgeHubConnectionString` = { Module  connection string }
 
-More information on environment variables can be found [below](#Configuration-And-Environment-Variables).
-
 ## Configuration and Environment variables
 
-The module can be configured in its [appsettings.json](src/appsettings.json) file.  Alternatively, all configuration can be overridden on the command line, or through environment variables.  
+The module can be configured in the [appsettings.json](src/appsettings.json) file.  Alternatively, all configuration can be overridden on the command line, or through environment variables.  
 
 * [This page][windows-envvars-howto-url] describes how to setup env vars in Windows.
 * For Linux and MacOS, we suggest to create a shell script to set up the environment variables each time before starting the service host (e.g. VS Code or docker). Depending on OS and terminal, there are ways to persist values globally, for more information [this](https://stackoverflow.com/questions/13046624/how-to-permanently-export-a-variable-in-linux), [this](https://help.ubuntu.com/community/EnvironmentVariables), or [this](https://stackoverflow.com/questions/135688/setting-environment-variables-in-os-x) page should help.
@@ -96,11 +94,10 @@ The module can be configured in its [appsettings.json](src/appsettings.json) fil
 
 ## Other Industrial IoT Solution Accelerator components
 
-* OPC GDS service (Coming soon)
+* OPC GDS Vault service (Coming soon)
 * [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
 * [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-twin-registry)
 * [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
-* OPC Twin management agent service (Coming soon)
 * OPC Twin common business logic (Coming soon)
 * [OPC Publisher IoT Edge module](https://github.com/Azure/iot-edge-opc-publisher)
 * [OPC Twin API](https://github.com/Azure/azure-iiot-opc-twin-api)

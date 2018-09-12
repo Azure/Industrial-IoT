@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Filters {
     using System.Security;
 
     /// <summary>
-    /// Convert all the exceptions returned by the edge controllers to a
+    /// Convert all the exceptions returned by the module controllers to a
     /// status code.
     /// </summary>
     public class ExceptionsFilterAttribute : ExceptionFilterAttribute {

@@ -24,8 +24,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
 
         enum Op {
             None,
-            AddEdgeSupervisor,
-            ClearEdgeSupervisors,
+            AddSupervisor,
+            ClearSupervisors,
             ClearEntireRegistry,
             GetModuleConnectionString
         }
@@ -33,21 +33,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
         /// <summary>
         /// Entry point
         /// </summary>
-        /// <param name="args">command-line arguments</param>
         public static void Main(string[] args) {
             var op = Op.None;
             string deviceId = null, moduleId = null;
             var configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables().Build();
-            var cs = Environment.GetEnvironmentVariable("_HUB_CS");
+            var cs = Environment.GetEnvironmentVariable("PCS_IOTHUB_CONNSTRING");
             if (string.IsNullOrEmpty(cs)) {
-                cs = Environment.GetEnvironmentVariable("PCS_IOTHUB_CONNSTRING");
+                cs = Environment.GetEnvironmentVariable("_HUB_CS");
             }
             IIoTHubConfig config = null;
             try {
                 for (var i = 0; i < args.Length; i++) {
                     switch (args[i]) {
-                        case "-c":
+                        case "-C":
                         case "--connection-string":
                             i++;
                             if (i < args.Length) {
@@ -63,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
                                     "Operations are mutually exclusive");
                             }
                             op = args[i] == "--get" ?
-                                Op.GetModuleConnectionString : Op.AddEdgeSupervisor;
+                                Op.GetModuleConnectionString : Op.AddSupervisor;
                             i++;
                             if (i < args.Length) {
                                 deviceId = args[i];
@@ -75,19 +74,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
                             }
                             throw new ArgumentException(
                                 "Missing arguments for add/get command.");
-                        case "--clear":
+                        case "--clear-all":
                             if (op != Op.None) {
                                 throw new ArgumentException(
                                     "Operations are mutually exclusive");
                             }
                             op = Op.ClearEntireRegistry;
                             break;
-                        case "--clear-edge":
+                        case "--clear":
                             if (op != Op.None) {
                                 throw new ArgumentException(
                                     "Operations are mutually exclusive");
                             }
-                            op = Op.ClearEdgeSupervisors;
+                            op = Op.ClearSupervisors;
                             break;
                         case "-?":
                         case "-h":
@@ -117,10 +116,10 @@ Usage:       Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli [options] operation [ar
 Operations (Mutually exclusive):
 
     --add <deviceId> <moduleId>
-             Add edge module with given device id and module id to device registry.
+             Add twin module with given device id and module id to device registry.
 
     --get <deviceId> <moduleId>
-             Get edge connection string for module module id from device registry.
+             Get twin module connection string from device registry.
 
     --clear
              Clear all registered supervisor module identities.
@@ -129,7 +128,7 @@ Operations (Mutually exclusive):
              Clear entire OPC Twin registry content.
 
 Options:
-     -c
+     -C
     --connection-string
              IoT Hub owner connection string to use to connect to IoT hub for
              operations on the registry.
@@ -144,20 +143,20 @@ Options:
 
             try {
                 switch(op) {
-                    case Op.AddEdgeSupervisor:
-                        AddEdgeSupervisorAsync(config, deviceId, moduleId)
+                    case Op.AddSupervisor:
+                        AddSupervisorAsync(config, deviceId, moduleId)
                             .Wait();
                         break;
                     case Op.GetModuleConnectionString:
                         GetModuleConnectionStringAsync(config, deviceId, moduleId)
                             .Wait();
                         break;
-                    case Op.ClearEdgeSupervisors:
-                        ClearEdgeSupervisorsAsync(config)
+                    case Op.ClearSupervisors:
+                        ClearSupervisorsAsync(config)
                             .Wait();
                         break;
                     case Op.ClearEntireRegistry:
-                        ClearRegistryAsync(config)
+                        ClearEntireRegistryAsync(config)
                             .Wait();
                         break;
                 }
@@ -170,17 +169,13 @@ Options:
         /// <summary>
         /// Get module connection string
         /// </summary>
-        /// <param name="config"></param>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns></returns>
         private static async Task GetModuleConnectionStringAsync(
             IIoTHubConfig config, string deviceId, string moduleId) {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
             if (string.IsNullOrEmpty(moduleId)) {
-                throw new ArgumentNullException(nameof(moduleId));
+                moduleId = "opctwin";
             }
             var logger = new ConsoleLogger(null, LogLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
@@ -190,16 +185,15 @@ Options:
         }
 
         /// <summary>
-        /// Make edge supervisor
+        /// Add supervisor
         /// </summary>
-        /// <returns></returns>
-        private static async Task AddEdgeSupervisorAsync(IIoTHubConfig config,
+        private static async Task AddSupervisorAsync(IIoTHubConfig config,
             string deviceId, string moduleId) {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
             if (string.IsNullOrEmpty(moduleId)) {
-                throw new ArgumentNullException(nameof(moduleId));
+                moduleId = "opctwin";
             }
             var logger = new ConsoleLogger(null, LogLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
@@ -208,7 +202,7 @@ Options:
                 Id = deviceId,
                 ModuleId = moduleId,
                 Capabilities = new DeviceCapabilitiesModel {
-                    IoTEdge = true
+                    IotEdge = true
                 }
             });
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
@@ -216,10 +210,9 @@ Options:
         }
 
         /// <summary>
-        /// Clear all edge module identities
+        /// Clear all twin module identities
         /// </summary>
-        /// <returns></returns>
-        private static async Task ClearEdgeSupervisorsAsync(IIoTHubConfig config) {
+        private static async Task ClearSupervisorsAsync(IIoTHubConfig config) {
             var logger = new ConsoleLogger(null, LogLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
@@ -246,8 +239,7 @@ Options:
         /// <summary>
         /// Clear entire registry
         /// </summary>
-        /// <returns></returns>
-        private static async Task ClearRegistryAsync(IIoTHubConfig config) {
+        private static async Task ClearEntireRegistryAsync(IIoTHubConfig config) {
             var logger = new ConsoleLogger(null, LogLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);

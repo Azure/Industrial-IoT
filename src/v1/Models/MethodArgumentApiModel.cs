@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// method arg model for edge service api
+    /// method arg model for twin module
     /// </summary>
     public class MethodArgumentApiModel {
 

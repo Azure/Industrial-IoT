@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Value write response model for edge service api
+    /// Value write response model for twin module
     /// </summary>
     public class ValueWriteResponseApiModel {
 

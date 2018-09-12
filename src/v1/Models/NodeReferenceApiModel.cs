@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Models;
 
     /// <summary>
-    /// reference model for edge service api
+    /// reference model for twin module
     /// </summary>
     public class NodeReferenceApiModel {
         /// <summary>

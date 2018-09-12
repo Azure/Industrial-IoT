@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// call request model for edge service api
+    /// call request model for twin module
     /// </summary>
     public class MethodCallRequestApiModel {
         /// <summary>
