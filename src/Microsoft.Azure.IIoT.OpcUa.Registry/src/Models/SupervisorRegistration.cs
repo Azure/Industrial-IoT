@@ -15,14 +15,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// </summary>
     public sealed class SupervisorRegistration : BaseRegistration {
 
+        /// <inheritdoc/>
         public override string DeviceType => "Supervisor";
 
+        /// <inheritdoc/>
         public override string ApplicationId => null;
 
         #region Twin Tags
 
         /// <summary>
-        /// Edge supervisor that owns the twin.
+        /// Supervisor that owns the twin.
         /// </summary>
         public override string SupervisorId =>
             SupervisorModelEx.CreateSupervisorId(DeviceId, ModuleId);
@@ -31,6 +33,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Discovery state callback uris
         /// </summary>
         public Dictionary<string, CallbackModel> DiscoveryCallbacks { get; set; }
+
+        /// <summary>
+        /// Activation filter security mode
+        /// </summary>
+        public SecurityMode? SecurityModeFilter { get; set; }
+
+        /// <summary>
+        /// Activation filter security policies
+        /// </summary>
+        public Dictionary<string, string> SecurityPoliciesFilter { get; set; }
+
+        /// <summary>
+        /// Activation filter trust lists
+        /// </summary>
+        public Dictionary<string, string> TrustListsFilter { get; set; }
 
         #endregion Twin Tags
 
@@ -81,6 +98,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         public TimeSpan? IdleTimeBetweenScans { get; set; }
 
+        /// <summary>
+        /// predefined discovery urls for supervisor
+        /// </summary>
+        public Dictionary<string, string> DiscoveryUrls { get; set; }
+
         #endregion Twin Properties
 
         /// <summary>
@@ -124,13 +146,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 twin.Tags.Add(nameof(SiteOrSupervisorId), update?.SiteOrSupervisorId);
             }
 
-            // Tags and Settings
             var cbUpdate = update?.DiscoveryCallbacks?.DecodeAsList()?.SetEqualsSafe(
                 existing?.DiscoveryCallbacks?.DecodeAsList(),
                     (callback1, callback2) => callback1.IsSameAs(callback2));
             if (!(cbUpdate ?? true)) {
                 twin.Tags.Add(nameof(DiscoveryCallbacks), update?.DiscoveryCallbacks == null ?
                     null : JToken.FromObject(update.DiscoveryCallbacks));
+            }
+
+            var policiesUpdate = update?.SecurityPoliciesFilter.DecodeAsList().SequenceEqualsSafe(
+                existing?.SecurityPoliciesFilter?.DecodeAsList());
+            if (!(policiesUpdate ?? true)) {
+                twin.Tags.Add(nameof(SecurityPoliciesFilter), update?.SecurityPoliciesFilter == null ?
+                    null : JToken.FromObject(update.SecurityPoliciesFilter));
+            }
+
+            var trustListUpdate = update?.TrustListsFilter.DecodeAsList().SequenceEqualsSafe(
+                existing?.TrustListsFilter?.DecodeAsList());
+            if (!(trustListUpdate ?? true)) {
+                twin.Tags.Add(nameof(TrustListsFilter), update?.TrustListsFilter == null ?
+                    null : JToken.FromObject(update.TrustListsFilter));
+            }
+
+            if (update?.SecurityModeFilter != existing?.SecurityModeFilter) {
+                twin.Tags.Add(nameof(SecurityModeFilter),
+                    JToken.FromObject(update?.SecurityModeFilter));
+            }
+
+            var urlUpdate = update?.DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
+                existing?.DiscoveryUrls?.DecodeAsList());
+            if (!(urlUpdate ?? true)) {
+                twin.Properties.Desired.Add(nameof(DiscoveryUrls), update?.DiscoveryUrls == null ?
+                    null : JToken.FromObject(update.DiscoveryUrls));
             }
 
             var certUpdate = update?.Certificate?.DecodeAsByteArray()?.SequenceEqualsSafe(
@@ -203,7 +250,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Decode tags and property into registration object
         /// </summary>
         /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
         /// <param name="etag"></param>
+        /// <param name="tags"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
         public static SupervisorRegistration FromTwin(string deviceId, string moduleId,
@@ -225,6 +274,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     tags.Get<string>(nameof(Thumbprint), null),
                 DiscoveryCallbacks =
                     tags.Get<Dictionary<string, CallbackModel>>(nameof(DiscoveryCallbacks), null),
+                SecurityModeFilter =
+                    tags.Get<SecurityMode>(nameof(SecurityModeFilter), null),
+                SecurityPoliciesFilter =
+                    tags.Get<Dictionary<string, string>>(nameof(SecurityPoliciesFilter), null),
+                TrustListsFilter =
+                    tags.Get<Dictionary<string, string>>(nameof(TrustListsFilter), null),
 
                 // Properties
 
@@ -248,6 +303,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     properties.Get<int>(nameof(MinPortProbesPercent), null),
                 IdleTimeBetweenScans =
                     properties.Get<TimeSpan>(nameof(IdleTimeBetweenScans), null),
+                DiscoveryUrls =
+                    properties.Get<Dictionary<string, string>>(nameof(DiscoveryUrls), null),
 
                 SiteId =
                     properties.Get<string>(kSiteIdProp, null),
@@ -275,6 +332,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// endpoint.
         /// </summary>
         /// <param name="twin"></param>
+        /// <param name="connected"></param>
         /// <param name="onlyServerState">Only desired endpoint should be returned
         /// this means that you will look at stale information.</param>
         /// <returns></returns>
@@ -299,8 +357,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (desired != null) {
                 desired.Connected = connected;
                 if (desired.SiteId == null && consolidated.SiteId != null) {
-                    // Not set by user, but by config on edge, so fake user
-                    // desiring it.
+                    // Not set by user, but by config, so fake user desiring it.
                     desired.SiteId = consolidated.SiteId;
                 }
             }
@@ -316,6 +373,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Patch this registration and create patch twin model to upload
         /// </summary>
         /// <param name="model"></param>
+        /// <param name="disabled"></param>
         public static SupervisorRegistration FromServiceModel(
             SupervisorModel model, bool? disabled = null) {
             if (model == null) {
@@ -328,7 +386,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 SupervisorId = model.Id,
                 DeviceId = deviceId,
                 ModuleId = moduleId,
-                Discovery = (model.Discovery ?? DiscoveryMode.Off),
+                Discovery = model.Discovery ?? DiscoveryMode.Off,
                 AddressRangesToScan = model.DiscoveryConfig?.AddressRangesToScan,
                 NetworkProbeTimeout = model.DiscoveryConfig?.NetworkProbeTimeout,
                 MaxNetworkProbes = model.DiscoveryConfig?.MaxNetworkProbes,
@@ -338,7 +396,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 IdleTimeBetweenScans = model.DiscoveryConfig?.IdleTimeBetweenScans,
                 MinPortProbesPercent = model.DiscoveryConfig?.MinPortProbesPercent,
                 Certificate = model.Certificate?.EncodeAsDictionary(),
-                DiscoveryCallbacks = model.DiscoveryCallbacks?.EncodeAsDictionary(),
+                DiscoveryCallbacks = model.DiscoveryConfig?.Callbacks.
+                    EncodeAsDictionary(),
+                SecurityModeFilter = model.DiscoveryConfig?.ActivationFilter?.
+                    SecurityMode,
+                TrustListsFilter = model.DiscoveryConfig?.ActivationFilter?.
+                    TrustLists.EncodeAsDictionary(),
+                SecurityPoliciesFilter = model.DiscoveryConfig?.ActivationFilter?.
+                    SecurityPolicies.EncodeAsDictionary(),
+                DiscoveryUrls = model.DiscoveryConfig?.DiscoveryUrls?.
+                    EncodeAsDictionary(),
                 Connected = model.Connected ?? false,
                 Thumbprint = model.Certificate?.ToSha1Hash(),
                 SiteId = model.SiteId,
@@ -351,22 +418,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <returns></returns>
         public SupervisorModel ToServiceModel() {
             return new SupervisorModel {
-                Discovery = Discovery != DiscoveryMode.Off ? Discovery : (DiscoveryMode?)null,
+                Discovery = Discovery != DiscoveryMode.Off ?
+                    Discovery : (DiscoveryMode?)null,
                 Id = SupervisorId,
                 SiteId = SiteId,
                 Certificate = Certificate?.DecodeAsByteArray(),
                 DiscoveryConfig = ToConfigModel(),
-                DiscoveryCallbacks = DiscoveryCallbacks?.DecodeAsList(),
                 Connected = IsConnected() ? true : (bool?)null,
                 OutOfSync = IsConnected() && !_isInSync ? true : (bool?)null
             };
         }
 
-        /// <summary>
-        /// Equality
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override bool Equals(object obj) {
             var registration = obj as SupervisorRegistration;
             return base.Equals(registration) &&
@@ -386,22 +449,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     MinPortProbesPercent, registration.MinPortProbesPercent) &&
                 EqualityComparer<TimeSpan?>.Default.Equals(
                     IdleTimeBetweenScans, registration.IdleTimeBetweenScans) &&
+                EqualityComparer<SecurityMode?>.Default.Equals(
+                    SecurityModeFilter, registration.SecurityModeFilter) &&
+                TrustListsFilter.DecodeAsList().SequenceEqualsSafe(
+                    registration.TrustListsFilter.DecodeAsList()) &&
+                SecurityPoliciesFilter.DecodeAsList().SequenceEqualsSafe(
+                    registration.SecurityPoliciesFilter.DecodeAsList()) &&
+                DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
+                    registration.DiscoveryUrls.DecodeAsList()) &&
                 DiscoveryCallbacks.DecodeAsList().SetEqualsSafe(
                     registration.DiscoveryCallbacks.DecodeAsList(),
                         (callback1, callback2) => callback1.IsSameAs(callback2));
         }
 
+        /// <inheritdoc/>
         public static bool operator ==(SupervisorRegistration r1,
             SupervisorRegistration r2) =>
             EqualityComparer<SupervisorRegistration>.Default.Equals(r1, r2);
 
+        /// <inheritdoc/>
         public static bool operator !=(SupervisorRegistration r1,
             SupervisorRegistration r2) => !(r1 == r2);
 
-        /// <summary>
-        /// Hash code
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = base.GetHashCode();
             hashCode = hashCode * -1521134295 +
@@ -423,6 +493,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<int?>.Default.GetHashCode(MinPortProbesPercent);
             hashCode = hashCode * -1521134295 +
+                EqualityComparer<SecurityMode?>.Default.GetHashCode(SecurityModeFilter);
+            hashCode = hashCode * -1521134295 +
                 EqualityComparer<TimeSpan?>.Default.GetHashCode(IdleTimeBetweenScans);
             return hashCode;
         }
@@ -439,6 +511,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 MaxPortProbes == null &&
                 MinPortProbesPercent == null &&
                 PortProbeTimeout == null &&
+                (DiscoveryCallbacks == null || DiscoveryCallbacks.Count == 0) &&
+                (DiscoveryUrls == null || DiscoveryUrls.Count == 0) &&
                 IdleTimeBetweenScans == null) {
                 return true;
             }
@@ -458,9 +532,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 MaxPortProbes = MaxPortProbes,
                 MinPortProbesPercent = MinPortProbesPercent,
                 PortProbeTimeout = PortProbeTimeout,
-                IdleTimeBetweenScans = IdleTimeBetweenScans
+                IdleTimeBetweenScans = IdleTimeBetweenScans,
+                Callbacks = DiscoveryCallbacks?.DecodeAsList(),
+                DiscoveryUrls = DiscoveryUrls?.DecodeAsList(),
+                ActivationFilter = ToFilterModel(),
             };
         }
+
+        /// <summary>
+        /// Returns if no activation filter specified
+        /// </summary>
+        /// <returns></returns>
+        private bool IsNullFilter() {
+            if (SecurityModeFilter == null &&
+                (TrustListsFilter == null || TrustListsFilter.Count == 0) &&
+                (SecurityPoliciesFilter == null || SecurityPoliciesFilter.Count == 0)) {
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Returns activation filter model
+        /// </summary>
+        /// <returns></returns>
+        private TwinActivationFilterModel ToFilterModel() {
+            return IsNullFilter() ? null : new TwinActivationFilterModel {
+                SecurityMode = SecurityModeFilter,
+                SecurityPolicies = SecurityPoliciesFilter.DecodeAsList(),
+                TrustLists = TrustListsFilter.DecodeAsList()
+            };
+        }
+
 
         /// <summary>
         /// Flag twin as synchronized - i.e. it matches the other.
@@ -478,8 +581,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 MaxPortProbes == other.MaxPortProbes &&
                 MinPortProbesPercent == other.MinPortProbesPercent &&
                 PortProbeTimeout == other.PortProbeTimeout &&
-                IdleTimeBetweenScans == other.IdleTimeBetweenScans;
+                IdleTimeBetweenScans == other.IdleTimeBetweenScans &&
+                DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
+                    other.DiscoveryUrls.DecodeAsList());
         }
+
         internal bool IsInSync() => _isInSync;
 
         internal bool IsConnected() => Connected;

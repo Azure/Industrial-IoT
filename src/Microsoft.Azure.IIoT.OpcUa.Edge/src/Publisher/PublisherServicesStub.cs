@@ -41,6 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Enable or disable publishing based on desired property
         /// </summary>
         /// <param name="nodeId"></param>
+        /// <param name="enable"></param>
         /// <returns></returns>
         public Task NodePublishAsync(string nodeId, bool? enable) {
             throw new NotSupportedException("Publisher not supported in Edge module");

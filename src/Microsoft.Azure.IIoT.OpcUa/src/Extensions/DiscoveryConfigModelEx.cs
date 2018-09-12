@@ -6,6 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
     using System.Linq;
 
+    /// <summary>
+    /// Discovery configuration model extensions
+    /// </summary>
     public static class DiscoveryConfigModelEx {
 
         /// <summary>

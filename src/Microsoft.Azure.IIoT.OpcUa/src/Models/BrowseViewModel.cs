@@ -4,26 +4,26 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
-    using Newtonsoft.Json.Linq;
+    using System;
 
     /// <summary>
-    /// Authentication model
+    /// View to browse
     /// </summary>
-    public class AuthenticationModel {
+    public class BrowseViewModel { 
 
         /// <summary>
-        /// User name to use
+        /// Node of the view to browse
         /// </summary>
-        public string User { get; set; }
+        public string ViewId { get; set; }
 
         /// <summary>
-        /// Type of token
+        /// Browses specific version of the view.
         /// </summary>
-        public TokenType? TokenType { get; set; }
+        public uint? Version { get; set; }
 
         /// <summary>
-        /// User token to pass to server
+        /// Browses at or before this timestamp.
         /// </summary>
-        public JToken Token { get; set; }
+        public DateTime? Timestamp { get; set; }
     }
 }

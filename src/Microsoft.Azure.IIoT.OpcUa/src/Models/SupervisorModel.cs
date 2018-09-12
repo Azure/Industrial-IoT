@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
-    using System;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Supervisor registration
@@ -33,18 +31,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         public DiscoveryConfigModel DiscoveryConfig { get; set; }
 
         /// <summary>
-        /// Currently registered callbacks
-        /// </summary>
-        public List<CallbackModel> DiscoveryCallbacks { get; set; }
-
-        /// <summary>
         /// Supervisor public client cert
         /// </summary>
         public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between
-        /// client (edge) and server (service) (default: false).
+        /// client (module) and server (service) (default: false).
         /// </summary>
         public bool? OutOfSync { get; set; }
 

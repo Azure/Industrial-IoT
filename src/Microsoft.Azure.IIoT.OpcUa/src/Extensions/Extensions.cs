@@ -8,6 +8,9 @@ namespace Microsoft.Azure.IIoT.OpcUa {
     using System;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Browse services extensions
+    /// </summary>
     public static class Extensions {
 
         /// <summary>
@@ -15,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// wants all. If user has requested maximum to return use
         /// <see cref="IBrowseServices{T}.NodeBrowseFirstAsync"/>
         /// </summary>
+        /// <param name="endpoint"></param>
         /// <param name="service"></param>
         /// <param name="request"></param>
         /// <returns></returns>

@@ -10,10 +10,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Opc.Ua;
     using Opc.Ua.Encoders;
     using System;
+    using System.IO;
     using System.Linq;
+    using System.Text;
 
     /// <summary>
-    /// Json based variant codec
+    /// Json variant codec
     /// </summary>
     public class ValueEncoder : IValueEncoder {
 
@@ -21,20 +23,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Formats a variant as string
         /// </summary>
         /// <param name="value"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
-        public JToken Encode(Variant value) {
+        public JToken Encode(Variant value, ServiceMessageContext context) {
             if (value == Variant.Null) {
                 return JValue.CreateNull();
             }
-            var encoder = new JsonEncoderEx(ServiceMessageContext.GlobalContext);
-            encoder.WriteVariant(nameof(value), value);
-            var json = encoder.CloseAndReturnText();
-            try {
-                return JToken.Parse(json).SelectToken("value.Body");
-            }
-            catch (JsonReaderException jre) {
-                throw new FormatException($"Failed to parse '{json}'. " +
-                    "See inner exception for more details.", jre);
+            using (var stream = new MemoryStream()) {
+                using (var encoder = new JsonEncoderEx(context ?? _context,
+                    stream)) {
+                    encoder.WriteVariant(nameof(value), value);
+                }
+                var json = Encoding.UTF8.GetString(stream.ToArray());
+                try {
+                    return JToken.Parse(json).SelectToken("value.Body");
+                }
+                catch (JsonReaderException jre) {
+                    throw new FormatException($"Failed to parse '{json}'. " +
+                        "See inner exception for more details.", jre);
+                }
             }
         }
 
@@ -43,193 +50,55 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="value"></param>
         /// <param name="builtinType"></param>
+        /// <param name="valueRank"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
-        public Variant Decode(JToken value, BuiltInType builtinType, int? valueRank) {
+        public Variant Decode(JToken value, BuiltInType builtinType, int? valueRank,
+            ServiceMessageContext context) {
             if (value == null || value.Type == JTokenType.Null) {
                 return Variant.Null;
             }
-            value = Sanitize(value, builtinType, valueRank);
-            var json = new JObject {
-                { nameof(value), value }
-            };
-            var decoder = new JsonDecoder(json.ToString(),
-                ServiceMessageContext.GlobalContext);
-            if (value.Type == JTokenType.Array) {
-                return ReadVariantArrayBody(decoder, nameof(value), builtinType);
+            JObject json;
+            if (builtinType == BuiltInType.Null) {
+                //
+                // No type provided - use decoders ability to convert jtoken
+                // to variant.
+                //
+                json = new JObject {
+                    { nameof(value), value = Sanitize(value, false, null) }
+                };
             }
-            return ReadVariantBody(decoder, nameof(value), builtinType);
-        }
-
-        /// <summary>
-        /// Read variant body (from jsondecoder, where it is private)
-        /// </summary>
-        /// <param name="decoder"></param>
-        /// <param name="fieldName"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        private Variant ReadVariantBody(JsonDecoder decoder, string fieldName,
-            BuiltInType type) {
-            switch (type) {
-                case BuiltInType.Boolean:
-                    return new Variant(decoder.ReadBoolean(fieldName),
-                        TypeInfo.Scalars.Boolean);
-                case BuiltInType.SByte:
-                    return new Variant(decoder.ReadSByte(fieldName),
-                        TypeInfo.Scalars.SByte);
-                case BuiltInType.Byte:
-                    return new Variant(decoder.ReadByte(fieldName),
-                        TypeInfo.Scalars.Byte);
-                case BuiltInType.Int16:
-                    return new Variant(decoder.ReadInt16(fieldName),
-                        TypeInfo.Scalars.Int16);
-                case BuiltInType.UInt16:
-                    return new Variant(decoder.ReadUInt16(fieldName),
-                        TypeInfo.Scalars.UInt16);
-                case BuiltInType.Int32:
-                    return new Variant(decoder.ReadInt32(fieldName),
-                        TypeInfo.Scalars.Int32);
-                case BuiltInType.UInt32:
-                    return new Variant(decoder.ReadUInt32(fieldName),
-                        TypeInfo.Scalars.UInt32);
-                case BuiltInType.Int64:
-                    return new Variant(decoder.ReadInt64(fieldName),
-                        TypeInfo.Scalars.Int64);
-                case BuiltInType.UInt64:
-                    return new Variant(decoder.ReadUInt64(fieldName),
-                        TypeInfo.Scalars.UInt64);
-                case BuiltInType.Float:
-                    return new Variant(decoder.ReadFloat(fieldName),
-                        TypeInfo.Scalars.Float);
-                case BuiltInType.Double:
-                    return new Variant(decoder.ReadDouble(fieldName),
-                        TypeInfo.Scalars.Double);
-                case BuiltInType.String:
-                    return new Variant(decoder.ReadString(fieldName),
-                        TypeInfo.Scalars.String);
-                case BuiltInType.ByteString:
-                    return new Variant(decoder.ReadByteString(fieldName),
-                        TypeInfo.Scalars.ByteString);
-                case BuiltInType.DateTime:
-                    return new Variant(decoder.ReadDateTime(fieldName),
-                        TypeInfo.Scalars.DateTime);
-                case BuiltInType.Guid:
-                    return new Variant(decoder.ReadGuid(fieldName),
-                        TypeInfo.Scalars.Guid);
-                case BuiltInType.NodeId:
-                    return new Variant(decoder.ReadNodeId(fieldName),
-                        TypeInfo.Scalars.NodeId);
-                case BuiltInType.ExpandedNodeId:
-                    return new Variant(decoder.ReadExpandedNodeId(fieldName),
-                        TypeInfo.Scalars.ExpandedNodeId);
-                case BuiltInType.QualifiedName:
-                    return new Variant(decoder.ReadQualifiedName(fieldName),
-                        TypeInfo.Scalars.QualifiedName);
-                case BuiltInType.LocalizedText:
-                    return new Variant(decoder.ReadLocalizedText(fieldName),
-                        TypeInfo.Scalars.LocalizedText);
-                case BuiltInType.StatusCode:
-                    return new Variant(decoder.ReadStatusCode(fieldName),
-                        TypeInfo.Scalars.StatusCode);
-                case BuiltInType.XmlElement:
-                    return new Variant(decoder.ReadXmlElement(fieldName),
-                        TypeInfo.Scalars.XmlElement);
-                case BuiltInType.ExtensionObject:
-                    return new Variant(decoder.ReadExtensionObject(fieldName),
-                        TypeInfo.Scalars.ExtensionObject);
-                case BuiltInType.Variant:
-                    return new Variant(decoder.ReadVariant(fieldName),
-                        TypeInfo.Scalars.Variant);
+            else {
+                //
+                // Type is given, sanitze input and decode as reversible json
+                // encoded variant.
+                //
+                value = Sanitize(value, builtinType == BuiltInType.String,
+                    valueRank);
+                json = new JObject {
+                    { nameof(value), new JObject {
+                            { "Body", value },
+                            { "Type", (byte)builtinType }
+                        }
+                    }
+                };
             }
-            return Variant.Null;
-        }
-
-        private Variant ReadVariantArrayBody(JsonDecoder decoder, string fieldName,
-            BuiltInType type) {
-            switch (type) {
-                case BuiltInType.Boolean:
-                    return new Variant(decoder.ReadBooleanArray(fieldName),
-                        TypeInfo.Arrays.Boolean);
-                case BuiltInType.SByte:
-                    return new Variant(decoder.ReadSByteArray(fieldName),
-                        TypeInfo.Arrays.SByte);
-                case BuiltInType.Byte:
-                    return new Variant(decoder.ReadByteArray(fieldName),
-                        TypeInfo.Arrays.Byte);
-                case BuiltInType.Int16:
-                    return new Variant(decoder.ReadInt16Array(fieldName),
-                        TypeInfo.Arrays.Int16);
-                case BuiltInType.UInt16:
-                    return new Variant(decoder.ReadUInt16Array(fieldName),
-                        TypeInfo.Arrays.UInt16);
-                case BuiltInType.Int32:
-                    return new Variant(decoder.ReadInt32Array(fieldName),
-                        TypeInfo.Arrays.Int32);
-                case BuiltInType.UInt32:
-                    return new Variant(decoder.ReadUInt32Array(fieldName),
-                        TypeInfo.Arrays.UInt32);
-                case BuiltInType.Int64:
-                    return new Variant(decoder.ReadInt64Array(fieldName),
-                        TypeInfo.Arrays.Int64);
-                case BuiltInType.UInt64:
-                    return new Variant(decoder.ReadUInt64Array(fieldName),
-                        TypeInfo.Arrays.UInt64);
-                case BuiltInType.Float:
-                    return new Variant(decoder.ReadFloatArray(fieldName),
-                        TypeInfo.Arrays.Float);
-                case BuiltInType.Double:
-                    return new Variant(decoder.ReadDoubleArray(fieldName),
-                        TypeInfo.Arrays.Double);
-                case BuiltInType.String:
-                    return new Variant(decoder.ReadStringArray(fieldName),
-                        TypeInfo.Arrays.String);
-                case BuiltInType.ByteString:
-                    return new Variant(decoder.ReadByteStringArray(fieldName),
-                        TypeInfo.Arrays.ByteString);
-                case BuiltInType.DateTime:
-                    return new Variant(decoder.ReadDateTimeArray(fieldName),
-                        TypeInfo.Arrays.DateTime);
-                case BuiltInType.Guid:
-                    return new Variant(decoder.ReadGuidArray(fieldName),
-                        TypeInfo.Arrays.Guid);
-                case BuiltInType.NodeId:
-                    return new Variant(decoder.ReadNodeIdArray(fieldName),
-                        TypeInfo.Arrays.NodeId);
-                case BuiltInType.ExpandedNodeId:
-                    return new Variant(decoder.ReadExpandedNodeIdArray(fieldName),
-                        TypeInfo.Arrays.ExpandedNodeId);
-                case BuiltInType.QualifiedName:
-                    return new Variant(decoder.ReadQualifiedNameArray(fieldName),
-                        TypeInfo.Arrays.QualifiedName);
-                case BuiltInType.LocalizedText:
-                    return new Variant(decoder.ReadLocalizedTextArray(fieldName),
-                        TypeInfo.Arrays.LocalizedText);
-                case BuiltInType.StatusCode:
-                    return new Variant(decoder.ReadStatusCodeArray(fieldName),
-                        TypeInfo.Arrays.StatusCode);
-                case BuiltInType.XmlElement:
-                    return new Variant(decoder.ReadXmlElementArray(fieldName),
-                        TypeInfo.Arrays.XmlElement);
-                case BuiltInType.ExtensionObject:
-                    return new Variant(decoder.ReadExtensionObjectArray(fieldName),
-                        TypeInfo.Arrays.ExtensionObject);
-                case BuiltInType.Variant:
-                    return new Variant(decoder.ReadVariantArray(fieldName),
-                        TypeInfo.Arrays.Variant);
+            using (var decoder = new JsonDecoderEx(context ?? _context, json)) {
+                return decoder.ReadVariant(nameof(value));
             }
-            return Variant.Null;
         }
 
         /// <summary>
         /// Helper to parse and convert a token value
         /// </summary>
         /// <param name="value"></param>
-        /// <param name="builtinType"></param>
+        /// <param name="isString"></param>
         /// <param name="valueRank"></param>
         /// <returns></returns>
-        private static JToken Sanitize(JToken value, BuiltInType builtinType,
+        private static JToken Sanitize(JToken value, bool isString,
             int? valueRank) {
-            var array = (valueRank.HasValue && valueRank.Value != ValueRanks.Scalar);
-            if (builtinType != BuiltInType.String || array) {
+            var array = valueRank.HasValue && valueRank.Value != ValueRanks.Scalar;
+            if (!isString || array) {
                 if (!array) {
                     value = value.ToString().TrimQuotes();
                 }
@@ -247,11 +116,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             return new JArray(value);
                         }
                         return new JArray(((JArray)value)
-                            .Select(t => Sanitize(t, builtinType, null)));
+                            .Select(t => Sanitize(t, isString, null)));
                     }
                 }
             }
             return value;
         }
+
+        private readonly ServiceMessageContext _context =
+            new ServiceMessageContext();
     }
 }

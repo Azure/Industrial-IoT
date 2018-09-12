@@ -5,6 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
 
+    /// <summary>
+    /// Security mode enumeration extensions
+    /// </summary>
     public static class SecurityModeEx {
 
         /// <summary>

@@ -32,9 +32,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         public EndpointModel Endpoint { get; set; }
 
         /// <summary>
-        /// Create edge twin services
+        /// Create in process publisher service
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="twin"></param>
+        /// <param name="telemetry"></param>
+        /// <param name="logger"></param>
         public InProcessPublisherServices(IEndpointServices client, ITwinProperties twin,
             IEventEmitter telemetry, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
@@ -78,6 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Enable or disable publishing based on desired property
         /// </summary>
         /// <param name="nodeId"></param>
+        /// <param name="enable"></param>
         /// <returns></returns>
         public Task NodePublishAsync(string nodeId, bool? enable) {
             var command = new TwinServiceCommand(new PublishRequestModel {
@@ -88,9 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
             return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Clean up
-        /// </summary>
+        /// <inheritdoc/>
         public void Dispose() {
             if (_runner != null) {
                 _commandQueue.Add(new TwinServiceCommand(TwinServiceCommand.Exit));
@@ -246,6 +248,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Change subscriptions
         /// </summary>
+        /// <param name="session"></param>
+        /// <param name="validate"></param>
         /// <param name="item"></param>
         private async Task ChangeSubscriptionsAsync(TwinServiceCommand item,
             Session session, bool validate = false) {
@@ -343,6 +347,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
             /// <summary>
             /// Create publish command
             /// </summary>
+            /// <param name="request"></param>
             /// <param name="type"></param>
             public TwinServiceCommand(PublishRequestModel request, string type) {
                 Request = request;
@@ -428,6 +433,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
             /// <summary>
             /// Create new monitored item
             /// </summary>
+            /// <param name="session"></param>
             /// <param name="request"></param>
             public PublishResultModel Change(Session session, PublishRequestModel request) {
                 if (request.Enabled ?? false) {
@@ -474,7 +480,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
             /// <summary>
             /// Create monitored item
             /// </summary>
+            /// <param name="nodeId"></param>
             /// <param name="samplingInterval"></param>
+            /// <param name="displayName"></param>
+            /// <returns></returns>
             private MonitoredItem CreateMonitoredItem(NodeId nodeId,
                 int samplingInterval, string displayName = null) {
                 var item = new MonitoredItem {
@@ -546,6 +555,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
                 /// <summary>
                 /// Create item
                 /// </summary>
+                /// <param name="handler"></param>
                 /// <param name="nodeId"></param>
                 /// <param name="samplingInterval"></param>
                 /// <param name="displayName"></param>

@@ -6,6 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Endpoint model extensions
+    /// </summary>
     public static class EndpointModelEx {
 
         /// <summary>

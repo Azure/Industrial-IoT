@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -93,17 +93,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
                 Certificate = model.Certificate,
                 Connected = model.Connected,
                 Discovery = model.Discovery,
-                DiscoveryCallbacks = model.DiscoveryCallbacks?.ToList(),
-                DiscoveryConfig = new DiscoveryConfigModel {
-                    AddressRangesToScan = model.DiscoveryConfig.AddressRangesToScan,
-                    IdleTimeBetweenScans = model.DiscoveryConfig.IdleTimeBetweenScans,
-                    MaxNetworkProbes = model.DiscoveryConfig.MaxNetworkProbes,
-                    MaxPortProbes = model.DiscoveryConfig.MaxPortProbes,
-                    MinPortProbesPercent = model.DiscoveryConfig.MinPortProbesPercent,
-                    NetworkProbeTimeout = model.DiscoveryConfig.NetworkProbeTimeout,
-                    PortProbeTimeout = model.DiscoveryConfig.PortProbeTimeout,
-                    PortRangesToScan = model.DiscoveryConfig.PortRangesToScan
-                },
+                DiscoveryConfig = model.DiscoveryConfig.Clone(),
                 Id = model.Id,
                 OutOfSync = model.OutOfSync,
                 SiteId = model.SiteId

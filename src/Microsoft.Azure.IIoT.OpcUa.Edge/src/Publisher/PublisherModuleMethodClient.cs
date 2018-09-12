@@ -22,24 +22,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Returns the list of published nodes of the OPC UA server
-        /// with the given endpointUrl
-        /// </summary>
+        /// <inheritdoc/>
         public Task<PublishedNodeListModel> ListPublishedNodesAsync(
             EndpointModel endpoint, string continuation) {
+
+            // TODO
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Requests from a edge publisher to publish nodes on
-        /// the specified station.
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task<PublishResultModel> NodePublishAsync(EndpointModel endpoint,
             PublishRequestModel request) {
+
+            // TODO
             throw new NotImplementedException();
         }
 

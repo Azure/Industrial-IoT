@@ -53,8 +53,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                 await ProcessServerEndpointDiscoveryAsync(supervisorId,
                     discovery, checkpoint);
             }
-            catch (AggregateException ex) {
-                _logger.Error($"Discovery processing failed with exception - skip",
+            catch (Exception ex) {
+                _logger.Error($"Handling discovery event failed with exception - skip",
                     () => ex);
             }
         }
@@ -119,9 +119,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                 }
                 queue.Enqueue(model);
                 if (queue.Completed) {
-                    // Process discoveries
-                    await _registry.ProcessDiscoveryAsync(supervisorId,
-                        queue.Result, queue.Events, false);
+                    try {
+                        // Process discoveries
+                        await _registry.ProcessDiscoveryAsync(supervisorId,
+                            queue.Result, queue.Events, false);
+                    }
+                    catch (Exception ex) {
+                        _logger.Error(
+                            "Failure during discovery processing in registry. Skip.",
+                            () => ex);
+                    }
 
                     backlog.Remove(model.TimeStamp);
                     //

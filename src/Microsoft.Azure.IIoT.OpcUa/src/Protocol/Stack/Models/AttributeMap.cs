@@ -70,6 +70,7 @@ namespace Opc.Ua.Models {
         /// Read and decode a node attribute
         /// </summary>
         /// <param name="decoder"></param>
+        /// <param name="attributeId"></param>
         public object Decode(IDecoder decoder, uint attributeId) {
             decoder.PushNamespace(Namespaces.OpcUa);
             try {

@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge {
         /// <summary>
         /// Start new twin with given connection string
         /// </summary>
+        /// <param name="id"></param>
         /// <param name="secret"></param>
         /// <returns></returns>
         Task StartTwinAsync(string id, string secret);

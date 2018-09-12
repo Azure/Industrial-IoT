@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Onboarding services
+    /// </summary>
     public interface IOnboardingServices {
 
         /// <summary>

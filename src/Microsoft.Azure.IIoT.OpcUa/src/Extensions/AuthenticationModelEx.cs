@@ -5,6 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
 
+    /// <summary>
+    /// Authentication model extensions
+    /// </summary>
     public static class AuthenticationModelEx {
 
         /// <summary>

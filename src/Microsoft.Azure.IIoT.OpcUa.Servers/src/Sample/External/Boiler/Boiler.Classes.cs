@@ -37,7 +37,7 @@ using Opc.Ua;
 namespace Boiler
 {
     #region GenericControllerState Class
-    #if (!OPCUA_EXCLUDE_GenericControllerState)
+    #if !OPCUA_EXCLUDE_GenericControllerState
     /// <summary>
     /// Stores an instance of the GenericControllerType ObjectType.
     /// </summary>
@@ -61,7 +61,7 @@ namespace Boiler
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.GenericControllerType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+        #if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
@@ -1337,7 +1337,7 @@ namespace Boiler
     #endregion
 
     #region BoilerStateMachineState Class
-    #if (!OPCUA_EXCLUDE_BoilerStateMachineState)
+    #if !OPCUA_EXCLUDE_BoilerStateMachineState
     /// <summary>
     /// Stores an instance of the BoilerStateMachineType ObjectType.
     /// </summary>
@@ -1361,7 +1361,7 @@ namespace Boiler
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.BoilerStateMachineType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+        #if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
@@ -2287,7 +2287,7 @@ namespace Boiler
     #endregion
 
     #region BoilerState Class
-    #if (!OPCUA_EXCLUDE_BoilerState)
+    #if !OPCUA_EXCLUDE_BoilerState
     /// <summary>
     /// Stores an instance of the BoilerType ObjectType.
     /// </summary>
@@ -2311,7 +2311,7 @@ namespace Boiler
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.BoilerType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+        #if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>

@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         public void DecodeEncodeStringAsUInt32() {
             var codec = new ValueEncoder();
             var str = "123";
+            var context = new ServiceMessageContext();
             var variant = codec.Decode(str, BuiltInType.UInt32, null);
             var expected = new Variant(123u);
             var encoded = codec.Encode(variant);
@@ -141,14 +142,52 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// test encoding
         /// </summary>
         [Fact]
-        public void EncodeDecodeExpandedNodeId() {
+        public void EncodeDecodeExpandedNodeId1() {
             var codec = new ValueEncoder();
 
-            var expected = new Variant(new ExpandedNodeId(2354, "http://test"));
+            var expected = new Variant(new ExpandedNodeId(2354u, 1, "http://test.org/test", 0));
 
             var encoded = codec.Encode(expected);
             var variant = codec.Decode(encoded, BuiltInType.ExpandedNodeId, null);
             Assert.Equal(expected, variant);
+        }
+
+        /// <summary>
+        /// test encoding
+        /// </summary>
+        [Fact]
+        public void EncodeDecodeExpandedNodeId2() {
+            var codec = new ValueEncoder();
+
+            var expected = new Variant(new ExpandedNodeId(2354u, 1, "http://test/", 0));
+
+            var encoded = codec.Encode(expected);
+            var variant = codec.Decode(encoded, BuiltInType.ExpandedNodeId, null);
+            Assert.Equal(expected, variant);
+        }
+
+        /// <summary>
+        /// test encoding
+        /// </summary>
+        [Fact]
+        public void EncodeDecodeExpandedNodeId3() {
+            var codec = new ValueEncoder();
+
+            var expected1 = new Variant(new ExpandedNodeId(2354u, 1, "http://test/", 0));
+            var expected2 = new Variant(new ExpandedNodeId(2354u, 2, "http://test/UA", 0));
+            var expected3 = new Variant(new ExpandedNodeId(2355u, 1, "http://test/", 0));
+
+            var encoded1 = codec.Encode(expected1);
+            var encoded2 = codec.Encode(expected2);
+            var encoded3 = codec.Encode(expected3);
+
+            var variant1 = codec.Decode(encoded1, BuiltInType.ExpandedNodeId, null);
+            var variant2 = codec.Decode(encoded2, BuiltInType.ExpandedNodeId, null);
+            var variant3 = codec.Decode(encoded3, BuiltInType.ExpandedNodeId, null);
+
+            Assert.Equal(expected1, variant1);
+            Assert.Equal(expected2, variant2);
+            Assert.Equal(expected3, variant3);
         }
 
         /// <summary>

@@ -47,6 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         /// helper to invoke service
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="supervisorId"></param>
         /// <param name="service"></param>
         /// <param name="request"></param>
         /// <returns></returns>

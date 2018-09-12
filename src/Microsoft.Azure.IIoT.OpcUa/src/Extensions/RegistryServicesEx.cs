@@ -10,12 +10,17 @@ namespace Microsoft.Azure.IIoT.OpcUa {
     using System.Linq;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Registry services extensions
+    /// </summary>
     public static class RegistryServicesEx {
 
         /// <summary>
         /// Find twins
         /// </summary>
         /// <param name="service"></param>
+        /// <param name="query"></param>
+        /// <param name="onlyServerState"></param>
         /// <returns></returns>
         public static async Task<List<TwinInfoModel>> QueryAllTwinsAsync(
             this ITwinRegistry service, TwinRegistrationQueryModel query,
@@ -54,6 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa {
         /// Find applications
         /// </summary>
         /// <param name="service"></param>
+        /// <param name="query"></param>
         /// <returns></returns>
         public static async Task<List<ApplicationInfoModel>> QueryAllApplicationsAsync(
             this IApplicationRegistry service, ApplicationRegistrationQueryModel query) {

@@ -10,6 +10,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
     using System.Linq;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Callback model extensions
+    /// </summary>
     public static class CallbackModelEx {
 
         /// <summary>
@@ -51,6 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// <summary>
         /// Call all callbacks
         /// </summary>
+        /// <param name="client"></param>
         /// <param name="models"></param>
         /// <param name="payload"></param>
         /// <returns></returns>
@@ -156,6 +160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// Append value to query
         /// </summary>
         /// <param name="query"></param>
+        /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
         private static string Append(string query, string name,
@@ -173,6 +178,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// Append array to query
         /// </summary>
         /// <param name="query"></param>
+        /// <param name="name"></param>
         /// <param name="array"></param>
         /// <returns></returns>
         private static string Append(string query, string name,

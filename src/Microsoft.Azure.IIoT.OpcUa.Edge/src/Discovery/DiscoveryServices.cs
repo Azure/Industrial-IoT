@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -23,7 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Provides discovery services for the supervisor
@@ -49,8 +49,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         internal DiscoveryRequest Request { get; set; } = new DiscoveryRequest();
 
         /// <summary>
-        /// Create service
+        /// Create services
         /// </summary>
+        /// <param name="client"></param>
+        /// <param name="events"></param>
+        /// <param name="processor"></param>
         /// <param name="logger"></param>
         public DiscoveryServices(IEndpointDiscovery client, IEventEmitter events,
             ITaskProcessor processor, ILogger logger) {
@@ -123,9 +126,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         }
 
         /// <summary>
+        /// Scan and discover one time
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        private async Task RunOnceAsync(DiscoveryRequest request,
+            CancellationToken ct) {
+            _logger.Debug("Processing discovery request...", () => { });
+            object diagnostics = null;
+
+            //
+            // Discover servers
+            //
+            List<ApplicationRegistrationModel> discovered;
+            try {
+                discovered = await DiscoverServersAsync(request, ct);
+                if (discovered.Count == 0 && request.Mode == DiscoveryMode.Off) {
+                    // Optimize
+                    return;
+                }
+            }
+            catch (Exception ex) {
+                diagnostics = ex;
+                discovered = new List<ApplicationRegistrationModel>();
+            }
+
+            //
+            // Upload results
+            //
+            if (!ct.IsCancellationRequested) {
+                await UploadResultsAsync(request, discovered, DateTime.UtcNow,
+                    diagnostics, ct);
+            }
+        }
+
+        /// <summary>
         /// Scan and discover in continuous loop
         /// </summary>
+        /// <param name="request"></param>
+        /// <param name="delay"></param>
         /// <param name="ct"></param>
+        /// <returns></returns>
         private async Task RunContinouslyAsync(DiscoveryRequest request,
             TimeSpan? delay, CancellationToken ct) {
 
@@ -135,21 +176,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     await Task.Delay((TimeSpan)delay, ct);
                 }
                 catch (OperationCanceledException) {
+                    _logger.Debug("Cancelled discovery start.", () => { });
                     return;
                 }
             }
 
+            _logger.Info("Starting discovery...", () => { });
+
             // Run scans until cancelled
             while (!ct.IsCancellationRequested) {
                 try {
-                    await ProcessAsync(request, ct);
+                    //
+                    // Discover
+                    //
+                    var discovered = await DiscoverServersAsync(request, ct);
+                    var timestamp = DateTime.UtcNow;
+
+                    //
+                    // Update cache
+                    //
+                    lock (_discovered) {
+                        _discovered.Add(timestamp, discovered);
+                        if (_discovered.Count > 10) {
+                            _discovered.Remove(_discovered.First().Key);
+                        }
+                    }
+
+                    ct.ThrowIfCancellationRequested();
+
+                    //
+                    // Upload results
+                    //
+                    await UploadResultsAsync(request, discovered, timestamp,
+                        null, ct);
                 }
                 catch (OperationCanceledException) {
-                    _logger.Debug("Cancelled discovery run.", () => { });
-                    return;
+                    break;
                 }
                 catch (Exception ex) {
-                    _logger.Error("Error during discovery run.", () => ex);
+                    _logger.Error("Error during discovery run - continue...",
+                        () => ex);
                 }
 
                 //
@@ -167,68 +233,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     }
                 }
                 catch (OperationCanceledException) {
-                    return;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Scan and discover one time
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        private async Task RunOnceAsync(DiscoveryRequest request,
-            CancellationToken ct) {
-            try {
-                await ProcessAsync(request, CancellationToken.None);
-            }
-            catch (Exception ex) {
-                //
-                // Upload failure
-                //
-                var timestamp = DateTime.UtcNow;
-                var discovered = new List<ApplicationRegistrationModel>();
-                await UploadResultsAsync(request, discovered, DateTime.UtcNow,
-                    ex, ct);
-            }
-        }
-
-        /// <summary>
-        /// Process request
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task ProcessAsync(DiscoveryRequest request,
-            CancellationToken ct) {
-            //
-            // Discover
-            //
-            var discovered = await DiscoverServersAsync(request, ct);
-            var timestamp = DateTime.UtcNow;
-
-            //
-            // Update cache
-            //
-            lock (_discovered) {
-                _discovered.Add(timestamp, discovered);
-                if (_discovered.Count > 10) {
-                    _discovered.Remove(_discovered.First().Key);
+                    break;
                 }
             }
 
-            ct.ThrowIfCancellationRequested();
-
-            //
-            // Upload results
-            //
-            await UploadResultsAsync(request, discovered, timestamp,
-                null, ct);
+            _logger.Info("Cancelled discovery.", () => { });
         }
 
         /// <summary>
         /// Run a network discovery
         /// </summary>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<List<ApplicationRegistrationModel>> DiscoverServersAsync(
@@ -409,6 +424,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// <param name="discovered"></param>
         /// <param name="timestamp"></param>
         /// <param name="request"></param>
+        /// <param name="diagnostics"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task UploadResultsAsync(DiscoveryRequest request,

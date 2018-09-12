@@ -10,8 +10,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using System;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Helper methods for onboarder device
+    /// </summary>
     public static class OnboardingHelper {
 
+        /// <summary>
+        /// Known id of onboarder device
+        /// </summary>
         public const string kId = "215DD51095C847C7B4311D683F782069";
 
         /// <summary>

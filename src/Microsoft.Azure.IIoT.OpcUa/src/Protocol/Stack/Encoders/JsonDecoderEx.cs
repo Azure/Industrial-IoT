@@ -10,19 +10,31 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 */
 
-namespace Opc.Ua {
+namespace Opc.Ua.Encoders {
     using System;
     using System.Collections.Generic;
     using System.Text;
     using System.Xml;
     using System.IO;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System.Collections;
+    using Opc.Ua.Extensions;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using System.Globalization;
 
     /// <summary>
     /// Reads objects from reader or string
     /// </summary>
     public class JsonDecoderEx : IDecoder, IDisposable {
+
+        /// <inheritdoc/>
+        public EncodingType EncodingType => EncodingType.Json;
+
+        /// <inheritdoc/>
+        public ServiceMessageContext Context { get; }
 
         /// <summary>
         /// Create decoder
@@ -47,55 +59,45 @@ namespace Opc.Ua {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="reader"></param>
-        public JsonDecoderEx(ServiceMessageContext context, JsonTextReader reader) {
+        public JsonDecoderEx(ServiceMessageContext context, JsonReader reader) {
             Context = context;
-            _nestingLevel = 0;
-            _reader = reader;
-            _root = ReadObject();
-            _stack = new Stack<object>();
-            _stack.Push(_root);
+            using (var loader = new JsonLoader(reader)) {
+                var root = JToken.ReadFrom(loader,
+                    new JsonLoadSettings {
+                        CommentHandling = CommentHandling.Ignore,
+                        LineInfoHandling = LineInfoHandling.Ignore
+                    });
+                // Need to parse the entire document - TODO: Handle arrays
+                _stack.Push(root as JObject ?? throw new ArgumentException(nameof(reader)));
+            }
         }
 
         /// <summary>
-        /// Decodes an object from a buffer.
+        /// Create decoder
         /// </summary>
-        public IEncodeable DecodeMessage(Type expectedType) {
-            var namespaceUris = ReadStringArray("NamespaceUris");
-            var serverUris = ReadStringArray("ServerUris");
-
-            if ((namespaceUris != null && namespaceUris.Count > 0) || (serverUris != null && serverUris.Count > 0)) {
-                var namespaces = (namespaceUris == null || namespaceUris.Count == 0) ? Context.NamespaceUris : new NamespaceTable(namespaceUris);
-                var servers = (serverUris == null || serverUris.Count == 0) ? Context.ServerUris : new StringTable(serverUris);
-
-                SetMappingTables(namespaces, servers);
-            }
-
-            // read the node id.
-            var typeId = ReadNodeId("TypeId");
-
-            // convert to absolute node id.
-            var absoluteId = NodeId.ToExpandedNodeId(typeId, Context.NamespaceUris);
-
-            // lookup message type.
-            var actualType = Context.Factory.GetSystemType(absoluteId);
-
-            if (actualType == null) {
-                throw new ServiceResultException(StatusCodes.BadEncodingError, Utils.Format("Cannot decode message with type id: {0}.", absoluteId));
-            }
-
-            // read the message.
-            var message = ReadEncodeable("Body", actualType);
-
-            // return the message.
-            return message;
+        /// <param name="context"></param>
+        /// <param name="root"></param>
+        public JsonDecoderEx(ServiceMessageContext context, JObject root) {
+            Context = context;
+            _stack.Push(root ?? throw new ArgumentException(nameof(root)));
         }
 
+        /// <inheritdoc/>
+        public void Dispose() {
+            // No op
+        }
 
-        /// <summary>
-        /// Initializes the tables used to map namespace and server uris during decoding.
-        /// </summary>
-        /// <param name="namespaceUris">The namespaces URIs referenced by the data being decoded.</param>
-        /// <param name="serverUris">The server URIs referenced by the data being decoded.</param>
+        /// <inheritdoc/>
+        public void PushNamespace(string namespaceUri) {
+            // No op
+        }
+
+        /// <inheritdoc/>
+        public void PopNamespace() {
+            // No op
+        }
+
+        /// <inheritdoc/>
         public void SetMappingTables(NamespaceTable namespaceUris, StringTable serverUris) {
             _namespaceMappings = null;
 
@@ -110,1705 +112,974 @@ namespace Opc.Ua {
             }
         }
 
-        /// <summary>
-        /// Closes the stream used for reading.
-        /// </summary>
-        public void Close() {
-            _reader.Close();
-        }
-
-        /// <summary>
-        /// Closes the stream used for reading.
-        /// </summary>
-        public void Close(bool checkEof) {
-            if (checkEof && _reader.TokenType != JsonToken.EndObject) {
-                while (_reader.Read() && _reader.TokenType != JsonToken.EndObject) {
-                }
-            }
-
-            _reader.Close();
-        }
-
-        private List<object> ReadArray() {
-            var elements = new List<object>();
-
-            while (_reader.Read() && _reader.TokenType != JsonToken.EndArray) {
-                switch (_reader.TokenType) {
-                    case JsonToken.Comment: {
-                            break;
-                        }
-
-                    case JsonToken.Boolean:
-                    case JsonToken.Integer:
-                    case JsonToken.Float:
-                    case JsonToken.String:
-                    case JsonToken.Bytes:
-                    case JsonToken.Date: {
-                            elements.Add(_reader.Value);
-                            break;
-                        }
-
-                    case JsonToken.StartArray: {
-                            elements.Add(ReadArray());
-                            break;
-                        }
-
-                    case JsonToken.StartObject: {
-                            elements.Add(ReadObject());
-                            break;
-                        }
-                }
-            }
-
-            return elements;
-        }
-
-        private Dictionary<string, object> ReadObject() {
-            var fields = new Dictionary<string, object>();
-
-            while (_reader.Read() && _reader.TokenType != JsonToken.EndObject) {
-                if (_reader.TokenType == JsonToken.PropertyName) {
-                    var name = (string)_reader.Value;
-
-                    if (_reader.Read() && _reader.TokenType != JsonToken.EndObject) {
-                        switch (_reader.TokenType) {
-                            case JsonToken.Comment: {
-                                    break;
-                                }
-
-                            case JsonToken.Null:
-                            case JsonToken.Date: {
-                                    fields[name] = _reader.Value;
-                                    break;
-                                }
-
-                            case JsonToken.Bytes:
-                            case JsonToken.Boolean:
-                            case JsonToken.Integer:
-                            case JsonToken.Float:
-                            case JsonToken.String: {
-                                    fields[name] = _reader.Value;
-                                    break;
-                                }
-
-                            case JsonToken.StartArray: {
-                                    fields[name] = ReadArray();
-                                    break;
-                                }
-
-                            case JsonToken.StartObject: {
-                                    fields[name] = ReadObject();
-                                    break;
-                                }
-                        }
-                    }
-                }
-            }
-
-            return fields;
-        }
-
-        /// <summary>
-        /// Reads the body extension object from the stream.
-        /// </summary>
-        public object ReadExtensionObjectBody(ExpandedNodeId typeId) {
-            return null;
-        }
-
-        /// <summary>
-        /// Frees any unmanaged resources.
-        /// </summary>
-        public void Dispose() {
-            Dispose(true);
-        }
-
-        /// <summary>
-        /// An overrideable version of the Dispose.
-        /// </summary>
-        protected virtual void Dispose(bool disposing) {
-            if (disposing) {
-                if (_reader != null) {
-                    _reader.Close();
-                }
-            }
-        }
-
-        /// <summary>
-        /// The type of encoding being used.
-        /// </summary>
-        public EncodingType EncodingType => EncodingType.Json;
-
-        /// <summary>
-        /// The message context associated with the decoder.
-        /// </summary>
-        public ServiceMessageContext Context { get; }
-
-        /// <summary>
-        /// Pushes a namespace onto the namespace stack.
-        /// </summary>
-        public void PushNamespace(string namespaceUri) {
-        }
-
-        /// <summary>
-        /// Pops a namespace from the namespace stack.
-        /// </summary>
-        public void PopNamespace() {
-        }
-
-        public bool ReadField(string fieldName, out object token) {
-            token = null;
-
-            if (string.IsNullOrEmpty(fieldName)) {
-                token = _stack.Peek();
-                return true;
-            }
-
-            if (!(_stack.Peek() is Dictionary<string, object> context) ||
-                !context.TryGetValue(fieldName, out token)) {
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Reads a boolean from the stream.
-        /// </summary>
-        public bool ReadBoolean(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return false;
-            }
-
-            var value = token as bool?;
-
-            if (value == null) {
-                return false;
-            }
-
-            return (bool)token;
-        }
-
-        /// <summary>
-        /// Reads a sbyte from the stream.
-        /// </summary>
-        public sbyte ReadSByte(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return 0;
-            }
-
-            var value = token as long?;
-
-            if (value == null) {
-                return 0;
-            }
-
-            if (value < sbyte.MinValue || value > sbyte.MaxValue) {
-                return 0;
-            }
-
-            return (sbyte)value;
-        }
-
-        /// <summary>
-        /// Reads a byte from the stream.
-        /// </summary>
-        public byte ReadByte(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return 0;
-            }
-
-            var value = token as long?;
-
-            if (value == null) {
-                return 0;
-            }
-
-            if (value < byte.MinValue || value > byte.MaxValue) {
-                return 0;
-            }
-
-            return (byte)value;
-        }
-
-        /// <summary>
-        /// Reads a short from the stream.
-        /// </summary>
-        public short ReadInt16(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return 0;
-            }
-
-            var value = token as long?;
-
-            if (value == null) {
-                return 0;
-            }
-
-             if (value < short.MinValue || value > short.MaxValue) {
-                return 0;
-            }
-
-            return (short)value;
-        }
-
-        /// <summary>
-        /// Reads a ushort from the stream.
-        /// </summary>
-        public ushort ReadUInt16(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return 0;
-            }
-
-            var value = token as long?;
-
-            if (value == null) {
-                return 0;
-            }
-
-            if (value < ushort.MinValue || value > ushort.MaxValue) {
-                return 0;
-            }
-
-            return (ushort)value;
-        }
-
-        /// <summary>
-        /// Reads an int from the stream.
-        /// </summary>
-        public int ReadInt32(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return 0;
-            }
-
-            var value = token as long?;
-
-            if (value == null) {
-                return 0;
-            }
-
-            if (value < int.MinValue || value > int.MaxValue) {
-                return 0;
-            }
-
-            return (int)value;
-        }
-
-        /// <summary>
-        /// Reads a uint from the stream.
-        /// </summary>
-        public uint ReadUInt32(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return 0;
-            }
-
-            var value = token as long?;
-
-            if (value == null) {
-
-                if (!(token is string text) || !uint.TryParse(text, out var number)) {
-                    return 0;
-                }
-
-                return number;
-            }
-
-            if (value < uint.MinValue || value > uint.MaxValue) {
-                return 0;
-            }
-
-            return (uint)value;
-        }
-
-        /// <summary>
-        /// Reads a long from the stream.
-        /// </summary>
-        public long ReadInt64(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return 0;
-            }
-
-            var value = token as long?;
-
-            if (value == null) {
-
-                if (!(token is string text) || !long.TryParse(text, out var number)) {
-                    return 0;
-                }
-
-                return number;
-            }
-
-            if (value < long.MinValue || value > long.MaxValue) {
-                return 0;
-            }
-
-            return (long)value;
-        }
-
-        /// <summary>
-        /// Reads a ulong from the stream.
-        /// </summary>
-        public ulong ReadUInt64(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return 0;
-            }
-
-            var value = token as long?;
-
-            if (value == null) {
-
-                if (!(token is string text) || !ulong.TryParse(text, out var number)) {
-                    return 0;
-                }
-
-                return number;
-            }
-
-            if (value < 0) {
-                return 0;
-            }
-
-            return (ulong)value;
-        }
-
-        /// <summary>
-        /// Reads a float from the stream.
-        /// </summary>
-        public float ReadFloat(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return 0;
-            }
-
-            var value = token as double?;
-
-            if (value == null) {
-
-                if (!(token is string text) || !float.TryParse(text, out var number)) {
-                    var integer = token as long?;
-
-                    if (integer == null) {
-                        return 0;
-                    }
-
-                    return (float)integer;
-                }
-
-                return number;
-            }
-
-            if (value < float.MinValue || value > float.MaxValue) {
-                return 0;
-            }
-
-            return (float)value;
-        }
-
-        /// <summary>
-        /// Reads a double from the stream.
-        /// </summary>
-        public double ReadDouble(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return 0;
-            }
-
-            var value = token as double?;
-
-            if (value == null) {
-
-                if (!(token is string text) || !double.TryParse(text, out var number)) {
-                    var integer = token as long?;
-
-                    if (integer == null) {
-                        return 0;
-                    }
-
-                    return (double)integer;
-                }
-
-                return number;
-            }
-
-            return (double)value;
-        }
-
-        /// <summary>
-        /// Reads a string from the stream.
-        /// </summary>
-        public string ReadString(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
+        /// <inheritdoc/>
+        public bool ReadBoolean(string property) =>
+            TryGetToken(property, out var value) && (bool)value;
+
+        /// <inheritdoc/>
+        public sbyte ReadSByte(string property) => ReadInteger(property,
+            v => (sbyte) (v < sbyte.MinValue || v > sbyte.MaxValue ? 0 : v));
+
+        /// <inheritdoc/>
+        public byte ReadByte(string property) => ReadInteger(property,
+            v => (byte) (v < byte.MinValue || v > byte.MaxValue ? 0 : v));
+
+        /// <inheritdoc/>
+        public short ReadInt16(string property) => ReadInteger(property,
+            v => (short) (v < short.MinValue || v > short.MaxValue ? 0 : v));
+
+        /// <inheritdoc/>
+        public ushort ReadUInt16(string property) => ReadInteger(property,
+            v => (ushort) (v < ushort.MinValue || v > ushort.MaxValue ? 0 : v));
+
+        /// <inheritdoc/>
+        public int ReadInt32(string property) => ReadInteger(property,
+            v => (int) (v < int.MinValue || v > int.MaxValue ? 0 : v));
+
+        /// <inheritdoc/>
+        public uint ReadUInt32(string property) => ReadInteger(property,
+            v => (uint) (v < uint.MinValue || v > uint.MaxValue ? 0 : v));
+
+        /// <inheritdoc/>
+        public long ReadInt64(string property) => ReadInteger(property,
+            v => v);
+
+        /// <inheritdoc/>
+        public ulong ReadUInt64(string property) => ReadInteger(property,
+            v => (ulong)v);
+
+        /// <inheritdoc/>
+        public float ReadFloat(string property) => ReadDouble(property,
+            v => (float) (v < float.MinValue || v > float.MaxValue ? 0 : v));
+
+        /// <inheritdoc/>
+        public double ReadDouble(string property) => ReadDouble(property,
+            v => v);
+
+        /// <inheritdoc/>
+        public byte[] ReadByteString(string property) => ReadValue(property,
+            t => Convert.FromBase64String((string)t));
+
+        /// <inheritdoc/>
+        public string ReadString(string property) {
+            if (!TryGetToken(property, out var token)) {
                 return null;
             }
-
-
-            if (!(token is string value)) {
-                return null;
-            }
-
-            if (Context.MaxStringLength > 0 && Context.MaxStringLength < value.Length) {
-                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded);
-            }
-
-            return value;
+            return (string)token;
         }
 
-        /// <summary>
-        /// Reads a UTC date/time from the stream.
-        /// </summary>
-        public DateTime ReadDateTime(string fieldName) {
+        /// <inheritdoc/>
+        public Uuid ReadGuid(string property) {
+            if (!TryGetToken(property, out var token)) {
+                return Uuid.Empty;
+            }
+            switch (token.Type) {
+                case JTokenType.String:
+                    if (Guid.TryParse((string)token, out var guid)) {
+                        return new Uuid(guid);
+                    }
+                    return new Uuid((string)token);
+                case JTokenType.Guid:
+                    return new Uuid((Guid)token);
+                case JTokenType.Bytes:
+                    var bytes = (byte[])token;
+                    if (bytes.Length != 16) {
+                        break;
+                    }
+                    return new Uuid(new Guid((byte[])token));
+            }
+            return Uuid.Empty;
+        }
 
-            if (!ReadField(fieldName, out var token)) {
+        /// <inheritdoc/>
+        public DateTime ReadDateTime(string property) {
+            if (!TryGetToken(property, out var token)) {
                 return DateTime.MinValue;
             }
-
-            var value = token as DateTime?;
-
+            if (token.Type == JTokenType.String) {
+                return XmlConvert.ToDateTime((string)token,
+                    XmlDateTimeSerializationMode.Utc);
+            }
+            var value = token.ToObject<DateTime?>();
             if (value != null) {
                 return value.Value;
             }
-
-            if (token is string text) {
-                return XmlConvert.ToDateTime(text, XmlDateTimeSerializationMode.Utc);
-            }
-
             return DateTime.MinValue;
         }
 
-        /// <summary>
-        /// Reads a GUID from the stream.
-        /// </summary>
-        public Uuid ReadGuid(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return Uuid.Empty;
-            }
-
-
-            if (!(token is string value)) {
-                return Uuid.Empty;
-            }
-
-            return new Uuid(value);
+        /// <inheritdoc/>
+        public XmlElement ReadXmlElement(string property) {
+            return ReadValue(property, t => {
+                var bytes = t.ToObject<byte[]>();
+                if (bytes != null && bytes.Length > 0) {
+                    var document = new XmlDocument {
+                        InnerXml = Encoding.UTF8.GetString(bytes)
+                    };
+                    return document.DocumentElement;
+                }
+                return null;
+            });
         }
 
-        /// <summary>
-        /// Reads a byte string from the stream.
-        /// </summary>
-        public byte[] ReadByteString(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
+        /// <inheritdoc/>
+        public NodeId ReadNodeId(string property) {
+            if (!TryGetToken(property, out var token)) {
                 return null;
             }
-
-
-            if (!(token is string value)) {
-                return null;
+            if (token is JObject o) {
+                _stack.Push(o);
+                // Read non reversable encoding
+                var id = ReadString("Id");
+                var uri = ReadString("Uri");
+                if (string.IsNullOrEmpty(uri)) {
+                    var index = (ushort)ReadUInt32("Index");
+                    uri = Context.NamespaceUris.GetString(index);
+                }
+                _stack.Pop();
+                return NodeId.Parse(id);
             }
-
-            var bytes = Convert.FromBase64String(value);
-
-            if (Context.MaxByteStringLength > 0 && Context.MaxByteStringLength < bytes.Length) {
-                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded);
+            if (token.Type == JTokenType.String) {
+                var id = (string)token;
+                var nodeId = id.ToNodeId(Context);
+                if (!NodeId.IsNull(nodeId)) {
+                    return nodeId;
+                }
+                return NodeId.Parse(id);
             }
-
-            return bytes;
-        }
-
-        /// <summary>
-        /// Reads an XmlElement from the stream.
-        /// </summary>
-        public XmlElement ReadXmlElement(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return null;
-            }
-
-
-            if (!(token is string value)) {
-                return null;
-            }
-
-            var bytes = Convert.FromBase64String(value);
-
-            if (bytes != null && bytes.Length > 0) {
-                var document = new XmlDocument {
-                    InnerXml = Encoding.UTF8.GetString(bytes)
-                };
-                return document.DocumentElement;
-            }
-
             return null;
         }
 
-        /// <summary>
-        /// Reads an NodeId from the stream.
-        /// </summary>
-        public NodeId ReadNodeId(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
+        /// <inheritdoc/>
+        public ExpandedNodeId ReadExpandedNodeId(string property) {
+            if (!TryGetToken(property, out var token)) {
                 return null;
             }
-
-            if (!(token is string value)) {
-                return null;
+            if (token is JObject o) {
+                _stack.Push(o);
+                // Read non reversable encoding
+                var id = ReadString("Id");
+                var uri = ReadString("Uri");
+                if (string.IsNullOrEmpty(uri)) {
+                    var index = (ushort)ReadUInt32("Index");
+                    uri = Context.NamespaceUris.GetString(index);
+                }
+                var serverIndex = (ushort)ReadUInt32("ServerIndex");
+                if (serverIndex == 0) {
+                    var server = ReadString("ServerUri");
+                    serverIndex = Context.NamespaceUris.GetIndexOrAppend(server);
+                }
+                _stack.Pop();
+                return new ExpandedNodeId(NodeId.Parse(id), uri, serverIndex);
             }
-
-            return NodeId.Parse(value);
+            if (token.Type == JTokenType.String) {
+                var id = (string)token;
+                var nodeId = id.ToExpandedNodeId(Context);
+                if (!NodeId.IsNull(nodeId)) {
+                    return nodeId;
+                }
+                return ExpandedNodeId.Parse(id);
+            }
+            return null;
         }
 
-        /// <summary>
-        /// Reads an ExpandedNodeId from the stream.
-        /// </summary>
-        public ExpandedNodeId ReadExpandedNodeId(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
-                return null;
+        /// <inheritdoc/>
+        public StatusCode ReadStatusCode(string property) {
+            if (!TryGetToken(property, out var token)) {
+                return 0;
             }
-
-
-            if (!(token is string value)) {
-                return null;
+            if (token is JObject o) {
+                _stack.Push(o);
+                // Read non reversable encoding
+                var code = new StatusCode(ReadUInt32("Code"));
+                // var status = ReadString("Symbol");
+                _stack.Pop();
+                return code;
             }
-
-            return ExpandedNodeId.Parse(value);
+            return ReadInteger(property, v =>
+                (uint)(v < uint.MinValue || v > uint.MaxValue ? 0 : v));
         }
 
-        /// <summary>
-        /// Reads an StatusCode from the stream.
-        /// </summary>
-        public StatusCode ReadStatusCode(string fieldName) {
-            return ReadUInt32(fieldName);
-        }
-
-        /// <summary>
-        /// Reads an DiagnosticInfo from the stream.
-        /// </summary>
-        public DiagnosticInfo ReadDiagnosticInfo(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
+        /// <inheritdoc/>
+        public DiagnosticInfo ReadDiagnosticInfo(string property) {
+            if (!TryGetToken(property, out var token)) {
                 return null;
             }
-
-
-            if (!(token is Dictionary<string, object> value)) {
-                return null;
-            }
-
-            // check the nesting level for avoiding a stack overflow.
-            if (_nestingLevel > Context.MaxEncodingNestingLevels) {
-                throw ServiceResultException.Create(
-                    StatusCodes.BadEncodingLimitsExceeded,
-                    "Maximum nesting level of {0} was exceeded",
-                    Context.MaxEncodingNestingLevels);
-            }
-
-            try {
-                _nestingLevel++;
-                _stack.Push(value);
-
-                var di = new DiagnosticInfo();
-
-                if (value.ContainsKey("SymbolicId")) {
-                    di.SymbolicId = ReadInt32("SymbolicId");
-                }
-
-                if (value.ContainsKey("NamespaceUri")) {
-                    di.NamespaceUri = ReadInt32("NamespaceUri");
-                }
-
-                if (value.ContainsKey("Locale")) {
-                    di.Locale = ReadInt32("Locale");
-                }
-
-                if (value.ContainsKey("LocalizedText")) {
-                    di.LocalizedText = ReadInt32("LocalizedText");
-                }
-
-                if (value.ContainsKey("AdditionalInfo")) {
-                    di.AdditionalInfo = ReadString("AdditionalInfo");
-                }
-
-                if (value.ContainsKey("InnerStatusCode")) {
-                    di.InnerStatusCode = ReadStatusCode("InnerStatusCode");
-                }
-
-                if (value.ContainsKey("InnerDiagnosticInfo")) {
-                    di.InnerDiagnosticInfo = ReadDiagnosticInfo("InnerDiagnosticInfo");
-                }
-
+            if (token is JObject o) {
+                _stack.Push(o);
+                var di = new DiagnosticInfo {
+                    SymbolicId = ReadInt32(
+                        "SymbolicId"),
+                    NamespaceUri = ReadInt32(
+                        "NamespaceUri"),
+                    Locale = ReadInt32(
+                        "Locale"),
+                    LocalizedText = ReadInt32(
+                        "LocalizedText"),
+                    AdditionalInfo = ReadString(
+                        "AdditionalInfo"),
+                    InnerStatusCode = ReadStatusCode(
+                        "InnerStatusCode"),
+                    InnerDiagnosticInfo = ReadDiagnosticInfo(
+                        "InnerDiagnosticInfo")
+                };
+                _stack.Pop();
                 return di;
             }
-            finally {
-                _nestingLevel--;
-                _stack.Pop();
-            }
+            return null;
         }
 
-        /// <summary>
-        /// Reads an QualifiedName from the stream.
-        /// </summary>
-        public QualifiedName ReadQualifiedName(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
+        /// <inheritdoc/>
+        public QualifiedName ReadQualifiedName(string property) {
+            if (!TryGetToken(property, out var token)) {
                 return null;
             }
-
-            if (!(token is Dictionary<string, object> value)) {
-                if (token is string name) {
-                    return new QualifiedName(name, 0);
+            if (token is JObject o) {
+                _stack.Push(o);
+                try {
+                    var name = ReadString("Name");
+                    if (string.IsNullOrEmpty(name)) {
+                        return null;
+                    }
+                    var index = 0u;
+                    if (TryGetToken("Uri", out var uri)) {
+                        if (uri.Type == JTokenType.Integer) {
+                            index = (uint)uri;
+                        }
+                        else if (uri.Type == JTokenType.String) {
+                            // Reversible
+                            index = Context.NamespaceUris
+                                .GetIndexOrAppend((string)uri);
+                        }
+                        else {
+                            // Bad uri
+                            return null;
+                        }
+                    }
+                    else {
+                        index = ReadUInt32("Index");
+                    }
+                    return new QualifiedName(name, (ushort)index);
                 }
-                return null;
+                finally {
+                    _stack.Pop();
+                }
             }
-
-            try {
-                _stack.Push(value);
-
-                var name = ReadString("Name");
-                var namespaceIndex = ReadUInt16("Uri");
-
-                return new QualifiedName(name, namespaceIndex);
-            }
-            finally {
-                _stack.Pop();
-            }
+            return null;
         }
 
-        /// <summary>
-        /// Reads an LocalizedText from the stream.
-        /// </summary>
-        public LocalizedText ReadLocalizedText(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
+        /// <inheritdoc/>
+        public LocalizedText ReadLocalizedText(string property) {
+            if (!TryGetToken(property, out var token)) {
                 return null;
             }
-
-            string locale = null;
-            string text = null;
-
-            if (!(token is Dictionary<string, object> value)) {
-                text = token as string;
-
-                if (text != null) {
+            if (token is JObject o) {
+                _stack.Push(o);
+                var text = ReadString("Text");
+                var locale = ReadString("Locale");
+                _stack.Pop();
+                return new LocalizedText(locale, text);
+            }
+            if (token.Type == JTokenType.String) {
+                // Non reversible or locale was null
+                var text = (string)token;
+                if (!string.IsNullOrEmpty(text)) {
                     return new LocalizedText(text);
                 }
-
-                return null;
             }
-
-            try {
-                _stack.Push(value);
-
-                if (value.ContainsKey("Locale")) {
-                    locale = ReadString("Locale");
-                }
-
-                if (value.ContainsKey("Text")) {
-                    text = ReadString("Text");
-                }
-            }
-            finally {
-                _stack.Pop();
-            }
-
-            return new LocalizedText(locale, text);
+            return null;
         }
 
-        private Variant ReadVariantBody(string fieldName, BuiltInType type) {
-            switch (type) {
-                case BuiltInType.Boolean: { return new Variant(ReadBoolean(fieldName), TypeInfo.Scalars.Boolean); }
-                case BuiltInType.SByte: { return new Variant(ReadSByte(fieldName), TypeInfo.Scalars.SByte); }
-                case BuiltInType.Byte: { return new Variant(ReadByte(fieldName), TypeInfo.Scalars.Byte); }
-                case BuiltInType.Int16: { return new Variant(ReadInt16(fieldName), TypeInfo.Scalars.Int16); }
-                case BuiltInType.UInt16: { return new Variant(ReadUInt16(fieldName), TypeInfo.Scalars.UInt16); }
-                case BuiltInType.Int32: { return new Variant(ReadInt32(fieldName), TypeInfo.Scalars.Int32); }
-                case BuiltInType.UInt32: { return new Variant(ReadUInt32(fieldName), TypeInfo.Scalars.UInt32); }
-                case BuiltInType.Int64: { return new Variant(ReadInt64(fieldName), TypeInfo.Scalars.Int64); }
-                case BuiltInType.UInt64: { return new Variant(ReadUInt64(fieldName), TypeInfo.Scalars.UInt64); }
-                case BuiltInType.Float: { return new Variant(ReadFloat(fieldName), TypeInfo.Scalars.Float); }
-                case BuiltInType.Double: { return new Variant(ReadDouble(fieldName), TypeInfo.Scalars.Double); }
-                case BuiltInType.String: { return new Variant(ReadString(fieldName), TypeInfo.Scalars.String); }
-                case BuiltInType.ByteString: { return new Variant(ReadByteString(fieldName), TypeInfo.Scalars.ByteString); }
-                case BuiltInType.DateTime: { return new Variant(ReadDateTime(fieldName), TypeInfo.Scalars.DateTime); }
-                case BuiltInType.Guid: { return new Variant(ReadGuid(fieldName), TypeInfo.Scalars.Guid); }
-                case BuiltInType.NodeId: { return new Variant(ReadNodeId(fieldName), TypeInfo.Scalars.NodeId); }
-                case BuiltInType.ExpandedNodeId: { return new Variant(ReadExpandedNodeId(fieldName), TypeInfo.Scalars.ExpandedNodeId); }
-                case BuiltInType.QualifiedName: { return new Variant(ReadQualifiedName(fieldName), TypeInfo.Scalars.QualifiedName); }
-                case BuiltInType.LocalizedText: { return new Variant(ReadLocalizedText(fieldName), TypeInfo.Scalars.LocalizedText); }
-                case BuiltInType.StatusCode: { return new Variant(ReadStatusCode(fieldName), TypeInfo.Scalars.StatusCode); }
-                case BuiltInType.XmlElement: { return new Variant(ReadXmlElement(fieldName), TypeInfo.Scalars.XmlElement); }
-                case BuiltInType.ExtensionObject: { return new Variant(ReadExtensionObject(fieldName), TypeInfo.Scalars.ExtensionObject); }
-                case BuiltInType.Variant: { return new Variant(ReadVariant(fieldName), TypeInfo.Scalars.Variant); }
-            }
-
-            return Variant.Null;
-        }
-
-        private Variant ReadVariantArrayBody(string fieldName, BuiltInType type) {
-            switch (type) {
-                case BuiltInType.Boolean: { return new Variant(ReadBooleanArray(fieldName), TypeInfo.Arrays.Boolean); }
-                case BuiltInType.SByte: { return new Variant(ReadSByteArray(fieldName), TypeInfo.Arrays.SByte); }
-                case BuiltInType.Byte: { return new Variant(ReadByteArray(fieldName), TypeInfo.Arrays.Byte); }
-                case BuiltInType.Int16: { return new Variant(ReadInt16Array(fieldName), TypeInfo.Arrays.Int16); }
-                case BuiltInType.UInt16: { return new Variant(ReadUInt16Array(fieldName), TypeInfo.Arrays.UInt16); }
-                case BuiltInType.Int32: { return new Variant(ReadInt32Array(fieldName), TypeInfo.Arrays.Int32); }
-                case BuiltInType.UInt32: { return new Variant(ReadUInt32Array(fieldName), TypeInfo.Arrays.UInt32); }
-                case BuiltInType.Int64: { return new Variant(ReadInt64Array(fieldName), TypeInfo.Arrays.Int64); }
-                case BuiltInType.UInt64: { return new Variant(ReadUInt64Array(fieldName), TypeInfo.Arrays.UInt64); }
-                case BuiltInType.Float: { return new Variant(ReadFloatArray(fieldName), TypeInfo.Arrays.Float); }
-                case BuiltInType.Double: { return new Variant(ReadDoubleArray(fieldName), TypeInfo.Arrays.Double); }
-                case BuiltInType.String: { return new Variant(ReadStringArray(fieldName), TypeInfo.Arrays.String); }
-                case BuiltInType.ByteString: { return new Variant(ReadByteStringArray(fieldName), TypeInfo.Arrays.ByteString); }
-                case BuiltInType.DateTime: { return new Variant(ReadDateTimeArray(fieldName), TypeInfo.Arrays.DateTime); }
-                case BuiltInType.Guid: { return new Variant(ReadGuidArray(fieldName), TypeInfo.Arrays.Guid); }
-                case BuiltInType.NodeId: { return new Variant(ReadNodeIdArray(fieldName), TypeInfo.Arrays.NodeId); }
-                case BuiltInType.ExpandedNodeId: { return new Variant(ReadExpandedNodeIdArray(fieldName), TypeInfo.Arrays.ExpandedNodeId); }
-                case BuiltInType.QualifiedName: { return new Variant(ReadQualifiedNameArray(fieldName), TypeInfo.Arrays.QualifiedName); }
-                case BuiltInType.LocalizedText: { return new Variant(ReadLocalizedTextArray(fieldName), TypeInfo.Arrays.LocalizedText); }
-                case BuiltInType.StatusCode: { return new Variant(ReadStatusCodeArray(fieldName), TypeInfo.Arrays.StatusCode); }
-                case BuiltInType.XmlElement: { return new Variant(ReadXmlElementArray(fieldName), TypeInfo.Arrays.XmlElement); }
-                case BuiltInType.ExtensionObject: { return new Variant(ReadExtensionObjectArray(fieldName), TypeInfo.Arrays.ExtensionObject); }
-                case BuiltInType.Variant: { return new Variant(ReadVariantArray(fieldName), TypeInfo.Arrays.Variant); }
-            }
-
-            return Variant.Null;
-        }
-
-        /// <summary>
-        /// Reads an Variant from the stream.
-        /// </summary>
-        public Variant ReadVariant(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
+        /// <inheritdoc/>
+        public Variant ReadVariant(string property) {
+            if (!TryGetToken(property, out var token)) {
                 return Variant.Null;
             }
-
-
-            if (!(token is Dictionary<string, object> value)) {
-                return Variant.Null;
-            }
-
-            // check the nesting level for avoiding a stack overflow.
-            if (_nestingLevel > Context.MaxEncodingNestingLevels) {
-                throw ServiceResultException.Create(
-                    StatusCodes.BadEncodingLimitsExceeded,
-                    "Maximum nesting level of {0} was exceeded",
-                    Context.MaxEncodingNestingLevels);
-            }
-            try {
-                _nestingLevel++;
-                _stack.Push(value);
-
+            if (token is JObject o) {
+                _stack.Push(o);
                 var type = (BuiltInType)ReadByte("Type");
-
-                var context = _stack.Peek() as Dictionary<string, object>;
-                if (!context.TryGetValue("Body", out token)) {
-                    return Variant.Null;
-                }
-
-                if (token is ICollection) {
-                    var array = ReadVariantArrayBody("Body", type);
-                    var dimensions = ReadInt32Array("Dimensions");
-
-                    if (array.Value is ICollection && dimensions != null && dimensions.Count > 1) {
-                        array = new Variant(new Matrix((Array)array.Value, type, dimensions.ToArray()));
-                    }
-
-                    return array;
-                }
-                else {
-                    return ReadVariantBody("Body", type);
-                }
-            }
-            finally {
-                _nestingLevel--;
+                var variant = ReadVariantBody("Body", type);
                 _stack.Pop();
+                return variant;
             }
+            return ReadVariantFromToken(token);
         }
 
-        /// <summary>
-        /// Reads an DataValue from the stream.
-        /// </summary>
-        public DataValue ReadDataValue(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
+        /// <inheritdoc/>
+        public DataValue ReadDataValue(string property) {
+            if (!TryGetToken(property, out var token)) {
                 return null;
             }
-
-
-            if (!(token is Dictionary<string, object> value)) {
-                return null;
-            }
-
-            var dv = new DataValue();
-
-            try {
-                _stack.Push(value);
-
-                dv.WrappedValue = ReadVariant("Value");
-                dv.StatusCode = ReadStatusCode("StatusCode");
-                dv.SourceTimestamp = ReadDateTime("SourceTimestamp");
-                dv.SourcePicoseconds = ReadUInt16("SourcePicoseconds");
-                dv.ServerTimestamp = ReadDateTime("ServerTimestamp");
-                dv.ServerPicoseconds = ReadUInt16("ServerPicoseconds");
-            }
-            finally {
+            if (token is JObject o && o.ContainsKey("Value")) {
+                _stack.Push(o);
+                var dv = new DataValue {
+                    WrappedValue = ReadVariant("Value"),
+                    StatusCode = ReadStatusCode("StatusCode"),
+                    SourceTimestamp = ReadDateTime("SourceTimestamp"),
+                    SourcePicoseconds = ReadUInt16("SourcePicoseconds"),
+                    ServerTimestamp = ReadDateTime("ServerTimestamp"),
+                    ServerPicoseconds = ReadUInt16("ServerPicoseconds")
+                };
                 _stack.Pop();
+                return dv;
             }
-
-            return dv;
-        }
-
-        private void EncodeAsJson(JsonTextWriter writer, object value) {
-
-            if (value is Dictionary<string, object> map) {
-                EncodeAsJson(writer, map);
-                return;
-            }
-
-
-            if (value is List<object> list) {
-                writer.WriteStartArray();
-
-                foreach (var element in list) {
-                    EncodeAsJson(writer, element);
-                }
-
-                writer.WriteStartArray();
-                return;
-            }
-
-            writer.WriteValue(value);
-        }
-
-        private void EncodeAsJson(JsonTextWriter writer, Dictionary<string, object> value) {
-            writer.WriteStartObject();
-
-            foreach (var field in value) {
-                writer.WritePropertyName(field.Key);
-                EncodeAsJson(writer, field.Value);
-            }
-
-            writer.WriteEndObject();
-        }
-
-        /// <summary>
-        /// Reads an extension object from the stream.
-        /// </summary>
-        public ExtensionObject ReadExtensionObject(string fieldName) {
-
-            if (!ReadField(fieldName, out var token)) {
+            var variant = ReadVariant(property);
+            if (variant == Variant.Null) {
                 return null;
             }
+            return new DataValue(variant);
+        }
 
-
-            if (!(token is Dictionary<string, object> value)) {
+        /// <inheritdoc/>
+        public ExtensionObject ReadExtensionObject(string property) {
+            if (!TryGetToken(property, out var token)) {
                 return null;
             }
-
-            try {
-                _stack.Push(value);
+            if (token is JObject o) {
+                ExtensionObject extensionObject = null;
+                _stack.Push(o);
 
                 var typeId = ReadNodeId("TypeId");
-
-                var absoluteId = NodeId.ToExpandedNodeId(typeId, Context.NamespaceUris);
-
-                if (!NodeId.IsNull(typeId) && NodeId.IsNull(absoluteId)) {
-                    Utils.Trace("Cannot de-serialized extension objects if the NamespaceUri is not in the NamespaceTable: Type = {0}", typeId);
-                }
-
-                var encoding = ReadByte("Encoding");
-
-                if (encoding == 1) {
-                    var bytes = ReadByteString("Body");
-                    return new ExtensionObject(typeId, bytes);
-                }
-
-                if (encoding == 2) {
-                    var xml = ReadXmlElement("Body");
-                    return new ExtensionObject(typeId, xml);
-                }
-
                 var systemType = Context.Factory.GetSystemType(typeId);
-
                 if (systemType != null) {
+                    // We know this one - first try decode it as encodeable from json
                     var encodeable = ReadEncodeable("Body", systemType);
-                    return new ExtensionObject(typeId, encodeable);
+                    if (encodeable != null) {
+                        extensionObject = new ExtensionObject(typeId, encodeable);
+                    }
                 }
-
-                var ostrm = new MemoryStream();
-
-                using (var writer = new JsonTextWriter(new StreamWriter(ostrm))) {
-                    EncodeAsJson(writer, token);
+                if (extensionObject == null) {
+                    var encoding = ReadByte("Encoding");
+                    switch ((ExtensionObjectEncoding)encoding) {
+                        case ExtensionObjectEncoding.Xml:
+                            var xml = ReadXmlElement("Body");
+                            if (xml != null) {
+                                extensionObject = new ExtensionObject(typeId, xml);
+                            }
+                            break;
+                        case ExtensionObjectEncoding.Json:
+                            if (TryGetToken("Body", out var j)) {
+                                extensionObject = new ExtensionObject(typeId, j.ToString());
+                            }
+                            break;
+                        case ExtensionObjectEncoding.Binary:
+                            var bytes = ReadByteString("Body");
+                            if (bytes != null) {
+                                extensionObject = new ExtensionObject(typeId, bytes);
+                            }
+                            break;
+                    }
                 }
-
-                return new ExtensionObject(typeId, ostrm.ToArray());
-            }
-            finally {
                 _stack.Pop();
+                return extensionObject;
             }
+            return null;
         }
 
-        /// <summary>
-        /// Reads an encodeable object from the stream.
-        /// </summary>
-        public IEncodeable ReadEncodeable(
-            string fieldName,
-            Type systemType) {
+        /// <inheritdoc/>
+        public IEncodeable ReadEncodeable(string property, Type systemType) {
             if (systemType == null) {
                 throw new ArgumentNullException(nameof(systemType));
             }
-
-
-            if (!ReadField(fieldName, out var token)) {
+            if (!TryGetToken(property, out var token)) {
                 return null;
             }
-
-
             if (!(Activator.CreateInstance(systemType) is IEncodeable value)) {
-                throw new ServiceResultException(StatusCodes.BadDecodingError, Utils.Format("Type does not support IEncodeable interface: '{0}'", systemType.FullName));
+                return null;
             }
-
-            // check the nesting level for avoiding a stack overflow.
-            if (_nestingLevel > Context.MaxEncodingNestingLevels) {
-                throw ServiceResultException.Create(
-                    StatusCodes.BadEncodingLimitsExceeded,
-                    "Maximum nesting level of {0} was exceeded",
-                    Context.MaxEncodingNestingLevels);
+            if (token is JObject o) {
+                _stack.Push(o);
+                value.Decode(this);
+                _stack.Pop();
+                return value;
             }
+            return null; // or value?
+        }
 
-            _nestingLevel++;
+        /// <inheritdoc/>
+        public Enum ReadEnumerated(string property, Type enumType) {
+            if (enumType == null) {
+                throw new ArgumentNullException(nameof(enumType));
+            }
+            if (!TryGetToken(property, out var token)) {
+                return (Enum)Enum.ToObject(enumType, 0); // or null?
+            }
+            if (token.Type == JTokenType.String) {
+                var val = (string)token;
+                var index = val.LastIndexOf('_');
+                if (index != -1 && int.TryParse(val.Substring(index + 1),
+                    out var numeric)) {
+                    return (Enum)Enum.ToObject(enumType, numeric);
+                }
+                return (Enum)Enum.Parse(enumType, val, true);
+            }
+            if (token.Type == JTokenType.Integer) {
+                return (Enum)Enum.ToObject(enumType, (int)token);
+            }
+            return null;
+        }
 
+        /// <inheritdoc/>
+        public BooleanCollection ReadBooleanArray(string property) =>
+            ReadArray(property, () => ReadBoolean(null));
+
+        /// <inheritdoc/>
+        public SByteCollection ReadSByteArray(string property) =>
+            ReadArray(property, () => ReadSByte(null));
+
+        /// <inheritdoc/>
+        public ByteCollection ReadByteArray(string property) =>
+            ReadArray(property, () => ReadByte(null));
+
+        /// <inheritdoc/>
+        public Int16Collection ReadInt16Array(string property) =>
+            ReadArray(property, () => ReadInt16(null));
+
+        /// <inheritdoc/>
+        public UInt16Collection ReadUInt16Array(string property) =>
+            ReadArray(property, () => ReadUInt16(null));
+
+        /// <inheritdoc/>
+        public Int32Collection ReadInt32Array(string property) =>
+            ReadArray(property, () => ReadInt32(null));
+
+        /// <inheritdoc/>
+        public UInt32Collection ReadUInt32Array(string property) =>
+            ReadArray(property, () => ReadUInt32(null));
+
+        /// <inheritdoc/>
+        public Int64Collection ReadInt64Array(string property) =>
+            ReadArray(property, () => ReadInt64(null));
+
+        /// <inheritdoc/>
+        public UInt64Collection ReadUInt64Array(string property) =>
+            ReadArray(property, () => ReadUInt64(null));
+
+        /// <inheritdoc/>
+        public FloatCollection ReadFloatArray(string property) =>
+            ReadArray(property, () => ReadFloat(null));
+
+        /// <inheritdoc/>
+        public DoubleCollection ReadDoubleArray(string property) =>
+            ReadArray(property, () => ReadDouble(null));
+
+        /// <inheritdoc/>
+        public StringCollection ReadStringArray(string property) =>
+            ReadArray(property, () => ReadString(null));
+
+        /// <inheritdoc/>
+        public DateTimeCollection ReadDateTimeArray(string property) =>
+            ReadArray(property, () => ReadDateTime(null));
+
+        /// <inheritdoc/>
+        public UuidCollection ReadGuidArray(string property) =>
+            ReadArray(property, () => ReadGuid(null));
+
+        /// <inheritdoc/>
+        public ByteStringCollection ReadByteStringArray(string property) =>
+            ReadArray(property, () => ReadByteString(null));
+
+        /// <inheritdoc/>
+        public XmlElementCollection ReadXmlElementArray(string property) =>
+            ReadArray(property, () => ReadXmlElement(null));
+
+        /// <inheritdoc/>
+        public NodeIdCollection ReadNodeIdArray(string property) =>
+            ReadArray(property, () => ReadNodeId(null));
+
+        /// <inheritdoc/>
+        public ExpandedNodeIdCollection ReadExpandedNodeIdArray(string property) =>
+            ReadArray(property, () => ReadExpandedNodeId(null));
+
+        /// <inheritdoc/>
+        public StatusCodeCollection ReadStatusCodeArray(string property) =>
+            ReadArray(property, () => ReadStatusCode(null));
+
+        /// <inheritdoc/>
+        public DiagnosticInfoCollection ReadDiagnosticInfoArray(string property) =>
+            ReadArray(property, () => ReadDiagnosticInfo(null));
+
+        /// <inheritdoc/>
+        public QualifiedNameCollection ReadQualifiedNameArray(string property) =>
+            ReadArray(property, () => ReadQualifiedName(null));
+
+        /// <inheritdoc/>
+        public LocalizedTextCollection ReadLocalizedTextArray(string property) =>
+            ReadArray(property, () => ReadLocalizedText(null));
+
+        /// <inheritdoc/>
+        public VariantCollection ReadVariantArray(string property) =>
+            ReadArray(property, () => ReadVariant(null));
+
+        /// <inheritdoc/>
+        public DataValueCollection ReadDataValueArray(string property) =>
+            ReadArray(property, () => ReadDataValue(null));
+
+        /// <inheritdoc/>
+        public ExtensionObjectCollection ReadExtensionObjectArray(string property) =>
+            ReadArray(property, () => ReadExtensionObject(null));
+
+        /// <inheritdoc/>
+        public Array ReadEncodeableArray(string property, Type systemType) {
+            var values = ReadArray(property, () => ReadEncodeable(null, systemType))?
+                .ToList();
+            if (values == null) {
+                return null;
+            }
+            var array = Array.CreateInstance(systemType, values.Count);
+            values.CopyTo((IEncodeable[])array);
+            return array;
+        }
+
+        /// <inheritdoc/>
+        public Array ReadEnumeratedArray(string property, Type enumType) {
+            var values = ReadArray(property, () => ReadEnumerated(null, enumType))?
+                .ToList();
+            if (values == null) {
+                return null;
+            }
+            var array = Array.CreateInstance(enumType, values.Count);
+            values.CopyTo((Enum[])array);
+            return array;
+        }
+
+        /// <summary>
+        /// Read integer
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="property"></param>
+        /// <param name="convert"></param>
+        /// <returns></returns>
+        private T ReadInteger<T>(string property, Func<long, T> convert) {
+            if (!TryGetToken(property, out var token)) {
+                return default(T);
+            }
+            return convert(token.ToObject<long>());
+        }
+
+        /// <summary>
+        /// Read double
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="property"></param>
+        /// <param name="convert"></param>
+        /// <returns></returns>
+        private T ReadDouble<T>(string property, Func<double, T> convert) {
+            if (!TryGetToken(property, out var token)) {
+                return default(T);
+            }
+            return convert(token.ToObject<double>());
+        }
+
+        /// <summary>
+        /// Convert a token to variant
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        private static Variant ReadVariantFromToken(JToken token) {
+            try {
+                switch (token.Type) {
+                    case JTokenType.Integer:
+                        return new Variant((long)token);
+                    case JTokenType.Boolean:
+                        return new Variant((bool)token);
+                    case JTokenType.Bytes:
+                        return new Variant((byte[])token);
+                    case JTokenType.Date:
+                        return new Variant((DateTime)token);
+                    case JTokenType.TimeSpan:
+                        return new Variant(((TimeSpan)token).TotalMilliseconds);
+                    case JTokenType.Float:
+                        return new Variant((double)token);
+                    case JTokenType.Guid:
+                        return new Variant((Guid)token);
+                    case JTokenType.String:
+                        return new Variant((string)token);
+                    case JTokenType.Object:
+                        return new Variant(((JObject)token).ToObject<XmlElement>());
+                    case JTokenType.Array:
+                        return ReadVariantFromToken((JArray)token);
+                    default:
+                        return Variant.Null;
+                }
+            }
+            catch {
+                return Variant.Null; // Give up
+            }
+        }
+
+        /// <summary>
+        /// Read variant from token
+        /// </summary>
+        /// <param name="array"></param>
+        /// <returns></returns>
+        private static Variant ReadVariantFromToken(JArray array) {
+            if (array.Count == 0) {
+                return Variant.Null; // Give up
+            }
+            try {
+                switch (array[0].Type) {
+                    case JTokenType.Integer:
+                        return new Variant(array
+                            .Select(t => (long)t)
+                            .ToArray());
+                    case JTokenType.Boolean:
+                        return new Variant(array
+                            .Select(t => (bool)t)
+                            .ToArray());
+                    case JTokenType.Bytes:
+                        return new Variant(array
+                            .Select(t => (byte[])t)
+                            .ToArray());
+                    case JTokenType.Date:
+                        return new Variant(array
+                            .Select(t => (DateTime)t)
+                            .ToArray());
+                    case JTokenType.TimeSpan:
+                        return new Variant(array
+                            .Select(t => ((TimeSpan)t).TotalMilliseconds)
+                            .ToArray());
+                    case JTokenType.Float:
+                        return new Variant(array
+                            .Select(t => (double)t)
+                            .ToArray());
+                    case JTokenType.Guid:
+                        return new Variant(array
+                            .Select(t => (Guid)t)
+                            .ToArray());
+                    case JTokenType.String:
+                        return new Variant(array
+                            .Select(t => (string)t)
+                            .ToArray());
+                    case JTokenType.Object:
+                        return new Variant(array
+                            .Select(t => ((JObject)t).ToObject<XmlElement>())
+                            .ToArray());
+                    default:
+                        return Variant.Null;
+                }
+            }
+            catch {
+                return Variant.Null; // Give up
+            }
+        }
+
+        /// <summary>
+        /// Read variant body
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private Variant ReadVariantBody(string property, BuiltInType type) {
+            if (!TryGetToken(property, out var token)) {
+                return Variant.Null;
+            }
+            if (token is JArray a) {
+                // Body is array - read object dimensions if any
+                var dimensions = ReadInt32Array("Dimensions");
+
+                // Read body as array
+                var array = ReadVariantArrayBody(property, type);
+
+                if (array.Value is ICollection && dimensions != null &&
+                    dimensions.Count > 1) {
+                    array = new Variant(new Matrix((Array)array.Value,
+                        type, dimensions.ToArray()));
+                }
+                return array;
+            }
+            switch (type) {
+                case BuiltInType.Boolean:
+                    return new Variant(ReadBoolean(property),
+                        TypeInfo.Scalars.Boolean);
+                case BuiltInType.SByte:
+                    return new Variant(ReadSByte(property),
+                        TypeInfo.Scalars.SByte);
+                case BuiltInType.Byte:
+                    return new Variant(ReadByte(property),
+                        TypeInfo.Scalars.Byte);
+                case BuiltInType.Int16:
+                    return new Variant(ReadInt16(property),
+                        TypeInfo.Scalars.Int16);
+                case BuiltInType.UInt16:
+                    return new Variant(ReadUInt16(property),
+                        TypeInfo.Scalars.UInt16);
+                case BuiltInType.Int32:
+                    return new Variant(ReadInt32(property),
+                        TypeInfo.Scalars.Int32);
+                case BuiltInType.UInt32:
+                    return new Variant(ReadUInt32(property),
+                        TypeInfo.Scalars.UInt32);
+                case BuiltInType.Int64:
+                    return new Variant(ReadInt64(property),
+                        TypeInfo.Scalars.Int64);
+                case BuiltInType.UInt64:
+                    return new Variant(ReadUInt64(property),
+                        TypeInfo.Scalars.UInt64);
+                case BuiltInType.Float:
+                    return new Variant(ReadFloat(property),
+                        TypeInfo.Scalars.Float);
+                case BuiltInType.Double:
+                    return new Variant(ReadDouble(property),
+                        TypeInfo.Scalars.Double);
+                case BuiltInType.String:
+                    return new Variant(ReadString(property),
+                        TypeInfo.Scalars.String);
+                case BuiltInType.ByteString:
+                    return new Variant(ReadByteString(property),
+                        TypeInfo.Scalars.ByteString);
+                case BuiltInType.DateTime:
+                    return new Variant(ReadDateTime(property),
+                        TypeInfo.Scalars.DateTime);
+                case BuiltInType.Guid:
+                    return new Variant(ReadGuid(property),
+                        TypeInfo.Scalars.Guid);
+                case BuiltInType.NodeId:
+                    return new Variant(ReadNodeId(property),
+                        TypeInfo.Scalars.NodeId);
+                case BuiltInType.ExpandedNodeId:
+                    return new Variant(ReadExpandedNodeId(property),
+                        TypeInfo.Scalars.ExpandedNodeId);
+                case BuiltInType.QualifiedName:
+                    return new Variant(ReadQualifiedName(property),
+                        TypeInfo.Scalars.QualifiedName);
+                case BuiltInType.LocalizedText:
+                    return new Variant(ReadLocalizedText(property),
+                        TypeInfo.Scalars.LocalizedText);
+                case BuiltInType.StatusCode:
+                    return new Variant(ReadStatusCode(property),
+                        TypeInfo.Scalars.StatusCode);
+                case BuiltInType.XmlElement:
+                    return new Variant(ReadXmlElement(property),
+                        TypeInfo.Scalars.XmlElement);
+                case BuiltInType.ExtensionObject:
+                    return new Variant(ReadExtensionObject(property),
+                        TypeInfo.Scalars.ExtensionObject);
+                case BuiltInType.Variant:
+                    return new Variant(ReadVariant(property),
+                        TypeInfo.Scalars.Variant);
+                default:
+                    return Variant.Null;
+            }
+        }
+
+        /// <summary>
+        /// Read variant array
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private Variant ReadVariantArrayBody(string property, BuiltInType type) {
+            switch (type) {
+                case BuiltInType.Boolean:
+                    return new Variant(ReadBooleanArray(property),
+                        TypeInfo.Arrays.Boolean);
+                case BuiltInType.SByte:
+                    return new Variant(ReadSByteArray(property),
+                        TypeInfo.Arrays.SByte);
+                case BuiltInType.Byte:
+                    return new Variant(ReadByteArray(property),
+                        TypeInfo.Arrays.Byte);
+                case BuiltInType.Int16:
+                    return new Variant(ReadInt16Array(property),
+                        TypeInfo.Arrays.Int16);
+                case BuiltInType.UInt16:
+                    return new Variant(ReadUInt16Array(property),
+                        TypeInfo.Arrays.UInt16);
+                case BuiltInType.Int32:
+                    return new Variant(ReadInt32Array(property),
+                        TypeInfo.Arrays.Int32);
+                case BuiltInType.UInt32:
+                    return new Variant(ReadUInt32Array(property),
+                        TypeInfo.Arrays.UInt32);
+                case BuiltInType.Int64:
+                    return new Variant(ReadInt64Array(property),
+                        TypeInfo.Arrays.Int64);
+                case BuiltInType.UInt64:
+                    return new Variant(ReadUInt64Array(property),
+                        TypeInfo.Arrays.UInt64);
+                case BuiltInType.Float:
+                    return new Variant(ReadFloatArray(property),
+                        TypeInfo.Arrays.Float);
+                case BuiltInType.Double:
+                    return new Variant(ReadDoubleArray(property),
+                        TypeInfo.Arrays.Double);
+                case BuiltInType.String:
+                    return new Variant(ReadStringArray(property),
+                        TypeInfo.Arrays.String);
+                case BuiltInType.ByteString:
+                    return new Variant(ReadByteStringArray(property),
+                        TypeInfo.Arrays.ByteString);
+                case BuiltInType.DateTime:
+                    return new Variant(ReadDateTimeArray(property),
+                        TypeInfo.Arrays.DateTime);
+                case BuiltInType.Guid:
+                    return new Variant(ReadGuidArray(property),
+                        TypeInfo.Arrays.Guid);
+                case BuiltInType.NodeId:
+                    return new Variant(ReadNodeIdArray(property),
+                        TypeInfo.Arrays.NodeId);
+                case BuiltInType.ExpandedNodeId:
+                    return new Variant(ReadExpandedNodeIdArray(property),
+                        TypeInfo.Arrays.ExpandedNodeId);
+                case BuiltInType.QualifiedName:
+                    return new Variant(ReadQualifiedNameArray(property),
+                        TypeInfo.Arrays.QualifiedName);
+                case BuiltInType.LocalizedText:
+                    return new Variant(ReadLocalizedTextArray(property),
+                        TypeInfo.Arrays.LocalizedText);
+                case BuiltInType.StatusCode:
+                    return new Variant(ReadStatusCodeArray(property),
+                        TypeInfo.Arrays.StatusCode);
+                case BuiltInType.XmlElement:
+                    return new Variant(ReadXmlElementArray(property),
+                        TypeInfo.Arrays.XmlElement);
+                case BuiltInType.ExtensionObject:
+                    return new Variant(ReadExtensionObjectArray(property),
+                        TypeInfo.Arrays.ExtensionObject);
+                case BuiltInType.Variant:
+                    return new Variant(ReadVariantArray(property),
+                        TypeInfo.Arrays.Variant);
+                default:
+                    return Variant.Null;
+            }
+        }
+
+        /// <summary>
+        /// Read value with conversion fallback
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="property"></param>
+        /// <param name="fallback"></param>
+        /// <returns></returns>
+        private T ReadValue<T>(string property, Func<JToken, T> fallback)
+            where T : class {
+            if (!TryGetToken(property, out var token)) {
+                return default(T);
+            }
+            var value = token.ToObject<T>();
+            if (value != null) {
+                return value;
+            }
+            try {
+                return fallback(token);
+            }
+            catch {
+                return default(T);
+            }
+        }
+
+        /// <summary>
+        /// Read array using specified element reader
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="property"></param>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        private T[] ReadArray<T>(string property, Func<T> reader) {
+            if (!TryGetToken(property, out var token)) {
+                return null;
+            }
+            if (token is JArray a) {
+                return a.Select(t => ReadToken(t, reader)).ToArray();
+            }
+            return ReadToken(token, reader).YieldReturn().ToArray();
+        }
+
+        /// <summary>
+        /// Read token using a specified reader
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="token"></param>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        private T ReadToken<T>(JToken token, Func<T> reader) {
             try {
                 _stack.Push(token);
-
-                value.Decode(this);
+                return reader();
             }
             finally {
                 _stack.Pop();
             }
-
-            _nestingLevel--;
-
-            return value;
         }
 
         /// <summary>
-        ///  Reads an enumerated value from the stream.
+        /// Try get top token or named token from object
         /// </summary>
-        public Enum ReadEnumerated(string fieldName, Type enumType) {
-            if (enumType == null) {
-                throw new ArgumentNullException(nameof(enumType));
+        /// <param name="property"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        private bool TryGetToken(string property, out JToken token) {
+            var top = _stack.Peek();
+            if (property == null) {
+                token = top;
+                return true;
             }
-
-            return (Enum)Enum.ToObject(enumType, ReadInt32(fieldName));
-        }
-
-        private bool ReadArrayField(string fieldName, out List<object> array) {
-            object token = array = null;
-
-            if (!ReadField(fieldName, out token)) {
-                return false;
+            if (top is JObject o) {
+                if (!o.TryGetValue(property, out token)) {
+                    return false;
+                }
+                switch (token.Type) {
+                    case JTokenType.Comment:
+                    case JTokenType.Constructor:
+                    case JTokenType.None:
+                    case JTokenType.Property:
+                    case JTokenType.Raw:
+                    case JTokenType.Undefined:
+                    case JTokenType.Null:
+                        return false;
+                }
+                return true;
             }
-
-            array = token as List<object>;
-
-            if (array == null) {
-                return false;
-            }
-
-            if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < array.Count) {
-                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded);
-            }
-
-            return true;
+            throw new ServiceResultException(StatusCodes.BadDecodingError,
+                "Expected object at top of stack");
         }
 
         /// <summary>
-        /// Reads a boolean array from the stream.
+        /// Works around missing object endings, etc.
         /// </summary>
-        public BooleanCollection ReadBooleanArray(string fieldName) {
-            var values = new BooleanCollection();
+        private class JsonLoader : JsonReader, IDisposable {
 
+            /// <inheritdoc/>
+            public override string Path => _reader.Path;
 
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
+            /// <inheritdoc/>
+            public override object Value => _reader.Value;
+
+            /// <inheritdoc/>
+            public override JsonToken TokenType =>
+               _eofDepth >= 0 ? JsonToken.EndObject : _reader.TokenType;
+
+            /// <inheritdoc/>
+            public override int Depth =>
+                _eofDepth >= 0 ? --_eofDepth : _reader.Depth;
+
+            /// <summary>
+            /// Create loader
+            /// </summary>
+            /// <param name="reader"></param>
+            public JsonLoader(JsonReader reader) {
+                _reader = reader;
+                _eofDepth = -1;
             }
 
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    values.Add(ReadBoolean(null));
+            /// <inheritdoc/>
+            public override bool Read() {
+                if (!_reader.Read()) {
+                    _eofDepth = Depth;
+                    return true;
                 }
-                finally {
-                    _stack.Pop();
-                }
+                return true;
             }
 
-            return values;
+            /// <inheritdoc/>
+            public void Dispose() => _reader.Close();
+
+            private readonly JsonReader _reader;
+            private int _eofDepth;
         }
 
-        /// <summary>
-        /// Reads a sbyte array from the stream.
-        /// </summary>
-        public SByteCollection ReadSByteArray(string fieldName) {
-            var values = new SByteCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    values.Add(ReadSByte(null));
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads a byte array from the stream.
-        /// </summary>
-        public ByteCollection ReadByteArray(string fieldName) {
-            var values = new ByteCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    values.Add(ReadByte(null));
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads a short array from the stream.
-        /// </summary>
-        public Int16Collection ReadInt16Array(string fieldName) {
-            var values = new Int16Collection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    values.Add(ReadInt16(null));
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads a ushort array from the stream.
-        /// </summary>
-        public UInt16Collection ReadUInt16Array(string fieldName) {
-            var values = new UInt16Collection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    values.Add(ReadUInt16(null));
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads a int array from the stream.
-        /// </summary>
-        public Int32Collection ReadInt32Array(string fieldName) {
-            var values = new Int32Collection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    values.Add(ReadInt32(null));
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads a uint array from the stream.
-        /// </summary>
-        public UInt32Collection ReadUInt32Array(string fieldName) {
-            var values = new UInt32Collection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    values.Add(ReadUInt32(null));
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads a long array from the stream.
-        /// </summary>
-        public Int64Collection ReadInt64Array(string fieldName) {
-            var values = new Int64Collection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    values.Add(ReadInt64(null));
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads a ulong array from the stream.
-        /// </summary>
-        public UInt64Collection ReadUInt64Array(string fieldName) {
-            var values = new UInt64Collection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    values.Add(ReadUInt64(null));
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads a float array from the stream.
-        /// </summary>
-        public FloatCollection ReadFloatArray(string fieldName) {
-            var values = new FloatCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    values.Add(ReadFloat(null));
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads a double array from the stream.
-        /// </summary>
-        public DoubleCollection ReadDoubleArray(string fieldName) {
-            var values = new DoubleCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    values.Add(ReadDouble(null));
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads a string array from the stream.
-        /// </summary>
-        public StringCollection ReadStringArray(string fieldName) {
-            var values = new StringCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    values.Add(ReadString(null));
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads a UTC date/time array from the stream.
-        /// </summary>
-        public DateTimeCollection ReadDateTimeArray(string fieldName) {
-            var values = new DateTimeCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    values.Add(ReadDateTime(null));
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads a GUID array from the stream.
-        /// </summary>
-        public UuidCollection ReadGuidArray(string fieldName) {
-            var values = new UuidCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadGuid(null);
-                    values.Add(element);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads a byte string array from the stream.
-        /// </summary>
-        public ByteStringCollection ReadByteStringArray(string fieldName) {
-            var values = new ByteStringCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadByteString(null);
-                    values.Add(element);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads an XmlElement array from the stream.
-        /// </summary>
-        public XmlElementCollection ReadXmlElementArray(string fieldName) {
-            var values = new XmlElementCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadXmlElement(null);
-                    values.Add(element);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads an NodeId array from the stream.
-        /// </summary>
-        public NodeIdCollection ReadNodeIdArray(string fieldName) {
-            var values = new NodeIdCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadNodeId(null);
-                    values.Add(element);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads an ExpandedNodeId array from the stream.
-        /// </summary>
-        public ExpandedNodeIdCollection ReadExpandedNodeIdArray(string fieldName) {
-            var values = new ExpandedNodeIdCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadExpandedNodeId(null);
-                    values.Add(element);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads an StatusCode array from the stream.
-        /// </summary>
-        public StatusCodeCollection ReadStatusCodeArray(string fieldName) {
-            var values = new StatusCodeCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadStatusCode(null);
-                    values.Add(element);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads an DiagnosticInfo array from the stream.
-        /// </summary>
-        public DiagnosticInfoCollection ReadDiagnosticInfoArray(string fieldName) {
-            var values = new DiagnosticInfoCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadDiagnosticInfo(null);
-                    values.Add(element);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads an QualifiedName array from the stream.
-        /// </summary>
-        public QualifiedNameCollection ReadQualifiedNameArray(string fieldName) {
-            var values = new QualifiedNameCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadQualifiedName(null);
-                    values.Add(element);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads an LocalizedText array from the stream.
-        /// </summary>
-        public LocalizedTextCollection ReadLocalizedTextArray(string fieldName) {
-            var values = new LocalizedTextCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadLocalizedText(null);
-                    values.Add(element);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads an Variant array from the stream.
-        /// </summary>
-        public VariantCollection ReadVariantArray(string fieldName) {
-            var values = new VariantCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadVariant(null);
-                    values.Add(element);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads an DataValue array from the stream.
-        /// </summary>
-        public DataValueCollection ReadDataValueArray(string fieldName) {
-            var values = new DataValueCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadDataValue(null);
-                    values.Add(element);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads an array of extension objects from the stream.
-        /// </summary>
-        public ExtensionObjectCollection ReadExtensionObjectArray(string fieldName) {
-            var values = new ExtensionObjectCollection();
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return values;
-            }
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadExtensionObject(null);
-                    values.Add(element);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads an encodeable object array from the stream.
-        /// </summary>
-        public Array ReadEncodeableArray(string fieldName, Type systemType) {
-            if (systemType == null) {
-                throw new ArgumentNullException(nameof(systemType));
-            }
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return Array.CreateInstance(systemType, 0);
-            }
-
-            var values = Array.CreateInstance(systemType, token.Count);
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadEncodeable(null, systemType);
-                    values.SetValue(element, ii);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        /// <summary>
-        /// Reads an enumerated value array from the stream.
-        /// </summary>
-        public Array ReadEnumeratedArray(string fieldName, Type enumType) {
-            if (enumType == null) {
-                throw new ArgumentNullException(nameof(enumType));
-            }
-
-
-            if (!ReadArrayField(fieldName, out var token)) {
-                return Array.CreateInstance(enumType, 0);
-            }
-
-            var values = Array.CreateInstance(enumType, token.Count);
-
-            for (var ii = 0; ii < token.Count; ii++) {
-                try {
-                    _stack.Push(token[ii]);
-                    var element = ReadEnumerated(null, enumType);
-                    values.SetValue(element, ii);
-                }
-                finally {
-                    _stack.Pop();
-                }
-            }
-
-            return values;
-        }
-
-        private JsonTextReader _reader;
-        private readonly Dictionary<string, object> _root;
-        private Stack<object> _stack;
         private ushort[] _namespaceMappings;
         private ushort[] _serverMappings;
-        private uint _nestingLevel;
+        private readonly Stack<JToken> _stack = new Stack<JToken>();
     }
 }

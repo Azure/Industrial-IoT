@@ -54,8 +54,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
             TestOpcUaServerScanner,
             TestNetworkScanner,
             TestPortScanner,
-            MakeEdgeSupervisor,
-            ClearEdgeSupervisors,
+            MakeSupervisor,
+            ClearSupervisors,
             ClearRegistry
         }
 
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
                             if (op != Op.None) {
                                 throw new ArgumentException("Operations are mutually exclusive");
                             }
-                            op = Op.MakeEdgeSupervisor;
+                            op = Op.MakeSupervisor;
                             i++;
                             if (i < args.Length) {
                                 deviceId = args[i];
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
                                     break;
                                 }
                             }
-                            throw new ArgumentException("Missing arguments to make edge device");
+                            throw new ArgumentException("Missing arguments to make iotedge device");
                         case "-e":
                         case "--export":
                             if (op != Op.None) {
@@ -129,11 +129,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
                             op = Op.ClearRegistry;
                             break;
                         case "-C":
-                        case "--clear-edge":
+                        case "--clear-supervisors":
                             if (op != Op.None) {
                                 throw new ArgumentException("Operations are mutually exclusive");
                             }
-                            op = Op.ClearEdgeSupervisors;
+                            op = Op.ClearSupervisors;
                             break;
                         case "-p":
                         case "--ports":
@@ -216,9 +216,12 @@ Operations (Mutually exclusive):
      -c
     --clear
              Clear device registry content.
+     -C
+    --clear-supervisors
+             Clear supervisors in device registry.
      -m
     --make
-             Make edge supervisor module.
+             Make supervisor module.
      -e
     --export
              Tests server model export with passed endpoint url.
@@ -252,11 +255,11 @@ Operations (Mutually exclusive):
                     case Op.TestOpcUaExportService:
                         TestOpcUaModelExportService(endpoint).Wait();
                         break;
-                    case Op.MakeEdgeSupervisor:
-                        MakeEdgeSupervisor(deviceId, moduleId).Wait();
+                    case Op.MakeSupervisor:
+                        MakeSupervisor(deviceId, moduleId).Wait();
                         break;
-                    case Op.ClearEdgeSupervisors:
-                        ClearEdgeSupervisors().Wait();
+                    case Op.ClearSupervisors:
+                        ClearSupervisors().Wait();
                         break;
                     case Op.ClearRegistry:
                         ClearRegistry().Wait();
@@ -274,10 +277,10 @@ Operations (Mutually exclusive):
         }
 
         /// <summary>
-        /// Make edge supervisor
+        /// Create supervisor module identity in device registry
         /// </summary>
         /// <returns></returns>
-        private static async Task MakeEdgeSupervisor(string deviceId, string moduleId) {
+        private static async Task MakeSupervisor(string deviceId, string moduleId) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
             var config = new IoTHubTestConfig();
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
@@ -303,7 +306,7 @@ Operations (Mutually exclusive):
         /// Clear registry
         /// </summary>
         /// <returns></returns>
-        private static async Task ClearEdgeSupervisors() {
+        private static async Task ClearSupervisors() {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
             var config = new IoTHubTestConfig();
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),

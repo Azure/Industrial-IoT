@@ -58,6 +58,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 if (NodeId.IsNull(typeId)) {
                     typeId = ReferenceTypeIds.HierarchicalReferences;
                 }
+                var view = request?.View == null ? null : new ViewDescription {
+                    ViewId = request.View.ViewId.ToNodeId(session.MessageContext),
+                    Timestamp = request.View.Timestamp ?? DateTime.MinValue,
+                    ViewVersion = request.View.Version ?? 0
+                };
                 var excludeReferences = request.MaxReferencesToReturn.HasValue &&
                     request.MaxReferencesToReturn.Value == 0;
                 var result = new BrowseResultModel();
@@ -66,12 +71,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         .ToStackType();
                     // Browse and read children
                     result.References = new List<NodeReferenceModel>();
-                    var response = session.Browse(null, null, rootId,
-                        (request.MaxReferencesToReturn ?? 0u),
+                    var response = session.Browse(
+                        null, ViewDescription.IsDefault(view) ? null : view, rootId,
+                        request.MaxReferencesToReturn ?? 0u,
                         direction, typeId, !(request?.NoSubtypes ?? false), 0,
                         out var continuationPoint, out var references);
                     result.ContinuationToken = await AddReferencesToBrowseResult(session,
-                        result.References, continuationPoint, references);
+                        request.TargetNodesOnly ?? false, result.References, continuationPoint,
+                        references);
                 }
                 // Read root node
                 result.Node = await ReadNodeModelAsync(session, rootId,
@@ -103,7 +110,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 var response = session.BrowseNext(null, request.Abort ?? false,
                     continuationPoint, out var revised, out var references);
                 result.ContinuationToken = await AddReferencesToBrowseResult(session,
-                    result.References, revised, references);
+                    request.TargetNodesOnly ?? false, result.References, revised, references);
                 return result;
             });
         }
@@ -135,7 +142,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     if (result.OutputArguments != null && result.InputArguments != null) {
                         break;
                     }
-                    var isInput = (nodeReference.BrowseName == BrowseNames.InputArguments);
+                    var isInput = nodeReference.BrowseName == BrowseNames.InputArguments;
                     if (!isInput && nodeReference.BrowseName != BrowseNames.OutputArguments) {
                         continue;
                     }
@@ -152,7 +159,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         var dataTypeIdNode = session.ReadNode(argument.DataType);
                         var arg = new MethodArgumentModel {
                             Name = argument.Name,
-                            Value = _codec.Encode(new Variant(argument.Value)),
+                            Value = _codec.Encode(new Variant(argument.Value), session.MessageContext),
                             ValueRank = argument.ValueRank,
                             ArrayDimensions = argument.ArrayDimensions.ToArray(),
                             Description = argument.Description.ToString(),
@@ -210,7 +217,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         values[0].SourcePicoseconds : (ushort?)null;
                     result.SourceTimestamp = values[0].SourceTimestamp != DateTime.MinValue ?
                         values[0].SourceTimestamp : (DateTime?)null;
-                    result.Value = _codec.Encode(values[0].WrappedValue);
+                    result.Value = _codec.Encode(values[0].WrappedValue, session.MessageContext);
                 }
                 if (diagnosticInfos != null && diagnosticInfos.Count > 0) {
                     result.Diagnostics = JToken.FromObject(diagnosticInfos[0]);
@@ -253,8 +260,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     new WriteValue {
                         NodeId = writeNode,
                         AttributeId = Attributes.Value,
-                        Value = new DataValue(_codec.Decode(
-                            request.Value?.ToString(), builtinType, request.Node.ValueRank)),
+                        Value = new DataValue(_codec.Decode(request.Value,
+                            builtinType, request.Node.ValueRank, session.MessageContext)),
                         IndexRange = null
                     }
                 };
@@ -294,7 +301,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     foreach (var arg in request.InputArguments) {
                         var builtinType = TypeInfo.GetBuiltInType(
                             arg.TypeId.ToNodeId(session.MessageContext), session.TypeTree);
-                        args.Add(_codec.Decode(arg.Value?.ToString(), builtinType, arg.ValueRank));
+                        args.Add(_codec.Decode(arg.Value, builtinType, arg.ValueRank,
+                            session.MessageContext));
                     }
                 }
                 var methodId = request.MethodId?.ToNodeId(session.MessageContext);
@@ -318,7 +326,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 if (results != null && results.Count > 0 &&
                     StatusCode.IsGood(results[0].StatusCode)) {
                     result.Results = results[0].OutputArguments
-                        .Select(_codec.Encode)
+                        .Select(v => _codec.Encode(v, session.MessageContext))
                         .ToList();
                 }
                 if (diagnosticInfos != null && diagnosticInfos.Count > 0) {
@@ -335,7 +343,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         /// <param name="nodeId"></param>
         /// <param name="children"></param>
         /// <returns></returns>
-        private static Task<NodeModel> ReadNodeModelAsync(Session session,
+        private Task<NodeModel> ReadNodeModelAsync(Session session,
             NodeId nodeId, bool? children) {
 
             var currentNode = session.ReadNode(nodeId);
@@ -344,43 +352,67 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 DisplayName = currentNode.DisplayName?.ToString(),
                 Description = currentNode.Description?.ToString(),
                 NodeClass = currentNode.NodeClass.ToServiceType(),
+                AccessRestrictions = currentNode.AccessRestrictions == 0 ?
+                    (uint?)null : currentNode.AccessRestrictions,
+                UserWriteMask = currentNode.UserWriteMask == 0 ?
+                    (uint?)null : currentNode.UserWriteMask,
+                WriteMask = currentNode.WriteMask == 0 ?
+                    (uint?)null : currentNode.WriteMask,
                 HasChildren = children
             };
             switch (currentNode) {
                 case VariableNode vn:
-                    model.AccessLevel = vn.AccessLevel.ToString();
-                    // model.UserAccessLevel = vn.UserAccessLevel.ToString();
-                    model.ValueRank = vn.ValueRank;
                     model.DataType = vn.DataType.AsString(session.MessageContext);
-                    // model.ArrayDimensions = vn.ArrayDimensions;
+                    model.ArrayDimensions = vn.ArrayDimensions == null ||
+                        vn.ArrayDimensions.Count == 0 ? null : vn.ArrayDimensions.ToArray();
+                    model.ValueRank = vn.ValueRank;
+                    model.AccessLevel = (vn.AccessLevelEx | vn.AccessLevel) == 0 ?
+                        (uint?)null : vn.AccessLevelEx | vn.AccessLevel;
+                    model.UserAccessLevel = vn.UserAccessLevel == 0 ?
+                        (uint?)null : vn.UserAccessLevel;
+                    model.Historizing = !vn.Historizing ?
+                        (bool?)null : true;
+                    model.MinimumSamplingInterval = (int)vn.MinimumSamplingInterval == 0 ?
+                        (double?)null : vn.MinimumSamplingInterval;
                     break;
                 case VariableTypeNode vtn:
-                    model.IsAbstract = vtn.IsAbstract;
-                    model.ValueRank = vtn.ValueRank;
                     model.DataType = vtn.DataType.AsString(session.MessageContext);
-                    // model.ArrayDimensions = vtn.ArrayDimensions;
-                    // model.DefaultValue = vtn.Value;
+                    model.ArrayDimensions = vtn.ArrayDimensions == null ||
+                        vtn.ArrayDimensions.Count == 0 ? null : vtn.ArrayDimensions.ToArray();
+                    model.ValueRank = vtn.ValueRank;
+                    model.IsAbstract = !vtn.IsAbstract ?
+                        (bool?)null : true;
+                    model.DefaultValue = _codec.Encode(vtn.Value, session.MessageContext);
                     break;
                 case ObjectTypeNode otn:
-                    model.IsAbstract = otn.IsAbstract;
+                    model.IsAbstract = !otn.IsAbstract ?
+                        (bool?)null : true;
                     break;
                 case ObjectNode on:
-                    model.EventNotifier = on.EventNotifier.ToString();
+                    model.EventNotifier = on.EventNotifier == 0 ?
+                        (byte?)null : on.EventNotifier;
                     break;
                 case DataTypeNode dtn:
-                    model.IsAbstract = dtn.IsAbstract;
+                    model.IsAbstract = !dtn.IsAbstract ?
+                        (bool?)null : true;
+                    model.DataTypeDefinition = dtn.DataTypeDefinition == null ? null :
+                        _codec.Encode(new Variant(dtn.DataTypeDefinition));
                     break;
                 case ReferenceTypeNode rtn:
-                    model.IsAbstract = rtn.IsAbstract;
-                    // model.InverseName = rtn.InverseName;
-                    // model.Symmetric = rtn.Symmetric;
+                    model.IsAbstract = !rtn.IsAbstract ?
+                        (bool?)null : true;
+                    model.InverseName = rtn.InverseName?.ToString();
+                    model.Symmetric = rtn.Symmetric;
                     break;
                 case ViewNode vn:
-                    model.EventNotifier = vn.EventNotifier.ToString();
-                    // model.ContainsNoLoops = vn.ContainsNoLoops;
+                    model.EventNotifier = vn.EventNotifier == 0 ?
+                        (byte?)null : vn.EventNotifier;
+                    model.ContainsNoLoops = vn.ContainsNoLoops;
                     break;
                 case MethodNode mn:
-                    model.Executable = mn.UserExecutable;
+                    model.Executable = mn.Executable;
+                    model.UserExecutable = !mn.Executable ?
+                        (bool?)null : mn.UserExecutable;
                     break;
             }
             return Task.FromResult(model);
@@ -390,34 +422,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         /// Add references
         /// </summary>
         /// <param name="session"></param>
+        /// <param name="targetNodesOnly"></param>
         /// <param name="result"></param>
         /// <param name="continuationPoint"></param>
         /// <param name="references"></param>
         /// <returns></returns>
-        private static async Task<string> AddReferencesToBrowseResult(Session session,
-            List<NodeReferenceModel> result, byte[] continuationPoint,
+        private async Task<string> AddReferencesToBrowseResult(Session session,
+            bool targetNodesOnly, List<NodeReferenceModel> result, byte[] continuationPoint,
             List<ReferenceDescription> references) {
             if (references != null) {
                 foreach (var reference in references) {
                     try {
                         var nodeId = reference.NodeId.ToNodeId(session.NamespaceUris);
-                        // Check for children
-                        bool children;
-                        try {
-                            var response = session.Browse(null, null, nodeId, 0,
-                                Opc.Ua.BrowseDirection.Forward,
-                                ReferenceTypeIds.HierarchicalReferences, true, 1,
-                                out var tmp, out var childReferences);
-                            children = (childReferences.Count != 0);
+                        if (targetNodesOnly &&
+                            result.Any(r => r.Target.Id == nodeId.AsString(session.MessageContext))) {
+                            continue;
                         }
-                        catch {
-                            children = false;
+                        // Check for children
+                        bool? children = null;
+                        try {
+                            var response = session.Browse(null, null, nodeId, 1,
+                                Opc.Ua.BrowseDirection.Forward, ReferenceTypeIds.HierarchicalReferences,
+                                true, 0, out var tmp, out var childReferences);
+                            children = childReferences.Count != 0;
+                        }
+                        catch (Exception ex) {
+                            _logger.Debug("Failed to obtain hasChildren information", () => ex);
                         }
                         var model = await ReadNodeModelAsync(session, nodeId, children);
+                        if (targetNodesOnly) {
+                            result.Add(new NodeReferenceModel { Target = model });
+                            continue;
+                        }
                         result.Add(new NodeReferenceModel {
-                            BrowseName = reference.BrowseName.ToString(),
-                            Id = reference.ReferenceTypeId.AsString(
-                                session.MessageContext),
+                            BrowseName = 
+                                reference.BrowseName.AsString(session.MessageContext),
+                            Id =
+                                reference.ReferenceTypeId.AsString(session.MessageContext),
                             Direction = reference.IsForward ?
                                 OpcUa.Models.BrowseDirection.Forward :
                                 OpcUa.Models.BrowseDirection.Backward,

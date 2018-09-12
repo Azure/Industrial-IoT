@@ -1,24 +1,25 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>Azure Industrial IoT OPC Edge side business logic</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Description>Azure Industrial IoT OPC UA Module business logic</Description>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Module.Framework\src\Microsoft.Azure.IIoT.Module.Framework.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
   <Choose>
     <When Condition="Exists('..\..\..\..\common')">
       <ItemGroup>
         <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Net.Scan\src\Microsoft.Azure.IIoT.Net.Scan.csproj" />
+        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Module.Framework\src\Microsoft.Azure.IIoT.Module.Framework.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Module.Framework" Version="1.0.0-preview005" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Net.Scan" Version="1.0.0-preview005" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Module.Framework" Version="1.0.0-preview007" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Net.Scan" Version="1.0.0-preview007" />
       </ItemGroup>
     </Otherwise>
   </Choose>

@@ -16,9 +16,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// </summary>
     public sealed class EndpointRegistration : BaseRegistration {
 
+        /// <summary>
+        /// Logical comparison of endpoint registrations
+        /// </summary>
         public static IEqualityComparer<EndpointRegistration> Logical =>
             new LogicalEquality();
 
+        /// <inheritdoc/>
         public override string DeviceType => "Endpoint";
 
         /// <summary>
@@ -351,6 +355,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Decode tags and property into registration object
         /// </summary>
         /// <param name="model"></param>
+        /// <param name="disabled"></param>
         /// <returns></returns>
         public static EndpointRegistration FromServiceModel(TwinInfoModel model,
             bool? disabled = null) {
@@ -416,11 +421,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         }
         internal bool IsInSync() => _isInSync;
 
-        /// <summary>
-        /// Pure equality
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override bool Equals(object obj) {
             var registration = obj as EndpointRegistration;
             return base.Equals(registration) &&
@@ -437,17 +438,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     registration.Validation.DecodeAsByteArray());
         }
 
+        /// <inheritdoc/>
         public static bool operator ==(EndpointRegistration r1,
             EndpointRegistration r2) =>
             EqualityComparer<EndpointRegistration>.Default.Equals(r1, r2);
+        /// <inheritdoc/>
         public static bool operator !=(EndpointRegistration r1,
             EndpointRegistration r2) =>
             !(r1 == r2);
 
-        /// <summary>
-        /// Hash code
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = base.GetHashCode();
             hashCode = hashCode * -1521134295 +

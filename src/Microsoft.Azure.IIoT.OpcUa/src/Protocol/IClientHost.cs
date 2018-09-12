@@ -7,6 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Client stack services
+    /// </summary>
     public interface IClientHost {
 
         /// <summary>

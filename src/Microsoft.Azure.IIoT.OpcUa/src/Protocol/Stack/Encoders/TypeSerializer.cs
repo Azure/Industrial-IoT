@@ -8,20 +8,18 @@ namespace Opc.Ua.Encoders {
     using System.Xml;
     using System.IO;
     using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT;
 
+    /// <summary>
+    /// Type serializer service implementation
+    /// </summary>
     public class TypeSerializer : ITypeSerializer {
-
-        public const string MimeTypeUaJson = "application/ua+json";
-        public const string MimeTypeUaNonReversibleJson = "application/json";
-        public const string MimeTypeUaBinary = "application/ua+binary";
-        public const string MimeTypeUaXml = "application/ua+xml";
-
-        public const string MimeTypeUaJsonOld = "application/ua+json+old";
 
         /// <summary>
         /// Create codec
         /// </summary>
         /// <param name="contentType"></param>
+        /// <param name="context"></param>
         public TypeSerializer(string contentType, ServiceMessageContext context) {
             MimeType = contentType;
             _context = context;
@@ -77,15 +75,16 @@ namespace Opc.Ua.Encoders {
         /// <returns></returns>
         private IDecoder CreateDecoder(string contentType, Stream stream) {
             switch (contentType.ToLowerInvariant()) {
-                case MimeTypeUaBinary:
+                case ContentEncodings.MimeTypeUaBinary:
                     return new BinaryDecoder(stream, _context);
-                case MimeTypeUaXml:
+                case ContentEncodings.MimeTypeUaXml:
                     return new XmlDecoder(null, XmlReader.Create(stream), _context);
-                case MimeTypeUaJsonOld:
+                case ContentEncodings.MimeTypeUaJsonReference:
                     return new JsonDecoder(null, new JsonTextReader(
                         new StreamReader(stream)), _context);
-                case MimeTypeUaJson:
-                case MimeTypeUaNonReversibleJson:
+                case ContentEncodings.MimeTypeUaJson:
+                case ContentEncodings.MimeTypeUaNonReversibleJson:
+                case ContentEncodings.MimeTypeUaNonReversibleJsonReference:
                     return new JsonDecoderEx(_context, new JsonTextReader(
                         new StreamReader(stream)));
                 default:
@@ -101,20 +100,22 @@ namespace Opc.Ua.Encoders {
         /// <returns></returns>
         private IEncoder CreateEncoder(string contentType, Stream stream) {
             switch (contentType.ToLowerInvariant()) {
-                case MimeTypeUaJson:
+                case ContentEncodings.MimeTypeUaJson:
                     return new JsonEncoderEx(_context, new StreamWriter(stream));
-                case MimeTypeUaJsonOld:
-                    return new JsonEncoder(_context, true, new StreamWriter(stream));
-                case MimeTypeUaNonReversibleJson:
+                case ContentEncodings.MimeTypeUaNonReversibleJson:
                     return new JsonEncoderEx(_context, new StreamWriter(stream)) {
                         UseReversibleEncoding = false
                     };
-                case MimeTypeUaBinary:
+                case ContentEncodings.MimeTypeUaJsonReference:
+                    return new JsonEncoder(_context, true, new StreamWriter(stream));
+                case ContentEncodings.MimeTypeUaNonReversibleJsonReference:
+                    return new JsonEncoder(_context, false, new StreamWriter(stream));
+                case ContentEncodings.MimeTypeUaBinary:
                     return new BinaryEncoder(stream, _context);
-                case MimeTypeUaXml:
+                case ContentEncodings.MimeTypeUaXml:
                     return new XmlEncoder(
                         new XmlQualifiedName("ua", Namespaces.OpcUaXsd),
-                        XmlWriter.Create(stream), _context);
+                            XmlWriter.Create(stream), _context);
                 default:
                     throw new ArgumentException(nameof(contentType));
             }

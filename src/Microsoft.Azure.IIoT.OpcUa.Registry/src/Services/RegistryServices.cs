@@ -29,6 +29,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// Create registry services
         /// </summary>
         /// <param name="iothub"></param>
+        /// <param name="client"></param>
+        /// <param name="logger"></param>
         public RegistryServices(IIoTHubTwinServices iothub, IHttpClient client,
             ILogger logger) {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
@@ -217,8 +219,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
 
             // Check whether to enable or disable...
-            var isEnabled = (patched.Activated ?? false);
-            var enable = (request.Activate ?? isEnabled);
+            var isEnabled = patched.Activated ?? false;
+            var enable = request.Activate ?? isEnabled;
             patched.Activated = request.Activate;
 
             // Patch
@@ -571,6 +573,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         request.DiscoveryConfig.PortProbeTimeout.Value.Ticks == 0 ?
                             null : request.DiscoveryConfig.PortProbeTimeout;
                 }
+                if (request.DiscoveryConfig.ActivationFilter != null) {
+                    patched.DiscoveryConfig.ActivationFilter =
+                        request.DiscoveryConfig.ActivationFilter.SecurityMode == null &&
+                        request.DiscoveryConfig.ActivationFilter.SecurityPolicies == null &&
+                        request.DiscoveryConfig.ActivationFilter.TrustLists == null ?
+                            null : request.DiscoveryConfig.ActivationFilter;
+                }
             }
             // Patch
             await _iothub.CreateOrUpdateAsync(SupervisorRegistration.Patch(
@@ -659,120 +668,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             while (continuation != null);
         }
 
-        //    /// <summary>
-        //    /// Process server registration requests from onboarder
-        //    /// </summary>
-        //    /// <param name="request"></param>
-        //    /// <returns></returns>
-        //    public async Task ProcessRegisterAsync(ServerRegistrationRequestModel request) {
-        //        if (request == null) {
-        //            throw new ArgumentNullException(nameof(request));
-        //        }
-        //        if (request.DiscoveryUrl == null) {
-        //            throw new ArgumentNullException(nameof(request.DiscoveryUrl));
-        //        }
-        //        var registered = new List<ApplicationRegistrationModel>();
-        //        try {
-        //            //
-        //            // Read application from supervisor using the passed in discovery url
-        //            //
-        //            var result = await _discover.DiscoverApplicationsAsync(
-        //                new Uri(request.DiscoveryUrl));
-        //            foreach (var discovered in result.Found) {
-        //                Debug.Assert(discovered.Application.SupervisorId != null);
-        //
-        //                var endpoints = Enumerable.Empty<OpcUaEndpointRegistration>();
-        //                var application = new OpcUaApplicationRegistration();
-        //
-        //                //
-        //                // See if already something registered in this form
-        //                //
-        //                var existing = await _iothub.QueryDeviceTwinsAsync(
-        //                    "SELECT * FROM devices WHERE " +
-        //                    $"tags.{nameof(OpcUaTwinRegistration.ApplicationId)} = " +
-        //                        $"'{discovered.Application.ApplicationId}'");
-        //                if (existing.Any()) {
-        //                    // if so, get existing twins
-        //                    var twins = existing.Select(OpcUaTwinRegistration.ToRegistration);
-        //
-        //                    // Select endpoints and application to be patched below.
-        //                    endpoints = twins.OfType<OpcUaEndpointRegistration>();
-        //                    application = twins.OfType<OpcUaApplicationRegistration>()
-        //                        .SingleOrDefault();
-        //                    if (application == null) {
-        //                        throw new InvalidOperationException(
-        //                            "No or more than one application registered for " +
-        //                            $"id {discovered.Application.ApplicationId}");
-        //                    }
-        //                }
-        //
-        //                var patched = discovered.Endpoints.Select(e =>
-        //                    OpcUaEndpointRegistration.FromServiceModel(new TwinInfoModel {
-        //                        ApplicationId = discovered.Application.ApplicationId,
-        //                        Registration = new TwinRegistrationModel {
-        //                            Endpoint = e.Endpoint,
-        //                            SiteId = application.SiteId,
-        //                            SecurityLevel = e.SecurityLevel,
-        //                            Certificate = e.Certificate
-        //                        }
-        //                    }, false));
-        //
-        //                //
-        //                // Apply activation filter
-        //                //
-        //                var filter = request.ActivationFilter;
-        //                if (filter != null) {
-        //                    foreach (var endpoint in patched) {
-        //
-        //                        // TODO: Get trust list entry and validate endpoint.Certificate
-        //
-        //                        var mode = endpoint.SecurityMode ?? SecurityMode.None;
-        //                        if (!mode.MatchesFilter(filter.SecurityMode ?? SecurityMode.Best)) {
-        //                            continue;
-        //                        }
-        //                        var policy = endpoint.SecurityPolicy;
-        //                        if (filter.SecurityPolicies != null) {
-        //                            if (!filter.SecurityPolicies.Any(p =>
-        //                                p.EqualsIgnoreCase(endpoint.SecurityPolicy))) {
-        //                                continue;
-        //                            }
-        //                        }
-        //                        endpoint.Activated = true;
-        //                    }
-        //                }
-        //
-        //                //
-        //                // Create or patch existing application and update all endpoint twins
-        //                //
-        //                await _iothub.CreateOrUpdateAsync(OpcUaApplicationRegistration.Patch(
-        //                    application,
-        //                    OpcUaApplicationRegistration.FromServiceModel(discovered.Application,
-        //                        false)));
-        //                await MergeEndpointsAsync(discovered.Application.SupervisorId,
-        //                    patched, endpoints, true);
-        //
-        //                _logger.Debug($"Application {discovered.Application.ApplicationId} registered.",
-        //                    () => { });
-        //                registered.Add(discovered);
-        //
-        //                foreach (var endpoint in patched.Where(e => e.Activated ?? false)) {
-        //                    await EnableTwinAsync(endpoint.SupervisorId, endpoint.ApplicationId, true);
-        //                    _logger.Debug($"Activated twin {endpoint.Id}.", () => { });
-        //                }
-        //            }
-        //        }
-        //        catch (Exception ex) {
-        //            _logger.Debug($"Failed registering application {request.DiscoveryUrl}.",
-        //                () => ex);
-        //            throw;
-        //        }
-        //        finally {
-        //            await NotifyRegistrationCallbackAsync(request?.Callback, registered);
-        //        }
-        //    }
-
-
-
         /// <summary>
         /// Process discovery sweep results from supervisor
         /// </summary>
@@ -783,15 +678,49 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <returns></returns>
         public async Task ProcessDiscoveryAsync(string supervisorId, DiscoveryResultModel result,
             IEnumerable<DiscoveryEventModel> events, bool hardDelete) {
+            if (string.IsNullOrEmpty(supervisorId)) {
+                throw new ArgumentNullException(nameof(supervisorId));
+            }
+            if (result == null) {
+                throw new ArgumentNullException(nameof(result));
+            }
+            if (events == null) {
+                throw new ArgumentNullException(nameof(events));
+            }
+            if ((result.RegisterOnly ?? false) && !events.Any()) {
+                return;
+            }
+            var sites = events.Select(e => e.Application.SiteId).Distinct();
+            if (sites.Count() > 1) {
+                throw new ArgumentException("Unexpected number of sites in discovery");
+            }
+            var siteId = sites.SingleOrDefault() ?? supervisorId;
+
             try {
-                if (string.IsNullOrEmpty(supervisorId)) {
-                    throw new ArgumentNullException(nameof(supervisorId));
+                //
+                // Merge in global discovery configuration into the one sent by the supervisor.
+                //
+                var supervisor = await GetSupervisorAsync(supervisorId);
+                if (result.DiscoveryConfig == null) {
+                    // Use global discovery configuration
+                    result.DiscoveryConfig = supervisor.DiscoveryConfig;
                 }
-                if (result == null) {
-                    throw new ArgumentNullException(nameof(result));
-                }
-                if (events == null) {
-                    throw new ArgumentNullException(nameof(events));
+                else {
+                    if (supervisor.DiscoveryConfig?.Callbacks != null) {
+                        if (result.DiscoveryConfig.Callbacks == null) {
+                            result.DiscoveryConfig.Callbacks =
+                                supervisor.DiscoveryConfig.Callbacks;
+                        }
+                        else {
+                            result.DiscoveryConfig.Callbacks.AddRange(
+                                supervisor.DiscoveryConfig.Callbacks);
+                        }
+                    }
+                    if (result.DiscoveryConfig.ActivationFilter == null) {
+                        // Use global activation filter
+                        result.DiscoveryConfig.ActivationFilter =
+                            supervisor.DiscoveryConfig?.ActivationFilter;
+                    }
                 }
 
                 //
@@ -801,17 +730,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // changed after a discovery run (same supervisor that registered, but now
                 // different site reported).
                 //
-                var sites = events.Select(e => e.Application.SiteId).Distinct();
-                if (sites.Count() > 1) {
-                    throw new ArgumentException("Unexpected number of sites in discovery");
-                }
-
-                var siteId = sites.SingleOrDefault() ?? supervisorId;
-                var results = await _iothub.QueryDeviceTwinsAsync("SELECT * FROM devices WHERE " +
+                var twins = await _iothub.QueryDeviceTwinsAsync("SELECT * FROM devices WHERE " +
                     $"tags.{nameof(BaseRegistration.DeviceType)} = 'Application' AND " +
                     $"(tags.{nameof(ApplicationRegistration.SiteId)} = '{siteId}' OR" +
                     $" tags.{nameof(BaseRegistration.SupervisorId)} = '{supervisorId}')");
-                var existing = results
+                var existing = twins
                     .Select(t => ApplicationRegistration.FromTwin(t));
                 var found = events
                     .Select(ev => ApplicationRegistration.FromServiceModel(ev.Application,
@@ -891,7 +814,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             var patch = change.First(x =>
                                 ApplicationRegistration.Logical.Equals(x, exists));
                             if (exists != patch) {
-
                                 await _iothub.CreateOrUpdateAsync(
                                     ApplicationRegistration.Patch(exists, patch));
                                 updated++;
@@ -935,17 +857,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     }
                 }
                 // Notify callbacks
-                await CallDiscoveryCallbacksAsync(result, supervisorId, null);
+                await CallDiscoveryCallbacksAsync(result, supervisorId, siteId, null);
 
-                if (added != 0 || removed != 0) {
-                    _logger.Info($"... processed discovery results: {added} applications added, " +
-                        $"{updated} enabled, {removed} disabled, and {unchanged} unchanged.",
+                var log = added != 0 || removed != 0 || updated != 0;
+#if DEBUG
+                log = true;
+#endif
+                if (log) {
+                    _logger.Info($"... processed discovery results from {supervisorId}: " +
+                        $"{added} applications added, {updated} enabled, {removed} disabled, " +
+                        $"and {unchanged} unchanged.",
                         () => { });
                 }
             }
             catch (Exception ex) {
                 // Notify callbacks
-                await CallDiscoveryCallbacksAsync(result, supervisorId, ex);
+                await CallDiscoveryCallbacksAsync(result, supervisorId, siteId, ex);
                 throw ex;
             }
         }
@@ -957,6 +884,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="result"></param>
         /// <param name="found"></param>
         /// <param name="existing"></param>
+        /// <param name="hardDelete"></param>
         /// <returns></returns>
         private async Task MergeEndpointsAsync(DiscoveryResultModel result,
             string supervisorId, IEnumerable<EndpointRegistration> found,
@@ -1215,27 +1143,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// </summary>
         /// <param name="result"></param>
         /// <param name="supervisorId"></param>
+        /// <param name="siteId"></param>
         /// <param name="exception"></param>
         /// <returns></returns>
         private async Task CallDiscoveryCallbacksAsync(DiscoveryResultModel result,
-            string supervisorId, Exception exception) {
+            string supervisorId, string siteId, Exception exception) {
             try {
-                var supervisor = await GetSupervisorAsync(supervisorId);
-                var callbacks = supervisor.DiscoveryCallbacks;
-                if (callbacks == null) {
-                    callbacks = new List<CallbackModel>();
-                }
-                if (result.DiscoveryConfig?.Callbacks != null) {
-                    callbacks.AddRange(result.DiscoveryConfig.Callbacks);
-                }
-                if (callbacks.Count == 0) {
+                var callbacks = result.DiscoveryConfig.Callbacks;
+                if (callbacks == null || callbacks.Count == 0) {
                     return;
                 }
                 await _client.CallAsync(JToken.FromObject(
                     new {
                         id = result.Id,
                         supervisorId,
-                        siteId = supervisor.SiteId ?? supervisorId,
+                        siteId = siteId ?? supervisorId,
                         result = new {
                             config = result.DiscoveryConfig,
                             diagnostics = exception != null ?
@@ -1255,6 +1177,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// Convert device twin registration property to registration model
         /// </summary>
         /// <param name="twin"></param>
+        /// <param name="skipInvalid"></param>
         /// <param name="onlyServerState">Only desired should be returned
         /// this means that you will look at stale information.</param>
         /// <returns></returns>

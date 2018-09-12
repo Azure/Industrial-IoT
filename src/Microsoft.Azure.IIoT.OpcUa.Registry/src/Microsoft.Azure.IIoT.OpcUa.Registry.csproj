@@ -3,6 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT OPC UA Registry business logic</Description>
   </PropertyGroup>
   <ItemGroup>
@@ -16,7 +17,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub" Version="1.0.0-preview005" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub" Version="1.0.0-preview007" />
       </ItemGroup>
     </Otherwise>
   </Choose>

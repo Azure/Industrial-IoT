@@ -10,6 +10,7 @@ namespace Opc.Ua.Encoders {
     using System.Xml;
     using System.IO;
     using System.Linq;
+    using Microsoft.Azure.IIoT;
 
     /// <summary>
     /// Encoder wrapper to encode model
@@ -19,6 +20,7 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Create wrapper
         /// </summary>
+        /// <param name="contentType"></param>
         /// <param name="callback"></param>
         /// <param name="stream"></param>
         public ModelEncoder(Stream stream, string contentType,
@@ -33,6 +35,7 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Create wrapper
         /// </summary>
+        /// <param name="contentType"></param>
         /// <param name="callback"></param>
         /// <param name="context"></param>
         /// <param name="stream"></param>
@@ -45,7 +48,7 @@ namespace Opc.Ua.Encoders {
         /// Create wrapper
         /// </summary>
         /// <param name="wrapped"></param>
-        /// <param name="wrapped"></param>
+        /// <param name="callback"></param>
         public ModelEncoder(IEncoder wrapped, Action<ExpandedNodeId> callback) {
             _wrapped = wrapped ?? throw new ArgumentNullException(nameof(wrapped));
             _callback = callback;
@@ -333,12 +336,12 @@ namespace Opc.Ua.Encoders {
                 throw new ArgumentNullException(nameof(stream));
             }
             switch (contentType.ToLowerInvariant()) {
-                case TypeSerializer.MimeTypeUaJson:
+                case ContentEncodings.MimeTypeUaJson:
                     return new JsonEncoderEx(context, new StreamWriter(stream));
-                case TypeSerializer.MimeTypeUaBinary:
+                case ContentEncodings.MimeTypeUaBinary:
                     return new BinaryEncoder(stream,
                         context);
-                case TypeSerializer.MimeTypeUaXml:
+                case ContentEncodings.MimeTypeUaXml:
                     return new XmlEncoder((Type)null, XmlWriter.Create(stream),
                         context);
                 default:

@@ -25,6 +25,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Create publisher peer service
         /// </summary>
         /// <param name="publisher"></param>
+        /// <param name="events"></param>
+        /// <param name="logger"></param>
         public PublisherModuleServices(IPublishServices<EndpointModel> publisher,
             IEventEmitter events, ILogger logger) {
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
@@ -67,6 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Enable or disable publishing based on desired property
         /// </summary>
         /// <param name="nodeId"></param>
+        /// <param name="enable"></param>
         /// <returns></returns>
         public Task NodePublishAsync(string nodeId, bool? enable) {
             return _publisher.NodePublishAsync(Endpoint,

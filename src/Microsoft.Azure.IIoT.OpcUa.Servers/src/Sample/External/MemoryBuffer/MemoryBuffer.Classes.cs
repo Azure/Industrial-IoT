@@ -224,7 +224,7 @@ namespace MemoryBuffer
     #endregion
 
     #region MemoryTagState Class
-    #if (!OPCUA_EXCLUDE_MemoryTagState)
+    #if !OPCUA_EXCLUDE_MemoryTagState
     /// <summary>
     /// Stores an instance of the MemoryTagType VariableType.
     /// </summary>
@@ -264,7 +264,7 @@ namespace MemoryBuffer
             return ValueRanks.Scalar;
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+        #if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
@@ -353,7 +353,7 @@ namespace MemoryBuffer
     #endregion
 
     #region MemoryBufferState Class
-    #if (!OPCUA_EXCLUDE_MemoryBufferState)
+    #if !OPCUA_EXCLUDE_MemoryBufferState
     /// <summary>
     /// Stores an instance of the MemoryBufferType ObjectType.
     /// </summary>
@@ -377,7 +377,7 @@ namespace MemoryBuffer
             return Opc.Ua.NodeId.Create(MemoryBuffer.ObjectTypes.MemoryBufferType, MemoryBuffer.Namespaces.MemoryBuffer, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+        #if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>

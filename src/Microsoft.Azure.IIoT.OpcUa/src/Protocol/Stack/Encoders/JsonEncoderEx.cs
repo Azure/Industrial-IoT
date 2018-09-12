@@ -39,68 +39,49 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Perform xml serialization to json
         /// </summary>
-        public bool PerformXmlSerialization { get; set; }
+        public bool PerformXmlSerialization { get; set; } = true;
 
         /// <summary>
         /// Encode nodes as uri
         /// </summary>
-        public bool UseNodeUriEncoding { get; set; }
+        public bool UseNodeUriEncoding { get; set; } = true;
 
         /// <summary>
         /// Create encoder
         /// </summary>
-        public JsonEncoderEx(ServiceMessageContext context,
-            TextWriter writer = null) {
-            _namespaces = new Stack<string>();
-            Context = context;
-            if (writer == null) {
-                _destination = new MemoryStream();
-                writer = new StreamWriter(_destination, new UTF8Encoding(false));
-            }
-            _writer = new JsonTextWriter(writer) {
+        public JsonEncoderEx(ServiceMessageContext context, Stream stream) :
+            this (context, new StreamWriter(stream, new UTF8Encoding(false))) {
+        }
+
+        /// <summary>
+        /// Create encoder
+        /// </summary>
+        public JsonEncoderEx(ServiceMessageContext context, TextWriter writer) :
+            this(context, new JsonTextWriter(writer) {
                 AutoCompleteOnClose = true,
                 DateFormatHandling = DateFormatHandling.IsoDateFormat
-            };
+            }) {
+        }
+
+        /// <summary>
+        /// Create encoder
+        /// </summary>
+        public JsonEncoderEx(ServiceMessageContext context, JsonWriter writer) {
+            _namespaces = new Stack<string>();
+            Context = context;
+            _writer = writer ?? throw new ArgumentNullException(nameof(writer));
             _writer.WriteStartObject();
         }
 
         /// <summary>
-        /// Completes writing and returns the XML text.
-        /// </summary>
-        public string CloseAndReturnText() {
-            Close();
-            if (_destination != null) {
-                return Encoding.UTF8.GetString(_destination.ToArray());
-            }
-            return string.Empty;
-        }
-
-        /// <summary>
-        /// Completes writing and returns the text length.
+        /// Completes writing
         /// </summary>
         public void Close() {
             if (_writer != null) {
+                _writer.WriteEndObject();
                 _writer.Close();
                 _writer = null;
             }
-        }
-
-        /// <summary>
-        /// Encodes a message with its header.
-        /// </summary>
-        public void EncodeMessage(IEncodeable message) {
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            // convert the namespace uri to an index.
-            var typeId = ExpandedNodeId.ToNodeId(message.TypeId, Context.NamespaceUris);
-
-            // write the type id.
-            WriteNodeId("TypeId", typeId);
-
-            // write the message.
-            WriteEncodeable("Body", message, message.GetType());
         }
 
         /// <inheritdoc/>
@@ -130,89 +111,89 @@ namespace Opc.Ua.Encoders {
             _namespaces.Pop();
 
         /// <inheritdoc/>
-        public void WriteSByte(string fieldName, sbyte value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteSByte(string property, sbyte value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
-        public void WriteByte(string fieldName, byte value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteByte(string property, byte value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
-        public void WriteInt16(string fieldName, short value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteInt16(string property, short value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
-        public void WriteUInt16(string fieldName, ushort value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteUInt16(string property, ushort value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
-        public void WriteInt32(string fieldName, int value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteInt32(string property, int value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
-        public void WriteUInt32(string fieldName, uint value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteUInt32(string property, uint value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
-        public void WriteInt64(string fieldName, long value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteInt64(string property, long value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
-        public void WriteUInt64(string fieldName, ulong value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteUInt64(string property, ulong value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
-        public void WriteString(string fieldName, string value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteString(string property, string value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
-        public void WriteBoolean(string fieldName, bool value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteBoolean(string property, bool value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
-        public void WriteFloat(string fieldName, float value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteFloat(string property, float value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             if (float.IsNaN(value) || float.IsPositiveInfinity(value) ||
                 float.IsNegativeInfinity(value)) {
@@ -224,9 +205,9 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteDouble(string fieldName, double value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteDouble(string property, double value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             if (double.IsNaN(value) || double.IsPositiveInfinity(value) ||
                 double.IsNegativeInfinity(value)) {
@@ -238,9 +219,9 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteDateTime(string fieldName, DateTime value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteDateTime(string property, DateTime value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             if (value == DateTime.MinValue) {
                 _writer.WriteNull();
@@ -252,9 +233,9 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteGuid(string fieldName, Uuid value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteGuid(string property, Uuid value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             if (value == Uuid.Empty) {
                 _writer.WriteNull();
@@ -265,9 +246,9 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteGuid(string fieldName, Guid value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteGuid(string property, Guid value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             if (value == Guid.Empty) {
                 _writer.WriteNull();
@@ -278,9 +259,9 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteByteString(string fieldName, byte[] value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteByteString(string property, byte[] value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             if (value == null || value.Length == 0) {
                 _writer.WriteNull();
@@ -295,15 +276,16 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteXmlElement(string fieldName, XmlElement value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteXmlElement(string property, XmlElement value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             if (value == null) {
                 _writer.WriteNull();
             }
             else if (PerformXmlSerialization) {
-                _writer.WriteValue(value);
+                var json = JsonConvertEx.SerializeObject(value);
+                _writer.WriteRawValue(json);
             }
             else {
                 // Back compat to json encoding
@@ -313,71 +295,75 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteNodeId(string fieldName, NodeId value) {
+        public void WriteNodeId(string property, NodeId value) {
             if (NodeId.IsNull(value)) {
-                WriteNull(fieldName);
+                WriteNull(property);
             }
             else if (UseReversibleEncoding) {
-                WriteString(fieldName, value.ToString());
-            }
-            else if (UseNodeUriEncoding) {
-                WriteString(fieldName, value.AsString(Context));
+                if (UseNodeUriEncoding) {
+                    WriteString(property, value.AsString(Context));
+                }
+                else {
+                    // Back compat to json encoding
+                    WriteString(property, value.ToString());
+                }
             }
             else {
-                // Back compat to json encoding
-                PushStructure(fieldName);
+                PushObject(property);
                 _writer.WritePropertyName("Id");
                 _writer.WriteValue(new NodeId(value.Identifier, 0).ToString());
                 WriteNamespaceIndex(value.NamespaceIndex);
-                PopStructure();
+                PopObject();
             }
         }
 
         /// <inheritdoc/>
-        public void WriteExpandedNodeId(string fieldName, ExpandedNodeId value) {
+        public void WriteExpandedNodeId(string property, ExpandedNodeId value) {
             if (NodeId.IsNull(value)) {
-                WriteNull(fieldName);
+                WriteNull(property);
             }
             else if (UseReversibleEncoding) {
-                WriteString(fieldName, value.ToString());
-            }
-            else if (UseNodeUriEncoding) {
-                WriteString(fieldName, value.AsString(Context));
+                if (UseNodeUriEncoding) {
+                    WriteString(property, value.AsString(Context));
+                }
+                else {
+                    // Back compat to json encoding
+                    WriteString(property, value.ToString());
+                }
             }
             else {
-                // Back compat to json encoding
-                PushStructure(fieldName);
+                PushObject(property);
                 _writer.WritePropertyName("Id");
                 _writer.WriteValue(new NodeId(value.Identifier, 0).ToString());
                 WriteNamespaceIndex(value.NamespaceIndex);
                 WriteServerIndex(value.ServerIndex);
-                PopStructure();
+                PopObject();
             }
         }
 
         /// <inheritdoc/>
-        public void WriteStatusCode(string fieldName, StatusCode value) {
+        public void WriteStatusCode(string property, StatusCode value) {
             if (value == StatusCodes.Good) {
-                WriteNull(fieldName);
+                WriteNull(property);
             }
             else if (UseReversibleEncoding) {
-                WriteUInt32(fieldName, value.Code);
+                WriteUInt32(property, value.Code);
             }
             else {
-                PushStructure(fieldName);
+                PushObject(property);
                 WriteUInt32("Code", value.Code);
                 WriteString("Symbol", StatusCode.LookupSymbolicId(value.CodeBits));
-                PopStructure();
+                PopObject();
             }
         }
 
         /// <inheritdoc/>
-        public void WriteDiagnosticInfo(string fieldName, DiagnosticInfo value) {
+        public void WriteDiagnosticInfo(string property, DiagnosticInfo value) {
             if (value == null) {
-                WriteNull(fieldName);
+                WriteNull(property);
             }
             else {
-                PushStructure(fieldName);
+                PushObject(property);
                 if (value.SymbolicId >= 0) {
                     WriteInt32("SymbolicId", value.SymbolicId);
                 }
@@ -399,67 +385,67 @@ namespace Opc.Ua.Encoders {
                 if (value.InnerDiagnosticInfo != null) {
                     WriteDiagnosticInfo("InnerDiagnosticInfo", value.InnerDiagnosticInfo);
                 }
-                PopStructure();
+                PopObject();
             }
         }
 
         /// <inheritdoc/>
-        public void WriteQualifiedName(string fieldName, QualifiedName value) {
+        public void WriteQualifiedName(string property, QualifiedName value) {
             if (QualifiedName.IsNull(value)) {
-                WriteNull(fieldName);
+                WriteNull(property);
             }
             else if (UseReversibleEncoding) {
-                PushStructure(fieldName);
+                PushObject(property);
                 WriteString("Name", value.Name);
                 if (value.NamespaceIndex > 0) {
                     WriteUInt16("Uri", value.NamespaceIndex);
                 }
-                PopStructure();
+                PopObject();
             }
             else {
-                PushStructure(fieldName);
+                PushObject(property);
                 WriteString("Name", value.Name);
                 WriteNamespaceIndex(value.NamespaceIndex);
-                PopStructure();
+                PopObject();
             }
         }
 
         /// <inheritdoc/>
-        public void WriteLocalizedText(string fieldName, LocalizedText value) {
+        public void WriteLocalizedText(string property, LocalizedText value) {
             if (LocalizedText.IsNullOrEmpty(value)) {
-                WriteNull(fieldName);
+                WriteNull(property);
             }
-            else if (UseReversibleEncoding) {
-                PushStructure(fieldName);
+            else if (UseReversibleEncoding || value.Locale != null) {
+                PushObject(property);
                 WriteString("Text", value.Text);
                 if (!string.IsNullOrEmpty(value.Locale)) {
                     WriteString("Locale", value.Locale);
                 }
-                PopStructure();
+                PopObject();
             }
             else {
-                WriteString(fieldName, value.Text);
+                WriteString(property, value.Text);
             }
         }
 
         /// <inheritdoc/>
-        public void WriteVariant(string fieldName, Variant value) {
+        public void WriteVariant(string property, Variant value) {
             if (Variant.Null == value) {
-                WriteNull(fieldName);
+                WriteNull(property);
             }
             else {
-                var isNull = (value.TypeInfo == null ||
+                var isNull = value.TypeInfo == null ||
                     value.TypeInfo.BuiltInType == BuiltInType.Null ||
-                    value.Value == null);
+                    value.Value == null;
 
                 if (UseReversibleEncoding && !isNull) {
-                    PushStructure(fieldName);
+                    PushObject(property);
                     WriteByte("Type", (byte)value.TypeInfo.BuiltInType);
-                    fieldName = "Body";
+                    property = "Body";
                 }
 
-                if (!string.IsNullOrEmpty(fieldName)) {
-                    _writer.WritePropertyName(fieldName);
+                if (!string.IsNullOrEmpty(property)) {
+                    _writer.WritePropertyName(property);
                 }
                 WriteVariantContents(value.Value, value.TypeInfo);
 
@@ -467,18 +453,18 @@ namespace Opc.Ua.Encoders {
                     if (value.Value is Matrix matrix) {
                         WriteInt32Array("Dimensions", matrix.Dimensions);
                     }
-                    PopStructure();
+                    PopObject();
                 }
             }
         }
 
         /// <inheritdoc/>
-        public void WriteDataValue(string fieldName, DataValue value) {
+        public void WriteDataValue(string property, DataValue value) {
             if (value == null) {
-                WriteNull(fieldName);
+                WriteNull(property);
             }
             else {
-                PushStructure(fieldName);
+                PushObject(property);
                 if (value != null) {
                     if (value.WrappedValue.TypeInfo != null &&
                         value.WrappedValue.TypeInfo.BuiltInType != BuiltInType.Null) {
@@ -501,17 +487,17 @@ namespace Opc.Ua.Encoders {
                         }
                     }
                 }
-                PopStructure();
+                PopObject();
             }
         }
 
         /// <inheritdoc/>
-        public void WriteExtensionObject(string fieldName, ExtensionObject value) {
+        public void WriteExtensionObject(string property, ExtensionObject value) {
             if (value == null || value.Encoding == ExtensionObjectEncoding.None) {
-                WriteNull(fieldName);
+                WriteNull(property);
             }
             else {
-                PushStructure(fieldName);
+                PushObject(property);
                 if (value != null) {
                     if (value.Body is IEncodeable encodeable) {
                         if (UseReversibleEncoding) {
@@ -545,28 +531,28 @@ namespace Opc.Ua.Encoders {
                         }
                     }
                 }
-                PopStructure();
+                PopObject();
             }
         }
 
         /// <inheritdoc/>
-        public void WriteEncodeable(string fieldName, IEncodeable value, Type systemType) {
+        public void WriteEncodeable(string property, IEncodeable value, Type systemType) {
             if (value == null) {
-                WriteNull(fieldName);
+                WriteNull(property);
             }
             else {
-                PushStructure(fieldName);
+                PushObject(property);
                 if (value != null) {
                     value.Encode(this);
                 }
-                PopStructure();
+                PopObject();
             }
         }
 
         /// <inheritdoc/>
-        public void WriteEnumerated(string fieldName, Enum value) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        public void WriteEnumerated(string property, Enum value) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             var numeric = Convert.ToInt32(value, CultureInfo.InvariantCulture);
             if (UseReversibleEncoding) {
@@ -578,100 +564,100 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteBooleanArray(string fieldName, IList<bool> values) =>
-            WriteArray(fieldName, values, _writer.WriteValue);
+        public void WriteBooleanArray(string property, IList<bool> values) =>
+            WriteArray(property, values, _writer.WriteValue);
 
         /// <inheritdoc/>
-        public void WriteSByteArray(string fieldName, IList<sbyte> values) =>
-            WriteArray(fieldName, values, _writer.WriteValue);
+        public void WriteSByteArray(string property, IList<sbyte> values) =>
+            WriteArray(property, values, _writer.WriteValue);
 
         /// <inheritdoc/>
-        public void WriteByteArray(string fieldName, IList<byte> values) =>
-            WriteArray(fieldName, values, _writer.WriteValue);
+        public void WriteByteArray(string property, IList<byte> values) =>
+            WriteArray(property, values, _writer.WriteValue);
 
         /// <inheritdoc/>
-        public void WriteInt16Array(string fieldName, IList<short> values) =>
-            WriteArray(fieldName, values, _writer.WriteValue);
+        public void WriteInt16Array(string property, IList<short> values) =>
+            WriteArray(property, values, _writer.WriteValue);
 
         /// <inheritdoc/>
-        public void WriteUInt16Array(string fieldName, IList<ushort> values) =>
-            WriteArray(fieldName, values, _writer.WriteValue);
+        public void WriteUInt16Array(string property, IList<ushort> values) =>
+            WriteArray(property, values, _writer.WriteValue);
 
         /// <inheritdoc/>
-        public void WriteInt32Array(string fieldName, IList<int> values) =>
-            WriteArray(fieldName, values, _writer.WriteValue);
+        public void WriteInt32Array(string property, IList<int> values) =>
+            WriteArray(property, values, _writer.WriteValue);
 
         /// <inheritdoc/>
-        public void WriteUInt32Array(string fieldName, IList<uint> values) =>
-            WriteArray(fieldName, values, _writer.WriteValue);
+        public void WriteUInt32Array(string property, IList<uint> values) =>
+            WriteArray(property, values, _writer.WriteValue);
 
         /// <inheritdoc/>
-        public void WriteInt64Array(string fieldName, IList<long> values) =>
-            WriteArray(fieldName, values, _writer.WriteValue);
+        public void WriteInt64Array(string property, IList<long> values) =>
+            WriteArray(property, values, _writer.WriteValue);
 
         /// <inheritdoc/>
-        public void WriteUInt64Array(string fieldName, IList<ulong> values) =>
-            WriteArray(fieldName, values, _writer.WriteValue);
+        public void WriteUInt64Array(string property, IList<ulong> values) =>
+            WriteArray(property, values, _writer.WriteValue);
 
         /// <inheritdoc/>
-        public void WriteFloatArray(string fieldName, IList<float> values) =>
-            WriteArray(fieldName, values, _writer.WriteValue);
+        public void WriteFloatArray(string property, IList<float> values) =>
+            WriteArray(property, values, _writer.WriteValue);
 
         /// <inheritdoc/>
-        public void WriteDoubleArray(string fieldName, IList<double> values) =>
-            WriteArray(fieldName, values, _writer.WriteValue);
+        public void WriteDoubleArray(string property, IList<double> values) =>
+            WriteArray(property, values, _writer.WriteValue);
 
         /// <inheritdoc/>
-        public void WriteStringArray(string fieldName, IList<string> values) =>
-            WriteArray(fieldName, values, _writer.WriteValue);
+        public void WriteStringArray(string property, IList<string> values) =>
+            WriteArray(property, values, _writer.WriteValue);
 
         /// <inheritdoc/>
-        public void WriteDateTimeArray(string fieldName, IList<DateTime> values) =>
-            WriteArray(fieldName, values, v => WriteDateTime(null, v));
+        public void WriteDateTimeArray(string property, IList<DateTime> values) =>
+            WriteArray(property, values, v => WriteDateTime(null, v));
 
         /// <inheritdoc/>
-        public void WriteGuidArray(string fieldName, IList<Uuid> values) =>
-            WriteArray(fieldName, values, v => WriteGuid(null, v));
+        public void WriteGuidArray(string property, IList<Uuid> values) =>
+            WriteArray(property, values, v => WriteGuid(null, v));
 
         /// <inheritdoc/>
-        public void WriteGuidArray(string fieldName, IList<Guid> values) =>
-            WriteArray(fieldName, values, v => WriteGuid(null, v));
+        public void WriteGuidArray(string property, IList<Guid> values) =>
+            WriteArray(property, values, v => WriteGuid(null, v));
 
         /// <inheritdoc/>
-        public void WriteByteStringArray(string fieldName, IList<byte[]> values) =>
-            WriteArray(fieldName, values, v => WriteByteString(null, v));
+        public void WriteByteStringArray(string property, IList<byte[]> values) =>
+            WriteArray(property, values, v => WriteByteString(null, v));
 
         /// <inheritdoc/>
-        public void WriteXmlElementArray(string fieldName, IList<XmlElement> values) =>
-            WriteArray(fieldName, values, v => WriteXmlElement(null, v));
+        public void WriteXmlElementArray(string property, IList<XmlElement> values) =>
+            WriteArray(property, values, v => WriteXmlElement(null, v));
 
         /// <inheritdoc/>
-        public void WriteNodeIdArray(string fieldName, IList<NodeId> values) =>
-            WriteArray(fieldName, values, v => WriteNodeId(null, v));
+        public void WriteNodeIdArray(string property, IList<NodeId> values) =>
+            WriteArray(property, values, v => WriteNodeId(null, v));
 
         /// <inheritdoc/>
-        public void WriteExpandedNodeIdArray(string fieldName, IList<ExpandedNodeId> values) =>
-            WriteArray(fieldName, values, v => WriteExpandedNodeId(null, v));
+        public void WriteExpandedNodeIdArray(string property, IList<ExpandedNodeId> values) =>
+            WriteArray(property, values, v => WriteExpandedNodeId(null, v));
 
         /// <inheritdoc/>
-        public void WriteStatusCodeArray(string fieldName, IList<StatusCode> values) =>
-            WriteArray(fieldName, values, v => WriteStatusCode(null, v));
+        public void WriteStatusCodeArray(string property, IList<StatusCode> values) =>
+            WriteArray(property, values, v => WriteStatusCode(null, v));
 
         /// <inheritdoc/>
-        public void WriteDiagnosticInfoArray(string fieldName, IList<DiagnosticInfo> values) =>
-            WriteArray(fieldName, values, v => WriteDiagnosticInfo(null, v));
+        public void WriteDiagnosticInfoArray(string property, IList<DiagnosticInfo> values) =>
+            WriteArray(property, values, v => WriteDiagnosticInfo(null, v));
 
         /// <inheritdoc/>
-        public void WriteQualifiedNameArray(string fieldName, IList<QualifiedName> values) =>
-            WriteArray(fieldName, values, v => WriteQualifiedName(null, v));
+        public void WriteQualifiedNameArray(string property, IList<QualifiedName> values) =>
+            WriteArray(property, values, v => WriteQualifiedName(null, v));
 
         /// <inheritdoc/>
-        public void WriteLocalizedTextArray(string fieldName, IList<LocalizedText> values) =>
-            WriteArray(fieldName, values, v => WriteLocalizedText(null, v));
+        public void WriteLocalizedTextArray(string property, IList<LocalizedText> values) =>
+            WriteArray(property, values, v => WriteLocalizedText(null, v));
 
         /// <inheritdoc/>
-        public void WriteVariantArray(string fieldName, IList<Variant> values) {
-            WriteArray(fieldName, values, v => {
+        public void WriteVariantArray(string property, IList<Variant> values) {
+            WriteArray(property, values, v => {
                 if (v == Variant.Null) {
                     _writer.WriteNull();
                 }
@@ -682,21 +668,21 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteDataValueArray(string fieldName, IList<DataValue> values) =>
-            WriteArray(fieldName, values, v => WriteDataValue(null, v));
+        public void WriteDataValueArray(string property, IList<DataValue> values) =>
+            WriteArray(property, values, v => WriteDataValue(null, v));
 
         /// <inheritdoc/>
-        public void WriteExtensionObjectArray(string fieldName, IList<ExtensionObject> values) =>
-            WriteArray(fieldName, values, v => WriteExtensionObject(null, v));
+        public void WriteExtensionObjectArray(string property, IList<ExtensionObject> values) =>
+            WriteArray(property, values, v => WriteExtensionObject(null, v));
 
         /// <inheritdoc/>
-        public void WriteEncodeableArray(string fieldName, IList<IEncodeable> values,
+        public void WriteEncodeableArray(string property, IList<IEncodeable> values,
             Type systemType) =>
-            WriteArray(fieldName, values, v => WriteEncodeable(null, v, systemType));
+            WriteArray(property, values, v => WriteEncodeable(null, v, systemType));
 
         /// <inheritdoc/>
-        public void WriteObjectArray(string fieldName, IList<object> values) {
-            PushArray(fieldName, values?.Count ?? 0);
+        public void WriteObjectArray(string property, IList<object> values) {
+            PushArray(property, values?.Count ?? 0);
             if (values != null) {
                 for (var ii = 0; ii < values.Count; ii++) {
                     WriteVariant("Variant", new Variant(values[ii]));
@@ -706,12 +692,12 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteEnumeratedArray(string fieldName, Array values, Type systemType) {
+        public void WriteEnumeratedArray(string property, Array values, Type systemType) {
             if (values == null || values.Length == 0) {
-                WriteNull(fieldName);
+                WriteNull(property);
             }
             else {
-                PushArray(fieldName, values.Length);
+                PushArray(property, values.Length);
                 // encode each element in the array.
                 foreach (Enum value in values) {
                     WriteEnumerated(null, value);
@@ -921,12 +907,12 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Writes an DataValue array to the stream.
         /// </summary>
-        private void WriteMatrix(string fieldName, Matrix value) {
-            PushStructure(fieldName);
+        private void WriteMatrix(string property, Matrix value) {
+            PushObject(property);
             WriteVariant("Matrix", new Variant(value.Elements,
                 new TypeInfo(value.TypeInfo.BuiltInType, ValueRanks.OneDimension)));
             WriteInt32Array("Dimensions", value.Dimensions);
-            PopStructure();
+            PopObject();
         }
 
         /// <summary>
@@ -975,16 +961,16 @@ namespace Opc.Ua.Encoders {
         /// Write array to stream
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="fieldName"></param>
+        /// <param name="property"></param>
         /// <param name="values"></param>
         /// <param name="writer"></param>
-        private void WriteArray<T>(string fieldName, IList<T> values,
+        private void WriteArray<T>(string property, IList<T> values,
             Action<T> writer) {
             if (values == null || values.Count == 0) {
-                WriteNull(fieldName);
+                WriteNull(property);
             }
             else {
-                PushArray(fieldName, values.Count);
+                PushArray(property, values.Count);
                 foreach (var value in values) {
                     writer(value);
                 }
@@ -995,10 +981,10 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Write null
         /// </summary>
-        /// <param name="fieldName"></param>
-        private void WriteNull(string fieldName) {
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+        /// <param name="property"></param>
+        private void WriteNull(string property) {
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             _writer.WriteNull();
         }
@@ -1006,14 +992,14 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Push new object
         /// </summary>
-        /// <param name="fieldName"></param>
-        private void PushStructure(string fieldName) {
+        /// <param name="property"></param>
+        private void PushObject(string property) {
             if (_nestingLevel > Context.MaxEncodingNestingLevels) {
                 throw ServiceResultException.Create(StatusCodes.BadEncodingLimitsExceeded,
                     $"Maximum nesting level of {Context.MaxEncodingNestingLevels} was exceeded");
             }
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             _writer.WriteStartObject();
             _nestingLevel++;
@@ -1022,7 +1008,7 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Pop structure
         /// </summary>
-        private void PopStructure() {
+        private void PopObject() {
             _writer.WriteEndObject();
             _nestingLevel--;
         }
@@ -1030,14 +1016,14 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Push new array
         /// </summary>
-        /// <param name="fieldName"></param>
+        /// <param name="property"></param>
         /// <param name="count"></param>
-        private void PushArray(string fieldName, int count) {
+        private void PushArray(string property, int count) {
             if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < count) {
                 throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded);
             }
-            if (!string.IsNullOrEmpty(fieldName)) {
-                _writer.WritePropertyName(fieldName);
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
             }
             _writer.WriteStartArray();
         }
@@ -1049,8 +1035,7 @@ namespace Opc.Ua.Encoders {
             _writer.WriteEndArray();
         }
 
-        private MemoryStream _destination;
-        private JsonTextWriter _writer;
+        private JsonWriter _writer;
         private readonly Stack<string> _namespaces;
         private ushort[] _namespaceMappings;
         private ushort[] _serverMappings;

@@ -6,6 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
     using System.Linq;
 
+    /// <summary>
+    /// Twin activation filter model extensions
+    /// </summary>
     public static class TwinActivationFilterModelEx {
 
         /// <summary>

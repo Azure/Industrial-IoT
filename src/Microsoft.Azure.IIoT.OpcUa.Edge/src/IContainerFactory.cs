@@ -6,6 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge {
     using Autofac;
 
+    /// <summary>
+    /// Create Autofac container
+    /// </summary>
     public interface IContainerFactory {
 
         /// <summary>

@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Access the edge publisher via its OPC UA server and configures it
+    /// Access the publisher module via its OPC UA server and configures it
     /// to publish to its device identity endpoint. (V1 functionality)
     /// </summary>
     public class PublisherModuleServerClient : IPublishServices<EndpointModel> {
@@ -25,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Create client service to control publisher
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="logger"></param>
         public PublisherModuleServerClient(IEndpointServices client, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -90,7 +91,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         }
 
         /// <summary>
-        /// Requests from a edge publisher to publish nodes on the specified station.
+        /// Requests from publisher module to publish nodes on the specified station.
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>

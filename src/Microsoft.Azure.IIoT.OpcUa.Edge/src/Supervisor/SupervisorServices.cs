@@ -4,17 +4,17 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
+    using Autofac;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Autofac;
     using System;
-    using System.Linq;
-    using System.Threading.Tasks;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Twin supervisor service
@@ -24,7 +24,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         /// <summary>
         /// Create twin supervisor creating and managing twin instances
         /// </summary>
-        public SupervisorServices(IContainerFactory factory, IEdgeConfig config,
+        /// <param name="factory"></param>
+        /// <param name="config"></param>
+        /// <param name="events"></param>
+        /// <param name="logger"></param>
+        public SupervisorServices(IContainerFactory factory, IModuleConfig config,
             IEventEmitter events, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -36,6 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         /// <summary>
         /// Start twin
         /// </summary>
+        /// <param name="id"></param>
         /// <param name="secret"></param>
         /// <returns></returns>
         public async Task StartTwinAsync(string id, string secret) {
@@ -63,8 +68,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
             }
 
             try {
-                var host = twinScope.Resolve<IEdgeHost>();
-                await host.StartAsync("twin", _events.SiteId);
+                var host = twinScope.Resolve<IModuleHost>();
+                await host.StartAsync("twin", _events.SiteId, "OpcTwin");
                 _logger.Info($"{id} twin started.", () => { });
             }
             catch (Exception ex) {
@@ -101,9 +106,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
             }
 
             _logger.Debug($"{id} twin stopping...", () => { });
-            var host = twinScope.Resolve<IEdgeHost>();
+            var host = twinScope.Resolve<IModuleHost>();
             try {
-                // Clear endpoint edge controller
+                // Clear endpoint module controller
                 var events = twinScope.Resolve<IEventEmitter>();
 
                 // Stop host async
@@ -135,37 +140,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         /// <summary>
         /// Twin host configuration wrapper
         /// </summary>
-        private class TwinConfig : IEdgeConfig {
+        private class TwinConfig : IModuleConfig {
 
             /// <summary>
             /// Create twin configuration
             /// </summary>
             /// <param name="config"></param>
+            /// <param name="endpointId"></param>
             /// <param name="secret"></param>
-            public TwinConfig(IEdgeConfig config, string endpointId, string secret) {
+            public TwinConfig(IModuleConfig config, string endpointId, string secret) {
                 BypassCertVerification = config.BypassCertVerification;
                 Transport = config.Transport;
-                HubConnectionString = GetEdgeConnectionString(config, endpointId, secret);
+                EdgeHubConnectionString = GetEdgeHubConnectionString(config, endpointId, secret);
             }
 
             /// <summary>
             /// Twin configuration
             /// </summary>
-            public string HubConnectionString { get; }
+            public string EdgeHubConnectionString { get; }
             public bool BypassCertVerification { get; }
             public TransportOption Transport { get; }
 
             /// <summary>
-            /// Create new connection string from existing edge connection string.
+            /// Create new connection string from existing EdgeHubConnectionString.
             /// </summary>
             /// <param name="config"></param>
             /// <param name="endpointId"></param>
             /// <param name="secret"></param>
             /// <returns></returns>
-            private static string GetEdgeConnectionString(IEdgeConfig config,
+            private static string GetEdgeHubConnectionString(IModuleConfig config,
                 string endpointId, string secret) {
 
-                var cs = config.HubConnectionString;
+                var cs = config.EdgeHubConnectionString;
                 if (string.IsNullOrEmpty(cs)) {
                     // Retrieve information from environment
                     var hostName = Environment.GetEnvironmentVariable("IOTEDGE_IOTHUBHOSTNAME");
@@ -201,7 +207,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         }
 
         private readonly ILogger _logger;
-        private readonly IEdgeConfig _config;
+        private readonly IModuleConfig _config;
         private readonly IEventEmitter _events;
         private readonly IContainerFactory _factory;
         private readonly IContainer _container;

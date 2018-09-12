@@ -27,6 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// </summary>
         /// <param name="siteOrSupervisorId"></param>
         /// <param name="applicationUri"></param>
+        /// <param name="applicationType"></param>
         /// <returns></returns>
         public static string CreateApplicationId(string siteOrSupervisorId,
             string applicationUri, ApplicationType? applicationType) {

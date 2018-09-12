@@ -72,6 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <typeparam name="T"></typeparam>
         /// <param name="endpoint"></param>
         /// <param name="service"></param>
+        /// <param name="handler"></param>
         /// <returns></returns>
         public async Task<T> ExecuteServiceAsync<T>(EndpointModel endpoint,
             Func<Session, Task<T>> service, Func<Exception, bool> handler) {
@@ -149,10 +150,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         protected int Timeout { get; set; } = 60000;
 
-         /// <summary>
+        /// <summary>
         /// Try get unique set of endpoints from all servers found on discovery server
         /// </summary>
         /// <param name="discoveryUrl"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public async Task<IEnumerable<Protocol.DiscoveredEndpointsModel>> FindEndpointsAsync(
             Uri discoveryUrl, CancellationToken ct) {
@@ -176,7 +178,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Task.Run(() => Discover(discoveryUrl, nextServer.Item2,
                             Timeout, visitedUris, queue, results), ct),
                         _ => !ct.IsCancellationRequested, Retry.NoBackoff,
-                        kMaxDiscoveryAttempts).ConfigureAwait(false);
+                        kMaxDiscoveryAttempts - 1).ConfigureAwait(false);
                 }
                 catch (Exception ex) {
                     _logger.Error($"Error at {discoveryUrl} (after {sw.Elapsed}).",
@@ -197,6 +199,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Perform a single discovery run
         /// </summary>
         /// <param name="discoveryUrl"></param>
+        /// <param name="caps"></param>
         /// <param name="timeout"></param>
         /// <param name="result"></param>
         /// <param name="visitedUris"></param>
@@ -272,6 +275,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Discover and select endpoint
         /// </summary>
         /// <param name="server"></param>
+        /// <param name="discoveryUrl"></param>
+        /// <param name="timeout"></param>
         /// <param name="selector"></param>
         /// <returns></returns>
         private Task<ConfiguredEndpoint> DiscoverEndpointsAsync(EndpointModel server,
@@ -296,6 +301,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="server"></param>
         /// <param name="discoveryUrl"></param>
         /// <param name="timeout"></param>
+        /// <param name="selector"></param>
         /// <returns></returns>
         private EndpointDescription DiscoverEndpoints(EndpointModel server,
             Uri discoveryUrl, int timeout, Func<EndpointModel, IEnumerable<EndpointDescription>,

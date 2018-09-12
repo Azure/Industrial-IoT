@@ -41,11 +41,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         }
 
         /// <summary>
-        /// Calls service on all controllers until a successful response is returned
+        /// Calls service on all controllers until a successful response
+        /// is returned
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="service"></param>
         /// <param name="request"></param>
+        /// <param name="timeout"></param>
         /// <returns></returns>
         private async Task CallServiceOnAllSupervisors<T>(
             string service, T request, TimeSpan timeout) {
@@ -85,6 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
                 $"No response received for job {jobId}.  Failing.");
         }
 
+        /// <summary>Type property name constant</summary>
         public const string kTypeProp = "__type__"; // TODO: Consolidate as common constant
 
         private readonly IIoTHubJobServices _jobs;

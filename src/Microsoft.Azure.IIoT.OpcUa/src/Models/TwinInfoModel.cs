@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -27,18 +27,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         public DateTime? NotSeenSince { get; set; }
 
         /// <summary>
-        /// Whether twin is activated in the edge
+        /// Whether twin is activated in the twin module
         /// </summary>
         public bool? Activated { get; set; }
 
         /// <summary>
-        /// Whether twin is connected through the edge
+        /// Whether twin is connected through the twin module
         /// </summary>
         public bool? Connected { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between
-        /// client (edge) and server (service) (default: false).
+        /// client (module) and server (service) (default: false).
         /// </summary>
         public bool? OutOfSync { get; set; }
     }

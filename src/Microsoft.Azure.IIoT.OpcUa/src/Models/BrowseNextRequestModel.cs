@@ -11,17 +11,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
     public class BrowseNextRequestModel {
 
         /// <summary>
-        /// Continuation token to use
+        /// Continuation token from previews browse request.
+        /// (mandatory)
         /// </summary>
         public string ContinuationToken { get; set; }
 
         /// <summary>
-        /// Whether to abort browse and release
+        /// Whether to abort browse and release.
+        /// (default: false)
         /// </summary>
         public bool? Abort { get; set; }
 
         /// <summary>
-        /// Elevation
+        /// Whether to collapse all references into a set of
+        /// unique target nodes and not show reference
+        /// information.
+        /// (default is false)
+        /// </summary>
+        public bool? TargetNodesOnly { get; set; }
+
+        /// <summary>
+        /// Optional elevation
         /// </summary>
         public AuthenticationModel Elevation { get; set; }
     }

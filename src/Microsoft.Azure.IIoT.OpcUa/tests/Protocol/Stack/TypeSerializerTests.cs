@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
     using Opc.Ua;
     using System;
     using Xunit;
+    using System.Globalization;
 
     public class TypeSerializerTests {
 
@@ -16,12 +17,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode a date time
         /// </summary>
         [Theory]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteDateTime(string encoderType, string decoderType) {
             var expected = DateTime.UtcNow;
             CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
@@ -36,12 +39,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode a date time array
         /// </summary>
         [Theory]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteDateTimeArray(string encoderType, string decoderType) {
             var expected = new[] {
                 DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow,
@@ -61,12 +66,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode qualified name
         /// </summary>
         [Theory]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteQualifiedName(string encoderType, string decoderType) {
             var expected = new QualifiedName("hello");
             CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
@@ -81,12 +88,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode qualified name
         /// </summary>
         [Theory]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteQualifiedNameArray(string encoderType, string decoderType) {
             var expected = new[] {
                 new QualifiedName("bla", 0),
@@ -106,14 +115,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode localized text
         /// </summary>
         [Theory]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
-        public void ReadWriteLocalizedText(string encoderType, string decoderType) {
-            var expected = new LocalizedText("en-us", "hello");
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        public void ReadWriteLocalizedText1(string encoderType, string decoderType) {
+            var expected = new LocalizedText("hello");
             CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
 
             var buffer = encoder.Encode(e => e.WriteLocalizedText("test", expected));
@@ -122,23 +133,71 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
+        /// <summary>
+        /// Test encode localized text
+        /// </summary>
+        [Theory]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        public void ReadWriteLocalizedText2(string encoderType, string decoderType) {
+            var expected = new LocalizedText(CultureInfo.CurrentCulture.Name, "hello");
+            CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
+
+            var buffer = encoder.Encode(e => e.WriteLocalizedText("test", expected));
+            var result = decoder.Decode(buffer, d => d.ReadLocalizedText("test"));
+
+            Assert.Equal(expected, result);
+        }
 
         /// <summary>
         /// Test encode localized text
         /// </summary>
         [Theory]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
-        public void ReadWriteLocalizedTextArray(string encoderType, string decoderType) {
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        public void ReadWriteLocalizedTextArray1(string encoderType, string decoderType) {
             var expected = new[] {
-                new LocalizedText("en-us", "hello"),
-                new LocalizedText("en-us", "world"),
-                new LocalizedText("en-us", "here"),
-                new LocalizedText("en-us", "I am"),
+                new LocalizedText("hello"),
+                new LocalizedText("world"),
+                new LocalizedText("here"),
+                new LocalizedText("I am"),
+                };
+            CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
+
+            var buffer = encoder.Encode(e => e.WriteLocalizedTextArray("test", expected));
+            var result = decoder.Decode(buffer, d => d.ReadLocalizedTextArray("test"));
+
+            Assert.Equal(expected, result);
+        }
+
+        /// <summary>
+        /// Test encode localized text
+        /// </summary>
+        [Theory]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        public void ReadWriteLocalizedTextArray2(string encoderType, string decoderType) {
+            var expected = new[] {
+                new LocalizedText(CultureInfo.CurrentCulture.Name, "hello"),
+                new LocalizedText(CultureInfo.CurrentCulture.Name, "world"),
+                new LocalizedText(CultureInfo.CurrentCulture.Name, "here"),
+                new LocalizedText(CultureInfo.CurrentCulture.Name, "I am"),
                 };
             CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
 
@@ -152,12 +211,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode status code value
         /// </summary>
         [Theory]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteStatusCode(string encoderType, string decoderType) {
             // Create graph
             var expected = new StatusCode(StatusCodes.BadAggregateInvalidInputs);
@@ -173,12 +234,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode argument
         /// </summary>
         [Theory]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteArgument(string encoderType, string decoderType) {
             var expected = new Argument("something1",
                     new NodeId(2354), -1, "somedesciroeioi") {
@@ -197,12 +260,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode argument as array
         /// </summary>
         [Theory]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteArgumentArray(string encoderType, string decoderType) {
             var expected = new [] {
                 new Argument("something1",
@@ -217,6 +282,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
 
             var buffer = encoder.Encode(e => e.WriteEncodeableArray("test", expected, typeof(Argument)));
+            var test = System.Text.Encoding.UTF8.GetString(buffer);
             var result = (ArgumentCollection)decoder.Decode(buffer, d => d.ReadEncodeableArray("test", typeof(Argument)));
 
             for (var i = 0; i < result.Count; i++) {
@@ -228,12 +294,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode string array
         /// </summary>
         [Theory]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteStringArray(string encoderType, string decoderType) {
             var expected = new string[] { "1", "2", "3", "4", "5" };
             CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
@@ -248,12 +316,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode string variant
         /// </summary>
         [Theory]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteStringVariant(string encoderType, string decoderType) {
             var expected = new Variant("5");
             CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
@@ -268,12 +338,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode string variant
         /// </summary>
         [Theory]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteUintVariant(string encoderType, string decoderType) {
             var expected = new Variant((uint)99);
             CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
@@ -288,12 +358,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode string variant
         /// </summary>
         [Theory]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteUint64AsUint16(string encoderType, string decoderType) {
             var expected = (ulong)99;
             CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
@@ -308,11 +380,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode string variant - cannot do this on binary
         /// </summary>
         [Theory]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteUint64AsString(string encoderType, string decoderType) {
             var expected = (ulong)99;
             CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
@@ -327,12 +401,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode string array variant
         /// </summary>
         [Theory]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteStringArrayVariant(string encoderType, string decoderType) {
             var expected = new Variant(new string[] { "1", "2", "3", "4", "5" });
             CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
@@ -347,22 +423,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode variant collection
         /// </summary>
         [Theory]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
+        // Broken [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        // Broken [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        // Broken [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteVariantCollection(string encoderType, string decoderType) {
             var expected = new VariantCollection {
-                new Variant(4),
+                new Variant(4L),
                 new Variant("test"),
-                new Variant(new uint[] {1, 2, 3, 4, 5 }),
+                new Variant(new long[] {1, 2, 3, 4, 5 }),
                 new Variant(new string[] {"1", "2", "3", "4", "5" })
             };
             CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
 
             var buffer = encoder.Encode(e => e.WriteVariantArray("test", expected));
+            var test = System.Text.Encoding.UTF8.GetString(buffer);
             var result = decoder.Decode(buffer, d => d.ReadVariantArray("test"));
 
             Assert.Equal(expected, result);
@@ -373,12 +452,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// Test encode string array variant
         /// </summary>
         [Theory]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteGenericVariableNode(string encoderType, string decoderType) {
             var expected = new GenericNode();
             var map = new AttributeMap();
@@ -401,12 +480,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         /// test encoding
         /// </summary>
         [Theory]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJsonOld)]
-        // Bug [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJsonOld)]
-        [InlineData(TypeSerializer.MimeTypeUaJsonOld, TypeSerializer.MimeTypeUaJson)]
-        [InlineData(TypeSerializer.MimeTypeUaJson, TypeSerializer.MimeTypeUaJson)]
-        // TODO! [InlineData(TypeSerializer.MimeTypeUaBinary, TypeSerializer.MimeTypeUaBinary)]
-        [InlineData(TypeSerializer.MimeTypeUaXml, TypeSerializer.MimeTypeUaXml)]
+        // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        // TODO [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteProgramDiagnostic2DataType(string encoderType, string decoderType) {
 
             // Create dummy type
@@ -427,9 +508,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
                         new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = new uint[0] }
                 },
                 LastMethodInputValues = new VariantCollection {
-                    new Variant(4),
+                    new Variant(4L),
                     new Variant("test"),
-                    new Variant(new uint[] {1, 2, 3, 4, 5 }),
+                    new Variant(new long[] {1, 2, 3, 4, 5 }),
                     new Variant(new string[] {"1", "2", "3", "4", "5" })
                 },
                 LastMethodOutputArguments = new ArgumentCollection {
@@ -443,9 +524,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
                         new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = new uint[0] }
                 },
                 LastMethodOutputValues = new VariantCollection {
-                    new Variant(4),
+                    new Variant(4L),
                     new Variant("test"),
-                    new Variant(new uint[] {1, 2, 3, 4, 5 }),
+                    new Variant(new long[] {1, 2, 3, 4, 5 }),
                     new Variant(new string[] {"1", "2", "3", "4", "5" })
                 },
                 LastMethodReturnStatus = new StatusResult(

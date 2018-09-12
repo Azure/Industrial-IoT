@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         /// Create service
         /// </summary>
         /// <param name="twin"></param>
+        /// <param name="logger"></param>
         public SupervisorClient(IIoTHubTwinServices twin, ILogger logger) {
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

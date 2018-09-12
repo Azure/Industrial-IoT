@@ -6,6 +6,9 @@
 namespace Opc.Ua {
     using System;
 
+    /// <summary>
+    /// Type serializer services
+    /// </summary>
     public interface ITypeSerializer {
 
         /// <summary>

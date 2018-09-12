@@ -8,12 +8,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Opc.Ua;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Stack models extensions
+    /// </summary>
     public static class StackModelsEx {
 
         /// <summary>
         /// Convert endpoint description to application registration
         /// </summary>
         /// <param name="ep"></param>
+        /// <param name="hostAddress"></param>
         /// <param name="siteId"></param>
         /// <param name="supervisorId"></param>
         /// <returns></returns>
@@ -30,8 +34,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     SupervisorId = supervisorId,
                     ApplicationType = type,
                     HostAddresses = new HashSet<string> { hostAddress },
-                    ApplicationId = ApplicationInfoModelEx.CreateApplicationId(siteId,
-                        ep.Server.ApplicationUri, type),
+                    ApplicationId = ApplicationInfoModelEx.CreateApplicationId(
+                        siteId, ep.Server.ApplicationUri, type),
                     ApplicationUri = ep.Server.ApplicationUri,
                     DiscoveryUrls = new HashSet<string>(ep.Server.DiscoveryUrls),
                     DiscoveryProfileUri = ep.Server.DiscoveryProfileUri,

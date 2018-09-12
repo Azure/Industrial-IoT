@@ -33,8 +33,7 @@ The consuming services are part of our [Industrial IoT (IIoT) solution accelerat
 * [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
 * [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module)
 * [OPC Twin API](https://github.com/Azure/azure-iiot-opc-twin-api)
-* OPC Twin management agent service (Coming soon)
-* OPC GDS service (Coming soon)
+* OPC GDS Vault service (Coming soon)
 * [OPC Publisher IoT Edge module](https://github.com/Azure/iot-edge-opc-publisher)
 
 ## Contributing

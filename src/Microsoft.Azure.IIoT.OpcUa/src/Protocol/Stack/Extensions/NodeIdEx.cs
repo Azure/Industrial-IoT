@@ -10,6 +10,9 @@ namespace Opc.Ua.Extensions {
     using System.Xml;
     using Opc.Ua;
 
+    /// <summary>
+    /// Node id extensions
+    /// </summary>
     public static class NodeIdEx {
 
         /// <summary>
@@ -72,7 +75,6 @@ namespace Opc.Ua.Extensions {
             return new NodeId(nodeId.Identifier, (ushort)index);
         }
 
-
         /// <summary>
         /// Returns a uri that identifies the node id uniquely.  If the server
         /// uri information is provided, and the it contains a server name at
@@ -91,6 +93,29 @@ namespace Opc.Ua.Extensions {
         }
 
         /// <summary>
+        /// Returns a uri that identifies the qualified name uniquely.
+        /// </summary>
+        /// <param name="qn"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static string AsString(this QualifiedName qn, ServiceMessageContext context) {
+            if (qn == null) {
+                return string.Empty;
+            }
+            var buffer = new StringBuilder();
+            if (qn.NamespaceIndex != 0) {
+                var nsUri = context.NamespaceUris.GetString(qn.NamespaceIndex);
+                if (!string.IsNullOrEmpty(nsUri)) {
+                    buffer.Append(nsUri);
+                    // Append node id as fragment
+                    buffer.Append("#");
+                }
+            }
+            buffer.Append(qn.Name ?? string.Empty);
+            return buffer.ToString();
+        }
+
+        /// <summary>
         /// Returns a node uri from an expanded node id.
         /// </summary>
         /// <param name="nodeId"></param>
@@ -100,7 +125,6 @@ namespace Opc.Ua.Extensions {
             if (nodeId == null) {
                 nodeId = ExpandedNodeId.Null;
             }
-            var buffer = new StringBuilder();
             var nsUri = nodeId.NamespaceUri;
             if (string.IsNullOrEmpty(nsUri) && nodeId.NamespaceIndex != 0) {
                 nsUri = context.NamespaceUris.GetString(nodeId.NamespaceIndex);
@@ -108,23 +132,46 @@ namespace Opc.Ua.Extensions {
                     nsUri = null;
                 }
             }
-            if (nsUri != null) {
-                buffer.Append(nsUri);
-                // Append node id as fragment
-                buffer.Append("#");
-            }
-            FormatIdentifier(buffer, nodeId.IdType, nodeId.Identifier);
-            // Append server as optional query param
+            string srvUri = null;
             if (nodeId.ServerIndex != 0 && context.ServerUris != null) {
-                var srvUri = context.ServerUris.GetString(nodeId.ServerIndex);
-                if (!string.IsNullOrEmpty(srvUri)) {
-                    // Pack server in front of identifier
-                    buffer.Append("&srv=");
-                    // srvUri = Uri.EscapeDataString(srvUri);
-                    buffer.Append(srvUri);
+                srvUri = context.ServerUris.GetString(nodeId.ServerIndex);
+                if (string.IsNullOrEmpty(srvUri)) {
+                    srvUri = null;
                 }
             }
-            return buffer.ToString();
+            return FormatNodeIdUri(nsUri, srvUri, nodeId.IdType, nodeId.Identifier);
+        }
+
+        /// <summary>
+        /// Returns a qualified name from a string
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static QualifiedName ToQualifiedName(this string value, ServiceMessageContext context) {
+            if (value == null) {
+                return QualifiedName.Null;
+            }
+            try {
+                var uri = new Uri(value);
+                if (string.IsNullOrEmpty(uri.Fragment)) {
+                    value = string.Empty;
+                }
+                else {
+                    value = uri.Fragment.TrimStart('#');
+                }
+                var nsUri = uri.NoQueryAndFragment().AbsoluteUri;
+                return new QualifiedName(value, context.NamespaceUris.GetIndexOrAppend(nsUri));
+            }
+            catch {
+                try {
+                    return QualifiedName.Parse(value);
+                }
+                catch {
+                    // Give up
+                    return new QualifiedName(value);
+                }
+            }
         }
 
         /// <summary>
@@ -168,177 +215,28 @@ namespace Opc.Ua.Extensions {
         }
 
         /// <summary>
-        /// Returns datatype for system type
+        /// Format node id components into a uri string
         /// </summary>
-        public static uint GetDataType(Type systemType) {
-            while (systemType.IsArray) {
-                systemType = systemType.GetElementType();
-            }
-            if (systemType.IsEnum) {
-                return DataTypes.Enumeration;
-            }
-            if (systemType == typeof(bool)) {
-                return DataTypes.Boolean;
-            }
-            if (systemType == typeof(sbyte)) {
-                return DataTypes.SByte;
-            }
-            if (systemType == typeof(byte)) {
-                return DataTypes.Byte;
-            }
-            if (systemType == typeof(short)) {
-                return DataTypes.Int16;
-            }
-            if (systemType == typeof(ushort)) {
-                return DataTypes.UInt16;
-            }
-            if (systemType == typeof(int)) {
-                return DataTypes.Int32;
-            }
-            if (systemType == typeof(uint)) {
-                return DataTypes.UInt32;
-            }
-            if (systemType == typeof(long)) {
-                return DataTypes.Int64;
-            }
-            if (systemType == typeof(ulong)) {
-                return DataTypes.UInt64;
-            }
-            if (systemType == typeof(float)) {
-                return DataTypes.Float;
-            }
-            if (systemType == typeof(double)) {
-                return DataTypes.Double;
-            }
-            if (systemType == typeof(string)) {
-                return DataTypes.String;
-            }
-            if (systemType == typeof(DateTime)) {
-                return DataTypes.DateTime;
-            }
-            if (systemType == typeof(Uuid)) {
-                return DataTypes.Guid;
-            }
-            if (systemType == typeof(byte[])) {
-                return DataTypes.ByteString;
-            }
-            if (systemType == typeof(XmlElement)) {
-                return DataTypes.XmlElement;
-            }
-            if (systemType == typeof(NodeId)) {
-                return DataTypes.NodeId;
-            }
-            if (systemType == typeof(ExpandedNodeId)) {
-                return DataTypes.ExpandedNodeId;
-            }
-            if (systemType == typeof(StatusCode)) {
-                return DataTypes.StatusCode;
-            }
-            if (systemType == typeof(DiagnosticInfo)) {
-                return DataTypes.DiagnosticInfo;
-            }
-            if (systemType == typeof(QualifiedName)) {
-                return DataTypes.QualifiedName;
-            }
-            if (systemType == typeof(LocalizedText)) {
-                return DataTypes.LocalizedText;
-            }
-            if (systemType == typeof(DataValue)) {
-                return DataTypes.DataValue;
-            }
-            if (systemType == typeof(ExtensionObject)) {
-                return DataTypes.Structure;
-            }
-            if (systemType == typeof(DateTime)) {
-                return DataTypes.UtcTime;
-            }
-            return DataTypes.BaseDataType;
-        }
-
-        /// <summary>
-        /// Unpack with a default value
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="dataValue"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
-        public static T Get<T>(this DataValue dataValue, T defaultValue = default(T)) {
-            if (dataValue == null) {
-                return defaultValue;
-            }
-            if (StatusCode.IsNotGood(dataValue.StatusCode)) {
-                return defaultValue;
-            }
-            var value = dataValue.Value;
-            while (typeof(T).IsEnum) {
-                try {
-                    return (T)Enum.ToObject(typeof(T), value);
-                }
-                catch {
-                    break;
-                }
-            }
-            while (!typeof(T).IsInstanceOfType(value)) {
-                try {
-                    return value.As<T>();
-                }
-                catch {
-                    break;
-                }
-            }
-            try {
-                return (T)value;
-            }
-            catch {
-                return defaultValue;
-            }
-        }
-
-        /// <summary>
-        /// Unpack with a default value
-        /// </summary>
-        /// <param name="dataValue"></param>
-        /// <param name="defaultValue"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static object Get(this DataValue dataValue, object defaultValue, Type type) {
-            if (dataValue == null) {
-                return defaultValue;
-            }
-            if (StatusCode.IsNotGood(dataValue.StatusCode)) {
-                return defaultValue;
-            }
-            var value = dataValue.Value;
-            while (type.IsEnum) {
-                try {
-                    return Enum.ToObject(type, value);
-                }
-                catch {
-                    break;
-                }
-            }
-            while (!type.IsInstanceOfType(value)) {
-                try {
-                    return value.As(type);
-                }
-                catch {
-                    break;
-                }
-            }
-            // TODO: try cast function...
-            return defaultValue;
-        }
-
-
-        /// <summary>
-        /// Format an identifier into a string buffer
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <param name="type"></param>
+        /// <param name="nsUri"></param>
+        /// <param name="srvUri"></param>
+        /// <param name="idType"></param>
         /// <param name="identifier"></param>
-        private static void FormatIdentifier(StringBuilder buffer, IdType type, object identifier) {
-            switch (type) {
+        /// <returns></returns>
+        public static string FormatNodeIdUri(string nsUri, string srvUri,
+            IdType idType, object identifier) {
+            var buffer = new StringBuilder();
+            if (nsUri != null) {
+                buffer.Append(nsUri);
+                // Append node id as fragment
+                buffer.Append("#");
+            }
+            switch (idType) {
                 case IdType.Numeric:
+                    if (srvUri == null && nsUri == null &&
+                        GetDataTypeName(identifier, out var typeName)) {
+                        // For readability use data type name here if possible
+                        return typeName;
+                    }
                     buffer.Append("i=");
                     if (identifier == null) {
                         buffer.Append("0"); // null
@@ -371,8 +269,15 @@ namespace Opc.Ua.Extensions {
                         "{0}", Convert.ToBase64String((byte[])identifier));
                     break;
                 default:
-                    throw new FormatException($"Id type {type} is unknown!");
+                    throw new FormatException($"Nod id type {idType} is unknown!");
             }
+            if (srvUri != null) {
+                // Pack server in front of identifier
+                buffer.Append("&srv=");
+                // srvUri = Uri.EscapeDataString(srvUri);
+                buffer.Append(srvUri);
+            }
+            return buffer.ToString();
         }
 
         /// <summary>
@@ -432,13 +337,15 @@ namespace Opc.Ua.Extensions {
                     }
                 }
             }
-            return 0;
+            // Try to retrieve data type identifier from text - returns 0 if not a type.
+            return DataTypes.GetIdentifier(text);
         }
 
         /// <summary>
         /// Parse identfier from string
         /// </summary>
         /// <param name="text"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
         private static object ParseIdentifier(char type, string text) {
             switch (type) {
@@ -451,7 +358,25 @@ namespace Opc.Ua.Extensions {
                 case 's':
                     return text.UrlDecode();
             }
-            return 0;
+            throw new FormatException($"{type} is not a known node id type");
+        }
+
+        /// <summary>
+        /// Returns data type name for identifier
+        /// </summary>
+        /// <param name="identifier"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private static bool GetDataTypeName(object identifier, out string name) {
+            try {
+                var id = Convert.ToInt32(identifier);
+                name = DataTypes.GetBrowseName(id);
+                return !string.IsNullOrEmpty(name);
+            }
+            catch {
+                name = null;
+                return false;
+            }
         }
     }
 }

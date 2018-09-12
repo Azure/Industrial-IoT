@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Cli {
     using System;
     using System.Threading.Tasks;
     using System.Collections.Generic;
+    using System.Runtime.Loader;
 
     /// <summary>
     /// Simple server host runner
@@ -100,13 +101,22 @@ Options:
         /// <returns></returns>
         private static async Task RunSampleServer(IEnumerable<int> ports) {
             var logger = new ConsoleLogger(null, LogLevel.Debug);
+
+            var tcs = new TaskCompletionSource<bool>();
+            AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
             using (var server = new SampleServerHost(logger) {
                 AutoAccept = true
             }) {
                 await server.StartAsync(ports);
-
-                Console.WriteLine("Hit any key to exit...");
-                Console.ReadKey();
+#if DEBUG
+                if (!Console.IsInputRedirected) {
+                    Console.WriteLine("Press any key to exit...");
+                    Console.TreatControlCAsInput = true;
+                    await Task.WhenAny(tcs.Task, Task.Run(() => Console.ReadKey()));
+                    return;
+                }
+#endif
+                await tcs.Task;
             }
         }
     }

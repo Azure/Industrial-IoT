@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
+    using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Encoder.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -23,6 +23,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         /// Create onboarding client
         /// </summary>
         /// <param name="iothub"></param>
+        /// <param name="events"></param>
+        /// <param name="logger"></param>
         public OnboardingClient(IIoTHubTwinServices iothub,
             IIoTHubMessagingServices events, ILogger logger) {
 
@@ -63,9 +65,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             await _events.SendAsync(OnboardingHelper.kId, new DeviceMessageModel {
                 Properties = new Dictionary<string, string> {
                     ["ContentType"] = ContentTypes.DiscoveryRequest,
-                    ["ContentEncoding"] = ContentEncodings.Json,
+                    ["ContentEncoding"] = ContentEncodings.MimeTypeJson,
                     [SystemProperties.ContentType] = ContentTypes.DiscoveryRequest,
-                    [SystemProperties.ContentEncoding] = ContentEncodings.Json
+                    [SystemProperties.ContentEncoding] = ContentEncodings.MimeTypeJson
                 },
                 Payload = JToken.FromObject(request)
             });

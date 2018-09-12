@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     /// <summary>
     /// Handles discovery requests received from the
     /// <see cref="OnboardingClient"/> instance and pushes them
-    /// to the edge.
+    /// to the supervisor module.
     /// </summary>
     public class DiscoveryRequestHandler : IEventHandler {
 
@@ -29,6 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         /// Create handler
         /// </summary>
         /// <param name="discovery"></param>
+        /// <param name="processor"></param>
         /// <param name="logger"></param>
         public DiscoveryRequestHandler(IDiscoveryServices discovery,
             ITaskProcessor processor, ILogger logger) {

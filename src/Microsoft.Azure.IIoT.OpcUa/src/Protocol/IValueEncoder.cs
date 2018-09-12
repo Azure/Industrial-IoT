@@ -16,17 +16,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Format variant as string
         /// </summary>
         /// <param name="value"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
-        JToken Encode(Variant value);
+        JToken Encode(Variant value, ServiceMessageContext context);
 
         /// <summary>
-        /// Parse string to variant
+        /// Parse token to variant
         /// </summary>
         /// <param name="value"></param>
         /// <param name="builtinType"></param>
         /// <param name="valueRank"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
         Variant Decode(JToken value, BuiltInType builtinType,
-            int? valueRank);
+            int? valueRank, ServiceMessageContext context);
     }
 }

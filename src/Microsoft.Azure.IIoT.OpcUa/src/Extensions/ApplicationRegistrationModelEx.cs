@@ -17,6 +17,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// Create server model
         /// </summary>
         /// <param name="result"></param>
+        /// <param name="hostAddress"></param>
+        /// <param name="siteId"></param>
+        /// <param name="supervisorId"></param>
+        /// <returns></returns>
         public static ApplicationRegistrationModel ToServiceModel(this Protocol.DiscoveredEndpointsModel result,
             string hostAddress, string siteId, string supervisorId) {
             var type = result.Description.Server.ApplicationType.ToServiceType() ??
@@ -26,8 +30,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
                     SiteId = siteId,
                     SupervisorId = supervisorId,
                     ApplicationType = type,
-                    ApplicationId = ApplicationInfoModelEx.CreateApplicationId(siteId,
-                        result.Description.Server.ApplicationUri, type),
+                    ApplicationId = ApplicationInfoModelEx.CreateApplicationId(
+                        siteId, result.Description.Server.ApplicationUri, type),
                     ProductUri = result.Description.Server.ProductUri,
                     ApplicationUri = result.Description.Server.ApplicationUri,
                     DiscoveryUrls = new HashSet<string>(result.Description.Server.DiscoveryUrls),
@@ -113,6 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// Add or update a server list
         /// </summary>
         /// <param name="server"></param>
+        /// <param name="discovered"></param>
         public static void AddOrUpdate(this List<ApplicationRegistrationModel> discovered,
             ApplicationRegistrationModel server) {
             var actual = discovered
@@ -130,6 +135,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// Create Union with server
         /// </summary>
         /// <param name="server"></param>
+        /// <param name="model"></param>
         public static void UnionWith(this ApplicationRegistrationModel model,
             ApplicationRegistrationModel server) {
 

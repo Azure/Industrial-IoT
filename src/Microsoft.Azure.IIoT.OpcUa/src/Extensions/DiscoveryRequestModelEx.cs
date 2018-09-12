@@ -5,6 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
 
+    /// <summary>
+    /// Discovery request model extensions
+    /// </summary>
     public static class DiscoveryRequestModelEx {
 
         /// <summary>

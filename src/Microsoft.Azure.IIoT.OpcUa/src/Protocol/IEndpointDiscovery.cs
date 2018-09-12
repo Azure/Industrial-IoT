@@ -9,6 +9,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Endpoint discovery services extensions
+    /// </summary>
     public interface IEndpointDiscovery {
 
         /// <summary>
@@ -16,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// discoverable using the provided endpoint url.
         /// </summary>
         /// <param name="discoveryUrl"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<IEnumerable<DiscoveredEndpointsModel>> FindEndpointsAsync(
             Uri discoveryUrl, CancellationToken ct);

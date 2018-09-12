@@ -22,10 +22,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         [Fact]
         public void ProcessDiscoveryWithNoResultsAndNoExistingApplications() {
-            var registry = new IoTHubDeviceRegistry();
             var found = new List<DiscoveryEventModel>();
             var fix = new Fixture();
-            var super = SupervisorModelEx.CreateSupervisorId(fix.Create<string>(), fix.Create<string>());
+
+            var device = fix.Create<string>();
+            var module = fix.Create<string>();
+            var super = SupervisorModelEx.CreateSupervisorId(device, module);
+            var supervisor = new IoTHubDeviceModel {
+                Device = new DeviceModel {
+                    Id = device,
+                    ModuleId = module
+                },
+                Twin = SupervisorRegistration.Patch(null,
+                    SupervisorRegistration.FromServiceModel(new SupervisorModel {
+                        Id = super
+                    }))
+            };
+
+            var registry = new IoTHubDeviceRegistry {
+                Modules = supervisor.YieldReturn().ToList()
+            };
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -399,7 +415,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             // Create template applications and endpoints
             fix.Customizations.Add(new TypeRelay(typeof(JToken), typeof(JObject)));
             var sitex = site = fix.Create<string>();
-            var superx = super = SupervisorModelEx.CreateSupervisorId(fix.Create<string>(), fix.Create<string>());
+
+            var module = fix.Create<string>();
+            var device = fix.Create<string>();
+            var superx = super = SupervisorModelEx.CreateSupervisorId(device, module);
+
+            var supervisor = new IoTHubDeviceModel {
+                Device = new DeviceModel {
+                    Id = device,
+                    ModuleId = module
+                },
+                Twin = SupervisorRegistration.Patch(null,
+                    SupervisorRegistration.FromServiceModel(new SupervisorModel {
+                        SiteId = site,
+                        Id = superx
+                    }))
+            };
+
             var template = fix
                 .Build<ApplicationRegistrationModel>()
                 .Without(x => x.Application)
@@ -465,7 +497,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     Twin = d
                 });
             registry = new IoTHubDeviceRegistry {
-                Devices = appdevices.Concat(epdevices).ToList()
+                Devices = appdevices.Concat(epdevices).ToList(),
+                Modules = supervisor.YieldReturn().ToList()
             };
         }
     }

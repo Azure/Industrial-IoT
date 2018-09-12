@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
     internal class DiscoveryRequest {
 
         /// <summary>
-        /// Discovery mode
+        /// Original discovery request model
         /// </summary>
         public DiscoveryRequestModel Request { get; }
 

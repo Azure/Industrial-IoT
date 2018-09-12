@@ -14,12 +14,16 @@ namespace Opc.Ua.Models {
     using UALocalizedText = Schema.LocalizedText;
     using UADataTypeDefinition = Schema.DataTypeDefinition;
 
+    /// <summary>
+    /// Nodeset model
+    /// </summary>
     public class NodeSet2 {
 
         /// <summary>
         /// Private constructor
         /// </summary>
         /// <param name="uaNodeSet"></param>
+        /// <param name="uri"></param>
         public NodeSet2(Uri uri, Schema.UANodeSet uaNodeSet) {
             _uaNodeSet = uaNodeSet;
             _uri = uri;
@@ -43,6 +47,7 @@ namespace Opc.Ua.Models {
         /// <summary>
         /// Create node set from named file
         /// </summary>
+        /// <param name="uri"></param>
         /// <param name="nodeSet2XmlFile"></param>
         /// <returns></returns>
         public static NodeSet2 LoadFromFile(Uri uri, string nodeSet2XmlFile) {
@@ -92,6 +97,7 @@ namespace Opc.Ua.Models {
         /// Create node set object from stream
         /// </summary>
         /// <param name="stream"></param>
+        /// <param name="uri"></param>
         /// <returns></returns>
         public static NodeSet2 Load(Stream stream, Uri uri = null) {
             var reader = new StreamReader(stream);

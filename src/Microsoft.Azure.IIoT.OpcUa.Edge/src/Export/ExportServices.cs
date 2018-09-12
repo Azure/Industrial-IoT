@@ -234,6 +234,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="node"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         private Task<ReferenceDescriptionCollection> FetchReferencesAsync(
             EndpointModel endpoint, Node node, CancellationToken ct) =>
@@ -245,6 +246,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="nodeId"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         private Task<Node> ReadNodeAsync(EndpointModel endpoint,
             ExpandedNodeId nodeId, CancellationToken ct) =>
@@ -261,11 +263,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
                 throw new ArgumentNullException(nameof(contentType));
             }
             switch (contentType.ToLowerInvariant()) {
-                case TypeSerializer.MimeTypeUaJson:
+                case ContentEncodings.MimeTypeUaJson:
                     return ".ua.json";
-                case TypeSerializer.MimeTypeUaBinary:
+                case ContentEncodings.MimeTypeUaBinary:
                     return ".ua.bin";
-                case TypeSerializer.MimeTypeUaXml:
+                case ContentEncodings.MimeTypeUaXml:
                     return ".ua.xml";
                 default:
                     throw new ArgumentException(nameof(contentType));

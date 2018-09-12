@@ -67,6 +67,7 @@ namespace Opc.Ua.Models {
         /// Copy constructor
         /// </summary>
         /// <param name="nodeId"></param>
+        /// <param name="namespaces"></param>
         /// <param name="attributes"></param>
         protected GenericNode(ExpandedNodeId nodeId, NamespaceTable namespaces,
             SortedDictionary<uint, DataValue> attributes) : this(nodeId, namespaces) {
@@ -217,7 +218,7 @@ namespace Opc.Ua.Models {
                 if (node._attributes.TryGetValue(attributeId, out dataValue)) {
                     o2 = dataValue.Value;
                 }
-                if (!Utils.IsEqual((o1 ?? defaultObject), (o2 ?? defaultObject))) {
+                if (!Utils.IsEqual(o1 ?? defaultObject, o2 ?? defaultObject)) {
                     return false;
                 }
             }
@@ -330,16 +331,13 @@ namespace Opc.Ua.Models {
         /// Set
         /// </summary>
         /// <param name="attribute"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
         public void SetAttribute<T>(uint attribute, T value) {
             _attributes[attribute] = new DataValue(new Variant(value));
         }
 
-        /// <summary>
-        /// Returns equality
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override bool Equals(object obj) {
             if (obj is IEncodeable encodeable) {
                 return IsEqual(encodeable);
@@ -347,17 +345,11 @@ namespace Opc.Ua.Models {
             return false;
         }
 
-        /// <summary>
-        /// Return hash code for node
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override int GetHashCode() =>
             NodeId.ToString().GetHashCode();
 
-        /// <summary>
-        /// Stringify node
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override string ToString() =>
             $"{NodeId} ({BrowseName})";
 
@@ -366,6 +358,7 @@ namespace Opc.Ua.Models {
         /// Get attribute
         /// </summary>
         /// <param name="attribute"></param>
+        /// <param name="defaultValue"></param>
         /// <returns></returns>
         protected T GetAttributeOrThis<T>(uint attribute, object defaultValue) {
             if (_attributes.TryGetValue(attribute, out var result)) {
@@ -377,13 +370,18 @@ namespace Opc.Ua.Models {
         /// <summary>
         /// Set Value of node
         /// </summary>
+        /// <param name="value"></param>
+        /// <param name="dataType"></param>
+        /// <param name="valueRank"></param>
         protected void SetValue(Variant value, NodeId dataType, int valueRank) {
             SetAttribute(Attributes.Value, value);
             SetAttribute(Attributes.DataType, dataType);
             SetAttribute(Attributes.ValueRank, valueRank);
         }
 
+        /// <summary>Namespaces to use in derived classes</summary>
         protected readonly NamespaceTable _namespaces;
+        /// <summary>Attributes to use in derived classes</summary>
         protected SortedDictionary<uint, DataValue> _attributes;
         private static AttributeMap _attributeMap = new AttributeMap();
     }

@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public abstract string DeviceType { get; }
 
         /// <summary>
-        /// Edge supervisor that owns the twin.
+        /// Supervisor that owns the twin.
         /// </summary>
         public virtual string SupervisorId { get; set; }
 
@@ -177,11 +177,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return null;
         }
 
-        /// <summary>
-        /// Equality
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override bool Equals(object obj) {
             var registration = obj as BaseRegistration;
             return registration != null &&
@@ -196,16 +192,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     registration.Certificate.DecodeAsByteArray());
         }
 
+        /// <inheritdoc/>
         public static bool operator ==(BaseRegistration r1, BaseRegistration r2) =>
             EqualityComparer<BaseRegistration>.Default.Equals(r1, r2);
 
+        /// <inheritdoc/>
         public static bool operator !=(BaseRegistration r1, BaseRegistration r2) =>
             !(r1 == r2);
 
-        /// <summary>
-        /// Base hash
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = 479558466;
             hashCode = hashCode * -1521134295 +
@@ -227,8 +222,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return hashCode;
         }
 
+        /// <summary>Connected property name constant</summary>
         public const string kConnectedProp = "__connected__";
+        /// <summary>Type property name constant</summary>
         public const string kTypeProp = "__type__";
+        /// <summary>Site id property name constant</summary>
         public const string kSiteIdProp = "__siteid__";
     }
 }

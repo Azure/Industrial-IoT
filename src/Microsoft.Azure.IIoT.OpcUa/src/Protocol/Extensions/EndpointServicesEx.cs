@@ -9,6 +9,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System;
     using Opc.Ua.Client;
 
+    /// <summary>
+    /// Endpoint services extensions
+    /// </summary>
     public static class EndpointServicesEx {
 
         /// <summary>

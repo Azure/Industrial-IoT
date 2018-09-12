@@ -7,12 +7,14 @@ namespace Opc.Ua {
     using System;
     using System.Text;
 
+    /// <summary>
+    /// Type serializer services extensions
+    /// </summary>
     public static class TypeSerializerEx {
 
         /// <summary>
         /// Encode string
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="codec"></param>
         /// <param name="writer"></param>
         /// <param name="encoding"></param>

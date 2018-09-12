@@ -16,9 +16,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     using System.Diagnostics;
 
     /// <summary>
-    /// Implements node and publish services through edge command control against
-    /// the OPC UA edge device module receiving service requests via device method
-    /// call.
+    /// Implements node and publish services through command control against
+    /// the OPC twin module receiving service requests via device method calls.
     /// </summary>
     public sealed class TwinClient : IBrowseServices<string>,
         INodeServices<string>, IPublishServices<string> {
@@ -27,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         /// Create service
         /// </summary>
         /// <param name="twin"></param>
+        /// <param name="logger"></param>
         public TwinClient(IIoTHubTwinServices twin, ILogger logger) {
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -168,6 +168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         /// Get list of published nodes
         /// </summary>
         /// <param name="twinId"></param>
+        /// <param name="continuation"></param>
         /// <returns></returns>
         public async Task<PublishedNodeListModel> ListPublishedNodesAsync(
             string twinId, string continuation) {

@@ -9,6 +9,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Endpoint services
+    /// </summary>
     public interface IEndpointServices {
 
         /// <summary>

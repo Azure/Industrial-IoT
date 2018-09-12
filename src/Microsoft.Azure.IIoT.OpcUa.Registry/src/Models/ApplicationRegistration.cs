@@ -16,9 +16,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// </summary>
     public sealed class ApplicationRegistration : BaseRegistration {
 
+        /// <summary>
+        /// Logical comparison of application registrations
+        /// </summary>
         public static IEqualityComparer<ApplicationRegistration> Logical =>
             new LogicalEquality();
 
+        /// <inheritdoc/>
         public override string DeviceType => "Application";
 
         /// <summary>
@@ -96,6 +100,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
         #endregion Twin Tags
 
+        /// <summary>
+        /// Application registration id
+        /// </summary>
         public string Id => ApplicationInfoModelEx.CreateApplicationId(
              SiteOrSupervisorId, ApplicationUri, ApplicationType);
 
@@ -261,6 +268,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Decode tags and property into registration object
         /// </summary>
         /// <param name="model"></param>
+        /// <param name="disabled"></param>
         /// <returns></returns>
         public static ApplicationRegistration FromServiceModel(
             ApplicationInfoModel model, bool? disabled = null) {
@@ -336,11 +344,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     model.Certificate);
         }
 
-        /// <summary>
-        /// Pure equality
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override bool Equals(object obj) {
             var registration = obj as ApplicationRegistration;
             return base.Equals(registration) &&
@@ -357,16 +361,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     registration.DiscoveryUrls.DecodeAsList());
         }
 
+        /// <inheritdoc/>
         public static bool operator ==(ApplicationRegistration r1,
             ApplicationRegistration r2) =>
             EqualityComparer<ApplicationRegistration>.Default.Equals(r1, r2);
+        /// <inheritdoc/>
         public static bool operator !=(ApplicationRegistration r1,
             ApplicationRegistration r2) => !(r1 == r2);
 
-        /// <summary>
-        /// Hash code
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = base.GetHashCode();
             hashCode = hashCode * -1521134295 +

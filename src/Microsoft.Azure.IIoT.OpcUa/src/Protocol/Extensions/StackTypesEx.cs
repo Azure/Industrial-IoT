@@ -11,6 +11,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using UaTokenType = Opc.Ua.UserTokenType;
     using UaNodeClass = Opc.Ua.NodeClass;
 
+    /// <summary>
+    /// Stack types conversions
+    /// </summary>
     public static class StackTypesEx {
 
         /// <summary>

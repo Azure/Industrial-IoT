@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,12 +6,21 @@
 namespace Opc.Ua.Models {
     using Opc.Ua;
 
+    /// <summary>
+    /// Structure definition extensions
+    /// </summary>
     public class StructureDefinitionEx : StructureDefinition {
 
+        /// <summary>
+        /// Symbold name
+        /// </summary>
         public string SymbolicName {
             get; set;
         }
 
+        /// <summary>
+        /// Structure name
+        /// </summary>
         public QualifiedName Name {
             get;
             internal set;

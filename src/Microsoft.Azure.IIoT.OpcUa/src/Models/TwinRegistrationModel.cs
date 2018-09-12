@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         public byte[] Certificate { get; set; }
 
         /// <summary>
-        /// Edge supervisor that registered the twin.
+        /// Supervisor that registered the twin.
         /// </summary>
         public string SupervisorId { get; set; }
     }

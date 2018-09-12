@@ -14,6 +14,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
     using System.Net.Sockets;
     using System.Text;
 
+    /// <summary>
+    /// Opc ua secure channel probe factory
+    /// </summary>
     public class ServerProbe : IPortProbe {
 
         /// <summary>
@@ -22,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// Create factory
+        /// Create server probe
         /// </summary>
         /// <param name="logger"></param>
         public ServerProbe(ILogger logger) {
@@ -45,6 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             /// Create opc ua server probe
             /// </summary>
             /// <param name="logger"></param>
+            /// <param name="timeout"></param>
             public ServerHelloAsyncProbe(ILogger logger, int timeout) {
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
                 _timeout = timeout;
@@ -71,6 +75,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             /// </summary>
             /// <param name="arg"></param>
             /// <param name="ok"></param>
+            /// <param name="index"></param>
+            /// <param name="timeout"></param>
             /// <returns>true if completed, false to be called again</returns>
             public bool CompleteAsync(int index, SocketAsyncEventArgs arg,
                 out bool ok, out int timeout) {
@@ -105,7 +111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                                 encoder.WriteByteString(null, Encoding.UTF8.GetBytes("opc.tcp://" + ep));
                                 _size = encoder.Close();
                             }
-                            _buffer[4] = (byte)((_size & 0x000000FF));
+                            _buffer[4] = (byte)(_size & 0x000000FF);
                             _buffer[5] = (byte)((_size & 0x0000FF00) >> 8);
                             _buffer[6] = (byte)((_size & 0x00FF0000) >> 16);
                             _buffer[7] = (byte)((_size & 0xFF000000) >> 24);
