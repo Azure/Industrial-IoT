@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// browse view model for webservice api
+    /// browse view model
     /// </summary>
     public class BrowseViewApiModel {
 

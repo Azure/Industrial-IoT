@@ -22,8 +22,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public ValueWriteRequestApiModel(ValueWriteRequestModel model) {
-            Node = new NodeApiModel(model.Node);
+            NodeId = model.NodeId;
+            DataType = model.DataType;
+            IndexRange = model.IndexRange;
             Value = model.Value;
+            Elevation = model.Elevation == null ? null :
+                new AuthenticationApiModel(model.Elevation);
         }
 
         /// <summary>
@@ -32,19 +36,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <returns></returns>
         public ValueWriteRequestModel ToServiceModel() {
             return new ValueWriteRequestModel {
-                Node = Node.ToServiceModel(),
+                NodeId = NodeId,
+                DataType = DataType,
+                IndexRange = IndexRange,
+                Elevation = Elevation?.ToServiceModel(),
                 Value = Value
             };
         }
 
         /// <summary>
-        /// Node information to allow writing - from browse.
+        /// Node id to to write value to - from browse.
         /// </summary>
-        public NodeApiModel Node { get; set; }
+        public string NodeId { get; set; }
 
         /// <summary>
         /// Value to write
         /// </summary>
         public JToken Value { get; set; }
+
+        /// <summary>
+        /// A built in datatype for the value to write.
+        /// </summary>
+        public string DataType { get; set; }
+
+        /// <summary>
+        /// Index range to write
+        /// </summary>
+        public string IndexRange { get; set; }
+
+        /// <summary>
+        /// Optional User elevation
+        /// </summary>
+        public AuthenticationApiModel Elevation { get; set; }
     }
 }

@@ -9,9 +9,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// call request model for twin module
+    /// Call request model for twin module
     /// </summary>
     public class MethodCallRequestApiModel {
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -24,14 +25,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public MethodCallRequestApiModel(MethodCallRequestModel model) {
             MethodId = model.MethodId;
             ObjectId = model.ObjectId;
-            if (model.InputArguments != null) {
-                model.InputArguments
-                    .Select(s => new MethodArgumentApiModel(s))
+            if (model.Arguments != null) {
+                Arguments = model.Arguments
+                    .Select(s => new MethodCallArgumentApiModel(s))
                     .ToList();
             }
             else {
-                model.InputArguments = new List<MethodArgumentModel>();
+                Arguments = new List<MethodCallArgumentApiModel>();
             }
+            Elevation = model.Elevation == null ? null :
+                new AuthenticationApiModel(model.Elevation);
         }
 
         /// <summary>
@@ -42,23 +45,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             return new MethodCallRequestModel {
                 MethodId = MethodId,
                 ObjectId = ObjectId,
-                InputArguments = Arguments.Select(s => s.ToServiceModel()).ToList()
+                Elevation = Elevation?.ToServiceModel(),
+                Arguments = Arguments?
+                    .Select(s => s.ToServiceModel()).ToList()
             };
         }
 
         /// <summary>
-        /// Method id of method to call
+        /// Method to call
         /// </summary>
         public string MethodId { get; set; }
 
         /// <summary>
-        /// If not global (= null), object or type scope
+        /// Object scope of the method
         /// </summary>
         public string ObjectId { get; set; }
 
         /// <summary>
-        /// Arguments for the method - null means no args
+        /// Input Arguments
         /// </summary>
-        public List<MethodArgumentApiModel> Arguments { get; set; }
+        public List<MethodCallArgumentApiModel> Arguments { get; set; }
+
+        /// <summary>
+        /// Elevation
+        /// </summary>
+        public AuthenticationApiModel Elevation { get; set; }
     }
 }

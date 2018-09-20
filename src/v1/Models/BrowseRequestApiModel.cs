@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             Direction = model.Direction;
             ReferenceTypeId = model.ReferenceTypeId;
             TargetNodesOnly = model.TargetNodesOnly;
+            ReadVariableValues = model.ReadVariableValues;
             NoSubtypes = model.NoSubtypes;
             Elevation = model.Elevation == null ? null :
                 new AuthenticationApiModel(model.Elevation);
@@ -45,6 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
                 View = View?.ToServiceModel(),
                 ReferenceTypeId = ReferenceTypeId,
                 TargetNodesOnly = TargetNodesOnly,
+                ReadVariableValues = ReadVariableValues,
                 NoSubtypes = NoSubtypes,
                 Elevation = Elevation?.ToServiceModel()
             };
@@ -52,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
 
         /// <summary>
         /// Node to browse.
-        /// (default: ObjectRoot).
+        /// (default: RootFolder).
         /// </summary>
         public string NodeId { get; set; }
 
@@ -87,6 +89,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// (default is false)
         /// </summary>
         public bool? TargetNodesOnly { get; set; }
+
+        /// <summary>
+        /// Whether to read variable values on target nodes.
+        /// (default is false)
+        /// </summary>
+        public bool? ReadVariableValues { get; set; }
 
         /// <summary>
         /// Max number of references to return. There might

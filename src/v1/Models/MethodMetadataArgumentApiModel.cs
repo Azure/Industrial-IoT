@@ -8,25 +8,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// method arg model for twin module
+    /// Method argument metadata model 
     /// </summary>
-    public class MethodArgumentApiModel {
+    public class MethodMetadataArgumentApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public MethodArgumentApiModel() {}
+        public MethodMetadataArgumentApiModel() {}
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public MethodArgumentApiModel(MethodArgumentModel model) {
-            Value = model.Value;
-            TypeId = model.TypeId;
+        public MethodMetadataArgumentApiModel(MethodMetadataArgumentModel model) {
+            DefaultValue = model.DefaultValue;
+            Type = model.Type == null ? null :
+                new NodeApiModel(model.Type);
             ValueRank = model.ValueRank;
             Name = model.Name;
-            TypeName = model.TypeName;
             Description = model.Description;
             ArrayDimensions = model.ArrayDimensions;
         }
@@ -35,51 +35,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public MethodArgumentModel ToServiceModel() {
-            return new MethodArgumentModel {
-                Value = Value,
-                TypeId = TypeId,
+        public MethodMetadataArgumentModel ToServiceModel() {
+            return new MethodMetadataArgumentModel {
+                DefaultValue = DefaultValue,
+                Type = Type?.ToServiceModel(),
                 ValueRank = ValueRank,
                 ArrayDimensions = ArrayDimensions,
                 Description = Description,
-                Name = Name,
-                TypeName = TypeName
+                Name = Name
             };
         }
 
         /// <summary>
-        /// Initial value or value to use
+        /// Argument name
         /// </summary>
-        public JToken Value { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
-        /// Data type of the value
+        /// Optional description
         /// </summary>
-        public string TypeId { get; set; }
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Data type node of the argument
+        /// </summary>
+        public NodeApiModel Type { get; set; }
+
+        /// <summary>
+        /// Default value for the argument
+        /// </summary>
+        public JToken DefaultValue { get; set; }
 
         /// <summary>
         /// Optional, scalar if not set
         /// </summary>
-        public int? ValueRank { get; set; }
+        public NodeValueRank? ValueRank { get; set; }
 
         /// <summary>
         /// Optional, array dimension
         /// </summary>
         public uint[] ArrayDimensions { get; set; }
-
-        /// <summary>
-        /// Optional, argument name
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Optional, type name
-        /// </summary>
-        public string TypeName { get; set; }
-
-        /// <summary>
-        /// Optional, description
-        /// </summary>
-        public string Description { get; set; }
     }
 }

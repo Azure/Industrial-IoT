@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <param name="model"></param>
         public ValueReadResponseApiModel(ValueReadResultModel model) {
             Value = model.Value;
+            DataType = model.DataType;
             SourcePicoseconds = model.SourcePicoseconds;
             SourceTimestamp = model.SourceTimestamp;
             ServerPicoseconds = model.ServerPicoseconds;
@@ -35,6 +36,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// Value read
         /// </summary>
         public JToken Value { get; set; }
+
+        /// <summary>
+        /// Built in data type of the value read.
+        /// </summary>
+        public string DataType { get; set; }
 
         /// <summary>
         /// Pico seconds part of when value was read at source.

@@ -97,7 +97,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
             await _nodes.NodeValueWriteAsync(
                 _twin.Endpoint,
                 new ValueWriteRequestModel {
-                    Node = result.Node,
+                    NodeId = result.Node.Id,
+                    DataType = result.Node.DataType,
                     Value = (string)value
                 });
         }

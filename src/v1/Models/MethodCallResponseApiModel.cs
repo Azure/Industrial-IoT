@@ -7,11 +7,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Method call response model for twin module
     /// </summary>
     public class MethodCallResponseApiModel {
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -22,14 +24,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public MethodCallResponseApiModel(MethodCallResultModel model) {
-            Results = model.Results;
+            Results = model.Results?
+                .Select(arg => new MethodCallArgumentApiModel(arg)).ToList();
             Diagnostics = model.Diagnostics;
         }
 
         /// <summary>
         /// Output results
         /// </summary>
-        public List<JToken> Results { get; set; }
+        public List<MethodCallArgumentApiModel> Results { get; set; }
 
         /// <summary>
         /// Optional error diagnostics

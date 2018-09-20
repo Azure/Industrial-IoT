@@ -5,46 +5,46 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Method metadata request model for twin module
+    /// method arg model
     /// </summary>
-    public class MethodMetadataRequestApiModel {
+    public class MethodCallArgumentApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public MethodMetadataRequestApiModel() { }
+        public MethodCallArgumentApiModel() {}
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public MethodMetadataRequestApiModel(MethodMetadataRequestModel model) {
-            MethodId = model.MethodId;
-            Elevation = model.Elevation == null ? null :
-                new AuthenticationApiModel(model.Elevation);
+        public MethodCallArgumentApiModel(MethodCallArgumentModel model) {
+            Value = model.Value;
+            DataType = model.DataType;
         }
 
         /// <summary>
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public MethodMetadataRequestModel ToServiceModel() {
-            return new MethodMetadataRequestModel {
-                MethodId = MethodId,
-                Elevation = Elevation?.ToServiceModel()
+        public MethodCallArgumentModel ToServiceModel() {
+            return new MethodCallArgumentModel {
+                Value = Value,
+                DataType = DataType
             };
         }
 
         /// <summary>
-        /// Count of input arguments
+        /// Initial value or value to use
         /// </summary>
-        public string MethodId { get; set; }
+        public JToken Value { get; set; }
 
         /// <summary>
-        /// Optional User elevation
+        /// Data type Id of the value (from meta data)
         /// </summary>
-        public AuthenticationApiModel Elevation { get; set; }
+        public string DataType { get; set; }
     }
 }

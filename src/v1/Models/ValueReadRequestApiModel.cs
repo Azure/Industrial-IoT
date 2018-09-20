@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     /// Node value read request twin module model
     /// </summary>
     public class ValueReadRequestApiModel {
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -21,6 +22,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <param name="model"></param>
         public ValueReadRequestApiModel(ValueReadRequestModel model) {
             NodeId = model.NodeId;
+            IndexRange = model.IndexRange;
+            Elevation = model.Elevation == null ? null :
+                new AuthenticationApiModel(model.Elevation);
         }
 
         /// <summary>
@@ -29,13 +33,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <returns></returns>
         public ValueReadRequestModel ToServiceModel() {
             return new ValueReadRequestModel {
-                NodeId = NodeId
+                NodeId = NodeId,
+                IndexRange = IndexRange,
+                Elevation = Elevation?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Node to read value from
+        /// Node to read from (mandatory)
         /// </summary>
         public string NodeId { get; set; }
+
+        /// <summary>
+        /// Index range to read, e.g. 1:2,0:1 for 2 slices
+        /// out of a matrix or 0:1 for the first item in
+        /// an array, string or bytestring.
+        /// See 7.22 of part 4: NumericRange.
+        /// </summary>
+        public string IndexRange { get; set; }
+
+        /// <summary>
+        /// Optional User elevation
+        /// </summary>
+        public AuthenticationApiModel Elevation { get; set; }
     }
 }

@@ -108,7 +108,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AddressSpaceServices>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<ValueEncoder>()
+            builder.RegisterType<JsonVariantEncoder>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register discovery services
@@ -159,7 +159,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
                     .AsImplementedInterfaces().SingleInstance();
 
                 // Register other opc ua services
-                builder.RegisterType<ValueEncoder>()
+                builder.RegisterType<JsonVariantEncoder>()
                     .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<AddressSpaceServices>()
                     .AsImplementedInterfaces().SingleInstance();

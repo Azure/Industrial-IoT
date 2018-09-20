@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// method metadata query model for twin module
+    /// Method metadata query model for twin module
     /// </summary>
     public class MethodMetadataResponseApiModel {
 
@@ -25,34 +25,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <param name="model"></param>
         public MethodMetadataResponseApiModel(MethodMetadataResultModel model) {
             Diagnostics = model.Diagnostics;
-
+            ObjectId = model.ObjectId;
             if (model.InputArguments == null) {
-                InputArguments = new List<MethodArgumentApiModel>();
+                InputArguments = new List<MethodMetadataArgumentApiModel>();
             }
             else {
                 InputArguments = model.InputArguments
-                    .Select(a => new MethodArgumentApiModel(a))
+                    .Select(a => new MethodMetadataArgumentApiModel(a))
                     .ToList();
             }
             if (model.OutputArguments == null) {
-                OutputArguments = new List<MethodArgumentApiModel>();
+                OutputArguments = new List<MethodMetadataArgumentApiModel>();
             }
             else {
                 OutputArguments = model.OutputArguments
-                    .Select(a => new MethodArgumentApiModel(a))
+                    .Select(a => new MethodMetadataArgumentApiModel(a))
                     .ToList();
             }
         }
 
         /// <summary>
+        /// Id of object that the method is a component of
+        /// </summary>
+        public string ObjectId { get; set; }
+
+        /// <summary>
         /// Input argument meta data
         /// </summary>
-        public List<MethodArgumentApiModel> InputArguments { get; set; }
+        public List<MethodMetadataArgumentApiModel> InputArguments { get; set; }
 
         /// <summary>
         /// output argument meta data
         /// </summary>
-        public List<MethodArgumentApiModel> OutputArguments { get; set; }
+        public List<MethodMetadataArgumentApiModel> OutputArguments { get; set; }
 
         /// <summary>
         /// Optional error diagnostics
