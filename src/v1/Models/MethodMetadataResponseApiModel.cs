@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// method metadata query model for webservice api
+    /// method metadata query model
     /// </summary>
     public class MethodMetadataResponseApiModel {
 
@@ -26,36 +26,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// <param name="model"></param>
         public MethodMetadataResponseApiModel(MethodMetadataResultModel model) {
             Diagnostics = model.Diagnostics;
-
+            ObjectId = model.ObjectId;
             if (model.InputArguments == null) {
-                InputArguments = new List<MethodArgumentApiModel>();
+                InputArguments = new List<MethodMetadataArgumentApiModel>();
             }
             else {
                 InputArguments = model.InputArguments
-                    .Select(a => new MethodArgumentApiModel(a))
+                    .Select(a => new MethodMetadataArgumentApiModel(a))
                     .ToList();
             }
             if (model.OutputArguments == null) {
-                OutputArguments = new List<MethodArgumentApiModel>();
+                OutputArguments = new List<MethodMetadataArgumentApiModel>();
             }
             else {
                 OutputArguments = model.OutputArguments
-                    .Select(a => new MethodArgumentApiModel(a))
+                    .Select(a => new MethodMetadataArgumentApiModel(a))
                     .ToList();
             }
         }
 
         /// <summary>
+        /// Id of object that the method is a component of
+        /// </summary>
+        [JsonProperty(PropertyName = "objectId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string ObjectId { get; set; }
+
+        /// <summary>
         /// Input argument meta data
         /// </summary>
-        [JsonProperty(PropertyName = "inputArgs")]
-        public List<MethodArgumentApiModel> InputArguments { get; set; }
+        [JsonProperty(PropertyName = "inputArguments",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<MethodMetadataArgumentApiModel> InputArguments { get; set; }
 
         /// <summary>
         /// output argument meta data
         /// </summary>
-        [JsonProperty(PropertyName = "outputArgs")]
-        public List<MethodArgumentApiModel> OutputArguments { get; set; }
+        [JsonProperty(PropertyName = "outputArguments",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<MethodMetadataArgumentApiModel> OutputArguments { get; set; }
 
         /// <summary>
         /// Optional error diagnostics

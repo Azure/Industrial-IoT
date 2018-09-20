@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Status response model for webservice api
+    /// Status response model
     /// </summary>
     public class StatusResponseApiModel {
 

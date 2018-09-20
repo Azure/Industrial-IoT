@@ -6,6 +6,8 @@ The OPC UA twin micro service facilitates communication with factory floor edge 
 
 ## Prerequisites
 
+Clone this repository.
+
 ### Deploy Azure Services
 
 This service has a dependency on the following Azure resources:
@@ -16,7 +18,16 @@ Follow the instructions for [Deploy the Azure services][deploy-local] to deploy 
 
 ### Setup Dependencies
 
-* This service depends on the [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module).  Start the module following the instructions [here](https://github.com/Azure/azure-iiot-opc-twin-module)).
+This service depends on the following components:
+
+* [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module). 
+* [OPC Registry Service](https://github.com/Azure/azure-iiot-opc-twin-registry).
+* [OPC Twin Onboarding Agent](https://github.com/Azure/azure-iiot-opc-twin-onboarding).
+
+If you have [Docker][docker-url] installed, you can start this and all dependent services by changing into the repository root and running `docker-compose up`.
+Otherwise, follow the instructions at the respective link above to ensure that these dependencies are running before using the API or command line interface.
+
+To start the module follow the instructions [here](https://github.com/Azure/azure-iiot-opc-twin-module).
 
 > For real world usage, run one or more OPC UA servers in the same network that the above module deployment is part of.
 

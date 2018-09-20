@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using System.ComponentModel;
 
     /// <summary>
-    /// Browse request model for webservice api
+    /// Browse request model
     /// </summary>
     public class BrowseRequestApiModel {
 
@@ -29,6 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
             ReferenceTypeId = model.ReferenceTypeId;
             NoSubtypes = model.NoSubtypes;
             TargetNodesOnly = model.TargetNodesOnly;
+            ReadVariableValues = model.ReadVariableValues;
             Elevation = model.Elevation == null ? null :
                 new AuthenticationApiModel(model.Elevation);
             View = model.View == null ? null :
@@ -48,13 +49,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
                 ReferenceTypeId = ReferenceTypeId,
                 Elevation = Elevation?.ToServiceModel(),
                 TargetNodesOnly = TargetNodesOnly,
+                ReadVariableValues = ReadVariableValues,
                 NoSubtypes = NoSubtypes
             };
         }
 
         /// <summary>
         /// Node to browse.
-        /// (default: ObjectRoot).
+        /// (default: RootFolder).
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
         public string NodeId { get; set; }
@@ -119,10 +121,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         public bool? TargetNodesOnly { get; set; }
 
         /// <summary>
+        /// Whether to read variable values on target nodes.
+        /// (default is false)
+        /// </summary>
+        [JsonProperty(PropertyName = "readVariableValues",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(false)]
+        public bool? ReadVariableValues { get; set; }
+
+        /// <summary>
         /// Optional User elevation
         /// </summary>
         [JsonProperty(PropertyName = "elevation",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public AuthenticationApiModel Elevation { get; set; }
     }
 }

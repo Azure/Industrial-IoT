@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// node model for webservice api
+    /// node model
     /// </summary>
     public class NodeApiModel {
 
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
             ArrayDimensions = model.ArrayDimensions;
             ContainsNoLoops = model.ContainsNoLoops;
             DataTypeDefinition = model.DataTypeDefinition;
-            DefaultValue = model.DefaultValue;
+            Value = model.Value;
             Historizing = model.Historizing;
             InverseName = model.InverseName;
             MinimumSamplingInterval = model.MinimumSamplingInterval;
@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
                 ArrayDimensions = ArrayDimensions,
                 ContainsNoLoops = ContainsNoLoops,
                 DataTypeDefinition = DataTypeDefinition,
-                DefaultValue = DefaultValue,
+                Value = Value,
                 Historizing = Historizing,
                 InverseName = InverseName,
                 MinimumSamplingInterval = MinimumSamplingInterval,
@@ -165,11 +165,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// <summary>
         /// If object or view and eventing, event notifier
         /// to subscribe to.
-        /// (default: 0)
+        /// (default: no events supported)
         /// </summary>
         [JsonProperty(PropertyName = "eventNotifier",
             NullValueHandling = NullValueHandling.Ignore)]
-        public byte? EventNotifier { get; set; }
+        public NodeEventNotifier? EventNotifier { get; set; }
 
         /// <summary>
         /// If method node class, whether method can
@@ -203,7 +203,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// </summary>
         [JsonProperty(PropertyName = "accessLevel",
             NullValueHandling = NullValueHandling.Ignore)]
-        public uint? AccessLevel { get; set; }
+        public NodeAccessLevel? AccessLevel { get; set; }
 
         /// <summary>
         /// User access level for variable node or null.
@@ -211,7 +211,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// </summary>
         [JsonProperty(PropertyName = "userAccessLevel",
             NullValueHandling = NullValueHandling.Ignore)]
-        public uint? UserAccessLevel { get; set; }
+        public NodeAccessLevel? UserAccessLevel { get; set; }
 
         /// <summary>
         /// If variable the datatype of the variable.
@@ -228,7 +228,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// </summary>
         [JsonProperty(PropertyName = "valueRank",
             NullValueHandling = NullValueHandling.Ignore)]
-        public int? ValueRank { get; set; }
+        public NodeValueRank? ValueRank { get; set; }
 
         /// <summary>
         /// Array dimensions of variable or variable type.
@@ -256,12 +256,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         public double? MinimumSamplingInterval { get; set; }
 
         /// <summary>
-        /// Default value of the variable in case node
-        /// is a variable type, otherwise null..
+        /// Value of variable or default value of the
+        /// subtyped variable in case node is a variable
+        /// type, otherwise null.
         /// </summary>
-        [JsonProperty(PropertyName = "defaultValue",
+        [JsonProperty(PropertyName = "value",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken DefaultValue { get; set; }
+        public JToken Value { get; set; }
 
         /// <summary>
         /// Inverse name of the reference if the node is

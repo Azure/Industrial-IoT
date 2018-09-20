@@ -6,10 +6,11 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Models;
     using Newtonsoft.Json;
+    using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// Method metadata request model for webservice api
+    /// Method metadata request model
     /// </summary>
     public class MethodMetadataRequestApiModel {
 
@@ -51,6 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// </summary>
         [JsonProperty(PropertyName = "elevation",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public AuthenticationApiModel Elevation { get; set; }
     }
 }

@@ -26,6 +26,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         public BrowseNextRequestApiModel(BrowseNextRequestModel model) {
             Abort = model.Abort;
             ContinuationToken = model.ContinuationToken;
+            TargetNodesOnly = model.TargetNodesOnly;
+            ReadVariableValues = model.ReadVariableValues;
             Elevation = model.Elevation == null ? null :
                 new AuthenticationApiModel(model.Elevation);
         }
@@ -38,6 +40,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
             return new BrowseNextRequestModel {
                 Abort = Abort,
                 Elevation = Elevation?.ToServiceModel(),
+                TargetNodesOnly = TargetNodesOnly,
+                ReadVariableValues = ReadVariableValues,
                 ContinuationToken = ContinuationToken
             };
         }
@@ -71,10 +75,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         public bool? TargetNodesOnly { get; set; }
 
         /// <summary>
+        /// Whether to read variable values on target nodes.
+        /// (default is false)
+        /// </summary>
+        [JsonProperty(PropertyName = "readVariableValues",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(false)]
+        public bool? ReadVariableValues { get; set; }
+
+        /// <summary>
         /// Optional User elevation
         /// </summary>
         [JsonProperty(PropertyName = "elevation",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public AuthenticationApiModel Elevation { get; set; }
     }
 }

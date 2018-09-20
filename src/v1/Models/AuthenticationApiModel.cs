@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using System.ComponentModel;
 
     /// <summary>
-    /// Authentication model for webservice api
+    /// Authentication model
     /// </summary>
     public class AuthenticationApiModel {
 

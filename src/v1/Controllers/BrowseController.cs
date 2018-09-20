@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// twin specified by the passed in id.
         /// The root node id to browse from can be provided as part of the query
         /// parameters.
-        /// If it is not provided, the ObjectRoot node is browsed. Note that this
+        /// If it is not provided, the RootFolder node is browsed. Note that this
         /// is the same as the POST method with the model containing the node id
         /// and the targetNodesOnly flag set to true.
         /// The twin must be activated and connected and twin and server must trust
@@ -98,7 +98,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             }
             var request = new BrowseRequestModel {
                 NodeId = nodeId,
-                TargetNodesOnly = true
+                TargetNodesOnly = true,
+                ReadVariableValues = true
             };
             var browseresult = await _twin.NodeBrowseAsync(id, request);
             return new BrowseResponseApiModel(browseresult);
@@ -128,7 +129,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             }
             var request = new BrowseNextRequestModel {
                 ContinuationToken = continuationToken,
-                TargetNodesOnly = true
+                TargetNodesOnly = true,
+                ReadVariableValues = true
             };
             var browseresult = await _twin.NodeBrowseNextAsync(id, request);
             return new BrowseNextResponseApiModel(browseresult);

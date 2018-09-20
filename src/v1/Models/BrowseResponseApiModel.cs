@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// browse response model for webservice api
+    /// browse response model
     /// </summary>
     public class BrowseResponseApiModel {
 

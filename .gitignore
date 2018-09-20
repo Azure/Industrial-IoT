@@ -22,5 +22,5 @@
 *.exe
 /src/out
 /src/Logs
-
+.env
 

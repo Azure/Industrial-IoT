@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// reference model for webservice api
+    /// reference model
     /// </summary>
     public class NodeReferenceApiModel {
         /// <summary>

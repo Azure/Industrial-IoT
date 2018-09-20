@@ -8,9 +8,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
-    /// Method call response model for webservice api
+    /// Method call response model
     /// </summary>
     public class MethodCallResponseApiModel {
 
@@ -24,7 +25,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public MethodCallResponseApiModel(MethodCallResultModel model) {
-            Results = model.Results;
+            Results = model.Results?
+                .Select(arg => new MethodCallArgumentApiModel(arg)).ToList();
             Diagnostics = model.Diagnostics;
         }
 
@@ -32,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// Output results
         /// </summary>
         [JsonProperty(PropertyName = "results")]
-        public List<JToken> Results { get; set; }
+        public List<MethodCallArgumentApiModel> Results { get; set; }
 
         /// <summary>
         /// Optional error diagnostics

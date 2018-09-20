@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// Endpoint model for webservice api
+    /// Endpoint model
     /// </summary>
     public class EndpointApiModel {
 
