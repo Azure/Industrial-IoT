@@ -16,6 +16,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Servers\src\Microsoft.Azure.IIoT.OpcUa.Servers.csproj" />
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.OpcUa.Edge.csproj" />
   </ItemGroup>
   <ItemGroup>

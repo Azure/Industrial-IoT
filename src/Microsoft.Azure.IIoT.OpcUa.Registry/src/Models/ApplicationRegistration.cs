@@ -216,36 +216,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 // Tags
 
                 IsDisabled =
-                    tags.Get<bool>(nameof(IsDisabled), null),
+                    tags.GetValue<bool>(nameof(IsDisabled), null),
                 NotSeenSince =
-                    tags.Get<DateTime>(nameof(NotSeenSince), null),
+                    tags.GetValue<DateTime>(nameof(NotSeenSince), null),
                 SiteId =
-                    tags.Get<string>(nameof(SiteId), null),
+                    tags.GetValue<string>(nameof(SiteId), null),
 
                 ApplicationName =
-                    tags.Get<string>(nameof(ApplicationName), null),
+                    tags.GetValue<string>(nameof(ApplicationName), null),
                 ApplicationUri =
-                    tags.Get<string>(nameof(ApplicationUri), null),
+                    tags.GetValue<string>(nameof(ApplicationUri), null),
                 ProductUri =
-                    tags.Get<string>(nameof(ProductUri), null),
+                    tags.GetValue<string>(nameof(ProductUri), null),
                 SupervisorId =
-                    tags.Get<string>(nameof(SupervisorId), null),
+                    tags.GetValue<string>(nameof(SupervisorId), null),
                 DiscoveryProfileUri =
-                    tags.Get<string>(nameof(DiscoveryProfileUri), null),
+                    tags.GetValue<string>(nameof(DiscoveryProfileUri), null),
                 ApplicationId =
-                    tags.Get<string>(nameof(ApplicationId), null),
+                    tags.GetValue<string>(nameof(ApplicationId), null),
                 ApplicationType =
-                    tags.Get<ApplicationType>(nameof(ApplicationType), null),
+                    tags.GetValue<ApplicationType>(nameof(ApplicationType), null),
                 Capabilities =
-                    tags.Get<Dictionary<string, bool>>(nameof(Capabilities), null),
+                    tags.GetValue<Dictionary<string, bool>>(nameof(Capabilities), null),
                 HostAddresses =
-                    tags.Get<Dictionary<string, string>>(nameof(HostAddresses), null),
+                    tags.GetValue<Dictionary<string, string>>(nameof(HostAddresses), null),
                 DiscoveryUrls =
-                    tags.Get<Dictionary<string, string>>(nameof(DiscoveryUrls), null),
+                    tags.GetValue<Dictionary<string, string>>(nameof(DiscoveryUrls), null),
                 Certificate =
-                    tags.Get<Dictionary<string, string>>(nameof(Certificate), null),
+                    tags.GetValue<Dictionary<string, string>>(nameof(Certificate), null),
                 Thumbprint =
-                    tags.Get<string>(nameof(Thumbprint), null),
+                    tags.GetValue<string>(nameof(Thumbprint), null),
             };
             return registration;
         }

@@ -112,17 +112,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Node == null) {
-                throw new ArgumentNullException(nameof(request.Node));
-            }
             if (request.Value == null) {
                 throw new ArgumentNullException(nameof(request.Value));
             }
-            if (string.IsNullOrEmpty(request.Node.Id)) {
-                throw new ArgumentException(nameof(request.Node.Id));
-            }
-            if (string.IsNullOrEmpty(request.Node.DataType)) {
-                throw new ArgumentException(nameof(request.Node.DataType));
+            if (string.IsNullOrEmpty(request.NodeId)) {
+                throw new ArgumentException(nameof(request.NodeId));
             }
             return await CallServiceOnTwin<ValueWriteRequestModel, ValueWriteResultModel>(
                 "ValueWrite_V1", twinId, request);

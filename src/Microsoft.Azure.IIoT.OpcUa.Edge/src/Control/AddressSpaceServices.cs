@@ -15,12 +15,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Opc.Ua.Models;
+    using System.Threading;
 
     /// <summary>
     /// This class provides access to a servers address space providing node
     /// and browse services.  It uses the OPC ua client interface to access
-    /// the server, which can leverage tcp or proxy transport, i.e. can access
-    /// the server locally and from the cloud.
+    /// the server.
     /// </summary>
     public class AddressSpaceServices : INodeServices<EndpointModel>,
         IBrowseServices<EndpointModel> {
@@ -31,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         /// <param name="client"></param>
         /// <param name="codec"></param>
         /// <param name="logger"></param>
-        public AddressSpaceServices(IEndpointServices client, IValueEncoder codec,
+        public AddressSpaceServices(IEndpointServices client, IVariantEncoder codec,
             ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
@@ -52,7 +53,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             return await _client.ExecuteServiceAsync(endpoint, async session => {
                 var rootId = request?.NodeId?.ToNodeId(session.MessageContext);
                 if (NodeId.IsNull(rootId)) {
-                    rootId = ObjectIds.ObjectsFolder;
+                    rootId = ObjectIds.RootFolder;
                 }
                 var typeId = request?.ReferenceTypeId?.ToNodeId(session.MessageContext);
                 if (NodeId.IsNull(typeId)) {
@@ -77,11 +78,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         direction, typeId, !(request?.NoSubtypes ?? false), 0,
                         out var continuationPoint, out var references);
                     result.ContinuationToken = await AddReferencesToBrowseResult(session,
-                        request.TargetNodesOnly ?? false, result.References, continuationPoint,
-                        references);
+                        request.TargetNodesOnly ?? false, request.ReadVariableValues ?? false,
+                        result.References, continuationPoint, references);
                 }
                 // Read root node
-                result.Node = await ReadNodeModelAsync(session, rootId,
+                result.Node = await ReadNodeModelAsync(session, rootId, true,
                     !excludeReferences ? result.References.Count != 0 : (bool?)null);
                 return result;
             });
@@ -110,7 +111,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 var response = session.BrowseNext(null, request.Abort ?? false,
                     continuationPoint, out var revised, out var references);
                 result.ContinuationToken = await AddReferencesToBrowseResult(session,
-                    request.TargetNodesOnly ?? false, result.References, revised, references);
+                    request.TargetNodesOnly ?? false, request.ReadVariableValues ?? false,
+                    result.References, revised, references);
                 return result;
             });
         }
@@ -129,18 +131,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             if (string.IsNullOrEmpty(request.MethodId)) {
                 throw new ArgumentException(nameof(request.MethodId));
             }
-            return await _client.ExecuteServiceAsync(endpoint, session => {
+            return await _client.ExecuteServiceAsync(endpoint, async session => {
                 var methodId = request.MethodId?.ToNodeId(session.MessageContext);
                 if (NodeId.IsNull(methodId)) {
                     throw new ArgumentException(nameof(request.MethodId));
                 }
                 var response = session.Browse(null, null, methodId, 0,
-                    Opc.Ua.BrowseDirection.Forward, ReferenceTypeIds.HasProperty, true, 0,
+                    Opc.Ua.BrowseDirection.Both, ReferenceTypeIds.Aggregates, true, 0,
                     out var continuationPoint, out var references);
                 var result = new MethodMetadataResultModel();
                 foreach (var nodeReference in references) {
-                    if (result.OutputArguments != null && result.InputArguments != null) {
+                    if (result.OutputArguments != null &&
+                        result.InputArguments != null &&
+                        !string.IsNullOrEmpty(result.ObjectId)) {
                         break;
+                    }
+                    if (!nodeReference.IsForward) {
+                        if (nodeReference.ReferenceTypeId == ReferenceTypeIds.HasComponent) {
+                            result.ObjectId = nodeReference.NodeId.AsString(
+                                session.MessageContext);
+                        }
+                        continue;
                     }
                     var isInput = nodeReference.BrowseName == BrowseNames.InputArguments;
                     if (!isInput && nodeReference.BrowseName != BrowseNames.OutputArguments) {
@@ -154,27 +165,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     if (!(value.Value is ExtensionObject[] argumentsList)) {
                         continue;
                     }
-                    var argList = new List<MethodArgumentModel>();
+                    var argList = new List<MethodMetadataArgumentModel>();
                     foreach (var argument in argumentsList.Select(a => (Argument)a.Body)) {
-                        var dataTypeIdNode = session.ReadNode(argument.DataType);
-                        var arg = new MethodArgumentModel {
+                        var dataTypeIdNode = await ReadNodeModelAsync(session,
+                            argument.DataType, false, false);
+                        var arg = new MethodMetadataArgumentModel {
                             Name = argument.Name,
-                            Value = _codec.Encode(new Variant(argument.Value), session.MessageContext),
-                            ValueRank = argument.ValueRank,
-                            ArrayDimensions = argument.ArrayDimensions.ToArray(),
-                            Description = argument.Description.ToString(),
-                            TypeId = argument.DataType.AsString(session.MessageContext),
-                            TypeName = dataTypeIdNode.DisplayName.Text,
+                            DefaultValue = argument.Value == null ? null :
+                                _codec.Encode(new Variant(argument.Value), out var type,
+                                    session.MessageContext),
+                            ValueRank = argument.ValueRank == ValueRanks.Scalar ?
+                                (NodeValueRank?)null : (NodeValueRank)argument.ValueRank,
+                            ArrayDimensions = argument.ArrayDimensions?.ToArray(),
+                            Description = argument.Description?.ToString(),
+                            Type = dataTypeIdNode
                         };
                         argList.Add(arg);
                     }
                     if (isInput) {
                         result.InputArguments = argList;
-                        continue;
                     }
-                    result.OutputArguments = argList;
+                    else {
+                        result.OutputArguments = argList;
+                    }
                 }
-                return Task.FromResult(result);
+                return result;
             });
         }
 
@@ -201,7 +216,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     new ReadValueId {
                         NodeId = readNode,
                         AttributeId = Attributes.Value,
-                        IndexRange = null,
+                        IndexRange = request.IndexRange,
+                        //
+                        // TODO:
+                        // A QualifiedName that specifies the data encoding to
+                        // be returned for the Value to be read.
+                        // Only works for "Structure" types, which we need to
+                        // check first.  However, then we should specify Xml
+                        // and convert to json.
+                        //
                         DataEncoding = null
                     }
                 };
@@ -217,10 +240,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         values[0].SourcePicoseconds : (ushort?)null;
                     result.SourceTimestamp = values[0].SourceTimestamp != DateTime.MinValue ?
                         values[0].SourceTimestamp : (DateTime?)null;
-                    result.Value = _codec.Encode(values[0].WrappedValue, session.MessageContext);
+                    result.Value = _codec.Encode(values[0].WrappedValue, out var type,
+                        session.MessageContext);
+                    result.DataType = type.ToString();
                 }
-                if (diagnosticInfos != null && diagnosticInfos.Count > 0) {
-                    result.Diagnostics = JToken.FromObject(diagnosticInfos[0]);
+                if (values.Any(v => StatusCode.IsBad(v.StatusCode))) {
+                    result.Diagnostics = JToken.FromObject(new {
+                        StatusCodes = values.Select(v => v.StatusCode),
+                        DiagnosticInfos =
+                            (diagnosticInfos != null && diagnosticInfos.Count > 0) ?
+                                diagnosticInfos : null
+                    });
                 }
                 return Task.FromResult(result);
             });
@@ -237,38 +267,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Node == null) {
-                throw new ArgumentNullException(nameof(request.Node));
-            }
             if (request.Value == null) {
                 throw new ArgumentNullException(nameof(request.Value));
             }
-            if (string.IsNullOrEmpty(request.Node.Id)) {
-                throw new ArgumentException(nameof(request.Node.Id));
-            }
-            if (string.IsNullOrEmpty(request.Node.DataType)) {
-                throw new ArgumentException(nameof(request.Node.DataType));
+            if (string.IsNullOrEmpty(request.NodeId)) {
+                throw new ArgumentException(nameof(request.NodeId));
             }
             return _client.ExecuteServiceAsync(endpoint, session => {
-                var builtinType = TypeInfo.GetBuiltInType(request.Node.DataType,
-                    session.TypeTree);
-                var writeNode = request.Node.Id.ToNodeId(session.MessageContext);
+                var writeNode = request.NodeId.ToNodeId(session.MessageContext);
                 if (NodeId.IsNull(writeNode)) {
-                    throw new ArgumentException(nameof(request.Node.Id));
+                    throw new ArgumentException(nameof(request.NodeId));
                 }
+                var dataTypeId = request.DataType?.ToNodeId(session.MessageContext);
+                if (NodeId.IsNull(dataTypeId)) {
+                    // Read data type
+                    if (!(session.ReadNode(writeNode) is VariableNode variable) ||
+                        NodeId.IsNull(variable.DataType)) {
+                        throw new ArgumentException(nameof(request.NodeId));
+                    }
+                    dataTypeId = variable.DataType;
+                }
+                var builtinType = TypeInfo.GetBuiltInType(dataTypeId, session.TypeTree);
+                var value = _codec.Decode(request.Value, builtinType,
+                    session.MessageContext);
                 var nodesToWrite = new WriteValueCollection{
                     new WriteValue {
                         NodeId = writeNode,
                         AttributeId = Attributes.Value,
-                        Value = new DataValue(_codec.Decode(request.Value,
-                            builtinType, request.Node.ValueRank, session.MessageContext)),
-                        IndexRange = null
+                        Value = new DataValue(value),
+                        IndexRange = request.IndexRange
                     }
                 };
                 var result = new ValueWriteResultModel();
                 session.Write(null, nodesToWrite, out var results, out var diagnosticInfos);
-                if (diagnosticInfos != null && diagnosticInfos.Count > 0) {
-                    result.Diagnostics = JToken.FromObject(diagnosticInfos[0]);
+                if (results.Any(StatusCode.IsBad)) {
+                    result.Diagnostics = JToken.FromObject(new {
+                        StatusCodes = results,
+                        DiagnosticInfos =
+                            (diagnosticInfos != null && diagnosticInfos.Count > 0) ?
+                                diagnosticInfos : null
+                    });
                 }
                 return Task.FromResult(result);
             });
@@ -288,49 +326,118 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             if (string.IsNullOrEmpty(request.MethodId)) {
                 throw new ArgumentNullException(nameof(request.MethodId));
             }
-            if (request.InputArguments != null) {
-                foreach (var arg in request.InputArguments) {
-                    if (string.IsNullOrEmpty(arg.TypeId)) {
-                        throw new ArgumentNullException(nameof(arg.TypeId));
-                    }
-                }
-            }
             return _client.ExecuteServiceAsync(endpoint, session => {
-                var args = new VariantCollection();
-                if (request.InputArguments != null) {
-                    foreach (var arg in request.InputArguments) {
-                        var builtinType = TypeInfo.GetBuiltInType(
-                            arg.TypeId.ToNodeId(session.MessageContext), session.TypeTree);
-                        args.Add(_codec.Decode(arg.Value, builtinType, arg.ValueRank,
-                            session.MessageContext));
-                    }
-                }
                 var methodId = request.MethodId?.ToNodeId(session.MessageContext);
                 if (NodeId.IsNull(methodId)) {
                     throw new ArgumentException(nameof(request.MethodId));
                 }
+
+                // Get default input arguments and types
+                var response = session.Browse(null, null, methodId, 0,
+                    Opc.Ua.BrowseDirection.Forward, ReferenceTypeIds.HasProperty, true, 0,
+                    out var continuationPoint, out var references);
+
+                List<Tuple<TypeInfo, object>> inputs = null, outputs = null;
+                foreach (var nodeReference in references) {
+                    List<Tuple<TypeInfo, object>> args = null;
+                    if (nodeReference.BrowseName == BrowseNames.InputArguments) {
+                        args = inputs = new List<Tuple<TypeInfo, object>>();
+                    }
+                    else if (nodeReference.BrowseName == BrowseNames.OutputArguments) {
+                        args = outputs = new List<Tuple<TypeInfo, object>>();
+                    }
+                    else {
+                        continue;
+                    }
+                    var node = nodeReference.NodeId.ToNodeId(session.NamespaceUris);
+                    if (!(session.ReadNode(node) is VariableNode argumentsNode)) {
+                        continue;
+                    }
+                    var value = session.ReadValue(argumentsNode.NodeId);
+                    if (!(value.Value is ExtensionObject[] argumentsList)) {
+                        continue;
+                    }
+                    foreach (var argument in argumentsList.Select(a => (Argument)a.Body)) {
+                        var builtInType = TypeInfo.GetBuiltInType(argument.DataType);
+                        args.Add(Tuple.Create(new TypeInfo(builtInType,
+                            argument.ValueRank), argument.Value));
+                    }
+                    if (inputs != null && outputs != null) {
+                        break;
+                    }
+                }
+
+                if ((request.Arguments?.Count ?? 0) > (inputs?.Count ?? 0)) {
+                    // Too many arguments
+                    throw new ArgumentException(nameof(request.Arguments));
+                }
+
                 var objectId = request.ObjectId?.ToNodeId(session.MessageContext);
                 if (NodeId.IsNull(objectId)) {
                     objectId = null;
                 }
+
+                // Set default input arguments from meta data
                 var requests = new CallMethodRequestCollection {
                     new CallMethodRequest {
                         ObjectId = objectId,
                         MethodId = methodId,
-                        InputArguments = args
+                        InputArguments = new VariantCollection(inputs
+                            .Select(arg => arg.Item1.CreateVariant(arg.Item2)))
                     }
                 };
+
+                // Update with input arguments provided in request payload
+                if (request.Arguments != null) {
+                    for (var i = 0; i < request.Arguments.Count; i++) {
+                        var arg = request.Arguments[i];
+                        if (arg == null) {
+                            continue;
+                        }
+                        var builtinType = inputs[i].Item1.BuiltInType;
+                        if (!string.IsNullOrEmpty(arg.DataType)) {
+                            builtinType = TypeInfo.GetBuiltInType(
+                                arg.DataType.ToNodeId(session.MessageContext),
+                                    session.TypeTree);
+                        }
+                        var value = _codec.Decode(arg.Value, builtinType,
+                            session.MessageContext);
+                        requests[0].InputArguments[i] = value;
+                    }
+                }
+
+                // Call method
                 var responseHeader = session.Call(null, requests, out var results,
                     out var diagnosticInfos);
                 var result = new MethodCallResultModel();
-                if (results != null && results.Count > 0 &&
-                    StatusCode.IsGood(results[0].StatusCode)) {
-                    result.Results = results[0].OutputArguments
-                        .Select(v => _codec.Encode(v, session.MessageContext))
-                        .ToList();
+
+                // Create output argument list
+                if (results != null && results.Count > 0) {
+                    var args = results[0].OutputArguments?.Count ?? 0;
+                    result.Results = new List<MethodCallArgumentModel>(
+                        EnumerableEx.Repeat(() => new MethodCallArgumentModel(), args));
+                    for (var i = 0; i < args; i++) {
+                        var arg = results[0].OutputArguments[i];
+                        if (arg == Variant.Null && outputs[i].Item2 != null) {
+                            // return default value
+                            arg = new Variant(outputs[i].Item2);
+                        }
+                        result.Results[i].Value = _codec.Encode(arg, out var type,
+                            session.MessageContext);
+                        if (type == BuiltInType.Null) {
+                            // return default type from type info
+                            type = outputs[i].Item1.BuiltInType;
+                        }
+                        result.Results[i].DataType = type.ToString();
+                    }
                 }
-                if (diagnosticInfos != null && diagnosticInfos.Count > 0) {
-                    result.Diagnostics = JToken.FromObject(diagnosticInfos[0]);
+                if (results.Any(v => StatusCode.IsBad(v.StatusCode))) {
+                    result.Diagnostics = JToken.FromObject(new {
+                        StatusCodes = results.Select(v => v.StatusCode),
+                        DiagnosticInfos =
+                            (diagnosticInfos != null && diagnosticInfos.Count > 0) ?
+                                diagnosticInfos : null
+                    });
                 }
                 return Task.FromResult(result);
             });
@@ -341,81 +448,56 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         /// </summary>
         /// <param name="session"></param>
         /// <param name="nodeId"></param>
+        /// <param name="skipValue"></param>
         /// <param name="children"></param>
         /// <returns></returns>
-        private Task<NodeModel> ReadNodeModelAsync(Session session,
-            NodeId nodeId, bool? children) {
-
-            var currentNode = session.ReadNode(nodeId);
-            var model = new NodeModel {
+        private async Task<NodeModel> ReadNodeModelAsync(Session session,
+            NodeId nodeId, bool skipValue, bool? children) {
+            var n = await GenericNode.ReadAsync(session, nodeId, skipValue,
+                CancellationToken.None);
+            return new NodeModel {
+                HasChildren = children,
                 Id = nodeId.AsString(session.MessageContext),
-                DisplayName = currentNode.DisplayName?.ToString(),
-                Description = currentNode.Description?.ToString(),
-                NodeClass = currentNode.NodeClass.ToServiceType(),
-                AccessRestrictions = currentNode.AccessRestrictions == 0 ?
-                    (uint?)null : currentNode.AccessRestrictions,
-                UserWriteMask = currentNode.UserWriteMask == 0 ?
-                    (uint?)null : currentNode.UserWriteMask,
-                WriteMask = currentNode.WriteMask == 0 ?
-                    (uint?)null : currentNode.WriteMask,
-                HasChildren = children
+                DisplayName = n.DisplayName?.ToString(),
+                Description = n.Description?.ToString(),
+                NodeClass = n.NodeClass.ToServiceType(),
+                AccessRestrictions = n.AccessRestrictions == null ||
+                    n.AccessRestrictions.Value == 0 ?
+                        null : n.AccessRestrictions,
+                UserWriteMask =
+                    n.UserWriteMask == null || n.UserWriteMask.Value == 0 ?
+                        null : n.AccessRestrictions,
+                WriteMask = n.WriteMask == null || n.WriteMask.Value == 0 ?
+                    null : n.WriteMask,
+                DataType = n.DataType?.AsString(session.MessageContext),
+                ArrayDimensions = n.ArrayDimensions,
+                ValueRank = (NodeValueRank?)n.ValueRank,
+                AccessLevel = n.AccessLevelEx == null &&
+                    n.AccessLevel == null ? (NodeAccessLevel?)null :
+                        (NodeAccessLevel)((n.AccessLevelEx ?? 0) | (n.AccessLevel ?? 0)),
+                UserAccessLevel =
+                    n.UserAccessLevel == null || n.UserAccessLevel.Value == 0 ?
+                        (NodeAccessLevel?)null : (NodeAccessLevel)n.UserAccessLevel,
+                Historizing = n.Historizing == null || !n.Historizing.Value ?
+                    null : n.Historizing,
+                MinimumSamplingInterval = n.MinimumSamplingInterval == null ||
+                    (int)n.MinimumSamplingInterval.Value == 0 ?
+                        null : n.MinimumSamplingInterval,
+                IsAbstract = n.IsAbstract == null || !n.IsAbstract.Value ?
+                    null : n.IsAbstract,
+                Value = n.Value == null ? null : _codec.Encode(n.Value.Value, out var type,
+                    session.MessageContext),
+                EventNotifier = n.EventNotifier == null || n.EventNotifier.Value == 0 ?
+                    (NodeEventNotifier?)null : (NodeEventNotifier)n.EventNotifier,
+                DataTypeDefinition = n.DataTypeDefinition == null ? null :
+                    _codec.Encode(new Variant(n.DataTypeDefinition)),
+                InverseName = n.InverseName?.ToString(),
+                Symmetric = n.Symmetric,
+                ContainsNoLoops = n.ContainsNoLoops,
+                Executable = n.Executable,
+                UserExecutable = n.UserExecutable == null || !n.Executable.Value ?
+                    null : n.UserExecutable
             };
-            switch (currentNode) {
-                case VariableNode vn:
-                    model.DataType = vn.DataType.AsString(session.MessageContext);
-                    model.ArrayDimensions = vn.ArrayDimensions == null ||
-                        vn.ArrayDimensions.Count == 0 ? null : vn.ArrayDimensions.ToArray();
-                    model.ValueRank = vn.ValueRank;
-                    model.AccessLevel = (vn.AccessLevelEx | vn.AccessLevel) == 0 ?
-                        (uint?)null : vn.AccessLevelEx | vn.AccessLevel;
-                    model.UserAccessLevel = vn.UserAccessLevel == 0 ?
-                        (uint?)null : vn.UserAccessLevel;
-                    model.Historizing = !vn.Historizing ?
-                        (bool?)null : true;
-                    model.MinimumSamplingInterval = (int)vn.MinimumSamplingInterval == 0 ?
-                        (double?)null : vn.MinimumSamplingInterval;
-                    break;
-                case VariableTypeNode vtn:
-                    model.DataType = vtn.DataType.AsString(session.MessageContext);
-                    model.ArrayDimensions = vtn.ArrayDimensions == null ||
-                        vtn.ArrayDimensions.Count == 0 ? null : vtn.ArrayDimensions.ToArray();
-                    model.ValueRank = vtn.ValueRank;
-                    model.IsAbstract = !vtn.IsAbstract ?
-                        (bool?)null : true;
-                    model.DefaultValue = _codec.Encode(vtn.Value, session.MessageContext);
-                    break;
-                case ObjectTypeNode otn:
-                    model.IsAbstract = !otn.IsAbstract ?
-                        (bool?)null : true;
-                    break;
-                case ObjectNode on:
-                    model.EventNotifier = on.EventNotifier == 0 ?
-                        (byte?)null : on.EventNotifier;
-                    break;
-                case DataTypeNode dtn:
-                    model.IsAbstract = !dtn.IsAbstract ?
-                        (bool?)null : true;
-                    model.DataTypeDefinition = dtn.DataTypeDefinition == null ? null :
-                        _codec.Encode(new Variant(dtn.DataTypeDefinition));
-                    break;
-                case ReferenceTypeNode rtn:
-                    model.IsAbstract = !rtn.IsAbstract ?
-                        (bool?)null : true;
-                    model.InverseName = rtn.InverseName?.ToString();
-                    model.Symmetric = rtn.Symmetric;
-                    break;
-                case ViewNode vn:
-                    model.EventNotifier = vn.EventNotifier == 0 ?
-                        (byte?)null : vn.EventNotifier;
-                    model.ContainsNoLoops = vn.ContainsNoLoops;
-                    break;
-                case MethodNode mn:
-                    model.Executable = mn.Executable;
-                    model.UserExecutable = !mn.Executable ?
-                        (bool?)null : mn.UserExecutable;
-                    break;
-            }
-            return Task.FromResult(model);
         }
 
         /// <summary>
@@ -423,12 +505,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         /// </summary>
         /// <param name="session"></param>
         /// <param name="targetNodesOnly"></param>
+        /// <param name="readValues"></param>
         /// <param name="result"></param>
         /// <param name="continuationPoint"></param>
         /// <param name="references"></param>
         /// <returns></returns>
-        private async Task<string> AddReferencesToBrowseResult(Session session,
-            bool targetNodesOnly, List<NodeReferenceModel> result, byte[] continuationPoint,
+        private async Task<string> AddReferencesToBrowseResult(Session session, bool targetNodesOnly,
+            bool readValues, List<NodeReferenceModel> result, byte[] continuationPoint,
             List<ReferenceDescription> references) {
             if (references != null) {
                 foreach (var reference in references) {
@@ -442,20 +525,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         bool? children = null;
                         try {
                             var response = session.Browse(null, null, nodeId, 1,
-                                Opc.Ua.BrowseDirection.Forward, ReferenceTypeIds.HierarchicalReferences,
+                                Opc.Ua.BrowseDirection.Forward,
+                                ReferenceTypeIds.HierarchicalReferences,
                                 true, 0, out var tmp, out var childReferences);
                             children = childReferences.Count != 0;
                         }
                         catch (Exception ex) {
                             _logger.Debug("Failed to obtain hasChildren information", () => ex);
                         }
-                        var model = await ReadNodeModelAsync(session, nodeId, children);
+                        var model = await ReadNodeModelAsync(session, nodeId, !readValues,
+                            children);
                         if (targetNodesOnly) {
                             result.Add(new NodeReferenceModel { Target = model });
                             continue;
                         }
                         result.Add(new NodeReferenceModel {
-                            BrowseName = 
+                            BrowseName =
                                 reference.BrowseName.AsString(session.MessageContext),
                             Id =
                                 reference.ReferenceTypeId.AsString(session.MessageContext),
@@ -471,13 +556,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         continue;
                     }
                 }
-                return continuationPoint?.ToBase64String();
+                return continuationPoint.ToBase64String();
             }
             return null;
         }
 
         private readonly ILogger _logger;
-        private readonly IValueEncoder _codec;
+        private readonly IVariantEncoder _codec;
         private readonly IEndpointServices _client;
     }
 }

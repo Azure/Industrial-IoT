@@ -6,6 +6,7 @@
 namespace Opc.Ua.Extensions {
     using System;
     using System.Globalization;
+    using System.Linq;
     using System.Text;
     using System.Xml;
     using Opc.Ua;
@@ -184,6 +185,10 @@ namespace Opc.Ua.Extensions {
             if (value == null) {
                 return NodeId.Null;
             }
+            var parts = value.Split(';');
+            if (parts.Any(s => s.StartsWith("ns=", StringComparison.CurrentCulture))) {
+                return NodeId.Parse(value);
+            }
             var identifier = ParseNodeIdUri(value, out var nsUri, out var srvUri);
             return new NodeId(identifier, context.NamespaceUris.GetIndexOrAppend(nsUri));
         }
@@ -197,6 +202,10 @@ namespace Opc.Ua.Extensions {
         public static ExpandedNodeId ToExpandedNodeId(this string value, ServiceMessageContext context) {
             if (value == null) {
                 return ExpandedNodeId.Null;
+            }
+            var parts = value.Split(';');
+            if (parts.Any(s => s.StartsWith("ns=", StringComparison.CurrentCulture))) {
+                return ExpandedNodeId.Parse(value);
             }
             var identifier = ParseNodeIdUri(value, out var nsUri, out var srvUri);
             if (!string.IsNullOrEmpty(srvUri)) {
@@ -266,7 +275,7 @@ namespace Opc.Ua.Extensions {
                         break; // null
                     }
                     buffer.AppendFormat(CultureInfo.InvariantCulture,
-                        "{0}", Convert.ToBase64String((byte[])identifier));
+                        "{0}", ((byte[])identifier).ToBase64String());
                     break;
                 default:
                     throw new FormatException($"Nod id type {idType} is unknown!");
@@ -337,8 +346,8 @@ namespace Opc.Ua.Extensions {
                     }
                 }
             }
-            // Try to retrieve data type identifier from text - returns 0 if not a type.
-            return DataTypes.GetIdentifier(text);
+            // Try to retrieve data type identifier from text
+            return GetDataTypeId(text);
         }
 
         /// <summary>
@@ -362,6 +371,18 @@ namespace Opc.Ua.Extensions {
         }
 
         /// <summary>
+        /// Returns a data type id for the name
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        private static uint GetDataTypeId(string text) {
+            if (Enum.TryParse<BuiltInType>(text, true, out var id)) {
+                return (uint)id;
+            }
+            return DataTypes.GetIdentifier(text);
+        }
+
+        /// <summary>
         /// Returns data type name for identifier
         /// </summary>
         /// <param name="identifier"></param>
@@ -370,7 +391,12 @@ namespace Opc.Ua.Extensions {
         private static bool GetDataTypeName(object identifier, out string name) {
             try {
                 var id = Convert.ToInt32(identifier);
-                name = DataTypes.GetBrowseName(id);
+                if (Enum.IsDefined(typeof(BuiltInType), id)) {
+                    name = Enum.GetName(typeof(BuiltInType), id);
+                }
+                else {
+                    name = DataTypes.GetBrowseName(id);
+                }
                 return !string.IsNullOrEmpty(name);
             }
             catch {

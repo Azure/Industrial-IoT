@@ -18,6 +18,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         public JToken Value { get; set; }
 
         /// <summary>
+        /// Built in data type of the value read.
+        /// </summary>
+        public string DataType { get; set; }
+
+        /// <summary>
         /// Source time stamp
         /// </summary>
         public DateTime? SourceTimestamp { get; set; }

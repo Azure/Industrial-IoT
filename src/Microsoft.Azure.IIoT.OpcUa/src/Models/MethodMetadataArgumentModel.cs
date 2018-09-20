@@ -3,14 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Newtonsoft.Json.Linq;
-
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Arguments to pass
+    /// Method argument metadata model 
     /// </summary>
-    public class MethodArgumentModel {
+    public class MethodMetadataArgumentModel {
 
         /// <summary>
         /// Name of the argument
@@ -23,24 +22,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         public string Description { get; set; }
 
         /// <summary>
-        /// Initial value or value to use
+        /// Data type node of the argument
         /// </summary>
-        public JToken Value { get; set; }
+        public NodeModel Type { get; set; }
 
         /// <summary>
-        /// Human readable name of the type to provide
+        /// Default value for the argument
         /// </summary>
-        public string TypeName { get; set; }
-
-        /// <summary>
-        /// Opc Data type id of the value
-        /// </summary>
-        public string TypeId { get; set; }
+        public JToken DefaultValue { get; set; }
 
         /// <summary>
         /// Optional, scalar if not set
         /// </summary>
-        public int? ValueRank { get; set; }
+        public NodeValueRank? ValueRank { get; set; }
 
         /// <summary>
         /// Optional Array dimension of argument

@@ -216,47 +216,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
                 // Tags
                 IsDisabled =
-                    tags.Get<bool>(nameof(IsDisabled), null),
+                    tags.GetValue<bool>(nameof(IsDisabled), null),
                 NotSeenSince =
-                    tags.Get<DateTime>(nameof(NotSeenSince), null),
+                    tags.GetValue<DateTime>(nameof(NotSeenSince), null),
 
                 Certificate =
-                    tags.Get<Dictionary<string, string>>(nameof(Certificate), null),
+                    tags.GetValue<Dictionary<string, string>>(nameof(Certificate), null),
                 Thumbprint =
-                    tags.Get<string>(nameof(Thumbprint), null),
+                    tags.GetValue<string>(nameof(Thumbprint), null),
                 SupervisorId =
-                    tags.Get<string>(nameof(SupervisorId), null),
+                    tags.GetValue<string>(nameof(SupervisorId), null),
 
                 Activated =
-                    tags.Get<bool>(nameof(Activated), null),
+                    tags.GetValue<bool>(nameof(Activated), null),
                 ApplicationId =
-                    tags.Get<string>(nameof(ApplicationId), null),
+                    tags.GetValue<string>(nameof(ApplicationId), null),
                 SecurityLevel =
-                    tags.Get<int>(nameof(SecurityLevel), null),
+                    tags.GetValue<int>(nameof(SecurityLevel), null),
 
                 // Properties
 
                 Connected =
-                    properties.Get(kConnectedProp, false),
+                    properties.GetValue(kConnectedProp, false),
                 Type =
-                    properties.Get<string>(kTypeProp, null),
+                    properties.GetValue<string>(kTypeProp, null),
                 SiteId =
-                    properties.Get(kSiteIdProp, tags.Get<string>(nameof(SiteId), null)),
+                    properties.GetValue(kSiteIdProp, tags.GetValue<string>(nameof(SiteId), null)),
 
                 EndpointUrl =
-                    properties.Get<string>(nameof(EndpointUrl), null),
+                    properties.GetValue<string>(nameof(EndpointUrl), null),
                 User =
-                    properties.Get<string>(nameof(User), null),
+                    properties.GetValue<string>(nameof(User), null),
                 Token =
-                    properties.Get<JToken>(nameof(Token), null),
+                    properties.GetValue<JToken>(nameof(Token), null),
                 TokenType =
-                    properties.Get<TokenType>(nameof(TokenType), null),
+                    properties.GetValue<TokenType>(nameof(TokenType), null),
                 SecurityMode =
-                    properties.Get<SecurityMode>(nameof(SecurityMode), null),
+                    properties.GetValue<SecurityMode>(nameof(SecurityMode), null),
                 SecurityPolicy =
-                    properties.Get<string>(nameof(SecurityPolicy), null),
+                    properties.GetValue<string>(nameof(SecurityPolicy), null),
                 Validation =
-                    properties.Get<Dictionary<string, string>>(nameof(Validation), null)
+                    properties.GetValue<Dictionary<string, string>>(nameof(Validation), null)
             };
             return registration;
         }

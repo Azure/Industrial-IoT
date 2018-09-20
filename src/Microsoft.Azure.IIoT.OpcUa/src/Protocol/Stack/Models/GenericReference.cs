@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -27,28 +27,28 @@ namespace Opc.Ua.Models {
             ReferenceTypeId = referenceTypeId;
         }
 
-        /// <summary cref="IReferenceFacade.ReferenceTypeId" />
+        /// <inheritdoc/>
         public NodeId ReferenceTypeId { get; private set; }
 
-        /// <summary cref="IReferenceFacade.TargetId" />
+        /// <inheritdoc/>
         public ExpandedNodeId TargetId { get; private set; }
 
-        /// <summary cref="IReferenceFacade.SourceId" />
+        /// <inheritdoc/>
         public ExpandedNodeId SourceId { get; private set; }
 
-        /// <summary cref="IEncodeable.TypeId" />
+        /// <inheritdoc/>
         public ExpandedNodeId TypeId =>
             DataTypeIds.ReferenceNode;
 
-        /// <summary cref="IEncodeable.BinaryEncodingId" />
+        /// <inheritdoc/>
         public ExpandedNodeId BinaryEncodingId =>
             ObjectIds.ReferenceNode_Encoding_DefaultBinary;
 
-        /// <summary cref="IEncodeable.XmlEncodingId" />
+        /// <inheritdoc/>
         public ExpandedNodeId XmlEncodingId =>
             ObjectIds.ReferenceNode_Encoding_DefaultXml;
 
-        /// <summary cref="IEncodeable.Encode(IEncoder)" />
+        /// <inheritdoc/>
         public void Encode(IEncoder encoder) {
             encoder.PushNamespace(Opc.Ua.Namespaces.OpcUaXsd);
             encoder.WriteExpandedNodeId("SourceId", SourceId);
@@ -57,7 +57,7 @@ namespace Opc.Ua.Models {
             encoder.PopNamespace();
         }
 
-        /// <summary cref="IEncodeable.Decode(IDecoder)" />
+        /// <inheritdoc/>
         public void Decode(IDecoder decoder) {
             decoder.PushNamespace(Opc.Ua.Namespaces.OpcUaXsd);
             SourceId = decoder.ReadExpandedNodeId("SourceId");
@@ -69,7 +69,7 @@ namespace Opc.Ua.Models {
             decoder.PopNamespace();
         }
 
-        /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
+        /// <inheritdoc/>
         public bool IsEqual(IEncodeable encodeable) {
             if (ReferenceEquals(this, encodeable)) {
                 return true;
@@ -89,11 +89,7 @@ namespace Opc.Ua.Models {
             return true;
         }
 
-        /// <summary>
-        /// Compares for equality
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override bool Equals(object obj) {
             if (obj is IEncodeable encodeable) {
                 return IsEqual(encodeable);
@@ -101,17 +97,11 @@ namespace Opc.Ua.Models {
             return false;
         }
 
-        /// <summary>
-        /// Get hash code
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override int GetHashCode() =>
             ToString().GetHashCode();
 
-        /// <summary>
-        /// Stringify
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override string ToString() =>
             $"{SourceId} {ReferenceTypeId} {TargetId}";
     }

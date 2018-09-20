@@ -12,9 +12,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
     public class ValueWriteRequestModel {
 
         /// <summary>
-        /// Node information to allow writing - from browse.
+        /// Node id to write to - from browse.
         /// </summary>
-        public NodeModel Node { get; set; }
+        public string NodeId { get; set; }
+
+        /// <summary>
+        /// The data type of the value - from browse.
+        /// </summary>
+        public string DataType { get; set; }
+
+        /// <summary>
+        /// Index range to write
+        /// </summary>
+        public string IndexRange { get; set; }
 
         /// <summary>
         /// Value to write

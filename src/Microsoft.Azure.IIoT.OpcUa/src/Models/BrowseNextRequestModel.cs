@@ -31,6 +31,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         public bool? TargetNodesOnly { get; set; }
 
         /// <summary>
+        /// Whether to read variable values on target nodes.
+        /// (default is false)
+        /// </summary>
+        public bool? ReadVariableValues { get; set; }
+
+        /// <summary>
         /// Optional elevation
         /// </summary>
         public AuthenticationModel Elevation { get; set; }

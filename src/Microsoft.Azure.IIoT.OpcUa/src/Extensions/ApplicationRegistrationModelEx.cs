@@ -143,11 +143,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
                 model.Application = server.Application;
             }
             else {
-                model.Application.Capabilities = model.Application.Capabilities.UnionWithSafe(
+                model.Application.Capabilities = model.Application.Capabilities.MergeWith(
                     server?.Application?.Capabilities);
-                model.Application.DiscoveryUrls = model.Application.DiscoveryUrls.UnionWithSafe(
+                model.Application.DiscoveryUrls = model.Application.DiscoveryUrls.MergeWith(
                     server?.Application?.DiscoveryUrls);
-                model.Application.HostAddresses = model.Application.HostAddresses.UnionWithSafe(
+                model.Application.HostAddresses = model.Application.HostAddresses.MergeWith(
                     server?.Application?.HostAddresses);
             }
 

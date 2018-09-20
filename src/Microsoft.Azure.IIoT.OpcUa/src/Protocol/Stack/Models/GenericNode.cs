@@ -4,21 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Models {
+    using Opc.Ua.Extensions;
+    using Opc.Ua.Client;
+    using Opc.Ua;
     using System;
     using System.Linq;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Diagnostics;
-    using Opc.Ua;
-    using Opc.Ua.Extensions;
-    using Opc.Ua.Client;
 
     /// <summary>
     /// Represents a generic in memory node for remote reading and writing
     /// and encoding and decoding purposes.
     /// </summary>
-    public class GenericNode : INode, INodeFacade, IEncodeable {
+    public class GenericNode : IGenericNode, INodeFacade, INode, IEncodeable {
 
         /// <summary>
         /// Constructor
@@ -41,10 +41,8 @@ namespace Opc.Ua.Models {
         public GenericNode(ExpandedNodeId nodeId, NodeClass nodeClass,
             QualifiedName browseName) :
             this(nodeId, new NamespaceTable()) {
-            _attributes[Attributes.NodeClass] =
-                new DataValue(new Variant(nodeClass));
-            _attributes[Attributes.BrowseName] =
-                new DataValue(new Variant(browseName));
+            NodeClass = nodeClass;
+            BrowseName = browseName;
         }
 
         /// <summary>
@@ -76,68 +74,257 @@ namespace Opc.Ua.Models {
             }
         }
 
-        /// <summary>
-        /// Returns symbolic name
-        /// </summary>
-        public string SymbolicName { get; set; }
-
-        /// <summary>
-        /// Modelling rule identifier
-        /// </summary>
-        public NodeId ModellingRule { get; set; }
-
-        /// <summary>
-        /// Index operator to set or get raw attribute values
-        /// References of this node
-        /// </summary>
-        /// <param name="attribute"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public object this[uint attribute] {
             get => GetAttribute<object>(attribute);
             set => SetAttribute(attribute, value);
         }
 
-        /// <summary cref="INodeFacade.LocalId" />
-        public NodeId LocalId =>
-            GetAttributeOrThis<NodeId>(Attributes.NodeId, Opc.Ua.NodeId.Null);
-
-        /// <summary cref="INodeFacade.Class" />
-        public NodeClass Class =>
-            GetAttributeOrThis<NodeClass>(Attributes.NodeClass, NodeClass.Unspecified);
-
-        /// <summary cref="INode.NodeId" />
-        public ExpandedNodeId NodeId =>
-            LocalId.ToExpandedNodeId(_namespaces);
-
-        /// <summary cref="INode.NodeClass" />
-        public NodeClass NodeClass =>
-            Class;
-
-        /// <summary cref="INode.BrowseName" />
-        public QualifiedName BrowseName =>
-            GetAttribute<QualifiedName>(Attributes.BrowseName);
-
-        /// <summary cref="INode.DisplayName" />
-        public LocalizedText DisplayName =>
-            GetAttribute<LocalizedText>(Attributes.DisplayName);
-
-        /// <summary cref="INode.TypeDefinitionId" />
-        public ExpandedNodeId TypeDefinitionId =>
-            GetAttribute<DataTypeDefinition>(Attributes.DataTypeDefinition)?.TypeId;
-
-        /// <summary cref="IEncodeable.TypeId" />
+        /// <inheritdoc/>
         public ExpandedNodeId TypeId =>
             DataTypeIds.Node;
 
-        /// <summary cref="IEncodeable.BinaryEncodingId" />
+        /// <inheritdoc/>
         public ExpandedNodeId BinaryEncodingId =>
             ObjectIds.Node_Encoding_DefaultBinary;
 
-        /// <summary cref="IEncodeable.XmlEncodingId" />
+        /// <inheritdoc/>
         public ExpandedNodeId XmlEncodingId =>
             ObjectIds.Node_Encoding_DefaultXml;
 
-        /// <summary cref="IEncodeable.Decode(IDecoder)" />
+        /// <inheritdoc/>
+        public ExpandedNodeId TypeDefinitionId =>
+            GetAttribute<DataTypeDefinition>(Attributes.DataTypeDefinition)?.TypeId;
+
+        /// <inheritdoc/>
+        public ExpandedNodeId NodeId =>
+            LocalId.ToExpandedNodeId(_namespaces);
+
+        /// <inheritdoc/>
+        public NodeId LocalId =>
+            GetAttribute(Attributes.NodeId, Opc.Ua.NodeId.Null);
+
+        /// <inheritdoc/>
+        public NodeClass NodeClass {
+            get => GetAttribute<NodeClass>(
+                Attributes.NodeClass, null) ??
+                NodeClass.Unspecified;
+            set => SetAttribute(
+                Attributes.NodeClass, value);
+        }
+
+        /// <inheritdoc/>
+        public QualifiedName BrowseName {
+            get => GetAttribute<QualifiedName>(
+                Attributes.BrowseName, null);
+            set => SetAttribute(
+                Attributes.BrowseName, value);
+        }
+
+        /// <inheritdoc/>
+        public LocalizedText DisplayName {
+            get => GetAttribute<LocalizedText>(
+                Attributes.DisplayName, null);
+            set => SetAttribute(
+                Attributes.DisplayName, value);
+        }
+
+        /// <inheritdoc/>
+        public LocalizedText Description {
+            get => GetAttribute<LocalizedText>(
+                Attributes.Description, null);
+            set => SetAttribute(
+                Attributes.Description, value);
+        }
+
+        /// <inheritdoc/>
+        public uint? AccessRestrictions {
+            get => GetAttribute<uint>(
+                Attributes.AccessRestrictions, null);
+            set => SetAttribute(
+                Attributes.AccessRestrictions, value);
+        }
+
+        /// <inheritdoc/>
+        public uint? WriteMask {
+            get => GetAttribute<uint>(
+                Attributes.WriteMask, null);
+            set => SetAttribute(
+                Attributes.WriteMask, value);
+        }
+
+        /// <inheritdoc/>
+        public uint? UserWriteMask {
+            get => GetAttribute<uint>(
+                Attributes.UserWriteMask, null);
+            set => SetAttribute(
+                Attributes.UserWriteMask, value);
+        }
+
+        /// <inheritdoc/>
+        public bool? IsAbstract {
+            get => GetAttribute<bool>(
+                Attributes.IsAbstract, null);
+            set => SetAttribute(
+                Attributes.IsAbstract, value);
+        }
+
+        /// <inheritdoc/>
+        public bool? ContainsNoLoops {
+            get => GetAttribute<bool>(
+                Attributes.ContainsNoLoops, null);
+            set => SetAttribute(
+                Attributes.ContainsNoLoops, value);
+        }
+
+        /// <inheritdoc/>
+        public byte? EventNotifier {
+            get => GetAttribute<byte>(
+                Attributes.EventNotifier, null);
+            set => SetAttribute(
+                Attributes.EventNotifier, value);
+        }
+
+        /// <inheritdoc/>
+        public bool? Executable {
+            get => GetAttribute<bool>(
+                Attributes.Executable, null);
+            set => SetAttribute(
+                Attributes.Executable, value);
+        }
+
+        /// <inheritdoc/>
+        public bool? UserExecutable {
+            get => GetAttribute<bool>(
+                Attributes.UserExecutable, null);
+            set => SetAttribute(
+                Attributes.UserExecutable, value);
+        }
+
+        /// <inheritdoc/>
+        public DataTypeDefinition DataTypeDefinition {
+            get => GetAttribute<DataTypeDefinition>(
+                Attributes.DataTypeDefinition, null);
+            set => SetAttribute(
+                Attributes.DataTypeDefinition, value);
+        }
+
+        /// <inheritdoc/>
+        public byte? AccessLevel {
+            get => GetAttribute<byte>(
+                Attributes.AccessLevel, null);
+            set => SetAttribute(
+                Attributes.AccessLevel, value);
+        }
+
+        /// <inheritdoc/>
+        public uint? AccessLevelEx {
+            get => GetAttribute<uint>(
+                Attributes.AccessLevelEx, null);
+            set => SetAttribute(
+                Attributes.AccessLevelEx, value);
+        }
+
+        /// <inheritdoc/>
+        public byte? UserAccessLevel {
+            get => GetAttribute<byte>(
+                Attributes.UserAccessLevel, null);
+            set => SetAttribute(
+                Attributes.UserAccessLevel, value);
+        }
+
+        /// <inheritdoc/>
+        public NodeId DataType {
+            get => GetAttribute<NodeId>(
+                Attributes.DataType, null);
+            set => SetAttribute(
+                Attributes.DataType, value);
+        }
+
+        /// <inheritdoc/>
+        public int? ValueRank {
+            get => GetAttribute<int>(
+                Attributes.ValueRank, null);
+            set => SetAttribute(
+                Attributes.ValueRank, value);
+        }
+
+        /// <inheritdoc/>
+        public uint[] ArrayDimensions {
+            get => GetAttribute<uint[]>(
+                Attributes.ArrayDimensions, null);
+            set => SetAttribute(
+                Attributes.ArrayDimensions, value);
+        }
+
+        /// <inheritdoc/>
+        public bool? Historizing {
+            get => GetAttribute<bool>(
+                Attributes.Historizing, null);
+            set => SetAttribute(
+                Attributes.Historizing, value);
+        }
+
+        /// <inheritdoc/>
+        public double? MinimumSamplingInterval {
+            get => GetAttribute<double>(
+                Attributes.MinimumSamplingInterval, null);
+            set => SetAttribute(
+                Attributes.MinimumSamplingInterval, value);
+        }
+
+        /// <inheritdoc/>
+        public LocalizedText InverseName {
+            get => GetAttribute<LocalizedText>(
+                Attributes.InverseName, null);
+            set => SetAttribute(
+                Attributes.InverseName, value);
+        }
+
+        /// <inheritdoc/>
+        public bool? Symmetric {
+            get => GetAttribute<bool>(
+                Attributes.Symmetric, null);
+            set => SetAttribute(
+                Attributes.Symmetric, value);
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<RolePermissionType> RolePermissions {
+            get => GetAttribute<RolePermissionTypeCollection>(
+                Attributes.RolePermissions, null);
+            set => SetAttribute(Attributes.RolePermissions,
+                new RolePermissionTypeCollection(value));
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<RolePermissionType> UserRolePermissions {
+            get => GetAttribute<RolePermissionTypeCollection>(
+                Attributes.UserRolePermissions, null);
+            set => SetAttribute(Attributes.UserRolePermissions,
+                new RolePermissionTypeCollection(value));
+        }
+
+        /// <inheritdoc/>
+        public Variant? Value {
+            get {
+                if (_attributes.TryGetValue(Attributes.Value, out var value) &&
+                    value != null) {
+                    return value.WrappedValue;
+                }
+                return null;
+            }
+            set => _attributes.AddOrUpdate(Attributes.Value, value == null ?
+                null : new DataValue(value.Value));
+        }
+
+        /// <inheritdoc/>
+        public string SymbolicName { get; set; }
+
+        /// <inheritdoc/>
+        public NodeId ModellingRule { get; set; }
+
+        /// <inheritdoc/>
         public virtual void Decode(IDecoder decoder) {
             decoder.PushNamespace(Namespaces.OpcUa);
             // first read node class
@@ -147,7 +334,7 @@ namespace Opc.Ua.Models {
                 throw new ServiceResultException(StatusCodes.BadNodeClassInvalid);
             }
             SetAttribute(Attributes.NodeClass, nodeClass);
-            foreach (var attributeId in _attributeMap.GetNodeClassAttributes(Class)) {
+            foreach (var attributeId in _attributeMap.GetNodeClassAttributes(NodeClass)) {
                 if (attributeId == Attributes.NodeClass) {
                     continue; // Read already first
                 }
@@ -166,13 +353,13 @@ namespace Opc.Ua.Models {
             decoder.PopNamespace();
         }
 
-        /// <summary cref="IEncodeable.Encode(IEncoder)" />
+        /// <inheritdoc/>
         public virtual void Encode(IEncoder encoder) {
             encoder.PushNamespace(Namespaces.OpcUa);
 
             // Write node class as first element since we need to look it up on decode.
             _attributeMap.Encode(encoder, Attributes.NodeClass, NodeClass);
-            foreach (var attributeId in _attributeMap.GetNodeClassAttributes(Class)) {
+            foreach (var attributeId in _attributeMap.GetNodeClassAttributes(NodeClass)) {
                 if (attributeId == Attributes.NodeClass) {
                     continue; // Read already first
                 }
@@ -191,7 +378,7 @@ namespace Opc.Ua.Models {
             encoder.PopNamespace();
         }
 
-        /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
+        /// <inheritdoc/>
         public bool IsEqual(IEncodeable encodeable) {
             if (!(encodeable is GenericNode node)) {
                 return false;
@@ -225,100 +412,13 @@ namespace Opc.Ua.Models {
             return true;
         }
 
-        /// <summary>
-        /// Reads the values through the passed in session from a remote server.
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public Task ReadAsync(Session session, CancellationToken cancellationToken) =>
-            ReadAsync(session, true, cancellationToken);
-
-        /// <summary>
-        /// Reads the values through the passed in session from a remote server.
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="continueOnError">Continue on read attribute error</param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public async Task ReadAsync(Session session, bool continueOnError,
-            CancellationToken cancellationToken) {
-            var readValueCollection = new ReadValueIdCollection();
-            foreach (var attributeId in _attributes.Keys) {
-                readValueCollection.Add(new ReadValueId {
-                    NodeId = LocalId,
-                    AttributeId = attributeId
-                });
-            }
-
-            DataValueCollection values = null;
-            DiagnosticInfoCollection diagnosticInfoCollection = null;
-            var readResponse = await Task.Run(() => {
-                return session.Read(null, 0, TimestampsToReturn.Source, readValueCollection,
-                    out values, out diagnosticInfoCollection);
-            }, cancellationToken);
-
-            ClientBase.ValidateResponse(values, readValueCollection);
-            ClientBase.ValidateDiagnosticInfos(diagnosticInfoCollection, readValueCollection);
-            for (var i = 0; i < readValueCollection.Count; i++) {
-                var attributeId = readValueCollection[i].AttributeId;
-                if (!DataValue.IsGood(values[i])) {
-                    if (values[i].StatusCode != StatusCodes.BadAttributeIdInvalid &&
-                        attributeId != Attributes.Value) {
-                        Trace.TraceError($"Error code {values[i].StatusCode} " +
-                            $"reading {Attributes.GetBrowseName(attributeId)} on {LocalId}: " +
-                            $"{diagnosticInfoCollection}, {readResponse.StringTable}");
-                        if (!continueOnError) {
-                            throw ServiceResultException.Create(values[i].StatusCode, i,
-                                diagnosticInfoCollection, readResponse.StringTable);
-                        }
-                    }
-                }
-                _attributes[attributeId] = values[i];
-            }
-        }
-
-        /// <summary>
-        /// Writes any changes through the session
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public async Task WriteAsync(Session session, CancellationToken cancellationToken) {
-            var writeValueCollection = new WriteValueCollection();
-            foreach (var attribute in _attributes) {
-                if (attribute.Value != null) {
-                    writeValueCollection.Add(new WriteValue {
-                        NodeId = LocalId,
-                        AttributeId = attribute.Key,
-                        Value = attribute.Value
-                    });
-                }
-            }
-
-            DiagnosticInfoCollection diagnosticInfoCollection = null;
-            StatusCodeCollection statusCodes = null;
-            var writeResponse = await Task.Run(() => {
-                return session.Write(null, writeValueCollection,
-                    out statusCodes, out diagnosticInfoCollection);
-            }, cancellationToken);
-
-            ClientBase.ValidateResponse(statusCodes, writeValueCollection);
-            ClientBase.ValidateDiagnosticInfos(diagnosticInfoCollection, writeValueCollection);
-        }
-
-
-        /// <summary>
-        /// Get attribute
-        /// </summary>
-        /// <param name="attribute"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public T GetAttribute<T>(uint attribute) {
             if (_attributes.TryGetValue(attribute, out var result) &&
                 result != null) {
                 return result.Get<T>();
             }
-            var nodeClass = Class;
+            var nodeClass = NodeClass;
             if (nodeClass == NodeClass.Unspecified) {
                 return default(T);
             }
@@ -327,12 +427,23 @@ namespace Opc.Ua.Models {
             return (T)defaultValue;
         }
 
-        /// <summary>
-        /// Set
-        /// </summary>
-        /// <param name="attribute"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
+        public bool TryGetAttribute<T>(uint attribute, out T value) {
+            value = default(T);
+            try {
+                if (_attributes.TryGetValue(attribute, out var result) &&
+                    result != null) {
+                    value = result.Get<T>();
+                    return true;
+                }
+                return false;
+            }
+            catch {
+                return false;
+            }
+        }
+
+        /// <inheritdoc/>
         public void SetAttribute<T>(uint attribute, T value) {
             _attributes[attribute] = new DataValue(new Variant(value));
         }
@@ -353,6 +464,112 @@ namespace Opc.Ua.Models {
         public override string ToString() =>
             $"{NodeId} ({BrowseName})";
 
+        /// <summary>
+        /// Read generic node in the form of its attributes from remote.
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="nodeId"></param>
+        /// <param name="skipValue"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static async Task<GenericNode> ReadAsync(Session session,
+            NodeId nodeId, bool skipValue, CancellationToken ct) {
+            var node = new GenericNode(nodeId, session.NamespaceUris);
+            await node.ReadAsync(session, skipValue, ct);
+            return node;
+        }
+
+        /// <summary>
+        /// Reads the values through the passed in session from a remote server.
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="skipValue">Skip reading values for variables</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task ReadAsync(Session session, bool skipValue,
+            CancellationToken ct) {
+            var readValueCollection = new ReadValueIdCollection(_attributes.Keys
+                .Where(a => !skipValue || a != Attributes.Value)
+                .Select(a => new ReadValueId {
+                    NodeId = LocalId,
+                    AttributeId = a
+                }));
+            await ReadAsync(session, readValueCollection, ct);
+            if (skipValue && NodeClass == NodeClass.VariableType) {
+                // Read default value
+                await ReadValueAsync(session, ct);
+            }
+        }
+
+        /// <summary>
+        /// Reads the value through the passed in session from a remote server.
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<DataValue> ReadValueAsync(Session session, CancellationToken ct) {
+            if (NodeClass != NodeClass.VariableType && NodeClass != NodeClass.Variable) {
+                throw new InvalidOperationException(
+                    "Node is not a variable or variable type node and does not have value");
+            }
+            // Update value
+            await ReadAsync(session, new ReadValueIdCollection {
+                new ReadValueId {
+                    NodeId = LocalId,
+                    AttributeId = Attributes.Value
+                }
+            }, ct);
+            return _attributes[Attributes.Value];
+        }
+
+        /// <summary>
+        /// Read using value collection
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="readValueCollection"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task ReadAsync(Session session, ReadValueIdCollection readValueCollection,
+            CancellationToken ct) {
+            DataValueCollection values = null;
+            DiagnosticInfoCollection diagnosticInfoCollection = null;
+            var readResponse = await Task.Run(() => {
+                return session.Read(null, 0, TimestampsToReturn.Source, readValueCollection,
+                    out values, out diagnosticInfoCollection);
+            }, ct);
+            ClientBase.ValidateResponse(values, readValueCollection);
+            ClientBase.ValidateDiagnosticInfos(diagnosticInfoCollection, readValueCollection);
+            for (var i = 0; i < readValueCollection.Count; i++) {
+                var attributeId = readValueCollection[i].AttributeId;
+                if (values[i].StatusCode != StatusCodes.BadAttributeIdInvalid) {
+                    _attributes[attributeId] = values[i];
+                }
+            }
+        }
+
+        /// <summary>
+        /// Writes any changes through the session
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task WriteAsync(Session session, CancellationToken ct) {
+            var writeValueCollection = new WriteValueCollection(_attributes
+                .Where(a => a.Value != null)
+                .Select(a => new WriteValue {
+                    NodeId = LocalId,
+                    AttributeId = a.Key,
+                    Value = a.Value
+                }));
+            DiagnosticInfoCollection diagnosticInfoCollection = null;
+            StatusCodeCollection statusCodes = null;
+            var writeResponse = await Task.Run(() => {
+                return session.Write(null, writeValueCollection,
+                    out statusCodes, out diagnosticInfoCollection);
+            }, ct);
+            ClientBase.ValidateResponse(statusCodes, writeValueCollection);
+            ClientBase.ValidateDiagnosticInfos(diagnosticInfoCollection, writeValueCollection);
+        }
 
         /// <summary>
         /// Get attribute
@@ -360,23 +577,24 @@ namespace Opc.Ua.Models {
         /// <param name="attribute"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected T GetAttributeOrThis<T>(uint attribute, object defaultValue) {
-            if (_attributes.TryGetValue(attribute, out var result)) {
-                return result.Get((T)defaultValue);
+        public T GetAttribute<T>(uint attribute, T defaultValue) where T : class {
+            if (TryGetAttribute<T>(attribute, out var result)) {
+                return result;
             }
-            return (T)defaultValue;
+            return defaultValue;
         }
 
         /// <summary>
-        /// Set Value of node
+        /// Get attribute
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="dataType"></param>
-        /// <param name="valueRank"></param>
-        protected void SetValue(Variant value, NodeId dataType, int valueRank) {
-            SetAttribute(Attributes.Value, value);
-            SetAttribute(Attributes.DataType, dataType);
-            SetAttribute(Attributes.ValueRank, valueRank);
+        /// <param name="attribute"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public T? GetAttribute<T>(uint attribute, T? defaultValue) where T : struct {
+            if (TryGetAttribute<T>(attribute, out var result)) {
+                return result;
+            }
+            return defaultValue;
         }
 
         /// <summary>Namespaces to use in derived classes</summary>

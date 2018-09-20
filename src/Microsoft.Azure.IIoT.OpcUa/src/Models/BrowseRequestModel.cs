@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
 
         /// <summary>
         /// Node to browse.
-        /// (default: ObjectRoot).
+        /// (default: RootFolder).
         /// </summary>
         public string NodeId { get; set; }
 
@@ -56,6 +56,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// (default is false)
         /// </summary>
         public bool? TargetNodesOnly { get; set; }
+
+        /// <summary>
+        /// Whether to read variable values on target nodes.
+        /// (default is false)
+        /// </summary>
+        public bool? ReadVariableValues { get; set; }
 
         /// <summary>
         /// Elevation.

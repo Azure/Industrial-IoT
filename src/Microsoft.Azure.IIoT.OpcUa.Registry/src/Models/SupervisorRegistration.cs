@@ -267,51 +267,51 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 // Tags
 
                 IsDisabled =
-                    tags.Get<bool>(nameof(IsDisabled), null),
+                    tags.GetValue<bool>(nameof(IsDisabled), null),
                 NotSeenSince =
-                    tags.Get<DateTime>(nameof(NotSeenSince), null),
+                    tags.GetValue<DateTime>(nameof(NotSeenSince), null),
                 Thumbprint =
-                    tags.Get<string>(nameof(Thumbprint), null),
+                    tags.GetValue<string>(nameof(Thumbprint), null),
                 DiscoveryCallbacks =
-                    tags.Get<Dictionary<string, CallbackModel>>(nameof(DiscoveryCallbacks), null),
+                    tags.GetValue<Dictionary<string, CallbackModel>>(nameof(DiscoveryCallbacks), null),
                 SecurityModeFilter =
-                    tags.Get<SecurityMode>(nameof(SecurityModeFilter), null),
+                    tags.GetValue<SecurityMode>(nameof(SecurityModeFilter), null),
                 SecurityPoliciesFilter =
-                    tags.Get<Dictionary<string, string>>(nameof(SecurityPoliciesFilter), null),
+                    tags.GetValue<Dictionary<string, string>>(nameof(SecurityPoliciesFilter), null),
                 TrustListsFilter =
-                    tags.Get<Dictionary<string, string>>(nameof(TrustListsFilter), null),
+                    tags.GetValue<Dictionary<string, string>>(nameof(TrustListsFilter), null),
 
                 // Properties
 
                 Certificate =
-                    properties.Get<Dictionary<string, string>>(nameof(Certificate), null),
+                    properties.GetValue<Dictionary<string, string>>(nameof(Certificate), null),
                 Discovery =
-                    properties.Get(nameof(Discovery), DiscoveryMode.Off),
+                    properties.GetValue(nameof(Discovery), DiscoveryMode.Off),
                 AddressRangesToScan =
-                    properties.Get<string>(nameof(AddressRangesToScan), null),
+                    properties.GetValue<string>(nameof(AddressRangesToScan), null),
                 NetworkProbeTimeout =
-                    properties.Get<TimeSpan>(nameof(NetworkProbeTimeout), null),
+                    properties.GetValue<TimeSpan>(nameof(NetworkProbeTimeout), null),
                 MaxNetworkProbes =
-                    properties.Get<int>(nameof(MaxNetworkProbes), null),
+                    properties.GetValue<int>(nameof(MaxNetworkProbes), null),
                 PortRangesToScan =
-                    properties.Get<string>(nameof(PortRangesToScan), null),
+                    properties.GetValue<string>(nameof(PortRangesToScan), null),
                 PortProbeTimeout =
-                    properties.Get<TimeSpan>(nameof(PortProbeTimeout), null),
+                    properties.GetValue<TimeSpan>(nameof(PortProbeTimeout), null),
                 MaxPortProbes =
-                    properties.Get<int>(nameof(MaxPortProbes), null),
+                    properties.GetValue<int>(nameof(MaxPortProbes), null),
                 MinPortProbesPercent =
-                    properties.Get<int>(nameof(MinPortProbesPercent), null),
+                    properties.GetValue<int>(nameof(MinPortProbesPercent), null),
                 IdleTimeBetweenScans =
-                    properties.Get<TimeSpan>(nameof(IdleTimeBetweenScans), null),
+                    properties.GetValue<TimeSpan>(nameof(IdleTimeBetweenScans), null),
                 DiscoveryUrls =
-                    properties.Get<Dictionary<string, string>>(nameof(DiscoveryUrls), null),
+                    properties.GetValue<Dictionary<string, string>>(nameof(DiscoveryUrls), null),
 
                 SiteId =
-                    properties.Get<string>(kSiteIdProp, null),
+                    properties.GetValue<string>(kSiteIdProp, null),
                 Connected =
-                    properties.Get(kConnectedProp, false),
+                    properties.GetValue(kConnectedProp, false),
                 Type =
-                    properties.Get<string>(kTypeProp, null)
+                    properties.GetValue<string>(kTypeProp, null)
             };
             return registration;
         }

@@ -5,21 +5,20 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Models {
     using Newtonsoft.Json.Linq;
-    using System.Collections.Generic;
 
     /// <summary>
-    /// Call Service result model
+    /// Method argument model 
     /// </summary>
-    public class MethodCallResultModel {
+    public class MethodCallArgumentModel {
 
         /// <summary>
-        /// Resulting output values of method call
+        /// Value to use
         /// </summary>
-        public List<MethodCallArgumentModel> Results { get; set; }
+        public JToken Value { get; set; }
 
         /// <summary>
-        /// Diagnostics in case of error
+        /// Data type of the value
         /// </summary>
-        public JToken Diagnostics { get; set; }
+        public string DataType { get; set; }
     }
 }

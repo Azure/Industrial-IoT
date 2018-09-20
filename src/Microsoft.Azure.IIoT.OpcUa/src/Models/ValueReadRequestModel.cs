@@ -11,12 +11,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
     public class ValueReadRequestModel {
 
         /// <summary>
-        /// Node to read from
+        /// Node to read from (mandatory)
         /// </summary>
         public string NodeId { get; set; }
 
         /// <summary>
-        /// Elevation
+        /// Index range to read, e.g. 1:2,0:1 for 2 slices
+        /// out of a matrix or 0:1 for the first item in
+        /// an array, string or bytestring.
+        /// See 7.22 of part 4: NumericRange.
+        /// </summary>
+        public string IndexRange { get; set; }
+
+        /// <summary>
+        /// Optional user Elevation
         /// </summary>
         public AuthenticationModel Elevation { get; set; }
     }

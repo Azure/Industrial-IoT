@@ -74,9 +74,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// <summary>
         /// If object or view and eventing, event notifier
         /// to subscribe to.
-        /// (default: 0)
+        /// (default: no events supported)
         /// </summary>
-        public byte? EventNotifier { get; set; }
+        public NodeEventNotifier? EventNotifier { get; set; }
 
         /// <summary>
         /// If method node class, whether method can
@@ -99,16 +99,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         public JToken DataTypeDefinition { get; set; }
 
         /// <summary>
-        /// Default access level for variable node.
-        /// (default: 0)
+        /// Default access level for value in variable
+        /// node or null if not a variable.
+        /// (default: No access)
         /// </summary>
-        public uint? AccessLevel { get; set; }
+        public NodeAccessLevel? AccessLevel { get; set; }
 
         /// <summary>
-        /// User access level for variable node or null.
-        /// (default: 0)
+        /// User access level for value in variable node
+        /// or null.
+        /// (default: No access)
         /// </summary>
-        public uint? UserAccessLevel { get; set; }
+        public NodeAccessLevel? UserAccessLevel { get; set; }
 
         /// <summary>
         /// If variable the datatype of the variable.
@@ -119,9 +121,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         /// <summary>
         /// Value rank of the variable data of a variable
         /// or variable type, otherwise null.
-        /// (default: scalar = -1)
         /// </summary>
-        public int? ValueRank { get; set; }
+        public NodeValueRank? ValueRank { get; set; }
 
         /// <summary>
         /// Array dimensions of variable or variable type.
@@ -143,10 +144,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         public double? MinimumSamplingInterval { get; set; }
 
         /// <summary>
-        /// Default value of the variable in case node
-        /// is a variable type, otherwise null..
+        /// Value of variable or default value of the
+        /// subtyped variable in case node is a variable
+        /// type, otherwise null.
         /// </summary>
-        public JToken DefaultValue { get; set; }
+        public JToken Value { get; set; }
 
         /// <summary>
         /// Inverse name of the reference if the node is

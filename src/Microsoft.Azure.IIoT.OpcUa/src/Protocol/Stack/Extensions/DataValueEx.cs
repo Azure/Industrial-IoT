@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -10,7 +10,7 @@ namespace Opc.Ua.Extensions {
     /// <summary>
     /// Datavalue extensions
     /// </summary>
-    public static class DataValueEx { 
+    public static class DataValueEx {
 
         /// <summary>
         /// Unpack with a default value

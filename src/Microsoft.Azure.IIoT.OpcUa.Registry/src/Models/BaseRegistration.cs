@@ -162,9 +162,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (twin == null || twin.Tags == null) {
                 return null;
             }
-            var type = twin.Tags.Get<string>(nameof(DeviceType), null);
+            var type = twin.Tags.GetValue<string>(nameof(DeviceType), null);
             if (string.IsNullOrEmpty(type) && twin.Properties.Reported != null) {
-                type = twin.Properties.Reported.Get<string>("type", null);
+                type = twin.Properties.Reported.GetValue<string>("type", null);
             }
             switch (type?.ToLowerInvariant() ?? "") {
                 case "endpoint":

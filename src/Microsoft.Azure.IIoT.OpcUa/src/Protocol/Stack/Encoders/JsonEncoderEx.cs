@@ -44,7 +44,12 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Encode nodes as uri
         /// </summary>
-        public bool UseNodeUriEncoding { get; set; } = true;
+        public bool UseUriEncoding { get; set; } = true;
+
+        /// <summary>
+        /// Encode using microsoft variant
+        /// </summary>
+        public bool UseMicrosoftVariant { get; set; } = false;
 
         /// <summary>
         /// Create encoder
@@ -283,7 +288,7 @@ namespace Opc.Ua.Encoders {
             if (value == null) {
                 _writer.WriteNull();
             }
-            else if (PerformXmlSerialization) {
+            else if (PerformXmlSerialization || UseMicrosoftVariant) {
                 var json = JsonConvertEx.SerializeObject(value);
                 _writer.WriteRawValue(json);
             }
@@ -300,7 +305,7 @@ namespace Opc.Ua.Encoders {
                 WriteNull(property);
             }
             else if (UseReversibleEncoding) {
-                if (UseNodeUriEncoding) {
+                if (UseUriEncoding || UseMicrosoftVariant) {
                     WriteString(property, value.AsString(Context));
                 }
                 else {
@@ -323,7 +328,7 @@ namespace Opc.Ua.Encoders {
                 WriteNull(property);
             }
             else if (UseReversibleEncoding) {
-                if (UseNodeUriEncoding) {
+                if (UseUriEncoding || UseMicrosoftVariant) {
                     WriteString(property, value.AsString(Context));
                 }
                 else {
@@ -346,14 +351,20 @@ namespace Opc.Ua.Encoders {
             if (value == StatusCodes.Good) {
                 WriteNull(property);
             }
-            else if (UseReversibleEncoding) {
-                WriteUInt32(property, value.Code);
-            }
             else {
-                PushObject(property);
-                WriteUInt32("Code", value.Code);
-                WriteString("Symbol", StatusCode.LookupSymbolicId(value.CodeBits));
-                PopObject();
+                var symbol = string.Empty;
+                if (UseMicrosoftVariant) {
+                    symbol = StatusCode.LookupSymbolicId(value.CodeBits);
+                }
+                if (UseReversibleEncoding || string.IsNullOrEmpty(symbol)) {
+                    WriteUInt32(property, value.Code);
+                }
+                else {
+                    PushObject(property);
+                    WriteString("Symbol", symbol);
+                    WriteUInt32("Code", value.Code);
+                    PopObject();
+                }
             }
         }
 
@@ -395,12 +406,18 @@ namespace Opc.Ua.Encoders {
                 WriteNull(property);
             }
             else if (UseReversibleEncoding) {
-                PushObject(property);
-                WriteString("Name", value.Name);
-                if (value.NamespaceIndex > 0) {
-                    WriteUInt16("Uri", value.NamespaceIndex);
+                if (UseUriEncoding || UseMicrosoftVariant) {
+                    WriteString(property, value.AsString(Context));
                 }
-                PopObject();
+                else {
+                    // Back compat to json encoding
+                    PushObject(property);
+                    WriteString("Name", value.Name);
+                    if (value.NamespaceIndex > 0) {
+                        WriteUInt16("Uri", value.NamespaceIndex);
+                    }
+                    PopObject();
+                }
             }
             else {
                 PushObject(property);
@@ -430,31 +447,30 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public void WriteVariant(string property, Variant value) {
-            if (Variant.Null == value) {
-                WriteNull(property);
-            }
-            else {
-                var isNull = value.TypeInfo == null ||
-                    value.TypeInfo.BuiltInType == BuiltInType.Null ||
-                    value.Value == null;
 
-                if (UseReversibleEncoding && !isNull) {
-                    PushObject(property);
-                    WriteByte("Type", (byte)value.TypeInfo.BuiltInType);
+            if (UseReversibleEncoding) {
+                PushObject(property);
+                // if (UseMicrosoftVariant) {
+                //     WriteBuiltInType("DataType", value.TypeInfo.BuiltInType);
+                //     property = "Value";
+                // }
+                // else {
+                    WriteBuiltInType("Type", value.TypeInfo.BuiltInType);
                     property = "Body";
-                }
+                // }
+            }
 
-                if (!string.IsNullOrEmpty(property)) {
-                    _writer.WritePropertyName(property);
-                }
-                WriteVariantContents(value.Value, value.TypeInfo);
+            if (!string.IsNullOrEmpty(property)) {
+                _writer.WritePropertyName(property);
+            }
 
-                if (UseReversibleEncoding && !isNull) {
-                    if (value.Value is Matrix matrix) {
-                        WriteInt32Array("Dimensions", matrix.Dimensions);
-                    }
-                    PopObject();
+            WriteVariantContents(value.Value, value.TypeInfo);
+
+            if (UseReversibleEncoding) {
+                if (value.Value is Matrix matrix) {
+                    WriteInt32Array("Dimensions", matrix.Dimensions);
                 }
+                PopObject();
             }
         }
 
@@ -495,44 +511,64 @@ namespace Opc.Ua.Encoders {
         public void WriteExtensionObject(string property, ExtensionObject value) {
             if (value == null || value.Encoding == ExtensionObjectEncoding.None) {
                 WriteNull(property);
+                return;
             }
-            else {
-                PushObject(property);
-                if (value != null) {
-                    if (value.Body is IEncodeable encodeable) {
-                        if (UseReversibleEncoding) {
-                            WriteExpandedNodeId("TypeId", encodeable.TypeId);
-                            WriteEncodeable("Body", encodeable, null);
-                        }
-                        else {
-                            encodeable.Encode(this);
-                        }
-                    }
-                    else {
-                        WriteExpandedNodeId("TypeId", value.TypeId);
-                        if (value.Body != null) {
-                            switch (value.Encoding) {
-                                case ExtensionObjectEncoding.Xml:
-                                    WriteXmlElement("Body", value.Body as XmlElement);
-                                    break;
-                                case ExtensionObjectEncoding.Json:
-                                    if (value.Body is string json) {
-                                        _writer.WriteRaw(json);
-                                    }
-                                    if (value.Body is byte[] buffer) {
-                                        json = Encoding.UTF8.GetString(buffer);
-                                        _writer.WriteRaw(json);
-                                    }
-                                    break;
-                                case ExtensionObjectEncoding.Binary:
-                                    WriteByteString("Body", value.Body as byte[]);
-                                    break;
-                            }
-                        }
-                    }
+
+            var encoding = value.Encoding;
+            var typeId = value.TypeId;
+            var body = value.Body;
+
+            if (body is IEncodeable encodeable) {
+                if (!UseReversibleEncoding) {
+                    PushObject(property);
+                    encodeable.Encode(this);
+                    PopObject();
+                    return;
                 }
-                PopObject();
+                switch (encoding) {
+                    case ExtensionObjectEncoding.Binary:
+                        body = encodeable.AsBinary(Context);
+                        break;
+                    case ExtensionObjectEncoding.Json:
+                        // TODO:
+                    case ExtensionObjectEncoding.EncodeableObject:
+                    case ExtensionObjectEncoding.None:
+                    case ExtensionObjectEncoding.Xml:
+                        encoding = ExtensionObjectEncoding.Xml;
+                        body = encodeable.AsXmlElement(Context);
+                        break;
+                    default:
+                        throw ServiceResultException.Create(
+                            StatusCodes.BadEncodingError,
+                            "Unexpected encoding encountered while " +
+                            $"encoding ExtensionObject:{value.Encoding}");
+                }
             }
+
+            PushObject(property);
+            WriteExpandedNodeId("TypeId", typeId);
+            if (body != null) {
+                switch (encoding) {
+                    case ExtensionObjectEncoding.Xml:
+                        WriteEncoding("Encoding", encoding);
+                        WriteXmlElement("Body", body as XmlElement);
+                        break;
+                    case ExtensionObjectEncoding.Json:
+                        WriteEncoding("Encoding", encoding);
+                        if (body is string json) {
+                            _writer.WriteRaw(json);
+                        }
+                        if (body is byte[] buffer) {
+                            json = Encoding.UTF8.GetString(buffer);
+                            _writer.WriteRaw(json);
+                        }
+                        break;
+                    case ExtensionObjectEncoding.Binary:
+                        WriteByteString("Body", body as byte[]);
+                        break;
+                }
+            }
+            PopObject();
         }
 
         /// <inheritdoc/>
@@ -657,14 +693,7 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public void WriteVariantArray(string property, IList<Variant> values) {
-            WriteArray(property, values, v => {
-                if (v == Variant.Null) {
-                    _writer.WriteNull();
-                }
-                else {
-                    WriteVariant(null, v);
-                }
-            });
+            WriteArray(property, values, v => WriteVariant(null, v));
         }
 
         /// <inheritdoc/>
@@ -710,13 +739,12 @@ namespace Opc.Ua.Encoders {
         /// Writes the contents of an Variant to the stream.
         /// </summary>
         private void WriteVariantContents(object value, TypeInfo typeInfo) {
-            // check for null.
-            if (value == null) {
-                return;
-            }
             // write scalar.
             if (typeInfo.ValueRank < 0) {
                 switch (typeInfo.BuiltInType) {
+                    case BuiltInType.Null:
+                        WriteNull(null);
+                        return;
                     case BuiltInType.Boolean:
                         WriteBoolean(null, (bool)value);
                         return;
@@ -789,12 +817,22 @@ namespace Opc.Ua.Encoders {
                     case BuiltInType.Enumeration:
                         WriteInt32(null, (int)value);
                         return;
+                    case BuiltInType.Number:
+                    case BuiltInType.Integer:
+                    case BuiltInType.UInteger:
+                    case BuiltInType.Variant:
+                        throw ServiceResultException.Create(StatusCodes.BadEncodingError,
+                            "Unexpected type encountered while encoding variant " +
+                            value.GetType());
                 }
             }
 
             // write array.
             else if (typeInfo.ValueRank <= 1) {
                 switch (typeInfo.BuiltInType) {
+                    case BuiltInType.Null:
+                        WriteNull(null);
+                        return;
                     case BuiltInType.Boolean:
                         WriteBooleanArray(null, (bool[])value);
                         return;
@@ -864,7 +902,6 @@ namespace Opc.Ua.Encoders {
                     case BuiltInType.DataValue:
                         WriteDataValueArray(null, (DataValue[])value);
                         return;
-
                     case BuiltInType.Enumeration:
                         var enums = value as Enum[];
                         var values = new string[enums.Length];
@@ -878,6 +915,9 @@ namespace Opc.Ua.Encoders {
 
                         WriteStringArray(null, values);
                         return;
+                    case BuiltInType.Number:
+                    case BuiltInType.UInteger:
+                    case BuiltInType.Integer:
                     case BuiltInType.Variant:
                         if (value is Variant[] variants) {
                             WriteVariantArray(null, variants);
@@ -895,7 +935,12 @@ namespace Opc.Ua.Encoders {
 
             // write matrix.
             else if (typeInfo.ValueRank > 1) {
-                WriteMatrix(null, (Matrix)value);
+                if (value == null) {
+                    WriteNull(null);
+                }
+                else {
+                    WriteMatrix(null, (Matrix)value);
+                }
                 return;
             }
 
@@ -913,6 +958,34 @@ namespace Opc.Ua.Encoders {
                 new TypeInfo(value.TypeInfo.BuiltInType, ValueRanks.OneDimension)));
             WriteInt32Array("Dimensions", value.Dimensions);
             PopObject();
+        }
+
+        /// <summary>
+        /// Write type
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="type"></param>
+        private void WriteBuiltInType(string property, BuiltInType type) {
+            if (UseMicrosoftVariant) {
+                WriteString(property, type.ToString());
+            }
+            else {
+                WriteByte(property, (byte)type);
+            }
+        }
+
+        /// <summary>
+        /// Write encoding
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="type"></param>
+        private void WriteEncoding(string property, ExtensionObjectEncoding type) {
+            if (UseMicrosoftVariant) {
+                WriteString(property, type.ToString());
+            }
+            else {
+                WriteByte(property, (byte)type);
+            }
         }
 
         /// <summary>
@@ -966,7 +1039,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="writer"></param>
         private void WriteArray<T>(string property, IList<T> values,
             Action<T> writer) {
-            if (values == null || values.Count == 0) {
+            if (values == null) {
                 WriteNull(property);
             }
             else {

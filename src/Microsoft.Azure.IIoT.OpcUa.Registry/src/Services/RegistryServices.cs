@@ -442,7 +442,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             return new ApplicationSiteListModel {
                 ContinuationToken = result.ContinuationToken,
                 Sites = result.Result
-                    .Select(o => o.Get<string>(tag, null))
+                    .Select(o => o.GetValue<string>(tag, null))
                     .Where(s => !string.IsNullOrEmpty(s))
                     .ToList()
             };

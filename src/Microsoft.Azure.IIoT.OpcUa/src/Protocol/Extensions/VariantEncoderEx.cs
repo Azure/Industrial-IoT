@@ -8,9 +8,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Opc.Ua;
 
     /// <summary>
-    /// Value encoder extensions
+    /// Variant encoder extensions
     /// </summary>
-    public static class ValueEncoderEx {
+    public static class VariantEncoderEx {
+
+        /// <summary>
+        /// Format variant as string
+        /// </summary>
+        /// <param name="encoder"></param>
+        /// <param name="builtInType"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static JToken Encode(this IVariantEncoder encoder, Variant value,
+            out BuiltInType builtInType) =>
+            encoder.Encode(value, out builtInType, null);
 
         /// <summary>
         /// Format variant as string
@@ -18,20 +29,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="encoder"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static JToken Encode(this IValueEncoder encoder, Variant value) =>
-            encoder.Encode(value, null);
-
-        /// <summary>
-        /// Parse token to variant
-        /// </summary>
-        /// <param name="encoder"></param>
-        /// <param name="value"></param>
-        /// <param name="builtinType"></param>
-        /// <param name="valueRank"></param>
-        /// <returns></returns>
-        public static Variant Decode(this IValueEncoder encoder, JToken value,
-            BuiltInType builtinType, int? valueRank) =>
-            encoder.Decode(value, builtinType, valueRank, null);
+        public static JToken Encode(this IVariantEncoder encoder, Variant value) =>
+            encoder.Encode(value, out var tmp, null);
 
         /// <summary>
         /// Parse token to variant
@@ -40,9 +39,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="value"></param>
         /// <param name="builtinType"></param>
         /// <returns></returns>
-        public static Variant Decode(this IValueEncoder encoder, JToken value,
+        public static Variant Decode(this IVariantEncoder encoder, JToken value,
             BuiltInType builtinType) =>
-            encoder.Decode(value, builtinType, null, null);
+            encoder.Decode(value, builtinType, null);
 
         /// <summary>
         /// Parse token to variant
@@ -50,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="encoder"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static Variant Decode(this IValueEncoder encoder, JToken value) =>
-            encoder.Decode(value, BuiltInType.Null, null, null);
+        public static Variant Decode(this IVariantEncoder encoder, JToken value) =>
+            encoder.Decode(value, BuiltInType.Null, null);
     }
 }

@@ -14,6 +14,50 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
     public class TypeSerializerTests {
 
         /// <summary>
+        /// Test encode int array
+        /// </summary>
+        [Theory]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        public void ReadWriteIntArray(string encoderType, string decoderType) {
+            var expected = new int[] { 1 };
+            CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
+
+            var buffer = encoder.Encode(e => e.WriteInt32Array("test", expected));
+            var result = decoder.Decode(buffer, d => d.ReadInt32Array("test"));
+
+            Assert.Equal(expected, result);
+        }
+
+        /// <summary>
+        /// Test encode empty int array
+        /// </summary>
+        [Theory]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        public void ReadWriteEmptyIntArray(string encoderType, string decoderType) {
+            var expected = new int[0];
+            CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
+
+            var buffer = encoder.Encode(e => e.WriteInt32Array("test", expected));
+            var result = decoder.Decode(buffer, d => d.ReadInt32Array("test"));
+
+            Assert.Equal(expected, result);
+        }
+
+        /// <summary>
         /// Test encode a date time
         /// </summary>
         [Theory]
@@ -304,6 +348,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
         [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteStringArray(string encoderType, string decoderType) {
             var expected = new string[] { "1", "2", "3", "4", "5" };
+            CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
+
+            var buffer = encoder.Encode(e => e.WriteStringArray("test", expected));
+            var result = decoder.Decode(buffer, d => d.ReadStringArray("test"));
+
+            Assert.Equal(expected, result);
+        }
+
+        /// <summary>
+        /// Test encode empty string array
+        /// </summary>
+        [Theory]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        public void ReadWriteEmptyStringArray(string encoderType, string decoderType) {
+            var expected = new string[0];
             CreateSerializers(encoderType, decoderType, out var encoder, out var decoder);
 
             var buffer = encoder.Encode(e => e.WriteStringArray("test", expected));

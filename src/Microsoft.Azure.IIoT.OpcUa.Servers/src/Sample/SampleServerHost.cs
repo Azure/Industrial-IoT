@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
@@ -22,6 +21,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
 
         /// <inheritdoc/>
         public bool AutoAccept { get; set; }
+
+        /// <inheritdoc/>
+        public bool LogStatus { get; set; } = true;
 
         /// <summary>
         /// Create server console host
@@ -40,7 +42,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
                         _logger.Info($"Stopping server.", () => { });
                         try {
                             _cts.Cancel();
-                            await _statusLogger;
+                            if (_statusLogger != null) {
+                                await _statusLogger;
+                            }
                             _server.Stop();
                         }
                         catch (OperationCanceledException) { }
@@ -100,21 +104,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
             var config = ApplicationInstance.FixupAppConfig(
                 CreateServerConfiguration(ports));
 
-            // Create cert
-            var cert = CertificateFactory.CreateCertificate(
-                config.SecurityConfiguration.ApplicationCertificate.StoreType,
-                config.SecurityConfiguration.ApplicationCertificate.StorePath,
-                null, config.ApplicationUri, config.ApplicationName,
-                config.SecurityConfiguration.ApplicationCertificate.SubjectName,
-                null, CertificateFactory.defaultKeySize,
-                DateTime.UtcNow - TimeSpan.FromDays(1),
-                CertificateFactory.defaultLifeTime,
-                CertificateFactory.defaultHashSize,
-                false, null, null);
-
             await config.Validate(ApplicationType.Server);
-            config.SecurityConfiguration.ApplicationCertificate.Certificate = cert;
-            config.ApplicationUri = Utils.GetApplicationUriFromCertificate(cert);
             config.CertificateValidator.CertificateValidation += (v, e) => {
                 if (e.Error.StatusCode ==
                     StatusCodes.BadCertificateUntrusted) {
@@ -125,6 +115,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
                         () => { });
                 }
             };
+
+            await config.CertificateValidator.Update(config.SecurityConfiguration);
+            // Use existing certificate, if it is there.
+            var cert = await config.SecurityConfiguration.ApplicationCertificate.Find(true);
+            if (cert == null) {
+                // Create cert
+                cert = CertificateFactory.CreateCertificate(
+                    config.SecurityConfiguration.ApplicationCertificate.StoreType,
+                    config.SecurityConfiguration.ApplicationCertificate.StorePath,
+                    null, config.ApplicationUri, config.ApplicationName,
+                    config.SecurityConfiguration.ApplicationCertificate.SubjectName,
+                    null, CertificateFactory.defaultKeySize,
+                    DateTime.UtcNow - TimeSpan.FromDays(1),
+                    CertificateFactory.defaultLifeTime,
+                    CertificateFactory.defaultHashSize,
+                    false, null, null);
+            }
+
+            if (cert != null) {
+                config.SecurityConfiguration.ApplicationCertificate.Certificate = cert;
+                config.ApplicationUri = Utils.GetApplicationUriFromCertificate(cert);
+            }
 
             var application = new ApplicationInstance(config);
 
@@ -146,12 +158,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
 
             // start the status thread
             _cts = new CancellationTokenSource();
-            _statusLogger = Task.Run(() => LogStatusAsync(_cts.Token));
+            if (LogStatus) {
+                _statusLogger = Task.Run(() => LogStatusAsync(_cts.Token));
 
-            // print notification on session events
-            _server.CurrentInstance.SessionManager.SessionActivated += OnEvent;
-            _server.CurrentInstance.SessionManager.SessionClosing += OnEvent;
-            _server.CurrentInstance.SessionManager.SessionCreated += OnEvent;
+                // print notification on session events
+                _server.CurrentInstance.SessionManager.SessionActivated += OnEvent;
+                _server.CurrentInstance.SessionManager.SessionClosing += OnEvent;
+                _server.CurrentInstance.SessionManager.SessionCreated += OnEvent;
+            }
+
             _logger.Info("Server started.", () => { });
         }
 
@@ -293,13 +308,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
                     MaxNotificationQueueSize = 100,
                     MaxNotificationsPerPublish = 1000,
                     MinMetadataSamplingInterval = 1000,
-                    MaxRegistrationInterval = 30000,
                     MaxPublishRequestCount = 20,
                     MaxSubscriptionCount = 100,
                     MaxEventQueueSize = 10000,
-                    MinSubscriptionLifetime = 10000
+                    MinSubscriptionLifetime = 10000,
 
                     // Do not register with LDS
+                    MaxRegistrationInterval = 0, // TODO
+                    RegistrationEndpoint = null
                 },
                 TraceConfiguration = new TraceConfiguration {
                     TraceMasks = 1

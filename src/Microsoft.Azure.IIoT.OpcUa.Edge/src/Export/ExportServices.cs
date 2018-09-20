@@ -173,9 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
                     browseStack.Push(nodeId);
                 }
             })) {
-                browseStack.Push(ObjectIds.ObjectsFolder);
                 browseStack.Push(ObjectIds.RootFolder);
-
                 while (browseStack.Count > 0) {
                     var nodeId = browseStack.Pop();
                     if (visited.Contains(nodeId) || NodeId.IsNull(nodeId)) {

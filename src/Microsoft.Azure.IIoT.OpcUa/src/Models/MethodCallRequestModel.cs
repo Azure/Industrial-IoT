@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
     public class MethodCallRequestModel {
 
         /// <summary>
-        /// Object scope
+        /// Object scope of the method
         /// </summary>
         public string ObjectId { get; set; }
 
@@ -22,9 +22,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Models {
         public string MethodId { get; set; }
 
         /// <summary>
-        /// Arguments
+        /// Input Arguments
         /// </summary>
-        public List<MethodArgumentModel> InputArguments { get; set; }
+        public List<MethodCallArgumentModel> Arguments { get; set; }
 
         /// <summary>
         /// Elevation

@@ -19,6 +19,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers {
         bool AutoAccept { get; set; }
 
         /// <summary>
+        /// Log status messages
+        /// </summary>
+        bool LogStatus { get; set; }
+
+        /// <summary>
         /// Start server listening on the specified
         /// ports.
         /// </summary>
