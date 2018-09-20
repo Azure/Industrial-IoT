@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     }
 
     /// <summary>
-    /// Supervisor registration model for webservice api
+    /// Supervisor registration model
     /// </summary>
     public class SupervisorApiModel {
 

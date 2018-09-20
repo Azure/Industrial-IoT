@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  twinregistry:
+    image: mcr.microsoft.com/iot/opc-twin-registry:latest
+    ports:
+      - "9042:9042"
+    env_file:
+      - .env
+    environment:
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_AUTH_REQUIRED
+      - PCS_CORS_WHITELIST
+      - PCS_APPLICATION_SECRET
+  twinonboarding:
+    image: mcr.microsoft.com/iot/opc-twin-onboarding:latest
+    env_file:
+      - .env
+    depends_on:
+      - twinregistry
+  twinservice:
+    image: mcr.microsoft.com/iot/opc-twin-service:latest
+    ports:
+      - "9041:9041"
+    env_file:
+      - .env
+    environment:
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_AUTH_REQUIRED
+      - PCS_CORS_WHITELIST
+      - PCS_APPLICATION_SECRET

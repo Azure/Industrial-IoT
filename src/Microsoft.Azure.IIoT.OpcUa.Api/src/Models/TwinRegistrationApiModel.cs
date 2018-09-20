@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Twin registration model for webservice api
+    /// Twin registration model
     /// </summary>
     public class TwinRegistrationApiModel {
 

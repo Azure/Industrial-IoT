@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// call request model for webservice api
+    /// Call request model
     /// </summary>
     public class MethodCallRequestApiModel {
 
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         /// </summary>
         [JsonProperty(PropertyName = "arguments",
             NullValueHandling = NullValueHandling.Ignore)]
-        public List<MethodArgumentApiModel> Arguments { get; set; }
+        public List<MethodCallArgumentApiModel> Arguments { get; set; }
 
         /// <summary>
         /// Optional User elevation

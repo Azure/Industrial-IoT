@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Value write response model for webservice api
+    /// Value write response model
     /// </summary>
     public class ValueWriteResponseApiModel {
 

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -9,20 +9,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// method metadata query model for webservice api
+    /// Method metadata query model
     /// </summary>
     public class MethodMetadataResponseApiModel {
+
+        /// <summary>
+        /// Id of object that the method is a component of
+        /// </summary>
+        [JsonProperty(PropertyName = "objectId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string ObjectId { get; set; }
+
         /// <summary>
         /// Input argument meta data
         /// </summary>
-        [JsonProperty(PropertyName = "inputArgs")]
-        public List<MethodArgumentApiModel> InputArguments { get; set; }
+        [JsonProperty(PropertyName = "inputArguments",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<MethodMetadataArgumentApiModel> InputArguments { get; set; }
 
         /// <summary>
         /// output argument meta data
         /// </summary>
-        [JsonProperty(PropertyName = "outputArgs")]
-        public List<MethodArgumentApiModel> OutputArguments { get; set; }
+        [JsonProperty(PropertyName = "outputArguments",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<MethodMetadataArgumentApiModel> OutputArguments { get; set; }
 
         /// <summary>
         /// Optional error diagnostics

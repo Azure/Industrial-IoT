@@ -8,21 +8,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Value write request model for webservice api
+    /// Value write request model
     /// </summary>
     public class ValueWriteRequestApiModel {
 
         /// <summary>
-        /// Node information to allow writing - from browse.
+        /// Node id to to write value to. (Mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "node")]
-        public NodeApiModel Node { get; set; }
+        [JsonProperty(PropertyName = "nodeId")]
+        public string NodeId { get; set; }
 
         /// <summary>
-        /// Value to write in opc json
+        /// Value to write. The system tries to convert
+        /// the value according to the data type value,
+        /// e.g. convert comma seperated value strings
+        /// into arrays.
         /// </summary>
         [JsonProperty(PropertyName = "value")]
         public JToken Value { get; set; }
+
+        /// <summary>
+        /// A built in datatype for the value. This can
+        /// be a data type from browse, or a built in
+        /// type.
+        /// (default: best effort)
+        /// </summary>
+        [JsonProperty(PropertyName = "dataType",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string DataType { get; set; }
+
+        /// <summary>
+        /// Index range to write
+        /// </summary>
+        [JsonProperty(PropertyName = "indexRange",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string IndexRange { get; set; }
 
         /// <summary>
         /// Optional User elevation

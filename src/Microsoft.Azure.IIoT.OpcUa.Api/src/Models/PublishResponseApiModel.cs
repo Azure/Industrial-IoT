@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// publish response model for webservice api
+    /// publish response model
     /// </summary>
     public class PublishResponseApiModel {
         /// <summary>

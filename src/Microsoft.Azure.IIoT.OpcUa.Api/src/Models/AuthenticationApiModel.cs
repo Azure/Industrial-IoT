@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     }
 
     /// <summary>
-    /// Authentication model for webservice api
+    /// Authentication model
     /// </summary>
     public class AuthenticationApiModel {
 

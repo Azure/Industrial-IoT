@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// browse response model for webservice api
+    /// browse response model
     /// </summary>
     public class BrowseResponseApiModel {
         /// <summary>

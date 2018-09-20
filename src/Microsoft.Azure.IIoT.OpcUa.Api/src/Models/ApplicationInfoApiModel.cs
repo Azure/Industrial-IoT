@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     }
 
     /// <summary>
-    /// Application info model for webservice api
+    /// Application info model
     /// </summary>
     public class ApplicationInfoApiModel {
 

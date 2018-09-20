@@ -36,11 +36,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         public bool? TargetNodesOnly { get; set; }
 
-        // /// <summary>
-        // /// Optional User elevation
-        // /// </summary>
-        // [JsonProperty(PropertyName = "elevation",
-        //     NullValueHandling = NullValueHandling.Ignore)]
-        // public AuthenticationApiModel Elevation { get; set; }
+        /// <summary>
+        /// Whether to read variable values on target nodes.
+        /// (default is false)
+        /// </summary>
+        [JsonProperty(PropertyName = "readVariableValues",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public bool? ReadVariableValues { get; set; }
+
+        /// <summary>
+        /// Optional User elevation
+        /// </summary>
+        [JsonProperty(PropertyName = "elevation",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public AuthenticationApiModel Elevation { get; set; }
     }
 }

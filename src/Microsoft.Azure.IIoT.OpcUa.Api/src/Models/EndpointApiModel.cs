@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     }
 
     /// <summary>
-    /// Endpoint model for webservice api
+    /// Endpoint model
     /// </summary>
     public class EndpointApiModel {
 

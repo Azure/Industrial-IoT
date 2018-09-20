@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Status response model for webservice api
+    /// Status response model
     /// </summary>
     public class StatusResponseApiModel {
         /// <summary>

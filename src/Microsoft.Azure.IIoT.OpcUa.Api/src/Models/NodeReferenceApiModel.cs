@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using Newtonsoft.Json;
 
     /// <summary>
-    /// reference model for webservice api
+    /// reference model
     /// </summary>
     public class NodeReferenceApiModel {
 

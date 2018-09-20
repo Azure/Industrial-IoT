@@ -329,10 +329,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             var result = await service.NodeValueWriteAsync(
                 GetOption<string>(options, "-i", "--id"),
                 new ValueWriteRequestApiModel {
-                    Node = new NodeApiModel {
-                        Id = GetOption<string>(options, "-n", "--nodeid"),
-                        DataType = GetOption<string>(options, "-t", "--datatype")
-                    },
+                    NodeId = GetOption<string>(options, "-n", "--nodeid"),
+                    DataType = GetOption<string>(options, "-t", "--datatype", null),
                     Value = GetOption<string>(options, "-v", "--value")
                 });
             PrintResult(options, result);
@@ -374,13 +372,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             var id = GetOption<string>(options, "-i", "--id");
             var silent = GetOption(options, "-s", "--silent", false);
             var recursive = GetOption(options, "-r", "--recursive", false);
+            var readDuringBrowse = GetOption<bool>(options, "-v", "--readvalue", null);
             var request = new BrowseRequestApiModel {
                 TargetNodesOnly = GetOption<bool>(options, "-t", "--targets", null),
+                ReadVariableValues = readDuringBrowse,
                 MaxReferencesToReturn = GetOption<uint>(options, "-x", "--maxrefs", null),
                 Direction = GetOption<BrowseDirection>(options, "-d", "--direction", null)
             };
-            var nodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            nodes.Add(GetOption<string>(options, "-n", "--nodeid", null));
+            var nodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+                GetOption<string>(options, "-n", "--nodeid", null)
+            };
             var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var nodesRead = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var errors = 0;
@@ -394,7 +395,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     if (!silent) {
                         PrintResult(options, result);
                     }
-
+                    if (readDuringBrowse ?? false) {
+                        continue;
+                    }
                     // Do recursive browse
                     if (recursive) {
                         foreach (var r in result.References) {
@@ -1108,6 +1111,7 @@ Commands and Options
         -x, --maxrefs   Max number of references
         -x, --direction Browse direction (Forward, Backward, Both)
         -r, --recursive Browse recursively and read node values
+        -v, --readvalue Read node values in browse
         -t, --targets   Only return target nodes
         -s, --silent    Only show errors
         -F, --format    Json format for result

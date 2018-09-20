@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Linq;
+    using System;
 
     /// <summary>
     /// Node class
@@ -56,7 +57,120 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     }
 
     /// <summary>
-    /// node model for webservice api
+    /// Flags that can be set for the EventNotifier attribute.
+    /// </summary>
+    [Flags]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum NodeEventNotifier {
+
+        /// <summary>
+        /// The Object or View produces event notifications.
+        /// </summary>
+        SubscribeToEvents = 0x1,
+
+        /// <summary>
+        /// The Object has an event history which may
+        /// be read.
+        /// </summary>
+        HistoryRead = 0x4,
+
+        /// <summary>
+        /// The Object has an event history which may
+        /// be updated.
+        /// </summary>
+        HistoryWrite = 0x8,
+    }
+
+    /// <summary>
+    /// Flags that can be set for the AccessLevel attribute.
+    /// </summary>
+    [Flags]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum NodeAccessLevel {
+
+        /// <summary>
+        /// The current value of the Variable may be read.
+        /// </summary>
+        CurrentRead = 0x1,
+
+        /// <summary>
+        /// The current value of the Variable may be written.
+        /// </summary>
+        CurrentWrite = 0x2,
+
+        /// <summary>
+        /// The history for the Variable may be read.
+        /// </summary>
+        HistoryRead = 0x4,
+
+        /// <summary>
+        /// The history for the Variable may be updated.
+        /// </summary>
+        HistoryWrite = 0x8,
+
+        /// <summary>
+        /// Indicates if the Variable generates SemanticChangeEvents
+        /// when its value changes.
+        /// </summary>
+        SemanticChange = 0x10,
+
+        /// <summary>
+        /// Indicates if the current StatusCode of the value
+        /// is writable.
+        /// </summary>
+        StatusWrite = 0x20,
+
+        /// <summary>
+        /// Indicates if the current SourceTimestamp is
+        /// writable.
+        /// </summary>
+        TimestampWrite = 0x40
+    }
+
+    /// <summary>
+    /// Constants defined for the ValueRank attribute.
+    /// </summary>
+    [Flags]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum NodeValueRank {
+
+        /// <summary>
+        /// The variable may be a scalar or a one
+        /// dimensional array.
+        /// </summary>
+        ScalarOrOneDimension = -3,
+
+        /// <summary>
+        /// The variable may be a scalar or an array of
+        /// any dimension.
+        /// </summary>
+        Any = -2,
+
+        /// <summary>
+        /// The variable is always a scalar.
+        /// </summary>
+        Scalar = -1,
+
+        /// <summary>
+        /// The variable is always an array with one or
+        /// more dimensions.
+        /// </summary>
+        OneOrMoreDimensions = 0,
+
+        /// <summary>
+        /// The variable is always one dimensional array.
+        /// </summary>
+        OneDimension = 1,
+
+        /// <summary>
+        /// The variable is always an array with two or
+        /// more dimensions.
+        /// </summary>
+        TwoDimensions = 2
+    }
+
+    /// <summary>
+    /// Node model
     /// </summary>
     public class NodeApiModel {
 
@@ -141,11 +255,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         /// <summary>
         /// If object or view and eventing, event notifier
         /// to subscribe to.
-        /// (default: 0)
+        /// (default: no events supported)
         /// </summary>
         [JsonProperty(PropertyName = "eventNotifier",
             NullValueHandling = NullValueHandling.Ignore)]
-        public byte? EventNotifier { get; set; }
+        public NodeEventNotifier? EventNotifier { get; set; }
 
         /// <summary>
         /// If method node class, whether method can
@@ -179,7 +293,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         /// </summary>
         [JsonProperty(PropertyName = "accessLevel",
             NullValueHandling = NullValueHandling.Ignore)]
-        public uint? AccessLevel { get; set; }
+        public NodeAccessLevel? AccessLevel { get; set; }
 
         /// <summary>
         /// User access level for variable node or null.
@@ -187,7 +301,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         /// </summary>
         [JsonProperty(PropertyName = "userAccessLevel",
             NullValueHandling = NullValueHandling.Ignore)]
-        public uint? UserAccessLevel { get; set; }
+        public NodeAccessLevel? UserAccessLevel { get; set; }
 
         /// <summary>
         /// If variable the datatype of the variable.
@@ -204,7 +318,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         /// </summary>
         [JsonProperty(PropertyName = "valueRank",
             NullValueHandling = NullValueHandling.Ignore)]
-        public int? ValueRank { get; set; }
+        public NodeValueRank? ValueRank { get; set; }
 
         /// <summary>
         /// Array dimensions of variable or variable type.
@@ -232,12 +346,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         public double? MinimumSamplingInterval { get; set; }
 
         /// <summary>
-        /// Default value of the variable in case node
-        /// is a variable type, otherwise null..
+        /// Value of variable or default value of the
+        /// subtyped variable in case node is a variable
+        /// type, otherwise null.
         /// </summary>
-        [JsonProperty(PropertyName = "defaultValue",
+        [JsonProperty(PropertyName = "value",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken DefaultValue { get; set; }
+        public JToken Value { get; set; }
 
         /// <summary>
         /// Inverse name of the reference if the node is

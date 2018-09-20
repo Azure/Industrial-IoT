@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         /// Output results
         /// </summary>
         [JsonProperty(PropertyName = "results")]
-        public List<JToken> Results { get; set; }
+        public List<MethodCallArgumentApiModel> Results { get; set; }
 
         /// <summary>
         /// Optional error diagnostics

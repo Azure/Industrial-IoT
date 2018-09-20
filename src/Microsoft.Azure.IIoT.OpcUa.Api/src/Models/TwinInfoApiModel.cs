@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using System;
 
     /// <summary>
-    /// Twin registration model for webservice api
+    /// Twin registration model
     /// </summary>
     public class TwinInfoApiModel {
 

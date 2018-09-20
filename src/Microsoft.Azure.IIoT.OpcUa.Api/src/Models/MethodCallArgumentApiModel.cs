@@ -5,23 +5,23 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Method metadata request model
+    /// method arg model
     /// </summary>
-    public class MethodMetadataRequestApiModel {
+    public class MethodCallArgumentApiModel {
 
         /// <summary>
-        /// Method to retrieve metadata for
+        /// Initial value or value to use
         /// </summary>
-        [JsonProperty(PropertyName = "methodId")]
-        public string MethodId { get; set; }
+        [JsonProperty(PropertyName = "value")]
+        public JToken Value { get; set; }
 
         /// <summary>
-        /// Optional User elevation
+        /// Data type Id of the value (from meta data)
         /// </summary>
-        [JsonProperty(PropertyName = "elevation",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public AuthenticationApiModel Elevation { get; set; }
+        [JsonProperty(PropertyName = "dataType")]
+        public string DataType { get; set; }
     }
 }

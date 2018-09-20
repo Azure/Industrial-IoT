@@ -30,13 +30,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     }
 
     /// <summary>
-    /// Browse request model for webservice api
+    /// Browse request model
     /// </summary>
     public class BrowseRequestApiModel {
 
         /// <summary>
         /// Node to browse.
-        /// (default: ObjectRoot).
+        /// (default: RootFolder).
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
         public string NodeId { get; set; }
@@ -94,11 +94,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
            NullValueHandling = NullValueHandling.Ignore)]
         public bool? TargetNodesOnly { get; set; }
 
-        // /// <summary>
-        // /// Optional User elevation
-        // /// </summary>
-        // [JsonProperty(PropertyName = "elevation",
-        //     NullValueHandling = NullValueHandling.Ignore)]
-        // public AuthenticationApiModel Elevation { get; set; }
+        /// <summary>
+        /// Whether to read variable values on target nodes.
+        /// (default is false)
+        /// </summary>
+        [JsonProperty(PropertyName = "readVariableValues",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public bool? ReadVariableValues { get; set; }
+
+        /// <summary>
+        /// Optional User elevation
+        /// </summary>
+        [JsonProperty(PropertyName = "elevation",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public AuthenticationApiModel Elevation { get; set; }
     }
 }

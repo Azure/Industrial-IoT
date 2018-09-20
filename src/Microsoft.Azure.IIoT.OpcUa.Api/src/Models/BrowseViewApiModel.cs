@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using System;
 
     /// <summary>
-    /// Browse view model for webservice api
+    /// Browse view model
     /// </summary>
     public class BrowseViewApiModel {
 

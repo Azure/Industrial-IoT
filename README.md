@@ -8,6 +8,8 @@ This repository contains:
 
 ## Prerequisites
 
+Clone this repository.
+
 ### Setup Dependencies
 
 The command line interface (CLI) and APIs depend on the following services:
@@ -15,16 +17,17 @@ The command line interface (CLI) and APIs depend on the following services:
 * [OPC Twin Service](https://github.com/Azure/azure-iiot-opc-twin-service).
 * [OPC Registry Service](https://github.com/Azure/azure-iiot-opc-twin-registry).
 
-Follow the instructions at the respective link above to ensure that these dependencies are running before using the API or command line interface.
+If you have [Docker][docker-url] installed, you can start the corresponding services by changing into the repository root and running `docker-compose up`.
+Otherwise, follow the instructions at the respective link above to ensure that these dependencies are running before using the API or command line interface.
 
 ### Setup Environment variables (CLI)
 
-The following environment variables need to be set before running the command line interface (CLI):
+Unless you are running the above services on your local machine (localhost), the following environment variables need to be set before running the command line interface (CLI):
 
-* `OpcTwinServiceUrl` = {http|https}://{hostname}:9041/v1
-* `OpcRegistryServiceUrl` = {http|https}://{hostname}:9042/v1
+* `OpcTwinServiceUrl` = {http|https}://{hostname}:9041
+* `OpcRegistryServiceUrl` = {http|https}://{hostname}:9042
 
-They define the respective location of the service endpoint.
+They define the respective location of the services' endpoints.
 
 For more help on setting environment variables on your system:
 
@@ -32,6 +35,8 @@ For more help on setting environment variables on your system:
 * For Linux and MacOS, and depending on OS and terminal, there are ways to set variables globally, for more information [this](https://stackoverflow.com/questions/13046624/how-to-permanently-export-a-variable-in-linux), [this](https://help.ubuntu.com/community/EnvironmentVariables), or [this](https://stackoverflow.com/questions/135688/setting-environment-variables-in-os-x) page should help.
 
 ## Build and Run
+
+Clone this repository.  If you have [Docker][docker-url] installed, you can start the corresponding services by changing into the repository root and running ```docker-compose up```.   
 
 ### Building and running the CLI with Visual Studio or VS Code
 
@@ -66,7 +71,7 @@ For more help on setting environment variables on your system:
 1. Set the [required environment variables](#Setup-Environment-variables-CLI)
 1. Change into the repo root and build the docker image using `docker build -t azure-iiot-opc-twin-api .`
 1. Make sure the [Prerequisites](#Prerequisites) are set up.
-1. To run the image run `docker run -e OpcTwinServiceUrl=$OpcTwinServiceUrl -e OpcRegistryServiceUrl=$OpcRegistryServiceUrl -it azure-iiot-opc-twin-api console`.
+1. To run the image run `docker run -e OpcTwinServiceUrl=$OpcTwinServiceUrl -e OpcRegistryServiceUrl=$OpcRegistryServiceUrl -it azure-iiot-opc-twin-api console`.  
 1. Type `help` to see the available options.
 
 ## Other Industrial IoT Solution Accelerator components

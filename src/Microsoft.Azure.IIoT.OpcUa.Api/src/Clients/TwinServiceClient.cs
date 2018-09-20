@@ -195,17 +195,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Clients {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (content.Node == null) {
-                throw new ArgumentNullException(nameof(content.Node));
-            }
             if (content.Value == null) {
                 throw new ArgumentNullException(nameof(content.Value));
             }
-            if (string.IsNullOrEmpty(content.Node.Id)) {
-                throw new ArgumentException(nameof(content.Node.Id));
-            }
-            if (string.IsNullOrEmpty(content.Node.DataType)) {
-                throw new ArgumentException(nameof(content.Node.DataType));
+            if (string.IsNullOrEmpty(content.NodeId)) {
+                throw new ArgumentException(nameof(content.NodeId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v1/write/{twinId}",
                 _resourceId);

@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
     using System;
 
     /// <summary>
-    /// Value read response model for webservice api
+    /// Value read response model
     /// </summary>
     public class ValueReadResponseApiModel {
 
@@ -18,6 +18,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Models {
         /// </summary>
         [JsonProperty(PropertyName = "value")]
         public JToken Value { get; set; }
+
+        /// <summary>
+        /// Built in data type of the value read.
+        /// </summary>
+        [JsonProperty(PropertyName = "dataType",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string DataType { get; set; }
 
         /// <summary>
         /// Source time stamp
