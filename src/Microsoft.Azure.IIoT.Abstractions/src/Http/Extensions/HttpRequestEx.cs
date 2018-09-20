@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Http {
     using Microsoft.Azure.IIoT;
-    using Newtonsoft.Json;
     using System;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -74,19 +73,6 @@ namespace Microsoft.Azure.IIoT.Http {
             string type) => SetContent(request, content, new MediaTypeHeaderValue(type));
 
         /// <summary>
-        /// Set content as type
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="request"></param>
-        /// <param name="sourceObject"></param>
-        /// <param name="encoding"></param>
-        /// <param name="mediaType"></param>
-        /// <returns>this</returns>
-        public static IHttpRequest SetContent<T>(this IHttpRequest request, T sourceObject,
-            Encoding encoding, MediaTypeHeaderValue mediaType) => request.SetContent(
-               JsonConvertEx.SerializeObject(sourceObject), encoding, mediaType);
-
-        /// <summary>
         /// Set content
         /// </summary>
         /// <param name="request"></param>
@@ -114,38 +100,6 @@ namespace Microsoft.Azure.IIoT.Http {
         public static IHttpRequest SetContent(this IHttpRequest request, string content,
             Encoding encoding, string mediaType) =>
             request.SetContent(content, encoding, new MediaTypeHeaderValue(mediaType));
-
-        /// <summary>
-        /// Set content
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="request"></param>
-        /// <param name="sourceObject"></param>
-        public static IHttpRequest SetContent<T>(this IHttpRequest request, T sourceObject) =>
-            request.SetContent(sourceObject, kDefaultEncoding, kDefaultMediaType);
-
-        /// <summary>
-        /// Set content
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="request"></param>
-        /// <param name="sourceObject"></param>
-        /// <param name="encoding"></param>
-        public static IHttpRequest SetContent<T>(this IHttpRequest request, T sourceObject,
-            Encoding encoding) =>
-            request.SetContent(sourceObject, encoding, kDefaultMediaType);
-
-        /// <summary>
-        /// Set content
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="request"></param>
-        /// <param name="sourceObject"></param>
-        /// <param name="encoding"></param>
-        /// <param name="mediaType"></param>
-        public static IHttpRequest SetContent<T>(this IHttpRequest request, T sourceObject,
-            Encoding encoding, string mediaType) =>
-            request.SetContent(sourceObject, encoding, new MediaTypeHeaderValue(mediaType));
 
         private static readonly MediaTypeHeaderValue kDefaultMediaType =
             new MediaTypeHeaderValue(ContentEncodings.MimeTypeJson);

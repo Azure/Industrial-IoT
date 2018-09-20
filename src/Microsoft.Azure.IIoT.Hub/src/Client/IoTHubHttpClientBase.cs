@@ -82,8 +82,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             // the connection string signature is base64 encoded
             var key = Convert.FromBase64String(connectionString.SharedAccessKey);
             using (var hmac = new HMACSHA256(key)) {
-                var sig = Convert.ToBase64String(hmac.ComputeHash(
-                    Encoding.UTF8.GetBytes(encodedScope + "\n" + expiry)));
+                var sig = hmac.ComputeHash(Encoding.UTF8.GetBytes(encodedScope + "\n" + expiry))
+                    .ToBase64String();
                 return $"SharedAccessSignature sr={encodedScope}" +
                     $"&sig={Uri.EscapeDataString(sig)}&se={Uri.EscapeDataString(expiry)}" +
                     $"&skn={Uri.EscapeDataString(connectionString.SharedAccessKeyName)}";

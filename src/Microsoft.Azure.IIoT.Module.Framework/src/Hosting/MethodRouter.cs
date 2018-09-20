@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 return new MethodResponse((int)HttpStatusCode.NotImplemented);
             }
             var sw = Stopwatch.StartNew();
-            _logger.Debug("Invoking controller method... ", () => request);
+            _logger.Debug($"Invoking controller method {request.Name}... ", () => { });
             var result = await invoker.InvokeAsync(request);
             _logger.Debug($"... method invoked (took {sw.ElapsedMilliseconds} ms)",
                 () => { });
