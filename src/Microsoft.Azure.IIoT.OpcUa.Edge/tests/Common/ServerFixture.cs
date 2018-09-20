@@ -8,7 +8,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Servers;
     using Microsoft.Azure.IIoT.OpcUa.Servers.Sample;
+    using Microsoft.Azure.IIoT.Utils;
     using System;
+    using System.IO;
     using Xunit;
 
     [CollectionDefinition(Name)]
@@ -59,6 +61,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Tests {
         /// <inheritdoc/>
         public void Dispose() {
             _serverHost.Dispose();
+
+            // Clean up all created certificates
+            Try.Op(() => Directory.Delete(
+                Path.Combine(Directory.GetCurrentDirectory(),
+                "OPC Foundation"), true));
         }
 
         private static int _nextPort = 58888;
