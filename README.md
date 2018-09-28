@@ -1,4 +1,6 @@
-# OPC Twin Service (Preview)
+# OPC Twin Service
+
+Check out the [Wiki](https://github.com/Azure/azure-iiot-opc-twin-api/wiki) for an overview of OPC Twin and related learning resources.
 
 ![Build Status](https://msazure.visualstudio.com/_apis/public/build/definitions/b32aa71e-8ed2-41b2-9d77-5bc261222004/33977/badge)
 
@@ -85,7 +87,7 @@ The service can be configured in its [appsettings.json](src/appsettings.json) fi
 
 ## Other Industrial IoT Solution Accelerator components
 
-* OPC GDS Vault service (Coming soon)
+* OPC Vault service (Coming soon)
 * [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-twin-registry)
 * [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
 * OPC Twin common business logic (Coming soon)
