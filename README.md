@@ -1,11 +1,12 @@
 # Azure Industrial IoT (IIoT) OPC Twin API
 
-Check out thw [Wiki](https://github.com/Azure/azure-iiot-opc-twin-api/wiki) for an overview of OPC Twin and learning resources.
+Check out the [Wiki](https://github.com/Azure/azure-iiot-opc-twin-api/wiki) for an overview of OPC Twin and related learning resources.
 
 This repository contains:
 
-1. The handcrafted C# API for both OPC Twin [Registry](https://github.com/Azure/azure-iiot-opc-twin-service) and [Service](https://github.com/Azure/azure-iiot-opc-twin-registry).
-1. A command line interface (CLI) that allows you to exercise the API.
+1. A handcrafted C# API for both OPC Twin [Registry](https://github.com/Azure/azure-iiot-opc-twin-service) and [Service](https://github.com/Azure/azure-iiot-opc-twin-registry).
+1. The OPC Twin cloud console command line interface (CLI) that allows you to exercise this API.
+1. (Coming soon) Quickstart deployment templates and scripts to get up and running quickly. 
 1. (Coming soon) A set of AutoREST generated libraries that enable access to the above services using a wider variety of languages.
 
 ## Prerequisites
