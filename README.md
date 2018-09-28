@@ -1,4 +1,6 @@
-# Azure Industrial IoT (IIoT) OPC Twin API (Preview)
+# Azure Industrial IoT (IIoT) OPC Twin API
+
+Check out thw [Wiki](https://github.com/Azure/azure-iiot-opc-twin-api/wiki) for an overview of OPC Twin and learning resources.
 
 This repository contains:
 
@@ -76,7 +78,7 @@ Clone this repository.  If you have [Docker][docker-url] installed, you can star
 
 ## Other Industrial IoT Solution Accelerator components
 
-* OPC GDS Vault service (Coming soon)
+* OPC Vault service (Coming soon)
 * [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
 * [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-twin-registry)
 * [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
