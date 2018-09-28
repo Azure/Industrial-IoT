@@ -1,4 +1,4 @@
-# Azure Industrial IoT (IIoT) OPC Twin API
+# OPC Twin API
 
 Check out the [Wiki](https://github.com/Azure/azure-iiot-opc-twin-api/wiki) for an overview of OPC Twin and related learning resources.
 
