@@ -1,4 +1,4 @@
-# OPC Twin Module (Preview)
+# OPC Twin Edge Module
 
 ![Build Status](https://msazure.visualstudio.com/_apis/public/build/definitions/b32aa71e-8ed2-41b2-9d77-5bc261222004/33979/badge)
 
@@ -9,6 +9,8 @@ The supervisor manages endpoint twins, which correspond to OPC UA server endpoin
 The supervisor also provides discovery services which send plug and play events to the [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding) for processing, where these events result in updates to the OPC Twin registry.
 
 The OPC Twin module is intended to be part of a module deployment in [IoT Edge][iotedge-url].  For development and testing purposes it can be run standalone following the instructions [below](#Build-and-Run).  The OPC Twin module is part of our [Industrial IoT (IIoT) solution accelerator components](#Other-Industrial-IoT-Solution-Accelerator-components) suite.
+
+Check out the [Wiki](https://github.com/Azure/azure-iiot-opc-twin-api/wiki) for an overview of OPC Twin and related learning resources.
 
 ## Prerequisites
 
@@ -94,7 +96,7 @@ The module can be configured in the [appsettings.json](src/appsettings.json) fil
 
 ## Other Industrial IoT Solution Accelerator components
 
-* OPC GDS Vault service (Coming soon)
+* OPC Vault service (Coming soon)
 * [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
 * [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-twin-registry)
 * [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
