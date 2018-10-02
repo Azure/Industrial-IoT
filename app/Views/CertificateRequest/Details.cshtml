@@ -1,4 +1,4 @@
-﻿@model Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api.Models.CertificateRequestRecordApiModel
+﻿@model Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api.Models.CertificateRequestRecordDetailsApiModel
 
 <h2>View Certificate Request Details</h2>
 
@@ -8,98 +8,108 @@
     <dl class="dl-horizontal">
 
         <dt>
-            @Html.DisplayNameFor(model => model.RequestId)
+            @Html.DisplayNameFor(model => model.ApiModel.RequestId)
         </dt>
 
         <dd>
-            @Html.DisplayFor(model => model.RequestId)
+            @Html.DisplayFor(model => model.ApiModel.RequestId)
         </dd>
 
         <dt>
-            @Html.DisplayNameFor(model => model.ApplicationId)
+            @Html.DisplayNameFor(model => model.ApiModel.ApplicationId)
         </dt>
 
         <dd>
-            @Html.ActionLink(Model.ApplicationId, "..\\Application\\Details", new { id = Model.ApplicationId })
+            @Html.ActionLink(Model.ApiModel.ApplicationId, "..\\Application\\Details", new { id = Model.ApiModel.ApplicationId })
         </dd>
 
         <dt>
-            @Html.DisplayNameFor(model => model.CertificateGroupId)
+            @Html.DisplayNameFor(model => model.ApiModel.CertificateGroupId)
         </dt>
 
         <dd>
-            @Html.DisplayFor(model => model.CertificateGroupId)
+            @Html.DisplayFor(model => model.ApiModel.CertificateGroupId)
         </dd>
 
         <dt>
-            @Html.DisplayNameFor(model => model.CertificateTypeId)
+            @Html.DisplayNameFor(model => model.ApiModel.CertificateTypeId)
         </dt>
 
         <dd>
-            @Html.DisplayFor(model => model.CertificateTypeId)
+            @Html.DisplayFor(model => model.ApiModel.CertificateTypeId)
         </dd>
 
         <dt>
-            @Html.DisplayNameFor(model => model.State)
+            @Html.DisplayNameFor(model => model.ApiModel.State)
         </dt>
 
         <dd>
-            @Html.DisplayFor(model => model.State)
+            @Html.DisplayFor(model => model.ApiModel.State)
         </dd>
 
-        @if (Model.SubjectName != null)
+        @if (Model.ApiModel.SubjectName != null)
         {
             <dt>
-                @Html.DisplayNameFor(model => model.SubjectName)
+                @Html.DisplayNameFor(model => model.ApiModel.SubjectName)
             </dt>
 
             <dd>
-                @Html.DisplayFor(model => model.SubjectName)
+                @Html.DisplayFor(model => model.ApiModel.SubjectName)
             </dd>
         }
 
-        @if (Model.PrivateKeyFormat != null)
+        @if (Model.ApiModel.PrivateKeyFormat != null)
         {
             <dt>
-                @Html.DisplayNameFor(model => model.PrivateKeyFormat)
+                @Html.DisplayNameFor(model => model.ApiModel.PrivateKeyFormat)
             </dt>
 
             <dd>
-                @Html.DisplayFor(model => model.PrivateKeyFormat)
+                @Html.DisplayFor(model => model.ApiModel.PrivateKeyFormat)
             </dd>
         }
 
     </dl>
 </div>
+@if (Model.OperationResult != null)
+{
+    <hr />
+    <p>
+        <h4>
+            @Html.DisplayFor(model => model.OperationResult)
+        </h4>
+    </p>
+    <hr />
+}
+
 <p>
 
-
-    @if (Model.State == "New")
+    @if (Model.ApiModel.State == "New")
     {
-        @Html.ActionLink("Approve", "Approve", new { id = Model.RequestId }/*,
+        @Html.ActionLink("Approve", "Approve", new { id = Model.ApiModel.RequestId }/*,
             new { onclick = "return confirm('Do you really want to approve the request " + @Model.RequestId + "?')" }*/)
         @Html.Raw("&nbsp;|&nbsp;");
-        @Html.ActionLink("Reject", "Reject", new { id = Model.RequestId }/*,
+        @Html.ActionLink("Reject", "Reject", new { id = Model.ApiModel.RequestId }/*,
             new { onclick = "return confirm('Do you really want to reject the request " + @Model.RequestId + "?')" }*/)
         @Html.Raw("&nbsp;|&nbsp;");
     }
-    @if (Model.State == "Approved" /*|| Model.State == "Accepted"*/)
+    @if (Model.ApiModel.State == "Approved" /*|| Model.State == "Accepted"*/)
     {
-        @Html.ActionLink("Certificate", "DownloadCertificate", new { requestId = Model.RequestId, applicationId = Model.ApplicationId })
+        @Html.ActionLink("Certificate", "DownloadCertificate", new { requestId = Model.ApiModel.RequestId, applicationId = Model.ApiModel.ApplicationId })
         @Html.Raw("&nbsp;|&nbsp;");
-        @Html.ActionLink("Issuer", "DownloadIssuer", new { requestId = Model.RequestId })
+        @Html.ActionLink("Issuer", "DownloadIssuer", new { requestId = Model.ApiModel.RequestId })
         @Html.Raw("&nbsp;|&nbsp;");
-        @Html.ActionLink("Crl", "DownloadIssuerCrl", new { requestId = Model.RequestId })
+        @Html.ActionLink("Crl", "DownloadIssuerCrl", new { requestId = Model.ApiModel.RequestId })
         @Html.Raw("&nbsp;|&nbsp;");
     }
-    @if (Model.State == "Approved")
+    @if (Model.ApiModel.State == "Approved")
     {
-        @if (!String.IsNullOrEmpty(Model.PrivateKeyFormat))
+        @if (!String.IsNullOrEmpty(Model.ApiModel.PrivateKeyFormat))
         {
-            @Html.ActionLink("PrivateKey", "DownloadPrivateKey", new { requestId = Model.RequestId, applicationId = Model.ApplicationId })
+            @Html.ActionLink("PrivateKey", "DownloadPrivateKey", new { requestId = Model.ApiModel.RequestId, applicationId = Model.ApiModel.ApplicationId })
             @Html.Raw("&nbsp;|&nbsp;");
         }
-        @Html.ActionLink("Accept", "Accept", new { id = Model.RequestId })
+        @Html.ActionLink("Accept", "Accept", new { id = Model.ApiModel.RequestId })
         @Html.Raw("&nbsp;|&nbsp;");
     }
     @Html.ActionLink("Back to List", "Index")

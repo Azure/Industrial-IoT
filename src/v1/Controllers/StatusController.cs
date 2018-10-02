@@ -5,13 +5,14 @@
 
 
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Models;
-    using Swashbuckle.AspNetCore.SwaggerGen;
+    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters;
+    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models;
+    using Swashbuckle.AspNetCore.Annotations;
+    using System;
 
     [Route(VersionInfo.PATH + "/[controller]"), TypeFilter(typeof(ExceptionsFilterAttribute))]
     [Produces("application/json")]
@@ -19,21 +20,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
     public sealed class StatusController : Controller
     {
         private readonly ILogger log;
+        private readonly ICertificateGroup certificateGroups;
+        private readonly IApplicationsDatabase applicationDatabase;
 
-        public StatusController(ILogger logger)
+        public StatusController(
+            IApplicationsDatabase applicationDatabase,
+            ICertificateGroup certificateGroups,
+            ILogger logger
+            )
         {
+            this.applicationDatabase = applicationDatabase;
+            this.certificateGroups = certificateGroups;
             this.log = logger;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
-        [SwaggerOperation(operationId: "GetStatus")]
-        public StatusApiModel Get()
+        [SwaggerOperation(OperationId = "GetStatus")]
+        public async System.Threading.Tasks.Task<StatusApiModel> GetAsync()
         {
             // TODO: calculate the actual service status
-            var isOk = true;
+            bool applicationOk;
+            string applicationMessage = "Alive and well";
+            try
+            {
+                var apps = await applicationDatabase.QueryApplicationsAsync(0, 1, null, null, 0, null, null);
+                applicationOk = apps != null;
+            }
+            catch (Exception ex)
+            {
+                applicationOk = false;
+                applicationMessage = ex.Message;
+            }
+            this.log.Info("Service status application database", () => new { Healthy = applicationOk, Message = applicationMessage });
 
-            this.log.Info("Service status request", () => new { Healthy = isOk });
-            return new StatusApiModel(isOk, "Alive and well");
+            bool kvOk;
+            string kvMessage = "Alive and well";
+            try
+            {
+                var groups = await certificateGroups.GetCertificateGroupIds();
+                kvOk = groups.Length > 0;
+                kvMessage = String.Join(",", groups);
+            }
+            catch (Exception ex)
+            {
+                kvOk = false;
+                kvMessage = ex.Message;
+            }
+            this.log.Info("Service status KeyVault", () => new { Healthy = kvOk, Message = kvMessage });
+
+            return new StatusApiModel(applicationOk, applicationMessage, kvOk, kvMessage);
         }
     }
 }

@@ -4,22 +4,27 @@
 // ------------------------------------------------------------
 
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Filters;
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models;
+using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
     [Route(VersionInfo.PATH + "/request"), TypeFilter(typeof(ExceptionsFilterAttribute))]
     [Produces("application/json")]
+    [Authorize(Policy = Policies.CanRead)]
+
     public sealed class CertificateRequestController : Controller
     {
         private readonly ICertificateRequest _certificateRequest;
 
-        public CertificateRequestController(ICertificateRequest certificateRequest)
+        public CertificateRequestController(
+            ICertificateRequest certificateRequest)
         {
             _certificateRequest = certificateRequest;
         }
@@ -28,14 +33,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
         /// Start a new signing request.
         /// </summary>
         [HttpPost("sign")]
-        [SwaggerOperation(operationId: "StartSigningRequest")]
+        [SwaggerOperation(OperationId = "StartSigningRequest")]
+        [Authorize(Policy = Policies.CanWrite)]
         public async Task<string> StartSigningRequestAsync([FromBody] StartSigningRequestApiModel signingRequest)
         {
             if (signingRequest == null)
             {
                 throw new ArgumentNullException(nameof(signingRequest));
             }
-            return await _certificateRequest.StartSigningRequestAsync(
+            return await this._certificateRequest.StartSigningRequestAsync(
                 signingRequest.ApplicationId,
                 signingRequest.CertificateGroupId,
                 signingRequest.CertificateTypeId,
@@ -47,7 +53,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
         /// Start a new key pair request.
         /// </summary>
         [HttpPost("newkeypair")]
-        [SwaggerOperation(operationId: "StartNewKeyPairRequest")]
+        [SwaggerOperation(OperationId = "StartNewKeyPairRequest")]
+        [Authorize(Policy = Policies.CanWrite)]
         public async Task<string> StartNewKeyPairRequestAsync([FromBody] StartNewKeyPairRequestApiModel newKeyPairRequest)
         {
             if (newKeyPairRequest == null)
@@ -69,17 +76,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
         /// Approve request.
         /// </summary>
         [HttpPost("{requestId}/approve/{rejected}")]
-        [SwaggerOperation(operationId: "ApproveCertificateRequest")]
+        [SwaggerOperation(OperationId = "ApproveCertificateRequest")]
+        [Authorize(Policy = Policies.CanManage)]
+
         public async Task ApproveCertificateRequestAsync(string requestId, bool rejected)
         {
-            await _certificateRequest.ApproveAsync(requestId, rejected);
+            var onBehalfOfCertificateRequest = await this._certificateRequest.OnBehalfOfRequest(Request);
+            await onBehalfOfCertificateRequest.ApproveAsync(requestId, rejected);
         }
 
         /// <summary>
         /// Accept request.
         /// </summary>
         [HttpPost("{requestId}/accept")]
-        [SwaggerOperation(operationId: "AcceptCertificateRequest")]
+        [SwaggerOperation(OperationId = "AcceptCertificateRequest")]
+        [Authorize(Policy = Policies.CanWrite)]
         public async Task AcceptCertificateRequestAsync(string requestId)
         {
             await _certificateRequest.AcceptAsync(requestId);
@@ -87,35 +98,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
 
         /// <summary>Query certificate requests</summary>
         [HttpGet]
-        [SwaggerOperation(operationId: "QueryRequests")]
-        public async Task<QueryRequestsResponseApiModel> QueryRequestsAsync()
+        [SwaggerOperation(OperationId = "QueryRequests")]
+        public async Task<CertificateRequestRecordQueryResponseApiModel> QueryRequestsAsync()
         {
             var results = await _certificateRequest.QueryAsync(null, null);
-            return new QueryRequestsResponseApiModel(results);
+            return new CertificateRequestRecordQueryResponseApiModel(results);
         }
 
         /// <summary>Query certificate requests by appId</summary>
         [HttpGet("app/{appId}")]
-        [SwaggerOperation(operationId: "QueryAppRequests")]
-        public async Task<QueryRequestsResponseApiModel> QueryAppRequestsAsync(string appId)
+        [SwaggerOperation(OperationId = "QueryAppRequests")]
+        public async Task<CertificateRequestRecordQueryResponseApiModel> QueryAppRequestsAsync(string appId)
         {
             var results = await _certificateRequest.QueryAsync(appId, null);
-            return new QueryRequestsResponseApiModel(results);
+            return new CertificateRequestRecordQueryResponseApiModel(results);
         }
 
         /// <summary>Query certificate requests by state</summary>
         [HttpGet("state/{state}")]
-        [SwaggerOperation(operationId: "QueryAppRequests")]
-        public async Task<QueryRequestsResponseApiModel> QueryStateRequestsAsync(string state)
+        [SwaggerOperation(OperationId = "QueryAppRequests")]
+        public async Task<CertificateRequestRecordQueryResponseApiModel> QueryStateRequestsAsync(string state)
         {
             // todo: parse state
             var results = await _certificateRequest.QueryAsync(null, null);
-            return new QueryRequestsResponseApiModel(results);
+            return new CertificateRequestRecordQueryResponseApiModel(results);
         }
 
         /// <summary>Read certificate request</summary>
         [HttpGet("{requestId}")]
-        [SwaggerOperation(operationId: "ReadCertificateRequest")]
+        [SwaggerOperation(OperationId = "ReadCertificateRequest")]
         public async Task<CertificateRequestRecordApiModel> ReadCertificateRequestAsync(string requestId)
         {
             var result = await _certificateRequest.ReadAsync(requestId);
@@ -133,7 +144,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
 
         /// <summary>Complete certificate request</summary>
         [HttpPost("{requestId}/{applicationId}/finish")]
-        [SwaggerOperation(operationId: "FinishRequest")]
+        [SwaggerOperation(OperationId = "FinishRequest")]
+        [Authorize(Policy = Policies.CanWrite)]
         public async Task<FinishRequestApiModel> FinishRequestAsync(string requestId, string applicationId)
         {
             var result = await _certificateRequest.FinishRequestAsync(

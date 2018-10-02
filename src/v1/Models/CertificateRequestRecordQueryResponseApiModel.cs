@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Models;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
-    public sealed class QueryRequestsResponseApiModel
+    public sealed class CertificateRequestRecordQueryResponseApiModel
     {
         [JsonProperty(PropertyName = "Requests", Order = 10)]
         public CertificateRequestRecordApiModel[] Requests { get; set; }
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Models
         [JsonProperty(PropertyName = "ContinuationToken", Order = 20)]
         public string ContinuationToken { get; set; }
 
-        public QueryRequestsResponseApiModel(ReadRequestResultModel[] requests)
+        public CertificateRequestRecordQueryResponseApiModel(ReadRequestResultModel[] requests)
         {
             List<CertificateRequestRecordApiModel> requestList = new List<CertificateRequestRecordApiModel>();
             foreach (ReadRequestResultModel request in requests)

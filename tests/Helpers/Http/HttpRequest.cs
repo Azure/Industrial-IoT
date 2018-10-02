@@ -9,7 +9,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test.Helpers.Http
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers.Http
 {
     public interface IHttpRequest
     {

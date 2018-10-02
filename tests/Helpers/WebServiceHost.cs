@@ -5,7 +5,7 @@
 
 using System;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test.Helpers
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers
 {
     public class WebServiceHost
     {

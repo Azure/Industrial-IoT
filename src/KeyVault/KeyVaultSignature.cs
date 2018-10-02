@@ -15,7 +15,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 {
     public class KeyVaultCertFactory
     {
@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
             // Key Usage
             request.CertificateExtensions.Add(
                 new X509KeyUsageExtension(
-                    X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.DataEncipherment |
+                    X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.KeyCertSign |
                     X509KeyUsageFlags.NonRepudiation | X509KeyUsageFlags.KeyEncipherment, true));
 
             // Enhanced key usage
@@ -514,12 +514,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
                     throw new ArgumentOutOfRangeException(nameof(hashAlgorithm));
                 }
                 var digest = hash.ComputeHash(data);
-                var resultKeyVaultPkcs = _keyVaultServiceClient.SignDigestAsync(_signingKey, digest, hashAlgorithm, RSASignaturePadding.Pkcs1).Result;
+                var resultKeyVaultPkcs = _keyVaultServiceClient.SignDigestAsync(_signingKey, digest, hashAlgorithm, RSASignaturePadding.Pkcs1).GetAwaiter().GetResult();
 #if TESTANDVERIFYTHEKEYVAULTSIGNER
                 // for testing only
                 if (_issuerCert.HasPrivateKey)
                 {
-                    var resultKeyVaultPss = _keyVaultServiceClient.SignDigestAsync(_signingKey, digest, hashAlgorithm, RSASignaturePadding.Pss).Result;
+                    var resultKeyVaultPss = _keyVaultServiceClient.SignDigestAsync(_signingKey, digest, hashAlgorithm, RSASignaturePadding.Pss).GetAwaiter().GetResult();
                     var resultLocalPkcs = _issuerCert.GetRSAPrivateKey().SignData(data, hashAlgorithm, RSASignaturePadding.Pkcs1);
                     var resultLocalPss = _issuerCert.GetRSAPrivateKey().SignData(data, hashAlgorithm, RSASignaturePadding.Pss);
                     for (int i = 0; i < resultKeyVaultPkcs.Length; i++)

@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Auth
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
 {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.Azure.IIoT.Services.Auth;
@@ -27,12 +27,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Auth
             }
 
             // Otherwise, configure policies here to your liking
-            options.AddPolicy(Policies.CanBrowse, policy =>
+            options.AddPolicy(Policies.CanRead, policy =>
                 policy.RequireAuthenticatedUser());
-            options.AddPolicy(Policies.CanControl, policy =>
-                policy.RequireAuthenticatedUser().Require(AdminRights));
-            options.AddPolicy(Policies.CanPublish, policy =>
-                policy.RequireAuthenticatedUser().Require(AdminRights));
+            options.AddPolicy(Policies.CanWrite, policy =>
+                policy.RequireAuthenticatedUser());
+            options.AddPolicy(Policies.CanManage, policy =>
+                policy.RequireAuthenticatedUser()
+                .Require(AdminRights));
         }
 
         /// <summary>

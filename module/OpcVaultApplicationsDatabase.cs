@@ -3,22 +3,22 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api;
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api.Models;
-using Opc.Ua.Gds.Server.GdsVault;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api.Models;
+using Opc.Ua.Gds.Server.OpcVault;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Opc.Ua.Gds.Server.Database.GdsVault
+namespace Opc.Ua.Gds.Server.Database.OpcVault
 {
-    public class GdsVaultApplicationsDatabase : ApplicationsDatabaseBase
+    public class OpcVaultApplicationsDatabase : ApplicationsDatabaseBase
     {
-        private IOpcGdsVault _gdsVaultServiceClient { get; }
+        private IOpcVault _opcVaultServiceClient { get; }
 
-        public GdsVaultApplicationsDatabase(IOpcGdsVault GdsVaultServiceClient)
+        public OpcVaultApplicationsDatabase(IOpcVault OpcVaultServiceClient)
         {
-            this._gdsVaultServiceClient = GdsVaultServiceClient;
+            this._opcVaultServiceClient = OpcVaultServiceClient;
         }
 
         #region IApplicationsDatabase 
@@ -39,7 +39,7 @@ namespace Opc.Ua.Gds.Server.Database.GdsVault
             }
             else
             {
-                applicationId = GdsVaultClientHelper.GetServiceIdFromNodeId(appNodeId, NamespaceIndex);
+                applicationId = OpcVaultClientHelper.GetServiceIdFromNodeId(appNodeId, NamespaceIndex);
             }
 
             string capabilities = base.ServerCapabilities(application);
@@ -75,14 +75,14 @@ namespace Opc.Ua.Gds.Server.Database.GdsVault
 
             if (isUpdate)
             {
-                string nodeId = _gdsVaultServiceClient.UpdateApplication(applicationId, applicationModel);
+                string nodeId = _opcVaultServiceClient.UpdateApplication(applicationId, applicationModel);
             }
             else
             {
-                applicationId = _gdsVaultServiceClient.RegisterApplication(applicationModel);
+                applicationId = _opcVaultServiceClient.RegisterApplication(applicationModel);
             }
 
-            return GdsVaultClientHelper.GetNodeIdFromServiceId(applicationId, NamespaceIndex);
+            return OpcVaultClientHelper.GetNodeIdFromServiceId(applicationId, NamespaceIndex);
         }
 
 
@@ -90,11 +90,11 @@ namespace Opc.Ua.Gds.Server.Database.GdsVault
         {
             base.UnregisterApplication(applicationId);
 
-            string id = GdsVaultClientHelper.GetServiceIdFromNodeId(applicationId, NamespaceIndex);
+            string id = OpcVaultClientHelper.GetServiceIdFromNodeId(applicationId, NamespaceIndex);
 
             try
             {
-                _gdsVaultServiceClient.UnregisterApplication(id);
+                _opcVaultServiceClient.UnregisterApplication(id);
             }
             catch
             {
@@ -107,12 +107,12 @@ namespace Opc.Ua.Gds.Server.Database.GdsVault
             )
         {
             base.GetApplication(applicationId);
-            string id = GdsVaultClientHelper.GetServiceIdFromNodeId(applicationId, NamespaceIndex);
+            string id = OpcVaultClientHelper.GetServiceIdFromNodeId(applicationId, NamespaceIndex);
             ApplicationRecordApiModel result;
 
             try
             {
-                result = _gdsVaultServiceClient.GetApplication(id);
+                result = _opcVaultServiceClient.GetApplication(id);
             }
             catch
             {
@@ -144,7 +144,7 @@ namespace Opc.Ua.Gds.Server.Database.GdsVault
                 capabilities.AddRange(result.ServerCapabilities.Split(','));
             }
 
-            NodeId appNodeId = GdsVaultClientHelper.GetNodeIdFromServiceId(result.ApplicationId, NamespaceIndex);
+            NodeId appNodeId = OpcVaultClientHelper.GetNodeIdFromServiceId(result.ApplicationId, NamespaceIndex);
             return new ApplicationRecordDataType()
             {
                 ApplicationId = appNodeId,
@@ -164,7 +164,7 @@ namespace Opc.Ua.Gds.Server.Database.GdsVault
             base.FindApplications(applicationUri);
             IList<ApplicationRecordApiModel> results;
 
-            results = _gdsVaultServiceClient.FindApplication(applicationUri);
+            results = _opcVaultServiceClient.FindApplication(applicationUri);
 
             List<ApplicationRecordDataType> records = new List<ApplicationRecordDataType>();
 
@@ -197,7 +197,7 @@ namespace Opc.Ua.Gds.Server.Database.GdsVault
                     capabilities = result.ServerCapabilities.Split(',');
                 }
 
-                NodeId appNodeId = GdsVaultClientHelper.GetNodeIdFromServiceId(result.ApplicationId, NamespaceIndex);
+                NodeId appNodeId = OpcVaultClientHelper.GetNodeIdFromServiceId(result.ApplicationId, NamespaceIndex);
 
                 records.Add(new ApplicationRecordDataType()
                 {
@@ -235,7 +235,7 @@ namespace Opc.Ua.Gds.Server.Database.GdsVault
                 productUri,
                 serverCapabilities?.ToList()
                 );
-            var resultModel = _gdsVaultServiceClient.QueryApplications(query);
+            var resultModel = _opcVaultServiceClient.QueryApplications(query);
 
             foreach (var application in resultModel.Applications)
             {
@@ -282,7 +282,7 @@ namespace Opc.Ua.Gds.Server.Database.GdsVault
                 productUri,
                 serverCapabilities?.ToList()
                 );
-            var resultModel = _gdsVaultServiceClient.QueryApplications(query);
+            var resultModel = _opcVaultServiceClient.QueryApplications(query);
 
             foreach (var application in resultModel.Applications)
             {

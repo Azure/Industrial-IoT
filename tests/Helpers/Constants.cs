@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test.Helpers
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers
 {
     /// <summary>
     /// Use these flags to allow running a subset of tests from the test

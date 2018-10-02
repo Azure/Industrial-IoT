@@ -9,7 +9,7 @@ using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Diagnostics
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Diagnostics
 {
     public class Serialization
     {

@@ -5,9 +5,9 @@
 
 using System;
 
-namespace Opc.Ua.Gds.Server.GdsVault
+namespace Opc.Ua.Gds.Server.OpcVault
 {
-    public class GdsVaultClientHelper
+    public class OpcVaultClientHelper
     {
         private static readonly int guidLength = Guid.Empty.ToString().Length;
 

@@ -3,7 +3,7 @@
 // license information.
 //
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.App.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
 {
     public class ErrorViewModel
     {

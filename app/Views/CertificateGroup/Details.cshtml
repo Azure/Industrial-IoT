@@ -1,0 +1,97 @@
+﻿@model Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api.Models.CertificateGroupConfigurationApiModel
+
+<h2>View Certificate Group Details</h2>
+
+<div>
+    <h4>Certificate Group</h4>
+    <hr />
+    <dl class="dl-horizontal">
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CertificateType)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CertificateType)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SubjectName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SubjectName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DefaultCertificateLifetime)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DefaultCertificateLifetime)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DefaultCertificateKeySize)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DefaultCertificateKeySize)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DefaultCertificateHashSize)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DefaultCertificateHashSize)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CACertificateLifetime)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CACertificateLifetime)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CACertificateKeySize)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CACertificateKeySize)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CACertificateHashSize)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CACertificateHashSize)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Back to List", "Index")
+    @Html.Raw("&nbsp;|&nbsp;")
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Name })
+    @Html.Raw("&nbsp;|&nbsp;")
+    @Html.ActionLink("Renew", "Renew", new { id = Model.Name },
+            new { onclick = "return confirm('Do you really want to renew the CA certificate for group " + Model.Name + "?')" })
+    @Html.Raw("&nbsp;|&nbsp;")
+    @Html.ActionLink("Issuer Details", "IssuerDetails", new { id = Model.Name })
+    @Html.Raw("&nbsp;|&nbsp;")
+    @Html.ActionLink("Download Issuer", "DownloadIssuer", new { id = Model.Name })
+    @Html.Raw("&nbsp;|&nbsp;")
+    @Html.ActionLink("Download Crl", "DownloadIssuerCrl", new { id = Model.Name })
+</p>

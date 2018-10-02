@@ -7,7 +7,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test.Helpers.Http
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers.Http
 {
     public interface IHttpResponse
     {

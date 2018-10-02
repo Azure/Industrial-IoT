@@ -2,21 +2,24 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <UserSecretsId>aspnet-Gds.App-5A0E1F7B-A23C-46EF-8EC8-349C434E72BE</UserSecretsId>
+    <UserSecretsId>aspnet-OpcVault.App-5A0E1F7B-A23C-46EF-8EC8-349C434E72BE</UserSecretsId>
     <WebProject_DirectoryAccessLevelKey>0</WebProject_DirectoryAccessLevelKey>
     <DockerTargetOS>Linux</DockerTargetOS>
     <Configurations>Debug;Release;Develop</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Autofac" Version="4.6.2" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.0.0-preview" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="0.2.1686908" />
+    <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.1.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.0.1985401" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\api-csharp\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api.csproj" />
+    <ProjectReference Include="..\api-csharp\Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

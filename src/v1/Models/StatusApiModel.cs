@@ -6,17 +6,20 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Runtime;
+using System.Threading;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Newtonsoft.Json;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
     public sealed class StatusApiModel
     {
         private const string DateFormat = "yyyy-MM-dd'T'HH:mm:sszzz";
+        private string appMessage;
+        private string kvMessage;
 
         [JsonProperty(PropertyName = "Name", Order = 10)]
-        public string Name => "GdsVault";
+        public string Name => "OpcVault";
 
         [JsonProperty(PropertyName = "Status", Order = 20)]
         public string Status { get; set; }
@@ -42,18 +45,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Models
         [JsonProperty(PropertyName = "Properties", Order = 70)]
         public Dictionary<string, string> Properties => new Dictionary<string, string>
         {
-            { "Foo", "Bar" },
-            { "Simulation", "on" },
-            { "Region", "US" },
-            { "DebugMode", "off" }
+            { "Culture", Thread.CurrentThread.CurrentCulture.Name },
+            { "Debugger", System.Diagnostics.Debugger.IsAttached ? "Attached" : "Detached"}
         };
 
         /// <summary>A property bag with details about the internal dependencies</summary>
         [JsonProperty(PropertyName = "Dependencies", Order = 80)]
         public Dictionary<string, string> Dependencies => new Dictionary<string, string>
         {
-            // TODO: implement meaningful status output
-            { "KeyVaultAPI", "OK:...msg..." }
+            { "ApplicationDatabase", appMessage },
+            { "KeyVault", kvMessage }
         };
 
         [JsonProperty(PropertyName = "$metadata", Order = 1000)]
@@ -63,12 +64,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Models
             { "$uri", "/" + VersionInfo.PATH + "/status" }
         };
 
-        public StatusApiModel(bool isOk, string msg)
+        public StatusApiModel(
+            bool appOk,
+            string appMessage,
+            bool kvOk,
+            string kvMessage
+            )
         {
-            this.Status = isOk ? "OK" : "ERROR";
-            if (!string.IsNullOrEmpty(msg))
+            this.Status = appOk && kvOk ? "OK" : "ERROR";
+            this.appMessage = appOk ? "OK" : "ERROR";
+            if (!string.IsNullOrEmpty(appMessage))
             {
-                this.Status += ":" + msg;
+                this.appMessage += ":" + appMessage;
+            }
+            this.kvMessage = kvOk ? "OK" : "ERROR";
+            if (!string.IsNullOrEmpty(kvMessage))
+            {
+                this.kvMessage += ":" + kvMessage;
             }
         }
     }

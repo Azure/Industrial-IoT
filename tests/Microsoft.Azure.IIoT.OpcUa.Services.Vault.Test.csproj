@@ -2,8 +2,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>6</LangVersion>
-    <AssemblyName>Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test</AssemblyName>
-    <RootNamespace>Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test</RootNamespace>
+    <AssemblyName>Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test</AssemblyName>
+    <RootNamespace>Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test</RootNamespace>
     <Configurations>Debug;Release;Develop</Configurations>
   </PropertyGroup>
   <ItemGroup>
@@ -16,7 +16,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.csproj" />
+    <ProjectReference Include="..\src\Microsoft.Azure.IIoT.OpcUa.Services.Vault.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- "Service Include" required by IntelliJ Rider -->

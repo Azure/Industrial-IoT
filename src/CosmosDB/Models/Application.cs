@@ -6,7 +6,7 @@
 using Newtonsoft.Json;
 using System;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models
 {
     [Serializable]
     public class ApplicationName
@@ -19,6 +19,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB.Models
     {
         [JsonProperty(PropertyName = "id")]
         public Guid ApplicationId { get; set; }
+        [JsonProperty(PropertyName = "_etag")]
+        public string ETag { get; set; }
         public int ID { get; set; }
         public string ApplicationUri { get; set; }
         public string ApplicationName { get; set; }
@@ -31,5 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB.Models
         public string[] DiscoveryUrls { get; set; }
         public string GatewayServerUri { get; set; }
         public string DiscoveryProfileUri { get; set; }
+        public string Authority { get; set; }
+
     }
 }

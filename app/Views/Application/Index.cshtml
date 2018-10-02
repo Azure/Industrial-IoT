@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api.Models.ApplicationRecordApiModel>
+﻿@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api.Models.ApplicationRecordApiModel>
 
 @{
     ViewBag.Title = "List of Applications";
@@ -42,9 +42,10 @@
             </td>
         </tr>
     }
-
+    <tr>
+        <th/><th/><th/><th/>
+    </tr>
 </table>
-
 <p>
     @Html.ActionLink("Register New", "Register")
 </p>

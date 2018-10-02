@@ -3,22 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Http.Auth;
-    using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Http.Ssl;
-    using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1;
-    using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Auth;
+    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1;
+    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth;
+    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters;
     using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth.Azure;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -76,6 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault
         /// <returns></returns>
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
+            services.AddLogging(o => o.AddConsole().AddDebug());
 
             // Setup (not enabling yet) CORS
             services.AddCors();
@@ -91,13 +89,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault
             });
 
             // Add controllers as services so they'll be resolved.
-            services.AddMvc().AddControllersAsServices().AddJsonOptions(options =>
-            {
-                options.SerializerSettings.Formatting = Formatting.Indented;
-                options.SerializerSettings.Converters.Add(new ExceptionConverter(
-                    Environment.IsDevelopment()));
-                options.SerializerSettings.MaxDepth = 10;
-            });
+            services.AddMvc(options =>
+                options.Filters.Add(typeof(ExceptionsFilterAttribute))
+                )
+                .AddControllersAsServices()
+                .AddJsonOptions(options =>
+                {
+                    options.SerializerSettings.Formatting = Formatting.Indented;
+                    options.SerializerSettings.Converters.Add(new ExceptionConverter(
+                        Environment.IsDevelopment()));
+                    options.SerializerSettings.MaxDepth = 10;
+                });
 
             services.AddSwagger(Config, new Info
             {
@@ -171,27 +173,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault
             // for each request, which is good to reduce the risk of memory
             // leaks, but not so good for the overall performance.
 
-            // Register logger
-            builder.RegisterInstance(Config.Logger)
-                .AsImplementedInterfaces().SingleInstance();
-
             // Register configuration interfaces
             builder.RegisterInstance(Config)
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(Config.ServicesConfig)
                 .AsImplementedInterfaces().SingleInstance();
 
+            // Register logger
+            builder.RegisterType<TraceLogger>()
+                .AsImplementedInterfaces().SingleInstance();
+
             // CORS setup
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            // Register http client ...
-            builder.RegisterType<HttpClient>().SingleInstance()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HttpHandlerFactory>().SingleInstance()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HttpClientFactory>().SingleInstance()
-                .AsImplementedInterfaces();
 
             // Register endpoint services and ...
             builder.RegisterType<KeyVaultCertificateGroup>()
@@ -200,22 +194,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<CosmosDBCertificateRequest>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            // ... with bearer auth
-            if (Config.AuthRequired)
-            {
-                builder.RegisterType<BehalfOfTokenProvider>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<DistributedTokenCache>()
-                   .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<HttpBearerAuthentication>()
-                    .AsImplementedInterfaces().SingleInstance();
-            }
-#if DEBUG
-            builder.RegisterType<NoOpValidator>()
-                .AsImplementedInterfaces();
-#endif
-
             return builder.Build();
         }
     }

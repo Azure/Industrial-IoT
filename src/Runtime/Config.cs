@@ -4,26 +4,22 @@
 // ------------------------------------------------------------
 
 
+using Microsoft.Azure.IIoT.Services.Runtime;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.IO;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Runtime
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
 {
     /// <summary>Web service configuration</summary>
-    public class Config : ConfigData
+    public class Config : ServiceConfig
     {
-        // web service config
-        private const string ApplicationKey = "GdsVault:";
-        private const string PortKey = ApplicationKey + "webservice_port";
-
         // services config
-        private const string KeyVaultKey = "keyvault:";
-        private const string KeyVaultApiUrlKey = KeyVaultKey + "serviceuri";
-        private const string KeyVaultApiTimeoutKey = KeyVaultKey + "timeout";
-        private const string CosmosDBKey = "cosmosdb:";
-        private const string CosmosDBEndpointKey = CosmosDBKey + "endpoint";
-        private const string CosmosDBTokenKey = CosmosDBKey + "token";
+        private const string KeyVaultKey = "KeyVault:";
+        private const string KeyVaultApiUrlKey = KeyVaultKey + "ServiceUri";
+        private const string KeyVaultResourceIDKey = KeyVaultKey + "ResourceID";
+        private const string KeyVaultHSMKey = KeyVaultKey + "HSM";
+        private const string CosmosDBKey = "CosmosDB:";
+        private const string CosmosDBEndpointKey = CosmosDBKey + "EndPoint";
+        private const string CosmosDBTokenKey = CosmosDBKey + "Token";
 
         /// <summary>
         /// Configuration constructor
@@ -34,18 +30,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Runtime
         {
         }
 
-        private static string MapRelativePath(string path)
-        {
-            if (path.StartsWith(".")) return AppContext.BaseDirectory + Path.DirectorySeparatorChar + path;
-            return path;
-        }
-
         /// <summary>Service layer configuration</summary>
         public IServicesConfig ServicesConfig =>
             new ServicesConfig
             {
                 KeyVaultApiUrl = this.GetString(KeyVaultApiUrlKey),
-                KeyVaultApiTimeout = this.GetInt(KeyVaultApiTimeoutKey),
+                KeyVaultResourceID = this.GetString(KeyVaultResourceIDKey),
+                KeyVaultHSM = this.GetBool(KeyVaultHSMKey, true),
                 CosmosDBEndpoint = this.GetString(CosmosDBEndpointKey),
                 CosmosDBToken = this.GetString(CosmosDBTokenKey)
             };

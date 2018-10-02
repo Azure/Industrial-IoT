@@ -4,17 +4,41 @@
 // license information.
 //
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api
 {
     using Microsoft.Rest;
 
+    public class OpcVaultApiOptions
+    {
+        public string ResourceId { get; set; }
+        public string BaseAddress { get; set; }
+    }
+
     /// <summary>
-    /// OPC UA GdsVault Service
+    /// OPC UA Vault Service
     /// </summary>
-    public partial class OpcGdsVault : ServiceClient<OpcGdsVault>, IOpcGdsVault
+    public partial class OpcVault : ServiceClient<OpcVault>, IOpcVault
     {
         /// <summary>
-        /// Initializes a new instance of the OpcGdsVault class.
+        /// Initializes a new instance of the OpcVault class.
+        /// </summary>
+        /// <param name='options'>
+        /// OpcVaultApiOptions class.
+        /// </param>
+        /// <exception cref="System.ArgumentNullException">
+        /// Thrown when a required parameter is null
+        /// </exception>
+        public OpcVault(OpcVaultApiOptions options)
+        {
+            if (options == null)
+            {
+                throw new System.ArgumentNullException("OpcVaultApiOptions");
+            }
+            BaseUri = new System.Uri(options.BaseAddress);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the OpcVault class.
         /// </summary>
         /// <param name='baseUri'>
         /// Optional. The base URI of the service.
@@ -22,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api
         /// <exception cref="System.ArgumentNullException">
         /// Thrown when a required parameter is null
         /// </exception>
-        public OpcGdsVault(System.Uri baseUri)
+        public OpcVault(System.Uri baseUri)
         {
             if (baseUri == null)
             {

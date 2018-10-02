@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
 {
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB
     public class DocumentDBRepository : IDocumentDBRepository
     {
         public DocumentClient Client { get; }
-        public string DatabaseId { get { return "GdsVault"; } }
+        public string DatabaseId { get { return "OpcVault"; } }
 
         public DocumentDBRepository(string endpoint, string authKeyOrResourceToken)
         {

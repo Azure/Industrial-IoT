@@ -6,7 +6,7 @@
 using Newtonsoft.Json;
 using System;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models
 {
     public enum CertificateRequestState
     {
@@ -21,6 +21,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB.Models
     {
         [JsonProperty(PropertyName = "id")]
         public Guid RequestId { get; set; }
+        [JsonProperty(PropertyName = "_etag")]
+        public string ETag { get; set; }
         public string ApplicationId { get; set; }
         public CertificateRequestState State { get; set; }
         public string CertificateGroupId { get; set; }
@@ -36,5 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB.Models
         public DateTime RequestTime { get; set; }
         public DateTime ApproveRejectTime { get; set; }
         public DateTime AcceptTime { get; set; }
+        public string Authority { get; set; }
+
     }
 }

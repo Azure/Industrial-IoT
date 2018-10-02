@@ -6,7 +6,7 @@
 
 using Newtonsoft.Json;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
     public sealed class CertificateGroupConfigurationApiModel
     {
@@ -37,6 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Models
         [JsonProperty(PropertyName = "CACertificateHashSize", Order = 80)]
         public ushort CACertificateHashSize { get; set; }
 
+        public CertificateGroupConfigurationApiModel() { }
 
         public CertificateGroupConfigurationApiModel(string id, Opc.Ua.Gds.Server.CertificateGroupConfiguration config)
         {
@@ -49,6 +50,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Models
             this.CACertificateLifetime = config.CACertificateLifetime;
             this.CACertificateKeySize = config.CACertificateKeySize;
             this.CACertificateHashSize = config.CACertificateHashSize;
+        }
+
+        public Opc.Ua.Gds.Server.CertificateGroupConfiguration ToServiceModel()
+        {
+            var serviceModel = new Opc.Ua.Gds.Server.CertificateGroupConfiguration();
+            serviceModel.Id = this.Id;
+            serviceModel.CertificateType = this.CertificateType;
+            serviceModel.SubjectName = this.SubjectName;
+            serviceModel.DefaultCertificateLifetime = this.DefaultCertificateLifetime;
+            serviceModel.DefaultCertificateKeySize = this.DefaultCertificateKeySize;
+            serviceModel.DefaultCertificateHashSize = this.DefaultCertificateHashSize;
+            serviceModel.CACertificateLifetime = this.CACertificateLifetime;
+            serviceModel.CACertificateKeySize = this.CACertificateKeySize;
+            serviceModel.CACertificateHashSize = this.CACertificateHashSize;
+            return serviceModel;
         }
     }
 }

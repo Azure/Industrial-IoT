@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test.Helpers.Http
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers.Http
 {
     public class HttpRequestOptions
     {

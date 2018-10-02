@@ -3,21 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+using Microsoft.Azure.Documents;
 using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.Exceptions;
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB;
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB.Models;
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Models;
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Runtime;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Opc.Ua.Gds.Server.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
     internal sealed class CosmosDBApplicationsDatabase : IApplicationsDatabase
     {
@@ -52,30 +54,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault
 
             string capabilities = ServerCapabilities(application);
 
-            if (applicationId != Guid.Empty)
+            bool retryUpdate;
+            do
             {
-                Application record = await Applications.GetAsync(applicationId);
-                if (record == null)
+                retryUpdate = false;
+                Application record = null;
+                if (applicationId != Guid.Empty)
                 {
-                    application.ApplicationId = Guid.NewGuid();
-                    isNew = true;
+                    record = await Applications.GetAsync(applicationId);
+                    if (record == null)
+                    {
+                        application.ApplicationId = Guid.NewGuid();
+                        isNew = true;
+                    }
                 }
-            }
 
-            if (isNew)
-            {
-                // find new ID for QueryServers
-                var maxAppIDEnum = await Applications.GetAsync("SELECT TOP 1 * FROM Applications a ORDER BY a.ID DESC");
-                var maxAppID = maxAppIDEnum.SingleOrDefault();
-                application.ID = (maxAppID != null) ? maxAppID.ID + 1 : 1;
-                application.ApplicationId = Guid.NewGuid();
-                var result = await Applications.CreateAsync(application);
-                applicationId = new Guid(result.Id);
-            }
-            else
-            {
-                await Applications.UpdateAsync(applicationId, application);
-            }
+                if (isNew)
+                {
+                    // find new ID for QueryServers
+                    var maxAppIDEnum = await Applications.GetAsync("SELECT TOP 1 * FROM Applications a ORDER BY a.ID DESC");
+                    var maxAppID = maxAppIDEnum.SingleOrDefault();
+                    application.ID = (maxAppID != null) ? maxAppID.ID + 1 : 1;
+                    application.ApplicationId = Guid.NewGuid();
+                    var result = await Applications.CreateAsync(application);
+                    applicationId = new Guid(result.Id);
+                }
+                else
+                {
+                    try
+                    {
+                        await Applications.UpdateAsync(applicationId, application, record.ETag);
+                    }
+                    catch (DocumentClientException dce)
+                    {
+                        if (dce.StatusCode == HttpStatusCode.PreconditionFailed)
+                        {
+                            retryUpdate = true;
+                        }
+                    }
+                }
+            } while (retryUpdate);
 
             return applicationId.ToString();
         }
@@ -104,21 +122,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault
 
             if (applicationId != Guid.Empty)
             {
-                var record = await Applications.GetAsync(applicationId);
-                if (record == null)
+                bool retryUpdate;
+                do
                 {
-                    throw new ArgumentException("A record with the specified application id does not exist.", nameof(id));
-                }
+                    retryUpdate = false;
 
-                record.ApplicationUri = application.ApplicationUri;
-                record.ApplicationName = application.ApplicationName;
-                record.ApplicationType = application.ApplicationType;
-                record.ProductUri = application.ProductUri;
-                record.ServerCapabilities = capabilities;
-                record.ApplicationNames = application.ApplicationNames;
-                record.DiscoveryUrls = application.DiscoveryUrls;
+                    var record = await Applications.GetAsync(applicationId);
+                    if (record == null)
+                    {
+                        throw new ArgumentException("A record with the specified application id does not exist.", nameof(id));
+                    }
 
-                await Applications.UpdateAsync(applicationId, record);
+                    record.ApplicationUri = application.ApplicationUri;
+                    record.ApplicationName = application.ApplicationName;
+                    record.ApplicationType = application.ApplicationType;
+                    record.ProductUri = application.ProductUri;
+                    record.ServerCapabilities = capabilities;
+                    record.ApplicationNames = application.ApplicationNames;
+                    record.DiscoveryUrls = application.DiscoveryUrls;
+                    try
+                    {
+                        await Applications.UpdateAsync(applicationId, record, record.ETag);
+                    }
+                    catch (DocumentClientException dce)
+                    {
+                        if (dce.StatusCode == HttpStatusCode.PreconditionFailed)
+                        {
+                            retryUpdate = true;
+                        }
+                    }
+                } while (retryUpdate);
             }
             return applicationId.ToString();
         }

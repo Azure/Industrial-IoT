@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using System;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
     public sealed class X509Certificate2ApiModel
     {

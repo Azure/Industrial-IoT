@@ -3,13 +3,10 @@
 // license information.
 //
 
-using Microsoft.AspNetCore.Http;
-using System;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api.Models
 {
     using Newtonsoft.Json;
-    using System.Linq;
 
     public partial class ApplicationRecordRegisterApiModel
     {

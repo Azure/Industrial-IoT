@@ -9,7 +9,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using Xunit;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
 {
 
     public class X509TestUtils
@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Test
             Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.DigitalSignature) == X509KeyUsageFlags.DigitalSignature);
             Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.EncipherOnly) == 0);
             Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.KeyAgreement) == 0);
-            Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.KeyCertSign) == 0);
+            Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.KeyCertSign) == X509KeyUsageFlags.KeyCertSign);
             Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.KeyEncipherment) == X509KeyUsageFlags.KeyEncipherment);
             Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.NonRepudiation) == X509KeyUsageFlags.NonRepudiation);
 

@@ -4,17 +4,21 @@
 // ------------------------------------------------------------
 
 
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
     public interface ICertificateGroup
     {
+        Task <ICertificateGroup> OnBehalfOfRequest(HttpRequest request);
         Task<string[]> GetCertificateGroupIds();
         Task<Opc.Ua.Gds.Server.CertificateGroupConfiguration> GetCertificateGroupConfiguration(string id);
+        Task<Opc.Ua.Gds.Server.CertificateGroupConfiguration> UpdateCertificateGroupConfiguration(string id, Opc.Ua.Gds.Server.CertificateGroupConfiguration config);
+        Task<Opc.Ua.Gds.Server.CertificateGroupConfiguration> CreateCertificateGroupConfiguration(string id, string subject, string certType);
         Task<Opc.Ua.Gds.Server.CertificateGroupConfigurationCollection> GetCertificateGroupConfigurationCollection();
         Task<X509Certificate2Collection> GetCACertificateChainAsync(string id);
         Task<IList<Opc.Ua.X509CRL>> GetCACrlChainAsync(string id);

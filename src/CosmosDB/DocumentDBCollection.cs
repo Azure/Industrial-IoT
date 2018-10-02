@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
 {
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
@@ -88,9 +88,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB
             return await db.Client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(db.DatabaseId, CollectionId), item);
         }
 
-        public async Task<Document> UpdateAsync(Guid id, T item)
+        public async Task<Document> UpdateAsync(Guid id, T item, string eTag)
         {
-            return await db.Client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(db.DatabaseId, CollectionId, id.ToString()), item);
+            var ac = new RequestOptions
+            {
+                AccessCondition = new AccessCondition
+                {
+                    Condition = eTag,
+                    Type = AccessConditionType.IfMatch
+                }
+            };
+
+            return await db.Client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(db.DatabaseId, CollectionId, id.ToString()), item, ac);
         }
 
         public async Task DeleteAsync(Guid id)

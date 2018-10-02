@@ -8,10 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Runtime;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Microsoft.Extensions.Configuration;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
     /// <summary>Application entry point</summary>
     public class Program

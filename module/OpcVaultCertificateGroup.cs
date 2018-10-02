@@ -8,25 +8,25 @@ using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
-namespace Opc.Ua.Gds.Server.GdsVault
+namespace Opc.Ua.Gds.Server.OpcVault
 {
 
-    public class GdsVaultCertificateGroup : CertificateGroup
+    public class OpcVaultCertificateGroup : CertificateGroup
     {
-        private GdsVaultClientHandler _gdsVaultHandler;
+        private OpcVaultClientHandler _opcVaultHandler;
 
-        private GdsVaultCertificateGroup(
-            GdsVaultClientHandler gdsVaultHandler,
+        private OpcVaultCertificateGroup(
+            OpcVaultClientHandler opcVaultHandler,
             string authoritiesStorePath,
             CertificateGroupConfiguration certificateGroupConfiguration) :
             base(authoritiesStorePath, certificateGroupConfiguration)
         {
-            _gdsVaultHandler = gdsVaultHandler;
+            _opcVaultHandler = opcVaultHandler;
         }
 
-        public GdsVaultCertificateGroup(GdsVaultClientHandler gdsVaultHandler)
+        public OpcVaultCertificateGroup(OpcVaultClientHandler opcVaultHandler)
         {
-            _gdsVaultHandler = gdsVaultHandler;
+            _opcVaultHandler = opcVaultHandler;
         }
 
         #region ICertificateGroupProvider
@@ -34,7 +34,7 @@ namespace Opc.Ua.Gds.Server.GdsVault
             string storePath,
             CertificateGroupConfiguration certificateGroupConfiguration)
         {
-            return new GdsVaultCertificateGroup(_gdsVaultHandler, storePath, certificateGroupConfiguration);
+            return new OpcVaultCertificateGroup(_opcVaultHandler, storePath, certificateGroupConfiguration);
         }
 
         public override async Task Init()
@@ -46,8 +46,8 @@ namespace Opc.Ua.Gds.Server.GdsVault
             try
             {
                 // read root CA chain for certificate group
-                rootCACertificateChain = await _gdsVaultHandler.GetCACertificateChainAsync(Configuration.Id).ConfigureAwait(false);
-                rootCACrlChain = await _gdsVaultHandler.GetCACrlChainAsync(Configuration.Id).ConfigureAwait(false);
+                rootCACertificateChain = await _opcVaultHandler.GetCACertificateChainAsync(Configuration.Id).ConfigureAwait(false);
+                rootCACrlChain = await _opcVaultHandler.GetCACrlChainAsync(Configuration.Id).ConfigureAwait(false);
                 var rootCaCert = rootCACertificateChain[0];
                 var rootCaCrl = rootCACrlChain[0];
 
@@ -151,7 +151,7 @@ namespace Opc.Ua.Gds.Server.GdsVault
         {
             try
             {
-                X509Certificate2KeyPair signedKeyPair = await _gdsVaultHandler.NewKeyPairRequestAsync(
+                X509Certificate2KeyPair signedKeyPair = await _opcVaultHandler.NewKeyPairRequestAsync(
                     Configuration.Id,
                     application,
                     subjectName,
@@ -201,7 +201,7 @@ namespace Opc.Ua.Gds.Server.GdsVault
                     }
                 }
 
-                var signedCertificate = await _gdsVaultHandler.SigningRequestAsync(
+                var signedCertificate = await _opcVaultHandler.SigningRequestAsync(
                     Configuration.Id,
                     application,
                     certificateRequest).ConfigureAwait(false);
@@ -225,7 +225,7 @@ namespace Opc.Ua.Gds.Server.GdsVault
         {
             try
             {
-                return await _gdsVaultHandler.RevokeCertificateAsync(
+                return await _opcVaultHandler.RevokeCertificateAsync(
                     Configuration.Id,
                     certificate).ConfigureAwait(false);
             }
@@ -243,7 +243,7 @@ namespace Opc.Ua.Gds.Server.GdsVault
             string subjectName
             )
         {
-            throw new NotImplementedException("CA creation not supported with GdsVault. Certificate is created and managed by gdsVault administrator.");
+            throw new NotImplementedException("CA creation not supported with OpcVault. Certificate is created and managed by OpcVault administrator.");
         }
 
         /// <summary>

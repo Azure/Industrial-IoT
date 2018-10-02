@@ -4,40 +4,40 @@
 // ------------------------------------------------------------
 
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Auth {
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Defines twin api policies.
+    /// Defines opcvault api policies.
     /// </summary>
     public static class Policies {
 
         /// <summary>
-        /// Allowed to read and browse
+        /// Allowed to query applications and cert requests
         /// </summary>
-        public const string CanBrowse =
-            nameof(CanBrowse);
+        public const string CanRead =
+            nameof(CanRead);
 
         /// <summary>
-        /// Allowed to write or execute
+        /// Allowed to create, update and delete applications and cert requests
         /// </summary>
-        public const string CanControl =
-            nameof(CanControl);
+        public const string CanWrite =
+            nameof(CanWrite);
 
         /// <summary>
-        /// Allowed to request publish
+        /// Allowed to manage applications and cert requests
         /// </summary>
-        public const string CanPublish =
-            nameof(CanPublish);
+        public const string CanManage =
+            nameof(CanManage);
 
         /// <summary>
         /// Return all policies
         /// </summary>
         /// <returns></returns>
         public static IEnumerable<string> All() {
-            yield return CanBrowse;
-            yield return CanControl;
-            yield return CanPublish;
+            yield return CanRead;
+            yield return CanWrite;
+            yield return CanManage;
         }
     }
 }

@@ -4,29 +4,33 @@
 // ------------------------------------------------------------
 
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Filters;
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
     [Route(VersionInfo.PATH + "/groups"), TypeFilter(typeof(ExceptionsFilterAttribute))]
     [Produces("application/json")]
+    [Authorize(Policy = Policies.CanRead)]
 
     public sealed class CertificateGroupController : Controller
     {
         private readonly ICertificateGroup certificateGroups;
 
-        public CertificateGroupController(ICertificateGroup certificateGroups)
+        public CertificateGroupController(
+            ICertificateGroup certificateGroups)
         {
             this.certificateGroups = certificateGroups;
         }
 
         /// <returns>List of certificate groups</returns>
         [HttpGet]
-        [SwaggerOperation(operationId: "GetCertificateGroupIds")]
+        [SwaggerOperation(OperationId = "GetCertificateGroupIds")]
         public async Task<CertificateGroupListApiModel> GetAsync()
         {
             return new CertificateGroupListApiModel(await this.certificateGroups.GetCertificateGroupIds());
@@ -34,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
 
         /// <summary>Get group configuration</summary>
         [HttpGet("{groupId}")]
-        [SwaggerOperation(operationId: "GetCertificateGroupConfiguration")]
+        [SwaggerOperation(OperationId = "GetCertificateGroupConfiguration")]
         public async Task<CertificateGroupConfigurationApiModel> GetAsync(string groupId)
         {
             return new CertificateGroupConfigurationApiModel(
@@ -42,9 +46,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
                 await this.certificateGroups.GetCertificateGroupConfiguration(groupId));
         }
 
+        /// <summary>Update group configuration</summary>
+        [HttpPut("{groupId}")]
+        [SwaggerOperation(OperationId = "UpdateCertificateGroupConfiguration")]
+        [Authorize(Policy = Policies.CanManage)]
+
+        public async Task<CertificateGroupConfigurationApiModel> PutAsync(string groupId, [FromBody] CertificateGroupConfigurationApiModel config)
+        {
+            var onBehalfOfCertificateGroups = await this.certificateGroups.OnBehalfOfRequest(Request);
+            return new CertificateGroupConfigurationApiModel(
+                groupId,
+                await onBehalfOfCertificateGroups.UpdateCertificateGroupConfiguration(groupId, config.ToServiceModel()));
+        }
+
+        /// <summary>Create new group configuration</summary>
+        [HttpPost("{groupId}/{subject}/{certType}")]
+        [SwaggerOperation(OperationId = "CreateCertificateGroupConfiguration")]
+        [Authorize(Policy = Policies.CanManage)]
+
+        public async Task<CertificateGroupConfigurationApiModel> PostAsync(string groupId, string subject, string certType)
+        {
+            var onBehalfOfCertificateGroups = await this.certificateGroups.OnBehalfOfRequest(Request);
+            return new CertificateGroupConfigurationApiModel(
+                groupId,
+                await onBehalfOfCertificateGroups.CreateCertificateGroupConfiguration(groupId, subject, certType));
+        }
+
         /// <summary>Get group configuration</summary>
         [HttpGet("config")]
-        [SwaggerOperation(operationId: "GetCertificateGroupConfigurationCollection")]
+        [SwaggerOperation(OperationId = "GetCertificateGroupConfigurationCollection")]
         public async Task<CertificateGroupConfigurationCollectionApiModel> GetConfigAsync()
         {
             return new CertificateGroupConfigurationCollectionApiModel(
@@ -53,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
 
         /// <summary>Get CA Certificate chain</summary>
         [HttpGet("{groupId}/cacert")]
-        [SwaggerOperation(operationId: "GetCACertificateChain")]
+        [SwaggerOperation(OperationId = "GetCACertificateChain")]
         public async Task<X509Certificate2CollectionApiModel> GetCACertificateChainAsync(string groupId)
         {
             return new X509Certificate2CollectionApiModel(
@@ -62,7 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
 
         /// <summary>Get CA CRL chain</summary>
         [HttpGet("{groupId}/cacrl")]
-        [SwaggerOperation(operationId: "GetCACrlChain")]
+        [SwaggerOperation(OperationId = "GetCACrlChain")]
         public async Task<X509CrlCollectionApiModel> GetCACrlChainAsync(string groupId)
         {
             return new X509CrlCollectionApiModel(
@@ -71,7 +101,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
 
         /// <summary>Get trust list</summary>
         [HttpGet("{groupId}/trustlist")]
-        [SwaggerOperation(operationId: "GetTrustList")]
+        [SwaggerOperation(OperationId = "GetTrustList")]
         public async Task<TrustListApiModel> GetTrustListAsync(string groupId)
         {
             return new TrustListApiModel(await this.certificateGroups.GetTrustListAsync(groupId));
@@ -79,32 +109,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
 
         /// <summary>Create new CA Certificate</summary>
         [HttpPost("{groupId}/create")]
-        [SwaggerOperation(operationId: "CreateCACertificate")]
+        [SwaggerOperation(OperationId = "CreateCACertificate")]
+        [Authorize(Policy = Policies.CanManage)]
+
         public async Task<X509Certificate2ApiModel> PostCreateAsync(string groupId)
         {
+            var onBehalfOfCertificateGroups = await this.certificateGroups.OnBehalfOfRequest(Request);
             return new X509Certificate2ApiModel(
-                await this.certificateGroups.CreateCACertificateAsync(groupId));
+                await onBehalfOfCertificateGroups.CreateCACertificateAsync(groupId));
         }
 
 #if CERTSIGNER
         /// <summary>Revoke Certificate</summary>
         [HttpPost("{groupId}/revoke")]
-        [SwaggerOperation(operationId: "RevokeCertificate")]
+        [SwaggerOperation(OperationId = "RevokeCertificate")]
+        [Authorize(Policy = Policies.CanManage)]
         public async Task<X509CrlApiModel> PostRevokeAsync(string groupId, [FromBody] X509Certificate2ApiModel cert)
         {
+            var onBehalfOfCertificateGroups = await this.certificateGroups.OnBehalfOfRequest(Request);
             return new X509CrlApiModel(
-                await this.certificateGroups.RevokeCertificateAsync(
+                await onBehalfOfCertificateGroups.RevokeCertificateAsync(
                     groupId,
                     cert.ToServiceModel()));
         }
 
         /// <summary>Signing Request</summary>
         [HttpPost("{groupId}/sign")]
-        [SwaggerOperation(operationId: "SigningRequest")]
+        [SwaggerOperation(OperationId = "SigningRequest")]
+        [Authorize(Policy = Policies.CanManage)]
         public async Task<X509Certificate2ApiModel> PostSignAsync(string groupId, [FromBody] SigningRequestApiModel sr)
         {
+            var onBehalfOfCertificateGroups = await this.certificateGroups.OnBehalfOfRequest(Request);
             return new X509Certificate2ApiModel(
-                await this.certificateGroups.SigningRequestAsync(
+                await onBehalfOfCertificateGroups.SigningRequestAsync(
                     groupId,
                     sr.ApplicationURI,
                     sr.ToServiceModel()));
@@ -112,11 +149,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Controllers
 
         /// <summary>New Key Pair</summary>
         [HttpPost("{groupId}/newkey")]
-        [SwaggerOperation(operationId: "NewKeyPairRequest")]
+        [SwaggerOperation(OperationId = "NewKeyPairRequest")]
+        [Authorize(Policy = Policies.CanManage)]
         public async Task<CertificateKeyPairApiModel> PostNewKeyAsync(string groupId, [FromBody] NewKeyPairRequestApiModel nkpr)
         {
+            var onBehalfOfCertificateGroups = await this.certificateGroups.OnBehalfOfRequest(Request);
             return new CertificateKeyPairApiModel(
-                await this.certificateGroups.NewKeyPairRequestAsync(
+                await onBehalfOfCertificateGroups.NewKeyPairRequestAsync(
                     groupId,
                     nkpr.ApplicationURI,
                     nkpr.SubjectName,

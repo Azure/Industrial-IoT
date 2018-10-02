@@ -7,7 +7,7 @@
 using Newtonsoft.Json;
 using System;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
     public sealed class StartNewKeyPairRequestApiModel
     {

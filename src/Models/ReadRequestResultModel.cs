@@ -5,9 +5,9 @@
 
 
 
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB.Models;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
 {
     public sealed class ReadRequestResultModel
     {

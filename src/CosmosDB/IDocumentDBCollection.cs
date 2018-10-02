@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
 {
     public interface IDocumentDBCollection<T> where T : class
     {
@@ -20,6 +20,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.CosmosDB
         Task<T> GetAsync(Guid id);
         Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> predicate);
         Task<IEnumerable<T>> GetAsync(string predicate);
-        Task<Document> UpdateAsync(Guid id, T item);
+        Task<Document> UpdateAsync(Guid id, T item, string eTag);
     }
 }

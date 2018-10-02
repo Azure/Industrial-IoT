@@ -14,9 +14,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using static Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault.KeyVaultCertFactory;
+using static Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault.KeyVaultCertFactory;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 {
     public sealed class KeyVaultCertificateGroupProvider : Opc.Ua.Gds.Server.CertificateGroup
     {
@@ -36,8 +36,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
         }
 
         public static KeyVaultCertificateGroupProvider Create(
-            KeyVaultServiceClient keyVaultServiceClient,
-            CertificateGroupConfiguration certificateGroupConfiguration)
+                KeyVaultServiceClient keyVaultServiceClient,
+                CertificateGroupConfiguration certificateGroupConfiguration)
         {
             return new KeyVaultCertificateGroupProvider(keyVaultServiceClient, certificateGroupConfiguration);
         }
@@ -65,6 +65,73 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
         {
             string json = await keyVaultServiceClient.GetCertificateConfigurationGroupsAsync().ConfigureAwait(false);
             List<Opc.Ua.Gds.Server.CertificateGroupConfiguration> certificateGroupCollection = JsonConvert.DeserializeObject<List<Opc.Ua.Gds.Server.CertificateGroupConfiguration>>(json);
+            return certificateGroupCollection.SingleOrDefault(cg => String.Equals(cg.Id, id, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public static async Task<CertificateGroupConfiguration> UpdateCertificateGroupConfiguration(
+            KeyVaultServiceClient keyVaultServiceClient,
+            string id,
+            CertificateGroupConfiguration config)
+        {
+            if (id.ToLower() != config.Id.ToLower())
+            {
+                throw new ArgumentException("groupid doesn't match config id");
+            }
+            string json = await keyVaultServiceClient.GetCertificateConfigurationGroupsAsync().ConfigureAwait(false);
+            List<Opc.Ua.Gds.Server.CertificateGroupConfiguration> certificateGroupCollection = JsonConvert.DeserializeObject<List<Opc.Ua.Gds.Server.CertificateGroupConfiguration>>(json);
+
+            var original = certificateGroupCollection.SingleOrDefault(cg => String.Equals(cg.Id, id, StringComparison.OrdinalIgnoreCase));
+            if (original == null)
+            {
+                throw new ArgumentException("invalid groupid");
+            }
+
+            ValidateConfiguration(config);
+
+            var index = certificateGroupCollection.IndexOf(original);
+            certificateGroupCollection[index] = config;
+
+            json = JsonConvert.SerializeObject(certificateGroupCollection);
+
+            // update config
+            json = await keyVaultServiceClient.PutCertificateConfigurationGroupsAsync(json).ConfigureAwait(false);
+
+            // read it back to verify
+            certificateGroupCollection = JsonConvert.DeserializeObject<List<Opc.Ua.Gds.Server.CertificateGroupConfiguration>>(json);
+            return certificateGroupCollection.SingleOrDefault(cg => String.Equals(cg.Id, id, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public static async Task<CertificateGroupConfiguration> CreateCertificateGroupConfiguration(
+            KeyVaultServiceClient keyVaultServiceClient,
+            string id,
+            string subject,
+            string certType)
+        {
+            var config = DefaultConfiguration(id, subject, certType);
+            if (id.ToLower() != config.Id.ToLower())
+            {
+                throw new ArgumentException("groupid doesn't match config id");
+            }
+            string json = await keyVaultServiceClient.GetCertificateConfigurationGroupsAsync().ConfigureAwait(false);
+            List<Opc.Ua.Gds.Server.CertificateGroupConfiguration> certificateGroupCollection = JsonConvert.DeserializeObject<List<Opc.Ua.Gds.Server.CertificateGroupConfiguration>>(json);
+
+            var original = certificateGroupCollection.SingleOrDefault(cg => String.Equals(cg.Id, id, StringComparison.OrdinalIgnoreCase));
+            if (original != null)
+            {
+                throw new ArgumentException("groupid already exists");
+            }
+
+            ValidateConfiguration(config);
+
+            certificateGroupCollection.Add(config);
+
+            json = JsonConvert.SerializeObject(certificateGroupCollection);
+
+            // update config
+            json = await keyVaultServiceClient.PutCertificateConfigurationGroupsAsync(json).ConfigureAwait(false);
+
+            // read it back to verify
+            certificateGroupCollection = JsonConvert.DeserializeObject<List<Opc.Ua.Gds.Server.CertificateGroupConfiguration>>(json);
             return certificateGroupCollection.SingleOrDefault(cg => String.Equals(cg.Id, id, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -100,39 +167,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
         public async Task<bool> CreateCACertificateAsync()
         {
             DateTime now = DateTime.UtcNow;
-            try
+            using (var caCert = CertificateFactory.CreateCertificate(
+                null,
+                null,
+                null,
+                null,
+                null,
+                Configuration.SubjectName,
+                null,
+                Configuration.CACertificateKeySize,
+                now,
+                Configuration.CACertificateLifetime,
+                Configuration.CACertificateHashSize,
+                true,
+                null,
+                null))
             {
-                using (var caCert = CertificateFactory.CreateCertificate(
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    Configuration.SubjectName,
-                    null,
-                    Configuration.CACertificateKeySize,
-                    now,
-                    Configuration.CACertificateLifetime,
-                    Configuration.CACertificateHashSize,
-                    true,
-                    null,
-                    null))
+
+                // save only public key
+                Certificate = new X509Certificate2(caCert.RawData);
+
+                // initialize revocation list
+                Crl = CertificateFactory.RevokeCertificate(caCert, null, null);
+                if (Crl == null)
                 {
-
-                    // save only public key
-                    Certificate = new X509Certificate2(caCert.RawData);
-
-                    // initialize revocation list
-                    Crl = CertificateFactory.RevokeCertificate(caCert, null, null);
-
-                    // upload ca cert with private key
-                    await _keyVaultServiceClient.ImportCACertificate(Configuration.Id, new X509Certificate2Collection(caCert), true).ConfigureAwait(false);
-                    await _keyVaultServiceClient.ImportCACrl(Configuration.Id, Certificate, Crl).ConfigureAwait(false);
+                    return false;
                 }
-            }
-            catch
-            {
-                return false;
+
+                // upload ca cert with private key
+                await _keyVaultServiceClient.ImportCACertificate(Configuration.Id, new X509Certificate2Collection(caCert), true).ConfigureAwait(false);
+                await _keyVaultServiceClient.ImportCACrl(Configuration.Id, Certificate, Crl).ConfigureAwait(false);
             }
             return true;
         }
@@ -148,7 +212,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
 #endif
             var certificates = new X509Certificate2Collection() { certificate };
             var crls = new List<X509CRL>() { Crl };
-            Crl = RevokeCertificate(issuerCert, crls, certificates, 
+            Crl = RevokeCertificate(issuerCert, crls, certificates,
                 new KeyVaultSignatureGenerator(_keyVaultServiceClient, _caCertKeyIdentifier, Certificate),
                 this.Configuration.CACertificateHashSize);
             await _keyVaultServiceClient.ImportCACrl(Configuration.Id, Certificate, Crl).ConfigureAwait(false);
@@ -292,7 +356,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
             await LoadPublicAssets().ConfigureAwait(false);
             return Crl;
         }
-#endregion
+        #endregion
 
         public override Task<X509Certificate2> LoadSigningKeyAsync(
             X509Certificate2 signingCertificate,
@@ -309,12 +373,114 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
         }
         private async Task LoadPublicAssets()
         {
-            if (Certificate == null || 
+            if (Certificate == null ||
                 _caCertSecretIdentifier == null ||
                 _caCertKeyIdentifier == null)
             {
                 await Init();
             }
+        }
+
+        private static Opc.Ua.Gds.Server.CertificateGroupConfiguration DefaultConfiguration(string id, string subject, string certType)
+        {
+            var config = new Opc.Ua.Gds.Server.CertificateGroupConfiguration()
+            {
+                Id = id,
+                SubjectName = subject,
+                CertificateType = CertTypeMap()[Opc.Ua.ObjectTypeIds.RsaSha256ApplicationCertificateType],
+                DefaultCertificateLifetime = 12,
+                DefaultCertificateHashSize = 256,
+                DefaultCertificateKeySize = 2048,
+                CACertificateLifetime = 60,
+                CACertificateHashSize = 256,
+                CACertificateKeySize = 2048
+            };
+            if (certType != null)
+            {
+                var checkedCertType = CertTypeMap().Where(c => c.Value.ToLower() == certType.ToLower()).Single();
+                config.CertificateType = checkedCertType.Value;
+            }
+            ValidateConfiguration(config);
+            return config;
+        }
+
+        private static void ValidateConfiguration(Opc.Ua.Gds.Server.CertificateGroupConfiguration update)
+        {
+            if (!update.Id.All(char.IsLetterOrDigit))
+            {
+                throw new ArgumentException("Invalid Id");
+            }
+
+            // verify subject 
+            var subjectList = Opc.Ua.Utils.ParseDistinguishedName(update.SubjectName);
+            if (subjectList == null ||
+                subjectList.Count == 0)
+            {
+                throw new ArgumentException("Invalid Subject");
+            }
+
+            try
+            {
+                // only allow specific cert types for now
+                var certType = CertTypeMap().Where(c => c.Value.ToLower() == update.CertificateType.ToLower()).Single();
+                update.CertificateType = certType.Value;
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("Invalid CertificateType");
+            }
+
+            // specify ranges for lifetime (months)
+            if (update.DefaultCertificateLifetime < 1 ||
+                    update.CACertificateLifetime < 1 ||
+                    update.DefaultCertificateLifetime * 2 > update.CACertificateLifetime ||
+                    update.DefaultCertificateLifetime > 60 ||
+                    update.CACertificateLifetime > 1200)
+            {
+                throw new ArgumentException("Invalid lifetime");
+            }
+
+            if (update.DefaultCertificateKeySize < 2048 ||
+                update.DefaultCertificateKeySize % 1024 != 0 ||
+                update.DefaultCertificateKeySize > 2048)
+            {
+                throw new ArgumentException("Invalid key size");
+            }
+
+            if (update.CACertificateKeySize < 2048 ||
+                update.CACertificateKeySize % 1024 != 0 ||
+                update.CACertificateKeySize > 4096)
+            {
+                throw new ArgumentException("Invalid key size");
+            }
+
+            if (update.DefaultCertificateHashSize < 256 ||
+                update.DefaultCertificateHashSize % 128 != 0 ||
+                update.DefaultCertificateHashSize > 512)
+            {
+                throw new ArgumentException("Invalid hash size");
+            }
+
+            if (update.CACertificateHashSize < 256 ||
+                update.CACertificateHashSize % 128 != 0 ||
+                update.CACertificateHashSize > 512)
+            {
+                throw new ArgumentException("Invalid hash size");
+            }
+
+            update.BaseStorePath = "/" + update.Id.ToLower();
+        }
+
+        private static Dictionary<NodeId, string> CertTypeMap()
+        {
+            var certTypeMap = new Dictionary<NodeId, string>();
+            // FUTURE: support more cert types
+            //CertTypeMap.Add(Opc.Ua.ObjectTypeIds.HttpsCertificateType, "HttpsCertificateType");
+            //CertTypeMap.Add(Opc.Ua.ObjectTypeIds.UserCredentialCertificateType, "UserCredentialCertificateType");
+            certTypeMap.Add(Opc.Ua.ObjectTypeIds.ApplicationCertificateType, "ApplicationCertificateType");
+            //CertTypeMap.Add(Opc.Ua.ObjectTypeIds.RsaMinApplicationCertificateType, "RsaMinApplicationCertificateType");
+            certTypeMap.Add(Opc.Ua.ObjectTypeIds.RsaSha256ApplicationCertificateType, "RsaSha256ApplicationCertificateType");
+            return certTypeMap;
         }
 
         private KeyVaultServiceClient _keyVaultServiceClient;

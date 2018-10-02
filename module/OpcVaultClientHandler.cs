@@ -3,27 +3,27 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Api;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
-namespace Opc.Ua.Gds.Server.GdsVault
+namespace Opc.Ua.Gds.Server.OpcVault
 {
-    public class GdsVaultClientHandler
+    public class OpcVaultClientHandler
     {
-        private IOpcGdsVault _gdsServiceClient;
-        public GdsVaultClientHandler(IOpcGdsVault gdsServiceClient)
+        private IOpcVault _opcServiceClient;
+        public OpcVaultClientHandler(IOpcVault opcServiceClient)
         {
-            _gdsServiceClient = gdsServiceClient;
+            _opcServiceClient = opcServiceClient;
         }
 
         public async Task<X509Certificate2Collection> GetCACertificateChainAsync(string id)
         {
             var result = new X509Certificate2Collection();
-            var chainApiModel = await _gdsServiceClient.GetCACertificateChainAsync(id).ConfigureAwait(false);
+            var chainApiModel = await _opcServiceClient.GetCACertificateChainAsync(id).ConfigureAwait(false);
             foreach (var certApiModel in chainApiModel.Chain)
             {
                 var cert = new X509Certificate2(Convert.FromBase64String(certApiModel.Certificate));
@@ -35,7 +35,7 @@ namespace Opc.Ua.Gds.Server.GdsVault
         public async Task<IList<Opc.Ua.X509CRL>> GetCACrlChainAsync(string id)
         {
             var result = new List<Opc.Ua.X509CRL>();
-            var chainApiModel = await _gdsServiceClient.GetCACrlChainAsync(id).ConfigureAwait(false);
+            var chainApiModel = await _opcServiceClient.GetCACrlChainAsync(id).ConfigureAwait(false);
             foreach (var certApiModel in chainApiModel.Chain)
             {
                 var crl = new Opc.Ua.X509CRL(Convert.FromBase64String(certApiModel.Crl));
@@ -46,7 +46,7 @@ namespace Opc.Ua.Gds.Server.GdsVault
 
         public async Task<CertificateGroupConfigurationCollection> GetCertificateConfigurationGroupsAsync(string baseStorePath)
         {
-            var groups = await _gdsServiceClient.GetCertificateGroupConfigurationCollectionAsync().ConfigureAwait(false);
+            var groups = await _opcServiceClient.GetCertificateGroupConfigurationCollectionAsync().ConfigureAwait(false);
             var groupCollection = new CertificateGroupConfigurationCollection();
             foreach (var group in groups.Groups)
             {

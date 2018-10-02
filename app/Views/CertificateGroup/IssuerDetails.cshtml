@@ -1,0 +1,76 @@
+﻿@model Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api.Models.CertificateDetailsCollectionApiModel
+
+<h2>View Certificate @Html.DisplayFor(model => model.Name) Details</h2>
+
+<div>
+    <h4>
+        Certificate Details
+    </h4>
+    @foreach (var cert in Model.Certificates)
+    {
+
+        <hr />
+        <dl class="dl-horizontal">
+
+            <dt>
+                @Html.DisplayNameFor(model => cert.Subject)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => cert.Subject)
+            </dd>
+
+            <dt>
+                @Html.DisplayNameFor(model => cert.Issuer)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => cert.Issuer)
+            </dd>
+
+            <dt>
+                @Html.DisplayNameFor(model => cert.Thumbprint)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => cert.Thumbprint)
+            </dd>
+
+            <dt>
+                @Html.DisplayNameFor(model => cert.SerialNumber)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => cert.SerialNumber)
+            </dd>
+
+            <dt>
+                @Html.DisplayNameFor(model => cert.NotBefore)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => cert.NotBefore)
+            </dd>
+
+            <dt>
+                @Html.DisplayNameFor(model => cert.NotAfter)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => cert.NotAfter)
+            </dd>
+
+        </dl>
+    }
+</div>
+<hr/>
+<p>
+    @Html.ActionLink("Back to List", "Index")
+    @Html.Raw("&nbsp;|&nbsp;")
+    @Html.ActionLink("Details", "Details", new { id = Model.Name })
+    @Html.Raw("&nbsp;|&nbsp;")
+    @Html.ActionLink("Renew", "Renew", new { id = Model.Name },
+            new { onclick = "return confirm('Do you really want to renew the CA certificate for group " + Model.Name + "?')" })
+    @Html.Raw("&nbsp;|&nbsp;")
+    @Html.ActionLink("Download Issuer", "DownloadIssuer", new { id = Model.Name })
+</p>

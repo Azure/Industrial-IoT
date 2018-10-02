@@ -1,12 +1,14 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for
+// license information.
+//
 
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Utils;
+using Microsoft.Extensions.Configuration;
 
-namespace GdsVault.App
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App
 {
     public class Program
     {
@@ -17,6 +19,19 @@ namespace GdsVault.App
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((context, config) =>
+                {
+                    var builtConfig = config.Build();
+                    if (builtConfig["KeyVault"] != null)
+                    {
+                        config.AddAzureKeyVault(
+                            $"{builtConfig["KeyVault"]}",
+                            builtConfig["AzureAD:ClientId"],
+                            builtConfig["AzureAD:ClientSecret"],
+                            new PrefixKeyVaultSecretManager("OpcVault.App")
+                            );
+                    }
+                })
                 .UseStartup<Startup>();
     }
 }

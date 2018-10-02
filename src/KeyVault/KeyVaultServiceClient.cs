@@ -10,6 +10,7 @@ using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.KeyVault.WebKey;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.Rest;
 using Opc.Ua;
 using System;
 using System.Collections.Generic;
@@ -19,12 +20,15 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 {
-
+    /// <summary>
+    /// 
+    /// </summary>
     public class KeyVaultServiceClient
     {
         const int MaxResults = 10;
+        const string ContentTypeJson = "application/json";
         // see RFC 2585
         const string ContentTypeCert = "application/pkix-cert";
         const string ContentTypeCrl = "application/pkix-crl";
@@ -37,14 +41,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
         const string TagIssuerList = "Issuer";
         const string TagTrustedList = "Trusted";
 
+        const string GroupSecret = "groups";
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="vaultBaseUrl">The Url of the Key Vault.</param>
-        public KeyVaultServiceClient(string vaultBaseUrl, ILogger logger)
+        /// <param name="keyStoreHSM">The KeyVault is HSM backed.</param>
+        /// <param name="logger">The logger.</param>
+        public KeyVaultServiceClient(string vaultBaseUrl, bool keyStoreHSM, ILogger logger)
         {
             _vaultBaseUrl = vaultBaseUrl;
+            _keyStoreHSM = keyStoreHSM;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Set appID and app secret for keyVault authentication.
+        /// </summary>
+        /// <param name="appId"></param>
+        /// <param name="appSecret"></param>
+        public void SetAuthenticationClientCredential(
+            string appId,
+            string appSecret)
+        {
+            _assertionCert = null;
+            _clientCredential = new ClientCredential(appId, appSecret);
+            _keyVaultClient = new KeyVaultClient(
+                new KeyVaultClient.AuthenticationCallback(GetAccessTokenAsync));
         }
 
         /// <summary>
@@ -56,6 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
             string appId,
             X509Certificate2 clientAssertionCertPfx)
         {
+            _clientCredential = null;
             _assertionCert = new ClientAssertionCertificate(appId, clientAssertionCertPfx);
             _keyVaultClient = new KeyVaultClient(
                 new KeyVaultClient.AuthenticationCallback(GetAccessTokenAsync));
@@ -71,22 +96,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
                 new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
         }
 
+        
+        /// <summary>
+        /// Service client credentials.
+        /// </summary>
+        public void SetServiceClientCredentials(ServiceClientCredentials credentials)
+        {
+            _keyVaultClient = new KeyVaultClient(credentials);
+        }
+
         /// <summary>
         /// Private callback for keyvault authentication.
         /// </summary>
         private async Task<string> GetAccessTokenAsync(string authority, string resource, string scope)
         {
             var context = new AuthenticationContext(authority, TokenCache.DefaultShared);
-            var result = await context.AcquireTokenAsync(resource, _assertionCert);
+            AuthenticationResult result;
+            if (_clientCredential != null)
+            {
+                result = await context.AcquireTokenAsync(resource, _clientCredential);
+            }
+            else
+            {
+                result = await context.AcquireTokenAsync(resource, _assertionCert);
+            }
             return result.AccessToken;
         }
 
         /// <summary>
-        /// Read the GdsVault CertificateConfigurationGroups as Json.
+        /// Read the OpcVault CertificateConfigurationGroups as Json.
         /// </summary>
         public async Task<string> GetCertificateConfigurationGroupsAsync(CancellationToken ct = default(CancellationToken))
         {
-            SecretBundle secret = await _keyVaultClient.GetSecretAsync(_vaultBaseUrl + "/secrets/groups", ct).ConfigureAwait(false);
+            SecretBundle secret = await _keyVaultClient.GetSecretAsync(_vaultBaseUrl, GroupSecret, ct).ConfigureAwait(false);
+            return secret.Value;
+        }
+
+        /// <summary>
+        /// Write the OpcVault CertificateConfigurationGroups as Json.
+        /// </summary>
+        public async Task<string> PutCertificateConfigurationGroupsAsync(string json, CancellationToken ct = default(CancellationToken))
+        {
+            SecretBundle secret = await _keyVaultClient.SetSecretAsync(_vaultBaseUrl, GroupSecret, json, null, ContentTypeJson, null, ct).ConfigureAwait(false);
             return secret.Value;
         }
 
@@ -225,7 +276,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
                 throw new ArgumentOutOfRangeException(nameof(padding));
             }
 
-            var result = await _keyVaultClient.SignAsync(signingKey, algorithm, digest, ct);
+            var result = await _keyVaultClient.SignAsync(signingKey, algorithm, digest, ct).ConfigureAwait(false);
             return result.Result;
         }
 
@@ -252,7 +303,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
                 {
                     Exportable = false,
                     KeySize = certificate.GetRSAPublicKey().KeySize,
-                    KeyType = "RSA-HSM",
+                    KeyType = _keyStoreHSM ? "RSA-HSM" : "RSA",
                     ReuseKey = false
                 },
                 SecretProperties = new SecretProperties
@@ -282,7 +333,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
         }
 
         /// <summary>
-        /// Imports a new CA certificate in group id, tags it for trusted or issuer store.
+        /// Creates a new CA certificate in group id, tags it for trusted or issuer store.
         /// </summary>
         public async Task CreateCACertificateAsync(string id, X509Certificate2 certificate, bool trusted, CancellationToken ct = default(CancellationToken))
         {
@@ -303,7 +354,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
                 {
                     Exportable = false,
                     KeySize = certificate.GetRSAPublicKey().KeySize,
-                    KeyType = "RSAHSM",
+                    KeyType = _keyStoreHSM ? "RSA-HSM" : "RSA",
                     ReuseKey = false
                 },
                 SecretProperties = new SecretProperties
@@ -507,9 +558,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.KeyVault
         }
 
         private string _vaultBaseUrl;
+        private bool _keyStoreHSM;
         private IKeyVaultClient _keyVaultClient;
         private ILogger _logger;
         private ClientAssertionCertificate _assertionCert;
+        private ClientCredential _clientCredential;
     }
 }
 

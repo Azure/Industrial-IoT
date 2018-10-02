@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Filters
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters
 {
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.KeyVault.Models;
     using Newtonsoft.Json;
+    using Opc.Ua;
     using System;
     using System.Linq;
     using System.Net;
@@ -55,11 +57,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.v1.Filters
                     context.Result = GetResponse(HttpStatusCode.Unauthorized,
                         context.Exception);
                     break;
+                case KeyVaultErrorException ke:
+                    context.Result = GetResponse(HttpStatusCode.Forbidden,
+                        context.Exception);
+                    break;
                 case JsonReaderException jre:
                 case BadRequestException br:
                 case ArgumentException are:
                     context.Result = GetResponse(HttpStatusCode.BadRequest,
                         context.Exception);
+                    break;
+                case ServiceResultException sre:
+                    {
+                        HttpStatusCode statusCode;
+                        switch (sre.StatusCode)
+                        {
+                            case StatusCodes.BadNodeIdUnknown:
+                                statusCode = HttpStatusCode.NotFound;
+                                break;
+                            case StatusCodes.BadInvalidArgument:
+                                statusCode = HttpStatusCode.BadRequest;
+                                break;
+                            case StatusCodes.BadInvalidState:
+                            case StatusCodes.BadConfigurationError:
+                            case StatusCodes.BadCertificateUriInvalid:
+                            default:
+                                statusCode = HttpStatusCode.Forbidden;
+                                break;
+                        }
+                        context.Result = GetResponse(statusCode,
+                            context.Exception);
+                    }
                     break;
                 case NotImplementedException ne:
                 case NotSupportedException ns:
