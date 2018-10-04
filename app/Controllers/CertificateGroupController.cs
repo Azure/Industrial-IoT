@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 {
                     await opcVault.UpdateCertificateGroupConfigurationAsync(group.Name, group).ConfigureAwait(false);
                 }
-                catch (HttpOperationException http)
+                catch (HttpOperationException)
                 {
                     return View(newGroup);
                 }

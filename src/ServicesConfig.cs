@@ -17,12 +17,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         string CosmosDBToken { get; set; }
     }
 
+    /// <inheritdoc/>
     public class ServicesConfig : IServicesConfig
     {
+        /// <inheritdoc/>
         public string KeyVaultApiUrl { get; set; }
+        /// <inheritdoc/>
         public string KeyVaultResourceID { get; set; }
+        /// <inheritdoc/>
         public bool KeyVaultHSM { get; set; }
+        /// <inheritdoc/>
         public string CosmosDBEndpoint { get; set; }
+        /// <inheritdoc/>
         public string CosmosDBToken { get; set; }
 
     }

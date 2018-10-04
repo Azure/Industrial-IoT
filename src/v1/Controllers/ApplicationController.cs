@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
+    /// <inheritdoc/>
     [Route(VersionInfo.PATH + "/app"), TypeFilter(typeof(ExceptionsFilterAttribute))]
     [Produces("application/json")]
     [Authorize(Policy = Policies.CanRead)]
@@ -23,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
     {
         private readonly IApplicationsDatabase _applicationDatabase;
 
+        /// <inheritdoc/>
         public ApplicationController(IApplicationsDatabase applicationDatabase)
         {
             this._applicationDatabase = applicationDatabase;

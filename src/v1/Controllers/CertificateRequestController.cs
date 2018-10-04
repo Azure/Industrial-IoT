@@ -12,9 +12,11 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Threading.Tasks;
+using System.Diagnostics.Contracts;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
+    /// <inheritdoc/>
     [Route(VersionInfo.PATH + "/request"), TypeFilter(typeof(ExceptionsFilterAttribute))]
     [Produces("application/json")]
     [Authorize(Policy = Policies.CanRead)]
@@ -23,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
     {
         private readonly ICertificateRequest _certificateRequest;
 
+        /// <inheritdoc/>
         public CertificateRequestController(
             ICertificateRequest certificateRequest)
         {
@@ -119,6 +122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         [SwaggerOperation(OperationId = "QueryAppRequests")]
         public async Task<CertificateRequestRecordQueryResponseApiModel> QueryStateRequestsAsync(string state)
         {
+            Contract.Requires(string.IsNullOrEmpty(state) == false);
             // todo: parse state
             var results = await _certificateRequest.QueryAsync(null, null);
             return new CertificateRequestRecordQueryResponseApiModel(results);

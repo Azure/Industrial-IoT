@@ -42,12 +42,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             Initialize();
         }
 
-        #region IApplicationsDatabase 
+        #region IApplicationsDatabase
         public async Task<string> RegisterApplicationAsync(Application application)
         {
             bool isNew = false;
             Guid applicationId = VerifyRegisterApplication(application);
-            if (applicationId == null || Guid.Empty == applicationId)
+            if (Guid.Empty == applicationId)
             {
                 isNew = true;
             }
@@ -102,18 +102,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         {
             if (String.IsNullOrEmpty(id))
             {
-                throw new ArgumentException("The id must be provided", "id");
+                throw new ArgumentException("The id must be provided", nameof(id));
             }
 
             if (application == null)
             {
-                throw new ArgumentException("The application must be provided", "application");
+                throw new ArgumentException("The application must be provided", nameof(application));
             }
 
             Guid recordId = VerifyRegisterApplication(application);
             Guid applicationId = new Guid(id);
 
-            if (recordId == null || recordId == Guid.Empty)
+            if (recordId == Guid.Empty)
             {
                 application.ApplicationId = applicationId;
             }
@@ -160,7 +160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         {
             if (String.IsNullOrEmpty(id))
             {
-                throw new ArgumentException("The id must be provided", "id");
+                throw new ArgumentException("The id must be provided", nameof(id));
             }
 
             Guid appId = new Guid(id);
@@ -186,7 +186,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         {
             if (String.IsNullOrEmpty(id))
             {
-                throw new ArgumentException("The id must be provided", "id");
+                throw new ArgumentException("The id must be provided", nameof(id));
             }
 
             Guid appId = new Guid(id);
@@ -197,7 +197,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         {
             if (String.IsNullOrEmpty(applicationUri))
             {
-                throw new ArgumentException("The applicationUri must be provided", "applicationUri");
+                throw new ArgumentException("The applicationUri must be provided", nameof(applicationUri));
             }
 
             var results = await Applications.GetAsync(ii => ii.ApplicationUri == applicationUri);
@@ -341,33 +341,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
             if (application.ApplicationUri == null)
             {
-                throw new ArgumentNullException("ApplicationUri");
+                throw new ArgumentNullException(nameof(application.ApplicationUri));
             }
 
             if (!Uri.IsWellFormedUriString(application.ApplicationUri, UriKind.Absolute))
             {
-                throw new ArgumentException(application.ApplicationUri + " is not a valid URI.", "ApplicationUri");
+                throw new ArgumentException(application.ApplicationUri + " is not a valid URI.", nameof(application.ApplicationUri));
             }
 
             if (application.ApplicationType < (int)Opc.Ua.ApplicationType.Server ||
                 application.ApplicationType > (int)Opc.Ua.ApplicationType.DiscoveryServer)
             {
-                throw new ArgumentException(application.ApplicationType.ToString() + " is not a valid ApplicationType.", "ApplicationType");
+                throw new ArgumentException(application.ApplicationType.ToString() + " is not a valid ApplicationType.", nameof(application.ApplicationType));
             }
 
             if (application.ApplicationNames == null || application.ApplicationNames.Length == 0 || String.IsNullOrEmpty(application.ApplicationNames[0].Text))
             {
-                throw new ArgumentException("At least one ApplicationName must be provided.", "ApplicationNames");
+                throw new ArgumentException("At least one ApplicationName must be provided.", nameof(application.ApplicationNames));
             }
 
             if (String.IsNullOrEmpty(application.ProductUri))
             {
-                throw new ArgumentException("A ProductUri must be provided.", "ProductUri");
+                throw new ArgumentException("A ProductUri must be provided.", nameof(application.ProductUri));
             }
 
             if (!Uri.IsWellFormedUriString(application.ProductUri, UriKind.Absolute))
             {
-                throw new ArgumentException(application.ProductUri + " is not a valid URI.", "ProductUri");
+                throw new ArgumentException(application.ProductUri + " is not a valid URI.", nameof(application.ProductUri));
             }
 
             if (application.DiscoveryUrls != null)
@@ -381,7 +381,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
                     if (!Uri.IsWellFormedUriString(discoveryUrl, UriKind.Absolute))
                     {
-                        throw new ArgumentException(discoveryUrl + " is not a valid URL.", "DiscoveryUrls");
+                        throw new ArgumentException(discoveryUrl + " is not a valid URL.", nameof(application.DiscoveryUrls));
                     }
                 }
             }
@@ -390,19 +390,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             {
                 if (application.DiscoveryUrls == null || application.DiscoveryUrls.Length == 0)
                 {
-                    throw new ArgumentException("At least one DiscoveryUrl must be provided.", "DiscoveryUrls");
+                    throw new ArgumentException("At least one DiscoveryUrl must be provided.", nameof(application.DiscoveryUrls));
                 }
 
                 if (application.ServerCapabilities == null || application.ServerCapabilities.Length == 0)
                 {
-                    throw new ArgumentException("At least one Server Capability must be provided.", "ServerCapabilities");
+                    throw new ArgumentException("At least one Server Capability must be provided.", nameof(application.ServerCapabilities));
                 }
             }
             else
             {
                 if (application.DiscoveryUrls != null && application.DiscoveryUrls.Length > 0)
                 {
-                    throw new ArgumentException("DiscoveryUrls must not be specified for clients.", "DiscoveryUrls");
+                    throw new ArgumentException("DiscoveryUrls must not be specified for clients.", nameof(application.DiscoveryUrls));
                 }
             }
 
@@ -421,7 +421,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             {
                 if (application.ServerCapabilities == null || application.ServerCapabilities.Length == 0)
                 {
-                    throw new ArgumentException("At least one Server Capability must be provided.", "ServerCapabilities");
+                    throw new ArgumentException("At least one Server Capability must be provided.", nameof(application.ServerCapabilities));
                 }
             }
 

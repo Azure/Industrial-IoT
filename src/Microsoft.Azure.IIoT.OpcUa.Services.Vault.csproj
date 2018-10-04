@@ -11,6 +11,7 @@
     <Copyright>Microsoft Corp. All rights reserved.</Copyright>
     <Description>Azure Industrial IoT OPC UA Vault service component</Description>
     <UserSecretsId>71f9c347-48d7-4f74-8f1b-c3df149c26c8</UserSecretsId>
+    <HighEntropyVA>true</HighEntropyVA>
     <Configurations>Debug;Release;Develop</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -38,14 +39,14 @@
     <Folder Include="Properties" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.1.1" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.0" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.0.3" />
-    <PackageReference Include="Autofac" Version="4.6.2" />
-    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.2.2" />
-    <PackageReference Include="Microsoft.AspNetCore" Version="2.1.3" />
+    <PackageReference Include="Autofac" Version="4.8.1" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.1.4" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="2.1.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.3" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="3.0.0" />
   </ItemGroup>
@@ -63,6 +64,12 @@
     </Otherwise>
   </Choose>
   <Choose>
+    <When Condition="Exists('..\..\common')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\common\src\Microsoft.Azure.IIoT.Services\src\Microsoft.Azure.IIoT.Services.csproj" />
+        <ProjectReference Include="..\..\common\src\Microsoft.Azure.IIoT.Abstractions\src\Microsoft.Azure.IIoT.Abstractions.csproj" />
+      </ItemGroup>
+    </When>
     <When Condition="Exists('..\..\azure-iiot-common') and '$(Configuration)'=='Develop'">
       <ItemGroup>
         <ProjectReference Include="..\..\azure-iiot-common\src\Microsoft.Azure.IIoT.Services\src\Microsoft.Azure.IIoT.Services.csproj" />
@@ -71,8 +78,8 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="1.0.0-preview008" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Abstractions" Version="1.0.0-preview008" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="1.0.0-preview010" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Abstractions" Version="1.0.0-preview010" />
       </ItemGroup>
     </Otherwise>
   </Choose>

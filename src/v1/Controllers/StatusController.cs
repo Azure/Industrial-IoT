@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
     using Swashbuckle.AspNetCore.Annotations;
     using System;
 
+    /// <inheritdoc/>
     [Route(VersionInfo.PATH + "/[controller]"), TypeFilter(typeof(ExceptionsFilterAttribute))]
     [Produces("application/json")]
 
@@ -23,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         private readonly ICertificateGroup certificateGroups;
         private readonly IApplicationsDatabase applicationDatabase;
 
+        /// <inheritdoc/>
         public StatusController(
             IApplicationsDatabase applicationDatabase,
             ICertificateGroup certificateGroups,
@@ -35,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         }
 
         /// <summary>
-        /// 
+        /// returns the status
         /// </summary>
         /// <returns></returns>
         [HttpGet]

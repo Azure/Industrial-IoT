@@ -6,6 +6,7 @@
     <WebProject_DirectoryAccessLevelKey>0</WebProject_DirectoryAccessLevelKey>
     <DockerTargetOS>Linux</DockerTargetOS>
     <Configurations>Debug;Release;Develop</Configurations>
+    <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
 
   <ItemGroup>

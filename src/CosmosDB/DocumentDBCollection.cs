@@ -14,19 +14,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
     using System.Linq.Expressions;
     using System.Threading.Tasks;
 
+    /// <inheritdoc/>
     public class DocumentDBCollection<T> : IDocumentDBCollection<T> where T : class
     {
+        /// <inheritdoc/>
         public DocumentCollection Collection { get; private set; }
         private readonly IDocumentDBRepository db;
         private readonly string CollectionId = typeof(T).Name;
         private const int RequestLevelLowest = 400;
 
+        /// <inheritdoc/>
         public DocumentDBCollection(IDocumentDBRepository db)
         {
             this.db = db;
             CreateCollectionIfNotExistsAsync().Wait();
         }
 
+        /// <inheritdoc/>
         public async Task<T> GetAsync(Guid id)
         {
             try
@@ -47,6 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
             }
         }
 
+        /// <inheritdoc/>
         public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> predicate)
         {
             FeedOptions feedOptions = new FeedOptions { MaxItemCount = -1 };
@@ -65,6 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
             return results;
         }
 
+        /// <inheritdoc/>
         public async Task<IEnumerable<T>> GetAsync(string predicate)
         {
             FeedOptions feedOptions = new FeedOptions { MaxItemCount = -1 };
@@ -83,11 +89,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
             return results;
         }
 
+        /// <inheritdoc/>
         public async Task<Document> CreateAsync(T item)
         {
             return await db.Client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(db.DatabaseId, CollectionId), item);
         }
 
+        /// <inheritdoc/>
         public async Task<Document> UpdateAsync(Guid id, T item, string eTag)
         {
             var ac = new RequestOptions
@@ -102,6 +110,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
             return await db.Client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(db.DatabaseId, CollectionId, id.ToString()), item, ac);
         }
 
+        /// <inheritdoc/>
         public async Task DeleteAsync(Guid id)
         {
             await db.Client.DeleteDocumentAsync(UriFactory.CreateDocumentUri(db.DatabaseId, CollectionId, id.ToString()));

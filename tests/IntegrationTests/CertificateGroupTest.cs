@@ -61,12 +61,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         /// <summary>
         /// The AAD application id for the client.
         /// </summary>
-        public string ClientId { get; set; }
+        public string AppId { get; set; }
 
         /// <summary>
         /// AAD Client / Application secret (optional)
         /// </summary>
-        public string ClientSecret { get; set; }
+        public string AppSecret { get; set; }
 
         /// <summary>
         /// Tenant id if any (optional)
@@ -102,8 +102,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         {
             // TODO: new OpcVault app service
             // use GDSVault.Service.Test
-            ClientId = "f70b169e-8d98-40df-8581-f61fa48faa8f",
-            ClientSecret = "ifhuwDuz+Wy4zgwvVG7xVqMsMnNQYtBLGEQrA+1DVvc=",
+            AppId = "f70b169e-8d98-40df-8581-f61fa48faa8f",
+            AppSecret = null, // TODO: Need to read secrets out of keyvault
+            // For now skipping test
             TenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47",
             Authority = "https://login.microsoftonline.com/"
         };
@@ -118,22 +119,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         }
 
 
-        [Fact, Trait(Constants.Type, Constants.UnitTest)]
+        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultInit()
         {
             KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
             await keyVault.Init();
-            
+
         }
 
-        [Fact, Trait(Constants.Type, Constants.UnitTest)]
+        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultListOfCertGroups()
         {
             KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
             string[] groups = await keyVault.GetCertificateGroupIds();
         }
 
-        [Fact, Trait(Constants.Type, Constants.UnitTest)]
+        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultGroupConfigurationCollection()
         {
 
@@ -143,7 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             Assert.NotEmpty(groupCollection);
         }
 
-        [Fact, Trait(Constants.Type, Constants.UnitTest)]
+        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultGetCertificateAsync()
         {
             KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
@@ -169,7 +170,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             }
         }
 
-        [Fact, Trait(Constants.Type, Constants.UnitTest)]
+        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultCreateCACertificateAsync()
         {
             KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
@@ -186,7 +187,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             }
         }
 
-        [Fact, Trait(Constants.Type, Constants.UnitTest)]
+        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultNewKeyPairRequestAsync()
         {
             KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
@@ -219,7 +220,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             }
         }
 
-        [Fact, Trait(Constants.Type, Constants.UnitTest)]
+        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultSigningRequestAsync()
         {
             KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
@@ -263,7 +264,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         }
 
 
-        [Fact, Trait(Constants.Type, Constants.UnitTest)]
+        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultNewKeyPairAndRevokeCertificateAsync()
         {
             KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
@@ -296,7 +297,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             }
         }
 
-        [Fact, Trait(Constants.Type, Constants.UnitTest)]
+        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
         public async Task GetTrustListAsync()
         {
             KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);

@@ -14,6 +14,7 @@
     <PackageLicenseUrl>https://github.com/Azure/azure-iiot-opc-twin-service/blob/master/LICENSE</PackageLicenseUrl>
     <Copyright>Copyright © 2018 Microsoft Corp. All rights reserved.</Copyright>
     <Configurations>Debug;Release;Develop</Configurations>
+    <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
 
   <ItemGroup>

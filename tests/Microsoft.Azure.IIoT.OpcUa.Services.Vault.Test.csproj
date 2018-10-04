@@ -5,6 +5,7 @@
     <AssemblyName>Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test</AssemblyName>
     <RootNamespace>Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test</RootNamespace>
     <Configurations>Debug;Release;Develop</Configurations>
+    <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.1" />

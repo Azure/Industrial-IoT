@@ -34,11 +34,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         public IServicesConfig ServicesConfig =>
             new ServicesConfig
             {
-                KeyVaultApiUrl = this.GetString(KeyVaultApiUrlKey),
-                KeyVaultResourceID = this.GetString(KeyVaultResourceIDKey),
-                KeyVaultHSM = this.GetBool(KeyVaultHSMKey, true),
-                CosmosDBEndpoint = this.GetString(CosmosDBEndpointKey),
-                CosmosDBToken = this.GetString(CosmosDBTokenKey)
+                KeyVaultApiUrl = this.GetStringOrDefault(KeyVaultApiUrlKey),
+                KeyVaultResourceID = this.GetStringOrDefault(KeyVaultResourceIDKey),
+                KeyVaultHSM = this.GetBoolOrDefault(KeyVaultHSMKey, true),
+                CosmosDBEndpoint = this.GetStringOrDefault(CosmosDBEndpointKey),
+                CosmosDBToken = this.GetStringOrDefault(CosmosDBTokenKey)
             };
     }
 }

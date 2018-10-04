@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
+    /// <inheritdoc/>
     [Route(VersionInfo.PATH + "/groups"), TypeFilter(typeof(ExceptionsFilterAttribute))]
     [Produces("application/json")]
     [Authorize(Policy = Policies.CanRead)]
@@ -22,6 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
     {
         private readonly ICertificateGroup certificateGroups;
 
+        /// <inheritdoc/>
         public CertificateGroupController(
             ICertificateGroup certificateGroups)
         {

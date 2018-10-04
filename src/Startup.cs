@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             services.AddCors();
 
             // Add authentication
-            services.AddJwtBearerAuthentication(Config, Config.ClientId,
+            services.AddJwtBearerAuthentication(Config, Config.AppId,
                 Environment.IsDevelopment());
 
             // Add authorization

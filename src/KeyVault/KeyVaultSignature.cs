@@ -34,8 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             ushort hashSizeInBits,
             X509Certificate2 issuerCAKeyCert,
             RSA publicKey,
-            X509SignatureGenerator generator,
-            bool isCA = false
+            X509SignatureGenerator generator
             )
         {
             if (publicKey == null || issuerCAKeyCert == null)
@@ -112,7 +111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         }
 
         /// <summary>
-        /// Revoke the certificate. 
+        /// Revoke the certificate.
         /// The CRL number is increased by one and the new CRL is returned.
         /// </summary>
         public static X509CRL RevokeCertificate(
@@ -225,7 +224,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 Org.BouncyCastle.Asn1.Asn1Object asn1Object = GetExtensionValue(crl, Org.BouncyCastle.Asn1.X509.X509Extensions.CrlNumber);
                 if (asn1Object != null)
                 {
-                    crlNumber = Org.BouncyCastle.Asn1.X509.CrlNumber.GetInstance(asn1Object).PositiveValue;
+                    crlNumber = Org.BouncyCastle.Asn1.DerInteger.GetInstance(asn1Object).PositiveValue;
                 }
             }
             finally
@@ -300,7 +299,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
             if (keySize % 1024 != 0)
             {
-                throw new ArgumentNullException("keySize", "KeySize must be a multiple of 1024.");
+                throw new ArgumentNullException(nameof(keySize), "KeySize must be a multiple of 1024.");
             }
 
             // enforce minimum lifetime.
@@ -322,13 +321,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             {
                 if (subjectNameEntries == null)
                 {
-                    throw new ArgumentNullException("applicationName", "Must specify a applicationName or a subjectName.");
+                    throw new ArgumentNullException(nameof(applicationName), "Must specify a applicationName or a subjectName.");
                 }
 
                 // use the common name as the application name.
                 for (int ii = 0; ii < subjectNameEntries.Count; ii++)
                 {
-                    if (subjectNameEntries[ii].StartsWith("CN="))
+                    if (subjectNameEntries[ii].StartsWith("CN=", StringComparison.InvariantCulture))
                     {
                         applicationName = subjectNameEntries[ii].Substring(3).Trim();
                         break;
@@ -338,7 +337,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
             if (String.IsNullOrEmpty(applicationName))
             {
-                throw new ArgumentNullException("applicationName", "Must specify a applicationName or a subjectName.");
+                throw new ArgumentNullException(nameof(applicationName), "Must specify a applicationName or a subjectName.");
             }
 
             // remove special characters from name.
@@ -548,6 +547,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
             internal static PublicKey BuildPublicKey(RSA rsa)
             {
+                if (rsa == null) {
+                    throw new ArgumentNullException(nameof(rsa));
+                }
+
                 return null;
             }
 
@@ -588,9 +591,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         /// <summary>
         /// Constructor which also specifies a source of randomness to be used if one is required.
         /// </summary>
-        /// <param name="algorithm">The name of the signature algorithm to use.</param>
-        /// <param name="privateKey">The private key to be used in the signing operation.</param>
-        /// <param name="random">The source of randomness to be used in signature calculation.</param>
+        /// <param name="hashAlgorithm">The name of the signature algorithm to use.</param>
+        /// <param name="generator"></param>
         public KeyVaultSignatureFactory(HashAlgorithmName hashAlgorithm, X509SignatureGenerator generator)
         {
             Org.BouncyCastle.Asn1.DerObjectIdentifier sigOid;
@@ -615,6 +617,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             this.algID = new Org.BouncyCastle.Asn1.X509.AlgorithmIdentifier(sigOid);
         }
 
+        /// <inheritdoc/>
         public Object AlgorithmDetails
         {
             get { return this.algID; }
@@ -651,17 +654,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         }
     }
 
+    /// <inheritdoc/>
     public class MemoryBlockResult : Org.BouncyCastle.Crypto.IBlockResult
     {
         private byte[] data;
+        /// <inheritdoc/>
         public MemoryBlockResult(byte[] data)
         {
             this.data = data;
         }
+        /// <inheritdoc/>
         public byte[] Collect()
         {
             return data;
         }
+        /// <inheritdoc/>
         public int Collect(byte[] destination, int offset)
         {
             throw new NotImplementedException();
@@ -717,7 +724,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 _reader.Read(oidBytes, 0, oidBytes.Length);
                 if (!oidBytes.SequenceEqual(oidRSAEncryption))
                 {
-                    new CryptographicException("No RSA Encryption key.");
+                    throw new CryptographicException("No RSA Encryption key.");
                 }
                 int remainingBytes = identifierSize - 2 - oidBytes.Length;
                 _reader.ReadBytes(remainingBytes);

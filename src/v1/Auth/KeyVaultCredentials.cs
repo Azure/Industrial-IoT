@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
 {
+    /// <inheritdoc/>
     public class KeyVaultCredentials : ServiceClientCredentials
     {
         string authority;
@@ -22,12 +23,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
         string clientId;
         string clientSecret;
 
+        /// <inheritdoc/>
         public KeyVaultCredentials(
             string bearerToken,
             string authority,
             string resourceId,
             string clientId,
-            string clientSecret            
+            string clientSecret
             )
         {
             this.bearerToken = bearerToken;
@@ -38,6 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
         }
 
         private string AuthenticationToken { get; set; }
+        /// <inheritdoc/>
         public override void InitializeServiceClient<T>(ServiceClient<T> client)
         {
             var authenticationContext =
@@ -62,11 +65,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
             AuthenticationToken = result.AccessToken;
         }
 
+        /// <inheritdoc/>
         public override async Task ProcessHttpRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             if (request == null)
             {
-                throw new ArgumentNullException("request");
+                throw new ArgumentNullException(nameof(request));
             }
 
             if (AuthenticationToken == null)
