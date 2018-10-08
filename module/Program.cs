@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api;
+using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
 using Microsoft.Rest;
 using Mono.Options;
 using Opc.Ua.Configuration;
@@ -283,7 +283,7 @@ namespace Opc.Ua.Gds.Server
             }
 
             var serviceClient = new OpcVaultLoginCredentials(opcVaultOptions, azureADOptions);
-            IOpcVault opcVaultServiceClient = new Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api.OpcVault(new Uri(opcVaultOptions.BaseAddress), serviceClient);
+            IOpcVault opcVaultServiceClient = new Microsoft.Azure.IIoT.OpcUa.Api.Vault.OpcVault(new Uri(opcVaultOptions.BaseAddress), serviceClient);
             var opcVaultHandler = new OpcVaultClientHandler(opcVaultServiceClient);
 
             // read configurations from OpcVault secret

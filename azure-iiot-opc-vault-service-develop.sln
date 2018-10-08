@@ -25,9 +25,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Vault.App", "app\Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.csproj", "{77256077-5C07-48C6-B497-455C758A108F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Vault.Edge", "module\Microsoft.Azure.IIoT.OpcUa.Services.Vault.Edge.csproj", "{427DAC72-EA9A-4E69-B08E-57D7F3D62201}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Modules.Vault", "module\Microsoft.Azure.IIoT.OpcUa.Modules.Vault.csproj", "{427DAC72-EA9A-4E69-B08E-57D7F3D62201}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api", "api-csharp\Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api.csproj", "{A887CAA1-2C60-4E3A-91F8-DB60BBE4CC26}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Api.Vault", "api-csharp\Microsoft.Azure.IIoT.OpcUa.Api.Vault.csproj", "{A887CAA1-2C60-4E3A-91F8-DB60BBE4CC26}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Opc.Ua.Core", "..\UA-.NETStandard\Stack\Opc.Ua.Core\Opc.Ua.Core.csproj", "{E9EC142C-3837-4E52-BBF2-918567A4F838}"
 EndProject

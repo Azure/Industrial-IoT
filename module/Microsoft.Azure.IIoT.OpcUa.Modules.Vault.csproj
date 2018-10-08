@@ -35,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\api-csharp\Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api.csproj" />
+    <ProjectReference Include="..\api-csharp\Microsoft.Azure.IIoT.OpcUa.Api.Vault.csproj" />
   </ItemGroup>
 
 </Project>

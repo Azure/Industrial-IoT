@@ -8,7 +8,7 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 {
     using Newtonsoft.Json;
     using System.Linq;

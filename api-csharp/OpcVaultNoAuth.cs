@@ -4,7 +4,7 @@
 // license information.
 //
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Api
+namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
 {
     using Microsoft.Rest;
 
