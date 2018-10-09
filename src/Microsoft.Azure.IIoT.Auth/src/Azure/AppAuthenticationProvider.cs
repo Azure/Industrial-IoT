@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
             var token = await _provider.GetAccessTokenAsync(resource,
-                _config?.ClientSecret ?? _config?.TenantId);
+                _config?.AppSecret ?? _config?.TenantId);
             return TokenResultModelEx.Parse(token);
         }
 
@@ -65,17 +65,17 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
             if (!string.IsNullOrEmpty(cs)) {
                 return cs;
             }
-            if (string.IsNullOrEmpty(_config?.ClientId)) {
+            if (string.IsNullOrEmpty(_config?.AppId)) {
                 // Run as dev or current user
                 return NoClientIdRunAs();
             }
             // Run as app
-            cs = $"RunAs=App;AppId={_config.ClientId}";
+            cs = $"RunAs=App;AppId={_config.AppId}";
             if (!string.IsNullOrEmpty(_config.TenantId)) {
                 cs += $";TenantId={_config.TenantId}";
             }
-            if (!string.IsNullOrEmpty(_config.ClientSecret)) {
-                cs += $";AppKey={_config.ClientSecret}";
+            if (!string.IsNullOrEmpty(_config.AppSecret)) {
+                cs += $";AppKey={_config.AppSecret}";
             }
             return cs;
         }

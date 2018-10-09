@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Hub {
             return new DeviceTwinListModel {
                 ContinuationToken = response.ContinuationToken,
                 Items = response.Result
-                    .Select(DeviceTwinModelEx.ToDeviceTwinModel)
+                    .Select(j => j.ToObject<DeviceTwinModel>())
                     .ToList()
             };
         }
@@ -133,40 +133,6 @@ namespace Microsoft.Azure.IIoT.Hub {
             }
             while (continuation != null);
             return result;
-        }
-
-        /// <summary>
-        /// Check whether device is connected
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns></returns>
-        public static async Task<bool> IsConnectedAsync(
-            this IIoTHubTwinServices service, string deviceId, string moduleId) {
-            var device = await service.GetRegistrationAsync(deviceId, moduleId);
-            return device.Enabled && device.Connected;
-        }
-
-        /// <summary>
-        /// Check whether device is connected
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="deviceId"></param>
-        /// <returns></returns>
-        public static Task<bool> IsConnectedAsync(this IIoTHubTwinServices service,
-            string deviceId) => service.IsConnectedAsync(deviceId, null);
-
-        /// <summary>
-        /// Check whether device is enabled
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="deviceId"></param>
-        /// <returns></returns>
-        public static async Task<bool> IsEnabledAsync(
-            this IIoTHubTwinServices service, string deviceId) {
-            var device = await service.GetRegistrationAsync(deviceId);
-            return device.Enabled;
         }
 
         /// <summary>

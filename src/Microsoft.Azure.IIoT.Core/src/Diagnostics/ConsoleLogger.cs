@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Diagnostics {
+    using Newtonsoft.Json;
     using System;
 
     /// <summary>
@@ -23,45 +24,33 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// </summary>
         /// <param name="config">Log configuration</param>
         public ConsoleLogger(ILogConfig config) :
-            this(config?.ProcessId, config?.LogLevel ?? LogLevel.Debug) {
+            this("", config?.LogLevel ?? LogLevel.Debug, config?.ProcessId) {
         }
 
         /// <summary>
         /// Create logger
         /// </summary>
+        /// <param name="name"></param>
         /// <param name="processId"></param>
         /// <param name="loggingLevel"></param>
-        public ConsoleLogger(string processId, LogLevel loggingLevel) :
-            base(processId) {
+        public ConsoleLogger(string name, LogLevel loggingLevel,
+            string processId = null) :
+            base(name, loggingLevel, processId) {
             _logLevel = loggingLevel;
         }
 
         /// <inheritdoc/>
-        protected override sealed void Debug(Func<string> message) =>
-            Write(_logLevel <= LogLevel.Debug, "[DEBUG]", message);
+        public override ILogger Create(string name) =>
+            new ConsoleLogger(name, _loggingLevel, _processId);
 
         /// <inheritdoc/>
-        protected override sealed void Info(Func<string> message) =>
-             Write(_logLevel <= LogLevel.Info, " [INFO]", message);
-
-        /// <inheritdoc/>
-        protected override sealed void Warn(Func<string> message) =>
-             Write(_logLevel <= LogLevel.Warn, " [WARN]", message);
-
-        /// <inheritdoc/>
-        protected override sealed void Error(Func<string> message) =>
-            Write(_logLevel <= LogLevel.Error, "[ERROR]", message);
-
-        /// <summary>
-        /// Write message to console
-        /// </summary>
-        /// <param name="enabled"></param>
-        /// <param name="level"></param>
-        /// <param name="message"></param>
-        private void Write(bool enabled, string level, Func<string> message) {
-            if (enabled) {
-                Console.WriteLine($"{level}{message()}");
+        protected override void WriteLine(string preamble, string message,
+            object[] parameters) {
+            message = $"{preamble} {message}";
+            if (parameters != null && parameters.Length != 0) {
+                message += $" ({JsonConvertEx.SerializeObject(parameters)})";
             }
+            Console.WriteLine(message);
         }
 
         /// <summary>Enabled min log level</summary>

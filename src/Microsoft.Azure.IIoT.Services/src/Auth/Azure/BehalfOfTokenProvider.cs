@@ -39,10 +39,10 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
 
-            if (string.IsNullOrEmpty(_config.ClientId) ||
-                string.IsNullOrEmpty(_config.ClientSecret)) {
+            if (string.IsNullOrEmpty(_config.AppId) ||
+                string.IsNullOrEmpty(_config.AppSecret)) {
                 _logger.Error("On behalf token provider was not configured with " +
-                    "a client id or secret.  No tokens will be obtained. ", () => { });
+                    "a client id or secret.  No tokens will be obtained. ");
             }
         }
 
@@ -54,8 +54,8 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
         /// <returns></returns>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
-            if (string.IsNullOrEmpty(_config.ClientId) ||
-                string.IsNullOrEmpty(_config.ClientSecret)) {
+            if (string.IsNullOrEmpty(_config.AppId) ||
+                string.IsNullOrEmpty(_config.AppSecret)) {
                 return null;
             }
 
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Azure {
 
             try {
                 var result = await ctx.AcquireTokenAsync(resource,
-                    new ClientCredential(_config.ClientId, _config.ClientSecret),
+                    new ClientCredential(_config.AppId, _config.AppSecret),
                     new UserAssertion(token, kGrantType, name));
                 return result.ToTokenResult();
             }

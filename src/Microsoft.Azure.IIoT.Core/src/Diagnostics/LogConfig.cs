@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         public LogConfig(string processId,
             IConfigurationRoot configuration) :
             base(configuration) {
-            _processId = processId;
+            _processId = processId ?? "";
         }
 
         /// <summary>
@@ -39,11 +39,11 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         }
 
         /// <inheritdoc/>
-        public LogLevel LogLevel => GetLogLevel(
+        public LogLevel LogLevel => GetLogLevelOrDefault(
             "Logging:LogLevel:Default", LogLevel.Debug);
 
         /// <inheritdoc/>
-        public string ProcessId => GetString(
+        public string ProcessId => GetStringOrDefault(
             "Logging:ProcessId", _processId);
 
 
@@ -53,8 +53,8 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        private LogLevel GetLogLevel(string key, LogLevel defaultValue) {
-            var level = GetString(key);
+        private LogLevel GetLogLevelOrDefault(string key, LogLevel defaultValue) {
+            var level = GetStringOrDefault(key);
             if (!string.IsNullOrEmpty(level)) {
                 switch (level.ToLowerInvariant()) {
                     case "Warning":

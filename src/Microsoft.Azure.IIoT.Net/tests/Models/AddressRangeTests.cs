@@ -5,8 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Net.Models {
     using Xunit;
-    using System.Collections.Generic;
-    using System.Text;
     using System.Net;
     using System;
     using System.Linq;

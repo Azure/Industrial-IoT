@@ -27,7 +27,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             _factory = factory ?? new HttpHandlerFactory(logger);
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            // case-sensitive because named options is.
             _activeHandlers = new ConcurrentDictionary<string, ActiveHandlerEntry>(
                 StringComparer.Ordinal);
             _expiredHandlers = new ConcurrentQueue<ExpiredHandlerEntry>();
@@ -39,11 +38,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <param name="logger"></param>
         public HttpClientFactory(ILogger logger) : this (null, logger) { }
 
-        /// <summary>
-        /// Create a client.
-        /// </summary>
-        /// <param name="resourceId"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public System.Net.Http.HttpClient CreateClient(string resourceId) {
             if (resourceId == null) {
                 throw new ArgumentNullException(nameof(resourceId));

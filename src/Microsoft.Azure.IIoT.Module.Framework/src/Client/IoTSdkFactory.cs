@@ -87,23 +87,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 // Running in debug mode - can only use mqtt over tcp
                 _transport = TransportOption.MqttOverTcp;
             }
-            else if (!string.IsNullOrEmpty(ehubHost) || !string.IsNullOrEmpty(moduleId)) {
-                if (ehubHost != null) {
-                    // Running in iotedged context - can only use mqtt over tcp at this point
-                    _transport = TransportOption.MqttOverTcp;
-                }
-                else {
-                    // Directly connect module to cloud, only amqp works at this point.
-                    _transport = TransportOption.Amqp;
-                }
-            }
             else {
                 _transport = config.Transport;
             }
 
             _timeout = TimeSpan.FromMinutes(5);
-            RetryPolicy = new ExponentialBackoff(1000,
-                TimeSpan.FromSeconds(3), TimeSpan.FromMinutes(2), TimeSpan.FromSeconds(1));
         }
 
         /// <summary>
@@ -200,9 +188,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
-                client.SetConnectionStatusChangesHandler((s, r) =>
-                    logger.Info($"Module connection status changed to {s} due to {r}.",
-                        () => { }));
+                client.SetConnectionStatusChangesHandler((s, r) => logger.Info(
+                    $"Module {cs.DeviceId}_{cs.ModuleId} connection status changed to {s} due to {r}."));
                 if (retry != null) {
                     client.SetRetryPolicy(retry);
                 }
@@ -326,9 +313,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 var client = Create(cs, transportSetting);
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
-                client.SetConnectionStatusChangesHandler((s, r) =>
-                    logger.Info($"Device connection status changed to {s} due to {r}.",
-                    () => { }));
+                client.SetConnectionStatusChangesHandler((s, r) => logger.Info(
+                    $"Device {cs.DeviceId} connection status changed to {s} due to {r}."));
                 if (retry != null) {
                     client.SetRetryPolicy(retry);
                 }
@@ -426,14 +412,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         private void InstallCert(string certPath) {
             if (!File.Exists(certPath)) {
                 // We cannot proceed further without a proper cert file
-                _logger.Error($"Missing certificate file: {certPath}", () => { });
+                _logger.Error($"Missing certificate file: {certPath}");
                 throw new InvalidOperationException("Missing certificate file.");
             }
 
             var store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadWrite);
             store.Add(new X509Certificate2(X509Certificate.CreateFromCertFile(certPath)));
-            _logger.Info("Added Cert: " + certPath, () => { });
+            _logger.Info("Added Cert: " + certPath);
             store.Close();
         }
 

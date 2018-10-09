@@ -33,13 +33,13 @@ namespace System {
             if (value == null) {
                 return null;
             }
-            const string hexAlphabet = @"0123456789abcdef";
-            var chars = new char[checked(value.Length * 2)];
-            unchecked {
-                for (var i = 0; i < value.Length; i++) {
-                    chars[i * 2] = hexAlphabet[value[i] >> 4];
-                    chars[i * 2 + 1] = hexAlphabet[value[i] & 0xF];
-                }
+            const string charLookup = "0123456789abcdef";
+            var chars = new char[value.Length * 2];
+            // no checking needed here
+            var j = 0;
+            for (var i = 0; i < value.Length; i++) {
+                chars[j++] = charLookup[value[i] >> 4];
+                chars[j++] = charLookup[value[i] & 0xf];
             }
             return new string(chars);
         }

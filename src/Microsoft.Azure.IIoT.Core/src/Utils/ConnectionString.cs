@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Utils {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Runtime.Serialization;
     using System.Text;
 
@@ -28,10 +29,14 @@ namespace Microsoft.Azure.IIoT.Utils {
             SharedAccessKeyName,
             /// <summary>Shared access key</summary>
             SharedAccessKey,
+            /// <summary>Shared access token</summary>
+            SharedAccessToken,
             /// <summary>Endpoint</summary>
             Endpoint,
-            /// <summary>Shared access token</summary>
-            SharedAccessToken
+            /// <summary>Account endpoint</summary>
+            AccountEndpoint,
+            /// <summary>Account endpoint</summary>
+            AccountKey,
         }
 
         /// <summary>
@@ -70,12 +75,17 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Get shared access key
         /// </summary>
-        public string SharedAccessKey => this[Id.SharedAccessKey];
+        public string SharedAccessKey => this[Id.SharedAccessKey] ?? this[Id.AccountKey];
 
         /// <summary>
         /// Get shared access key
         /// </summary>
         public string SharedAccessToken => this[Id.SharedAccessToken];
+
+        /// <summary>
+        /// Get account endpoint
+        /// </summary>
+        public string Endpoint => this[Id.AccountEndpoint] ?? this[Id.Endpoint];
 
         /// <summary>
         /// Parse connection string
@@ -88,7 +98,8 @@ namespace Microsoft.Azure.IIoT.Utils {
                     nameof(ConnectionString));
             }
             var cs = new ConnectionString();
-            foreach (var elem in connectionString.Split(';')) {
+            foreach (var elem in connectionString.Split(new char[] { ';' },
+                StringSplitOptions.RemoveEmptyEntries)) {
                 var i = elem.IndexOf("=", StringComparison.Ordinal);
                 if (i < 0) {
                     throw new InvalidDataContractException("Bad key value pair.");
@@ -202,10 +213,10 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <returns></returns>
         public override string ToString() {
             var b = new StringBuilder();
-            foreach (var kv in _items) {
+            foreach (var kv in _items.Where(kv => kv.Value != null)) {
                 b.Append(kv.Key.ToString());
                 b.Append("=");
-                b.Append(kv.Value.ToString());
+                b.Append(kv.Value);
                 b.Append(";");
             }
             return b.ToString().TrimEnd(';');

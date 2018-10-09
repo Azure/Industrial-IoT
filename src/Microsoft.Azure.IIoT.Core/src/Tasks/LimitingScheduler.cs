@@ -17,9 +17,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
     /// </summary>
     public class LimitingScheduler : ITaskScheduler {
 
-        /// <summary>
-        /// Provides a shared task factory
-        /// </summary>
+        /// <inheritdoc/>
         public TaskFactory Factory => _factory;
 
         /// <summary>
@@ -33,10 +31,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
                     _scheduler);
         }
 
-        /// <summary>
-        /// Create debug dump
-        /// </summary>
-        /// <param name="logger"></param>
+        /// <inheritdoc/>
         public void Dump(ILogger logger) => _scheduler?.Dump(logger);
 
         /// <summary>
@@ -180,13 +175,13 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             /// </summary>
             /// <param name="logger"></param>
             internal void Dump(ILogger logger) {
-                logger.Debug("Dumping tasks...", () => { });
-                logger.Debug("-------------------------", () => { });
+                logger.Debug("Dumping tasks...");
+                logger.Debug("-------------------------");
                 foreach (var task in GetScheduledTasks()) {
                     logger.Debug(task.ToString(), () => task);
                 }
-                logger.Debug("-------------------------", () => { });
-                logger.Debug("... completed", () => { });
+                logger.Debug("-------------------------");
+                logger.Debug("... completed");
             }
 
             // Whether the current thread is processing work items.

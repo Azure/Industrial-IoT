@@ -10,15 +10,7 @@ namespace Microsoft.Azure.IIoT.Http {
     /// </summary>
     public static class HttpHeader {
 
-        /// <summary>
-        /// Target resource id
-        /// </summary>
-        public const string ResourceId = "x-ms-resource-id";
-
-        /// <summary>
-        /// Source id
-        /// </summary>
-        public const string SourceId = "x-source";
+        // Common
 
         /// <summary>
         /// Continuation token
@@ -30,9 +22,33 @@ namespace Microsoft.Azure.IIoT.Http {
         /// </summary>
         public const string MaxItemCount = "x-ms-max-item-count";
 
+        // Auditing
+
         /// <summary>
-        /// Roles
+        /// Tracking id of a audited session
         /// </summary>
-        public const string Roles = "x-roles";
+        public const string TrackingId = "x-ms-tracking-id";
+
+        /// <summary>
+        /// Audit identifier to use for request
+        /// </summary>
+        public const string ActivityId = "x-ms-activity-id";
+
+        // Auth and reverse proxy
+
+        /// <summary>
+        /// Target resource id
+        /// </summary>
+        public const string ResourceId = "x-resource-id";
+
+        /// <summary>
+        /// Source of the request (for internal addressing)
+        /// </summary>
+        public const string SourceId = "x-source";
+
+        /// <summary>
+        /// Forwarded path information
+        /// </summary>
+        public const string Location = "x-location";
     }
 }

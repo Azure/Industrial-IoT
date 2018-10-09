@@ -43,10 +43,14 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
                 throw new ArgumentNullException(nameof(headers));
             }
             if (!string.IsNullOrEmpty(resourceId)) {
-                // TODO: also get scopes/desired permissions from the request,
-                // e.g. read/write, etc. A provider that
+                //
+                // TODO: Eventually we also need scopes/desired permissions
+                // for the token, e.g. read, read/write, etc.
+                // We need a way to plumb them through to here, ideally add
+                // them to the api signatures or less ideal, parse them out
+                // of the resource id.
+                //
                 var desiredPermissions = Enumerable.Empty<string>();
-                // TODO...
 
                 var result = await _provider.GetTokenForAsync(resourceId,
                     desiredPermissions);

@@ -39,7 +39,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected string GetString(string key, string defaultValue = "") {
+        protected string GetStringOrDefault(string key,
+            string defaultValue = "") {
             var value = Configuration.GetValue(key, defaultValue);
             if (string.IsNullOrEmpty(value)) {
                 return defaultValue;
@@ -53,8 +54,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected bool GetBool(string key, bool defaultValue = false) {
-            var value = GetString(key, defaultValue.ToString()).ToLowerInvariant();
+        protected bool GetBoolOrDefault(string key,
+            bool defaultValue = false) {
+            var value = GetStringOrDefault(key, defaultValue.ToString()).ToLowerInvariant();
             var knownTrue = new HashSet<string> { "true", "t", "yes", "y", "1", "-1" };
             var knownFalse = new HashSet<string> { "false", "f", "no", "n", "0" };
             if (knownTrue.Contains(value)) {
@@ -72,8 +74,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected TimeSpan GetDuration(string key, TimeSpan? defaultValue = null) {
-            if (!TimeSpan.TryParse(GetString(key), out var result)) {
+        protected TimeSpan GetDurationOrDefault(string key,
+            TimeSpan? defaultValue = null) {
+            if (!TimeSpan.TryParse(GetStringOrDefault(key), out var result)) {
                 if (defaultValue != null) {
                     return (TimeSpan)defaultValue;
                 }
@@ -89,9 +92,11 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected int GetInt(string key, int defaultValue = 0) {
+        protected int GetIntOrDefault(string key,
+            int defaultValue = 0) {
             try {
-                return Convert.ToInt32(GetString(key, defaultValue.ToString()));
+                return Convert.ToInt32(GetStringOrDefault(key,
+                    defaultValue.ToString()));
             }
             catch (Exception e) {
                 throw new InvalidConfigurationException(

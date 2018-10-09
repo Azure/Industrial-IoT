@@ -5,6 +5,7 @@
 
 namespace System {
     using System.Collections.Generic;
+    using System.Diagnostics.Contracts;
     using System.Linq;
     using System.Text;
 
@@ -100,103 +101,93 @@ namespace System {
         /// <summary>
         /// Trims quotes
         /// </summary>
-        /// <param name="input"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
-        public static string TrimQuotes(this string input) {
-            var value = input.TrimMatching('"');
-            if (value == input) {
-                return input.TrimMatching('\'');
+        public static string TrimQuotes(this string value) {
+            Contract.Assert(value != null);
+            var trimmed = value.TrimMatchingChar('"');
+            if (trimmed == value) {
+                return value.TrimMatchingChar('\'');
             }
-            return value;
+            return trimmed;
         }
 
         /// <summary>
-        /// Extract data between start and end
+        /// Extract data between the end of the first occurence of findStart
+        /// and the start of findEnd.
         /// </summary>
-        /// <param name="str"></param>
-        /// <param name="findStart"></param>
-        /// <param name="findEnd"></param>
+        /// <param name="value">The string to search</param>
+        /// <param name="findStart">After which to extract</param>
+        /// <param name="findEnd">until string is extracted</param>
         /// <returns></returns>
-        public static string Extract(this string str, string findStart, string findEnd) {
-            var start = str.IndexOf(findStart, 0, StringComparison.Ordinal);
-            if (start == -1) {
-                return string.Empty;
+        public static string Extract(this string value, string findStart,
+            string findEnd) {
+            Contract.Assert(value != null);
+            var start = 0;
+            if (!string.IsNullOrEmpty(findStart)) {
+                start = value.IndexOf(findStart, 0, StringComparison.Ordinal);
+                if (start == -1) {
+                    return string.Empty;
+                }
+                start += findStart.Length;
             }
-            start += findStart.Length;
-            var end = str.IndexOf(findEnd, start, StringComparison.Ordinal);
+            if (string.IsNullOrEmpty(findEnd)) {
+                return value.Substring(start);
+            }
+            var end = value.IndexOf(findEnd, start, StringComparison.Ordinal);
             if (end == -1) {
                 return string.Empty;
             }
-            return str.Substring(start, end - start);
+            return value.Substring(start, end - start);
         }
 
         /// <summary>
         /// Split string using a predicate for each character that
         /// determines whether the position is a split point.
         /// </summary>
-        /// <param name="str"></param>
+        /// <param name="value"></param>
         /// <param name="predicate"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public static IEnumerable<string> Split(this string str, Func<char, bool> predicate,
+        public static IEnumerable<string> Split(this string value,
+            Func<char, bool> predicate,
             StringSplitOptions options = StringSplitOptions.None) {
-            var next = 0;
-            for (var c = 0; c < str.Length; c++) {
-                if (predicate(str[c])) {
-                    var v = str.Substring(next, c - next);
-                    if (options != StringSplitOptions.RemoveEmptyEntries ||
-                        !string.IsNullOrEmpty(v)) {
-                        yield return v;
+            Contract.Assert(value != null);
+            if (predicate == null) {
+                yield return value;
+            }
+            else {
+                var next = 0;
+                for (var c = 0; c < value.Length; c++) {
+                    if (predicate(value[c])) {
+                        var v = value.Substring(next, c - next);
+                        if (options != StringSplitOptions.RemoveEmptyEntries ||
+                            !string.IsNullOrEmpty(v)) {
+                            yield return v;
+                        }
+                        next = c + 1;
                     }
-                    next = c + 1;
                 }
+                if (options == StringSplitOptions.RemoveEmptyEntries && next == value.Length) {
+                    yield break;
+                }
+                yield return value.Substring(next);
             }
-            if (options == StringSplitOptions.RemoveEmptyEntries && next == str.Length) {
-                yield break;
-            }
-            yield return str.Substring(next);
         }
 
         /// <summary>
-        /// Split command line
+        /// Trims a char from front and back if both match
         /// </summary>
-        /// <param name="commandLine"></param>
-        /// <returns></returns>
-        public static string[] ParseAsCommandLine(this string commandLine) {
-            char? quote = null;
-            var isEscaping = false;
-            return commandLine
-                .Split(c => {
-                    if (c == '\\' && !isEscaping) {
-                        isEscaping = true;
-                        return false;
-                    }
-                    if ((c == '"' || c == '\'') && !isEscaping) {
-                        quote = c;
-                    }
-                    isEscaping = false;
-                    return quote == null && char.IsWhiteSpace(c);
-                }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(arg => arg
-                    .Trim()
-                    .TrimMatching(quote ?? ' ')
-                    .Replace("\\\"", "\""))
-                .Where(arg => !string.IsNullOrEmpty(arg))
-                .ToArray();
-        }
-
-        /// <summary>
-        /// Trims only matching chars from front and back
-        /// </summary>
-        /// <param name="input"></param>
+        /// <param name="value"></param>
         /// <param name="match"></param>
         /// <returns></returns>
-        static string TrimMatching(this string input, char match) {
-            if (input.Length >= 2 && input[0] == match &&
-                input[input.Length - 1] == match) {
-                return input.Substring(1, input.Length - 2);
+        public static string TrimMatchingChar(this string value, char match) {
+            Contract.Assert(value != null);
+            if (value.Length >= 2 && value[0] == match &&
+                value[value.Length - 1] == match) {
+                return value.Substring(1, value.Length - 2);
             }
-            return input;
+            return value;
         }
     }
 }

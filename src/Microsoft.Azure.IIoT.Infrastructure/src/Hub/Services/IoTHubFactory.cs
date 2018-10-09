@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
                 });
 
             _logger.Info($"Created iot hub {hubName} in resource " +
-                $"group {resourceGroup.Name}...", () => { });
+                $"group {resourceGroup.Name}...");
 
             var keys = await client.IotHubResource.GetKeysForKeyNameAsync(
                 resourceGroup.Name, hubName, kIoTHubOwner);
@@ -190,11 +190,11 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
             /// <inheritdoc/>
             public async Task DeleteAsync() {
                 try {
-                    _logger.Info($"Deleting iot hub {Name}...", () => { });
+                    _logger.Info($"Deleting iot hub {Name}...");
                     var client = await _manager.CreateIoTHubClientAsync(_resourceGroup);
                     await client.IotHubResource.DeleteAsync(_resourceGroup.Name,
                         Name);
-                    _logger.Info($"iot hub {Name} deleted.", () => { });
+                    _logger.Info($"iot hub {Name} deleted.");
                 }
                 catch (Exception ex) {
                     _manager._logger.Error("Exception during delete of iot hub",

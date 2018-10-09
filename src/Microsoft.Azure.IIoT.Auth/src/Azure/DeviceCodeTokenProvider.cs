@@ -52,9 +52,9 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
             _store = store ?? DefaultTokenCacheProvider.Instance;
 
-            if (string.IsNullOrEmpty(_config.ClientId)) {
+            if (string.IsNullOrEmpty(_config.AppId)) {
                 _logger.Error("Device code token provider was not configured with " +
-                    "a client id.  No tokens will be obtained. ", () => { });
+                    "a client id.  No tokens will be obtained. ");
             }
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
         /// <returns></returns>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
-            if (string.IsNullOrEmpty(_config.ClientId)) {
+            if (string.IsNullOrEmpty(_config.AppId)) {
                 return null;
             }
             var ctx = CreateAuthenticationContext(_config.Authority,
@@ -74,14 +74,14 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
             try {
                 try {
                     var result = await ctx.AcquireTokenSilentAsync(
-                        resource, _config.ClientId);
+                        resource, _config.AppId);
                     return result.ToTokenResult();
                 }
                 catch (AdalSilentTokenAcquisitionException) {
 
                     // Use device code
                     var codeResult = await ctx.AcquireDeviceCodeAsync(
-                        resource, _config.ClientId);
+                        resource, _config.AppId);
 
                     _callback(codeResult.DeviceCode, codeResult.ExpiresOn,
                         codeResult.Message);

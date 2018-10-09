@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             if (controllers.Any()) {
                 var sw = Stopwatch.StartNew();
                 await Task.WhenAll(controllers.Select(c => c.SafeApplyAsync()));
-                _logger.Debug($"Applying new settings took {sw.Elapsed}...", () => { });
+                _logger.Debug($"Applying new settings took {sw.Elapsed}...");
             }
 
             // Gather new values from controller

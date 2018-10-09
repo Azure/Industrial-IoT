@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                 }
                 else {
                     _logger.Error("No checkpointing storage configured or checkpoint " +
-                        "manager/lease manager implementation injected.", () => { });
+                        "manager/lease manager implementation injected.");
                     throw new InvalidConfigurationException(
                         "Invalid checkpoint configuration.");
                 }

@@ -17,6 +17,9 @@ namespace System {
         /// <param name="ae"></param>
         /// <returns></returns>
         public static string GetCombinedExceptionMessage(this AggregateException ae) {
+            if (ae == null) {
+                return null;
+            }
             var sb = new StringBuilder();
             foreach (var e in ae.InnerExceptions) {
                 sb.AppendLine(string.Concat("E: ", e.Message));
@@ -30,6 +33,9 @@ namespace System {
         /// <param name="ae"></param>
         /// <returns></returns>
         public static string GetCombinedExceptionStackTrace(this AggregateException ae) {
+            if (ae == null) {
+                return null;
+            }
             var sb = new StringBuilder();
             foreach (var e in ae.InnerExceptions) {
                 sb.AppendLine(string.Concat("StackTrace: ", e.StackTrace));

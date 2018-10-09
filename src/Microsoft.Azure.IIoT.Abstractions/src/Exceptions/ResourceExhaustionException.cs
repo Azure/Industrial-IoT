@@ -7,8 +7,8 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     using System;
 
     /// <summary>
-    /// This exception is thrown a resource, such as database, queue, or
-    /// CPU is exhausted.
+    /// This exception is thrown when a resource, such as database,
+    /// memory, queue, or CPU is temporarily exhausted.
     /// </summary>
     public class ResourceExhaustionException : Exception {
 

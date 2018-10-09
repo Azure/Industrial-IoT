@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         LogLevel LogLevel { get; }
 
         /// <summary>
-        /// Process id to log
+        /// Process id to log as additional context.
         /// </summary>
         string ProcessId { get; }
     }

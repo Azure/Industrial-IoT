@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Hub {
     using Microsoft.Azure.IIoT.Hub.Models;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>

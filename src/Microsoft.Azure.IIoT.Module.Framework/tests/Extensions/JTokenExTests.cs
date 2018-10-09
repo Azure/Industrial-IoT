@@ -5,8 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework {
     using Xunit;
-    using System.Collections.Generic;
-    using System.Text;
     using Newtonsoft.Json.Linq;
 
     public class JTokenExTests {

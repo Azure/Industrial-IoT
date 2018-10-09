@@ -3,22 +3,28 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Diagnostics {
-    using System;
+namespace Microsoft.Azure.IIoT.Services.Diagnostics {
     using Microsoft.Extensions.Logging;
-    using IAspLogger = Extensions.Logging.ILogger;
+    using System;
+
+    using ICommonLogger = IIoT.Diagnostics.ILogger;
+    using CommonLogLevel = IIoT.Diagnostics.LogLevel;
+    using ICommonLogConfig = IIoT.Diagnostics.ILogConfig;
 
     /// <summary>
     /// Logger implementation
     /// </summary>
-    public class ExtensionLogger : BaseLogger {
+    public class ExtensionLogger : ICommonLogger {
+
+        /// <inheritdoc/>
+        public string Name { get; }
 
         /// <summary>
         /// Create logger
         /// </summary>
         /// <param name="factory"></param>
         public ExtensionLogger(ILoggerFactory factory) :
-            this(factory, null) {
+            this("", factory) {
         }
 
         /// <summary>
@@ -26,51 +32,34 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="config"></param>
-        public ExtensionLogger(ILoggerFactory factory, ILogConfig config) :
-            this(config?.ProcessId ?? "log", factory) {
+        public ExtensionLogger(ILoggerFactory factory,
+            ICommonLogConfig config) :
+            this(config?.ProcessId ?? "", factory) {
         }
 
         /// <summary>
         /// Create logger
         /// </summary>
         /// <param name="factory"></param>
-        /// <param name="category"></param>
-        internal ExtensionLogger(string category, ILoggerFactory factory) :
-            base(category) {
-            if (factory == null) {
+        /// <param name="name"></param>
+        internal ExtensionLogger(string name, ILoggerFactory factory) {
+            _factory = factory ??
                 throw new ArgumentNullException(nameof(factory));
-            }
-            _logger = factory.CreateLogger(category);
+            _logger = factory.CreateLogger(name);
         }
 
-        /// <summary>
-        /// Log debug
-        /// </summary>
-        /// <param name="message"></param>
-        protected override sealed void Debug(Func<string> message) =>
-            _logger.LogDebug(message());
+        /// <inheritdoc/>
+        public ICommonLogger Create(string name) =>
+            new ExtensionLogger(Name + "_" + name, _factory);
 
-        /// <summary>
-        /// Log info
-        /// </summary>
-        /// <param name="message"></param>
-        protected override sealed void Info(Func<string> message) =>
-            _logger.LogInformation(message());
+        /// <inheritdoc/>
+        public void Log(string method, string file, int lineNumber,
+            CommonLogLevel level, Exception exception, string message,
+            params object[] parameters) {
+            _logger.Log((LogLevel)level, exception, message, parameters);
+        }
 
-        /// <summary>
-        /// Log warning
-        /// </summary>
-        /// <param name="message"></param>
-        protected override sealed void Warn(Func<string> message) =>
-            _logger.LogWarning(message());
-
-        /// <summary>
-        /// Log error
-        /// </summary>
-        /// <param name="message"></param>
-        protected override sealed void Error(Func<string> message) =>
-            _logger.LogError(message());
-
-        private readonly IAspLogger _logger;
+        private readonly ILogger _logger;
+        private readonly ILoggerFactory _factory;
     }
 }

@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         }
                         _client.Dispose();
                     }
-                    _logger.Info($"Module Host stopped @{SiteId}.", () => { });
+                    _logger.Info($"Module Host stopped @{SiteId}.");
                 }
                 catch (Exception ce) {
                     _logger.Error("Module Host stopping caused exception.",
@@ -111,7 +111,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     await _lock.WaitAsync();
                     if (_client == null) {
                         // Create client
-                        _logger.Debug("Starting Module Host...", () => { });
+                        _logger.Debug("Starting Module Host...");
                         _client = await _factory.CreateAsync(serviceInfo);
                         DeviceId = _factory.DeviceId;
                         ModuleId = _factory.ModuleId;
@@ -140,7 +140,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         await _client.UpdateReportedPropertiesAsync(twinSettings);
 
                         // Done...
-                        _logger.Info($"Module Host started @{SiteId}).", () => { });
+                        _logger.Info($"Module Host started @{SiteId}).");
                         return;
                     }
                 }
@@ -330,9 +330,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             if (!string.IsNullOrEmpty(_twin.ModuleId)) {
                 ModuleId = _twin.ModuleId;
             }
-            _logger.Info($"Initialize twin for {DeviceId} - {ModuleId ?? "standalone"}",
-                () => { });
-
+            _logger.Info($"Initialize twin for {DeviceId} - {ModuleId ?? "standalone"}");
             if (_twin.Properties.Reported.Count > 0 || _twin.Properties.Desired.Count > 0) {
 
                 var desired = new TwinCollection();
@@ -361,7 +359,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
 
                 // Process settings on controllers
-                _logger.Debug("Applying initial state.", () => { });
+                _logger.Debug("Applying initial state.");
                 var processed = await _settings.ProcessSettingsAsync(desired);
 
                 // If there are changes, update what should be reported back.
@@ -387,7 +385,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     }
                 }
                 if (reported.Count > 0) {
-                    _logger.Debug("Reporting initial state.", () => { });
+                    _logger.Debug("Reporting initial state.");
                     await _client.UpdateReportedPropertiesAsync(reported);
                 }
             }

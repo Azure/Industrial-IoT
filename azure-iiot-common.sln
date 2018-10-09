@@ -57,6 +57,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Core",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Core.Tests", "src\Microsoft.Azure.IIoT.Core\tests\Microsoft.Azure.IIoT.Core.Tests.csproj", "{1665732C-4AC5-42AD-9911-A178DD47C890}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Storage", "src\Microsoft.Azure.IIoT.Storage\src\Microsoft.Azure.IIoT.Storage.csproj", "{7CB68B33-08BF-43E1-A0D1-4692B2EAE6E0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Storage.Tests", "src\Microsoft.Azure.IIoT.Storage\tests\Microsoft.Azure.IIoT.Storage.Tests.csproj", "{66271783-5040-4740-9985-1D06CCF70745}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -163,6 +167,14 @@ Global
 		{1665732C-4AC5-42AD-9911-A178DD47C890}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1665732C-4AC5-42AD-9911-A178DD47C890}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1665732C-4AC5-42AD-9911-A178DD47C890}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CB68B33-08BF-43E1-A0D1-4692B2EAE6E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CB68B33-08BF-43E1-A0D1-4692B2EAE6E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CB68B33-08BF-43E1-A0D1-4692B2EAE6E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CB68B33-08BF-43E1-A0D1-4692B2EAE6E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66271783-5040-4740-9985-1D06CCF70745}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66271783-5040-4740-9985-1D06CCF70745}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66271783-5040-4740-9985-1D06CCF70745}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66271783-5040-4740-9985-1D06CCF70745}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -193,6 +205,8 @@ Global
 		{8D787BD3-194E-4C25-90C9-78E62D219FDF} = {586FC459-11D4-47FB-9297-1E3297D85D7F}
 		{B6BB85BC-5AB6-4DE9-B4CD-1E97A1C66422} = {DF41A1FC-41C0-4E95-BC73-60BDF16C2D37}
 		{1665732C-4AC5-42AD-9911-A178DD47C890} = {586FC459-11D4-47FB-9297-1E3297D85D7F}
+		{7CB68B33-08BF-43E1-A0D1-4692B2EAE6E0} = {DF41A1FC-41C0-4E95-BC73-60BDF16C2D37}
+		{66271783-5040-4740-9985-1D06CCF70745} = {586FC459-11D4-47FB-9297-1E3297D85D7F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}

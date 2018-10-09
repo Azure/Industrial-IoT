@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Net;
     using Microsoft.Azure.IIoT.Net.Ssh;
+    using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json;
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Net;
     using System.Threading;
@@ -39,14 +39,14 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
             do {
                 if (run) {
                     Console.Write("> ");
-                    args = Console.ReadLine().ParseAsCommandLine();
+                    args = CliOptions.ParseAsCommandLine(Console.ReadLine());
                 }
                 try {
                     if (args.Length < 1) {
                         throw new ArgumentException("Need a command!");
                     }
                     var command = args[0].ToLowerInvariant();
-                    var options = CollectOptions(1, args);
+                    var options = new CliOptions(args);
                     switch (command) {
                         case "exit":
                             run = false;
@@ -111,10 +111,10 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
         /// <param name="options"></param>
         /// <returns></returns>
         private static async Task<ISecureShell> LoginAsync(IShellFactory shellFactory,
-            Dictionary<string, string> options) {
+            CliOptions options) {
 
-            var user = GetOption<string>(options, "-u", "--user", null);
-            var pw = GetOption<string>(options, "-p", "--password", null);
+            var user = options.GetValueOrDefault<string>("-u", "--user", null);
+            var pw = options.GetValueOrDefault<string>("-p", "--password", null);
 
             while (string.IsNullOrEmpty(user)) {
                 Console.WriteLine("User:");
@@ -131,10 +131,10 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
             }
 
             var cts = new CancellationTokenSource(
-                GetOption(options, "-t", "--timeout", -1));
+                options.GetValueOrDefault("-t", "--timeout", -1));
             return await shellFactory.OpenSecureShellAsync(
-                GetOption<string>(options, "-h", "--host"),
-                GetOption(options, "-p", "--port", 22),
+                options.GetValue<string>("-h", "--host"),
+                options.GetValueOrDefault("-p", "--port", 22),
                 creds, cts.Token);
         }
 
@@ -148,8 +148,8 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
                 Console.WriteLine("Not logged in.");
             }
             else {
-            shell.Dispose();
-                }
+                shell.Dispose();
+            }
             return null;
         }
 
@@ -161,12 +161,12 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
         /// <param name="options"></param>
         /// <returns></returns>
         private static async Task RunTerminalAsync(ISecureShell shell,
-            Dictionary<string, string> options) {
+            CliOptions options) {
             if (shell == null) {
                 throw new ArgumentException("Must login first");
             }
             var cts = new CancellationTokenSource(
-                GetOption(options, "-t", "--timeout", -1));
+                options.GetValueOrDefault("-t", "--timeout", -1));
             await shell.BindAsync(cts.Token);
         }
 
@@ -177,10 +177,10 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
         /// <param name="options"></param>
         /// <returns></returns>
         private static async Task UploadAsync(ISecureShell shell,
-            Dictionary<string, string> options) {
-            var to = GetOption<string>(options, "-t", "--to");
-            var file = GetOption<string>(options, "-f", "--file");
-            var from = GetOption<string>(options, "-p", "--path");
+            CliOptions options) {
+            var to = options.GetValue<string>("-t", "--to");
+            var file = options.GetValue<string>("-f", "--file");
+            var from = options.GetValue<string>("-p", "--path");
             await UploadFileAsync(shell, options, to, from, file);
         }
 
@@ -191,9 +191,9 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
         /// <param name="options"></param>
         /// <returns></returns>
         private static async Task UploadFolderAsync(ISecureShell shell,
-            Dictionary<string, string> options) {
-            var to = GetOption<string>(options, "-t", "--to");
-            var from = GetOption<string>(options, "-p", "--path");
+            CliOptions options) {
+            var to = options.GetValue<string>("-t", "--to");
+            var from = options.GetValue<string>("-p", "--path");
 
             await UploadFolderAsync(shell, options, to, from);
         }
@@ -207,11 +207,11 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
         /// <param name="from"></param>
         /// <returns></returns>
         private static async Task UploadFolderAsync(ISecureShell shell,
-            Dictionary<string, string> options, string to, string from) {
+            CliOptions options, string to, string from) {
             foreach (var file in Directory.EnumerateFiles(from)) {
                 await UploadFileAsync(shell, options, to, from, file);
             }
-            if (!GetOption(options, "-r", "--recursive", false)) {
+            if (!options.GetValueOrDefault("-r", "--recursive", false)) {
                 return;
             }
             foreach (var dir in Directory.EnumerateDirectories(from)) {
@@ -231,11 +231,11 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
         /// <param name="file"></param>
         /// <returns></returns>
         private static async Task UploadFileAsync(ISecureShell shell,
-            Dictionary<string, string> options, string to, string from, string file) {
+            CliOptions options, string to, string from, string file) {
             var buffer = await File.ReadAllBytesAsync(Path.Combine(from, file));
             await shell.UploadAsync(buffer, file, to,
-                GetOption(options, "-h", "--home", true),
-                GetOption<string>(options, "-m", "--mode", null));
+                options.GetValueOrDefault("-h", "--home", true),
+                options.GetValueOrDefault<string>("-m", "--mode", null));
         }
 
         /// <summary>
@@ -245,11 +245,11 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
         /// <param name="options"></param>
         /// <returns></returns>
         private static async Task DownloadAsync(ISecureShell shell,
-            Dictionary<string, string> options) {
-            var file = GetOption<string>(options, "-f", "--file");
-            var from = GetOption<string>(options, "-p", "--path");
+            CliOptions options) {
+            var file = options.GetValue<string>("-f", "--file");
+            var from = options.GetValue<string>("-p", "--path");
             var str = await shell.DownloadAsync(file, from,
-                GetOption(options, "-h", "--home", true));
+                options.GetValueOrDefault("-h", "--home", true));
             PrintResult(options, str);
         }
 
@@ -260,11 +260,11 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
         /// <param name="options"></param>
         /// <returns></returns>
         private static async Task DownloadFolderAsync(ISecureShell shell,
-            Dictionary<string, string> options) {
-            var from = GetOption<string>(options, "-f", "--from");
-            var path = GetOption<string>(options, "-p", "--path");
+            CliOptions options) {
+            var from = options.GetValue<string>("-f", "--from");
+            var path = options.GetValue<string>("-p", "--path");
             await shell.DownloadFolderAsync(path, from,
-                GetOption(options, "-h", "--home", true));
+                options.GetValueOrDefault("-h", "--home", true));
         }
 
         /// <summary>
@@ -274,9 +274,9 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
         /// <param name="options"></param>
         /// <returns></returns>
         private static async Task ExecuteCommandAsync(ISecureShell shell,
-            Dictionary<string, string> options) {
+            CliOptions options) {
             var str = await shell.ExecuteCommandAsync(
-                GetOption<string>(options, "-c", "--command"));
+                options.GetValue<string>("-c", "--command"));
             PrintResult(options, str);
         }
 
@@ -286,94 +286,12 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
         /// <typeparam name="T"></typeparam>
         /// <param name="options"></param>
         /// <param name="status"></param>
-        private static void PrintResult<T>(Dictionary<string, string> options,
+        private static void PrintResult<T>(CliOptions options,
             T status) {
             Console.WriteLine("==================");
             Console.WriteLine(JsonConvert.SerializeObject(status,
-                GetOption(options, "-F", "--format", Formatting.Indented)));
+                options.GetValueOrDefault("-F", "--format", Formatting.Indented)));
             Console.WriteLine("==================");
-        }
-
-        /// <summary>
-        /// Get option value
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="key1"></param>
-        /// <param name="key2"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
-        private static T GetOption<T>(Dictionary<string, string> options,
-            string key1, string key2, T defaultValue) {
-            if (!options.TryGetValue(key1, out var value) &&
-                !options.TryGetValue(key2, out value)) {
-                return defaultValue;
-            }
-            return value.As<T>();
-        }
-
-        /// <summary>
-        /// Get mandatory option value
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="key1"></param>
-        /// <param name="key2"></param>
-        /// <returns></returns>
-        private static T GetOption<T>(Dictionary<string, string> options,
-            string key1, string key2) {
-            if (!options.TryGetValue(key1, out var value) &&
-                !options.TryGetValue(key2, out value)) {
-                throw new ArgumentException($"Missing {key1}/{key2} option.");
-            }
-            return value.As<T>();
-        }
-
-        /// <summary>
-        /// Get mandatory option value
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="key1"></param>
-        /// <param name="key2"></param>
-        /// <returns></returns>
-        private static T? GetOption<T>(Dictionary<string, string> options,
-            string key1, string key2, T? defaultValue) where T : struct {
-            if (!options.TryGetValue(key1, out var value) &&
-                !options.TryGetValue(key2, out value)) {
-                return defaultValue;
-            }
-            if (typeof(T).IsEnum) {
-                return Enum.Parse<T>(value, true);
-            }
-            return value.As<T>();
-        }
-
-        /// <summary>
-        /// Helper to collect options
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        private static Dictionary<string, string> CollectOptions(int offset,
-            string[] args) {
-            var options = new Dictionary<string, string>();
-            for (var i = offset; i < args.Length;) {
-                var key = args[i];
-                if (key[0] != '-') {
-                    throw new ArgumentException($"{key} is not an option.");
-                }
-                i++;
-                if (i == args.Length) {
-                    options.Add(key, "true");
-                    break;
-                }
-                var val = args[i];
-                if (val[0] == '-') {
-                    // An option, so previous one is a boolean option
-                    options.Add(key, "true");
-                    continue;
-                }
-                options.Add(key, val);
-                i++;
-            }
-            return options;
         }
 
         /// <summary>

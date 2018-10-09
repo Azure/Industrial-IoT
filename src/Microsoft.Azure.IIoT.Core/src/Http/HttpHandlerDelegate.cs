@@ -37,8 +37,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             var root = next.GetRoot();
             if (root == null) {
                 _logger.Error("Cannot configure root handler, inner " +
-                    "most handler is not a configurable client handler",
-                        () => { });
+                    "most handler is not a configurable client handler");
                 return;
             }
 
@@ -50,7 +49,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 else {
                     _logger.Warn("Proxy configuration provided, but " +
                         "underlying handler does not support proxy " +
-                        "configuration.  Skipping proxy.", () => { });
+                        "configuration.  Skipping proxy.");
                 }
             }
 

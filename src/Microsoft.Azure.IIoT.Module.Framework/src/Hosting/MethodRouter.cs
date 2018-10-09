@@ -55,10 +55,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 return new MethodResponse((int)HttpStatusCode.NotImplemented);
             }
             var sw = Stopwatch.StartNew();
-            _logger.Debug($"Invoking controller method {request.Name}... ", () => { });
+            _logger.Verbose($"Invoking controller method {request.Name}... ",
+                () => request.DataAsJson);
             var result = await invoker.InvokeAsync(request);
-            _logger.Debug($"... method invoked (took {sw.ElapsedMilliseconds} ms)",
-                () => { });
+            _logger.Verbose($"... method invoked (took {sw.ElapsedMilliseconds} ms)",
+                () => result);
             return result;
         }
 
@@ -116,10 +117,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="controller"></param>
             /// <param name="controllerMethod"></param>
             public void Add(object controller, MethodInfo controllerMethod) {
-#if LOG_VERBOSE
-                _logger.Debug($"Adding {controller.GetType().Name}.{controllerMethod.Name}" +
-                    " method to invoker...", () => { });
-#endif
+                _logger.Verbose($"Adding {controller.GetType().Name}.{controllerMethod.Name}" +
+                    " method to invoker...");
                 _invokers.Add(new MethodInvoker(controller, controllerMethod, _logger));
             }
 
@@ -198,7 +197,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     else {
                         var data = (JObject)JToken.Parse(request.DataAsJson);
                         inputs = _methodParams.Select(param => {
-                            if (data.TryGetValue(param.Name, out var value)) {
+                            if (data.TryGetValue(param.Name,
+                                StringComparison.InvariantCultureIgnoreCase, out var value)) {
                                 return value.ToObject(param.ParameterType);
                             }
                             return param.HasDefaultValue ? param.DefaultValue : null;

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -30,14 +30,14 @@ namespace Microsoft.Azure.IIoT.Services.Cors {
         /// <param name="app"></param>
         public void UseMiddleware(IApplicationBuilder app) {
             if (!_config.CorsEnabled) {
-                _log.Info("CORS is disabled", () => { });
+                _log.Info("CORS is disabled");
                 return;
             }
             app.UseCors(builder => {
-                _log.Info("CORS is enabled", () => { });
+                _log.Info("CORS is enabled");
 
                 if (_config.CorsWhitelist == "*") {
-                    _log.Info("Allow all headers, origins and methods", () => { });
+                    _log.Info("Allow all headers, origins and methods");
                     builder.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod();
                     return;
                 }
@@ -64,11 +64,10 @@ namespace Microsoft.Azure.IIoT.Services.Cors {
         private void Configure(string name, string[] policies, Action all,
             Action<string[]> specific) {
             if (policies == null) {
-                _log.Info($"No setting for CORS {name} policy was found, ignore",
-                    () => { });
+                _log.Info($"No setting for CORS {name} policy was found, ignore");
             }
             else if (policies.Contains("*")) {
-                _log.Info($"CORS policy for {name} allows any header", () => { });
+                _log.Info($"CORS policy for {name} allows any header");
                 all();
             }
             else {

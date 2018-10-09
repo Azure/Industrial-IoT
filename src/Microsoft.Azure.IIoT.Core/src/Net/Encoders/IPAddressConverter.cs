@@ -10,7 +10,7 @@ namespace Newtonsoft.Json {
     /// <summary>
     /// Writes and reads address from json
     /// </summary>
-    public class IPAddressConverter : JsonConverter<IPAddress> {
+    internal class IPAddressConverter : JsonConverter<IPAddress> {
 
         /// <summary>
         /// Can read

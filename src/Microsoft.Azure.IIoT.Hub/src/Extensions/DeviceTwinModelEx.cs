@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
     using Newtonsoft.Json.Linq;
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -13,28 +14,28 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     public static class DeviceTwinModelEx {
 
         /// <summary>
-        /// Convert jtoken to twin
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static DeviceTwinModel ToDeviceTwinModel(JToken model) =>
-            model.ToObject<DeviceTwinModel>();
-
-        /// <summary>
-        /// Convert json to twin
-        /// </summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        public static DeviceTwinModel ToDeviceTwinModel(string json) =>
-             ToDeviceTwinModel(JToken.Parse(json));
-
-        /// <summary>
-        /// Convert twin to json
+        /// Check whether twin is connected
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
-        public static JToken ToJson(this DeviceTwinModel twin) =>
-            JToken.FromObject(twin);
+        public static bool? IsConnected(this DeviceTwinModel twin) =>
+            twin.ConnectionState?.EqualsIgnoreCase("connected");
+
+        /// <summary>
+        /// Check whether twin is enabled
+        /// </summary>
+        /// <param name="twin"></param>
+        /// <returns></returns>
+        public static bool? IsEnabled(this DeviceTwinModel twin) =>
+            twin.Status?.EqualsIgnoreCase("enabled");
+
+        /// <summary>
+        /// Check whether twin is disabled
+        /// </summary>
+        /// <param name="twin"></param>
+        /// <returns></returns>
+        public static bool? IsDisabled(this DeviceTwinModel twin) =>
+            twin.Status?.EqualsIgnoreCase("disabled");
 
         /// <summary>
         /// Consolidated

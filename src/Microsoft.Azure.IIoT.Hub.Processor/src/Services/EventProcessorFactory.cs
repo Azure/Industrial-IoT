@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
     using Microsoft.Azure.EventHubs.Processor;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Generic;

@@ -39,71 +39,37 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
-        /// <summary>
-        /// Create new request
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <param name="resourceId"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public IHttpRequest NewRequest(Uri uri, string resourceId) =>
             new HttpRequest(uri, resourceId);
 
-        /// <summary>
-        /// Perform get
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task<IHttpResponse> GetAsync(IHttpRequest request) =>
             SendAsync(request, HttpMethod.Get);
 
-        /// <summary>
-        /// Perform post
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task<IHttpResponse> PostAsync(IHttpRequest request) =>
             SendAsync(request, HttpMethod.Post);
 
-        /// <summary>
-        /// Perform put
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task<IHttpResponse> PutAsync(IHttpRequest request) =>
             SendAsync(request, HttpMethod.Put);
 
-        /// <summary>
-        /// Performs patch
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task<IHttpResponse> PatchAsync(IHttpRequest request) =>
             SendAsync(request, new HttpMethod("PATCH"));
 
-        /// <summary>
-        /// Performs delete
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task<IHttpResponse> DeleteAsync(IHttpRequest request) =>
             SendAsync(request, HttpMethod.Delete);
 
-        /// <summary>
-        /// Performs head
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task<IHttpResponse> HeadAsync(IHttpRequest request) =>
             SendAsync(request, HttpMethod.Head);
 
-        /// <summary>
-        /// Performs option
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public Task<IHttpResponse> OptionsAsync(IHttpRequest request) =>
             SendAsync(request, HttpMethod.Options);
-
 
         /// <summary>
         /// Send request
@@ -118,35 +84,35 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 throw new InvalidOperationException("Bad request");
             }
 #if DEBUG
-            httpRequest.Options.Timeout *= 100;
+            // Increase timeout for the case where debugger is attached
+            if (Debugger.IsAttached) {
+                httpRequest.Options.Timeout *= 100;
+            }
 #endif
             using (var client = _factory.CreateClient(httpRequest.ResourceId ??
                 HttpHandlerFactory.kDefaultResourceId)) {
                 client.Timeout = TimeSpan.FromMilliseconds(httpRequest.Options.Timeout);
                 var sw = Stopwatch.StartNew();
-#if LOG_VERBOSE
-                _logger.Debug($"Sending {httpMethod} request to {httpRequest.Uri}...",
-                    () => { });
-#endif
+                _logger.Verbose($"Sending {httpMethod} request to {httpRequest.Uri}...");
                 try {
                     wrapper.Request.Method = httpMethod;
                     using (var response = await client.SendAsync(wrapper.Request)) {
-                        if ((int)response.StatusCode >= 400) {
-                            _logger.Warn($"{httpMethod} to {httpRequest.Uri} returned " +
-                                 $"{response.StatusCode} (took {sw.Elapsed}).", () => { });
-                        }
-                        else {
-#if LOG_VERBOSE
-                           _logger.Debug($"... {httpMethod} to {httpRequest.Uri} returned " +
-                                $"{response.StatusCode} (took {sw.Elapsed}).", () => { });
-#endif
-                        }
-                        return new HttpResponse {
+                        var result = new HttpResponse {
                             ResourceId = httpRequest.ResourceId,
                             StatusCode = response.StatusCode,
                             Headers = response.Headers,
                             Content = await response.Content.ReadAsByteArrayAsync()
                         };
+                        if (result.IsError()) {
+                            _logger.Error($"{httpMethod} to {httpRequest.Uri} returned " +
+                                 $"{response.StatusCode} (took {sw.Elapsed}).",
+                                 () => result.GetContentAsString());
+                        }
+                        else {
+                            _logger.Verbose($"... {httpMethod} to {httpRequest.Uri} returned " +
+                                 $"{response.StatusCode} (took {sw.Elapsed}).");
+                        }
+                        return result;
                     }
                 }
                 catch (HttpRequestException e) {

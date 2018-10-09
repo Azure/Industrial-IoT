@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network.Services {
     using Microsoft.Azure.Management.Fluent;
     using Microsoft.Azure.Management.Network.Fluent;
     using Microsoft.Azure.Management.Network.Fluent.Models;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -66,7 +65,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network.Services {
                 "net", name);
 
             var region = await resourceGroup.Subscription.GetRegionAsync();
-            _logger.Info($"Trying to create network {name}...", () => { });
+            _logger.Info($"Trying to create network {name}...");
 
             var nsg = await client.NetworkSecurityGroups
                 .Define(name)
@@ -86,7 +85,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network.Services {
                     .Attach();
             }
             var network = await networkDefinition.CreateAsync();
-            _logger.Info($"Created network {name}.", () => { });
+            _logger.Info($"Created network {name}.");
             return new NetworkResource(this, resourceGroup, network, _logger);
         }
 
@@ -171,9 +170,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network.Services {
 
             /// <inheritdoc/>
             public async Task DeleteAsync() {
-                _logger.Info($"Deleting network {_network.Id}...", () => { });
+                _logger.Info($"Deleting network {_network.Id}...");
                 await _manager.TryDeleteNetworkAsync(_resourceGroup, _network.Id);
-                _logger.Info($"Network {_network.Id} deleted.", () => { });
+                _logger.Info($"Network {_network.Id} deleted.");
             }
 
             private readonly IResourceGroupResource _resourceGroup;

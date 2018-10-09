@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
+    using System;
     using System.Collections.Generic;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -53,5 +54,49 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         [JsonProperty(PropertyName = "capabilities",
             NullValueHandling = NullValueHandling.Ignore)]
         public DeviceCapabilitiesModel Capabilities { get; set; }
+
+        /// <summary>
+        /// Twin's Version
+        /// </summary>
+        [JsonProperty(PropertyName = "version",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public long? Version { get; set; }
+
+        /// <summary>
+        /// Gets the corresponding Device's Status.
+        /// </summary>
+        [JsonProperty(PropertyName = "status",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string Status { get; set; }
+
+        /// <summary>
+        /// Reason, if any, for the corresponding Device
+        /// to be in specified <see cref="Status"/>
+        /// </summary>
+        [JsonProperty(PropertyName = "statusReason",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string StatusReason { get; set; }
+
+        /// <summary>
+        /// Time when the corresponding Device's
+        /// <see cref="Status"/> was last updated
+        /// </summary>
+        [JsonProperty(PropertyName = "statusUpdatedTime",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public DateTime? StatusUpdatedTime { get; set; }
+
+        /// <summary>
+        /// Corresponding Device's ConnectionState
+        /// </summary>
+        [JsonProperty(PropertyName = "connectionState",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string ConnectionState { get; set; }
+
+        /// <summary>
+        /// Time when the corresponding Device was last active
+        /// </summary>
+        [JsonProperty(PropertyName = "lastActivityTime",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public DateTime? LastActivityTime { get; set; }
     }
 }

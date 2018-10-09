@@ -21,8 +21,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                 Id = module.DeviceId,
                 ModuleId = module.Id,
                 Authentication = module.Authentication.ToModel(),
-                Connected = module.ConnectionState == DeviceConnectionState.Connected,
-                Enabled = true,
                 Etag = module.ETag
             };
         }
@@ -37,8 +35,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                 Id = device.Id,
                 ModuleId = null,
                 Authentication = device.Authentication.ToModel(),
-                Connected = device.ConnectionState == DeviceConnectionState.Connected,
-                Enabled = device.Status == DeviceStatus.Enabled,
                 Etag = device.ETag
             };
         }

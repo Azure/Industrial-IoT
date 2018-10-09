@@ -93,7 +93,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
             return Task.Run(() => {
                 using (var command = _sshClient.CreateCommand(commandToExecute)) {
                     var result = command.Execute();
-                    _logger.Debug($"SSH> {commandToExecute}\n{result}", () => { });
+                    _logger.Debug($"SSH> {commandToExecute}\n{result}");
                     return result;
                 }
             }, ct);
@@ -115,7 +115,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
                 using (var mstream = new MemoryStream()) {
                     var target = path + "/" + fileName;
                     _scpClient.Download(target, mstream);
-                    _logger.Debug($"SCP> {target} downloaded.", () => { });
+                    _logger.Debug($"SCP> {target} downloaded.");
                     mstream.Position = 0;
                     return new StreamReader(mstream).ReadToEnd();
                 }
@@ -141,7 +141,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
                     if (mstream.Position >= maxCount) {
                         return -1;
                     }
-                    _logger.Debug($"SCP> {target} downloaded.", () => { });
+                    _logger.Debug($"SCP> {target} downloaded.");
                     mstream.Position = 0;
                     return mstream.Read(destBuff, 0, maxCount);
                 }
@@ -162,7 +162,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
 
             return Task.Run(() => {
                 _scpClient.Download(path, new DirectoryInfo(toPath));
-                _logger.Debug($"SCP> {path} downloaded to {toPath}.", () => { });
+                _logger.Debug($"SCP> {path} downloaded to {toPath}.");
             }, ct);
         }
 
@@ -188,7 +188,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
                 // Create the file containing the uploaded data
                 using (var mstream = new MemoryStream(data)) {
                     _scpClient.Upload(mstream, target);
-                    _logger.Debug($"SCP> {target} uploaded.", () => { });
+                    _logger.Debug($"SCP> {target} uploaded.");
                 }
 
                 if (string.IsNullOrEmpty(mode)) {

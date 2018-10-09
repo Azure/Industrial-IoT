@@ -4,129 +4,59 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Diagnostics {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.Utils;
     using System;
-    using System.Linq;
-    using System.Reflection;
 
     /// <summary>
     /// Logger base implementation
     /// </summary>
     public abstract class BaseLogger : ILogger {
 
+        /// <inheritdoc/>
+        public string Name { get; }
+
         /// <summary>
         /// Create logger
         /// </summary>
+        /// <param name="name"></param>
+        /// <param name="loggingLevel"></param>
         /// <param name="processId">A unique id identifying
         /// the process for which the derived logger is
         /// logging output.</param>
-        protected BaseLogger(string processId) {
+        protected BaseLogger(string name, LogLevel loggingLevel,
+            string processId = null) {
             _processId = processId ?? Guid.NewGuid().ToString();
+            _loggingLevel = loggingLevel;
+            Name = name;
         }
 
-        /// <summary>
-        /// Log debug
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="context"></param>
-        public void Debug(string message, Action context) =>
-            Debug(() => Write(context.GetMethodInfo(), message));
-
-        /// <summary>
-        /// Log info
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="context"></param>
-        public void Info(string message, Action context) =>
-            Info(() => Write(context.GetMethodInfo(), message));
-
-        /// <summary>
-        /// Log warning
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="context"></param>
-        public void Warn(string message, Action context) =>
-            Warn(() => Write(context.GetMethodInfo(), message));
-
-        /// <summary>
-        /// Log error
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="context"></param>
-        public void Error(string message, Action context) =>
-            Error(() => Write(context.GetMethodInfo(), message));
-
-        /// <summary>
-        /// Log debug
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="context"></param>
-        public void Debug(string message, Func<object> context) =>
-            Debug(() => Write(context.GetMethodInfo(), message + " " +
-                JsonConvertEx.SerializeObject(context.Invoke())));
-
-        /// <summary>
-        /// Log info
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="context"></param>
-        public void Info(string message, Func<object> context) =>
-            Info(() => Write(context.GetMethodInfo(), message + " " +
-                JsonConvertEx.SerializeObject(context.Invoke())));
-
-        /// <summary>
-        /// Log warning
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="context"></param>
-        public void Warn(string message, Func<object> context) =>
-            Warn(() => Write(context.GetMethodInfo(), message + " " +
-                JsonConvertEx.SerializeObject(context.Invoke())));
-
-        /// <summary>
-        /// Log error
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="context"></param>
-        public void Error(string message, Func<object> context) =>
-            Error(() => Write(context.GetMethodInfo(), message + " " +
-                JsonConvertEx.SerializeObject(context.Invoke())));
+        /// <inheritdoc/>
+        public abstract ILogger Create(string name);
 
         /// <inheritdoc/>
-        protected abstract void Debug(Func<string> message);
-        /// <inheritdoc/>
-        protected abstract void Info(Func<string> message);
-        /// <inheritdoc/>
-        protected abstract void Warn(Func<string> message);
-        /// <inheritdoc/>
-        protected abstract void Error(Func<string> message);
-
-        /// <summary>
-        /// Log the message and information about the context, cleaning up
-        /// and shortening the class name and method name (e.g. removing
-        /// symbols specific to .NET internal implementation)
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="text"></param>
-        protected virtual string Write(MethodInfo context, string text) {
-            // Extract the Class Name from the context
-            var classname = "";
-            if (context.DeclaringType != null) {
-                classname = context.DeclaringType.FullName;
-                classname = classname.Split(new[] { '+' }, 2).First();
-                classname = classname.Split('.').LastOrDefault();
+        public void Log(string method, string file, int lineNumber,
+            LogLevel level, Exception exception, string message,
+            params object[] parameters) {
+            if (_loggingLevel > level) {
+                return;
             }
-
-            // Extract the Method Name from the context
-            var methodname = context.Name;
-            methodname = methodname.Split(new[] { '>' }, 2).First();
-            methodname = methodname.Split(new[] { '<' }, 2).Last();
-
             var time = DateTimeOffset.UtcNow.ToString("u");
-            return $"[{_processId}][{time}][{classname}:{methodname}] {text}";
+            var preamble = $"[{level}][{Name}][{time}][{method}]";
+            Try.Op(() => WriteLine(preamble, message, parameters));
         }
+
+        /// <summary>
+        /// Write output
+        /// </summary>
+        /// <param name="preamble"></param>
+        /// <param name="message"></param>
+        /// <param name="parameters"></param>
+        protected abstract void WriteLine(string preamble, string message,
+            object[] parameters);
 
         /// <summary>Process id to be used by derived class if needed</summary>
         protected readonly string _processId;
+        /// <summary>Loglevel to be used by derived class if needed</summary>
+        protected readonly LogLevel _loggingLevel;
     }
 }

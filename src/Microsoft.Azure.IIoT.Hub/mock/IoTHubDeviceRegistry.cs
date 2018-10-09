@@ -243,16 +243,16 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             if (context.collection()?.DEVICES_MODULES() != null) {
                 return Project(Select(
                     Modules.Select(m => m.Twin), context)
-                        .Select(d => d.ToJson()), context);
+                        .Select(JToken.FromObject), context);
             }
             if (context.collection()?.DEVICES() != null) {
                 return Project(Select(
                     Devices.Select(d => d.Twin), context)
-                        .Select(d => d.ToJson()), context);
+                        .Select(JToken.FromObject), context);
             }
             if (context.collection()?.DEVICES_JOBS() != null) {
                 return Project(Select(
-                    Jobs, context) // TODO: ToJson
+                    Jobs, context)
                         .Select(JToken.FromObject), context);
             }
             throw new FormatException("Bad format");
@@ -299,21 +299,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            //
+            // TODO: Implement projection
+
             return records;
-            //   if (context.selectList().selectExpr().Any(e => e.aggregateExpr() != null)) {
-            //       queryExp.Aggregate = ParseGroupByClause(context.selectList(), context.groupByClause());
-            //   }
-            //
-            //   else if (context.selectList().selectExpr().Any()) {
-            //       queryExp.Projection = ParseSelectList(context.selectList());
-            //   }
-            //
-            //   if (context.orderByClause() != null) {
-            //       queryExp.Sort = ParseOrderByClause(context.orderByClause(),
-            //           queryExp.Aggregate?.AggregatedProperties?.Select(p => p.ResultColumnName).ToList());
-            //   }
-            //   return queryExp;
         }
 
 
@@ -322,19 +310,19 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        private Expression<Func<JsonToken, bool>> ParseScalarLambda(
+        private Expression<Func<JsonToken, JsonToken>> ParseScalarLambda(
             SqlSelectParser.ScalarFunctionContext context) {
 
             if (context.STARTS_WITH() != null) {
-                return s =>
+                return s => JToken.FromObject(
                     ((string)(JToken)s).StartsWith(ParseStringValue(context.STRING_LITERAL()),
-                        StringComparison.Ordinal);
+                        StringComparison.Ordinal));
             }
 
             if (context.ENDS_WITH() != null) {
-                return s =>
+                return s => JToken.FromObject(
                     ((string)(JToken)s).EndsWith(ParseStringValue(context.STRING_LITERAL()),
-                        StringComparison.Ordinal);
+                        StringComparison.Ordinal));
             }
             throw new ArgumentException("Bad function");
         }
@@ -344,28 +332,33 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        private Expression<Func<JsonToken, bool>> ParseScalarLambda(
+        private Expression<Func<JsonToken, JsonToken>> ParseScalarLambda(
             SqlSelectParser.ScalarTypeFunctionContext context) {
 
             if (context.IS_DEFINED() != null) {
-                return s => s != null;
+                return s => JToken.FromObject(s != null);
             }
             if (context.IS_NULL() != null) {
-                return s => s != null && (((JToken)s).Type == JTokenType.Null);
+                return s => JToken.FromObject(s != null &&
+                    (((JToken)s).Type == JTokenType.Null));
             }
             if (context.IS_BOOL() != null) {
-                return s => s != null && (((JToken)s).Type == JTokenType.Boolean);
+                return s => JToken.FromObject(s != null &&
+                    (((JToken)s).Type == JTokenType.Boolean));
             }
             if (context.IS_NUMBER() != null) {
-                return s => s != null && (((JToken)s).Type == JTokenType.Float || ((JToken)s).Type == JTokenType.Integer);
+                return s => JToken.FromObject(s != null &&
+                    (((JToken)s).Type == JTokenType.Float || ((JToken)s).Type == JTokenType.Integer));
             }
             if (context.IS_STRING() != null) {
-                return s => s != null && (((JToken)s).Type == JTokenType.String);
+                return s => JToken.FromObject(s != null &&
+                    (((JToken)s).Type == JTokenType.String));
             }
             if (context.IS_OBJECT() != null) {
-                return s => s != null && (((JToken)s).Type == JTokenType.Object);
+                return s => JToken.FromObject(s != null &&
+                    (((JToken)s).Type == JTokenType.Object));
             }
-            return s => true;
+            return s => JToken.FromObject(true);
         }
 
         /// <summary>
@@ -420,7 +413,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             var rhs = Expression.Constant(context.literal_value() != null ?
                 ParseLiteralValue(context.literal_value()) : (JsonToken)JToken.FromObject(true));
 
-            return CreateBinaryExpression(context.COMPARISON_OPERATOR().GetText(), lhs, rhs);
+            return CreateBinaryExpression(context.COMPARISON_OPERATOR()?.GetText() ?? "=",
+                lhs, rhs);
         }
 
         /// <summary>
@@ -465,7 +459,12 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 case "properties":
                     return (t, s) => SelectTargetToken(t.Properties, s);
                 case "capabilities":
+                    return (t, s) => SelectTargetToken(t.Capabilities, s);
                 case "configurations":
+                    // TODO
+                    return (t, s) => null;
+                case "connectionstate":
+                    return (t, s) => SelectTargetToken(t.ConnectionState, s);
                 default:
                     return (t, s) => null;
             }
@@ -680,140 +679,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
             private readonly JToken _jtoken;
         }
-
-
-#if FALSE
-        /// <summary>
-        /// Parse select
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        private ProjectionExpression ParseSelectList(SqlSelectParser.SelectListContext context) {
-            // STAR = *
-            // If present, project all properties. In this case, a null ProjectionExpression implies the same.
-            if (context.STAR() != null) {
-                return null;
-            }
-
-            var projectionExpression = new ProjectionExpression {
-                ProjectedProperties = new List<ProjectionProperty>()
-            };
-            foreach (var selectExprContext in context.selectExpr()) {
-                projectionExpression.ProjectedProperties.Add(ParseProjectionProperty(selectExprContext));
-            }
-
-            return projectionExpression;
-        }
-
-        /// <summary>
-        /// Parse group by
-        /// </summary>
-        /// <param name="selectListContext"></param>
-        /// <param name="groupByContext"></param>
-        /// <returns></returns>
-        private AggregationExpression ParseGroupByClause(SqlSelectParser.SelectListContext selectListContext,
-            SqlSelectParser.GroupByClauseContext groupByContext) {
-            // First ensure that all non-aggregate columns in the SELECT expression are part of the GROUP BY clause
-            if (!selectListContext.selectExpr()
-                .Where(s => s.aggregateExpr() == null)
-                .All(s => groupByContext.columnName()
-                .Any(g => g.GetText() == s.columnName().GetText()))) {
-                throw new Exception("SqlQueryParserInvalidAggregateQuery");
-            }
-
-            var aggregate = new AggregationExpression {
-                AggregatedProperties = new List<AggregationProperty>(),
-                Keys = new List<ProjectionProperty>()
-            };
-
-            if (groupByContext != null) {
-                foreach (var columnNameContext in groupByContext.columnName()) {
-                    aggregate.Keys.Add(new ProjectionProperty {
-                        Property = ParsePropertyTarget(columnNameContext),
-                        Alias = ParseIdentifier(selectListContext.selectExpr()
-                            .FirstOrDefault(s => s.aggregateExpr() == null &&
-                                s.columnName().GetText() == columnNameContext.GetText())?.IDENTIFIER())
-                    });
-                }
-            }
-
-            var columnAlias = 0;
-            foreach (var selectExprContext in selectListContext.selectExpr()) {
-                if (selectExprContext.aggregateExpr() != null) {
-                    aggregate.AggregatedProperties.Add(new AggregationProperty {
-                        AggregationOperator = ParseAggregationOperator(
-                            selectExprContext.aggregateExpr()),
-                        Property = selectExprContext.aggregateExpr().columnName() != null ?
-                            ParsePropertyTarget(selectExprContext.aggregateExpr().columnName()) : null,
-                        ResultColumnName = selectExprContext.AS() != null ?
-                            ParseIdentifier(selectExprContext.IDENTIFIER()) : $"#{columnAlias++}"
-                    });
-                }
-            }
-
-            return aggregate;
-        }
-
-        /// <summary>
-        /// Parse order by
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="aggregateResultColumnNames"></param>
-        /// <returns></returns>
-        private List<SortExpression> ParseOrderByClause(
-            SqlSelectParser.OrderByClauseContext context,
-            List<string> aggregateResultColumnNames) {
-            var sortExpressions = new List<SortExpression>();
-            foreach (var sortColumnContext in context.sortColumn()) {
-                var sortExpression = new SortExpression {
-                    Order = sortColumnContext.DESC() != null ?
-                        SortOrder.Descending : SortOrder.Ascending,
-                    Property = ParsePropertyTarget(sortColumnContext.columnName(),
-                    aggregateResultColumnNames)
-                };
-                sortExpressions.Add(sortExpression);
-            }
-            return sortExpressions;
-        }
-
-        /// <summary>
-        /// Parse projection
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        private ProjectionProperty ParseProjectionProperty(ParameterExpression parameter,
-            SqlSelectParser.SelectExprContext context) {
-            var projectionProperty = new ProjectionProperty {
-                Property = context.columnName() != null ? ParseBindingLambda(parameter, context.columnName()) : null
-            };
-            if (context.AS() != null) {
-                projectionProperty.Alias = ParseIdentifier(context.IDENTIFIER());
-            }
-            return projectionProperty;
-        }
-
-        /// <summary>
-        /// Parse aggregation
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        private AggregationOperatorType ParseAggregationOperator(
-            SqlSelectParser.AggregateExprContext context) {
-            if (context.COUNT() != null) {
-                return AggregationOperatorType.Count;
-            }
-            if (context.SUM() != null) {
-                return AggregationOperatorType.Sum;
-            }
-            if (context.AVG() != null) {
-                return AggregationOperatorType.Average;
-            }
-            if (context.MIN() != null) {
-                return AggregationOperatorType.Min;
-            }
-            return AggregationOperatorType.Max;
-        }
-#endif
 
         /// <summary>
         /// Error callback

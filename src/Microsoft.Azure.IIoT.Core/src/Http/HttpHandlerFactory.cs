@@ -49,12 +49,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             _handlers = handlers?.ToList() ?? new List<IHttpHandler>();
         }
 
-        /// <summary>
-        /// Create message handler
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="handler"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public TimeSpan Create(string name, out HttpMessageHandler handler) {
             var resource = name == kDefaultResourceId ? null : name;
             var del = new HttpHandlerDelegate(new HttpClientHandler(), resource,

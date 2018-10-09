@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         }
 
         /// <summary>
-        /// Convert twin to module
+        /// Convert twin to twin
         /// </summary>
         /// <param name="twin"></param>
         /// <param name="isPatch"></param>
@@ -47,6 +47,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                 ModuleId = twin.ModuleId,
                 DeviceId = twin.Id,
                 Tags = twin.Tags?.ToTwinCollection(),
+                Capabilities = null, // r/o
+                Version = null, // r/o
                 Properties = new TwinProperties {
                     Desired =
                         twin.Properties?.Desired?.ToTwinCollection(),
@@ -79,6 +81,11 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                 Id = twin.DeviceId,
                 Etag = twin.ETag,
                 ModuleId = twin.ModuleId,
+                ConnectionState = twin.ConnectionState?.ToString(),
+                LastActivityTime = twin.LastActivityTime,
+                Status = twin.Status?.ToString(),
+                StatusReason = twin.StatusReason,
+                StatusUpdatedTime = twin.StatusUpdatedTime,
                 Tags = twin.Tags?.ToModel(),
                 Properties = new TwinPropertiesModel {
                     Desired =

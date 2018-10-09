@@ -11,23 +11,33 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     public enum LogLevel {
 
         /// <summary>
-        /// Debug output
+        /// Verbose output
         /// </summary>
-        Debug = 10,
+        Verbose = 0,
+
+        /// <summary>
+        /// Trace output
+        /// </summary>
+        Debug = 1,
 
         /// <summary>
         /// Informational messages
         /// </summary>
-        Info = 20,
+        Info = 2,
 
         /// <summary>
         /// Warnings
         /// </summary>
-        Warn = 30,
+        Warn = 3,
 
         /// <summary>
         /// Errors
         /// </summary>
-        Error = 40
+        Error = 4,
+
+        /// <summary>
+        /// Fatal errors
+        /// </summary>
+        Fatal = 5
     }
 }

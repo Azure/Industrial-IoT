@@ -13,15 +13,10 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
     /// </summary>
     public class DefaultScheduler : ITaskScheduler {
 
-        /// <summary>
-        /// Provides a shared task factory
-        /// </summary>
+        /// <inheritdoc/>
         public TaskFactory Factory => Task.Factory;
 
-        /// <summary>
-        /// Create debug dump
-        /// </summary>
-        /// <param name="logger"></param>
+        /// <inheritdoc/>
         public void Dump(ILogger logger) {
             // No op
         }

@@ -17,7 +17,6 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
     using Microsoft.Azure.Management.Fluent;
     using Microsoft.Azure.Management.Network.Fluent;
     using Microsoft.Azure.Management.Network.Fluent.Models;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -94,7 +93,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                 "vm", name);
 
             var user = VirtualMachineResource.kDefaultUser;
-            var pw = "Vm$" + name.ToSha1Hash().Substring(0, 3); 
+            var pw = "Vm$" + name.ToSha1Hash().Substring(0, 3);
 
             if (image == null) {
                 image = KnownImages.Ubuntu_16_04_lts;
@@ -175,8 +174,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                                .WithAdminPassword(pw);
                     }
 
-                    _logger.Info($"Trying to create vm {name} on {vmSize}...",
-                        () => { });
+                    _logger.Info($"Trying to create vm {name} on {vmSize}...");
 
                     IVirtualMachine vm = null;
                     if (!string.IsNullOrEmpty(customData)) {
@@ -184,14 +182,14 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                                 .WithCustomData(customData)
                                 .WithSize(vmSize)
                             .CreateAsync();
-                        _logger.Info($"Starting vm {name} ...", () => { });
+                        _logger.Info($"Starting vm {name} ...");
                         // Restart for changes to go into effect
                         await vm.RestartAsync();
                     }
                     else {
                         vm = await machine.WithSize(vmSize).CreateAsync();
                     }
-                    _logger.Info($"Created vm {name}.", () => { });
+                    _logger.Info($"Created vm {name}.");
                     return new VirtualMachineResource(this, resourceGroup, vm,
                         user, pw, _logger);
                 }
@@ -262,8 +260,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                 await _vm.GetPrimaryNetworkInterface().Update()
                     .WithNewPrimaryPublicIPAddress(publicIP)
                     .ApplyAsync();
-                _logger.Info($"Added public IP {PublicIPAddress} to {_vm.Name}...",
-                    () => { });
+                _logger.Info($"Added public IP {PublicIPAddress} to {_vm.Name}...");
             }
 
             /// <inheritdoc/>
@@ -274,7 +271,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                 await _vm.GetPrimaryNetworkInterface().Update()
                     .WithoutPrimaryPublicIPAddress()
                     .ApplyAsync();
-                _logger.Info($"Removed public IP from {_vm.Name}...", () => { });
+                _logger.Info($"Removed public IP from {_vm.Name}...");
             }
 
             /// <inheritdoc/>
@@ -294,9 +291,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
 
             /// <inheritdoc/>
             public async Task DeleteAsync() {
-                _logger.Info($"Deleting VM {_vm.Id}...", () => { });
+                _logger.Info($"Deleting VM {_vm.Id}...");
                 await _manager.TryDeleteResourcesAsync(_resourceGroup, _vm.Id);
-                _logger.Info($"VM {_vm.Id} deleted.", () => { });
+                _logger.Info($"VM {_vm.Id} deleted.");
             }
 
 

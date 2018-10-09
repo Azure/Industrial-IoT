@@ -23,11 +23,11 @@ namespace Microsoft.Azure.IIoT.Services.Swagger {
         /// <summary>
         /// The AAD application id for the swagger client.
         /// </summary>
-        string SwaggerClientId { get; }
+        string SwaggerAppId { get; }
 
         /// <summary>
         /// AAD Client / Application secret (optional)
         /// </summary>
-        string SwaggerClientSecret { get; }
+        string SwaggerAppSecret { get; }
     }
 }

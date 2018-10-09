@@ -13,12 +13,12 @@ namespace Microsoft.Azure.IIoT.Auth.Azure {
         /// <summary>
         /// The AAD application id for the client.
         /// </summary>
-        string ClientId { get; }
+        string AppId { get; }
 
         /// <summary>
         /// AAD Client / Application secret (optional)
         /// </summary>
-        string ClientSecret { get; }
+        string AppSecret { get; }
 
         /// <summary>
         /// Tenant id if any (optional)

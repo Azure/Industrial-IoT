@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Http.Ssl {
         }
 
         /// <inheritdoc/>
-        public virtual bool Validate(HttpRequestHeaders headers, 
+        public virtual bool Validate(HttpRequestHeaders headers,
             X509Certificate2 cert, X509Chain chain, SslPolicyErrors? errors) {
             return true;
         }

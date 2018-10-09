@@ -22,6 +22,9 @@ namespace System {
         /// <returns></returns>
         public static ArraySegment<byte> GetManifestResource(this Assembly assembly,
             string resourceId) {
+            if (assembly == null) {
+                throw new ArgumentNullException(nameof(assembly));
+            }
             if (string.IsNullOrEmpty(resourceId)) {
                 throw new ArgumentNullException(nameof(resourceId));
             }
@@ -38,7 +41,7 @@ namespace System {
         /// <param name="extension"></param>
         /// <returns></returns>
         public static IEnumerable<Tuple<string, ArraySegment<byte>>> GetManifestResources(
-            this Assembly assembly, string extension = null) => assembly
+            this Assembly assembly, string extension = null) => assembly?
             .GetManifestResourceNames()
             .Where(r => extension == null ||
                 r.EndsWith(extension, StringComparison.Ordinal))
@@ -56,9 +59,12 @@ namespace System {
         /// Get assembly version
         /// </summary>
         public static Version GetFileVersion(this Assembly assembly) {
+            if (assembly == null) {
+                throw new ArgumentNullException(nameof(assembly));
+            }
             var ver = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
             if (ver == null || !Version.TryParse(ver, out var assemblyVersion)) {
-                return new Version(0, 0, 0, 0);
+                throw new KeyNotFoundException("Version attribute not found");
             }
             return assemblyVersion;
         }

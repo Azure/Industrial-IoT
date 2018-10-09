@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Services.Auth {
     using System;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Configuration interface for auth

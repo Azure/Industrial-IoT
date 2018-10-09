@@ -59,40 +59,6 @@ namespace Newtonsoft.Json.Linq {
         }
 
         /// <summary>
-        /// Compare two json snippets for same content
-        /// </summary>
-        /// <param name="token"></param>
-        /// <param name="json"></param>
-        /// <param name="comparison"></param>
-        /// <returns></returns>
-        public static bool SameAs(this JToken token, string json,
-            StringComparison comparison) {
-            if (token is null || json is null) {
-                return false;
-            }
-            return token.ToString(Formatting.None).Equals(json, comparison);
-        }
-
-        /// <summary>
-        /// string compare two tokens
-        /// </summary>
-        /// <param name="token"></param>
-        /// <param name="other"></param>
-        /// <param name="comparison"></param>
-        /// <returns></returns>
-        public static bool SameAs(this JToken token, JToken other,
-            StringComparison comparison) {
-            if (ReferenceEquals(token, other)) {
-                return true;
-            }
-            if (token is null || other is null) {
-                return false;
-            }
-            return token.ToString(Formatting.None).Equals(
-                other.ToString(Formatting.None), comparison);
-        }
-
-        /// <summary>
         /// Helper to get values from token dictionary
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -100,7 +66,7 @@ namespace Newtonsoft.Json.Linq {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T GetValue<T>(this Dictionary<string, JToken> dict,
+        public static T GetValueOrDefault<T>(this Dictionary<string, JToken> dict,
             string key, T defaultValue) {
             if (dict.TryGetValue(key, out var token)) {
                 try {
@@ -121,7 +87,7 @@ namespace Newtonsoft.Json.Linq {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T? GetValue<T>(this Dictionary<string, JToken> dict,
+        public static T? GetValueOrDefault<T>(this Dictionary<string, JToken> dict,
             string key, T? defaultValue) where T : struct {
             if (dict.TryGetValue(key, out var token)) {
                 try {
@@ -142,7 +108,7 @@ namespace Newtonsoft.Json.Linq {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T GetValue<T>(this JToken t,
+        public static T GetValueOrDefault<T>(this JToken t,
             string key, T defaultValue) {
             if (t is JObject o && o.TryGetValue(key, out var token)) {
                 try {
@@ -163,7 +129,7 @@ namespace Newtonsoft.Json.Linq {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T? GetValue<T>(this JToken t,
+        public static T? GetValueOrDefault<T>(this JToken t,
             string key, T? defaultValue) where T : struct {
 
             if (t is JObject o && o.TryGetValue(key, out var token)) {
@@ -182,79 +148,12 @@ namespace Newtonsoft.Json.Linq {
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static string SanitizePropertyName(this string value) {
-            var chars = new char[checked(value.Length)];
-            unchecked {
-                for (var i = 0; i < value.Length; i++) {
-                    chars[i] = !char.IsLetterOrDigit(value[i]) ? '_' : value[i];
-                }
+        public static string SanitizePropertyName(string value) {
+            var chars = new char[value.Length];
+            for (var i = 0; i < value.Length; i++) {
+                chars[i] = !char.IsLetterOrDigit(value[i]) ? '_' : value[i];
             }
             return new string(chars);
-        }
-
-        /// <summary>
-        /// Apply a patch to the token
-        /// </summary>
-        /// <returns></returns>
-        public static JToken ApplyPatch(this JToken target,
-            JToken patch) {
-            if (patch == null) {
-                return JValue.CreateNull();
-            }
-
-            //
-            // If different types, go for the patch token
-            //
-            if (target == null || target.Type != patch.Type) {
-                return patch;
-            }
-
-            //
-            // Object is patched by removing all items that have
-            // a null in the patch, and adding items that are
-            // different
-            //
-            if (target is JObject o) {
-                foreach (var prop in (JObject)patch) {
-                    if (o.TryGetValue(prop.Key,
-                        out var existing)) {
-                        o.Remove(prop.Key);
-                    }
-                    var p = ApplyPatch(existing, prop.Value);
-                    if (p.Type != JTokenType.Null) {
-                        o.Add(prop.Key, p);
-                    }
-                }
-                return o;
-            }
-
-            //
-            // Array is patched by removing all items with null at
-            // a particular index in the original array and filling
-            // up the remainder with data from either array.
-            //
-            if (target is JArray a) {
-                var f = (JArray)patch;
-                var n = new JArray();
-                for (var i = 0;
-                    i < Math.Max(a.Count, f.Count); i++) {
-                    if (i >= f.Count) {
-                        n.Add(a[i]);
-                        continue;
-                    }
-                    var p = (i >= a.Count) ? f[i] :
-                        a[i].ApplyPatch(f[i]);
-                    if (p.Type != JTokenType.Null) {
-                        n.Add(p);
-                    }
-                }
-                return n;
-            }
-
-            //
-            // Replace anything else...
-            //
-            return patch;
         }
     }
 }

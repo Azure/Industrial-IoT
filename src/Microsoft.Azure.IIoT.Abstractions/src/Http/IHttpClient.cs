@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="uri"></param>
         /// <param name="resourceId"></param>
         /// <returns></returns>
-        IHttpRequest NewRequest(Uri uri, string resourceId);
+        IHttpRequest NewRequest(Uri uri, string resourceId = null);
 
         /// <summary>
         /// Perform get

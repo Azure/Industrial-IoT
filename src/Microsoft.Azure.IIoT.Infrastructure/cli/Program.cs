@@ -13,10 +13,10 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Cli {
     using Microsoft.Azure.IIoT.Infrastructure.Services;
     using Microsoft.Azure.IIoT.Infrastructure;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json;
     using Autofac;
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -50,14 +50,14 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Cli {
             do {
                 if (interactive) {
                     Console.Write("> ");
-                    args = Console.ReadLine().ParseAsCommandLine();
+                    args = CliOptions.ParseAsCommandLine(Console.ReadLine());
                 }
                 try {
                     if (args.Length < 1) {
                         throw new ArgumentException("Need a command!");
                     }
                     var command = args[0].ToLowerInvariant();
-                    var options = CollectOptions(1, args);
+                    var options = new CliOptions(args);
                     switch (command) {
                         case "exit":
                             return;
@@ -98,10 +98,10 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Cli {
         /// <param name="options"></param>
         /// <returns></returns>
             private static async Task TestIoTHubCreateDeleteCreate(IComponentContext context,
-            Dictionary<string, string> options) {
+            CliOptions options) {
 
             var manager = context.Resolve<IResourceGroupFactory>();
-            var name = GetOption(options, "-n", "--name", StringEx.CreateUnique(9, "test"));
+            var name = options.GetValueOrDefault("-n", "--name", StringEx.CreateUnique(9, "test"));
             Console.WriteLine("Creating resource group....");
             using (var resourceGroup = await manager.CreateAsync(true)) {
                 Console.WriteLine("Resource group created.");
@@ -129,10 +129,10 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Cli {
         /// <param name="options"></param>
         /// <returns></returns>
         private static async Task TestVmCreateDeleteCreate(IComponentContext context,
-            Dictionary<string, string> options) {
+            CliOptions options) {
 
             var manager = context.Resolve<IResourceGroupFactory>();
-            var name = GetOption(options, "-n", "--name", StringEx.CreateUnique(9, "test"));
+            var name = options.GetValueOrDefault("-n", "--name", StringEx.CreateUnique(9, "test"));
             Console.WriteLine("Creating resource group....");
             using (var resourceGroup = await manager.CreateAsync(true)) {
                 Console.WriteLine("Resource group created.");
@@ -159,94 +159,12 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Cli {
         /// <typeparam name="T"></typeparam>
         /// <param name="options"></param>
         /// <param name="status"></param>
-        private static void PrintResult<T>(Dictionary<string, string> options,
+        private static void PrintResult<T>(CliOptions options,
             T status) {
             Console.WriteLine("==================");
             Console.WriteLine(JsonConvert.SerializeObject(status,
-                GetOption(options, "-F", "--format", Formatting.Indented)));
+                options.GetValueOrDefault("-F", "--format", Formatting.Indented)));
             Console.WriteLine("==================");
-        }
-
-        /// <summary>
-        /// Get option value
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="key1"></param>
-        /// <param name="key2"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
-        private static T GetOption<T>(Dictionary<string, string> options,
-            string key1, string key2, T defaultValue) {
-            if (!options.TryGetValue(key1, out var value) &&
-                !options.TryGetValue(key2, out value)) {
-                return defaultValue;
-            }
-            return value.As<T>();
-        }
-
-        /// <summary>
-        /// Get mandatory option value
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="key1"></param>
-        /// <param name="key2"></param>
-        /// <returns></returns>
-        private static T GetOption<T>(Dictionary<string, string> options,
-            string key1, string key2) {
-            if (!options.TryGetValue(key1, out var value) &&
-                !options.TryGetValue(key2, out value)) {
-                throw new ArgumentException($"Missing {key1}/{key2} option.");
-            }
-            return value.As<T>();
-        }
-
-        /// <summary>
-        /// Get mandatory option value
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="key1"></param>
-        /// <param name="key2"></param>
-        /// <returns></returns>
-        private static T? GetOption<T>(Dictionary<string, string> options,
-            string key1, string key2, T? defaultValue) where T : struct {
-            if (!options.TryGetValue(key1, out var value) &&
-                !options.TryGetValue(key2, out value)) {
-                return defaultValue;
-            }
-            if (typeof(T).IsEnum) {
-                return Enum.Parse<T>(value, true);
-            }
-            return value.As<T>();
-        }
-
-        /// <summary>
-        /// Helper to collect options
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        private static Dictionary<string, string> CollectOptions(int offset,
-            string[] args) {
-            var options = new Dictionary<string, string>();
-            for (var i = offset; i < args.Length;) {
-                var key = args[i];
-                if (key[0] != '-') {
-                    throw new ArgumentException($"{key} is not an option.");
-                }
-                i++;
-                if (i == args.Length) {
-                    options.Add(key, "true");
-                    break;
-                }
-                var val = args[i];
-                if (val[0] == '-') {
-                    // An option, so previous one is a boolean option
-                    options.Add(key, "true");
-                    continue;
-                }
-                options.Add(key, val);
-                i++;
-            }
-            return options;
         }
 
 

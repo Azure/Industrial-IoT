@@ -84,19 +84,5 @@ namespace System.Collections.Generic {
             dict[key] = result;
             return result;
         }
-
-        /// <summary>
-        /// Add range to dictionary
-        /// </summary>
-        /// <typeparam name="K"></typeparam>
-        /// <typeparam name="V"></typeparam>
-        /// <param name="dict"></param>
-        /// <param name="enumerable"></param>
-        public static void AddRange<K, V>(this IDictionary<K, V> dict,
-            IEnumerable<KeyValuePair<K, V>> enumerable) {
-            foreach (var item in enumerable) {
-                dict.Add(item);
-            }
-        }
     }
 }

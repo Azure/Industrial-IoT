@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         public void Start() {
             if (_state != State.Disposed) {
 #if FALSE
-                    Task.Delay(_scanner._rand.Next(0, 500)).ContinueWith(_ =>
+                Task.Delay(_scanner._rand.Next(0, 500)).ContinueWith(_ =>
                     Task.Run(() => OnBeginAsync(_arg)));
 #else
                 Task.Run(() => OnBeginAsync(_arg));
@@ -344,19 +344,15 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                         _arg.SocketError = SocketError.TimedOut;
                         return;
                     case State.Probe:
-// #if LOG_VERBOSE
                         _logger.Debug(
-                            $"Probe {_index} {_arg.RemoteEndPoint} timed out...",
-                                () => { });
-// #endif
+                            $"Probe {_index} {_arg.RemoteEndPoint} timed out...");
                         _arg.SocketError = SocketError.TimedOut;
                         if (_probe.Reset()) {
                             return;
                         }
                         // Has not cancelled the operation in progress.
                         _logger.Info(
-                            $"Probe {_index} not cancelled - try restart...",
-                                () => { });
+                            $"Probe {_index} not cancelled - try restart...");
                         OnBeginAsync(_arg);
                         return;
                 }

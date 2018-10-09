@@ -13,14 +13,6 @@ namespace Microsoft.Azure.IIoT.Http {
     public static class HttpClientEx {
 
         /// <summary>
-        /// New request from uri
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="uri"></param>
-        public static IHttpRequest NewRequest(this IHttpClient client,
-            Uri uri) => client.NewRequest(uri, null);
-
-        /// <summary>
         /// New request from string
         /// </summary>
         /// <param name="client"></param>

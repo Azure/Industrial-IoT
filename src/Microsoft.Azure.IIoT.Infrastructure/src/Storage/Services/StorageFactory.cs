@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Storage.Services {
                 resourceGroup.Name, "stg", name);
 
             var region = await resourceGroup.Subscription.GetRegionAsync();
-            _logger.Info($"Trying to create storage {name}...", () => { });
+            _logger.Info($"Trying to create storage {name}...");
             var storage = await client.StorageAccounts
                 .Define(name)
                     .WithRegion(region)
@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Storage.Services {
                     .WithGeneralPurposeAccountKindV2()
                     .CreateAsync();
 
-            _logger.Info($"Created storage {name}.", () => { });
+            _logger.Info($"Created storage {name}.");
             var keys = await storage.GetKeysAsync();
             return new StorageResource(this, resourceGroup, storage, keys, _logger);
         }
@@ -113,9 +113,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Storage.Services {
 
             /// <inheritdoc/>
             public async Task DeleteAsync() {
-                _logger.Info($"Deleting storage {_storage.Id}...", () => { });
+                _logger.Info($"Deleting storage {_storage.Id}...");
                 await _manager.TryDeleteStorageAsync(_resourceGroup, _storage.Id);
-                _logger.Info($"Storage {_storage.Id} deleted.", () => { });
+                _logger.Info($"Storage {_storage.Id} deleted.");
             }
 
             private readonly IResourceGroupResource _resourceGroup;

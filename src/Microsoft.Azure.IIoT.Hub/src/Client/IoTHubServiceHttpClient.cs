@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Implementation of twin and job services, talking to iot hub
@@ -120,9 +121,10 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 {
                     var response = await _httpClient.PatchAsync(patch);
                     response.Validate();
-                    var result = DeviceTwinModelEx.ToDeviceTwinModel(response.GetContentAsString());
+                    var result = JsonConvertEx.DeserializeObject<DeviceTwinModel>(
+                        response.GetContentAsString());
                     _logger.Info($"{twin.Id} ({twin.ModuleId ?? ""}) created or updated " +
-                        $"({twin.Etag ?? "*"} -> {result.Etag})", () => { });
+                        $"({twin.Etag ?? "*"} -> {result.Etag})");
                     return result;
                 }
             });
@@ -210,7 +212,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     $"/twins/{ToResourceId(deviceId, moduleId)}");
                 var response = await _httpClient.GetAsync(request);
                 response.Validate();
-                return DeviceTwinModelEx.ToDeviceTwinModel(response.GetContentAsString());
+                return JsonConvertEx.DeserializeObject<DeviceTwinModel>(
+                    response.GetContentAsString());
             });
         }
 
@@ -297,7 +300,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                                     properties = job.UpdateTwin?.Properties?.Desired
                                 }
                             },
-                            startTime = (job.StartTimeUtc ?? DateTime.MinValue).ToIso8601String(),
+                            startTime = ToIso8601String(job.StartTimeUtc),
                             maxExecutionTimeInSeconds = job.MaxExecutionTimeInSeconds ??
                                 long.MaxValue
                         });
@@ -312,7 +315,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                                 // responseTimeoutInSeconds = ...
                                 payload = JToken.Parse(job.MethodParameter.JsonPayload)
                             },
-                            startTime = (job.StartTimeUtc ?? DateTime.MinValue).ToIso8601String(),
+                            startTime = ToIso8601String(job.StartTimeUtc),
                             maxExecutionTimeInSeconds = job.MaxExecutionTimeInSeconds ??
                                 long.MaxValue
                         });
@@ -444,9 +447,11 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     Description = result.error.description
                 };
             }
-            else if (status == DeviceJobStatus.Completed && type == JobType.ScheduleDeviceMethod) {
+            else if (status == DeviceJobStatus.Completed &&
+                type == JobType.ScheduleDeviceMethod) {
                 model.Outcome = new MethodResultModel {
-                    JsonPayload = ((JObject)result.outcome.deviceMethodResponse.payload).ToString(),
+                    JsonPayload = ((JObject)result.outcome.deviceMethodResponse.payload)
+                        .ToString(),
                     Status = result.outcome.deviceMethodResponse.status
                 };
             }
@@ -463,13 +468,22 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 Etag = result.etag,
                 Id = result.deviceId,
                 ModuleId = result.moduleId,
-                Enabled = result.status != "disabled",
-                Connected = result.connectionState == "connected",
                 Authentication = new DeviceAuthenticationModel {
                     PrimaryKey = result.authentication.symmetricKey.primaryKey,
                     SecondaryKey = result.authentication.symmetricKey.secondaryKey
                 }
             };
         }
+
+        /// <summary>
+        /// Convert time to iso string
+        /// </summary>
+        /// <param name="datetime"></param>
+        /// <returns></returns>
+        public static string ToIso8601String(DateTime? datetime) {
+            return (datetime ?? DateTime.MinValue)
+                .ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFFFFFK");
+        }
+
     }
 }

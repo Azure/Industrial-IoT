@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace System.Collections.Generic {
-    using System.Collections;
     using System.Linq;
 
     /// <summary>
@@ -30,30 +29,6 @@ namespace System.Collections.Generic {
         }
 
         /// <summary>
-        /// Add range to set
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="set"></param>
-        /// <param name="enumerable"></param>
-        public static void AddRange<T>(this ISet<T> set, IEnumerable<T> enumerable) {
-            foreach (var item in enumerable) {
-                set.Add(item);
-            }
-        }
-
-        /// <summary>
-        /// Adds enum range to list
-        /// </summary>
-        /// <param name="set"></param>
-        /// <param name="enumerable"></param>
-        /// <returns></returns>
-        public static void AddRange(this ISet<object> set, IEnumerable enumerable) {
-            foreach (var item in enumerable) {
-                set.Add(item);
-            }
-        }
-
-        /// <summary>
         /// Merge enumerable b into set a.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -66,7 +41,9 @@ namespace System.Collections.Generic {
                     a = b.ToHashSetSafe();
                 }
                 else {
-                    a.AddRange(b);
+                    foreach (var item in b) {
+                        a.Add(item);
+                    }
                 }
             }
             return a;

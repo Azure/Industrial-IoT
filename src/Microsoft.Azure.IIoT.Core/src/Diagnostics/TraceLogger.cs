@@ -4,13 +4,17 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Diagnostics {
+    using Newtonsoft.Json;
     using System;
     using System.Diagnostics;
 
     /// <summary>
-    /// Logger implementation
+    /// Simple trace Logger implementation
     /// </summary>
-    public class TraceLogger : BaseLogger {
+    public class TraceLogger : ILogger {
+
+        /// <inheritdoc/>
+        public string Name { get; }
 
         /// <summary>
         /// Create logger
@@ -22,25 +26,43 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// <summary>
         /// Create logger
         /// </summary>
-        /// <param name="config"></param>
+        /// <param name="config">Log configuration</param>
         public TraceLogger(ILogConfig config) :
-            base(config?.ProcessId) {
+            this("", config?.LogLevel ?? LogLevel.Debug, config?.ProcessId) {
+        }
+
+        /// <summary>
+        /// Create logger
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="loggingLevel"></param>
+        /// <param name="processId">A unique id identifying
+        /// the process for which the derived logger is
+        /// logging output.</param>
+        internal TraceLogger(string name, LogLevel loggingLevel,
+            string processId = null) {
+            _processId = processId ?? Guid.NewGuid().ToString();
+            _loggingLevel = loggingLevel;
+            Name = name;
         }
 
         /// <inheritdoc/>
-        protected override sealed void Debug(Func<string> message) =>
-            Trace.WriteLine(message());
+        public ILogger Create(string name) =>
+            new TraceLogger(name, _loggingLevel, _processId);
 
         /// <inheritdoc/>
-        protected override sealed void Info(Func<string> message) =>
-            Trace.TraceInformation(message());
+        public void Log(string method, string file, int lineNumber,
+            LogLevel level, Exception exception, string message,
+            params object[] parameters) {
+            var time = DateTimeOffset.UtcNow.ToString("u");
+            message = $"[{level}][{_processId}][{time}][{method}] {message}";
+            if (parameters != null && parameters.Length != 0) {
+                message += $" ({JsonConvertEx.SerializeObject(parameters)})";
+            }
+            Trace.WriteLineIf(_loggingLevel <= level, message, level.ToString());
+        }
 
-        /// <inheritdoc/>
-        protected override sealed void Warn(Func<string> message) =>
-            Trace.TraceWarning(message());
-
-        /// <inheritdoc/>
-        protected override sealed void Error(Func<string> message) =>
-            Trace.TraceError(message());
+        private readonly string _processId;
+        private readonly LogLevel _loggingLevel;
     }
 }

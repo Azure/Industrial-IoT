@@ -7,8 +7,6 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
     using Microsoft.Azure.IIoT.Auth.Azure;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
     using System;
 
     /// <summary>
@@ -34,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
         public DeviceCodeCredentials(Action<string, DateTimeOffset, string> callback,
             IClientConfig config, ILogger logger) :
             base(new DeviceCodeTokenProvider(callback, config, null, logger), config) {
-            if (string.IsNullOrEmpty(config?.ClientId)) {
+            if (string.IsNullOrEmpty(config?.AppId)) {
                 throw new InvalidConfigurationException(
                     "Device code token provider was not configured with " +
                     "a client id.  No credentials can be created.");

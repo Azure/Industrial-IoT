@@ -5,7 +5,6 @@
 
 namespace System.Collections.Generic {
     using System;
-    using System.Collections;
 
     /// <summary>
     /// List extensions
@@ -19,6 +18,9 @@ namespace System.Collections.Generic {
         /// <param name="list"></param>
         /// <returns></returns>
         public static IList<T> Shuffle<T>(this IList<T> list) {
+            if (list == null) {
+                throw new ArgumentNullException(nameof(list));
+            }
             var n = list.Count;
             while (n > 1) {
                 n--;
@@ -28,43 +30,6 @@ namespace System.Collections.Generic {
                 list[n] = value;
             }
             return list;
-        }
-
-
-        /// <summary>
-        /// Adds enum range to list
-        /// </summary>
-        /// <param name="list"></param>
-        /// <param name="enumerable"></param>
-        /// <returns></returns>
-        public static void AddRange(this IList list, IEnumerable enumerable) {
-            foreach (var item in enumerable) {
-                list.Add(item);
-            }
-        }
-
-        /// <summary>
-        /// Adds enum range to list
-        /// </summary>
-        /// <param name="list"></param>
-        /// <param name="enumerable"></param>
-        /// <returns></returns>
-        public static void AddRange(this IList<object> list, IEnumerable enumerable) {
-            foreach (var item in enumerable) {
-                list.Add(item);
-            }
-        }
-
-        /// <summary>
-        /// Adds enum range to list
-        /// </summary>
-        /// <param name="list"></param>
-        /// <param name="enumerable"></param>
-        /// <returns></returns>
-        public static void AddRange<T>(this IList<T> list, IEnumerable<T> enumerable) {
-            foreach (var item in enumerable) {
-                list.Add(item);
-            }
         }
     }
 }

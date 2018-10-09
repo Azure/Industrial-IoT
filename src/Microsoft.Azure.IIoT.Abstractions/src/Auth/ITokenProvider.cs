@@ -17,12 +17,12 @@ namespace Microsoft.Azure.IIoT.Auth {
         /// Authenticate user and retrieve token.
         /// </summary>
         /// in case authentication failed.
+        /// <exception cref="System.Security.Authentication.AuthenticationException"/>
         /// <param name="resource">Resource to authenticate</param>
         /// <param name="scopes">Scope permissions to request</param>
         /// <returns></returns>
-        /// <exception cref="System.Security.Authentication.AuthenticationException"/>
         Task<TokenResultModel> GetTokenForAsync(string resource,
-            IEnumerable<string> scopes);
+            IEnumerable<string> scopes = null);
 
         /// <summary>
         /// Invalidate any token in token cache for

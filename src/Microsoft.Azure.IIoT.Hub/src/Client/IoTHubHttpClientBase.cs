@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds).ToString();
             var encodedScope = Uri.EscapeDataString(connectionString.HostName);
             // the connection string signature is base64 encoded
-            var key = Convert.FromBase64String(connectionString.SharedAccessKey);
+            var key = connectionString.SharedAccessKey.DecodeAsBase64();
             using (var hmac = new HMACSHA256(key)) {
                 var sig = hmac.ComputeHash(Encoding.UTF8.GetBytes(encodedScope + "\n" + expiry))
                     .ToBase64String();
