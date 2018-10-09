@@ -3,7 +3,6 @@
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <AssemblyName>OpcTwinCtrl</AssemblyName>
     <RootNamespace>Microsoft.Azure.IIoT.OpcUa.Api.Cli</RootNamespace>
   </PropertyGroup>
   <ItemGroup>

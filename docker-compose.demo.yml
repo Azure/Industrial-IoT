@@ -3,8 +3,6 @@ services:
   twinregistry:
     image: mcr.microsoft.com/iot/opc-twin-registry:latest
     restart: always
-    ports:
-      - "9042:9042"
     environment:
       - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
@@ -26,8 +24,6 @@ services:
   twinservice:
     image: mcr.microsoft.com/iot/opc-twin-service:latest
     restart: always
-    ports:
-      - "9041:9041"
     environment:
       - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
@@ -35,3 +31,33 @@ services:
       - PCS_AUTH_AUDIENCE
       - PCS_CORS_WHITELIST
       - PCS_APPLICATION_SECRET
+  twinwebui:
+    image: marcschier/azure-iiot-opc-twin-webui:latest
+    restart: always
+    command: npm start
+  opcserver0:
+    image: marcschier/azure-iiot-opc-twin:latest
+    hostname: opcserver0
+    restart: always
+    command: --sample -p 51210
+  opcserver1:
+    image: marcschier/azure-iiot-opc-twin:latest
+    hostname: opcserver1
+    restart: always
+    command: --sample -p 51211
+  opcserver2:
+    image: marcschier/azure-iiot-opc-twin:latest
+    hostname: opcserver2
+    restart: always
+    command: --sample -p 51212
+  twinmodule:
+    image: marcschier/azure-iiot-opc-twin-module:latest
+    command: --host demo twin
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+  reverseproxy:
+    image: marcschier/azure-iiot-reverse-proxy:latest
+    restart: always
+    ports:
+      - "8080:10080"

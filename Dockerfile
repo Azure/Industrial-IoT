@@ -5,6 +5,8 @@ FROM microsoft/dotnet:2.1-sdk AS build
 WORKDIR /src
 COPY src/Microsoft.Azure.IIoT.OpcUa.Api/cli/Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj src/Microsoft.Azure.IIoT.OpcUa.Api/cli/
 COPY src/Microsoft.Azure.IIoT.OpcUa.Api/src/Microsoft.Azure.IIoT.OpcUa.Api.csproj src/Microsoft.Azure.IIoT.OpcUa.Api/src/
+COPY src/Microsoft.Azure.IIoT.OpcUa.Api.Registry/src/Microsoft.Azure.IIoT.OpcUa.Api.Registry.csproj src/Microsoft.Azure.IIoT.OpcUa.Api.Registry/src/
+COPY src/Microsoft.Azure.IIoT.OpcUa.Api.Twin/src/Microsoft.Azure.IIoT.OpcUa.Api.Twin.csproj src/Microsoft.Azure.IIoT.OpcUa.Api.Twin/src/
 COPY NuGet.Config NuGet.Config
 RUN dotnet restore --configfile NuGet.Config src/Microsoft.Azure.IIoT.OpcUa.Api/cli/Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj
 COPY . .
@@ -17,4 +19,4 @@ RUN dotnet publish Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "OpcTwinCtrl.dll"]
+ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.OpcUa.Api.Cli.dll"]

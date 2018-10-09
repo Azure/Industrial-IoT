@@ -1,0 +1,1111 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "aadTenantId": {
+            "type": "string",
+            "defaultValue": "fakevalue",
+            "metadata": {
+                "description": "The AAD tenant identifier (GUID)"
+            }
+        },
+        "aadInstance": {
+            "type": "string",
+            "defaultValue": "https://login.microsoftonline.com/",
+            "metadata": {
+                "description": "Url of the AAD login page (example: https://login.microsoftonline.com/)"
+            }
+        },
+        "aadClientId": {
+            "type": "string",
+            "defaultValue": "fakevalue",
+            "metadata": {
+                "description": "AAD application identifier (GUID)"
+            }
+        },
+        "solutionName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the solution"
+            }
+        },
+        "solutionType": {
+           "type": "string",
+           "defaultValue": "RemoteMonitoringV2",
+           "metadata": {
+               "description": "The type of the solution"
+           }
+        },
+        "solutionWebAppPort": {
+            "type": "string",
+            "defaultValue": "80",
+            "metadata": {
+                "description": "The port of the solution web application (e.g. 80, 443)"
+            }
+        },
+        "microServiceRuntime": {
+            "type": "string",
+            "defaultValue": "dotnet",
+            "allowedValues": [
+                "dotnet", "java"
+            ],
+            "metadata": {
+                "description": "The microservice runtime of the solution"
+            }
+        },
+        "microServiceVersion": {
+            "type": "string",
+            "defaultValue": "testing",
+            "metadata": {
+                "description": "The container image version of the solution"
+            }
+        },
+        "storageName": {
+            "type": "string",
+            "defaultValue": "[concat('storage', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "metadata": {
+                "description": "The name of the storageAccount"
+            }
+        },
+        "storageSkuName": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS", "Standard_GRS", "Standard_RAGRS", "Standard_ZRS", "Premium_LRS"
+            ],
+            "metadata": {
+                "description": "The storage SKU name"
+            }
+        },
+        "storageEndpointSuffix": {
+            "type": "string",
+            "defaultValue": "core.windows.net",
+            "allowedValues": [
+                "core.windows.net",
+                "core.chinacloudapi.cn",
+                "core.cloudapi.de"
+            ],
+            "metadata": {
+                "description": "Suffix added to Azure Storage hostname"
+            }
+        },
+        "documentDBName": {
+            "type": "string",
+            "defaultValue": "[concat('documentdb-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "metadata": {
+                "description": "The name of the documentDB"
+            }
+        },
+        "docDBConsistencyLevel": {
+            "type": "string",
+            "allowedValues": [
+                "Strong",
+                "BoundedStaleness",
+                "Session",
+                "ConsistentPrefix",
+                "Eventual"
+            ],
+            "defaultValue": "Strong",
+            "metadata": {
+                "description": "The documentDB deault consistency level for this account."
+            }
+        },
+        "docDBMaxStalenessPrefix": {
+            "type": "int",
+            "minValue": 10,
+            "maxValue": 1000,
+            "defaultValue": 10,
+            "metadata": {
+                "description": "When documentDB consistencyLevel is set to BoundedStaleness, then this value is required, else it can be ignored."
+            }
+        },
+        "docDBMaxIntervalInSeconds": {
+            "type": "int",
+            "minValue": 5,
+            "maxValue": 600,
+            "defaultValue": 5,
+            "metadata": {
+                "description": "When documentDB consistencyLevel is set to BoundedStaleness, then this value is required, else it can be ignored."
+            }
+        },
+        "eventHubName": {
+            "type": "string",
+            "defaultValue": "[concat('eventhub-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]", 
+            "metadata": {
+                "description": "The name of the Event Hub"
+            }
+        },
+        "eventHubRetentionInDays": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "The event hub message retention in days"
+            }
+        },
+        "eventHubPartitionCount": {
+            "type": "int",
+            "defaultValue": 2,
+            "metadata": {
+                "description": "The event hub partition count"
+            }
+        },
+        "eventHubNamespaceName": {
+            "type": "string",
+            "defaultValue": "[concat('eventhubnamespace-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]", 
+            "metadata": {
+                "description": "The name of the Event Hub"
+            }
+        },
+        "eventHubSkuTier": {
+            "type": "string",
+            "defaultValue": "Basic",
+            "allowedValues": [
+                "Basic", "Standard"
+            ],
+            "metadata": {
+                "description": "The Azure Event Hub SKU Tier"
+            }
+        },
+        "eventHubSkuCapacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "The Azure Event Hub SKU Capacity"
+            }
+        },
+        "eventHubAuthorizationName": {
+            "type": "string",
+            "defaultValue": "[concat('iothubroutes-', parameters('iotHubName'))]",
+            "metadata": {
+                "description": "Authorization Rule Name for Event Hub endpoint in Iot Hub"
+            }
+        },
+        "serviceBusEndpointSuffix": {
+            "type": "string",
+            "defaultValue": "servicebus.windows.net",
+            "allowedValues": [
+                "servicebus.windows.net",
+                "servicebus.chinacloudapi.cn"
+            ],
+            "metadata": {
+                "description": "Suffix added to Service Bus endpoint"
+            }
+        },
+        "iotHubName": {
+            "type": "string",
+            "defaultValue": "[concat('iothub-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "metadata": {
+                "description": "The name of Azure IoT Hub"
+            }
+        },
+        "iotHubSku": {
+            "type": "string",
+            "defaultValue": "S1",
+            "allowedValues": [
+                "F1", "S1", "S2", "S3"
+            ],
+            "metadata": {
+                "description": "The Azure IoT Hub SKU"
+            }
+        },
+        "iotHubTier": {
+            "type": "string",
+            "defaultValue": "Standard",
+            "allowedValues": [
+                "Free", "Standard"
+            ],
+            "metadata": {
+                "description": "The Azure IoT Hub tier"
+            }
+        },
+        "streamingJobsName": {
+            "type": "string",
+            "defaultValue": "[concat('streamingjobs-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "metadata": {
+                "description": "The name of Azure StreamingJobs"
+            }
+        },
+        "streamingJobsOutputStartMode": {
+            "type": "string",
+            "defaultValue": "JobStartTime",
+            "allowedValues": [
+                "JobStartTime",
+                "LastOutputEventTime",
+                "CustomTime"
+            ],
+            "metadata": {
+                "description": "The start behavior of streamingjobs immediately upon creation"
+            }
+        },
+        "streamingJobsEventsOutOfOrderPolicy": {
+            "type": "string",
+            "defaultValue": "Adjust",
+            "allowedValues": [
+                "Adjust",
+                "Drop"
+            ],
+            "metadata": {
+                "description": "Events that arrive outside the delay window will be dropped or adjusted based on the value selected"
+            }
+        },
+        "streamingJobsInputContainerName": {
+            "type": "string",
+            "defaultValue": "referenceinput",
+            "metadata": {
+                "description": "The container name of reference input for the streamingjobs"
+            }
+        },
+        "streamingJobsQuery": {
+            "type": "object",
+            "defaultValue": {
+                "applyRuleFilterJsUdf": "function main(record) {\n    let ruleFunction = new Function('record', record.__rulefilterjs);\n    return ruleFunction(record);\n}",
+                "flattenMeasurementsJsUdf": "function main(record) {\n\n    let flatRecord = {\n        '__deviceid': record.__deviceid,\n        '__ruleid': record.__ruleid\n    };\n\n    record.measurements.forEach(function (item) {\n        if (item.hasOwnProperty('measurementvalue')) {\n            flatRecord[item.measurementname] = item.measurementvalue;\n        }\n        else {\n            flatRecord[item.measurementname] = {\n                'avg': item.avg,\n                'max': item.max,\n                'min': item.min,\n                'count': item.count\n            };\n        }\n    });\n\n    return flatRecord;\n}",
+                "removeUnusedPropertiesJsUdf": "function main(record) {\n    if (record) {\n        record.IoTHub && delete record.IoTHub;\n        record.PartitionId && delete record.PartitionId;\n        record.EventEnqueuedUtcTime && delete record.EventEnqueuedUtcTime;\n        record.EventProcessedUtcTime && delete record.EventProcessedUtcTime;\n    }\n    return record;\n}",
+                "transformQuery": "WITH TelemetryAndRules AS\n(\n    SELECT\n        T.IotHub.ConnectionDeviceId as __deviceid,\n        T.PartitionId as __partitionid,\n        T.EventEnqueuedUtcTime as __receivedtime,\n        R.Id as __ruleid,\n        R.AggregationWindow,\n        Fields.ArrayValue as MeasurementName,\n        GetRecordPropertyValue(T, Fields.ArrayValue) as MeasurementValue\n    FROM\n        DeviceTelemetry T PARTITION BY PartitionId TIMESTAMP BY T.EventEnqueuedUtcTime\n        JOIN DeviceGroups G ON T.IoTHub.ConnectionDeviceId = G.DeviceId\n        JOIN Rules R ON R.GroupId = G.GroupId\n        CROSS APPLY GetArrayElements(R.Fields) AS Fields\n),\nAggregateMultipleWindows AS (\n    SELECT\n        TR.__deviceid,\n        TR.__ruleid,\n        TR.__partitionid,\n        TR.MeasurementName,\n        AVG(TR.MeasurementValue),\n        MAX(TR.MeasurementValue),\n        MIN(TR.MeasurementValue),\n        COUNT(TR.MeasurementValue),\n        MAX(DATEDIFF(millisecond, '1970-01-01T00:00:00Z', TR.__receivedtime)) as __lastReceivedTime\n    FROM\n        TelemetryAndRules TR PARTITION BY __partitionid\n    WHERE\n        TR.AggregationWindow = 'tumblingwindow1minutes'\n    GROUP BY\n        TR.__deviceid,\n        TR.__ruleid,\n        TR.__partitionid,\n        TR.MeasurementName,\n        TumblingWindow(minute, 1)\n\n    UNION\n\n    SELECT\n        TR.__deviceid,\n        TR.__ruleid,\n        TR.__partitionid,\n        TR.MeasurementName,\n        AVG(TR.MeasurementValue),\n        MAX(TR.MeasurementValue),\n        MIN(TR.MeasurementValue),\n        COUNT(TR.MeasurementValue),\n        MAX(DATEDIFF(millisecond, '1970-01-01T00:00:00Z', TR.__receivedtime)) as __lastReceivedTime\n    FROM\n        TelemetryAndRules TR PARTITION BY __partitionid\n    WHERE\n        TR.AggregationWindow = 'tumblingwindow5minutes'\n    GROUP BY\n        TR.__deviceid,\n        TR.__ruleid,\n        TR.__partitionid,\n        TR.MeasurementName,\n        TumblingWindow(minute, 5)\n\n    UNION\n\n    SELECT\n        TR.__deviceid,\n        TR.__ruleid,\n        TR.__partitionid,\n        TR.MeasurementName,\n        AVG(TR.MeasurementValue),\n        MAX(TR.MeasurementValue),\n        MIN(TR.MeasurementValue),\n        COUNT(TR.MeasurementValue),\n        MAX(DATEDIFF(millisecond, '1970-01-01T00:00:00Z', TR.__receivedtime)) as __lastReceivedTime\n    FROM\n        TelemetryAndRules TR PARTITION BY __partitionid\n    WHERE\n        TR.AggregationWindow = 'tumblingwindow10minutes'\n    GROUP BY\n        TR.__deviceid,\n        TR.__ruleid,\n        TR.__partitionid,\n        TR.MeasurementName,\n        TumblingWindow(minute, 10)\n),\nGroupAggregatedMeasurements AS (\n    SELECT\n        AM.__deviceid,\n        AM.__ruleid,\n        AM.__partitionid,\n        AM.__lastReceivedTime,\n        Collect() AS Measurements\n    FROM\n        AggregateMultipleWindows AM PARTITION BY __partitionid\n    GROUP BY\n        AM.__deviceid,\n        AM.__ruleid,\n        AM.__partitionid,\n        AM.__lastReceivedTime,\n        System.Timestamp\n),\nFlatAggregatedMeasurements AS (\n    SELECT\n        GA.__deviceid,\n        GA.__ruleid,\n        GA.__lastReceivedTime,\n        udf.flattenMeasurements(GA) AS __aggregates\n    FROM\n        GroupAggregatedMeasurements GA PARTITION BY __partitionid\n),\nCombineAggregatedMeasurementsAndRules AS (\n    SELECT\n        FA.__deviceid,\n        FA.__ruleid,\n        FA.__aggregates,\n        FA.__lastReceivedTime,\n        R.Description as __description,\n        R.Severity as __severity,\n        R.__rulefilterjs as __rulefilterjs\n    FROM\n        FlatAggregatedMeasurements FA PARTITION BY __partitionid\n        JOIN Rules R ON FA.__ruleid = R.Id\n),\nApplyAggregatedRuleFilters AS\n(\n    SELECT\n        CMR.*\n    FROM\n        CombineAggregatedMeasurementsAndRules CMR PARTITION BY __partitionid\n    WHERE TRY_CAST(udf.applyRuleFilter(CMR) AS bigint) = 1\n),\nGroupInstantMeasurements AS (\n    SELECT\n        TR.__deviceid,\n        TR.__ruleid,\n        TR.__partitionid,\n        TR.__receivedTime,\n        Collect() AS Measurements\n    FROM\n        TelemetryAndRules TR PARTITION BY __partitionid\n    WHERE\n        TR.AggregationWindow = 'instant'\n    GROUP BY\n        TR.__deviceid,\n        TR.__ruleid,\n        TR.__partitionid,\n        TR.__receivedTime,\n        System.Timestamp\n),\nFlatInstantMeasurements AS (\n    SELECT\n        GI.__deviceid,\n        GI.__ruleid,\n        GI.__receivedTime,\n        udf.flattenMeasurements(GI) AS __aggregates\n    FROM\n        GroupInstantMeasurements GI PARTITION BY __partitionid\n),\nCombineInstantMeasurementsAndRules as\n(\n    SELECT\n        FI.__deviceid,\n        FI.__ruleid,\n        FI.__receivedtime,\n        FI.__aggregates,\n        R.Description as __description,\n        R.Severity as __severity,\n        R.__rulefilterjs as __rulefilterjs\n    FROM\n        FlatInstantMeasurements FI\n        JOIN Rules R ON FI.__ruleid = R.Id\n),\nApplyInstantRuleFilters as\n(\n    SELECT\n        CI.*\n    FROM\n        CombineInstantMeasurementsAndRules CI PARTITION BY __partitionid\n    WHERE TRY_CAST(udf.applyRuleFilter(CI) AS bigint) = 1\n),\nCombineAlarms as\n(\n    SELECT\n        1 as [doc.schemaVersion],\n        'alarm' as [doc.schema],\n        'open' as [status],\n        '1Rule-1Device-NMessage' as [logic],\n        DATEDIFF(millisecond, '1970-01-01T00:00:00Z', System.Timestamp) as created,\n        DATEDIFF(millisecond, '1970-01-01T00:00:00Z', System.Timestamp) as modified,\n        AA.__description as [rule.description],\n        AA.__severity as [rule.severity],\n        AA.__ruleid as [rule.id],\n        AA.__deviceId as [device.id],\n        AA.__aggregates,\n        AA.__lastReceivedTime as [device.msg.received]\n    FROM\n        ApplyAggregatedRuleFilters AA PARTITION BY __partitionid\n\n    UNION\n\n    SELECT\n        1 as [doc.schemaVersion],\n        'alarm' as [doc.schema],\n        'open' as [status],\n        '1Rule-1Device-1Message' as [logic],\n        DATEDIFF(millisecond, '1970-01-01T00:00:00Z', System.Timestamp) as created,\n        DATEDIFF(millisecond, '1970-01-01T00:00:00Z', System.Timestamp) as modified,\n        AI.__description as [rule.description],\n        AI.__severity as [rule.severity],\n        AI.__ruleid as [rule.id],\n        AI.__deviceId as [device.id],\n        AI.__aggregates,\n        DATEDIFF(millisecond, '1970-01-01T00:00:00Z', AI.__receivedTime) as [device.msg.received]\n    FROM\n        ApplyInstantRuleFilters AI PARTITION BY __partitionid\n)\n\nSELECT\n    CA.*\nINTO\n    Alarms\nFROM\n    CombineAlarms CA PARTITION BY __partitionid\n\nSELECT\n        CONCAT(T.IoTHub.ConnectionDeviceId, ';', CAST(DATEDIFF(millisecond, '1970-01-01T00:00:00Z', T.EventEnqueuedUtcTime) AS nvarchar(max))) as id,\n        1 as [doc.schemaVersion],\n        'd2cmessage' as [doc.schema],\n        T.IoTHub.ConnectionDeviceId as [device.id],\n        'device-sensors;v1' as [device.msg.schema],\n        'StreamingJobs' as [data.schema],\n        DATEDIFF(millisecond, '1970-01-01T00:00:00Z', System.Timestamp) as [device.msg.created],\n        DATEDIFF(millisecond, '1970-01-01T00:00:00Z', T.EventEnqueuedUtcTime) as [device.msg.received],\n        udf.removeUnusedProperties(T) as Data\nINTO\n    Messages\nFROM\n    DeviceTelemetry T PARTITION BY PartitionId TIMESTAMP BY T.EventEnqueuedUtcTime"
+            },
+            "metadata": {
+                "description": "The query and udf functions for streamingjobs to process telemetry rules"
+            }
+        },
+        "numberOfStreamingUnits": {
+            "type": "int",
+            "minValue": 1,
+            "maxValue": 48,
+            "defaultValue": 3,
+            "allowedValues": [
+              1, 3, 6, 12, 18, 24, 30, 36, 42, 48
+            ],
+            "metadata": {
+                "description": "Number of Streaming Units"
+              }
+        },
+        "vmName": {
+            "type": "string",
+            "defaultValue": "[concat('vm-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "metadata": {
+                "description": "The name of the Linux Virtual Machine"
+            }
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue": "Standard_D1_v2",
+            "allowedValues": [
+                    "Standard_A0", "Standard_A1", "Standard_A2", "Standard_A3", "Standard_A4", "Standard_A5",
+                    "Standard_A6", "Standard_A7", "Standard_A8", "Standard_A9", "Standard_A10", "Standard_A11",
+                    "Standard_D1", "Standard_D2", "Standard_D3", "Standard_D4",
+                    "Standard_D11", "Standard_D12", "Standard_D13", "Standard_D14",
+                    "Standard_D1_v2", "Standard_D2_v2", "Standard_D3_v2", "Standard_D4_v2", "Standard_D5_v2",
+                    "Standard_D11_v2", "Standard_D12_v2", "Standard_D13_v2", "Standard_D14_v2",
+                    "Standard_G1", "Standard_G2", "Standard_G3", "Standard_G4", "Standard_G5",
+                    "Standard_DS1", "Standard_DS2", "Standard_DS3", "Standard_DS4",
+                    "Standard_DS11", "Standard_DS12", "Standard_DS13", "Standard_DS14",
+                    "Standard_GS1", "Standard_GS2", "Standard_GS3", "Standard_GS4", "Standard_GS5"
+            ],
+            "metadata": {
+                "description": "The size of the Virtual Machine."
+            }
+        },
+        "ubuntuOSVersion": {
+            "type": "string",
+            "defaultValue": "16.04.0-LTS",
+            "allowedValues": [
+                "12.04.5-LTS",
+                "14.04.5-LTS",
+                "15.10",
+                "16.04.0-LTS"
+            ],
+            "metadata": {
+                "description": "The Ubuntu version for the Virtual Machine."
+            }
+        },
+        "adminUsername": {
+            "type": "string",
+            "defaultValue": "azureuser",
+            "metadata": {
+                "description": "User name for the Linux Virtual Machine."
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "User password for the Linux Virtual Machines, must between 12 and 72 characters long and have 3 of the following: 1 uppercase character, 1 lowercase character, 1 number and 1 special character that is not slash (\\) or dash (-)"
+            }
+        },
+        "pcsReleaseVersion": {
+            "type": "string",
+            "defaultValue": "master",
+            "metadata": {
+                "description": "The release version is used for repoURL for reverse-proxy-dotnet and vmScriptUri"
+            }
+        },
+        "pcsDockerTag": {
+            "type": "string",
+            "defaultValue": "testing",
+            "metadata": {
+                "description": "The docker tag can be same as release version and is the latest released docker image"
+            }
+        },
+        "vmSetupScriptUri": {
+            "type": "string",
+            "defaultValue": "[concat('https://raw.githubusercontent.com/Azure/pcs-cli/', parameters('pcsReleaseVersion'), '/solutions/remotemonitoring/single-vm/setup.sh')]",
+            "metadata": {
+                "description": "The URL of the script to setup a single VM deployment"
+            }
+        },
+        "vmFQDNSuffix": {
+            "type": "string",
+            "defaultValue": "cloudapp.azure.com",
+            "allowedValues": [
+                "cloudapp.azure.com",
+                "cloudapp.chinacloudapi.cn",
+                "cloudapp.azure.de"
+            ]
+        },
+        "azureWebsiteName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the azure website that you want to create. It will be of format {azureWebsiteName}.azurewebsites.net"
+            }
+        },
+        "remoteEndpointSSLThumbprint": {
+            "type": "securestring",
+            "metadata": {
+                "description": "This is the thumbprint of the HTTPS SSL Certificate"
+            },
+            "defaultValue": "secretkey"
+        },
+        "remoteEndpointCertificate": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The certficate that needs to be updated to the VM"
+            }
+        },
+        "remoteEndpointCertificateKey": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The certficate key that needs to be updated to the VM"
+            }
+        },
+        "bingMapsLocation": {
+            "type": "string",
+            "defaultValue": "westus",
+            "metadata": {
+                "description": "Bing Maps region",
+                "comments": "Marked for deletion, unused"
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "documentDBApiVersion": "2016-03-19",
+        "documentDBResourceId": "[resourceId('Microsoft.DocumentDb/databaseAccounts', parameters('documentDBName'))]",
+        "eventHubApiVersion": "2017-04-01",
+        "eventHubKeyName": "RootManageSharedAccessKey",
+        "eventHubKeyResourceId": "[resourceId('Microsoft.EventHub/namespaces/AuthorizationRules', parameters('eventHubNamespaceName'), variables('eventHubKeyName'))]",
+        "eventHubNamespaceResourceId": "[resourceId('Microsoft.EventHub/namespaces', parameters('eventHubNamespaceName'))]",
+        "eventHubResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventHubNamespaceName'), parameters('eventHubName'))]",
+        "eventHubRouteKeyResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs/AuthorizationRules', parameters('eventHubNamespaceName'), parameters('eventHubName'), parameters('eventHubAuthorizationName'))]",
+        "iotHubApiVersion": "2017-01-19",
+        "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]",
+        "iotHubKeyName": "iothubowner",
+        "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', parameters('iotHubName'), variables('iotHubKeyName'))]",
+        "iotHubDefaultEndpoint": "events",
+        "deviceNotificationRouteName": "DeviceNotifications",
+        "streamAnalyticsApiVersion": "2016-03-01",
+        "consumerGroupName": "streamingJobsConsumerGroup",
+        "streamingJobsOutputDBName": "pcs-iothub-stream",
+        "storageApiVersion": "2017-06-01",
+        "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts/',  parameters('storageName'))]",
+        "computeApiVersion": "2017-03-30",
+        "vmFQDN": "[concat(parameters('vmName'), '.', variables('location'), '.', parameters('vmFQDNSuffix'))]",
+        "imagePublisher": "Canonical",
+        "imageOffer": "UbuntuServer",
+        "vmStorageAccountContainerName": "vhds",
+        "osDiskName": "[concat(parameters('solutionName'), '-osdisk')]",
+        "networkApiVersion": "2017-06-01",
+        "vnetName": "[concat(parameters('solutionName'), '-vnet')]",
+        "vnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks',variables('vnetName'))]",
+        "vnetAddressPrefix": "10.0.0.0/16",
+        "networkSecurityGroupName": "[concat(parameters('solutionName'), '-nsg')]",
+        "subnetName": "default",
+        "subnetPrefix": "10.0.0.0/24",
+        "subnetResourceId": "[concat(variables('vnetResourceId'),'/subnets/',variables('subnetName'))]",
+        "publicIPName": "[concat(parameters('solutionName'), '-public-ip')]",
+        "nicName": "[concat(parameters('solutionName'), '-nic')]",
+        "sku": "S1",
+        "workerSize": "0",
+        "repoURL": "https://github.com/Azure/reverse-proxy-dotnet.git",
+        "branch": "[parameters('pcsReleaseVersion')]",
+        "hostingPlanName": "[parameters('azureWebsiteName')]"
+    },
+    "resources": [
+        {
+            "comments": "AppService plan to host the Application Gateway Web App",
+            "type": "Microsoft.Web/serverfarms",
+            "sku": {
+                "name": "[variables('sku')]",
+                "capacity": "[variables('workerSize')]"
+            },
+            "name": "[variables('hostingPlanName')]",
+            "apiVersion": "2015-08-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "name": "[variables('hostingPlanName')]"
+            }
+        },
+        {
+            "comments": "Application Gateway Web App",
+            "type": "Microsoft.Web/sites",
+            "name": "[parameters('azureWebsiteName')]",
+            "apiVersion": "2015-08-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "enabled": true,
+                "clientAffinityEnabled": false,
+                "serverFarmId": "[variables('hostingPlanName')]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "REMOTE_ENDPOINT",
+                            "value": "[concat('https://', reference(variables('publicIPName')).dnsSettings.fqdn)]"
+                        },
+                        {
+                            "name": "REMOTE_ENDPOINT_SSL_THUMBPRINT",
+                            "value": "[parameters('remoteEndpointSSLThumbprint')]"
+                        }
+                    ]
+                }
+            },
+            "resources": [
+                {
+                    "type": "sourcecontrols",
+                    "name": "web",
+                    "apiVersion": "2015-08-01",
+                    "properties": {
+                        "RepoUrl": "[variables('repoURL')]",
+                        "branch": "[variables('branch')]",
+                        "IsManualIntegration": true
+                    },
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/Sites', parameters('azureWebsiteName'))]"
+                    ]
+                }
+            ],
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('storageName')]",
+            "apiVersion": "[variables('storageApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "IotSuiteType": "[parameters('solutionType')]"
+            },
+            "kind": "Storage",
+            "sku": {
+                "name": "[parameters('storageSkuName')]"
+            }
+        },
+        {
+            "comments": "Azure CosmosDb",
+            "apiVersion": "[variables('documentDBApiVersion')]",
+            "type": "Microsoft.DocumentDb/databaseAccounts",
+            "name": "[parameters('documentDBName')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "IotSuiteType": "[parameters('solutionType')]"
+            },
+            "properties": {
+                "name": "[parameters('documentDBName')]",
+                "databaseAccountOfferType": "standard",
+                "consistencyPolicy": {
+                    "defaultConsistencyLevel": "[parameters('docDBConsistencyLevel')]",
+                    "maxStalenessPrefix": "[parameters('docDBMaxStalenessPrefix')]",
+                    "maxIntervalInSeconds": "[parameters('docDBMaxIntervalInSeconds')]"
+                }
+            }
+        },
+        {
+            "comments": "Azure Event Hub Namespace",
+            "apiVersion": "[variables('eventHubApiVersion')]",
+            "type": "Microsoft.EventHub/namespaces",
+            "name": "[parameters('eventHubNamespaceName')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "IotSuiteType": "[parameters('solutionType')]"
+            },
+            "sku": {
+                "name": "[parameters('eventHubSkuTier')]",
+                "tier": "[parameters('eventHubSkuTier')]",
+                "capacity": "[parameters('eventHubSkuCapacity')]"
+            },
+            "properties": {
+                "isAutoInflateEnabled": false,
+                "maximumThroughputUnits": 0
+            }
+        },
+        {
+            "comments": "Azure Event Hub",
+            "type": "Microsoft.EventHub/namespaces/eventhubs",
+            "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'))]",
+            "apiVersion": "[variables('eventHubApiVersion')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "messageRetentionInDays": "[parameters('eventHubRetentionInDays')]",
+                "partitionCount": "[parameters('eventHubPartitionCount')]",
+                "status": "Active"
+            },
+            "dependsOn": [
+                "[variables('eventHubNamespaceResourceId')]"
+            ]
+        },        
+        {
+            "comments": "Event Hub Authorization for Iot Hub",
+            "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+            "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', parameters('eventHubAuthorizationName'))]",
+            "apiVersion":  "[variables('eventHubApiVersion')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "rights": [
+                    "Send"
+                ]
+            },
+            "dependsOn": [
+                "[variables('eventHubNamespaceResourceId')]",
+                "[variables('eventHubResourceId')]"
+            ]
+        },
+        {
+            "comments": "Azure IoT Hub",
+            "apiVersion": "[variables('iotHubApiVersion')]",
+            "type": "Microsoft.Devices/Iothubs",
+            "name": "[parameters('iotHubName')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "IotSuiteType": "[parameters('solutionType')]"
+            },
+            "sku": {
+                "name": "[parameters('iotHubSku')]",
+                "tier": "[parameters('iotHubTier')]",
+                "capacity": 1
+            },
+            "properties": {
+                "location": "[variables('location')]",
+                "routing": {
+                    "endpoints": {
+                        "eventHubs": [
+                            {
+                                "connectionString": "[concat('Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', parameters('eventHubAuthorizationName'), ';SharedAccessKey=', listkeys(variables('eventHubRouteKeyResourceId'), variables('eventHubApiVersion')).primaryKey, ';EntityPath=',  parameters('eventHubName'))]",
+                                "name": "[variables('deviceNotificationRouteName')]",
+                                "subscriptionId": "[subscription().subscriptionId]",
+                                "resourceGroup": "[resourceGroup().name]"
+                            }
+                        ]
+                    },
+                    "routes": [
+                        {
+                            "name": "TwinRoute",
+                            "source": "TwinChangeEvents",
+                            "condition": "true",
+                            "endpointNames": [
+                                "[variables('deviceNotificationRouteName')]"
+                            ],
+                            "isEnabled": true
+                        },
+                        {
+                            "name": "LifecycleRoute",
+                            "source": "DeviceLifecycleEvents",
+                            "condition": "true",
+                            "endpointNames": [
+                                "[variables('deviceNotificationRouteName')]"
+                            ],
+                            "isEnabled": true
+                        }
+                    ],
+                    "fallbackRoute": {
+                        "name": "$fallback",
+                        "source": "DeviceMessages",
+                        "condition": "true",
+                        "endpointNames": [
+                            "[variables('iotHubDefaultEndpoint')]"
+                        ],
+                        "isEnabled": true
+                    }
+                }
+            },
+            "dependsOn": [
+                "[variables('eventHubResourceId')]"
+            ]
+        },
+        {
+            "comments": "Consumer Group of IoT Hub",
+            "apiVersion": "[variables('iotHubApiVersion')]",
+            "name": "[concat(parameters('iotHubName'), '/events/', variables('consumerGroupName'))]",
+            "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
+            "dependsOn": [
+                "[concat('Microsoft.Devices/Iothubs/', parameters('iotHubName'))]"
+            ]
+        },
+        {
+            "comments": "Azure Stream Analytics streamingjobs",
+            "apiVersion": "[variables('streamAnalyticsApiVersion')]",
+            "type": "Microsoft.StreamAnalytics/streamingjobs",
+            "name": "[parameters('streamingJobsName')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "IotSuiteType": "[parameters('solutionType')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageName'))]",
+                "[concat('Microsoft.Devices/Iothubs/', parameters('iotHubName'))]",
+                "[variables('documentDBResourceId')]"
+            ],
+            "properties": {
+                "sku": {
+                    "name": "standard"
+                },
+                "eventsOutOfOrderMaxDelayInSeconds": 10,
+                "eventsOutOfOrderPolicy": "[parameters('streamingJobsEventsOutOfOrderPolicy')]",
+                "inputs": [
+                    {
+                        "name": "DeviceTelemetry",
+                        "properties": {
+                            "datasource": {
+                                "properties": {
+                                    "consumerGroupName": "[variables('consumerGroupName')]",
+                                    "iotHubNamespace": "[parameters('iotHubName')]",
+                                    "sharedAccessPolicyKey": "[listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey]",
+                                    "sharedAccessPolicyName": "[variables('iotHubKeyName')]",
+                                    "endpoint": "messages/events"
+                                },
+                                "type": "Microsoft.Devices/IotHubs"
+                            },
+                            "serialization": {
+                                "properties": {
+                                    "encoding": "UTF8"
+                                },
+                                "type": "Json"
+                            },
+                            "type": "Stream"
+                        }
+                    },
+                    {
+                        "name": "DeviceGroups",
+                        "properties": {
+                            "datasource": {
+                                "properties": {
+                                    "container": "[parameters('streamingJobsInputContainerName')]",
+                                    "dateFormat": "yyyy-MM-dd",
+                                    "timeFormat": "HH-mm",
+                                    "pathPattern": "{date}/{time}/devicegroups.csv",
+                                    "storageAccounts": [
+                                        {
+                                            "accountKey": "[listkeys(variables('storageResourceId'), variables('storageApiVersion')).keys[0].value]",
+                                            "accountName": "[parameters('storageName')]"
+                                        }
+                                    ]
+                                },
+                                "type": "Microsoft.Storage/Blob"
+                            },
+                            "serialization": {
+                                "properties": {
+                                    "fieldDelimiter": ",",
+                                    "encoding": "UTF8"
+                                },
+                                "type": "Csv"
+                            },
+                            "type": "Reference"
+                        }
+                    },
+                    {
+                        "name": "Rules",
+                        "properties": {
+                            "datasource": {
+                                "properties": {
+                                    "container": "[parameters('streamingJobsInputContainerName')]",
+                                    "dateFormat": "yyyy-MM-dd",
+                                    "timeFormat": "HH-mm",
+                                    "pathPattern": "{date}/{time}/rules.json",
+                                    "storageAccounts": [
+                                        {
+                                            "accountKey": "[listkeys(variables('storageResourceId'), variables('storageApiVersion')).keys[0].value]",
+                                            "accountName": "[parameters('storageName')]"
+                                        }
+                                    ]
+                                },
+                                "type": "Microsoft.Storage/Blob"
+                            },
+                            "serialization": {
+                                "properties": {
+                                    "encoding": "UTF8"
+                                },
+                                "type": "Json"
+                            },
+                            "type": "Reference"
+                        }
+                    }
+                ],
+                "outputs": [
+                    {
+                        "name": "Alarms",
+                        "properties": {
+                            "datasource": {
+                                "type": "Microsoft.Storage/DocumentDB",
+                                "properties": {
+                                    "accountId": "[parameters('documentDbName')]",
+                                    "accountKey": "[listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey]",
+                                    "database": "[variables('streamingJobsOutputDBName')]",
+                                    "collectionNamePattern": "alarms"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Messages",
+                        "properties": {
+                            "datasource": {
+                                "type": "Microsoft.Storage/DocumentDB",
+                                "properties": {
+                                    "accountId": "[parameters('documentDbName')]",
+                                    "accountKey": "[listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey]",
+                                    "database": "[variables('streamingJobsOutputDBName')]",
+                                    "collectionNamePattern": "messages"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "functions": [
+                    {
+                        "name": "flattenMeasurements",
+                        "properties": {
+                          "type": "Scalar",
+                          "properties": {
+                                "inputs": [
+                                    {
+                                        "dataType": "record"
+                                    }
+                                ],
+                                "output": {
+                                    "dataType": "any"
+                                },
+                                "binding": {
+                                    "type": "Microsoft.StreamAnalytics/JavascriptUdf",
+                                    "properties": {
+                                        "script": "[parameters('streamingJobsQuery').flattenMeasurementsJsUdf]"
+                                    }
+                                }
+                          }
+                        }
+                    },
+                    {
+                        "name": "applyRuleFilter",
+                        "properties": {
+                            "type": "Scalar",
+                            "properties": {
+                                "inputs": [
+                                    {
+                                        "dataType": "record"
+                                    }
+                                ],
+                                "output": {
+                                    "dataType": "any"
+                                },
+                                "binding": {
+                                    "type": "Microsoft.StreamAnalytics/JavascriptUdf",
+                                    "properties": {
+                                        "script": "[parameters('streamingJobsQuery').applyRuleFilterJsUdf]"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "removeUnusedProperties",
+                        "properties": {
+                            "type": "Scalar",
+                            "properties": {
+                                "inputs": [
+                                    {
+                                        "dataType": "record"
+                                    }
+                                ],
+                                "output": {
+                                    "dataType": "any"
+                                },
+                                "binding": {
+                                    "type": "Microsoft.StreamAnalytics/JavascriptUdf",
+                                    "properties": {
+                                        "script": "[parameters('streamingJobsQuery').removeUnusedPropertiesJsUdf]"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ],
+                "transformation": {
+                    "name": "Alarms",
+                    "properties": {
+                        "query": "[parameters('streamingJobsQuery').transformQuery]",
+                        "streamingUnits": "[parameters('numberOfStreamingUnits')]"
+                    }
+                }
+            }
+        },
+        {
+            "comments": "Security rules used for the VM network interface",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('networkSecurityGroupName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "IotSuiteType": "[parameters('solutionType')]"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "HTTPS",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "SSH",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 101,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('vnetName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "IotSuiteType": "[parameters('solutionType')]"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('vnetAddressPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('subnetName')]",
+                        "properties": {
+                            "addressPrefix": "[variables('subnetPrefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "comments": "Public IP address used for the VM",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('publicIPName')]",
+            "apiVersion": "2016-03-30",
+            "location": "[variables('location')]",
+            "tags": {
+                "IotSuiteType": "[parameters('solutionType')]"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[toLower(parameters('vmName'))]"
+                },
+                "idleTimeoutInMinutes": 4
+            }
+        },
+        {
+            "comments": "Network interface used by the VM",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('nicName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "IotSuiteType": "[parameters('solutionType')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAddress": "10.0.0.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
+                            },
+                            "subnet": {
+                                "id": "[variables('subnetResourceId')]"
+                            }
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+                }
+            }
+        },
+        {
+            "comments": "VM running the microservices",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('vmName')]",
+            "apiVersion": "[variables('computeApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "IotSuiteType": "[parameters('solutionType')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/', parameters('storageName'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('vmName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('imagePublisher')]",
+                        "offer": "[variables('imageOffer')]",
+                        "sku": "[parameters('ubuntuOSVersion')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "osdisk1",
+                        "vhd": {
+                            "uri": "[concat('http://',parameters('storageName'),'.blob.',parameters('storageEndpointSuffix'),'/',variables('vmStorageAccountContainerName'),'/',variables('osDiskName'),'.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": "true",
+                        "storageUri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', parameters('storageName')), '2016-01-01').primaryEndpoints.blob)]"
+                    }
+                }
+            }
+        },
+        {
+            "comments": "Docker extension used to run the microservices",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmName'), '/', 'DockerExtension')]",
+            "apiVersion": "[variables('computeApiVersion')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "DockerExtension",
+                "typeHandlerVersion": "1.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "azure-environment": "[if(endsWith(reference(concat('Microsoft.Web/sites/', parameters('azureWebsiteName'))).hostNames[0], '.cn'), 'AzureChinaCloud', '')]"
+                }
+            }
+        },
+        {
+            "comments": "One time script execution to prepare the VM environment",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmName'), '/', 'scriptextensions')]",
+            "apiVersion": "[variables('computeApiVersion')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('vmName'), 'DockerExtension')]",
+                "[resourceId('Microsoft.Devices/Iothubs/', parameters('iotHubName'))]",
+                "[resourceId('Microsoft.DocumentDb/databaseAccounts/', parameters('documentDbName'))]",
+                "[variables('eventHubNamespaceResourceId')]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[parameters('vmSetupScriptUri')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('sh setup.sh ', ' --hostname ', concat('\"', variables('vmFQDN'), '\"'), ' --runtime ', concat('\"', parameters('microServiceRuntime'), '\"'), ' --ssl-certificate ', concat('\"', parameters('remoteEndpointCertificate'), '\"'), ' --ssl-certificate-key ', concat('\"', parameters('remoteEndpointCertificateKey'), '\"'), ' --auth-type aad ', ' --auth-audience ', concat('\"', parameters('aadClientId'), '\"'), ' --aad-appid ', concat('\"', parameters('aadClientId'), '\"'), ' --aad-tenant ', concat('\"', parameters('aadTenantId'), '\"'), ' --auth-issuer ', concat('\"', parameters('aadTenantId'), '\"'), ' --aad-instance ', concat('\"', parameters('aadInstance'), '\"'), ' --iothub-connstring ', concat('\"', 'HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey, '\"'), ' --docdb-connstring ', concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"'), ' --iothub-name ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.path, '\"'), ' --iothub-endpoint ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, '\"'), ' --iothub-partitions ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.partitionCount, '\"'), ' --azureblob-account ', concat('\"', parameters('storageName'), '\"'), ' --azureblob-key ', concat('\"', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\"'), ' --azureblob-endpoint-suffix ',  concat('\"', parameters('storageEndpointSuffix'), '\"'), ' --release-version ', concat('\"', parameters('pcsReleaseVersion'), '\"'), ' --docker-tag ', concat('\"', parameters('pcsDockerTag'), '\"'), ' --evenhub-connstring ', concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"'), ' --eventhub-name ', parameters('eventHubName'))]"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "resourceGroup" : {
+            "type": "string",
+            "value": "[resourceGroup().name]"
+        },
+        "messagesEventHubConnectionString": {
+            "type": "string",
+            "value": "[concat('Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey)]"
+        },
+        "messagesEventHubName": {
+            "type": "string",
+            "value": "[parameters('eventHubName')]"
+        },
+        "iotHubConnectionString": {
+            "type": "string",
+            "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey)]"
+        },
+        "documentDBConnectionString" : {
+            "type": "string",
+            "value": "[concat('AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';')]"
+        },
+        "azureWebsite": {
+            "type": "string",
+            "value": "[concat('https://', reference(concat('Microsoft.Web/sites/', parameters('azureWebsiteName'))).hostNames[0])]"
+        },
+        "vmFQDN": {
+            "type": "string",
+            "value": "[reference(variables('publicIPName')).dnsSettings.fqdn]"
+        },
+        "adminUsername": {
+            "type": "string",
+            "value": "[parameters('adminUsername')]"
+        },
+        "streamingJobsName": {
+            "type": "string",
+            "value": "[parameters('streamingJobsName')]"
+        }
+    }
+}
