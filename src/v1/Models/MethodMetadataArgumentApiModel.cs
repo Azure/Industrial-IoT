@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Method argument metadata model 
+    /// Method argument metadata model
     /// </summary>
     public class MethodMetadataArgumentApiModel {
 
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         public NodeApiModel Type { get; set; }
 
         /// <summary>
-        /// Default value 
+        /// Default value
         /// </summary>
         [JsonProperty(PropertyName = "defaultValue",
             NullValueHandling = NullValueHandling.Ignore)]

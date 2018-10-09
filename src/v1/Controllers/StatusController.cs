@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -12,9 +12,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
     /// <summary>
     /// Status api controller
     /// </summary>
-    [Route(VersionInfo.PATH + "/[controller]")]
+    [Route(VersionInfo.PATH + "/status")]
     [ExceptionsFilter]
-    [Produces("application/json")]
+    [Produces(ContentEncodings.MimeTypeJson)]
     public class StatusController : Controller {
 
         /// <summary>

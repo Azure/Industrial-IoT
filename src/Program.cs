@@ -20,15 +20,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
         /// <param name="args"></param>
         public static void Main(string[] args) {
 
+            // Build host
             var host = new WebHostBuilder()
                 .UseConfiguration(new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddCommandLine(args)
-                    .AddEnvironmentVariables("ASPNETCORE_")
                     .AddJsonFile("hosting.json", true)
+                    .AddEnvironmentVariables("ASPNETCORE_")
                     .AddInMemoryCollection(new Dictionary<string, string> {
                         { "urls", "http://*:9041" }
                     })
+                    .AddCommandLine(args)
                     .Build())
                 .ConfigureAppConfiguration((_, b) => b
                     .AddEnvironmentVariables()

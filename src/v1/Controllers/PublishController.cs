@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Auth;
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models;
-    using Microsoft.Azure.IIoT.OpcUa;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -18,9 +18,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
     /// <summary>
     /// Browse controller
     /// </summary>
-    [Route(VersionInfo.PATH + "/[controller]")]
+    [Route(VersionInfo.PATH + "/publish")]
     [ExceptionsFilter]
-    [Produces("application/json")]
+    [Produces(ContentEncodings.MimeTypeJson)]
     [Authorize(Policy = Policies.CanPublish)]
     public class PublishController : Controller {
 

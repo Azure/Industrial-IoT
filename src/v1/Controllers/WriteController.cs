@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Auth;
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models;
-    using Microsoft.Azure.IIoT.OpcUa;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
@@ -16,9 +16,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
     /// <summary>
     /// Nodes controller
     /// </summary>
-    [Route(VersionInfo.PATH + "/[controller]")]
+    [Route(VersionInfo.PATH + "/write")]
     [ExceptionsFilter]
-    [Produces("application/json")]
+    [Produces(ContentEncodings.MimeTypeJson)]
     [Authorize(Policy = Policies.CanControl)]
     public class WriteController : Controller {
 

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System.ComponentModel;
@@ -31,6 +31,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
             Value = model.Value;
             Elevation = model.Elevation == null ? null :
                 new AuthenticationApiModel(model.Elevation);
+            Diagnostics = model.Diagnostics == null ? null :
+                new DiagnosticsApiModel(model.Diagnostics);
         }
 
         /// <summary>
@@ -42,6 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
                 NodeId = NodeId,
                 DataType = DataType,
                 IndexRange = IndexRange,
+                Diagnostics = Diagnostics?.ToServiceModel(),
                 Elevation = Elevation?.ToServiceModel(),
                 Value = Value
             };
@@ -89,5 +92,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public AuthenticationApiModel Elevation { get; set; }
+
+        /// <summary>
+        /// Optional diagnostics configuration
+        /// </summary>
+        [JsonProperty(PropertyName = "diagnostics",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public DiagnosticsApiModel Diagnostics { get; set; }
     }
 }

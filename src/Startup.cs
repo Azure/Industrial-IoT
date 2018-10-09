@@ -7,13 +7,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Http.Ssl;
+    using Microsoft.Azure.IIoT.Storage.Azure;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Services;
+    using Microsoft.Azure.IIoT.Services.Diagnostics;
     using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.Services.Auth.Azure;
     using Microsoft.Azure.IIoT.Services.Cors;
@@ -56,14 +56,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
         /// <param name="configuration"></param>
         public Startup(IHostingEnvironment env, IConfiguration configuration) {
             Environment = env;
-            Config = new Config(new ConfigurationBuilder()
-                .AddConfiguration(configuration)
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile(
-                    "appsettings.json", true, true)
-                .AddJsonFile(
-                    $"appsettings.{env.EnvironmentName}.json", true, true)
-                .Build());
+            Config = new Config(Uptime.ProcessId, ServiceInfo.ID,
+                new ConfigurationBuilder()
+                    .AddConfiguration(configuration)
+                    .SetBasePath(env.ContentRootPath)
+                    .AddJsonFile(
+                        "appsettings.json", true, true)
+                    .AddJsonFile(
+                        $"appsettings.{env.EnvironmentName}.json", true, true)
+                    .Build());
         }
 
         /// <summary>
@@ -81,7 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
             services.AddCors();
 
             // Add authentication
-            services.AddJwtBearerAuthentication(Config, Config.ClientId,
+            services.AddJwtBearerAuthentication(Config, Config.AppId,
                 Environment.IsDevelopment());
 
             // Add authorization
@@ -93,13 +94,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddMvc()
+            services.AddMvc(options => options.Filters.Add(typeof(AuditLogFilter)))
                 .AddApplicationPart(GetType().Assembly)
                 .AddControllersAsServices()
                 .AddJsonOptions(options => {
                     options.SerializerSettings.Formatting = Formatting.Indented;
                     options.SerializerSettings.Converters.Add(new ExceptionConverter(
-                        Environment.IsDevelopment()));
+                        true)); //Environment.IsDevelopment()));
                     options.SerializerSettings.MaxDepth = 10;
                 });
 
@@ -165,10 +166,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
             // Register configuration interfaces
             builder.RegisterInstance(Config)
                 .AsImplementedInterfaces().SingleInstance();
-            // Register logger
-            builder.RegisterType<TraceLogger>()
+
+            // Diagnostics
+            builder.RegisterType<ExtensionLogger>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<AuditLogFilter>()
                 .AsImplementedInterfaces().SingleInstance();
 
+#if ENABLE_AUDIT_LOG
+            // ... audit log to cosmos db
+            if (Config.DbConnectionString != null) {
+                builder.RegisterType<CosmosDbAuditLogWriter>()
+                    .AsImplementedInterfaces().SingleInstance();
+            }
+#endif
             // CORS setup
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -190,23 +201,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
                 builder.RegisterType<HttpBearerAuthentication>()
                     .AsImplementedInterfaces().SingleInstance();
             }
-#if DEBUG
-            builder.RegisterType<NoOpCertValidator>()
-                .AsImplementedInterfaces();
-#endif
 
-            // Iot hub services
+            // Iot hub services for twin and methods
             builder.RegisterType<IoTHubServiceHttpClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Opc ua services
-            builder.RegisterType<RegistryServices>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Edge clients
             builder.RegisterType<TwinClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<SupervisorClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<DiscoveryClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();

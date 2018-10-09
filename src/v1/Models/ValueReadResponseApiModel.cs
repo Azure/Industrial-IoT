@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
@@ -36,7 +36,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// <summary>
         /// Value read
         /// </summary>
-        [JsonProperty(PropertyName = "value")]
+        [JsonProperty(PropertyName = "value",
+            NullValueHandling = NullValueHandling.Ignore)]
         public JToken Value { get; set; }
 
         /// <summary>

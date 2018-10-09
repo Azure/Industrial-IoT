@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System.ComponentModel;
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// </summary>
         [JsonProperty(PropertyName = "securityMode",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(Microsoft.Azure.IIoT.OpcUa.Models.SecurityMode.Best)]
+        [DefaultValue(Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best)]
         public SecurityMode? SecurityMode { get; set; }
 
         /// <summary>

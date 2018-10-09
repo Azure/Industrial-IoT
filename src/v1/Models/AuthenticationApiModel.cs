@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System.ComponentModel;
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// </summary>
         [JsonProperty(PropertyName = "tokenType",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(Microsoft.Azure.IIoT.OpcUa.Models.TokenType.None)]
+        [DefaultValue(Microsoft.Azure.IIoT.OpcUa.Registry.Models.TokenType.None)]
         public TokenType? TokenType { get; set; }
     }
 }
