@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Method argument metadata model 
+    /// Method argument metadata model
     /// </summary>
     public class MethodMetadataArgumentApiModel {
 

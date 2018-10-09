@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             ApplicationType = model.ApplicationType;
             ApplicationUri = model.ApplicationUri;
             ApplicationName = model.ApplicationName;
+            Locale = model.Locale;
             Certificate = model.Certificate;
             ProductUri = model.ProductUri;
             SiteId = model.SiteId;
@@ -45,6 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
                 ApplicationType = ApplicationType,
                 ApplicationUri = ApplicationUri,
                 ApplicationName = ApplicationName,
+                Locale = Locale,
                 Certificate = Certificate,
                 ProductUri = ProductUri,
                 SiteId = SiteId,
@@ -75,6 +77,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// Name of server
         /// </summary>
         public string ApplicationName { get; set; }
+
+        /// <summary>
+        /// Locale of name
+        /// </summary>
+        public string Locale { get; set; }
 
         /// <summary>
         /// Product uri

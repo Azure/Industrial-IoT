@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
 
     /// <summary>
     /// Request node browsing continuation
@@ -27,6 +27,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             ReadVariableValues = model.ReadVariableValues;
             Elevation = model.Elevation == null ? null :
                 new AuthenticationApiModel(model.Elevation);
+            Diagnostics = model.Diagnostics == null ? null :
+                new DiagnosticsApiModel(model.Diagnostics);
         }
 
         /// <summary>
@@ -39,6 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
                 ContinuationToken = ContinuationToken,
                 TargetNodesOnly = TargetNodesOnly,
                 ReadVariableValues = ReadVariableValues,
+                Diagnostics = Diagnostics?.ToServiceModel(),
                 Elevation = Elevation?.ToServiceModel()
             };
         }
@@ -73,5 +76,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// Optional elevation
         /// </summary>
         public AuthenticationApiModel Elevation { get; set; }
+
+        /// <summary>
+        /// Optional diagnostics configuration
+        /// </summary>
+        public DiagnosticsApiModel Diagnostics { get; set; }
     }
 }

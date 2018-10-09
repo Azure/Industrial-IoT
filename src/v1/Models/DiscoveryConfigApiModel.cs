@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -34,6 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
                 .Select(c => new CallbackApiModel(c))
                 .ToList();
             DiscoveryUrls = model.DiscoveryUrls;
+            Locales = model.Locales;
             ActivationFilter = model.ActivationFilter == null ? null :
                new TwinActivationFilterApiModel(model.ActivationFilter);
         }
@@ -56,6 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
                     .Where(c => c != null)
                     .Select(c => c.ToServiceModel())
                     .ToList(),
+                Locales = Locales,
                 DiscoveryUrls = DiscoveryUrls
             };
         }
@@ -100,12 +102,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         public TimeSpan? IdleTimeBetweenScans { get; set; }
 
-        // NEW
-
         /// <summary>
         /// List of preset discovery urls to use
         /// </summary>
         public List<string> DiscoveryUrls { get; set; }
+
+        /// <summary>
+        /// List of locales to filter with during discovery
+        /// </summary>
+        public List<string> Locales { get; set; }
 
         /// <summary>
         /// Callbacks to invoke once onboarding finishes

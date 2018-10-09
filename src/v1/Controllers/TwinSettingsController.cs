@@ -4,10 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.Hub;
     using System;
     using System.Threading.Tasks;
     using Newtonsoft.Json.Linq;
@@ -94,7 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
                     SecurityMode = _securityMode,
                     SecurityPolicy = _securityPolicy,
                     Authentication =
-                        _tokenType == OpcUa.Models.TokenType.None ? null :
+                        _tokenType == Registry.Models.TokenType.None ? null :
                         new AuthenticationModel {
                             User = _user,
                             Token = _token,

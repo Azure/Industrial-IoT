@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
 
     /// <summary>
     /// Browse request model for twin module
@@ -30,6 +30,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             NoSubtypes = model.NoSubtypes;
             Elevation = model.Elevation == null ? null :
                 new AuthenticationApiModel(model.Elevation);
+            Diagnostics = model.Diagnostics == null ? null :
+                new DiagnosticsApiModel(model.Diagnostics);
             View = model.View == null ? null :
                 new BrowseViewApiModel(model.View);
         }
@@ -48,6 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
                 TargetNodesOnly = TargetNodesOnly,
                 ReadVariableValues = ReadVariableValues,
                 NoSubtypes = NoSubtypes,
+                Diagnostics = Diagnostics?.ToServiceModel(),
                 Elevation = Elevation?.ToServiceModel()
             };
         }
@@ -109,5 +112,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// Optional elevation.
         /// </summary>
         public AuthenticationApiModel Elevation { get; set; }
+
+        /// <summary>
+        /// Optional diagnostics configuration
+        /// </summary>
+        public DiagnosticsApiModel Diagnostics { get; set; }
     }
 }

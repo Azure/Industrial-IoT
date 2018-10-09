@@ -7,8 +7,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
-    using Microsoft.Azure.IIoT.OpcUa;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework;
     using System;

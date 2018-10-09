@@ -4,11 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using System;
-    using System.ComponentModel;
-    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// browse view model

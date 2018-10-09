@@ -6,8 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
-    using Microsoft.Azure.IIoT.OpcUa;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework;
     using System;
@@ -24,15 +25,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="browse"></param>
-        /// <param name="validate"></param>
+        /// <param name="discover"></param>
+        /// <param name="activator"></param>
         /// <param name="nodes"></param>
         /// <param name="logger"></param>
-        public SupervisorMethodsController(IDiscoveryServices validate,
-            IBrowseServices<EndpointModel> browse,
+        public SupervisorMethodsController(IDiscoveryServices discover,
+            IBrowseServices<EndpointModel> browse, IActivationServices<string> activator,
             INodeServices<EndpointModel> nodes, ILogger logger) {
+
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
-            _validate = validate ?? throw new ArgumentNullException(nameof(validate));
+            _discover = discover ?? throw new ArgumentNullException(nameof(discover));
+            _activator = activator ?? throw new ArgumentNullException(nameof(activator));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -45,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _validate.DiscoverAsync(request.ToServiceModel());
+            await _discover.DiscoverAsync(request.ToServiceModel());
             return true;
         }
 
@@ -145,7 +149,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// For the call
+        /// Call method
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
@@ -163,9 +167,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
             return new MethodCallResponseApiModel(result);
         }
 
+        /// <summary>
+        /// Activate twin
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="secret"></param>
+        /// <returns></returns>
+        public async Task<bool> ActivateTwinAsync(string id, string secret) {
+            if (string.IsNullOrEmpty(id)) {
+                throw new ArgumentNullException(nameof(id));
+            }
+            if (string.IsNullOrEmpty(secret)) {
+                throw new ArgumentNullException(nameof(secret));
+            }
+            if (!secret.IsBase64()) {
+                throw new ArgumentException("not base64", nameof(secret));
+            }
+            await _activator.ActivateTwinAsync(id, secret);
+            return true;
+        }
+
+        /// <summary>
+        /// Deactivate twin
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<bool> DeactivateTwinAsync(string id) {
+            if (string.IsNullOrEmpty(id)) {
+                throw new ArgumentNullException(nameof(id));
+            }
+            await _activator.DeactivateTwinAsync(id);
+            return true;
+        }
+
         private readonly ILogger _logger;
+        private readonly IActivationServices<string> _activator;
         private readonly IBrowseServices<EndpointModel> _browse;
         private readonly INodeServices<EndpointModel> _nodes;
-        private readonly IDiscoveryServices _validate;
+        private readonly IDiscoveryServices _discover;
     }
 }

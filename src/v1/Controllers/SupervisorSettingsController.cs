@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.Module.Framework;
     using System;
     using System.Threading.Tasks;
@@ -59,7 +59,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// </summary>
         /// <param name="supervisor"></param>
         /// <param name="logger"></param>
-        public SupervisorSettingsController(ISupervisorServices supervisor, ILogger logger) {
+        public SupervisorSettingsController(IActivationServices<string> supervisor,
+            ILogger logger) {
             _supervisor = supervisor ?? throw new ArgumentNullException(nameof(supervisor));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _endpoints = new Dictionary<string, string>();
@@ -73,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
             foreach (var item in _endpoints.ToList()) {
                 if (string.IsNullOrEmpty(item.Value)) {
                     try {
-                        await _supervisor.StopTwinAsync(item.Key);
+                        await _supervisor.DeactivateTwinAsync(item.Key);
                     }
                     catch (Exception ex) {
                         _logger.Error($"Error stopping twin {item.Key}", () => ex);
@@ -82,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
                 else {
                     try {
                         if (item.Value.IsBase64()) {
-                            await _supervisor.StartTwinAsync(item.Key, item.Value);
+                            await _supervisor.ActivateTwinAsync(item.Key, item.Value);
                             continue;
                         }
                     }
@@ -96,7 +97,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         private readonly Dictionary<string, string> _endpoints;
-        private readonly ISupervisorServices _supervisor;
+        private readonly IActivationServices<string> _supervisor;
         private readonly ILogger _logger;
     }
 }

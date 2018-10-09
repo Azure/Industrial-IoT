@@ -21,13 +21,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Runtime {
         private const string EDGEHUB_CONNSTRING_KEY = "EdgeHubConnectionString";
         /// <summary>Hub connection string</summary>
         public string EdgeHubConnectionString =>
-            GetString(EDGEHUB_CONNSTRING_KEY);
+            GetStringOrDefault(EDGEHUB_CONNSTRING_KEY);
         /// <summary>Whether to bypass cert validation</summary>
         public bool BypassCertVerification =>
-            GetBool(nameof(BypassCertVerification));
+            GetBoolOrDefault(nameof(BypassCertVerification));
         /// <summary>Transports to use</summary>
         public TransportOption Transport => Enum.Parse<TransportOption>(
-            GetString(nameof(Transport), nameof(TransportOption.Amqp)), true);
+            GetStringOrDefault(nameof(Transport), nameof(TransportOption.Amqp)), true);
 
         /// <summary>
         /// Configuration constructor

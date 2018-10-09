@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Linq;
+    using System.Net;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -24,10 +25,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
 
         enum Op {
             None,
-            AddSupervisor,
-            ClearSupervisors,
-            ClearEntireRegistry,
-            GetModuleConnectionString
+            Host,
+            Add,
+            Get,
+            Reset,
+            Delete,
+            List,
+
+            ResetAll,
+            Cleanup,
+            CleanupAll
         }
 
         /// <summary>
@@ -55,46 +62,67 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
                             }
                             throw new ArgumentException(
                                 "Missing arguments for connection string");
-                        case "--add":
-                        case "--get":
-                            if (op != Op.None) {
-                                throw new ArgumentException(
-                                    "Operations are mutually exclusive");
-                            }
-                            op = args[i] == "--get" ?
-                                Op.GetModuleConnectionString : Op.AddSupervisor;
-                            i++;
-                            if (i < args.Length) {
-                                deviceId = args[i];
-                                i++;
-                                if (i < args.Length) {
-                                    moduleId = args[i];
-                                    break;
-                                }
-                            }
-                            throw new ArgumentException(
-                                "Missing arguments for add/get command.");
-                        case "--clear-all":
-                            if (op != Op.None) {
-                                throw new ArgumentException(
-                                    "Operations are mutually exclusive");
-                            }
-                            op = Op.ClearEntireRegistry;
-                            break;
-                        case "--clear":
-                            if (op != Op.None) {
-                                throw new ArgumentException(
-                                    "Operations are mutually exclusive");
-                            }
-                            op = Op.ClearSupervisors;
-                            break;
                         case "-?":
                         case "-h":
                         case "--help":
                             throw new ArgumentException("Help");
                         default:
-                            throw new ArgumentException($"Unknown {args[i]}");
+                            if (op != Op.None) {
+                                throw new ArgumentException(
+                                    "Operations are mutually exclusive");
+                            }
+                            switch (args[i]) {
+                                case "--list":
+                                    op = Op.List;
+                                    break;
+                                case "--add":
+                                    op = Op.Add;
+                                    break;
+                                case "--get":
+                                    op = Op.Get;
+                                    break;
+                                case "--reset":
+                                    op = Op.Reset;
+                                    break;
+                                case "--delete":
+                                    op = Op.Delete;
+                                    break;
+                                case "--host":
+                                    op = Op.Host;
+                                    break;
+                                case "--delete-all":
+                                    op = Op.CleanupAll;
+                                    break;
+                                case "--reset-all":
+                                    op = Op.ResetAll;
+                                    break;
+                                case "--cleanup":
+                                    op = Op.Cleanup;
+                                    break;
+                                default:
+                                    throw new ArgumentException($"Unknown {args[i]}");
+                            }
+                            // Try parse ids
+                            switch (op) {
+                                case Op.Add:
+                                case Op.Host:
+                                case Op.Get:
+                                case Op.Reset:
+                                case Op.Delete:
+                                    i++;
+                                    if (i < args.Length) {
+                                        deviceId = args[i];
+                                        i++;
+                                        if (i < args.Length) {
+                                            moduleId = args[i];
+                                            break;
+                                        }
+                                    }
+                                    break;
+                            }
+                            break;
                     }
+
                 }
                 if (op == Op.None) {
                     throw new ArgumentException("Missing operation.");
@@ -106,6 +134,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
                     throw new ArgumentException("Bad connection string.");
                 }
                 config = connectionString.ToIoTHubConfig();
+
+                switch (op) {
+                    case Op.Get:
+                    case Op.Reset:
+                    case Op.Delete:
+                        if (deviceId == null || moduleId == null) {
+                            throw new ArgumentException(
+                                "Missing arguments for delete/reset/get command.");
+                        }
+                        break;
+                    case Op.Add:
+                    case Op.Host:
+                        if (deviceId == null) {
+                            deviceId = Dns.GetHostName();
+                            Console.WriteLine($"Using <deviceId> '{deviceId}'");
+                        }
+                        if (moduleId == null) {
+                            moduleId = "opctwin";
+                            Console.WriteLine($"Using <moduleId> '{moduleId}'");
+                        }
+                        break;
+                }
             }
             catch (Exception e) {
                 Console.WriteLine(e.Message);
@@ -115,23 +165,38 @@ Usage:       Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli [options] operation [ar
 
 Operations (Mutually exclusive):
 
+    --list
+             List all registered supervisor module identities.
+
     --add <deviceId> <moduleId>
              Add twin module with given device id and module id to device registry.
 
     --get <deviceId> <moduleId>
              Get twin module connection string from device registry.
 
-    --clear
+    --host <deviceId> <moduleId>
+             Host the twin module under the given device id and module id.
+
+    --reset <deviceId> <moduleId>
+             Reset registered module identity twin properties and tags.
+
+    --delete <deviceId> <moduleId>
+             Delete registered module identity.
+
+    --reset-all
              Clear all registered supervisor module identities.
 
-    --clear-all
+    --cleanup
              Clear entire OPC Twin registry content.
+
+    --delete-all
+             Cleanup and delete all supervisor identities.
 
 Options:
      -C
     --connection-string
              IoT Hub owner connection string to use to connect to IoT hub for
-             operations on the registry.
+             operations on the registry.  If not provided, read from environment.
 
     --help
      -?
@@ -143,21 +208,32 @@ Options:
 
             try {
                 switch(op) {
-                    case Op.AddSupervisor:
-                        AddSupervisorAsync(config, deviceId, moduleId)
-                            .Wait();
+                    case Op.Host:
+                        HostAsync(config, deviceId, moduleId).Wait();
                         break;
-                    case Op.GetModuleConnectionString:
-                        GetModuleConnectionStringAsync(config, deviceId, moduleId)
-                            .Wait();
+                    case Op.Add:
+                        AddAsync(config, deviceId, moduleId).Wait();
                         break;
-                    case Op.ClearSupervisors:
-                        ClearSupervisorsAsync(config)
-                            .Wait();
+                    case Op.Get:
+                        GetAsync(config, deviceId, moduleId).Wait();
                         break;
-                    case Op.ClearEntireRegistry:
-                        ClearEntireRegistryAsync(config)
-                            .Wait();
+                    case Op.Reset:
+                        ResetAsync(config, deviceId, moduleId).Wait();
+                        break;
+                    case Op.Delete:
+                        DeleteAsync(config, deviceId, moduleId).Wait();
+                        break;
+                    case Op.ResetAll:
+                        ResetAllAsync(config).Wait();
+                        break;
+                    case Op.List:
+                        ListAsync(config).Wait();
+                        break;
+                    case Op.Cleanup:
+                        CleanupAsync(config, false).Wait();
+                        break;
+                    case Op.CleanupAll:
+                        CleanupAsync(config, true).Wait();
                         break;
                 }
             }
@@ -167,16 +243,28 @@ Options:
         }
 
         /// <summary>
+        /// Add supervisor
+        /// </summary>
+        private static async Task AddAsync(IIoTHubConfig config,
+            string deviceId, string moduleId) {
+            var cs = await AddOrGetAsync(config, deviceId, moduleId);
+            Console.WriteLine(cs);
+        }
+
+        /// <summary>
+        /// Host the supervisor module giving it its connection string.
+        /// </summary>
+        private static async Task HostAsync(IIoTHubConfig config,
+            string deviceId, string moduleId) {
+            var cs = await AddOrGetAsync(config, deviceId, moduleId);
+            Twin.Program.Main(new string[] { $"EdgeHubConnectionString={cs}" });
+        }
+
+        /// <summary>
         /// Get module connection string
         /// </summary>
-        private static async Task GetModuleConnectionStringAsync(
+        private static async Task GetAsync(
             IIoTHubConfig config, string deviceId, string moduleId) {
-            if (string.IsNullOrEmpty(deviceId)) {
-                throw new ArgumentNullException(nameof(deviceId));
-            }
-            if (string.IsNullOrEmpty(moduleId)) {
-                moduleId = "opctwin";
-            }
             var logger = new ConsoleLogger(null, LogLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
@@ -185,16 +273,122 @@ Options:
         }
 
         /// <summary>
-        /// Add supervisor
+        /// Reset supervisor
         /// </summary>
-        private static async Task AddSupervisorAsync(IIoTHubConfig config,
+        private static async Task ResetAsync(IIoTHubConfig config,
             string deviceId, string moduleId) {
-            if (string.IsNullOrEmpty(deviceId)) {
-                throw new ArgumentNullException(nameof(deviceId));
+            var logger = new ConsoleLogger(null, LogLevel.Error);
+            var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
+                config, logger);
+            await ResetAsync(registry, await registry.GetAsync(deviceId, moduleId));
+        }
+
+        /// <summary>
+        /// Delete supervisor
+        /// </summary>
+        private static async Task DeleteAsync(IIoTHubConfig config,
+            string deviceId, string moduleId) {
+            var logger = new ConsoleLogger(null, LogLevel.Error);
+            var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
+                config, logger);
+            await registry.DeleteAsync(deviceId, moduleId);
+        }
+
+        /// <summary>
+        /// List all twin module identities
+        /// </summary>
+        private static async Task ListAsync(IIoTHubConfig config) {
+            var logger = new ConsoleLogger(null, LogLevel.Error);
+            var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
+                config, logger);
+
+            var query = "SELECT * FROM devices.modules WHERE " +
+                $"properties.reported.{kTypeProp} = 'supervisor'";
+            var supers = await registry.QueryDeviceTwinsAsync(query);
+            foreach (var item in supers) {
+                Console.WriteLine($"{item.Id} {item.ModuleId}");
             }
-            if (string.IsNullOrEmpty(moduleId)) {
-                moduleId = "opctwin";
+        }
+
+        /// <summary>
+        /// Reset all supervisor tags and properties
+        /// </summary>
+        private static async Task ResetAllAsync(IIoTHubConfig config) {
+            var logger = new ConsoleLogger(null, LogLevel.Error);
+            var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
+                config, logger);
+
+            var query = "SELECT * FROM devices.modules WHERE " +
+                $"properties.reported.{kTypeProp} = 'supervisor'";
+            var supers = await registry.QueryDeviceTwinsAsync(query);
+            foreach (var item in supers) {
+                Console.WriteLine($"Resetting {item.Id} {item.ModuleId ?? ""}");
+                await ResetAsync(registry, item);
             }
+        }
+
+        /// <summary>
+        /// Clear registry
+        /// </summary>
+        private static async Task CleanupAsync(IIoTHubConfig config,
+            bool includeSupervisors) {
+            var logger = new ConsoleLogger(null, LogLevel.Error);
+            var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
+                config, logger);
+            var result = await registry.QueryDeviceTwinsAsync(
+                "SELECT * from devices where IS_DEFINED(tags.DeviceType)");
+            foreach (var item in result) {
+                Console.WriteLine($"Deleting {item.Id} {item.ModuleId ?? ""}");
+                await registry.DeleteAsync(item.Id, item.ModuleId);
+            }
+            if (!includeSupervisors) {
+                return;
+            }
+            var query = "SELECT * FROM devices.modules WHERE " +
+             $"properties.reported.{kTypeProp} = 'supervisor'";
+            var supers = await registry.QueryDeviceTwinsAsync(query);
+            foreach (var item in supers) {
+                Console.WriteLine($"Deleting {item.Id} {item.ModuleId ?? ""}");
+                await registry.DeleteAsync(item.Id, item.ModuleId);
+            }
+        }
+
+        /// <summary>
+        /// Reset supervisor
+        /// </summary>
+        private static async Task ResetAsync(IoTHubServiceHttpClient registry,
+            DeviceTwinModel item) {
+            if (item.Tags != null) {
+                foreach (var tag in item.Tags.Keys.ToList()) {
+                    item.Tags[tag] = null;
+                }
+            }
+            if (item.Properties?.Desired != null) {
+                foreach (var property in item.Properties.Desired.Keys.ToList()) {
+                    if (property.StartsWith('$')) {
+                        continue;
+                    }
+                    item.Properties.Desired[property] = null;
+                }
+            }
+            if (item.Properties?.Reported != null) {
+                foreach (var property in item.Properties.Reported.Keys.ToList()) {
+                    if (property.StartsWith('$')) {
+                        continue;
+                    }
+                    if (!item.Properties.Desired.ContainsKey(property)) {
+                        item.Properties.Desired.Add(property, null);
+                    }
+                }
+            }
+            await registry.CreateOrUpdateAsync(item);
+        }
+
+        /// <summary>
+        /// Add or get supervisor identity
+        /// </summary>
+        private static async Task<ConnectionString> AddOrGetAsync(IIoTHubConfig config,
+            string deviceId, string moduleId) {
             var logger = new ConsoleLogger(null, LogLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
@@ -206,48 +400,7 @@ Options:
                 }
             });
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
-            Console.WriteLine(cs);
-        }
-
-        /// <summary>
-        /// Clear all twin module identities
-        /// </summary>
-        private static async Task ClearSupervisorsAsync(IIoTHubConfig config) {
-            var logger = new ConsoleLogger(null, LogLevel.Error);
-            var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
-
-            var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{kTypeProp} = 'supervisor'";
-            var supers = await registry.QueryDeviceTwinsAsync(query);
-            foreach (var item in supers) {
-                foreach (var tag in item.Tags.Keys.ToList()) {
-                    item.Tags[tag] = null;
-                }
-                foreach (var property in item.Properties.Desired.Keys.ToList()) {
-                    item.Properties.Desired[property] = null;
-                }
-                foreach (var property in item.Properties.Reported.Keys.ToList()) {
-                    if (!item.Properties.Desired.ContainsKey(property)) {
-                        item.Properties.Desired.Add(property, null);
-                    }
-                }
-                await registry.CreateOrUpdateAsync(item);
-            }
-        }
-
-        /// <summary>
-        /// Clear entire registry
-        /// </summary>
-        private static async Task ClearEntireRegistryAsync(IIoTHubConfig config) {
-            var logger = new ConsoleLogger(null, LogLevel.Error);
-            var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
-            var result = await registry.QueryDeviceTwinsAsync(
-                "SELECT * from devices where IS_DEFINED(tags.DeviceType)");
-            foreach (var item in result) {
-                await registry.DeleteAsync(item.Id, item.ModuleId);
-            }
+            return cs;
         }
     }
 }

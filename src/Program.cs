@@ -37,9 +37,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
             // Load hosting configuration
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddCommandLine(args)
-                .AddEnvironmentVariables()
                 .AddJsonFile("appsettings.json", true)
+                .AddEnvironmentVariables()
+                .AddCommandLine(args)
                 .Build();
 
             // Set up dependency injection for the module host
@@ -163,7 +163,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
                     .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<AddressSpaceServices>()
                     .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<ExportServices>()
+                builder.RegisterType<ModelExportServices>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
 #if PUBLISHER_MODULE_CONTROL
                 builder.RegisterType<PublisherModuleServices>()
