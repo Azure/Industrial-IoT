@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Exceptions;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -204,8 +204,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
                     Name = service,
                     JsonPayload = JsonConvertEx.SerializeObject(request)
                 });
-            _logger.Debug($"Twin call '{service}' took {sw.ElapsedMilliseconds} ms)!",
-                () => { });
+            _logger.Debug($"Twin call '{service}' took {sw.ElapsedMilliseconds} ms)!");
             if (result.Status != 200 || string.IsNullOrEmpty(result.JsonPayload)) {
                 throw new MethodCallStatusException(result.Status, result.JsonPayload);
             }

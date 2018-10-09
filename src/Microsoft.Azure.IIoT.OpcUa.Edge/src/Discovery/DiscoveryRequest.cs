@@ -4,8 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
+    using Microsoft.Azure.IIoT.Net;
     using Microsoft.Azure.IIoT.Net.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -91,10 +92,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 }
             }
 
+            if (AddressRanges == null) {
+                if (request.Discovery == DiscoveryMode.Fast) {
+                    AddressRanges = NetworkInformationEx.GetAllNetInterfaces(
+                        NetworkClass.Wired)
+                    .Select(t => new AddressRange(t, false, 24));
+                }
+            }
+
             if (!string.IsNullOrEmpty(request.Configuration?.PortRangesToScan)) {
                 if (PortRange.TryParse(request.Configuration?.PortRangesToScan,
                     out var ports)) {
                     PortRanges = ports;
+                }
+            }
+
+            if (PortRanges == null) {
+                switch (request.Discovery) {
+                    case DiscoveryMode.Local:
+                        PortRanges = PortRange.All;
+                        break;
+                    case DiscoveryMode.Fast:
+                        PortRanges = PortRange.WellKnown;
+                        break;
+                    case DiscoveryMode.Scan:
+                        PortRanges = PortRange.Unassigned;
+                        break;
+                    default:
+                        PortRanges = PortRange.OpcUa;
+                        break;
                 }
             }
         }

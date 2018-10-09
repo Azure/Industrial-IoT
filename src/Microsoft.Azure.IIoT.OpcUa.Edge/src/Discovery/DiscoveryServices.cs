@@ -4,7 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Net.Scanner;
     using Microsoft.Azure.IIoT.Net.Models;
@@ -93,7 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             if (scheduled) {
                 return Task.CompletedTask;
             }
-            _logger.Error("Task not scheduled, internal server error!", () => { });
+            _logger.Error("Task not scheduled, internal server error!");
             return Task.FromException(new ResourceExhaustionException(
                 "Failed to schedule task"));
         }
@@ -132,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// <param name="ct"></param>
         private async Task RunOnceAsync(DiscoveryRequest request,
             CancellationToken ct) {
-            _logger.Debug("Processing discovery request...", () => { });
+            _logger.Debug("Processing discovery request...");
             object diagnostics = null;
 
             //
@@ -172,16 +173,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 
             if (delay != null) {
                 try {
-                    _logger.Debug($"Delaying for {delay}...", () => { });
+                    _logger.Debug($"Delaying for {delay}...");
                     await Task.Delay((TimeSpan)delay, ct);
                 }
                 catch (OperationCanceledException) {
-                    _logger.Debug("Cancelled discovery start.", () => { });
+                    _logger.Debug("Cancelled discovery start.");
                     return;
                 }
             }
 
-            _logger.Info("Starting discovery...", () => { });
+            _logger.Info("Starting discovery...");
 
             // Run scans until cancelled
             while (!ct.IsCancellationRequested) {
@@ -227,7 +228,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                         var idle = request.Configuration.IdleTimeBetweenScans ??
                             TimeSpan.FromMinutes(3);
                         if (idle.Ticks != 0) {
-                            _logger.Debug($"Idle for {idle}...", () => { });
+                            _logger.Debug($"Idle for {idle}...");
                             await Task.Delay(idle, ct);
                         }
                     }
@@ -237,7 +238,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 }
             }
 
-            _logger.Info("Cancelled discovery.", () => { });
+            _logger.Info("Cancelled discovery.");
         }
 
         /// <summary>
@@ -251,10 +252,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 
             var discoveryUrls = await GetDiscoveryUrlsAsync(request.DiscoveryUrls);
             if (request.Mode == DiscoveryMode.Off) {
-                return await DiscoverServersAsync(discoveryUrls, ct);
+                return await DiscoverServersAsync(discoveryUrls,
+                    request.Configuration.Locales, ct);
             }
 
-            _logger.Info("Start discovery run...", () => { });
+            _logger.Info("Start discovery run...");
             var watch = Stopwatch.StartNew();
 
             //
@@ -266,7 +268,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 #endif
             var addresses = new List<IPAddress>();
             using (var netscanner = new NetworkScanner(_logger, reply => {
-                _logger.Debug($"{reply.Address} found.", () => { });
+                _logger.Debug($"{reply.Address} found.");
                 addresses.Add(reply.Address);
             }, local, local ? null : request.AddressRanges, request.NetworkClass,
                 request.Configuration.MaxNetworkProbes,
@@ -283,8 +285,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             ct.ThrowIfCancellationRequested();
 
             _logger.Info(
-                $"Finding {addresses.Count} addresses took {watch.Elapsed}...",
-                    () => { });
+                $"Finding {addresses.Count} addresses took {watch.Elapsed}...");
             if (addresses.Count == 0) {
                 return new List<ApplicationRegistrationModel>();
             }
@@ -296,18 +297,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 #endif
             using (var portscan = new PortScanner(_logger,
                 addresses.SelectMany(address => {
-                    var ranges = request.PortRanges;
-                    if (ranges == null) {
-                        if (request.Mode == DiscoveryMode.Local) {
-                            ranges = PortRange.All;
-                        }
-                        else {
-                            ranges = PortRange.OpcUa;
-                        }
-                        if (request.Mode == DiscoveryMode.Scan) {
-                            ranges = ranges.Concat(PortRange.Unassigned);
-                        }
-                    }
+                    var ranges = request.PortRanges ?? PortRange.OpcUa;
                     return ranges.SelectMany(x => x.GetEndpoints(address));
                 }), ports.Add, probe, request.Configuration.MaxPortProbes,
                 request.Configuration.MinPortProbesPercent,
@@ -323,8 +313,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             }
             ct.ThrowIfCancellationRequested();
             _logger.Info(
-                $"Finding {ports.Count} ports on servers (elapsed:{watch.Elapsed})...",
-                    () => { });
+                $"Finding {ports.Count} ports on servers (elapsed:{watch.Elapsed})...");
             if (ports.Count == 0) {
                 return new List<ApplicationRegistrationModel>();
             }
@@ -343,32 +332,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             //
             // Create application model list from discovered endpoints...
             //
-            var discovered = await DiscoverServersAsync(discoveryUrls, ct);
+            var discovered = await DiscoverServersAsync(discoveryUrls,
+                request.Configuration.Locales, ct);
             _logger.Info($"Discovery took {watch.Elapsed} and found " +
-                $"{discovered.Count} servers.", () => { });
+                $"{discovered.Count} servers.");
             return discovered;
         }
 
         /// <summary>
-        /// Discover servers using opcua discovery
+        /// Discover servers using opcua discovery and filter by optional locale
         /// </summary>
         /// <param name="discoveryUrls"></param>
+        /// <param name="locales"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<List<ApplicationRegistrationModel>> DiscoverServersAsync(
-            Dictionary<IPEndPoint, Uri> discoveryUrls, CancellationToken ct) {
+            Dictionary<IPEndPoint, Uri> discoveryUrls, List<string> locales, CancellationToken ct) {
             var discovered = new List<ApplicationRegistrationModel>();
             var supervisorId = SupervisorModelEx.CreateSupervisorId(_events.DeviceId,
                 _events.ModuleId);
             foreach (var item in discoveryUrls) {
                 ct.ThrowIfCancellationRequested();
                 var url = item.Value;
-                var eps = await _client.FindEndpointsAsync(url, ct).ConfigureAwait(false);
+                var eps = await _client.FindEndpointsAsync(url, locales, ct).ConfigureAwait(false);
                 if (!eps.Any()) {
                     continue;
                 }
-                _logger.Info($"Found {eps.Count()} endpoints on {url.Host}:{url.Port}.",
-                    () => { });
+                _logger.Info($"Found {eps.Count()} endpoints on {url.Host}:{url.Port}.");
                 // Merge results...
                 foreach (var ep in eps) {
                     discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),
@@ -430,7 +420,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         private async Task UploadResultsAsync(DiscoveryRequest request,
             List<ApplicationRegistrationModel> discovered, DateTime timestamp,
             object diagnostics, CancellationToken ct) {
-            _logger.Info($"Uploading {discovered.Count} results...", () => { });
+            _logger.Info($"Uploading {discovered.Count} results...");
             var messages = discovered
                 .SelectMany(server => server.Endpoints
                     .Select(registration => new DiscoveryEventModel {
@@ -457,7 +447,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     JsonConvertEx.SerializeObject(discovery)));
             await Task.Run(() => _events.SendAsync(
                 messages, ContentTypes.DiscoveryEvent), ct);
-            _logger.Info($"{discovered.Count} results uploaded.", () => { });
+            _logger.Info($"{discovered.Count} results uploaded.");
         }
 
         /// <summary>
@@ -473,7 +463,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 }
             }
 #endif
-            _logger.Info(message(), () => { });
+            _logger.Info(message());
         }
 
 #if !NO_SCHEDULER_DUMP

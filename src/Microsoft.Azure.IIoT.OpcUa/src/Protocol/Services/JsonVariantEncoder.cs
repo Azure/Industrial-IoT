@@ -102,17 +102,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return value;
             }
 
-            var asString = value.ToString(Formatting.None);
+            var asString = value.Type == JTokenType.String ?
+                (string)value : value.ToString(Formatting.None);
 
             if (value is JValue val) {
                 if (value.Type != JTokenType.String) {
                     //
                     // If this should be a string - return as such
                     //
-                    return isString ?
-                        new JValue(value.ToString(Formatting.None)) : value;
+                    return isString ? new JValue(asString) : value;
                 }
-                asString = asString.TrimQuotes();
             }
 
             if (string.IsNullOrWhiteSpace(asString)) {
@@ -122,7 +121,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             //
             // Try to parse string as json
             //
-            asString = asString.Replace("\\\"", "\"");
+            if (value.Type != JTokenType.String) {
+                asString = asString.Replace("\\\"", "\"");
+            }
             var token = Try.Op(() => JToken.Parse(asString));
             if (token != null) {
                 value = token;
@@ -167,7 +168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         //
                         // Try to remove next layer of quotes and try again.
                         //
-                        var trimmed = asString.TrimQuotes();
+                        var trimmed = asString.Trim().TrimQuotes();
                         if (trimmed != asString) {
                             return Sanitize(trimmed, isString);
                         }

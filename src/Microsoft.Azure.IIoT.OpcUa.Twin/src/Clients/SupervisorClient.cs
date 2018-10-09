@@ -5,7 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Exceptions;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -172,8 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
                     })
                 });
             _logger.Debug($"Calling supervisor service '{service}' on {deviceId}/{moduleId} " +
-                $"took {sw.ElapsedMilliseconds} ms and returned {result.Status}!",
-                    () => { });
+                $"took {sw.ElapsedMilliseconds} ms and returned {result.Status}!");
             if (result.Status != 200) {
                 throw new MethodCallStatusException(result.Status, result.JsonPayload);
             }

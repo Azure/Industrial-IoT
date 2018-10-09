@@ -5,17 +5,22 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Tests;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using MemoryBuffer;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Net;
     using System.Text;
     using System.Threading.Tasks;
+    using System.Xml;
     using Xunit;
+    using Formatting = Newtonsoft.Json.Formatting;
 
     [Collection(WriteCollection.Name)]
     public class AddressSpaceValueCallScalarTests {
@@ -710,16 +715,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     Assert.Equal((uint)0, (uint)arg.Value);
                 },
                 arg => {
-                    Assert.Equal((long)0, (long)arg.Value);
+                    Assert.Equal(0, (long)arg.Value);
                 },
                 arg => {
                     Assert.Equal((ulong)0, (ulong)arg.Value);
                 },
                 arg => {
-                    Assert.Equal((float)0, (float)arg.Value);
+                    Assert.Equal(0, (float)arg.Value);
                 },
                 arg => {
-                    Assert.Equal((double)0, (double)arg.Value);
+                    Assert.Equal(0, (double)arg.Value);
                 });
         }
 
@@ -761,21 +766,72 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     Assert.Equal((uint)0, (uint)arg.Value);
                 },
                 arg => {
-                    Assert.Equal((long)0, (long)arg.Value);
+                    Assert.Equal(0, (long)arg.Value);
                 },
                 arg => {
                     Assert.Equal((ulong)0, (ulong)arg.Value);
                 },
                 arg => {
-                    Assert.Equal((float)0, (float)arg.Value);
+                    Assert.Equal(0, (float)arg.Value);
                 },
                 arg => {
-                    Assert.Equal((double)0, (double)arg.Value);
+                    Assert.Equal(0, (double)arg.Value);
+                });
+        }
+        [Fact]
+        public async Task NodeMethodCallStaticScalarMethod1Test4() {
+
+            var service = GetServices();
+            var methodId = "http://test.org/UA/Data/#i=10756";
+            var objectId = "http://test.org/UA/Data/#i=10755";
+
+            // Act
+            var result = await service.NodeMethodCallAsync(GetEndpoint(),
+                new MethodCallRequestModel {
+                    MethodId = methodId,
+                    ObjectId = objectId,
+                    Arguments = new List<MethodCallArgumentModel>()
+                });
+
+            // Assert
+            Assert.Collection(result.Results,
+                arg => {
+                    Assert.False((bool)arg.Value);
+                },
+                arg => {
+                    Assert.Equal((sbyte)0, (sbyte)arg.Value);
+                },
+                arg => {
+                    Assert.Equal((byte)0, (byte)arg.Value);
+                },
+                arg => {
+                    Assert.Equal((short)0, (short)arg.Value);
+                },
+                arg => {
+                    Assert.Equal((ushort)0, (ushort)arg.Value);
+                },
+                arg => {
+                    Assert.Equal(0, (int)arg.Value);
+                },
+                arg => {
+                    Assert.Equal((uint)0, (uint)arg.Value);
+                },
+                arg => {
+                    Assert.Equal(0, (long)arg.Value);
+                },
+                arg => {
+                    Assert.Equal((ulong)0, (ulong)arg.Value);
+                },
+                arg => {
+                    Assert.Equal(0, (float)arg.Value);
+                },
+                arg => {
+                    Assert.Equal(0, (double)arg.Value);
                 });
         }
 
         [Fact]
-        public async Task NodeMethodCallStaticScalarMethod1Test4() {
+        public async Task NodeMethodCallStaticScalarMethod1Test5() {
 
             var service = GetServices();
             var methodId = "http://test.org/UA/Data/#i=10756";
@@ -839,13 +895,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     Assert.Equal((uint)0, (uint)arg.Value);
                 },
                 arg => {
-                    Assert.Equal((long)0, (long)arg.Value);
+                    Assert.Equal(0, (long)arg.Value);
                 },
                 arg => {
                     Assert.Equal((ulong)0, (ulong)arg.Value);
                 },
                 arg => {
-                    Assert.Equal((float)0, (float)arg.Value);
+                    Assert.Equal(0, (float)arg.Value);
                 },
                 arg => {
                     Assert.Equal((double)input[10].Value, (double)arg.Value);
@@ -878,7 +934,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 },
                 new MethodCallArgumentModel {
                     DataType = "XmlElement",
-                    Value = null
+                    Value = JToken.FromObject(XmlElementEx.SerializeObject(
+                        new MemoryBufferInstance{
+                            Name = "test",
+                            TagCount = 333,
+                            DataType ="Byte"
+                        }))
                 },
                 new MethodCallArgumentModel {
                     DataType = "NodeId",
@@ -932,7 +993,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     Assert.Equal(input[3].DataType, arg.DataType);
                 },
                 arg => {
-                    Assert.Equal(JTokenType.Null, arg.Value.Type);
+                    Assert.Equal(input[4].Value.ToString(Formatting.None),
+                        arg.Value.ToString(Formatting.None));
                     Assert.Equal(input[4].DataType, arg.DataType);
                 },
                 arg => {
@@ -1069,7 +1131,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 },
                 arg => {
                     Assert.True(JToken.DeepEquals(input[2].Value, arg.Value),
-                        $"Expected: {input[2].Value} != Actual: {arg}");
+                        $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
 
@@ -1119,6 +1181,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     Assert.Equal(input[2].Value.ToString(Formatting.None),
                         arg.Value.ToString(Formatting.None));
                 });
+        }
+
+        [Fact]
+        public async Task NodeMethodCallStaticScalarMethod4Test1() {
+
+            var service = GetServices();
+            var methodId = "ns=4;i=15021";
+            var objectId = "ns=4;i=1287";
+
+            // Act
+            var result = await service.NodeMethodCallAsync(GetEndpoint(),
+                new MethodCallRequestModel {
+                    MethodId = methodId,
+                    ObjectId = objectId
+                });
+
+            // Assert
+            Assert.Empty(result.Results);
+            Assert.Null(result.Diagnostics);
+        }
+
+        [Fact]
+        public async Task NodeMethodCallStaticScalarMethod4Test2() {
+
+            var service = GetServices();
+            var methodId = "http://opcfoundation.org/UA/Boiler/#i=15022";
+            var objectId = "http://opcfoundation.org/UA/Boiler/#i=1287";
+
+            // Act
+            var result = await service.NodeMethodCallAsync(GetEndpoint(),
+                new MethodCallRequestModel {
+                    MethodId = methodId,
+                    ObjectId = objectId,
+                    Arguments = new List<MethodCallArgumentModel>()
+                });
+
+            // Assert
+            Assert.Empty(result.Results);
+            Assert.Null(result.Diagnostics);
         }
 
         public AddressSpaceValueCallScalarTests(ServerFixture server) {

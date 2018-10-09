@@ -7,7 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Control;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Utils;
@@ -424,7 +426,7 @@ Operations (Mutually exclusive):
                 await discovery.ScanAsync();
                 await Task.Delay(!stress ? TimeSpan.FromMinutes(10) :
                     TimeSpan.FromMilliseconds(rand.Next(0, 120000)));
-                logger.Info("Stopping discovery!", () => { });
+                logger.Info("Stopping discovery!");
                 discovery.Mode = DiscoveryMode.Scan;
                 await discovery.ScanAsync();
                 if (!stress) {
@@ -440,7 +442,7 @@ Operations (Mutually exclusive):
             var logger = new ConsoleLogger("test", LogLevel.Debug);
             var client = new ClientServices(logger);
 
-            var exporter = new ExportServices(client, new ConsoleUploader(),
+            var exporter = new ModelExportServices(client, new ConsoleUploader(),
                 new ConsoleEmitter(), new LimitingScheduler(), logger) {
                 ExportIdleTime = TimeSpan.FromMilliseconds(1)
             };
@@ -556,7 +558,7 @@ Operations (Mutually exclusive):
                             continue; // We have read this one already
                         }
                         if (!r.Target.NodeClass.HasValue ||
-                            r.Target.NodeClass.Value != Models.NodeClass.Variable) {
+                            r.Target.NodeClass.Value != Twin.Models.NodeClass.Variable) {
                             continue;
                         }
                         if (!silent) {

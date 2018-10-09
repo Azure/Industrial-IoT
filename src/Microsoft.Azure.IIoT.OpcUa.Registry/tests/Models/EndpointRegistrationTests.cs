@@ -9,10 +9,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using AutoFixture.Kernel;
     using Newtonsoft.Json.Linq;
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using Xunit;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
 
     public class EndpointRegistrationTests {
 

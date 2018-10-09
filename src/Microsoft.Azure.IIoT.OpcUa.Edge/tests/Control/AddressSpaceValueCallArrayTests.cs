@@ -5,7 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Tests;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -1046,8 +1048,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 },
                 new MethodCallArgumentModel {
                     DataType = "StatusCode",
-                    Value = JToken.FromObject(new int[] {
-                        1, 2342, 324356, 362
+                    Value = JToken.FromObject(new object[] {
+                        new {
+                            Symbol = "BadEndOfStream",
+                            Code = 0x80B00000
+                        },
+                        new {
+                            Symbol = "BadWaitingForResponse",
+                            Code = 0x80B20000
+                        },
+                        new {
+                            Symbol = "BadOperationAbandoned",
+                            Code = 0x80B30000
+                        }
                     })
                 }
             };

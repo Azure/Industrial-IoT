@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
                 try {
                     await _lock.WaitAsync();
                     if (_server != null) {
-                        _logger.Info($"Stopping server.", () => { });
+                        _logger.Info($"Stopping server.");
                         try {
                             _cts.Cancel();
                             if (_statusLogger != null) {
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
                         }
                         _server.Dispose();
                     }
-                    _logger.Info($"Server stopped.", () => { });
+                    _logger.Info($"Server stopped.");
                 }
                 catch (Exception ce) {
                     _logger.Error("Stopping server caused exception.",
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
                 }
                 catch (Exception ex) {
                     _server?.Dispose();
-                        _server = null;
+                    _server = null;
                     throw ex;
                 }
                 finally {
@@ -98,7 +98,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
         /// <param name="ports"></param>
         /// <returns></returns>
         private async Task StartServerInternal(IEnumerable<int> ports) {
-            _logger.Info("Starting server...", () => { });
+            _logger.Info("Starting server...");
             ApplicationInstance.MessageDlg = new DummyDialog();
 
             var config = ApplicationInstance.FixupAppConfig(
@@ -109,10 +109,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
                 if (e.Error.StatusCode ==
                     StatusCodes.BadCertificateUntrusted) {
                     e.Accept = AutoAccept;
-
                     _logger.Info((e.Accept ? "Accepted" : "Rejected") +
-                        $" Certificate {e.Certificate.Subject}",
-                        () => { });
+                        $" Certificate {e.Certificate.Subject}");
                 }
             };
 
@@ -153,7 +151,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
             await application.Start(_server);
 
             foreach (var ep in config.ServerConfiguration.BaseAddresses) {
-                _logger.Info($"Listening on {ep}", () => { });
+                _logger.Info($"Listening on {ep}");
             }
 
             // start the status thread
@@ -167,7 +165,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
                 _server.CurrentInstance.SessionManager.SessionCreated += OnEvent;
             }
 
-            _logger.Info("Server started.", () => { });
+            _logger.Info("Server started.");
         }
 
         /// <summary>
@@ -371,7 +369,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
                     }
                     item += string.Format(":{0}", session.Id);
                 }
-                _logger.Info(item, () => { });
+                _logger.Info(item);
             }
         }
 
@@ -448,7 +446,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Sample {
             /// <inheritdoc/>
             protected override MasterNodeManager CreateMasterNodeManager(
                 IServerInternal server, ApplicationConfiguration configuration) {
-                _logger.Info("Creating the Node Managers.", () => { });
+                _logger.Info("Creating the Node Managers.");
                 var nodeManagers = new List<INodeManager> {
 
                     new TestDataNodeManager(server, configuration),

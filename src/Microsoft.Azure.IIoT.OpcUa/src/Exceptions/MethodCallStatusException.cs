@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Exceptions {
     using Microsoft.Azure.IIoT.Exceptions;
-    using System;
 
     /// <summary>
     /// This exception is thrown when method call returned a

@@ -16,32 +16,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Format variant as string
         /// </summary>
         /// <param name="encoder"></param>
-        /// <param name="builtInType"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder encoder, Variant value,
-            out BuiltInType builtInType) =>
-            encoder.Encode(value, out builtInType, null);
-
-        /// <summary>
-        /// Format variant as string
-        /// </summary>
-        /// <param name="encoder"></param>
         /// <param name="value"></param>
         /// <returns></returns>
         public static JToken Encode(this IVariantEncoder encoder, Variant value) =>
-            encoder.Encode(value, out var tmp, null);
-
-        /// <summary>
-        /// Parse token to variant
-        /// </summary>
-        /// <param name="encoder"></param>
-        /// <param name="value"></param>
-        /// <param name="builtinType"></param>
-        /// <returns></returns>
-        public static Variant Decode(this IVariantEncoder encoder, JToken value,
-            BuiltInType builtinType) =>
-            encoder.Decode(value, builtinType, null);
+            encoder.Encode(value, out var tmp);
 
         /// <summary>
         /// Parse token to variant
@@ -50,6 +28,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="value"></param>
         /// <returns></returns>
         public static Variant Decode(this IVariantEncoder encoder, JToken value) =>
-            encoder.Decode(value, BuiltInType.Null, null);
+            encoder.Decode(value, BuiltInType.Null);
     }
 }

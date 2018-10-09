@@ -10,9 +10,7 @@ namespace Opc.Ua.Models {
     using System;
     using System.Linq;
     using System.Collections.Generic;
-    using System.Threading;
     using System.Threading.Tasks;
-    using System.Diagnostics;
 
     /// <summary>
     /// Represents a generic in memory node for remote reading and writing
@@ -50,7 +48,7 @@ namespace Opc.Ua.Models {
         /// </summary>
         public GenericNode(ExpandedNodeId nodeId, NamespaceTable namespaces) {
             _namespaces = namespaces ?? throw new ArgumentNullException(nameof(namespaces));
-            if (Opc.Ua.NodeId.IsNull(nodeId)) {
+            if (Ua.NodeId.IsNull(nodeId)) {
                 throw new ArgumentNullException(nameof(nodeId));
             }
             _attributes = new SortedDictionary<uint, DataValue>();
@@ -102,7 +100,7 @@ namespace Opc.Ua.Models {
 
         /// <inheritdoc/>
         public NodeId LocalId =>
-            GetAttribute(Attributes.NodeId, Opc.Ua.NodeId.Null);
+            GetAttribute(Attributes.NodeId, Ua.NodeId.Null);
 
         /// <inheritdoc/>
         public NodeClass NodeClass {
@@ -416,7 +414,7 @@ namespace Opc.Ua.Models {
         public T GetAttribute<T>(uint attribute) {
             if (_attributes.TryGetValue(attribute, out var result) &&
                 result != null) {
-                return result.Get<T>();
+                return result.GetValueOrDefault<T>();
             }
             var nodeClass = NodeClass;
             if (nodeClass == NodeClass.Unspecified) {
@@ -433,7 +431,7 @@ namespace Opc.Ua.Models {
             try {
                 if (_attributes.TryGetValue(attribute, out var result) &&
                     result != null) {
-                    value = result.Get<T>();
+                    value = result.GetValueOrDefault<T>();
                     return true;
                 }
                 return false;
@@ -468,36 +466,56 @@ namespace Opc.Ua.Models {
         /// Read generic node in the form of its attributes from remote.
         /// </summary>
         /// <param name="session"></param>
+        /// <param name="requestHeader"></param>
         /// <param name="nodeId"></param>
         /// <param name="skipValue"></param>
-        /// <param name="ct"></param>
+        /// <param name="operations"></param>
         /// <returns></returns>
         public static async Task<GenericNode> ReadAsync(Session session,
-            NodeId nodeId, bool skipValue, CancellationToken ct) {
+            RequestHeader requestHeader, NodeId nodeId, bool skipValue,
+            List<OperationResult> operations) {
             var node = new GenericNode(nodeId, session.NamespaceUris);
-            await node.ReadAsync(session, skipValue, ct);
+            await node.ReadAsync(session, requestHeader, skipValue, operations);
             return node;
         }
 
         /// <summary>
-        /// Reads the values through the passed in session from a remote server.
+        /// Read value of a node
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="skipValue">Skip reading values for variables</param>
-        /// <param name="ct"></param>
+        /// <param name="requestHeader"></param>
+        /// <param name="nodeId"></param>
+        /// <param name="operations"></param>
         /// <returns></returns>
-        public async Task ReadAsync(Session session, bool skipValue,
-            CancellationToken ct) {
+        public static async Task<Variant?> ReadValueAsync(Session session,
+            RequestHeader requestHeader, NodeId nodeId,
+            List<OperationResult> operations) {
+            var node = new GenericNode(nodeId, session.NamespaceUris);
+            await node.ReadValueAsync(session, requestHeader, operations);
+            return node.Value;
+        }
+
+        /// <summary>
+        /// Reads all node attributes through the passed in session from a remote
+        /// server.
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="requestHeader"></param>
+        /// <param name="skipValue">Skip reading values for variables</param>
+        /// <param name="operations"></param>
+        /// <returns></returns>
+        public async Task ReadAsync(Session session, RequestHeader requestHeader,
+            bool skipValue, List<OperationResult> operations) {
             var readValueCollection = new ReadValueIdCollection(_attributes.Keys
                 .Where(a => !skipValue || a != Attributes.Value)
                 .Select(a => new ReadValueId {
                     NodeId = LocalId,
                     AttributeId = a
                 }));
-            await ReadAsync(session, readValueCollection, ct);
+            await ReadAsync(session, requestHeader, readValueCollection, operations, true);
             if (skipValue && NodeClass == NodeClass.VariableType) {
                 // Read default value
-                await ReadValueAsync(session, ct);
+                await ReadValueAsync(session, requestHeader, operations);
             }
         }
 
@@ -505,20 +523,30 @@ namespace Opc.Ua.Models {
         /// Reads the value through the passed in session from a remote server.
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="ct"></param>
+        /// <param name="requestHeader"></param>
+        /// <param name="operations"></param>
         /// <returns></returns>
-        public async Task<DataValue> ReadValueAsync(Session session, CancellationToken ct) {
-            if (NodeClass != NodeClass.VariableType && NodeClass != NodeClass.Variable) {
-                throw new InvalidOperationException(
-                    "Node is not a variable or variable type node and does not have value");
-            }
-            // Update value
-            await ReadAsync(session, new ReadValueIdCollection {
+        public async Task<DataValue> ReadValueAsync(Session session,
+            RequestHeader requestHeader, List<OperationResult> operations) {
+            var readValueCollection = new ReadValueIdCollection {
                 new ReadValueId {
                     NodeId = LocalId,
                     AttributeId = Attributes.Value
                 }
-            }, ct);
+            };
+            if (NodeClass == NodeClass.Unspecified) {
+                readValueCollection.Add(new ReadValueId {
+                    NodeId = LocalId,
+                    AttributeId = Attributes.NodeClass
+                });
+            }
+            // Update value
+            await ReadAsync(session, requestHeader, readValueCollection, operations, false);
+            if (operations == null &&
+                NodeClass != NodeClass.VariableType && NodeClass != NodeClass.Variable) {
+                throw new InvalidOperationException(
+                    "Node is not a variable or variable type node and does not have value");
+            }
             return _attributes[Attributes.Value];
         }
 
@@ -526,23 +554,30 @@ namespace Opc.Ua.Models {
         /// Read using value collection
         /// </summary>
         /// <param name="session"></param>
+        /// <param name="requestHeader"></param>
         /// <param name="readValueCollection"></param>
-        /// <param name="ct"></param>
+        /// <param name="operations"></param>
+        /// <param name="skipAttributeIdInvalid"></param>
         /// <returns></returns>
-        private async Task ReadAsync(Session session, ReadValueIdCollection readValueCollection,
-            CancellationToken ct) {
-            DataValueCollection values = null;
-            DiagnosticInfoCollection diagnosticInfoCollection = null;
-            var readResponse = await Task.Run(() => {
-                return session.Read(null, 0, TimestampsToReturn.Source, readValueCollection,
-                    out values, out diagnosticInfoCollection);
-            }, ct);
-            ClientBase.ValidateResponse(values, readValueCollection);
-            ClientBase.ValidateDiagnosticInfos(diagnosticInfoCollection, readValueCollection);
+        private async Task ReadAsync(Session session, RequestHeader requestHeader,
+            ReadValueIdCollection readValueCollection, List<OperationResult> operations,
+            bool skipAttributeIdInvalid) {
+
+            var readResponse = await session.ReadAsync(requestHeader, 0,
+                TimestampsToReturn.Both, readValueCollection);
+
+            SessionClientEx.Validate("Read", operations,
+                readResponse.Results
+                    .Select(v => skipAttributeIdInvalid &&
+                        v.StatusCode == StatusCodes.BadAttributeIdInvalid  ?
+                            StatusCodes.Good : v.StatusCode),
+                readResponse.DiagnosticInfos, readValueCollection
+                    .Select(v => Attributes.GetBrowseName(v.AttributeId)));
+
             for (var i = 0; i < readValueCollection.Count; i++) {
                 var attributeId = readValueCollection[i].AttributeId;
-                if (values[i].StatusCode != StatusCodes.BadAttributeIdInvalid) {
-                    _attributes[attributeId] = values[i];
+                if (readResponse.Results[i].StatusCode != StatusCodes.BadAttributeIdInvalid) {
+                    _attributes[attributeId] = readResponse.Results[i];
                 }
             }
         }
@@ -551,9 +586,12 @@ namespace Opc.Ua.Models {
         /// Writes any changes through the session
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="ct"></param>
+        /// <param name="requestHeader"></param>
+        /// <param name="operations"></param>
+        /// <param name="skipAttributeIdInvalid"></param>
         /// <returns></returns>
-        public async Task WriteAsync(Session session, CancellationToken ct) {
+        public async Task WriteAsync(Session session, RequestHeader requestHeader,
+            List<OperationResult> operations, bool skipAttributeIdInvalid) {
             var writeValueCollection = new WriteValueCollection(_attributes
                 .Where(a => a.Value != null)
                 .Select(a => new WriteValue {
@@ -561,14 +599,15 @@ namespace Opc.Ua.Models {
                     AttributeId = a.Key,
                     Value = a.Value
                 }));
-            DiagnosticInfoCollection diagnosticInfoCollection = null;
-            StatusCodeCollection statusCodes = null;
-            var writeResponse = await Task.Run(() => {
-                return session.Write(null, writeValueCollection,
-                    out statusCodes, out diagnosticInfoCollection);
-            }, ct);
-            ClientBase.ValidateResponse(statusCodes, writeValueCollection);
-            ClientBase.ValidateDiagnosticInfos(diagnosticInfoCollection, writeValueCollection);
+
+            var writeResponse = await session.WriteAsync(requestHeader,
+                writeValueCollection);
+            SessionClientEx.Validate("Write", operations, writeResponse.Results
+                    .Select(code => skipAttributeIdInvalid &&
+                        code == StatusCodes.BadAttributeIdInvalid ? StatusCodes.Good : code),
+                writeResponse.DiagnosticInfos,
+                writeValueCollection
+                    .Select(v => Attributes.GetBrowseName(v.AttributeId)));
         }
 
         /// <summary>

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
@@ -51,7 +51,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
                     ActivationFilter = request.ActivationFilter,
                     Callbacks = request.Callback == null ? null :
                         new List <CallbackModel> { request.Callback },
-                    DiscoveryUrls = new List<string> { request.DiscoveryUrl }
+                    DiscoveryUrls = new List<string> { request.DiscoveryUrl },
+                    Locales = request.Locales
                 },
                 Id = request.RegistrationId,
             });

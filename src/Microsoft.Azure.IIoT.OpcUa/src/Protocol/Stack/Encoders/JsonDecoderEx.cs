@@ -11,20 +11,16 @@
 */
 
 namespace Opc.Ua.Encoders {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using System.Xml;
-    using System.IO;
+    using Opc.Ua.Extensions;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System;
     using System.Collections;
-    using Opc.Ua.Extensions;
+    using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using System.Globalization;
-    using System.Numerics;
+    using System.Text;
+    using System.Xml;
 
     /// <summary>
     /// Reads objects from reader or string
@@ -159,7 +155,7 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public byte[] ReadByteString(string property) => TryReadValue(property,
-            t => Convert.FromBase64String((string)t));
+            t => ((string)t).DecodeAsBase64());
 
         /// <inheritdoc/>
         public string ReadString(string property) {
@@ -297,7 +293,7 @@ namespace Opc.Ua.Encoders {
                 return code;
             }
             return ReadValue<uint>(property, v =>
-                (uint)(v < uint.MinValue || v > uint.MaxValue ? 0 : v));
+                v < uint.MinValue || v > uint.MaxValue ? 0 : v);
         }
 
         /// <inheritdoc/>
@@ -502,14 +498,6 @@ namespace Opc.Ua.Encoders {
             ReadArray(property, () => ReadBoolean(null));
 
         /// <inheritdoc/>
-        public SByteCollection ReadSByteArray(string property) =>
-            ReadArray(property, () => ReadSByte(null));
-
-        /// <inheritdoc/>
-        public ByteCollection ReadByteArray(string property) =>
-            ReadArray(property, () => ReadByte(null));
-
-        /// <inheritdoc/>
         public Int16Collection ReadInt16Array(string property) =>
             ReadArray(property, () => ReadInt16(null));
 
@@ -598,6 +586,43 @@ namespace Opc.Ua.Encoders {
             ReadArray(property, () => ReadExtensionObject(null));
 
         /// <inheritdoc/>
+        public ByteCollection ReadByteArray(string property) {
+            if (!TryGetToken(property, out var token)) {
+                return null;
+            }
+            if (token.Type == JTokenType.Bytes ||
+                token.Type == JTokenType.String) {
+                return ((string)token).DecodeAsBase64();
+            }
+            if (token is JArray a) {
+                return a.Select(t => ReadToken(t,
+                    () => ReadByte(null))).ToArray();
+            }
+            return new ByteCollection {
+                ReadToken(token, () => ReadByte(null))
+            };
+        }
+
+        /// <inheritdoc/>
+        public SByteCollection ReadSByteArray(string property) {
+            if (!TryGetToken(property, out var token)) {
+                return null;
+            }
+            if (token.Type == JTokenType.Bytes ||
+                token.Type == JTokenType.String) {
+                return ((string)token).DecodeAsBase64()
+                    .Select(b => (sbyte)b).ToArray();
+            }
+            if (token is JArray a) {
+                return a.Select(t => ReadToken(t,
+                    () => ReadSByte(null))).ToArray();
+            }
+            return new SByteCollection {
+                ReadToken(token, () => ReadSByte(null))
+            };
+        }
+
+        /// <inheritdoc/>
         public Array ReadEncodeableArray(string property, Type systemType) {
             var values = ReadArray(property, () => ReadEncodeable(null, systemType))?
                 .ToList();
@@ -619,6 +644,111 @@ namespace Opc.Ua.Encoders {
             var array = Array.CreateInstance(enumType, values.Count);
             values.CopyTo((Enum[])array);
             return array;
+        }
+
+        /// <summary>
+        /// Read integers
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public VariantCollection ReadIntegerArray(string property) =>
+            ReadArray(property, () => ReadInteger(null));
+
+        /// <summary>
+        /// Read integer variant value
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public Variant ReadInteger(string property) {
+            if (!TryGetToken(property, out var token)) {
+                return Variant.Null;
+            }
+            Variant number;
+            if (token is JObject o) {
+                number = TryReadVariant(o, out var tmp);
+            }
+            else {
+                number = ReadVariantFromToken(token, false);
+            }
+            var builtInType = number.TypeInfo.BuiltInType;
+            if ((builtInType >= BuiltInType.SByte &&
+                 builtInType <= BuiltInType.UInt64) ||
+                builtInType == BuiltInType.Integer) {
+                return number;
+            }
+            else {
+                // TODO Log or throw for bad type
+            }
+            return Variant.Null;
+        }
+
+        /// <summary>
+        /// Read unsigned integers
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public VariantCollection ReadUIntegerArray(string property) =>
+            ReadArray(property, () => ReadUInteger(null));
+
+        /// <summary>
+        /// Read unsigned integer variant value
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public Variant ReadUInteger(string property) {
+            if (!TryGetToken(property, out var token)) {
+                return Variant.Null;
+            }
+            Variant number;
+            if (token is JObject o) {
+                number = TryReadVariant(o, out var tmp);
+            }
+            else {
+                number = ReadVariantFromToken(token, true);
+            }
+            var builtInType = number.TypeInfo.BuiltInType;
+            if ((builtInType >= BuiltInType.Byte &&
+                 builtInType <= BuiltInType.UInt64) ||
+                builtInType == BuiltInType.UInteger) {
+                return number;
+            }
+            else {
+                // TODO Log or throw for bad type
+            }
+            return Variant.Null;
+        }
+
+        /// <summary>
+        /// Read numeric values
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public VariantCollection ReadNumberArray(string property) =>
+            ReadArray(property, () => ReadNumber(null));
+
+        /// <summary>
+        /// Read numeric variant value
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public Variant ReadNumber(string property) {
+            if (!TryGetToken(property, out var token)) {
+                return Variant.Null;
+            }
+            Variant number;
+            if (token is JObject o) {
+                number = TryReadVariant(o, out var tmp);
+            }
+            else {
+                number = ReadVariantFromToken(token);
+            }
+            if (TypeInfo.IsNumericType(number.TypeInfo.BuiltInType)) {
+                return number;
+            }
+            else {
+                // TODO Log or throw for bad type
+            }
+            return Variant.Null;
         }
 
         /// <summary>
@@ -699,6 +829,8 @@ namespace Opc.Ua.Encoders {
                         break;
                     default:
                         // Give up
+
+                        // TODO Log or throw for bad type
                         return null;
                 }
             }
@@ -708,12 +840,14 @@ namespace Opc.Ua.Encoders {
         /// Convert a token to variant
         /// </summary>
         /// <param name="token"></param>
+        /// <param name="unsigned"></param>
         /// <returns></returns>
-        private Variant ReadVariantFromToken(JToken token) {
+        private Variant ReadVariantFromToken(JToken token, bool unsigned = false) {
             try {
                 switch (token.Type) {
                     case JTokenType.Integer:
-                        return new Variant((long)token);
+                        return !unsigned ? new Variant((long)token) :
+                            new Variant((ulong)token);
                     case JTokenType.Boolean:
                         return new Variant((bool)token);
                     case JTokenType.Bytes:
@@ -734,10 +868,13 @@ namespace Opc.Ua.Encoders {
                             return variant;
                         }
                         // TODO: Try to read other structures
+                        // ...
+                        //
                         return new Variant(((JObject)token).ToObject<XmlElement>());
                     case JTokenType.Array:
                         return ReadVariantFromArray((JArray)token);
                     default:
+                        // TODO Log or throw for bad type
                         return Variant.Null;
                 }
             }
@@ -750,8 +887,9 @@ namespace Opc.Ua.Encoders {
         /// Read variant from token
         /// </summary>
         /// <param name="array"></param>
+        /// <param name="unsigned">Force integers to be unsigned</param>
         /// <returns></returns>
-        private Variant ReadVariantFromArray(JArray array) {
+        private Variant ReadVariantFromArray(JArray array, bool unsigned = false) {
             if (array.Count == 0) {
                 return Variant.Null; // Give up
             }
@@ -763,8 +901,10 @@ namespace Opc.Ua.Encoders {
                 try {
                     switch (array[0].Type) {
                         case JTokenType.Integer:
-                            return new Variant(array
+                            return !unsigned ? new Variant(array
                                 .Select(t => (long)t)
+                                .ToArray()) : new Variant(array
+                                .Select(t => (ulong)t)
                                 .ToArray());
                         case JTokenType.Boolean:
                             return new Variant(array
@@ -797,12 +937,12 @@ namespace Opc.Ua.Encoders {
                     }
                 }
                 catch {
+                    // TODO Log or throw for bad type
                     return Variant.Null; // Give up
                 }
             }
-            // TODO : This could be all more elegant -
             var result = array
-                .Select(ReadVariantFromToken)
+                .Select(t => ReadVariantFromToken(t, unsigned))
                 .ToArray();
             if (result.All(v => v.TypeInfo.BuiltInType == result[0].TypeInfo.BuiltInType)) {
                 return new Variant(result.Select(v => v.Value).ToArray());
@@ -845,7 +985,10 @@ namespace Opc.Ua.Encoders {
             if (!TryGetToken(property, out var token)) {
                 return Variant.Null;
             }
-            if (token is JArray a) {
+            if (token is JArray ||
+                ((token.Type == JTokenType.Bytes || token.Type == JTokenType.String) &&
+                 (type == BuiltInType.Byte || type == BuiltInType.SByte))) {
+
                 // Body is array - read object dimensions if any
                 var dimensions = ReadInt32Array("Dimensions");
 
@@ -1012,9 +1155,15 @@ namespace Opc.Ua.Encoders {
                 case BuiltInType.ExtensionObject:
                     return new Variant(ReadExtensionObjectArray(property),
                         TypeInfo.Arrays.ExtensionObject);
-                case BuiltInType.Number:
                 case BuiltInType.UInteger:
+                    return new Variant(ReadUIntegerArray(property),
+                        TypeInfo.Arrays.Variant);
                 case BuiltInType.Integer:
+                    return new Variant(ReadIntegerArray(property),
+                        TypeInfo.Arrays.Variant);
+                case BuiltInType.Number:
+                    return new Variant(ReadNumberArray(property),
+                        TypeInfo.Arrays.Variant);
                 case BuiltInType.Variant:
                     return new Variant(ReadVariantArray(property),
                         TypeInfo.Arrays.Variant);

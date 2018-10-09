@@ -92,8 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     switch (_state) {
                         case State.BeginProbe:
                             if (arg.ConnectSocket == null) {
-                                _logger.Error($"Probe {index} : Called without connected socket!",
-                                    () => { });
+                                _logger.Error($"Probe {index} : Called without connected socket!");
                                 return true;
                             }
                             _socket = arg.ConnectSocket;
@@ -117,8 +116,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                             _buffer[7] = (byte)((_size & 0xFF000000) >> 24);
                             arg.SetBuffer(_buffer, 0, _size);
                             _len = 0;
-                            _logger.Debug($"Probe {index} : {ep} ({_socket.RemoteEndPoint})...",
-                                () => { });
+                            _logger.Debug($"Probe {index} : {ep} ({_socket.RemoteEndPoint})...");
                             _state = State.SendHello;
                             if (!_socket.SendAsync(arg)) {
                                 break;
@@ -148,17 +146,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                             if (_len >= _size) {
                                 var type = BitConverter.ToUInt32(_buffer, 0);
                                 if (type != TcpMessageType.Acknowledge) {
-#if LOG_VERBOSE
-                                    _logger.Debug($"Probe {index} : {_socket.RemoteEndPoint} " +
-                                        $"returned invalid message type {type}.", () => {});
-#endif
+                                    _logger.Verbose($"Probe {index} : {_socket.RemoteEndPoint} " +
+                                        $"returned invalid message type {type}.");
                                     _state = State.BeginProbe;
                                     return true;
                                 }
                                 _size = (int)BitConverter.ToUInt32(_buffer, 4);
                                 if (_size > _buffer.Length) {
                                     _logger.Debug($"Probe {index} : {_socket.RemoteEndPoint} " +
-                                        $"returned invalid message length {_size}.", () => { });
+                                        $"returned invalid message length {_size}.");
                                     _state = State.BeginProbe;
                                     return true;
                                 }
@@ -187,15 +183,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                                     var maxChunkCount = (int)decoder.ReadUInt32(null);
 
                                     _logger.Info($"Probe {index} : {_socket.RemoteEndPoint} " +
-                                        $"found opc server (protocol:{protocolVersion}) ...",
-                                            () => { });
+                                        $"found opc server (protocol:{protocolVersion}) ...");
 
                                     if (sendBufferSize < TcpMessageLimits.MinBufferSize ||
                                         receiveBufferSize < TcpMessageLimits.MinBufferSize) {
                                         _logger.Warn($"Probe {index} : Bad size value read " +
                                             $"{sendBufferSize} or {receiveBufferSize} from " +
-                                            $"opc server at {_socket.RemoteEndPoint}.",
-                                                () => { });
+                                            $"opc server at {_socket.RemoteEndPoint}.");
                                     }
                                 }
                                 ok = true;

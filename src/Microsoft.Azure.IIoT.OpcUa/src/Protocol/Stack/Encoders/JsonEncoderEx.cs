@@ -19,6 +19,7 @@ namespace Opc.Ua.Encoders {
     using System.IO;
     using System.Globalization;
     using Newtonsoft.Json;
+    using System.Linq;
 
     /// <summary>
     /// Writes objects to a json
@@ -50,6 +51,11 @@ namespace Opc.Ua.Encoders {
         /// Encode using microsoft variant
         /// </summary>
         public bool UseMicrosoftVariant { get; set; } = false;
+
+        /// <summary>
+        /// Ignore null values
+        /// </summary>
+        public bool IgnoreNullValues { get; set; } = false;
 
         /// <summary>
         /// Create encoder
@@ -225,13 +231,13 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public void WriteDateTime(string property, DateTime value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
-            }
             if (value == DateTime.MinValue) {
-                _writer.WriteNull();
+                WriteNull(property);
             }
             else {
+                if (!string.IsNullOrEmpty(property)) {
+                    _writer.WritePropertyName(property);
+                }
                 _writer.WriteValue(XmlConvert.ToString(value,
                     XmlDateTimeSerializationMode.RoundtripKind));
             }
@@ -239,63 +245,66 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public void WriteGuid(string property, Uuid value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
-            }
             if (value == Uuid.Empty) {
-                _writer.WriteNull();
+                WriteNull(property);
             }
             else {
+                if (!string.IsNullOrEmpty(property)) {
+                    _writer.WritePropertyName(property);
+                }
                 _writer.WriteValue(value);
             }
         }
 
         /// <inheritdoc/>
         public void WriteGuid(string property, Guid value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
-            }
             if (value == Guid.Empty) {
-                _writer.WriteNull();
+                WriteNull(property);
             }
             else {
+                if (!string.IsNullOrEmpty(property)) {
+                    _writer.WritePropertyName(property);
+                }
                 _writer.WriteValue(value);
             }
         }
 
         /// <inheritdoc/>
         public void WriteByteString(string property, byte[] value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
-            }
             if (value == null || value.Length == 0) {
-                _writer.WriteNull();
-                return;
+                WriteNull(property);
             }
-            // check the length.
-            if (Context.MaxByteStringLength > 0 &&
-                Context.MaxByteStringLength < value.Length) {
-                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded);
+            else {
+                if (!string.IsNullOrEmpty(property)) {
+                    _writer.WritePropertyName(property);
+                }
+                // check the length.
+                if (Context.MaxByteStringLength > 0 &&
+                    Context.MaxByteStringLength < value.Length) {
+                    throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded);
+                }
+                _writer.WriteValue(value);
             }
-            _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
         public void WriteXmlElement(string property, XmlElement value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
-            }
             if (value == null) {
-                _writer.WriteNull();
-            }
-            else if (PerformXmlSerialization || UseMicrosoftVariant) {
-                var json = JsonConvertEx.SerializeObject(value);
-                _writer.WriteRawValue(json);
+                WriteNull(property);
             }
             else {
-                // Back compat to json encoding
-                var xml = value.OuterXml;
-                _writer.WriteValue(Encoding.UTF8.GetBytes(xml));
+                if (!string.IsNullOrEmpty(property)) {
+                    _writer.WritePropertyName(property);
+                }
+                if (PerformXmlSerialization || UseMicrosoftVariant) {
+                    var json = JsonConvertEx.SerializeObject(value);
+                    _writer.WriteRawValue(json);
+                }
+                else {
+                    // Back compat to json encoding
+                    var xml = value.OuterXml;
+                    _writer.WriteValue(Encoding.UTF8.GetBytes(xml));
+                }
             }
         }
 
@@ -353,17 +362,17 @@ namespace Opc.Ua.Encoders {
             }
             else {
                 var symbol = string.Empty;
-                if (UseMicrosoftVariant) {
+                if (!UseReversibleEncoding || UseMicrosoftVariant) {
                     symbol = StatusCode.LookupSymbolicId(value.CodeBits);
                 }
-                if (UseReversibleEncoding || string.IsNullOrEmpty(symbol)) {
-                    WriteUInt32(property, value.Code);
-                }
-                else {
+                if (!UseReversibleEncoding || !string.IsNullOrEmpty(symbol)) {
                     PushObject(property);
                     WriteString("Symbol", symbol);
                     WriteUInt32("Code", value.Code);
                     PopObject();
+                }
+                else {
+                    WriteUInt32(property, value.Code);
                 }
             }
         }
@@ -448,26 +457,35 @@ namespace Opc.Ua.Encoders {
         /// <inheritdoc/>
         public void WriteVariant(string property, Variant value) {
 
+            var variant = value;
+            if (UseMicrosoftVariant &&
+                value.Value is Variant[] vararray &&
+                value.TypeInfo.ValueRank == 1 &&
+                vararray.Length > 0) {
+
+                var type = vararray[0].TypeInfo.BuiltInType;
+                if (vararray.All(v => v.TypeInfo.BuiltInType == type)) {
+                    // Demote and encode as simple array
+                    variant = new TypeInfo(type, 1).CreateVariant(vararray
+                        .Select(v => v.Value)
+                        .ToArray());
+                }
+            }
+
             if (UseReversibleEncoding) {
                 PushObject(property);
-                // if (UseMicrosoftVariant) {
-                //     WriteBuiltInType("DataType", value.TypeInfo.BuiltInType);
-                //     property = "Value";
-                // }
-                // else {
-                    WriteBuiltInType("Type", value.TypeInfo.BuiltInType);
-                    property = "Body";
-                // }
+                WriteBuiltInType("Type", variant.TypeInfo.BuiltInType);
+                property = "Body";
             }
 
             if (!string.IsNullOrEmpty(property)) {
                 _writer.WritePropertyName(property);
             }
 
-            WriteVariantContents(value.Value, value.TypeInfo);
+            WriteVariantContents(variant.Value, variant.TypeInfo);
 
             if (UseReversibleEncoding) {
-                if (value.Value is Matrix matrix) {
+                if (variant.Value is Matrix matrix) {
                     WriteInt32Array("Dimensions", matrix.Dimensions);
                 }
                 PopObject();
@@ -1057,6 +1075,10 @@ namespace Opc.Ua.Encoders {
         /// <param name="property"></param>
         private void WriteNull(string property) {
             if (!string.IsNullOrEmpty(property)) {
+                if (IgnoreNullValues) {
+                    // only skip null if not in array context.
+                    return;
+                }
                 _writer.WritePropertyName(property);
             }
             _writer.WriteNull();

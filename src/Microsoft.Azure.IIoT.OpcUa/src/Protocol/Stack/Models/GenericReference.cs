@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Models {
-    using System;
-
     /// <summary>
     /// Generic reference describes a link between 2 nodes
     /// </summary>

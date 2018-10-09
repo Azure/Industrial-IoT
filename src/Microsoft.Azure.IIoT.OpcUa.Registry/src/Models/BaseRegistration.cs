@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -162,9 +163,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (twin == null || twin.Tags == null) {
                 return null;
             }
-            var type = twin.Tags.GetValue<string>(nameof(DeviceType), null);
+            var type = twin.Tags.GetValueOrDefault<string>(nameof(DeviceType), null);
             if (string.IsNullOrEmpty(type) && twin.Properties.Reported != null) {
-                type = twin.Properties.Reported.GetValue<string>("type", null);
+                type = twin.Properties.Reported.GetValueOrDefault<string>("type", null);
             }
             switch (type?.ToLowerInvariant() ?? "") {
                 case "endpoint":

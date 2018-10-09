@@ -13,9 +13,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
 
     public class TypeSerializerTests {
 
-        /// <summary>
-        /// Test encode int array
-        /// </summary>
         [Theory]
         [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -35,9 +32,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode empty int array
-        /// </summary>
         [Theory]
         [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -57,9 +51,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode a date time
-        /// </summary>
         [Theory]
         [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -79,9 +70,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode a date time array
-        /// </summary>
         [Theory]
         // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -106,9 +94,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode qualified name
-        /// </summary>
         [Theory]
         // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -128,9 +113,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode qualified name
-        /// </summary>
         [Theory]
         // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -155,9 +137,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode localized text
-        /// </summary>
         [Theory]
         [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -177,9 +156,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode localized text
-        /// </summary>
         [Theory]
         [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -198,9 +174,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode localized text
-        /// </summary>
         [Theory]
         [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -225,9 +198,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode localized text
-        /// </summary>
         [Theory]
         [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -251,9 +221,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode status code value
-        /// </summary>
         [Theory]
         [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -274,9 +241,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode argument
-        /// </summary>
         [Theory]
         [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -300,9 +264,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.True(result.IsEqual(expected));
         }
 
-        /// <summary>
-        /// Test encode argument as array
-        /// </summary>
         [Theory]
         // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -334,9 +295,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             }
         }
 
-        /// <summary>
-        /// Test encode string array
-        /// </summary>
         [Theory]
         [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -356,9 +314,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode empty string array
-        /// </summary>
         [Theory]
         [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -378,9 +333,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode string variant
-        /// </summary>
         [Theory]
         // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -400,9 +352,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode string variant
-        /// </summary>
         [Theory]
         [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -420,9 +369,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode string variant
-        /// </summary>
         [Theory]
         [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -463,9 +409,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode string array variant
-        /// </summary>
         [Theory]
         // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -485,9 +428,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// Test encode variant collection
-        /// </summary>
         [Theory]
         // Broken [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
@@ -542,9 +482,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
             Assert.Equal(expected, result);
         }
 
-        /// <summary>
-        /// test encoding
-        /// </summary>
         [Theory]
         // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]

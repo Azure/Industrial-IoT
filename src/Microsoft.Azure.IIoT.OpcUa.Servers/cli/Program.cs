@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers.Cli {
         /// <param name="args">command-line arguments</param>
         public static void Main(string[] args) {
             var op = Op.None;
-            var ports = new List<int> { 51210 };
+            var ports = new List<int>();
             try {
                 for (var i = 0; i < args.Length; i++) {
                     switch (args[i]) {
@@ -82,6 +82,9 @@ Options:
 "
                     );
                 return;
+            }
+            if (ports.Count == 0) {
+                ports.Add(51210);
             }
             try {
                 switch(op) {

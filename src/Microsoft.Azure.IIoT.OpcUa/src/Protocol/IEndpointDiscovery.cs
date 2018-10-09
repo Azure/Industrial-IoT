@@ -15,13 +15,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface IEndpointDiscovery {
 
         /// <summary>
-        /// Try to get all offered endpoints from all servers
-        /// discoverable using the provided endpoint url.
+        /// Try get unique set of endpoints from all servers found on discovery
+        /// server endpoint url, filtered by optional prioritized locale list.
         /// </summary>
         /// <param name="discoveryUrl"></param>
+        /// <param name="locales"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<IEnumerable<DiscoveredEndpointsModel>> FindEndpointsAsync(
-            Uri discoveryUrl, CancellationToken ct);
+            Uri discoveryUrl, List<string> locales, CancellationToken ct);
     }
 }

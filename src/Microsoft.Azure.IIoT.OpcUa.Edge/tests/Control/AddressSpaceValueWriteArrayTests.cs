@@ -5,7 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Tests;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Newtonsoft.Json.Linq;
     using Opc.Ua;
@@ -682,15 +684,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             var node = "http://test.org/UA/Data/#i=10321";
 
             var encoder = new JsonVariantEncoder();
-            var expected = new JArray(
-                _generator.GetRandomArray<string>(false, 100, false)
-                    .Select(delegate (object v) {
-                        var body = encoder.Encode(new Variant(v), out var t, null);
-                        return JToken.FromObject(new {
-                            Type = t.ToString(),
-                            Body = body
-                        });
-                    }));
+            var values = _generator.GetRandomArray<string>(false, 100, false);
+            var expected = new JArray(values
+                .Select(delegate (object v) {
+                    var body = encoder.Encode(new Variant(v), out var t, null);
+                    return JToken.FromObject(new {
+                        Type = t.ToString(),
+                        Body = body
+                    });
+                }));
 
             // Act
             var result = await browser.NodeValueWriteAsync(GetEndpoint(),
@@ -701,7 +703,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResult(node, new JArray(values), result);
         }
 
         [Fact]
@@ -1060,18 +1062,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayNumberValueVariableTest() {
+        public async Task NodeWriteStaticArrayNumberValueVariableTest1() {
 
             var browser = GetServices();
             var node = "http://test.org/UA/Data/#i=10324";
 
             var encoder = new JsonVariantEncoder();
-            var expected = new JArray(
-                _generator.GetRandomArray<sbyte>(false, 100, false)
-                    .Select(v => JToken.FromObject(new {
-                        Type = "SByte",
-                        Body = v
-                    })));
+            var values = _generator.GetRandomArray<sbyte>(false, 100, false);
+            var expected = new JArray(values
+                .Select(v => JToken.FromObject(new {
+                    Type = "SByte",
+                    Body = v
+                })));
+
+            // Act
+            var result = await browser.NodeValueWriteAsync(GetEndpoint(),
+                new ValueWriteRequestModel {
+                    NodeId = node,
+                    Value = expected,
+                    DataType = "Number"
+                });
+
+            // Assert
+            await AssertResult(node, JArray.FromObject(values), result);
+        }
+
+        [Fact]
+        public async Task NodeWriteStaticArrayNumberValueVariableTest2() {
+
+            var browser = GetServices();
+            var node = "http://test.org/UA/Data/#i=10324";
+
+            var encoder = new JsonVariantEncoder();
+            var values = _generator.GetRandomArray<sbyte>(false, 100, false);
+            var expected = JArray.FromObject(values);
 
             // Act
             var result = await browser.NodeValueWriteAsync(GetEndpoint(),
@@ -1092,12 +1116,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             var node = "http://test.org/UA/Data/#i=10325";
 
             var encoder = new JsonVariantEncoder();
-            var expected = new JArray(
-                _generator.GetRandomArray<int>(false, 100, false)
-                    .Select(v => JToken.FromObject(new {
-                        Type = "Int32",
-                        Body = v
-                    })));
+            var values = _generator.GetRandomArray<int>(false, 100, false);
+            var expected = new JArray(values
+                .Select(v => JToken.FromObject(new {
+                    Type = "Int32",
+                    Body = v
+                })));
+
+            // Act
+            var result = await browser.NodeValueWriteAsync(GetEndpoint(),
+                new ValueWriteRequestModel {
+                    NodeId = node,
+                    Value = expected,
+                    DataType = "Integer"
+                });
+
+            // Assert
+            await AssertResult(node, new JArray(values), result);
+        }
+
+        [Fact]
+        public async Task NodeWriteStaticArrayIntegerValueVariableTest2() {
+
+            var browser = GetServices();
+            var node = "http://test.org/UA/Data/#i=10325";
+
+            var encoder = new JsonVariantEncoder();
+            var values = _generator.GetRandomArray<int>(false, 100, false);
+            var expected = new JArray(values);
 
             // Act
             var result = await browser.NodeValueWriteAsync(GetEndpoint(),
@@ -1112,18 +1158,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayUIntegerValueVariableTest() {
+        public async Task NodeWriteStaticArrayUIntegerValueVariableTest1() {
 
             var browser = GetServices();
             var node = "http://test.org/UA/Data/#i=10326";
 
             var encoder = new JsonVariantEncoder();
-            var expected = new JArray(
-                _generator.GetRandomArray<ushort>(false, 100, false)
-                    .Select(v => JToken.FromObject(new {
-                        Type = "UInt16",
-                        Body = v
-                    })));
+            var values = _generator.GetRandomArray<ushort>(false, 100, false);
+            var expected = new JArray(values
+                .Select(v => JToken.FromObject(new {
+                    Type = "UInt16",
+                    Body = v
+                })));
+
+            // Act
+            var result = await browser.NodeValueWriteAsync(GetEndpoint(),
+                new ValueWriteRequestModel {
+                    NodeId = node,
+                    Value = expected,
+                    DataType = "UInteger"
+                });
+
+            // Assert
+            await AssertResult(node, new JArray(values), result);
+        }
+
+        [Fact]
+        public async Task NodeWriteStaticArrayUIntegerValueVariableTest2() {
+
+            var browser = GetServices();
+            var node = "http://test.org/UA/Data/#i=10326";
+
+            var encoder = new JsonVariantEncoder();
+            var values = _generator.GetRandomArray<ushort>(false, 100, false);
+            var expected = JToken.FromObject(values);
 
             // Act
             var result = await browser.NodeValueWriteAsync(GetEndpoint(),
@@ -1136,7 +1204,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             // Assert
             await AssertResult(node, expected, result);
         }
-
 
         private async Task AssertResult(string node, JToken expected,
             ValueWriteResultModel result) {

@@ -5,12 +5,16 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Tests;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using MemoryBuffer;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Net;
     using System.Threading.Tasks;
+    using System.Xml;
     using Xunit;
 
     [Collection(WriteCollection.Name)]
@@ -351,8 +355,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             var browser = GetServices();
             var node = "http://test.org/UA/Data/#i=10231";
 
-            var expected = await _server.Client.ReadValueAsync(GetEndpoint(), node);
-            Generator.WriteValue(() => { }, expected);
+            var expected = JToken.FromObject(XmlElementEx.SerializeObject(
+                new MemoryBufferInstance {
+                    Name = "test",
+                    TagCount = 333,
+                    DataType = "Byte"
+                }));
 
             // Act
             var result = await browser.NodeValueWriteAsync(GetEndpoint(),

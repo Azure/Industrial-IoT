@@ -4,8 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
-    using Microsoft.Azure.IIoT.OpcUa;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json;
@@ -22,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     public class DiscoveryEventHandler : IEventHandler {
 
         /// <inheritdoc/>
-        public string ContentType => OpcUa.Models.ContentTypes.DiscoveryEvent;
+        public string ContentType => ContentTypes.DiscoveryEvent;
 
         /// <summary>
         /// Create handler

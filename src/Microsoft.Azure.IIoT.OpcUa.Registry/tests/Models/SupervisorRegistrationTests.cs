@@ -7,10 +7,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.Hub;
     using AutoFixture;
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using Xunit;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
 
     public class SupervisorRegistrationTests {
 
@@ -138,6 +136,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     fix.Create<string>(), fix.Create<string>()))
                 .With(x => x.Certificate, cert.EncodeAsDictionary())
                 .With(x => x.DiscoveryCallbacks, fix.CreateMany<CallbackModel>()
+                    .ToList().EncodeAsDictionary())
+                .With(x => x.Locales, fix.CreateMany<string>()
                     .ToList().EncodeAsDictionary())
                 .With(x => x.SecurityPoliciesFilter, fix.CreateMany<string>()
                     .ToList().EncodeAsDictionary())

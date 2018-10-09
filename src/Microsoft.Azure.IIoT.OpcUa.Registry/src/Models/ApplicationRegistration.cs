@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -69,6 +69,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string ApplicationName { get; set; }
 
         /// <summary>
+        /// Application name locale
+        /// </summary>
+        public string Locale { get; set; }
+
+        /// <summary>
         /// Discovery profile uri
         /// </summary>
         public string DiscoveryProfileUri { get; set; }
@@ -123,10 +128,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 update?.ApplicationType != existing?.ApplicationType) {
                 twin.Tags.Add(nameof(ApplicationType),
                     JToken.FromObject(update.ApplicationType));
-                twin.Tags.Add(nameof(OpcUa.Models.ApplicationType.Server),
-                    update.ApplicationType != OpcUa.Models.ApplicationType.Client);
-                twin.Tags.Add(nameof(OpcUa.Models.ApplicationType.Client),
-                    update.ApplicationType != OpcUa.Models.ApplicationType.Server);
+                twin.Tags.Add(nameof(Models.ApplicationType.Server),
+                    update.ApplicationType != Models.ApplicationType.Client);
+                twin.Tags.Add(nameof(Models.ApplicationType.Client),
+                    update.ApplicationType != Models.ApplicationType.Server);
             }
 
             if (update?.ApplicationUri != existing?.ApplicationUri) {
@@ -136,6 +141,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             if (update?.ApplicationName != existing?.ApplicationName) {
                 twin.Tags.Add(nameof(ApplicationName), update?.ApplicationName);
+            }
+
+            if (update?.Locale != existing?.Locale) {
+                twin.Tags.Add(nameof(Locale), update?.Locale);
             }
 
             if (update?.DiscoveryProfileUri != existing?.DiscoveryProfileUri) {
@@ -198,59 +207,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         }
 
         /// <summary>
-        /// Decode tags and property into registration object
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="etag"></param>
-        /// <param name="tags"></param>
-        /// <returns></returns>
-        public static ApplicationRegistration FromTwin(string deviceId, string etag,
-            Dictionary<string, JToken> tags) {
-            var registration = new ApplicationRegistration {
-
-                // Device
-
-                Etag = etag,
-                DeviceId = deviceId,
-
-                // Tags
-
-                IsDisabled =
-                    tags.GetValue<bool>(nameof(IsDisabled), null),
-                NotSeenSince =
-                    tags.GetValue<DateTime>(nameof(NotSeenSince), null),
-                SiteId =
-                    tags.GetValue<string>(nameof(SiteId), null),
-
-                ApplicationName =
-                    tags.GetValue<string>(nameof(ApplicationName), null),
-                ApplicationUri =
-                    tags.GetValue<string>(nameof(ApplicationUri), null),
-                ProductUri =
-                    tags.GetValue<string>(nameof(ProductUri), null),
-                SupervisorId =
-                    tags.GetValue<string>(nameof(SupervisorId), null),
-                DiscoveryProfileUri =
-                    tags.GetValue<string>(nameof(DiscoveryProfileUri), null),
-                ApplicationId =
-                    tags.GetValue<string>(nameof(ApplicationId), null),
-                ApplicationType =
-                    tags.GetValue<ApplicationType>(nameof(ApplicationType), null),
-                Capabilities =
-                    tags.GetValue<Dictionary<string, bool>>(nameof(Capabilities), null),
-                HostAddresses =
-                    tags.GetValue<Dictionary<string, string>>(nameof(HostAddresses), null),
-                DiscoveryUrls =
-                    tags.GetValue<Dictionary<string, string>>(nameof(DiscoveryUrls), null),
-                Certificate =
-                    tags.GetValue<Dictionary<string, string>>(nameof(Certificate), null),
-                Thumbprint =
-                    tags.GetValue<string>(nameof(Thumbprint), null),
-            };
-            return registration;
-        }
-
-        /// <summary>
         /// Make sure to get the registration information from the right place.
         /// Reported (truth) properties take precedence over desired.
         /// </summary>
@@ -260,8 +216,51 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (twin == null) {
                 return null;
             }
-            return FromTwin(twin.Id, twin.Etag,
-                twin.Tags ?? new Dictionary<string, JToken>());
+            var tags = twin.Tags ?? new Dictionary<string, JToken>();
+            var registration = new ApplicationRegistration {
+
+                // Device
+
+                DeviceId = twin.Id,
+                Etag = twin.Etag,
+
+                // Tags
+
+                IsDisabled =
+                    tags.GetValueOrDefault<bool>(nameof(IsDisabled), twin.IsDisabled()),
+                NotSeenSince =
+                    tags.GetValueOrDefault<DateTime>(nameof(NotSeenSince), null),
+                SiteId =
+                    tags.GetValueOrDefault<string>(nameof(SiteId), null),
+
+                ApplicationName =
+                    tags.GetValueOrDefault<string>(nameof(ApplicationName), null),
+                Locale =
+                    tags.GetValueOrDefault<string>(nameof(Locale), null),
+                ApplicationUri =
+                    tags.GetValueOrDefault<string>(nameof(ApplicationUri), null),
+                ProductUri =
+                    tags.GetValueOrDefault<string>(nameof(ProductUri), null),
+                SupervisorId =
+                    tags.GetValueOrDefault<string>(nameof(SupervisorId), null),
+                DiscoveryProfileUri =
+                    tags.GetValueOrDefault<string>(nameof(DiscoveryProfileUri), null),
+                ApplicationId =
+                    tags.GetValueOrDefault<string>(nameof(ApplicationId), null),
+                ApplicationType =
+                    tags.GetValueOrDefault<ApplicationType>(nameof(ApplicationType), null),
+                Capabilities =
+                    tags.GetValueOrDefault<Dictionary<string, bool>>(nameof(Capabilities), null),
+                HostAddresses =
+                    tags.GetValueOrDefault<Dictionary<string, string>>(nameof(HostAddresses), null),
+                DiscoveryUrls =
+                    tags.GetValueOrDefault<Dictionary<string, string>>(nameof(DiscoveryUrls), null),
+                Certificate =
+                    tags.GetValueOrDefault<Dictionary<string, string>>(nameof(Certificate), null),
+                Thumbprint =
+                    tags.GetValueOrDefault<string>(nameof(Thumbprint), null),
+            };
+            return registration;
         }
 
         /// <summary>
@@ -280,6 +279,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 SupervisorId = model.SupervisorId,
                 SiteId = model.SiteId,
                 ApplicationName = model.ApplicationName,
+                Locale = model.Locale,
                 HostAddresses = model.HostAddresses?.ToList().EncodeAsDictionary(),
                 ApplicationType = model.ApplicationType,
                 ApplicationUri = model.ApplicationUri,
@@ -302,9 +302,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return new ApplicationInfoModel {
                 ApplicationId = ApplicationId,
                 ApplicationName = ApplicationName,
+                Locale = Locale,
                 HostAddresses = HostAddresses.DecodeAsList().ToHashSetSafe(),
                 NotSeenSince = NotSeenSince,
-                ApplicationType = ApplicationType ?? OpcUa.Models.ApplicationType.Server,
+                ApplicationType = ApplicationType ?? Models.ApplicationType.Server,
                 ApplicationUri = string.IsNullOrEmpty(ApplicationUri) ?
                     ApplicationUriLC : ApplicationUri,
                 ProductUri = ProductUri,
@@ -337,7 +338,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 SupervisorId == model.SupervisorId &&
                 SiteId == model.SiteId &&
                 Capabilities.DecodeAsSet().SetEqualsSafe(
-                    model.Capabilities?.Select(x => x.SanitizePropertyName().ToUpperInvariant())) &&
+                    model.Capabilities?.Select(x =>
+                        JTokenEx.SanitizePropertyName(x).ToUpperInvariant())) &&
                 DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
                     model.DiscoveryUrls) &&
                 Certificate.DecodeAsByteArray().SequenceEqualsSafe(
@@ -355,6 +357,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 HostAddresses.DecodeAsList().SequenceEqualsSafe(
                     registration.HostAddresses.DecodeAsList()) &&
                 ApplicationName == registration.ApplicationName &&
+                Locale == registration.Locale &&
                 Capabilities.DecodeAsSet().SetEqualsSafe(
                     registration.Capabilities.DecodeAsSet()) &&
                 DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
@@ -380,12 +383,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 EqualityComparer<string>.Default.GetHashCode(DiscoveryProfileUri);
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(ApplicationName);
+            hashCode = hashCode * -1521134295 +
+                EqualityComparer<string>.Default.GetHashCode(Locale);
             return hashCode;
         }
 
         /// <summary>
         /// Compares for logical equality - applications are logically equivalent if they
-        /// have the same site location or were registered by the same supervisor.
+        /// have the same uri, type, and site location or supervisor that registered.
         /// </summary>
         private class LogicalEquality : IEqualityComparer<ApplicationRegistration> {
             /// <inheritdoc />

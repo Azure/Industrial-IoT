@@ -5,7 +5,6 @@
 
 namespace Opc.Ua {
     using System;
-    using System.Reflection;
 
     /// <summary>
     /// Typeinfo extensions
@@ -55,6 +54,13 @@ namespace Opc.Ua {
                     typeInfo.ValueRank);
                 if (typeInfo.ValueRank > 1) {
                     systemType = typeof(Matrix);
+                }
+                if (value is object[] boxed) {
+                    var array = Array.CreateInstance(
+                        TypeInfo.GetSystemType(typeInfo.BuiltInType, -1),
+                        boxed.Length);
+                    Array.Copy(boxed, array, boxed.Length);
+                    value = array;
                 }
                 var constructor = typeof(Variant).GetConstructor(new Type[] {
                     systemType

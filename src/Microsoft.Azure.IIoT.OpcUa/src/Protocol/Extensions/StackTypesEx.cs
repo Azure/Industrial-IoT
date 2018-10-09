@@ -4,12 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using UaApplicationType = Opc.Ua.ApplicationType;
     using UaSecurityMode = Opc.Ua.MessageSecurityMode;
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
     using UaTokenType = Opc.Ua.UserTokenType;
     using UaNodeClass = Opc.Ua.NodeClass;
+    using UaDiagnosticsLevel = Opc.Ua.DiagnosticsMasks;
 
     /// <summary>
     /// Stack types conversions
@@ -162,6 +164,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     return ApplicationType.ClientAndServer;
                 default:
                     return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert to diagnostics mask
+        /// </summary>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public static UaDiagnosticsLevel ToStackType(this DiagnosticsLevel level) {
+            switch (level) {
+                case DiagnosticsLevel.Diagnostics:
+                    return UaDiagnosticsLevel.SymbolicIdAndText | UaDiagnosticsLevel.InnerDiagnostics;
+                case DiagnosticsLevel.Verbose:
+                    return UaDiagnosticsLevel.All;
+                default:
+                    return UaDiagnosticsLevel.None;
             }
         }
     }

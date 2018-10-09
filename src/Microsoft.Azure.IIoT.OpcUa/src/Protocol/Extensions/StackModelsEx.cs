@@ -4,14 +4,35 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Opc.Ua;
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
     /// Stack models extensions
     /// </summary>
     public static class StackModelsEx {
+
+        /// <summary>
+        /// Convert diagnostics to request header
+        /// </summary>
+        /// <param name="diagnostics"></param>
+        /// <param name="timeoutHint"></param>
+        /// <returns></returns>
+        public static RequestHeader ToStackModel(this DiagnosticsModel diagnostics,
+            uint timeoutHint = 0) {
+            return new RequestHeader {
+                AuditEntryId = diagnostics?.AuditId ?? Guid.NewGuid().ToString(),
+                ReturnDiagnostics =
+                    (uint)(diagnostics?.Level ?? Twin.Models.DiagnosticsLevel.None)
+                     .ToStackType(),
+                Timestamp = diagnostics?.TimeStamp ?? DateTime.UtcNow,
+                TimeoutHint = timeoutHint,
+                AdditionalHeader = null // TODO
+            };
+        }
 
         /// <summary>
         /// Convert endpoint description to application registration
@@ -27,7 +48,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             if (ep.Server.ApplicationType == Opc.Ua.ApplicationType.DiscoveryServer) {
                 caps.Add("LDS");
             }
-            var type = ep.Server.ApplicationType.ToServiceType() ?? Models.ApplicationType.Server;
+            var type = ep.Server.ApplicationType.ToServiceType() ??
+                Registry.Models.ApplicationType.Server;
             return new ApplicationRegistrationModel {
                 Application = new ApplicationInfoModel {
                     SiteId = siteId,
@@ -42,6 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     ProductUri = ep.Server.ProductUri,
                     Certificate = ep.ServerCertificate,
                     ApplicationName = ep.Server.ApplicationName.Text,
+                    Locale = ep.Server.ApplicationName.Locale,
                     Capabilities = caps
                 },
                 Endpoints = new List<TwinRegistrationModel> {

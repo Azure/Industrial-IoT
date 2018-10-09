@@ -4,12 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
-    using Autofac;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Autofac;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -19,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
     /// <summary>
     /// Twin supervisor service
     /// </summary>
-    public class SupervisorServices : ISupervisorServices, IDisposable {
+    public class SupervisorServices : IActivationServices<string>, IDisposable {
 
         /// <summary>
         /// Create twin supervisor creating and managing twin instances
@@ -43,15 +44,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         /// <param name="id"></param>
         /// <param name="secret"></param>
         /// <returns></returns>
-        public async Task StartTwinAsync(string id, string secret) {
+        public async Task ActivateTwinAsync(string id, string secret) {
             ILifetimeScope twinScope;
             try {
                 await _lock.WaitAsync();
                 if (_twinScopes.ContainsKey(id)) {
-                    _logger.Debug($"{id} twin already running.", () => { });
+                    _logger.Debug($"{id} twin already running.");
                     return;
                 }
-                _logger.Debug($"{id} twin starting...", () => { });
+                _logger.Debug($"{id} twin starting...");
 
                 // Create twin scoped component context with twin host
                 twinScope = _container.BeginLifetimeScope(builder => {
@@ -70,7 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
             try {
                 var host = twinScope.Resolve<IModuleHost>();
                 await host.StartAsync("twin", _events.SiteId, "OpcTwin");
-                _logger.Info($"{id} twin started.", () => { });
+                _logger.Info($"{id} twin started.");
             }
             catch (Exception ex) {
                 try {
@@ -91,12 +92,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task StopTwinAsync(string id) {
+        public async Task DeactivateTwinAsync(string id) {
             ILifetimeScope twinScope;
             try {
                 await _lock.WaitAsync();
                 if (!_twinScopes.TryGetValue(id, out twinScope)) {
-                    _logger.Debug($"{id} twin not running.", () => { });
+                    _logger.Debug($"{id} twin not running.");
                     return;
                 }
                 _twinScopes.Remove(id);
@@ -105,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
                 _lock.Release();
             }
 
-            _logger.Debug($"{id} twin stopping...", () => { });
+            _logger.Debug($"{id} twin stopping...");
             var host = twinScope.Resolve<IModuleHost>();
             try {
                 // Clear endpoint module controller
@@ -127,7 +128,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
             finally {
                 twinScope.Dispose();
             }
-            _logger.Info($"{id} twin stopped.", () => { });
+            _logger.Info($"{id} twin stopped.");
         }
 
         /// <summary>
@@ -151,7 +152,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
             public TwinConfig(IModuleConfig config, string endpointId, string secret) {
                 BypassCertVerification = config.BypassCertVerification;
                 Transport = config.Transport;
-                EdgeHubConnectionString = GetEdgeHubConnectionString(config, endpointId, secret);
+                EdgeHubConnectionString = GetEdgeHubConnectionString(config,
+                    endpointId, secret);
             }
 
             /// <summary>

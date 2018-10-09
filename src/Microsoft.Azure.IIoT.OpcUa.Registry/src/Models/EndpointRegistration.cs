@@ -4,9 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT;
+    using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -201,62 +200,65 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Decode tags and property into registration object
         /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="etag"></param>
-        /// <param name="tags"></param>
+        /// <param name="twin"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
-        public static EndpointRegistration FromTwin(string deviceId, string etag,
-            Dictionary<string, JToken> tags, Dictionary<string, JToken> properties) {
+        public static EndpointRegistration FromTwin(DeviceTwinModel twin,
+            Dictionary<string, JToken> properties) {
+            if (twin == null) {
+                return null;
+            }
+
+            var tags = twin.Tags ?? new Dictionary<string, JToken>();
+            var connected = twin.IsConnected();
+
             var registration = new EndpointRegistration {
                 // Device
 
-                DeviceId = deviceId,
-                Etag = etag,
+                DeviceId = twin.Id,
+                Etag = twin.Etag,
 
                 // Tags
                 IsDisabled =
-                    tags.GetValue<bool>(nameof(IsDisabled), null),
+                    tags.GetValueOrDefault(nameof(IsDisabled), twin.IsDisabled()),
                 NotSeenSince =
-                    tags.GetValue<DateTime>(nameof(NotSeenSince), null),
+                    tags.GetValueOrDefault<DateTime>(nameof(NotSeenSince), null),
 
                 Certificate =
-                    tags.GetValue<Dictionary<string, string>>(nameof(Certificate), null),
+                    tags.GetValueOrDefault<Dictionary<string, string>>(nameof(Certificate), null),
                 Thumbprint =
-                    tags.GetValue<string>(nameof(Thumbprint), null),
+                    tags.GetValueOrDefault<string>(nameof(Thumbprint), null),
                 SupervisorId =
-                    tags.GetValue<string>(nameof(SupervisorId), null),
-
+                    tags.GetValueOrDefault<string>(nameof(SupervisorId), null),
                 Activated =
-                    tags.GetValue<bool>(nameof(Activated), null),
+                    tags.GetValueOrDefault<bool>(nameof(Activated), null),
                 ApplicationId =
-                    tags.GetValue<string>(nameof(ApplicationId), null),
+                    tags.GetValueOrDefault<string>(nameof(ApplicationId), null),
                 SecurityLevel =
-                    tags.GetValue<int>(nameof(SecurityLevel), null),
+                    tags.GetValueOrDefault<int>(nameof(SecurityLevel), null),
 
                 // Properties
 
-                Connected =
-                    properties.GetValue(kConnectedProp, false),
+                Connected = connected ??
+                    properties.GetValueOrDefault(kConnectedProp, false),
                 Type =
-                    properties.GetValue<string>(kTypeProp, null),
+                    properties.GetValueOrDefault<string>(kTypeProp, null),
                 SiteId =
-                    properties.GetValue(kSiteIdProp, tags.GetValue<string>(nameof(SiteId), null)),
-
+                    properties.GetValueOrDefault(kSiteIdProp, tags.GetValueOrDefault<string>(nameof(SiteId), null)),
                 EndpointUrl =
-                    properties.GetValue<string>(nameof(EndpointUrl), null),
+                    properties.GetValueOrDefault<string>(nameof(EndpointUrl), null),
                 User =
-                    properties.GetValue<string>(nameof(User), null),
+                    properties.GetValueOrDefault<string>(nameof(User), null),
                 Token =
-                    properties.GetValue<JToken>(nameof(Token), null),
+                    properties.GetValueOrDefault<JToken>(nameof(Token), null),
                 TokenType =
-                    properties.GetValue<TokenType>(nameof(TokenType), null),
+                    properties.GetValueOrDefault<TokenType>(nameof(TokenType), null),
                 SecurityMode =
-                    properties.GetValue<SecurityMode>(nameof(SecurityMode), null),
+                    properties.GetValueOrDefault<SecurityMode>(nameof(SecurityMode), null),
                 SecurityPolicy =
-                    properties.GetValue<string>(nameof(SecurityPolicy), null),
+                    properties.GetValueOrDefault<string>(nameof(SecurityPolicy), null),
                 Validation =
-                    properties.GetValue<Dictionary<string, string>>(nameof(Validation), null)
+                    properties.GetValueOrDefault<Dictionary<string, string>>(nameof(Validation), null)
             };
             return registration;
         }
@@ -282,10 +284,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 twin.Tags = new Dictionary<string, JToken>();
             }
 
-            var consolidated = FromTwin(twin.Id, twin.Etag, twin.Tags,
-                twin.GetConsolidatedProperties());
+            var consolidated =
+                FromTwin(twin, twin.GetConsolidatedProperties());
             var desired = (twin.Properties?.Desired == null) ? null :
-                FromTwin(twin.Id, twin.Etag, twin.Tags, twin.Properties.Desired);
+                FromTwin(twin, twin.Properties.Desired);
 
             if (!onlyServerState) {
                 consolidated.MarkAsInSyncWith(desired);
@@ -318,10 +320,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                                 User = string.IsNullOrEmpty(User) ?
                                     null : User,
                                 Token = Token,
-                                TokenType = TokenType == OpcUa.Models.TokenType.None ?
+                                TokenType = TokenType == Models.TokenType.None ?
                                     null : TokenType
                         },
-                        SecurityMode = SecurityMode == OpcUa.Models.SecurityMode.Best ?
+                        SecurityMode = SecurityMode == Models.SecurityMode.Best ?
                             null : SecurityMode,
                         SecurityPolicy = string.IsNullOrEmpty(SecurityPolicy) ?
                             null : SecurityPolicy,
@@ -375,9 +377,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 User = model.Registration?.Endpoint.Authentication?.User,
                 Token = model.Registration?.Endpoint.Authentication?.Token,
                 TokenType = model.Registration?.Endpoint.Authentication?.TokenType ??
-                    OpcUa.Models.TokenType.None,
+                    Models.TokenType.None,
                 SecurityMode = model.Registration?.Endpoint.SecurityMode ??
-                    OpcUa.Models.SecurityMode.Best,
+                    Models.SecurityMode.Best,
                 SecurityPolicy = model.Registration?.Endpoint.SecurityPolicy,
                 Validation = model.Registration?.Endpoint?.Validation.EncodeAsDictionary(),
                 Activated = model.Activated,
@@ -395,9 +397,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return endpoint != null &&
                 EndpointUrl == endpoint.Url &&
                 User == endpoint.Authentication?.User &&
-                TokenType == (endpoint.Authentication?.TokenType ?? OpcUa.Models.TokenType.None) &&
+                TokenType == (endpoint.Authentication?.TokenType ?? Models.TokenType.None) &&
                 JToken.DeepEquals(Token, endpoint.Authentication?.Token) &&
-                SecurityMode == (endpoint.SecurityMode ?? OpcUa.Models.SecurityMode.Best) &&
+                SecurityMode == (endpoint.SecurityMode ?? Models.SecurityMode.Best) &&
                 SecurityPolicy == endpoint.SecurityPolicy &&
                 endpoint.Validation.SequenceEqualsSafe(
                     Validation.DecodeAsByteArray());

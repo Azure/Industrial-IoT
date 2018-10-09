@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
     using Newtonsoft.Json.Linq;
     using Autofac.Extras.Moq;
     using AutoFixture;

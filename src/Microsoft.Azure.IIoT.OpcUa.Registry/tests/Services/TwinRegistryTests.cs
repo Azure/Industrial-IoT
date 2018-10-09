@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Mock;
@@ -298,6 +297,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         t.Properties.Reported.Add(BaseRegistration.kSiteIdProp, a.Registration.SiteId);
                     }
                     if (a.Connected ?? false) {
+                        t.ConnectionState = "Connected";
                         t.Properties.Reported.Add(BaseRegistration.kConnectedProp, true);
                     }
                     return t;

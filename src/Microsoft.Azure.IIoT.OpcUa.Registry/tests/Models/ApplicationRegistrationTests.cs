@@ -4,16 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Autofac.Extras.Moq;
     using AutoFixture;
-    using AutoFixture.Kernel;
     using Microsoft.Azure.IIoT.Hub;
-    using Moq;
     using Newtonsoft.Json.Linq;
     using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using Xunit;
 
     public class ApplicationRegistrationTests {

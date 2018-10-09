@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using System;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.CompilerServices;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 

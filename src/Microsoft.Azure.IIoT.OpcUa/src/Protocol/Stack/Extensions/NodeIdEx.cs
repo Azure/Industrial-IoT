@@ -8,7 +8,6 @@ namespace Opc.Ua.Extensions {
     using System.Globalization;
     using System.Linq;
     using System.Text;
-    using System.Xml;
     using Opc.Ua;
 
     /// <summary>
@@ -361,7 +360,7 @@ namespace Opc.Ua.Extensions {
                 case 'i':
                     return Convert.ToUInt32(text, CultureInfo.InvariantCulture);
                 case 'b':
-                    return Convert.FromBase64String(text);
+                    return text.DecodeAsBase64();
                 case 'g':
                     return Guid.Parse(text);
                 case 's':
@@ -396,6 +395,9 @@ namespace Opc.Ua.Extensions {
                 }
                 else {
                     name = DataTypes.GetBrowseName(id);
+                }
+                if (name.EqualsIgnoreCase("Null")) {
+                    name = null;
                 }
                 return !string.IsNullOrEmpty(name);
             }

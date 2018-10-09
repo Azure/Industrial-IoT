@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="context"></param>
         /// <returns></returns>
         JToken Encode(Variant value, out BuiltInType builtinType,
-            ServiceMessageContext context);
+            ServiceMessageContext context = null);
 
         /// <summary>
         /// Parse token to variant
@@ -30,6 +30,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="context"></param>
         /// <returns></returns>
         Variant Decode(JToken value, BuiltInType builtinType,
-            ServiceMessageContext context);
+            ServiceMessageContext context = null);
     }
 }

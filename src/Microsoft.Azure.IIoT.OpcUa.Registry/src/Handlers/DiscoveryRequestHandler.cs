@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
-    using Microsoft.Azure.IIoT.OpcUa;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     public class DiscoveryRequestHandler : IEventHandler {
 
         /// <inheritdoc/>
-        public string ContentType => OpcUa.Models.ContentTypes.DiscoveryRequest;
+        public string ContentType => ContentTypes.DiscoveryRequest;
 
         /// <summary>
         /// Create handler

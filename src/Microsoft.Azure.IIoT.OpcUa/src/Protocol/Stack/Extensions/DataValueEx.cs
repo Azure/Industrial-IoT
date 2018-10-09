@@ -19,7 +19,8 @@ namespace Opc.Ua.Extensions {
         /// <param name="dataValue"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T Get<T>(this DataValue dataValue, T defaultValue = default(T)) {
+        public static T GetValueOrDefault<T>(this DataValue dataValue,
+            T defaultValue = default(T)) {
             if (dataValue == null) {
                 return defaultValue;
             }
@@ -49,41 +50,6 @@ namespace Opc.Ua.Extensions {
             catch {
                 return defaultValue;
             }
-        }
-
-        /// <summary>
-        /// Unpack with a default value
-        /// </summary>
-        /// <param name="dataValue"></param>
-        /// <param name="defaultValue"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static object Get(this DataValue dataValue, object defaultValue, Type type) {
-            if (dataValue == null) {
-                return defaultValue;
-            }
-            if (StatusCode.IsNotGood(dataValue.StatusCode)) {
-                return defaultValue;
-            }
-            var value = dataValue.Value;
-            while (type.IsEnum) {
-                try {
-                    return Enum.ToObject(type, value);
-                }
-                catch {
-                    break;
-                }
-            }
-            while (!type.IsInstanceOfType(value)) {
-                try {
-                    return value.As(type);
-                }
-                catch {
-                    break;
-                }
-            }
-            // TODO: try cast function...
-            return defaultValue;
         }
     }
 }

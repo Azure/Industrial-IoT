@@ -5,7 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Tests;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Newtonsoft.Json.Linq;
     using System.Net;
@@ -25,6 +27,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             // Act
             var result = await browser.NodeValueReadAsync(GetEndpoint(),
                 new ValueReadRequestModel {
+                    Diagnostics = new DiagnosticsModel {
+                        AuditId = nameof(NodeReadStaticScalarBooleanValueVariableTest),
+                        TimeStamp = System.DateTime.Now
+                    },
                     NodeId = node
                 });
 
@@ -117,6 +123,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             // Act
             var result = await browser.NodeValueReadAsync(GetEndpoint(),
                 new ValueReadRequestModel {
+                    Diagnostics = new DiagnosticsModel {
+                        AuditId = nameof(NodeReadStaticScalarUInt16ValueVariableTest),
+                        TimeStamp = System.DateTime.Now
+                    },
                     NodeId = node
                 });
 
@@ -365,13 +375,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             Assert.NotNull(result.Value);
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
-            // TODO : Assert.Equal(JTokenType.Bytes, result.Value.Type);
-            Assert.Equal(JTokenType.String, result.Value.Type);
             Assert.True(JToken.DeepEquals(expected, result.Value),
                 $"Expected: {expected} != Actual: {result.Value}");
             Assert.Equal("ByteString", result.DataType);
+            if (JTokenType.Null == result.Value.Type) {
+                return; // Can happen
+            }
+            // TODO : Assert.Equal(JTokenType.Bytes, result.Value.Type);
+            Assert.Equal(JTokenType.String, result.Value.Type);
         }
-
 
         [Fact]
         public async Task NodeReadStaticScalarXmlElementValueVariableTest() {
@@ -650,6 +662,97 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             Assert.True(JToken.DeepEquals(expected, result.Value),
                 $"Expected: {expected} != Actual: {result.Value}");
             // Assert.Equal("UInteger", result.DataType);
+        }
+
+        [Fact]
+        public async Task NodeReadDiagnosticsNoneTest() {
+
+            var browser = GetServices();
+
+            // Act
+            var results = await browser.NodeValueReadAsync(GetEndpoint(),
+                new ValueReadRequestModel {
+                    Diagnostics = new DiagnosticsModel {
+                        AuditId = nameof(NodeReadDiagnosticsNoneTest),
+                        Level = DiagnosticsLevel.None
+                    },
+                    NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown"
+                });
+
+            // Assert
+            Assert.Null(results.Diagnostics);
+        }
+
+        [Fact]
+        public async Task NodeReadDiagnosticsStatusTest() {
+
+            var browser = GetServices();
+
+            // Act
+            var results = await browser.NodeValueReadAsync(GetEndpoint(),
+                new ValueReadRequestModel {
+                    Diagnostics = new DiagnosticsModel {
+                        AuditId = nameof(NodeReadDiagnosticsStatusTest),
+                        TimeStamp = System.DateTime.Now
+                    },
+                    NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown"
+                });
+
+            // Assert
+            Assert.NotNull(results.Diagnostics);
+            Assert.Equal(JTokenType.Array, results.Diagnostics.Type);
+            Assert.Collection(results.Diagnostics, j => {
+                Assert.Equal(JTokenType.String, j.Type);
+                Assert.Equal("BadNodeIdUnknown", (string)j);
+            });
+        }
+
+        [Fact]
+        public async Task NodeReadDiagnosticsOperationsTest() {
+
+            var browser = GetServices();
+
+            // Act
+            var results = await browser.NodeValueReadAsync(GetEndpoint(),
+                new ValueReadRequestModel {
+                    Diagnostics = new DiagnosticsModel {
+                        AuditId = nameof(NodeReadDiagnosticsOperationsTest),
+                        Level = DiagnosticsLevel.Operations
+                    },
+                    NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown"
+                });
+
+            // Assert
+            Assert.NotNull(results.Diagnostics);
+            Assert.Equal(JTokenType.Object, results.Diagnostics.Type);
+            Assert.Collection(results.Diagnostics,
+                j => {
+                    Assert.Equal(JTokenType.Property, j.Type);
+                    Assert.Equal("BadNodeIdUnknown", ((JProperty)j).Name);
+                    var item = ((JProperty)j).Value as JArray;
+                    Assert.NotNull(item);
+                    Assert.Equal("ReadValue_ns=4;s=unknown", (string)item[0]);
+                });
+        }
+
+        [Fact]
+        public async Task NodeReadDiagnosticsVerboseTest() {
+
+            var browser = GetServices();
+
+            // Act
+            var results = await browser.NodeValueReadAsync(GetEndpoint(),
+                new ValueReadRequestModel {
+                    Diagnostics = new DiagnosticsModel {
+                        AuditId = nameof(NodeReadDiagnosticsVerboseTest),
+                        Level = DiagnosticsLevel.Verbose
+                    },
+                    NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown"
+                });
+
+            // Assert
+            Assert.NotNull(results.Diagnostics);
+            Assert.Equal(JTokenType.Array, results.Diagnostics.Type);
         }
 
         public AddressSpaceValueReadScalarTests(ServerFixture server) {

@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Exceptions;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
@@ -125,7 +125,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         case CommunicationException ce:
                             if (!handler(e) || !retry) {
                                 _logger.Error("Comm error during service call", () => e);
-                                throw e;
+                                throw;
                             }
                             retry = false;
                             _logger.Warn("Try with new session...", () => e);
@@ -139,7 +139,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 ReturnSession(session);
                             }
                             _logger.Error("App error during service call", () => e);
-                            throw e;
+                            throw;
                     }
                 }
             }
@@ -151,46 +151,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         protected int Timeout { get; set; } = 60000;
 
         /// <summary>
-        /// Try get unique set of endpoints from all servers found on discovery server
+        /// Try get unique set of endpoints from all servers found on discovery
+        /// server endpoint url, filtered by optional locales.
         /// </summary>
         /// <param name="discoveryUrl"></param>
+        /// <param name="locales"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<Protocol.DiscoveredEndpointsModel>> FindEndpointsAsync(
-            Uri discoveryUrl, CancellationToken ct) {
+        public async Task<IEnumerable<DiscoveredEndpointsModel>> FindEndpointsAsync(
+            Uri discoveryUrl, List<string> locales, CancellationToken ct) {
 
-            var results = new HashSet<Protocol.DiscoveredEndpointsModel>();
+            var results = new HashSet<DiscoveredEndpointsModel>();
             var visitedUris = new HashSet<string> {
                 CreateDiscoveryUri(discoveryUrl.ToString(), 4840)
             };
             var queue = new Queue<Tuple<Uri, List<string>>>();
+            var localeIds = locales != null ? new StringCollection(locales) : null;
             queue.Enqueue(Tuple.Create(discoveryUrl, new List<string>()));
             ct.ThrowIfCancellationRequested();
             while (queue.Any()) {
                 var nextServer = queue.Dequeue();
                 discoveryUrl = nextServer.Item1;
                 var sw = Stopwatch.StartNew();
-#if TRACE
-                _logger.Debug($"Discover endpoints at {discoveryUrl}...", () => { });
-#endif
+                _logger.Verbose($"Discover endpoints at {discoveryUrl}...");
                 try {
-                    await Retry.Do(_logger, ct, () =>
-                        Task.Run(() => Discover(discoveryUrl, nextServer.Item2,
-                            Timeout, visitedUris, queue, results), ct),
+                    await Retry.Do(_logger, ct, () => DiscoverAsync(discoveryUrl,
+                            localeIds, nextServer.Item2, Timeout, visitedUris,
+                            queue, results),
                         _ => !ct.IsCancellationRequested, Retry.NoBackoff,
                         kMaxDiscoveryAttempts - 1).ConfigureAwait(false);
                 }
                 catch (Exception ex) {
                     _logger.Error($"Error at {discoveryUrl} (after {sw.Elapsed}).",
                         () => ex);
-                    return new HashSet<Protocol.DiscoveredEndpointsModel>();
+                    return new HashSet<DiscoveredEndpointsModel>();
                 }
                 ct.ThrowIfCancellationRequested();
-#if TRACE
-                _logger.Debug(
-                    $"Discovery at {discoveryUrl} completed (took {sw.Elapsed}).",
-                        () => { });
-#endif
+                _logger.Verbose($"Discovery at {discoveryUrl} completed in {sw.Elapsed}.");
             }
             return results;
         }
@@ -199,14 +196,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Perform a single discovery run
         /// </summary>
         /// <param name="discoveryUrl"></param>
+        /// <param name="localeIds"></param>
         /// <param name="caps"></param>
         /// <param name="timeout"></param>
         /// <param name="result"></param>
         /// <param name="visitedUris"></param>
         /// <param name="queue"></param>
-        private void Discover(Uri discoveryUrl, IEnumerable<string> caps, int timeout,
-            HashSet<string> visitedUris, Queue<Tuple<Uri, List<string>>> queue,
-            HashSet<Protocol.DiscoveredEndpointsModel> result) {
+        private async Task DiscoverAsync(Uri discoveryUrl, StringCollection localeIds,
+            IEnumerable<string> caps, int timeout, HashSet<string> visitedUris,
+            Queue<Tuple<Uri, List<string>>> queue, HashSet<DiscoveredEndpointsModel> result) {
 
             var configuration = EndpointConfiguration.Create(_config);
             configuration.OperationTimeout = timeout;
@@ -214,19 +212,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 //
                 // Get endpoints from current discovery server
                 //
-                var endpoints = client.GetEndpoints(null);
+                var endpoints = await client.GetEndpointsAsync(null, client.Endpoint.EndpointUrl,
+                    localeIds, null);
                 // ReplaceLocalHostWithRemoteHost(endpoints, discoveryUrl);
-                if (!endpoints.Any()) {
-                    _logger.Debug($"No endpoints at {discoveryUrl}...", () => { });
+                if (!(endpoints?.Endpoints?.Any() ?? false)) {
+                    _logger.Debug($"No endpoints at {discoveryUrl}...");
                     return;
                 }
+                _logger.Debug($"Found endpoints at {discoveryUrl}...");
 
-                _logger.Debug($"Found endpoints at {discoveryUrl}...",
-                    () => { });
-
-                foreach (var ep in endpoints.Where(ep =>
+                foreach (var ep in endpoints.Endpoints.Where(ep =>
                     ep.Server.ApplicationType != Opc.Ua.ApplicationType.DiscoveryServer)) {
-                    result.Add(new Protocol.DiscoveredEndpointsModel {
+                    result.Add(new DiscoveredEndpointsModel {
                         Description = ep,
                         Capabilities = new HashSet<string>(caps)
                     });
@@ -237,10 +234,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // as well as reference servers, then we call FindServers...
                 //
                 try {
-                    var filter = new StringCollection();
-                    var servers = client.FindServersOnNetwork(0, 1000, filter,
-                        out var tmp);
-                    foreach (var server in servers) {
+                    var response = await client.FindServersOnNetworkAsync(null, 0, 1000,
+                        new StringCollection());
+                    foreach (var server in response?.Servers ?? new ServerOnNetworkCollection()) {
                         var url = CreateDiscoveryUri(server.DiscoveryUrl,
                             discoveryUrl.Port);
                         if (!visitedUris.Contains(url)) {
@@ -252,20 +248,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 catch {
                     // Old lds, just continue...
-                    _logger.Debug($"{discoveryUrl} does not support ME extension...",
-                        () => { });
+                    _logger.Debug($"{discoveryUrl} does not support ME extension...");
                 }
 
                 //
                 // Call FindServers first to push more unique discovery urls
-                // into the browse queue
+                // into the discovery queue
                 //
-                var apps = client.FindServers(null);
-                foreach (var server in apps.SelectMany(s => s.DiscoveryUrls)) {
-                    var url = CreateDiscoveryUri(server, discoveryUrl.Port);
-                    if (!visitedUris.Contains(url)) {
-                        queue.Enqueue(Tuple.Create(discoveryUrl, new List<string>()));
-                        visitedUris.Add(url);
+                var found = await client.FindServersAsync(null, client.Endpoint.EndpointUrl,
+                    localeIds, null);
+                if (found?.Servers != null) {
+                    foreach (var server in found.Servers.SelectMany(s => s.DiscoveryUrls)) {
+                        var url = CreateDiscoveryUri(server, discoveryUrl.Port);
+                        if (!visitedUris.Contains(url)) {
+                            queue.Enqueue(Tuple.Create(discoveryUrl, new List<string>()));
+                            visitedUris.Add(url);
+                        }
                     }
                 }
             }
@@ -279,31 +277,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="timeout"></param>
         /// <param name="selector"></param>
         /// <returns></returns>
-        private Task<ConfiguredEndpoint> DiscoverEndpointsAsync(EndpointModel server,
-            Uri discoveryUrl, int timeout, Func<EndpointModel, IEnumerable<EndpointDescription>,
-                ITransportChannel, EndpointDescription> selector) {
-            return Task.Run(() => {
-                var selectedEndpoint = DiscoverEndpoints(server, discoveryUrl, timeout,
-                    selector);
-                if (selectedEndpoint == null) {
-                    return null;
-                }
-                var endpoint = new ConfiguredEndpoint(selectedEndpoint.Server,
-                    EndpointConfiguration.Create(_config));
-                endpoint.Update(selectedEndpoint);
-                return endpoint;
-            });
-        }
-
-        /// <summary>
-        /// Discover and select endpoint
-        /// </summary>
-        /// <param name="server"></param>
-        /// <param name="discoveryUrl"></param>
-        /// <param name="timeout"></param>
-        /// <param name="selector"></param>
-        /// <returns></returns>
-        private EndpointDescription DiscoverEndpoints(EndpointModel server,
+        private async Task<EndpointDescription> DiscoverEndpointsAsync(EndpointModel server,
             Uri discoveryUrl, int timeout, Func<EndpointModel, IEnumerable<EndpointDescription>,
                 ITransportChannel, EndpointDescription> selector) {
 
@@ -312,9 +286,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             configuration.OperationTimeout = timeout;
 
             using (var client = DiscoveryClient.Create(discoveryUrl, configuration)) {
-                var endpoints = client.GetEndpoints(null);
-                ReplaceLocalHostWithRemoteHost(endpoints, discoveryUrl);
+                var response = await client.GetEndpointsAsync(null, client.Endpoint.EndpointUrl,
+                    null /*TODO*/, null);
 
+                var endpoints = response?.Endpoints ?? new EndpointDescriptionCollection();
+                ReplaceLocalHostWithRemoteHost(endpoints, discoveryUrl);
                 // Select best endpoint
                 return selector(server, endpoints, client.TransportChannel);
             }
@@ -494,13 +470,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 };
             }
             else if (entry.Endpoint.SecurityMode == SecurityMode.None) {
-                _logger.Warn("Using unsecure connection.", () => { });
+                _logger.Warn("Using unsecure connection.");
             }
             else {
                 throw new CertificateInvalidException("Missing client certificate");
             }
 
-            var selectedEndpoint = DiscoverEndpoints(entry.Endpoint,
+            var selectedEndpoint = await DiscoverEndpointsAsync(entry.Endpoint,
                 new Uri(entry.Endpoint.Url), 60000, (server, endpoints, channel) =>
                     SelectServerEndpoint(server, endpoints, channel, _clientCert != null));
             if (selectedEndpoint == null) {
@@ -607,7 +583,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <returns></returns>
         private static ApplicationConfiguration CreateApplicationConfiguration() {
             return new ApplicationConfiguration {
-                ApplicationName = "UA Core Sample Client",
+                ApplicationName = "Azure IIoT OPC Twin Client Services",
                 ApplicationType = Opc.Ua.ApplicationType.Client,
                 ApplicationUri = "urn:" + Utils.GetHostName() +
                     ":OPCFoundation:CoreSampleClient",

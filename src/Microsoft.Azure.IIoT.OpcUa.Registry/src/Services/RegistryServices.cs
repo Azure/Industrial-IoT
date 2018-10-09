@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
@@ -16,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Diagnostics;
+    using Microsoft.Azure.IIoT.Utils;
 
     /// <summary>
     /// Endpoint services using the IoT Hub twin services for endpoint
@@ -30,20 +29,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// </summary>
         /// <param name="iothub"></param>
         /// <param name="client"></param>
+        /// <param name="activate"></param>
         /// <param name="logger"></param>
         public RegistryServices(IIoTHubTwinServices iothub, IHttpClient client,
-            ILogger logger) {
+            IActivationServices<TwinRegistrationModel> activate, ILogger logger) {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _activator = activate ?? throw new ArgumentNullException(nameof(activate));
         }
 
-        /// <summary>
-        /// Read specific twin registration by twin id.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="onlyServerState"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<TwinInfoModel> GetTwinAsync(string id,
             bool onlyServerState) {
             if (string.IsNullOrEmpty(id)) {
@@ -53,18 +49,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             return TwinModelToTwinRegistrationModel(device, onlyServerState, false);
         }
 
-        /// <summary>
-        /// List all twin registrations
-        /// </summary>
-        /// <param name="continuation"></param>
-        /// <param name="onlyServerState"></param>
-        /// <param name="pageSize"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<TwinInfoListModel> ListTwinsAsync(string continuation,
             bool onlyServerState, int? pageSize) {
             // Find all devices where endpoint information is configured
             var query = $"SELECT * FROM devices WHERE " +
-                $"tags.{nameof(BaseRegistration.DeviceType)} = 'Endpoint'";
+                $"tags.{nameof(BaseRegistration.DeviceType)} = 'Endpoint' " +
+                $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize);
 
             return new TwinInfoListModel {
@@ -76,48 +67,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             };
         }
 
-        /// <summary>
-        /// Find registration for the endpoint
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="onlyServerState"></param>
-        /// <returns></returns>
-        public async Task<TwinInfoModel> FindTwinAsync(EndpointModel endpoint,
-            bool onlyServerState) {
-            if (endpoint == null) {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
-            if (string.IsNullOrEmpty(endpoint.Url)) {
-                throw new ArgumentNullException(nameof(endpoint.Url));
-            }
-            var results = await _iothub.QueryDeviceTwinsAsync("SELECT * FROM devices WHERE " +
-                $"tags.{nameof(EndpointRegistration.EndpointUrlLC)} = " +
-                    $"'{endpoint.Url.ToLowerInvariant()}'");
-            foreach (var candidate in results) {
-                var registration = EndpointRegistration.FromTwin(candidate,
-                    onlyServerState);
-                if (registration.Matches(endpoint)) {
-                    return registration.ToServiceModel();
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Find registration of endpoints using query specification
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="onlyServerState">Whether only
-        /// desired twin state should be returned.
-        /// </param>
-        /// <param name="pageSize"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<TwinInfoListModel> QueryTwinsAsync(
             TwinRegistrationQueryModel model, bool onlyServerState, int? pageSize) {
 
             var query = "SELECT * FROM devices WHERE " +
                 $"tags.{nameof(EndpointRegistration.DeviceType)} = 'Endpoint' ";
 
+            if (!(model?.IncludeNotSeenSince ?? false)) {
+                // Scope to non deleted twins
+                query += $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)}) ";
+            }
             if (model?.Url != null) {
                 // If Url provided, include it in search
                 query += $"AND tags.{nameof(EndpointRegistration.EndpointUrlLC)} = " +
@@ -127,11 +87,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // If cert provided, include it in search
                 query += $"AND tags.{nameof(BaseRegistration.Thumbprint)} = " +
                     $"{model.Certificate.ToSha1Hash()} ";
-            }
-            if (model?.Activated != null) {
-                // If flag provided, include it in search
-                query += $"AND tags.{nameof(EndpointRegistration.Activated)} " +
-                    $"{(model.Activated.Value ? "=" : "!=")} true ";
             }
             if (model?.SecurityMode != null) {
                 // If SecurityMode provided, include it in search
@@ -145,8 +100,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             if (model?.TokenType != null) {
                 // If TokenType provided, include it in search
-                query += $"AND properties.desired.{nameof(EndpointRegistration.TokenType)} = " +
-                    $"'{model.TokenType}' ";
+                if (model.TokenType.Value != TokenType.None) {
+                    query += $"AND properties.desired.{nameof(EndpointRegistration.TokenType)} = " +
+                            $"'{model.TokenType}' ";
+                }
+                else {
+                    query += $"AND (properties.desired.{nameof(EndpointRegistration.TokenType)} = " +
+                            $"'{model.TokenType}' " +
+                        $"OR NOT IS_DEFINED(tags.{nameof(EndpointRegistration.TokenType)})) ";
+                }
             }
             if (model?.User != null) {
                 // If User provided, include it in search
@@ -155,8 +117,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             if (model?.Connected != null) {
                 // If flag provided, include it in search
-                query += $"AND properties.reported.{BaseRegistration.kConnectedProp} " +
-                    $"{(model.Connected.Value ? "=" : "!=")} true ";
+                if (model.Connected.Value) {
+                    query += $"AND connectionState = 'Connected' ";
+                        // Do not use connected property as module might have exited before updating.
+                }
+                else {
+                    query += $"AND (connectionState = 'Disconnected' " +
+                        $"OR properties.reported.{BaseRegistration.kConnectedProp} != true) ";
+                }
+            }
+            if (model?.Activated != null) {
+                // If flag provided, include it in search
+                if (model.Activated.Value) {
+                    query += $"AND tags.{nameof(EndpointRegistration.Activated)} = true ";
+                }
+                else {
+                    query += $"AND (tags.{nameof(EndpointRegistration.Activated)} != true " +
+                        $"OR NOT IS_DEFINED(tags.{nameof(EndpointRegistration.Activated)})) ";
+                }
             }
             var result = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize);
             return new TwinInfoListModel {
@@ -168,11 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             };
         }
 
-        /// <summary>
-        /// Update twin registration
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task UpdateTwinAsync(TwinRegistrationUpdateModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -218,31 +192,90 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }
             }
 
-            // Check whether to enable or disable...
-            var isEnabled = patched.Activated ?? false;
-            var enable = request.Activate ?? isEnabled;
-            patched.Activated = request.Activate;
-
             // Patch
             await _iothub.CreateOrUpdateAsync(EndpointRegistration.Patch(
-                (request.Duplicate ?? false) ?
-                    null : registration,
-                EndpointRegistration.FromServiceModel(patched,
-                    registration.IsDisabled)));
+                (request.Duplicate ?? false) ? null : registration,
+                EndpointRegistration.FromServiceModel(patched, registration.IsDisabled)));
                         // To have duplicate item disabled, too if needed
+        }
 
-            // Enable/disable twin if needed
-            if (isEnabled != enable) {
-                await EnableTwinAsync(registration.SupervisorId,
-                    registration.DeviceId, enable);
+        /// <inheritdoc/>
+        public async Task ActivateTwinAsync(string id) {
+            if (string.IsNullOrEmpty(id)) {
+                throw new ArgumentException(nameof(id));
+            }
+
+            // Get existing endpoint and compare to see if we need to patch.
+            var twin = await _iothub.GetAsync(id);
+            if (twin.Id != id) {
+                throw new ArgumentException("Id must be same as twin to activate",
+                    nameof(id));
+            }
+
+            var registration = EndpointRegistration.FromTwin(twin, true);
+            if (string.IsNullOrEmpty(registration.SupervisorId)) {
+                throw new ArgumentException("Twin not registered with supervisor");
+            }
+            if (!(registration.Activated ?? false)) {
+                var patched = registration.ToServiceModel();
+                patched.Activated = true;
+
+                // Update supervisor settings
+                var secret = await SetTwinActivationStatusAsync(registration.SupervisorId,
+                    registration.DeviceId, true);
+                try {
+                    // ... then call down to supervisor to wait for activation to complete
+                    await _activator.ActivateTwinAsync(patched.Registration, secret);
+                    // Write twin activation status in twin settings
+                    await _iothub.CreateOrUpdateAsync(EndpointRegistration.Patch(
+                        registration, EndpointRegistration.FromServiceModel(patched,
+                            registration.IsDisabled)));
+                }
+                catch (Exception ex) {
+                    // Undo activation
+                    await Try.Async(() => SetTwinActivationStatusAsync(
+                        registration.SupervisorId, registration.DeviceId, false));
+                    await Try.Async(() => _activator.DeactivateTwinAsync(
+                        patched.Registration));
+                    _logger.Error("Failed to activate twin", ex);
+                    throw ex;
+                }
             }
         }
 
-        /// <summary>
-        /// Register application record
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
+        public async Task DeactivateTwinAsync(string id) {
+            if (string.IsNullOrEmpty(id)) {
+                throw new ArgumentException(nameof(id));
+            }
+            // Get existing endpoint and compare to see if we need to patch.
+            var twin = await _iothub.GetAsync(id);
+            if (twin.Id != id) {
+                throw new ArgumentException("Id must be same as twin to deactivate",
+                    nameof(id));
+            }
+            var registration = EndpointRegistration.FromTwin(twin, true);
+            if (string.IsNullOrEmpty(registration.SupervisorId)) {
+                throw new ArgumentException("Twin not registered with supervisor");
+            }
+            var patched = registration.ToServiceModel();
+
+            // Deactivate twin in twin settings
+            await SetTwinActivationStatusAsync(registration.SupervisorId,
+                registration.DeviceId, false);
+            // Call down to supervisor to ensure deactivation is complete
+            await Try.Async(() => _activator.DeactivateTwinAsync(patched.Registration));
+
+            // Mark as deactivated
+            if (registration.Activated ?? false) {
+                patched.Activated = false;
+                await _iothub.CreateOrUpdateAsync(EndpointRegistration.Patch(
+                    registration, EndpointRegistration.FromServiceModel(patched,
+                        registration.IsDisabled)));
+            }
+        }
+
+        /// <inheritdoc/>
         public async Task<ApplicationRegistrationResultModel> RegisterAsync(
             ApplicationRegistrationRequestModel request) {
             if (request == null) {
@@ -254,6 +287,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var registration = ApplicationRegistration.FromServiceModel(
                 new ApplicationInfoModel {
                     ApplicationName = request.ApplicationName,
+                    Locale = request.Locale,
                     ProductUri = request.ProductUri,
                     DiscoveryUrls = request.DiscoveryUrls,
                     DiscoveryProfileUri = request.DiscoveryProfileUri,
@@ -269,11 +303,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             };
         }
 
-        /// <summary>
-        /// Update application
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task UpdateApplicationAsync(ApplicationRegistrationUpdateModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -298,6 +328,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 patched.ApplicationName = string.IsNullOrEmpty(request.ApplicationName) ?
                     null : request.ApplicationName;
             }
+            if (request.Locale != null) {
+                patched.Locale = string.IsNullOrEmpty(request.Locale) ?
+                    null : request.Locale;
+            }
             if (request.ProductUri != null) {
                 patched.ProductUri = string.IsNullOrEmpty(request.ProductUri) ?
                     null : request.ProductUri;
@@ -316,24 +350,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             if (request.DiscoveryProfileUri != null) {
                 patched.DiscoveryProfileUri = string.IsNullOrEmpty(request.DiscoveryProfileUri) ?
-                    null : request.ApplicationName;
+                    null : request.DiscoveryProfileUri;
             }
             // Patch
             await _iothub.CreateOrUpdateAsync(ApplicationRegistration.Patch(
                 registration, ApplicationRegistration.FromServiceModel(patched)));
         }
 
-        /// <summary>
-        /// Get full application model for specified application id
-        /// </summary>
-        /// <param name="applicationId"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<ApplicationRegistrationModel> GetApplicationAsync(string applicationId) {
             if (string.IsNullOrEmpty(applicationId)) {
                 throw new ArgumentException(nameof(applicationId));
             }
             var device = await _iothub.GetAsync(applicationId);
-            var endpoints = await GetEndpointsAsync(applicationId);
+            var application = ApplicationRegistration.FromTwin(device).ToServiceModel();
+
+            // Include deleted twins if the application itself is deleted.  Otherwise omit.
+            var endpoints = await GetEndpointsAsync(applicationId,
+                application.NotSeenSince != null);
             return new ApplicationRegistrationModel {
                 Application = ApplicationRegistration.FromTwin(device).ToServiceModel(),
                 Endpoints = endpoints
@@ -343,53 +377,51 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }.SetSecurityAssessment();
         }
 
-        /// <summary>
-        /// Query applications using specific criterial
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="pageSize"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<ApplicationInfoListModel> QueryApplicationsAsync(
             ApplicationRegistrationQueryModel model, int? pageSize) {
 
             var query = "SELECT * FROM devices WHERE " +
                 $"tags.{nameof(ApplicationRegistration.DeviceType)} = 'Application' ";
 
+            if (!(model?.IncludeNotSeenSince ?? false)) {
+                // Scope to non deleted applications
+                query += $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)}) ";
+            }
             if (model?.ApplicationName != null) {
                 // If application name provided, include it in search
                 query += $"AND tags.{nameof(ApplicationRegistration.ApplicationName)} = " +
                     $"'{model.ApplicationName}' ";
             }
-
+            if (model?.Locale != null) {
+                // If application name locale provided, include it in search
+                query += $"AND tags.{nameof(ApplicationRegistration.Locale)} = " +
+                    $"'{model.Locale}' ";
+            }
             if (model?.ProductUri != null) {
                 // If product uri provided, include it in search
                 query += $"AND tags.{nameof(ApplicationRegistration.ProductUri)} = " +
                     $"'{model.ProductUri}' ";
             }
-
             if (model?.ApplicationUri != null) {
                 // If ApplicationUri provided, include it in search
                 query += $"AND tags.{nameof(ApplicationRegistration.ApplicationUriLC)} = " +
                     $"'{model.ApplicationUri.ToLowerInvariant()}' ";
             }
-
             if (model?.ApplicationType == ApplicationType.Client) {
                 // If searching for clients include it in search
                 query += $"AND tags.{nameof(ApplicationType.Client)} = true ";
             }
-
             if (model?.ApplicationType == ApplicationType.Server) {
                 // If searching for servers include it in search
                 query += $"AND tags.{nameof(ApplicationType.Server)} = true ";
             }
-
             if (model?.Capabilities != null) {
                 // If Capabilities provided, filter results
                 foreach (var cap in model.Capabilities) {
-                    query += $"AND tags.{cap.SanitizePropertyName().ToUpperInvariant()} = true ";
+                    query += $"AND tags.{JTokenEx.SanitizePropertyName(cap).ToUpperInvariant()} = true ";
                 }
             }
-
             if (model?.SiteOrSupervisorId != null) {
                 // If ApplicationUri provided, include it in search
                 query += $"AND tags.{nameof(BaseRegistration.SiteOrSupervisorId)} = " +
@@ -406,16 +438,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             };
         }
 
-        /// <summary>
-        /// List all applications
-        /// </summary>
-        /// <param name="continuation"></param>
-        /// <param name="pageSize"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<ApplicationInfoListModel> ListApplicationsAsync(
             string continuation, int? pageSize) {
             var query = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(ApplicationRegistration.DeviceType)} = 'Application' ";
+                $"tags.{nameof(ApplicationRegistration.DeviceType)} = 'Application' " +
+                $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
             var result = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize);
             return new ApplicationInfoListModel {
                 ContinuationToken = result.ContinuationToken,
@@ -426,12 +454,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             };
         }
 
-        /// <summary>
-        /// Get list of registered application sites to group applications visually
-        /// </summary>
-        /// <param name="continuation"></param>
-        /// <param name="pageSize"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<ApplicationSiteListModel> ListSitesAsync(
             string continuation, int? pageSize) {
             var tag = nameof(BaseRegistration.SiteOrSupervisorId);
@@ -442,17 +465,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             return new ApplicationSiteListModel {
                 ContinuationToken = result.ContinuationToken,
                 Sites = result.Result
-                    .Select(o => o.GetValue<string>(tag, null))
+                    .Select(o => o.GetValueOrDefault<string>(tag, null))
                     .Where(s => !string.IsNullOrEmpty(s))
                     .ToList()
             };
         }
 
-        /// <summary>
-        /// Delete application
-        /// </summary>
-        /// <param name="applicationId"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task UnregisterApplicationAsync(string applicationId) {
             if (string.IsNullOrEmpty(applicationId)) {
                 throw new ArgumentException(nameof(applicationId));
@@ -460,11 +479,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Get all twin registrations and for each one, call delete, if failure,
             // stop half way and throw and do not complete.
-            var result = await GetEndpointsAsync(applicationId);
+            var result = await GetEndpointsAsync(applicationId, true);
             foreach(var twin in result) {
                 try {
                     if (!string.IsNullOrEmpty(twin.SupervisorId)) {
-                        await EnableTwinAsync(twin.SupervisorId,
+                        await SetTwinActivationStatusAsync(twin.SupervisorId,
                             twin.DeviceId, false);
                     }
                 }
@@ -477,11 +496,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             await _iothub.DeleteAsync(applicationId);
         }
 
-        /// <summary>
-        /// Read supervisor using supervisor id.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<SupervisorModel> GetSupervisorAsync(string id) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentException(nameof(id));
@@ -491,11 +506,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             return SupervisorRegistration.FromTwin(device).ToServiceModel();
         }
 
-        /// <summary>
-        /// Update supervisor
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task UpdateSupervisorAsync(SupervisorUpdateModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -586,16 +597,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 registration, SupervisorRegistration.FromServiceModel(patched)));
         }
 
-        /// <summary>
-        /// List all supervisors
-        /// </summary>
-        /// <param name="continuation"></param>
-        /// <param name="pageSize"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<SupervisorListModel> ListSupervisorsAsync(
             string continuation, int? pageSize) {
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{BaseRegistration.kTypeProp} = 'supervisor'";
+                $"properties.reported.{BaseRegistration.kTypeProp} = 'supervisor' " +
+                $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize);
             return new SupervisorListModel {
                 ContinuationToken = devices.ContinuationToken,
@@ -606,12 +613,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             };
         }
 
-        /// <summary>
-        /// Query supervisors based on query criteria
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="pageSize"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<SupervisorListModel> QuerySupervisorsAsync(
             SupervisorQueryModel model, int? pageSize) {
 
@@ -623,12 +625,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 query += $"AND properties.desired.{nameof(SupervisorRegistration.Discovery)} = " +
                     $"'{model.Discovery}' ";
             }
-
             if (model?.SiteId != null) {
                 // If site id provided, include it in search
                 query += $"AND (properties.reported.{BaseRegistration.kSiteIdProp} = " +
                     $"'{model.SiteId}' OR properties.desired.{BaseRegistration.kSiteIdProp} = " +
                     $"'{model.SiteId}')";
+            }
+            if (model?.Connected != null) {
+                // If flag provided, include it in search
+                if (model.Connected.Value) {
+                    query += $"AND connectionState = 'Connected' ";
+                    // Do not use connected property as module might have exited before updating.
+                }
+                else {
+                    query += $"AND (connectionState = 'Disconnected' " +
+                        $"OR properties.reported.{BaseRegistration.kConnectedProp} != true) ";
+                }
             }
 
             var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize);
@@ -641,16 +653,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             };
         }
 
-        /// <summary>
-        /// Unregister disabled applications older than specified time.
-        /// </summary>
-        /// <param name="notSeenSince"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task PurgeDisabledApplicationsAsync(TimeSpan notSeenSince) {
             var absolute = DateTime.UtcNow - notSeenSince;
             var query = "SELECT * FROM devices WHERE " +
-            //    $"tags.{nameof(OpcUaTwinRegistration.NotSeenSince)} = '{absolute}' AND " +
-                $"tags.{nameof(BaseRegistration.DeviceType)} = 'Application'";
+                $"tags.{nameof(BaseRegistration.DeviceType)} = 'Application' " +
+            //    $"AND tags.{nameof(OpcUaTwinRegistration.NotSeenSince)} <= '{absolute}' " +
+                $"AND IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)}) ";
             string continuation = null;
             do {
                 var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation);
@@ -668,14 +677,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             while (continuation != null);
         }
 
-        /// <summary>
-        /// Process discovery sweep results from supervisor
-        /// </summary>
-        /// <param name="supervisorId"></param>
-        /// <param name="events"></param>
-        /// <param name="result"></param>
-        /// <param name="hardDelete"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task ProcessDiscoveryAsync(string supervisorId, DiscoveryResultModel result,
             IEnumerable<DiscoveryEventModel> events, bool hardDelete) {
             if (string.IsNullOrEmpty(supervisorId)) {
@@ -823,7 +825,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             }
 
                             endpoints.TryGetValue(patch.ApplicationId, out var epFound);
-                            var epExisting = await GetEndpointsAsync(patch.ApplicationId);
+                            var epExisting = await GetEndpointsAsync(patch.ApplicationId, true);
                             // TODO: Handle case where we take ownership of all endpoints
                             await MergeEndpointsAsync(result, supervisorId, epFound, epExisting,
                                 hardDelete);
@@ -866,8 +868,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 if (log) {
                     _logger.Info($"... processed discovery results from {supervisorId}: " +
                         $"{added} applications added, {updated} enabled, {removed} disabled, " +
-                        $"and {unchanged} unchanged.",
-                        () => { });
+                        $"and {unchanged} unchanged.");
                 }
             }
             catch (Exception ex) {
@@ -926,7 +927,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             // First we update any supervisor registration
                             var existingEndpoint = EndpointRegistration.FromTwin(device, false);
                             if (!string.IsNullOrEmpty(existingEndpoint.SupervisorId)) {
-                                await EnableTwinAsync(existingEndpoint.SupervisorId, device.Id, false);
+                                await SetTwinActivationStatusAsync(existingEndpoint.SupervisorId, device.Id, false);
                             }
                             // Then hard delete...
                             await _iothub.DeleteAsync(item.DeviceId);
@@ -969,7 +970,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                                 EndpointRegistration.Patch(exists, patch));
 
                             if (patch.Activated ?? false) {
-                                await EnableTwinAsync(supervisorId, patch.Id);
+                                await SetTwinActivationStatusAsync(supervisorId, patch.Id, true);
                             }
                             updated++;
                             continue;
@@ -991,7 +992,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         EndpointRegistration.Patch(null, item));
 
                     if (item.Activated ?? false) {
-                        await EnableTwinAsync(supervisorId, item.Id);
+                        await SetTwinActivationStatusAsync(supervisorId, item.Id, true);
                     }
                     added++;
                 }
@@ -1003,8 +1004,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             if (added != 0 || removed != 0) {
                 _logger.Info($"processed endpoint results: {added} endpoints added, {updated} " +
-                    $"updated, {removed} removed or disabled, and {unchanged} unchanged.",
-                    () => { });
+                    $"updated, {removed} removed or disabled, and {unchanged} unchanged.");
             }
         }
 
@@ -1029,7 +1029,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     try {
                         if (endpoint.Activated ?? false) {
                             if (!string.IsNullOrEmpty(endpoint.SupervisorId)) {
-                                await EnableTwinAsync(endpoint.SupervisorId, twin.Id, false);
+                                await SetTwinActivationStatusAsync(endpoint.SupervisorId,
+                                    twin.Id, false);
                             }
                         }
                         await _iothub.CreateOrUpdateAsync(EndpointRegistration.Patch(
@@ -1055,14 +1056,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// Get all endpoints for application id
         /// </summary>
         /// <param name="applicationId"></param>
+        /// <param name="includeDeleted"></param>
         /// <returns></returns>
         private async Task<IEnumerable<EndpointRegistration>> GetEndpointsAsync(
-            string applicationId) {
+            string applicationId, bool includeDeleted) {
             // Find all devices where endpoint information is configured
             var query = $"SELECT * FROM devices WHERE " +
                 $"tags.{nameof(EndpointRegistration.ApplicationId)} = " +
                     $"'{applicationId}' AND " +
-                $"tags.{nameof(BaseRegistration.DeviceType)} = 'Endpoint'";
+                $"tags.{nameof(BaseRegistration.DeviceType)} = 'Endpoint' ";
+
+            if (!includeDeleted) {
+                query += $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
+            }
 
             var result = new List<DeviceTwinModel>();
             string continuation = null;
@@ -1110,22 +1116,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// </summary>
         /// <param name="supervisorId"></param>
         /// <param name="twinId"></param>
-        /// <param name="enable"></param>
+        /// <param name="activated"></param>
         /// <returns></returns>
-        private async Task EnableTwinAsync(string supervisorId, string twinId,
-            bool enable = true) {
+        private async Task<string> SetTwinActivationStatusAsync(string supervisorId,
+            string twinId, bool activated) {
 
             if (string.IsNullOrEmpty(twinId)) {
                 throw new ArgumentNullException(nameof(twinId));
             }
             if (string.IsNullOrEmpty(supervisorId)) {
-                return; // ok, no supervisor
+                return null; // ok, no supervisor
             }
             var deviceId = SupervisorModelEx.ParseDeviceId(supervisorId, out var moduleId);
             // Remove from supervisor - this disconnects the device
-            if (!enable) {
-                await _iothub.UpdatePropertyAsync(deviceId, moduleId, twinId,
-                    null);
+            if (!activated) {
+                await _iothub.UpdatePropertyAsync(deviceId, moduleId, twinId, null);
             }
             // Enable
             else {
@@ -1133,9 +1138,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // Update supervisor to start supervising this endpoint
                 await _iothub.UpdatePropertyAsync(deviceId, moduleId, device.Id,
                     device.Authentication.PrimaryKey);
-                _logger.Info($"Twin {twinId} activated on {supervisorId}.",
-                    () => {});
+                _logger.Info($"Twin {twinId} activated on {supervisorId}.");
+                return device.Authentication.PrimaryKey;
             }
+            return null;
         }
 
         /// <summary>
@@ -1194,6 +1200,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             return registration.ToServiceModel();
         }
 
+        private readonly IActivationServices<TwinRegistrationModel> _activator;
         private readonly IIoTHubTwinServices _iothub;
         private readonly IHttpClient _client;
         private readonly ILogger _logger;
