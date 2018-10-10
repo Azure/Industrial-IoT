@@ -4,7 +4,9 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.AzureAD.UI;
@@ -20,14 +22,14 @@ using Microsoft.Rest;
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
 {
     [Authorize]
-    public class CertificateRequestController : Controller
+    public class CertomatController : Controller
     {
         private IOpcVault opcVault;
         private readonly OpcVaultApiOptions opcVaultOptions;
         private readonly AzureADOptions azureADOptions;
         private readonly ITokenCacheService tokenCacheService;
 
-        public CertificateRequestController(
+        public CertomatController(
             OpcVaultApiOptions opcVaultOptions,
             AzureADOptions azureADOptions,
             ITokenCacheService tokenCacheService)
@@ -37,12 +39,78 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             this.tokenCacheService = tokenCacheService;
         }
 
-        [ActionName("Index")]
-        public async Task<ActionResult> IndexAsync()
+        [ActionName("Register")]
+        public async Task<IActionResult> RegisterAsync(string applicationId)
+        {
+            var apiModel = new ApplicationRecordApiModel();
+            AuthorizeClient();
+            if (applicationId != null)
+            {
+                var application = await opcVault.GetApplicationAsync(applicationId);
+                apiModel.ApplicationId = application.ApplicationId;
+                apiModel.ApplicationName = application.ApplicationName;
+                apiModel.ApplicationType = application.ApplicationType;
+                apiModel.ApplicationUri = application.ApplicationUri;
+                apiModel.DiscoveryUrls = application.DiscoveryUrls;
+            }
+            UpdateApiModel(apiModel);
+            return View(apiModel);
+        }
+
+        [HttpPost]
+        [ActionName("Register")]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> RegisterAsync(
+            ApplicationRecordApiModel apiModel,
+            string reg,
+            string add,
+            string update)
+        {
+            UpdateApiModel(apiModel);
+            ViewBag.Message = null;
+            if (ModelState.IsValid &&
+                String.IsNullOrEmpty(add) &&
+                String.IsNullOrEmpty(update) &&
+                !String.IsNullOrEmpty(reg))
+            {
+                AuthorizeClient();
+
+                var applications = await opcVault.FindApplicationAsync(apiModel.ApplicationUri);
+                if (applications == null || applications.Count == 0)
+                {
+                    try
+                    {
+                        apiModel.ApplicationId = await opcVault.RegisterApplicationAsync(apiModel);
+                    }
+                    catch (Exception ex)
+                    {
+                        ViewData["Message"] = ex.Message;
+                        return View(apiModel);
+                    }
+                }
+                else
+                {
+                    apiModel.ApplicationId = applications[0].ApplicationId;
+                }
+                return RedirectToAction("Request", new { applicationId = apiModel.ApplicationId });
+            }
+
+            if (!String.IsNullOrEmpty(add))
+            {
+                apiModel.DiscoveryUrls.Add("");
+            }
+
+            return View(apiModel);
+        }
+
+        [ActionName("Request")]
+        public async Task<IActionResult> RequestAsync(string applicationId)
         {
             AuthorizeClient();
-            var requests = await opcVault.QueryRequestsAsync();
-            return View(requests.Requests);
+            var application = await opcVault.GetApplicationAsync(applicationId);
+
+            UpdateApiModel(application);
+            return View(application);
         }
 
         [ActionName("StartNewKeyPair")]
@@ -95,7 +163,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             {
                 AuthorizeClient();
                 var id = await opcVault.StartNewKeyPairRequestAsync(request);
-                return RedirectToAction("Index");
+                string message = null;
+                try
+                {
+                    await opcVault.ApproveCertificateRequestAsync(id, false);
+                }
+                catch (Exception ex)
+                {
+                    message = ex.Message;
+                }
+                return RedirectToAction("Details", new { id, message });
             }
 
             return View(request);
@@ -162,7 +239,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 }
                 AuthorizeClient();
                 var id = await opcVault.StartSigningRequestAsync(requestApi);
-                return RedirectToAction("Index");
+                string message = null;
+                try
+                {
+                    await opcVault.ApproveCertificateRequestAsync(id, false);
+                }
+                catch (Exception ex)
+                {
+                    message = ex.Message;
+                }
+                return RedirectToAction("Details", new { id, message });
             }
 
             return View(request);
@@ -185,7 +271,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             try
             {
                 await opcVault.ApproveCertificateRequestAsync(id, false);
-                return RedirectToAction("Details", new { id , message = "CertificateRequest approved!"});
+                return RedirectToAction("Details", new { id, message = "CertificateRequest approved!" });
             }
             catch (Exception ex)
             {
@@ -318,6 +404,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 ServiceClientCredentials serviceClientCredentials =
                     new OpcVaultLoginCredentials(opcVaultOptions, azureADOptions, tokenCacheService, User);
                 opcVault = new OpcVault(new Uri(opcVaultOptions.BaseAddress), serviceClientCredentials);
+            }
+        }
+
+        private void UpdateApiModel(ApplicationRecordApiModel application)
+        {
+            if (application.ApplicationNames != null)
+            {
+                application.ApplicationNames = application.ApplicationNames.Where(x => !string.IsNullOrEmpty(x.Text)).ToList();
+            }
+            else
+            {
+                application.ApplicationNames = new List<ApplicationNameApiModel>();
+            }
+            if (application.ApplicationNames.Count == 0)
+            {
+                application.ApplicationNames.Add(new ApplicationNameApiModel(null, application.ApplicationName));
+            }
+            else
+            {
+                application.ApplicationNames[0] = new ApplicationNameApiModel(null, application.ApplicationName);
+            }
+            if (application.DiscoveryUrls != null)
+            {
+                application.DiscoveryUrls = application.DiscoveryUrls.Where(x => !string.IsNullOrEmpty(x)).ToList();
+            }
+            else
+            {
+                application.DiscoveryUrls = new List<string>();
+                if (application.DiscoveryUrls.Count == 0)
+                {
+                    application.DiscoveryUrls.Add("");
+                }
             }
         }
 

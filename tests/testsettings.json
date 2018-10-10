@@ -3,23 +3,18 @@
     //
     // KeyVault service uri from Azure portal
     //
-    // "KeyVaultResourceId": "https://vault.azure.net"
+    "KeyVaultResourceId": "https://vault.azure.net"
     // "KeyVaultBaseUrl": "",
     // set to true if KeyVault has HSM option
     // "KeyVaultHSM": true
+
     //
     // CosmosDB service uri and token from Azure portal
     //
     // "CosmosDBEndpoint": "",
     // "CosmosDBToken": ""
-  },
 
-  //
-  // Can be used when running services on multiple hostnames and/or ports
-  // e.g. "*" or "{ 'origins': ['*'], 'methods': ['*'], 'headers': ['*'] }"
-  // to allow everything. Leave it empty to disable CORS.
-  //
-  "CorsWhitelist": "*",
+  },
 
   //
   // Auth configuration
@@ -74,42 +69,5 @@
     // Default: 2 minutes
     //
     "AllowedClockSkewSeconds": 300
-  },
-  //
-  // Swagger
-  //
-  "Swagger": {
-    // Swagger needs an app registration.
-    "Enabled": true
-    //
-    // The application id as registered in AAS. Retrieve from portal
-    // as a guid, e.g. fa01ade2-2365-4dd1-a084-a6ef027090fc
-    // The reply url of the registration is:"http://<hostname>/oauth2-redirect.html"
-
-    //
-    // "AppId": "", 
-
-    // the app secret of the swagger app registration
-    // "AppSecret": "" 
-  },
-  //
-  // Logging
-  //
-  "Logging": {
-    //
-    // For more information about ASP.NET logging see
-    // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging
-    // This configuration block is used only to capture internal logs generated
-    // by ASP.NET
-    //
-    "IncludeScopes": true,
-    //
-    // ASP.NET log levels: Trace, Debug, Information, Warning, Error, Critical
-    //
-    "LogLevel": {
-      "Default": "Warning",
-      "System": "Warning",
-      "Microsoft": "Warning"
-    }
   }
 }

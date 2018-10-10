@@ -23,21 +23,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         [JsonProperty(PropertyName = "CertificateRequest", Order = 40)]
         public string CertificateRequest { get; set; }
 
-        [JsonProperty(PropertyName = "AuthorityId", Order = 50)]
-        public string AuthorityId { get; set; }
-
         public StartSigningRequestApiModel(
             string applicationId,
             string certificateGroupId,
             string certificateTypeId,
-            byte[] certificateRequest,
-            string authorityId)
+            byte[] certificateRequest)
         {
             this.ApplicationId = applicationId;
             this.CertificateGroupId = certificateGroupId;
             this.CertificateTypeId = certificateTypeId;
             this.CertificateRequest = certificateRequest != null ? Convert.ToBase64String(certificateRequest) : null;
-            this.AuthorityId = authorityId;
         }
 
         public byte [] ToServiceModel()

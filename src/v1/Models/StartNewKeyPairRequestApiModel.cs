@@ -32,9 +32,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         [JsonProperty(PropertyName = "PrivateKeyPassword", Order = 70)]
         public string PrivateKeyPassword { get; set; }
 
-        [JsonProperty(PropertyName = "AuthorityId", Order = 80)]
-        public string AuthorityId { get; set; }
-
         public StartNewKeyPairRequestApiModel(
             string applicationId,
             string certificateGroupId,
@@ -42,8 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
             string subjectName,
             string[] domainNames,
             string privateKeyFormat,
-            string privateKeyPassword,
-            string authorityId)
+            string privateKeyPassword)
         {
             this.ApplicationId = applicationId;
             this.CertificateGroupId = certificateGroupId;
@@ -52,7 +48,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
             this.DomainNames = domainNames;
             this.PrivateKeyFormat = privateKeyFormat;
             this.PrivateKeyPassword = privateKeyPassword;
-            this.AuthorityId = authorityId;
         }
 
     }

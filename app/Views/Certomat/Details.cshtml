@@ -3,7 +3,6 @@
 <h2>View Certificate Request Details</h2>
 
 <div>
-    <h4>Certificate Request</h4>
     <hr />
     <dl class="dl-horizontal">
 
@@ -71,9 +70,9 @@
 
     </dl>
 </div>
+
 @if (ViewData["Message"] != null)
 {
-
     <hr />
     <div class="alert alert-warning">
         <h4>@ViewData["Message"]</h4>
@@ -115,5 +114,5 @@
         }
         @Html.Raw("&nbsp;|&nbsp;");
     }
-    @Html.ActionLink("Back to List", "Index")
+    @Html.ActionLink("Back to Register New", "Register")
 </p>

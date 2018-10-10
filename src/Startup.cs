@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             // Add authorization
             services.AddAuthorization(options =>
             {
-                options.AddV1Policies(Config);
+                options.AddV1Policies(Config, Config.ServicesConfig);
             });
 
             // Add controllers as services so they'll be resolved.

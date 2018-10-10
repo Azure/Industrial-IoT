@@ -19,14 +19,14 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.354.18-preview" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.354.19-preview" />
       </ItemGroup>
     </Otherwise>
   </Choose>
 
   <ItemGroup>
-    <None Update="Microsoft.Azure.IIoT.OpcUa.Services.Vault.Edge.Config.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Update="Microsoft.Azure.IIoT.OpcUa.Modules.Vault.Config.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

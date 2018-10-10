@@ -4,7 +4,7 @@
 //
 
 
-namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
 {
     using Newtonsoft.Json;
     using System;

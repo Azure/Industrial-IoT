@@ -8,10 +8,12 @@ using Microsoft.Azure.IIoT.Auth.Azure;
 using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers;
+using Microsoft.Extensions.Configuration;
 using Opc.Ua;
 using Opc.Ua.Gds;
 using Opc.Ua.Test;
 using System;
+using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -91,63 +93,58 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
 
     public class CertificateGroupTest
     {
-        private ServicesConfig serviceConfig = new ServicesConfig()
-        {
-            KeyVaultResourceID =  "https://vault.azure.net",
-            // TODO: new test vault
-            KeyVaultApiUrl = "https://gdsvault-test.vault.azure.net"
-        };
+        IConfigurationRoot Configuration;
 
-        private IClientConfig clientConfig = new ClientConfig()
-        {
-            // TODO: new OpcVault app service
-            // use GDSVault.Service.Test
-            AppId = "f70b169e-8d98-40df-8581-f61fa48faa8f",
-            AppSecret = null, // TODO: Need to read secrets out of keyvault
-            // For now skipping test
-            TenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47",
-            Authority = "https://login.microsoftonline.com/"
-        };
-
-        private TraceLogger logger = new TraceLogger(new LogConfig());
+        ServicesConfig ServiceConfig = new ServicesConfig();
+        IClientConfig ClientConfig = new ClientConfig();
+        TraceLogger Logger = new TraceLogger(new LogConfig());
 
         public CertificateGroupTest(ITestOutputHelper log)
         {
             _log = log;
             _randomSource = new RandomSource(randomStart);
             _dataGenerator = new DataGenerator(_randomSource);
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("testsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile("testsettings.Development.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables();
+            Configuration = builder.Build();
+            Configuration.Bind("OpcVault", ServiceConfig);
+            Configuration.Bind("Auth", ClientConfig);
         }
 
-
-        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultInit()
         {
-            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
+            SkipOnInvalidConfiguration();
+            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(ServiceConfig, ClientConfig, Logger);
             await keyVault.Init();
-
         }
 
-        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultListOfCertGroups()
         {
-            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
+            SkipOnInvalidConfiguration();
+            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(ServiceConfig, ClientConfig, Logger);
             string[] groups = await keyVault.GetCertificateGroupIds();
         }
 
-        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultGroupConfigurationCollection()
         {
-
-            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
+            SkipOnInvalidConfiguration();
+            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(ServiceConfig, ClientConfig, Logger);
             Opc.Ua.Gds.Server.CertificateGroupConfigurationCollection groupCollection = await keyVault.GetCertificateGroupConfigurationCollection();
             Assert.NotNull(groupCollection);
             Assert.NotEmpty(groupCollection);
         }
 
-        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultGetCertificateAsync()
         {
-            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
+            SkipOnInvalidConfiguration();
+            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(ServiceConfig, ClientConfig, Logger);
             await keyVault.Init();
             string[] groups = await keyVault.GetCertificateGroupIds();
             foreach (string group in groups)
@@ -170,10 +167,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             }
         }
 
-        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultCreateCACertificateAsync()
         {
-            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
+            SkipOnInvalidConfiguration();
+            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(ServiceConfig, ClientConfig, Logger);
             string[] groups = await keyVault.GetCertificateGroupIds();
             foreach (string group in groups)
             {
@@ -187,10 +185,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             }
         }
 
-        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultNewKeyPairRequestAsync()
         {
-            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
+            SkipOnInvalidConfiguration();
+            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(ServiceConfig, ClientConfig, Logger);
             string[] groups = await keyVault.GetCertificateGroupIds();
             foreach (string group in groups)
             {
@@ -220,10 +219,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             }
         }
 
-        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultSigningRequestAsync()
         {
-            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
+            SkipOnInvalidConfiguration();
+            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(ServiceConfig, ClientConfig, Logger);
             string[] groups = await keyVault.GetCertificateGroupIds();
             foreach (string group in groups)
             {
@@ -264,10 +264,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         }
 
 
-        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest)]
         public async Task KeyVaultNewKeyPairAndRevokeCertificateAsync()
         {
-            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
+            SkipOnInvalidConfiguration();
+            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(ServiceConfig, ClientConfig, Logger);
             await keyVault.Init();
             string[] groups = await keyVault.GetCertificateGroupIds();
             foreach (string group in groups)
@@ -297,10 +298,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             }
         }
 
-        [Fact(Skip = "no hard coded app secret"), Trait(Constants.Type, Constants.UnitTest)]
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest)]
         public async Task GetTrustListAsync()
         {
-            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(serviceConfig, clientConfig, logger);
+            SkipOnInvalidConfiguration();
+            KeyVaultCertificateGroup keyVault = new KeyVaultCertificateGroup(ServiceConfig, ClientConfig, Logger);
             await keyVault.Init();
             string[] groups = await keyVault.GetCertificateGroupIds();
             foreach (string group in groups)
@@ -396,6 +398,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                 }
             }
             return result;
+        }
+
+        private void SkipOnInvalidConfiguration()
+        {
+            Skip.If(
+                ServiceConfig.KeyVaultBaseUrl == null ||
+                ServiceConfig.KeyVaultResourceId == null ||
+                ClientConfig.AppId == null ||
+                ClientConfig.AppSecret == null,
+                "Missing valid KeyVault configuration");
         }
 
         /// <summary>The test logger</summary>

@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
 {
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
     using Microsoft.Azure.IIoT.Services.Auth;
 
     /// <summary>
@@ -17,9 +18,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
         /// Add v1 policies to options
         /// </summary>
         /// <param name="config"></param>
+        /// <param name="servicesConfig"></param>
         /// <param name="options"></param>
         public static void AddV1Policies(this AuthorizationOptions options,
-            IAuthConfig config) {
+            IAuthConfig config, IServicesConfig servicesConfig) {
 
             if (!config.AuthRequired) {
                 options.AddNoOpPolicies(Policies.All());
@@ -31,6 +33,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
                 policy.RequireAuthenticatedUser());
             options.AddPolicy(Policies.CanWrite, policy =>
                 policy.RequireAuthenticatedUser());
+            if (servicesConfig.AutoApprove)
+            {
+                options.AddPolicy(Policies.CanSign, policy =>
+                    policy.RequireAuthenticatedUser());
+            }
+            else
+            {
+                options.AddPolicy(Policies.CanSign, policy =>
+                    policy.RequireAuthenticatedUser()
+                    .Require(AdminRights));
+            }
             options.AddPolicy(Policies.CanManage, policy =>
                 policy.RequireAuthenticatedUser()
                 .Require(AdminRights));

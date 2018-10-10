@@ -4,8 +4,9 @@
 //
 
 
-namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
 {
+    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
     using Newtonsoft.Json;
 
     public partial class CertificateRequestRecordDetailsApiModel

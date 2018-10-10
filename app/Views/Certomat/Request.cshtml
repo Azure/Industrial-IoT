@@ -1,0 +1,75 @@
+﻿@model Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationRecordApiModel
+
+@{
+    ViewBag.Title = "Certomat";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    IList<string> appTypes = new List<string>() { "Server", "Client", "ClientAndServer", "DiscoveryServer" };
+}
+
+<h2>Request New Certificate for OPC UA Application</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <hr />
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ApplicationId, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.ApplicationId, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.ApplicationId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ApplicationUri, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.ApplicationUri, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.ApplicationUri, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ApplicationName, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.ApplicationName, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.ApplicationName, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ApplicationType, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.Raw(appTypes[(int)Model.ApplicationType])
+                @Html.ValidationMessageFor(model => model.ApplicationType, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        @for (int i = 0; i < Model.DiscoveryUrls.Count(); i++)
+        {
+            <div class="form-group">
+                @Html.LabelFor(model => Model.DiscoveryUrls[i], htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.DisplayFor(model => Model.DiscoveryUrls[i], new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => Model.DiscoveryUrls[i], "", new { @class = "text-danger" })
+                </div>
+            </div>
+        }
+
+        @if (ViewData["Message"] != null)
+        {
+            <hr />
+            <div class="alert alert-warning">
+                <h4>@ViewData["Message"]</h4>
+            </div>
+            <hr />
+        }
+        <div class="col-md-offset-2 col-md-10">
+            @Html.ActionLink("Request new KeyPair and Certificate", "StartNewKeyPair", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
+            @Html.ActionLink("Request new Certificate with Signing Request", "StartSigning", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
+        </div>
+    </div>
+}
+

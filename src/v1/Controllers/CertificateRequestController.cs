@@ -13,6 +13,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Threading.Tasks;
 using System.Diagnostics.Contracts;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
@@ -24,12 +25,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
     public sealed class CertificateRequestController : Controller
     {
         private readonly ICertificateRequest _certificateRequest;
+        private readonly IServicesConfig _servicesConfig;
 
         /// <inheritdoc/>
         public CertificateRequestController(
-            ICertificateRequest certificateRequest)
+            ICertificateRequest certificateRequest,
+            IServicesConfig servicesConfig)
         {
             _certificateRequest = certificateRequest;
+            _servicesConfig = servicesConfig;
         }
 
         /// <summary>
@@ -44,12 +48,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
             {
                 throw new ArgumentNullException(nameof(signingRequest));
             }
+            string authorityId = User.Identity.Name;
             return await this._certificateRequest.StartSigningRequestAsync(
                 signingRequest.ApplicationId,
                 signingRequest.CertificateGroupId,
                 signingRequest.CertificateTypeId,
                 signingRequest.ToServiceModel(),
-                signingRequest.AuthorityId);
+                authorityId);
         }
 
         /// <summary>
@@ -64,6 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
             {
                 throw new ArgumentNullException(nameof(newKeyPairRequest));
             }
+            string authorityId = User.Identity.Name;
             return await _certificateRequest.StartNewKeyPairRequestAsync(
                 newKeyPairRequest.ApplicationId,
                 newKeyPairRequest.CertificateGroupId,
@@ -72,7 +78,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
                 newKeyPairRequest.DomainNames,
                 newKeyPairRequest.PrivateKeyFormat,
                 newKeyPairRequest.PrivateKeyPassword,
-                newKeyPairRequest.AuthorityId);
+                authorityId);
         }
 
         /// <summary>
@@ -80,12 +86,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// </summary>
         [HttpPost("{requestId}/approve/{rejected}")]
         [SwaggerOperation(OperationId = "ApproveCertificateRequest")]
-        [Authorize(Policy = Policies.CanManage)]
+        [Authorize(Policy = Policies.CanSign)]
 
         public async Task ApproveCertificateRequestAsync(string requestId, bool rejected)
         {
-            var onBehalfOfCertificateRequest = await this._certificateRequest.OnBehalfOfRequest(Request);
-            await onBehalfOfCertificateRequest.ApproveAsync(requestId, rejected);
+            // for auto approve the service app id must have signing rights in keyvault
+            if (_servicesConfig.AutoApprove)
+            {
+                await _certificateRequest.ApproveAsync(requestId, rejected);
+            }
+            else
+            {
+                var onBehalfOfCertificateRequest = await this._certificateRequest.OnBehalfOfRequest(Request);
+                await onBehalfOfCertificateRequest.ApproveAsync(requestId, rejected);
+            }
         }
 
         /// <summary>

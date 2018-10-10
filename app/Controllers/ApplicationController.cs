@@ -13,6 +13,7 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Utils;
 using Microsoft.Rest;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
@@ -39,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         [ActionName("Index")]
         public async Task<ActionResult> IndexAsync()
         {
-            AuthorizeOpcVaultClient();
+            AuthorizeClient();
             var applicationQuery = new QueryApplicationsApiModel();
             var applications = await opcVault.QueryApplicationsAsync(applicationQuery);
             return View(applications.Applications);
@@ -49,67 +50,70 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public Task<ActionResult> RegisterAsync()
         {
             var application = new ApplicationRecordApiModel();
-            application.ApplicationNames = new List<ApplicationNameApiModel>();
-            application.DiscoveryUrls = new List<string>();
-            application.DiscoveryUrls.Add("");
-            var appRegisterModel = new ApplicationRecordRegisterApiModel()
-            {
-                ApiModel = application
-            };
-            return Task.FromResult<ActionResult>(View(appRegisterModel));
+            UpdateApiModel(application);
+            return Task.FromResult<ActionResult>(View(application));
         }
 
         [HttpPost]
         [ActionName("Register")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> RegisterAsync(
-            ApplicationRecordRegisterApiModel appRegisterModel)
+            ApplicationRecordApiModel application,
+            string add,
+            string update)
         {
-            var application = appRegisterModel.ApiModel;
-            if (ModelState.IsValid)
+            UpdateApiModel(application);
+            if (ModelState.IsValid && String.IsNullOrEmpty(add) && String.IsNullOrEmpty(update))
             {
-                if (application.ApplicationNames == null)
-                {
-                    application.ApplicationNames = new List<ApplicationNameApiModel>();
-                }
-                if (application.ApplicationNames.Count == 0)
-                {
-                    application.ApplicationNames.Add(new ApplicationNameApiModel(null, application.ApplicationName));
-                }
-                AuthorizeOpcVaultClient();
+                AuthorizeClient();
                 await opcVault.RegisterApplicationAsync(application);
                 return RedirectToAction("Index");
             }
 
-            return View(appRegisterModel);
+            if (!String.IsNullOrEmpty(add))
+            {
+                application.DiscoveryUrls.Add("");
+            }
+
+            return View(application);
         }
 
         [HttpPost]
         [ActionName("Edit")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> EditAsync(
-            [Bind("ApplicationId,ApplicationName,ApplicationType,ProductUri,ServerCapabilities")]
-            ApplicationRecordApiModel newApplication)
+            ApplicationRecordApiModel updatedApplication,
+            string add,
+            string update)
         {
-            if (ModelState.IsValid)
+            UpdateApiModel(updatedApplication);
+
+            if (ModelState.IsValid && String.IsNullOrEmpty(add) && String.IsNullOrEmpty(update))
             {
-                AuthorizeOpcVaultClient();
-                var application = await opcVault.GetApplicationAsync(newApplication.ApplicationId);
+                AuthorizeClient();
+                var application = await opcVault.GetApplicationAsync(updatedApplication.ApplicationId);
                 if (application == null)
                 {
                     return new NotFoundResult();
                 }
 
-                application.ApplicationName = newApplication.ApplicationName;
-                application.ApplicationType = newApplication.ApplicationType;
-                application.ProductUri = newApplication.ProductUri;
-                application.ServerCapabilities = newApplication.ServerCapabilities;
+                application.ApplicationName = updatedApplication.ApplicationName;
+                application.ApplicationType = updatedApplication.ApplicationType;
+                application.ProductUri = updatedApplication.ProductUri;
+                application.DiscoveryUrls = updatedApplication.DiscoveryUrls;
+                application.ServerCapabilities = updatedApplication.ServerCapabilities;
                 await opcVault.UpdateApplicationAsync(application.ApplicationId, application);
                 return RedirectToAction("Index");
             }
 
-            return View(newApplication);
+            if (!String.IsNullOrEmpty(add))
+            { 
+                    updatedApplication.DiscoveryUrls.Add("");
+            }
+
+            return View(updatedApplication);
         }
+
 
         [ActionName("Edit")]
         public async Task<ActionResult> EditAsync(string id)
@@ -118,7 +122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             {
                 return new BadRequestResult();
             }
-            AuthorizeOpcVaultClient();
+            AuthorizeClient();
             var application = await opcVault.GetApplicationAsync(id);
             if (application == null)
             {
@@ -135,7 +139,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             {
                 return new BadRequestResult();
             }
-            AuthorizeOpcVaultClient();
+            AuthorizeClient();
             var application = await opcVault.GetApplicationAsync(id);
             if (application == null)
             {
@@ -150,7 +154,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmedAsync([Bind("Id")] string id)
         {
-            AuthorizeOpcVaultClient();
+            AuthorizeClient();
             await opcVault.UnregisterApplicationAsync(id);
             return RedirectToAction("Index");
         }
@@ -158,7 +162,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         [ActionName("Details")]
         public async Task<ActionResult> DetailsAsync(string id)
         {
-            AuthorizeOpcVaultClient();
+            AuthorizeClient();
             var application = await opcVault.GetApplicationAsync(id);
             if (application == null)
             {
@@ -167,13 +171,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             return View(application);
         }
 
-        private void AuthorizeOpcVaultClient()
+        private void AuthorizeClient()
         {
             if (opcVault == null)
             {
                 ServiceClientCredentials serviceClientCredentials =
                     new OpcVaultLoginCredentials(opcVaultOptions, azureADOptions, tokenCacheService, User);
                 opcVault = new OpcVault(new Uri(opcVaultOptions.BaseAddress), serviceClientCredentials);
+            }
+        }
+
+        private void UpdateApiModel(ApplicationRecordApiModel application)
+        {
+            if (application.ApplicationNames != null)
+            {
+                application.ApplicationNames = application.ApplicationNames.Where(x => !string.IsNullOrEmpty(x.Text)).ToList();
+            }
+            else
+            {
+                application.ApplicationNames = new List<ApplicationNameApiModel>();
+            }
+            if (application.ApplicationNames.Count == 0)
+            {
+                application.ApplicationNames.Add(new ApplicationNameApiModel(null, application.ApplicationName));
+            }
+            else
+            {
+                application.ApplicationNames[0] = new ApplicationNameApiModel(null, application.ApplicationName);
+            }
+            if (application.DiscoveryUrls != null)
+            {
+                application.DiscoveryUrls = application.DiscoveryUrls.Where(x => !string.IsNullOrEmpty(x)).ToList();
+            }
+            else
+            {
+                application.DiscoveryUrls = new List<string>();
+                if (application.DiscoveryUrls.Count == 0)
+                {
+                    application.DiscoveryUrls.Add("");
+                }
             }
         }
 

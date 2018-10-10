@@ -5,13 +5,19 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>List of Applications</h2>
-
+<h2>List of Registered OPC UA Applications</h2>
+<!--
+<p>
+    @Html.ActionLink("Register New", "Register")
+</p>
+-->
 <table class="table">
     <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.ApplicationId)
-        </th>
+        <!--
+            <th>
+                @Html.DisplayNameFor(model => model.ApplicationId)
+            </th>
+        -->
         <th>
             @Html.DisplayNameFor(model => model.ApplicationName)
         </th>
@@ -24,9 +30,11 @@
     @foreach (var item in Model)
     {
         <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ApplicationId)
-            </td>
+            <!--
+                <td>
+                    @Html.DisplayFor(modelItem => item.ApplicationId)
+                </td>
+            -->
             <td>
                 @Html.DisplayFor(modelItem => item.ApplicationName)
             </td>
@@ -34,18 +42,21 @@
                 @Html.DisplayFor(modelItem => item.ApplicationUri)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.ApplicationId }) |
-                @Html.ActionLink("Details", "Details", new { id = item.ApplicationId }) |
+                @Html.ActionLink("Edit", "Edit", new { id = item.ApplicationId }/*, new { @class = "btn btn-default" }*/) |
+                @Html.ActionLink("Details", "Details", new { id = item.ApplicationId })  |
                 @Html.ActionLink("Delete", "Delete", new { id = item.ApplicationId }) |
-                @Html.ActionLink("NewKeyPair", "..\\CertificateRequest\\StartNewKeyPair", new { id = item.ApplicationId }) |
-                @Html.ActionLink("SigningRequest", "..\\CertificateRequest\\StartSigning", new { id = item.ApplicationId })
+                @Html.ActionLink("New KeyPair", "..\\CertificateRequest\\StartNewKeyPair", new { id = item.ApplicationId }) |
+                @Html.ActionLink("New Certificate", "..\\CertificateRequest\\StartSigning", new { id = item.ApplicationId })
             </td>
         </tr>
     }
     <tr>
-        <th/><th/><th/><th/>
+        <th />
+        <th />
+        <th />
+        <th />
     </tr>
 </table>
 <p>
-    @Html.ActionLink("Register New", "Register")
+    <!--@Html.ActionLink("Register New", "Register")-->
 </p>

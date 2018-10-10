@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 
+using System;
 using Microsoft.Azure.IIoT.Auth.Azure;
 using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.Services.Auth;
@@ -13,7 +14,6 @@ using Microsoft.Azure.IIoT.Services.Cors.Runtime;
 using Microsoft.Azure.IIoT.Services.Swagger;
 using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
 using Microsoft.Extensions.Configuration;
-using System;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
 {
@@ -22,13 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         ICorsConfig, IClientConfig, ISwaggerConfig
     {
         // services config
-        private const string KeyVaultKey = "KeyVault:";
-        private const string KeyVaultApiUrlKey = KeyVaultKey + "ServiceUri";
-        private const string KeyVaultResourceIDKey = KeyVaultKey + "ResourceID";
-        private const string KeyVaultHSMKey = KeyVaultKey + "HSM";
-        private const string CosmosDBKey = "CosmosDB:";
-        private const string CosmosDBEndpointKey = CosmosDBKey + "EndPoint";
-        private const string CosmosDBTokenKey = CosmosDBKey + "Token";
+        private const string OpcVaultKey = "OpcVault";
 
         /// <summary>
         /// Configuration constructor
@@ -48,7 +42,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         internal Config(string processId, string serviceId,
             IConfigurationRoot configuration) :
             base(processId, configuration) {
-
+            ServicesConfig = new ServicesConfig();
+            configuration.Bind(OpcVaultKey, ServicesConfig);
             _swagger = new SwaggerConfig(configuration, serviceId);
             _auth = new AuthConfig(configuration, serviceId);
             _cors = new CorsConfig(configuration);
@@ -82,16 +77,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
 
         /// <summary>Service layer configuration</summary>
-        public IServicesConfig ServicesConfig =>
-            new ServicesConfig
-            {
-                KeyVaultApiUrl = GetStringOrDefault(KeyVaultApiUrlKey),
-                KeyVaultResourceID = GetStringOrDefault(KeyVaultResourceIDKey),
-                KeyVaultHSM = GetBoolOrDefault(KeyVaultHSMKey, true),
-                CosmosDBEndpoint = GetStringOrDefault(CosmosDBEndpointKey),
-                CosmosDBToken = GetStringOrDefault(CosmosDBTokenKey)
-            };
-
+        public IServicesConfig ServicesConfig { get; }
 
         private readonly SwaggerConfig _swagger;
         private readonly AuthConfig _auth;

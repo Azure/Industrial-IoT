@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - GdsVault.App</title>
+    <title>@ViewData["Title"] - Microsoft OPC Vault</title>
 
     <environment include="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
@@ -26,16 +26,17 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">GdsVault.App</a>
+                <!--<a asp-area="" asp-controller="Certomat" asp-action="Register" class="navbar-brand">OpcVault.App</a>-->
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-                    <li><a asp-area="" asp-controller="Application" asp-action="Index">Application</a></li>
-                    <li><a asp-area="" asp-controller="CertificateRequest" asp-action="Index">CertificateRequest</a></li>
-                    <li><a asp-area="" asp-controller="CertificateGroup" asp-action="Index">CertificateGroup</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
+                    <li><a asp-area="" asp-controller="Home" asp-action="Index">OPC Vault - Home</a></li>
+                    <li><a asp-area="" asp-controller="Certomat" asp-action="Register">Register New</a></li>
+                    <li><a asp-area="" asp-controller="Application" asp-action="Index">Applications</a></li>
+                    <li><a asp-area="" asp-controller="CertificateRequest" asp-action="Index">Certificate Requests</a></li>
+                    <li><a asp-area="" asp-controller="CertificateGroup" asp-action="Index">Certificate Groups</a></li>
+                    <!--<li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>-->
+                    <!--<li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>-->
                 </ul>
                 <partial name="_LoginPartial" />
             </div>
@@ -48,7 +49,7 @@
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year - GdsVault.App</p>
+            <p>&copy; @DateTime.Now.Year - Microsoft</p>
         </footer>
     </div>
 

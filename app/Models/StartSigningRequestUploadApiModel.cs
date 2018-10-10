@@ -5,17 +5,18 @@
 
 using Microsoft.AspNetCore.Http;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
 {
+    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
     using Newtonsoft.Json;
 
-    public partial class StartSigningRequestUploadModel
+    public partial class StartSigningRequestUploadApiModel
     {
         /// <summary>
         /// Initializes a new instance of the StartSigningRequestUploadModel
         /// class.
         /// </summary>
-        public StartSigningRequestUploadModel()
+        public StartSigningRequestUploadApiModel()
         {
             CustomInit();
         }
@@ -24,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// Initializes a new instance of the StartSigningRequestUploadModel
         /// class.
         /// </summary>
-        public StartSigningRequestUploadModel(StartSigningRequestApiModel apiModel)
+        public StartSigningRequestUploadApiModel(StartSigningRequestApiModel apiModel)
         {
             ApiModel = apiModel;
             CustomInit();

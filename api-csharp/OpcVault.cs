@@ -287,7 +287,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// </summary>
         private void Initialize()
         {
-            BaseUri = new System.Uri("http://localhost:58801");
+            BaseUri = new System.Uri("http://localhost");
             SerializationSettings = new JsonSerializerSettings
             {
                 Formatting = Newtonsoft.Json.Formatting.Indented,
@@ -2917,7 +2917,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<QueryRequestsResponseApiModel>> QueryRequestsWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>> QueryRequestsWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2997,7 +2997,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<QueryRequestsResponseApiModel>();
+            var _result = new HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -3006,7 +3006,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<QueryRequestsResponseApiModel>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<CertificateRequestRecordQueryResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -3051,7 +3051,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<QueryRequestsResponseApiModel>> QueryAppRequestsWithHttpMessagesAsync(string appId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>> QueryAppRequestsWithHttpMessagesAsync(string appId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (appId == null)
             {
@@ -3137,7 +3137,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<QueryRequestsResponseApiModel>();
+            var _result = new HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -3146,7 +3146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<QueryRequestsResponseApiModel>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<CertificateRequestRecordQueryResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -3191,7 +3191,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<QueryRequestsResponseApiModel>> QueryAppRequests1WithHttpMessagesAsync(string state, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>> QueryAppRequests1WithHttpMessagesAsync(string state, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (state == null)
             {
@@ -3277,7 +3277,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<QueryRequestsResponseApiModel>();
+            var _result = new HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -3286,7 +3286,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<QueryRequestsResponseApiModel>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<CertificateRequestRecordQueryResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -3593,6 +3593,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             return _result;
         }
 
+        /// <summary>
+        /// returns the status
+        /// </summary>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
         /// </param>

@@ -25,6 +25,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth {
             nameof(CanWrite);
 
         /// <summary>
+        /// Allowed to approve and sign or to reject cert requests
+        /// </summary>
+        public const string CanSign =
+            nameof(CanSign);
+
+        /// <summary>
         /// Allowed to manage applications and cert requests
         /// </summary>
         public const string CanManage =
@@ -37,6 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth {
         public static IEnumerable<string> All() {
             yield return CanRead;
             yield return CanWrite;
+            yield return CanSign;
             yield return CanManage;
         }
     }

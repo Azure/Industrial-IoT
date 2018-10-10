@@ -28,13 +28,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// Initializes a new instance of the StartSigningRequestApiModel
         /// class.
         /// </summary>
-        public StartSigningRequestApiModel(string applicationId = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), string certificateRequest = default(string), string authorityId = default(string))
+        public StartSigningRequestApiModel(string applicationId = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), string certificateRequest = default(string))
         {
             ApplicationId = applicationId;
             CertificateGroupId = certificateGroupId;
             CertificateTypeId = certificateTypeId;
             CertificateRequest = certificateRequest;
-            AuthorityId = authorityId;
             CustomInit();
         }
 
@@ -62,11 +61,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// </summary>
         [JsonProperty(PropertyName = "CertificateRequest")]
         public string CertificateRequest { get; set; }
-
-        /// <summary>
-        /// </summary>
-        [JsonProperty(PropertyName = "AuthorityId")]
-        public string AuthorityId { get; set; }
 
     }
 }

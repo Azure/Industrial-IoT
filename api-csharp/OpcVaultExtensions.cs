@@ -632,7 +632,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            public static QueryRequestsResponseApiModel QueryRequests(this IOpcVault operations)
+            public static CertificateRequestRecordQueryResponseApiModel QueryRequests(this IOpcVault operations)
             {
                 return operations.QueryRequestsAsync().GetAwaiter().GetResult();
             }
@@ -646,7 +646,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<QueryRequestsResponseApiModel> QueryRequestsAsync(this IOpcVault operations, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<CertificateRequestRecordQueryResponseApiModel> QueryRequestsAsync(this IOpcVault operations, CancellationToken cancellationToken = default(CancellationToken))
             {
                 using (var _result = await operations.QueryRequestsWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false))
                 {
@@ -662,7 +662,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             /// </param>
             /// <param name='appId'>
             /// </param>
-            public static QueryRequestsResponseApiModel QueryAppRequests(this IOpcVault operations, string appId)
+            public static CertificateRequestRecordQueryResponseApiModel QueryAppRequests(this IOpcVault operations, string appId)
             {
                 return operations.QueryAppRequestsAsync(appId).GetAwaiter().GetResult();
             }
@@ -678,7 +678,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<QueryRequestsResponseApiModel> QueryAppRequestsAsync(this IOpcVault operations, string appId, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<CertificateRequestRecordQueryResponseApiModel> QueryAppRequestsAsync(this IOpcVault operations, string appId, CancellationToken cancellationToken = default(CancellationToken))
             {
                 using (var _result = await operations.QueryAppRequestsWithHttpMessagesAsync(appId, null, cancellationToken).ConfigureAwait(false))
                 {
@@ -694,7 +694,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             /// </param>
             /// <param name='state'>
             /// </param>
-            public static QueryRequestsResponseApiModel QueryAppRequests1(this IOpcVault operations, string state)
+            public static CertificateRequestRecordQueryResponseApiModel QueryAppRequests1(this IOpcVault operations, string state)
             {
                 return operations.QueryAppRequests1Async(state).GetAwaiter().GetResult();
             }
@@ -710,7 +710,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<QueryRequestsResponseApiModel> QueryAppRequests1Async(this IOpcVault operations, string state, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<CertificateRequestRecordQueryResponseApiModel> QueryAppRequests1Async(this IOpcVault operations, string state, CancellationToken cancellationToken = default(CancellationToken))
             {
                 using (var _result = await operations.QueryAppRequests1WithHttpMessagesAsync(state, null, cancellationToken).ConfigureAwait(false))
                 {
@@ -786,6 +786,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 }
             }
 
+            /// <summary>
+            /// returns the status
+            /// </summary>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
@@ -794,6 +797,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 return operations.GetStatusAsync().GetAwaiter().GetResult();
             }
 
+            /// <summary>
+            /// returns the status
+            /// </summary>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>

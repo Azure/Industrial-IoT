@@ -60,7 +60,6 @@ namespace Opc.Ua.Gds.Server.OpcVault
             {
                 var model = new StartSigningRequestApiModel(
                     appId,
-                    authorityId,
                     certTypeId,
                     Convert.ToBase64String(certificateRequest),
                     certificateGroupId.ToString()
@@ -106,13 +105,12 @@ namespace Opc.Ua.Gds.Server.OpcVault
             {
                 var model = new StartNewKeyPairRequestApiModel(
                     appId,
-                    authorityId,
+                    certificateGroupId.ToString(),
                     certTypeId,
                     subjectName,
                     domainNames,
                     privateKeyFormat,
-                    privateKeyPassword,
-                    certificateGroupId.ToString()
+                    privateKeyPassword
                     );
 
                 string requestId = _opcVaultServiceClient.StartNewKeyPairRequest(model);

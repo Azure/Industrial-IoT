@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         {
             _servicesConfig = servicesConfig;
             _clientConfig = clientConfig;
-            _keyVaultServiceClient = new KeyVaultServiceClient(servicesConfig.KeyVaultApiUrl, servicesConfig.KeyVaultHSM, logger);
+            _keyVaultServiceClient = new KeyVaultServiceClient(servicesConfig.KeyVaultBaseUrl, servicesConfig.KeyVaultHSM, logger);
             if (clientConfig != null &&
                 clientConfig.AppId != null && clientConfig.AppSecret != null)
             {
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 _keyVaultServiceClient.SetAuthenticationTokenProvider();
             }
             _log = logger;
-            _log.Debug("Creating new instance of `KeyVault` service " + servicesConfig.KeyVaultApiUrl, () => { });
+            _log.Debug("Creating new instance of `KeyVault` service " + servicesConfig.KeyVaultBaseUrl, () => { });
         }
 
         /// <inheritdoc/>
@@ -114,10 +114,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                     new KeyVaultCredentials(
                         token,
                         (String.IsNullOrEmpty(_clientConfig.Authority) ? kAuthority : _clientConfig.Authority) + _clientConfig.TenantId,
-                        _servicesConfig.KeyVaultResourceID,
+                        _servicesConfig.KeyVaultResourceId,
                         _clientConfig.AppId,
                         _clientConfig.AppSecret);
-                var keyVaultServiceClient = new KeyVaultServiceClient(_servicesConfig.KeyVaultApiUrl, _servicesConfig.KeyVaultHSM, _log);
+                var keyVaultServiceClient = new KeyVaultServiceClient(_servicesConfig.KeyVaultBaseUrl, _servicesConfig.KeyVaultHSM, _log);
                 keyVaultServiceClient.SetServiceClientCredentials(serviceClientCredentials);
                 return Task.FromResult<ICertificateGroup>(new KeyVaultCertificateGroup(
                     keyVaultServiceClient,

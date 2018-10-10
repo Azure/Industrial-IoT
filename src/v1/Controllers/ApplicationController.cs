@@ -65,8 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// </summary>
         [HttpDelete("{applicationId}")]
         [SwaggerOperation(OperationId = "UnregisterApplication")]
-        // manage, because a deleted app may require a CRL update with sign
-        [Authorize(Policy = Policies.CanManage)]
+        [Authorize(Policy = Policies.CanWrite)]
         public async Task UnregisterApplicationAsync(string applicationId)
         {
             await _applicationDatabase.UnregisterApplicationAsync(applicationId);

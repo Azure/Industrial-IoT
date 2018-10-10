@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// Initializes a new instance of the StartNewKeyPairRequestApiModel
         /// class.
         /// </summary>
-        public StartNewKeyPairRequestApiModel(string applicationId = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), string subjectName = default(string), IList<string> domainNames = default(IList<string>), string privateKeyFormat = default(string), string privateKeyPassword = default(string), string authorityId = default(string))
+        public StartNewKeyPairRequestApiModel(string applicationId = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), string subjectName = default(string), IList<string> domainNames = default(IList<string>), string privateKeyFormat = default(string), string privateKeyPassword = default(string))
         {
             ApplicationId = applicationId;
             CertificateGroupId = certificateGroupId;
@@ -39,7 +39,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
             DomainNames = domainNames;
             PrivateKeyFormat = privateKeyFormat;
             PrivateKeyPassword = privateKeyPassword;
-            AuthorityId = authorityId;
             CustomInit();
         }
 
@@ -82,11 +81,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// </summary>
         [JsonProperty(PropertyName = "PrivateKeyPassword")]
         public string PrivateKeyPassword { get; set; }
-
-        /// <summary>
-        /// </summary>
-        [JsonProperty(PropertyName = "AuthorityId")]
-        public string AuthorityId { get; set; }
 
     }
 }

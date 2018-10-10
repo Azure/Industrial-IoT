@@ -15,23 +15,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
     using System.Collections.Generic;
     using System.Linq;
 
-    public partial class QueryRequestsResponseApiModel
+    public partial class CertificateRequestRecordQueryResponseApiModel
     {
         /// <summary>
-        /// Initializes a new instance of the QueryRequestsResponseApiModel
-        /// class.
+        /// Initializes a new instance of the
+        /// CertificateRequestRecordQueryResponseApiModel class.
         /// </summary>
-        public QueryRequestsResponseApiModel()
+        public CertificateRequestRecordQueryResponseApiModel()
         {
             CustomInit();
         }
 
         /// <summary>
-        /// Initializes a new instance of the QueryRequestsResponseApiModel
-        /// class.
+        /// Initializes a new instance of the
+        /// CertificateRequestRecordQueryResponseApiModel class.
         /// </summary>
         /// <param name="continuationToken">Continuation token to use</param>
-        public QueryRequestsResponseApiModel(IList<CertificateRequestRecordApiModel> requests = default(IList<CertificateRequestRecordApiModel>), string continuationToken = default(string))
+        public CertificateRequestRecordQueryResponseApiModel(IList<CertificateRequestRecordApiModel> requests = default(IList<CertificateRequestRecordApiModel>), string continuationToken = default(string))
         {
             Requests = requests;
             ContinuationToken = continuationToken;

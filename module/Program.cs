@@ -3,13 +3,6 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
-using Microsoft.Rest;
-using Mono.Options;
-using Opc.Ua.Configuration;
-using Opc.Ua.Gds.Server.Database.OpcVault;
-using Opc.Ua.Gds.Server.OpcVault;
-using Opc.Ua.Server;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +10,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
+using Mono.Options;
+using Opc.Ua.Configuration;
+using Opc.Ua.Gds.Server.Database.OpcVault;
+using Opc.Ua.Gds.Server.OpcVault;
+using Opc.Ua.Server;
 
 namespace Opc.Ua.Gds.Server
 {
@@ -71,7 +70,7 @@ namespace Opc.Ua.Gds.Server
     public class Program
     {
 
-        public static string Name = "Azure Industrial IoT Edge OPC UA Global Discovery Server";
+        public static string Name = "Azure Industrial IoT OPC UA Global Discovery Server";
 
         public static int Main(string[] args)
         {
@@ -80,7 +79,7 @@ namespace Opc.Ua.Gds.Server
             // command line options
             bool showHelp = false;
             var opcVaultOptions = new OpcVaultApiOptions();
-            var azureADOptions = new OpcEdgeAzureADOptions();
+            var azureADOptions = new OpcVaultAzureADOptions();
 
             Mono.Options.OptionSet options = new Mono.Options.OptionSet {
                 { "v|vault=", "OpcVault Url", g => opcVaultOptions.BaseAddress = g },
@@ -109,7 +108,7 @@ namespace Opc.Ua.Gds.Server
 
             if (showHelp)
             {
-                Console.WriteLine("Usage: dotnet Microsoft.Azure.IIoT.OpcUa.Services.Vault.Edge.dll [OPTIONS]");
+                Console.WriteLine("Usage: dotnet Microsoft.Azure.IIoT.OpcUa.Modules.Vault.dll [OPTIONS]");
                 Console.WriteLine();
 
                 Console.WriteLine("Options:");
@@ -117,27 +116,27 @@ namespace Opc.Ua.Gds.Server
                 return (int)ExitCode.ErrorInvalidCommandLine;
             }
 
-            EdgeGlobalDiscoveryServer server = new EdgeGlobalDiscoveryServer();
+            var server = new VaultGlobalDiscoveryServer();
             server.Run(opcVaultOptions, azureADOptions);
 
-            return (int)EdgeGlobalDiscoveryServer.ExitCode;
+            return (int)VaultGlobalDiscoveryServer.ExitCode;
         }
     }
 
-    public class EdgeGlobalDiscoveryServer
+    public class VaultGlobalDiscoveryServer
     {
         GlobalDiscoverySampleServer server;
         Task status;
         DateTime lastEventTime;
         static ExitCode exitCode;
 
-        public EdgeGlobalDiscoveryServer()
+        public VaultGlobalDiscoveryServer()
         {
         }
 
         public void Run(
             OpcVaultApiOptions opcVaultOptions,
-            OpcEdgeAzureADOptions azureADOptions)
+            OpcVaultAzureADOptions azureADOptions)
         {
 
             try
@@ -201,15 +200,15 @@ namespace Opc.Ua.Gds.Server
         }
 
         private async Task ConsoleGlobalDiscoveryServer(
-            OpcVaultApiOptions opcVaultOptions, 
-            OpcEdgeAzureADOptions azureADOptions)
+            OpcVaultApiOptions opcVaultOptions,
+            OpcVaultAzureADOptions azureADOptions)
         {
             ApplicationInstance.MessageDlg = new ApplicationMessageDlg();
             ApplicationInstance application = new ApplicationInstance
             {
                 ApplicationName = Program.Name,
                 ApplicationType = ApplicationType.Server,
-                ConfigSectionName = "Microsoft.Azure.IIoT.OpcUa.Services.Vault.Edge"
+                ConfigSectionName = "Microsoft.Azure.IIoT.OpcUa.Modules.Vault"
             };
 
             // load the application configuration.
@@ -295,8 +294,7 @@ namespace Opc.Ua.Gds.Server
             var appDB = new OpcVaultApplicationsDatabase(opcVaultServiceClient);
 
             requestDB.Initialize();
-            // TODO: disable auto approve once new nuget  is available
-            server = new GlobalDiscoverySampleServer(appDB, requestDB, certGroup/*, false*/);
+            server = new GlobalDiscoverySampleServer(appDB, requestDB, certGroup, false);
 
             // start the server.
             await application.Start(server);

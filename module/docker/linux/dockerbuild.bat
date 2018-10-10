@@ -1,3 +1,3 @@
-dotnet build Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Edge.csproj
-dotnet publish Microsoft.Azure.IIoT.OpcUa.Services.GdsVault.Edge.csproj -o ./publish
+dotnet build Microsoft.Azure.IIoT.OpcUa.Modules.Vault.csproj
+dotnet publish Microsoft.Azure.IIoT.OpcUa.Modules.Vault.csproj -o ./publish
 docker build -t edgegds .
