@@ -21,7 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Vault", "src\Microsoft.Azure.IIoT.OpcUa.Services.Vault.csproj", "{917E4276-A66A-4725-91AD-EDA53E649A87}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test", "tests\Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.csproj", "{1CDE362E-DA4B-4593-838C-5FC1FC964653}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Vault.Tests", "tests\Microsoft.Azure.IIoT.OpcUa.Services.Vault.Tests.csproj", "{1CDE362E-DA4B-4593-838C-5FC1FC964653}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Vault.App", "app\Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.csproj", "{77256077-5C07-48C6-B497-455C758A108F}"
 EndProject
