@@ -62,6 +62,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         /// <inheritdoc/>
         public string Authority => _auth.Authority;
         /// <inheritdoc/>
+        public string Audience => _auth.Audience;
+        /// <inheritdoc/>
         public bool UIEnabled => _swagger.UIEnabled;
         /// <inheritdoc/>
         public bool WithAuth => _swagger.WithAuth;
