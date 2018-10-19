@@ -43,6 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
         public static void Main(string[] args) {
             var op = Op.None;
             string deviceId = null, moduleId = null;
+            Console.WriteLine("Twin module command line interface.");
             var configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables().Build();
             var cs = Environment.GetEnvironmentVariable("PCS_IOTHUB_CONNSTRING");
@@ -256,8 +257,11 @@ Options:
         /// </summary>
         private static async Task HostAsync(IIoTHubConfig config,
             string deviceId, string moduleId) {
+            Console.WriteLine("Create or retrieve connection string...");
             var cs = await AddOrGetAsync(config, deviceId, moduleId);
+            Console.WriteLine("Starting module host...");
             Twin.Program.Main(new string[] { $"EdgeHubConnectionString={cs}" });
+            Console.WriteLine("Module host exited.");
         }
 
         /// <summary>

@@ -17,4 +17,4 @@ RUN dotnet publish Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli.csproj -c Release
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli.dll"]
+ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli.dll", "--host"]
