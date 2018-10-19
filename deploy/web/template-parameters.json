@@ -1,0 +1,41 @@
+{
+    "aadTenantId": {
+      "value": "{Added through command line interface}"
+    },
+    "aadInstance": {
+      "value": "{Added through command line interface}"
+    },
+    "aadClientId": {
+      "value": "{Added through command line interface}"
+    },
+    "aadClientSecret": {
+      "value": "{Added through command line interface}"
+    },
+    "solutionName": {
+      "value": "{Added through command line interface}"
+    },
+    "dockerComposeFileContent": {
+      "value": "{Added through command line interface}"
+    },
+    "adminUsername": {
+      "value": "{Added through command line interface}"
+    },
+    "adminPassword": {
+      "value": "{Added through command line interface}"
+    },
+    "vmFQDNSuffix": {
+      "value": "{Added through command line interface}"
+    },
+    "azureWebsiteName": {
+      "value": "{Added through command line interface}"
+    },
+    "remoteEndpointSSLThumbprint": {
+      "value": "{Added through command line interface}"
+    },
+    "remoteEndpointCertificate": {
+      "value": "{Added through command line interface}"
+    },
+    "remoteEndpointCertificateKey": {
+      "value": "{Added through command line interface}"
+    }
+}
