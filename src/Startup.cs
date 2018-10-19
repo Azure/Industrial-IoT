@@ -82,8 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
             services.AddCors();
 
             // Add authentication
-            services.AddJwtBearerAuthentication(Config, Config.AppId,
-                Environment.IsDevelopment());
+            services.AddJwtBearerAuthentication(Config, Environment.IsDevelopment());
 
             // Add authorization
             services.AddAuthorization(options => {
