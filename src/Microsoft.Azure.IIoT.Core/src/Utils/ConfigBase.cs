@@ -57,8 +57,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         protected bool GetBoolOrDefault(string key,
             bool defaultValue = false) {
             var value = GetStringOrDefault(key, defaultValue.ToString()).ToLowerInvariant();
-            var knownTrue = new HashSet<string> { "true", "t", "yes", "y", "1", "-1" };
-            var knownFalse = new HashSet<string> { "false", "f", "no", "n", "0" };
+            var knownTrue = new HashSet<string> { "true", "yes", "y", "1" };
+            var knownFalse = new HashSet<string> { "false", "no", "n", "0" };
             if (knownTrue.Contains(value)) {
                 return true;
             }

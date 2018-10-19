@@ -24,9 +24,8 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
         /// <param name="services"></param>
         /// <param name="config"></param>
         /// <param name="inDevelopment"></param>
-        /// <param name="clientId"></param>
         public static void AddJwtBearerAuthentication(this IServiceCollection services,
-            IAuthConfig config, string clientId, bool inDevelopment) {
+            IAuthConfig config, bool inDevelopment) {
 
             // Allow access to context from within token providers and other client auth
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -36,31 +35,31 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options => {
 
-                    options.Authority = config.TrustedIssuer;
-                    options.Audience = clientId;
-                    options.SaveToken = true; // Save token to allow us to request another
+                    options.Authority = config.Authority;
+                    options.SaveToken = true; // Save token to allow us to request on behalf
 
                     options.TokenValidationParameters = new TokenValidationParameters {
                         ClockSkew = config.AllowedClockSkew,
-                        // ValidAudience = clientId,
-                        //  ValidateAudience = !string.IsNullOrEmpty(clientId),
+                        ValidIssuer = config.TrustedIssuer,
+                        ValidAudience = config.Audience,
                         ValidateAudience = false,
+                        ValidateIssuer = false
                     };
 
                     options.Events = new JwtBearerEvents {
                         OnAuthenticationFailed = ctx => {
                             if (config.AuthRequired) {
                                 ctx.NoResult();
-                                return WriteErrorAsync(ctx.Response,
-                                    inDevelopment ? ctx.Exception : null);
+                                return WriteErrorAsync(ctx.Response, inDevelopment ?
+                                    ctx.Exception : null);
                             }
                             return Task.CompletedTask;
                         },
-
                         OnTokenValidated = ctx => {
                             if (ctx.SecurityToken is JwtSecurityToken accessToken) {
                                 if (ctx.Principal.Identity is ClaimsIdentity identity) {
-                                    identity.AddClaim(new Claim("access_token", accessToken.RawData));
+                                    identity.AddClaim(new Claim("access_token",
+                                        accessToken.RawData));
                                 }
                             }
                             return Task.CompletedTask;

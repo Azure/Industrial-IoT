@@ -24,15 +24,17 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Runtime {
 
         /// <summary>Application id</summary>
         public string AppId => GetStringOrDefault(kAuth_AppIdKey, GetStringOrDefault(
-            _serviceId + "_APP_ID", GetStringOrDefault("PCS_AUTH_AUDIENCE"))).Trim();
-        /// <summary>App secret for behalf of flow</summary>
+            _serviceId + "_APP_ID", GetStringOrDefault("PCS_WEBUI_AUTH_AAD_APPID"))).Trim();
+        /// <summary>App secret for example for behalf of flow</summary>
         public string AppSecret => GetStringOrDefault(kAuth_AppSecretKey, GetStringOrDefault(
             _serviceId + "_APP_KEY", GetStringOrDefault("PCS_APPLICATION_SECRET"))).Trim();
         /// <summary>Optional tenant</summary>
         public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
-            GetStringOrDefault("PCS_AUTH_TENANT_ID"));
-        /// <summary>Optional authority</summary>
-        public string Authority => GetStringOrDefault(kAuth_AuthorityKey);
+            GetStringOrDefault("PCS_WEBUI_AUTH_AAD_TENANT"));
+        /// <summary>Authority</summary>
+        public string Authority => GetStringOrDefault(kAuth_AuthorityKey,
+            GetStringOrDefault("PCS_WEBUI_AUTH_AAD_AUTHORITY", string.IsNullOrEmpty(TenantId) ?
+                null : $"https://login.windows.net/{TenantId}/"));
 
         /// <summary>
         /// Configuration constructor

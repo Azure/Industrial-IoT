@@ -39,12 +39,12 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         }
 
         /// <inheritdoc/>
-        public LogLevel LogLevel => GetLogLevelOrDefault(
-            "Logging:LogLevel:Default", LogLevel.Debug);
+        public LogLevel LogLevel => GetLogLevelOrDefault("Logging:LogLevel:Default",
+            GetLogLevelOrDefault("PCS_LOG_LEVEL", LogLevel.Debug));
 
         /// <inheritdoc/>
-        public string ProcessId => GetStringOrDefault(
-            "Logging:ProcessId", _processId);
+        public string ProcessId => GetStringOrDefault("Logging:ProcessId",
+            _processId);
 
 
         /// <summary>
@@ -57,15 +57,17 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             var level = GetStringOrDefault(key);
             if (!string.IsNullOrEmpty(level)) {
                 switch (level.ToLowerInvariant()) {
-                    case "Warning":
+                    case "warn":
+                    case "warning":
                         return LogLevel.Warn;
-                    case "Trace":
-                    case "Debug":
+                    case "trace":
+                    case "debug":
                         return LogLevel.Debug;
-                    case "Information":
+                    case "information":
+                    case "info":
                         return LogLevel.Info;
-                    case "Error":
-                    case "Critical":
+                    case "error":
+                    case "critical":
                         return LogLevel.Error;
                 }
             }

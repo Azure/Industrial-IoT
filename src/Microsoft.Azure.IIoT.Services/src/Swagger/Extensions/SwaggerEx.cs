@@ -104,6 +104,7 @@ namespace Swashbuckle.AspNetCore.Swagger {
                             out var values) && values.Count > 0) {
                         doc.BasePath = "/" + values[0];
                     }
+                    doc.Schemes = new List<string> { "http", "https" };
                 });
                 options.RouteTemplate = "{documentName}/swagger.json";
             });

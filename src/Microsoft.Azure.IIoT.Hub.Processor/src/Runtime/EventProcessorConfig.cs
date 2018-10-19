@@ -47,10 +47,11 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
         }
 
         /// <summary> Event hub consumer group </summary>
-        public string ConsumerGroup =>
-            GetStringOrDefault(kEventHubConsumerGroupKey, "$default");
+        public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupKey,
+            GetStringOrDefault("PCS_IOTHUBREACT_HUB_CONSUMERGROUP", "$default"));
         /// <summary> Event hub path </summary>
-        public string EventHubPath => GetStringOrDefault(kEventHubPathKey, IoTHubName);
+        public string EventHubPath => GetStringOrDefault(kEventHubPathKey,
+            IoTHubName);
 
         /// <summary> Checkpoint storage </summary>
         public string BlobStorageConnString {

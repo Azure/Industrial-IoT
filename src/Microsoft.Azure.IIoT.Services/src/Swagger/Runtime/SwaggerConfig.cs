@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Swagger.Runtime {
+    using Microsoft.Azure.IIoT.Services.Auth.Runtime;
     using Microsoft.Azure.IIoT.Services.Swagger;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
 
@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Services.Swagger.Runtime {
     /// Web service configuration - wraps a configuration root as well
     /// as reads simple configuration from environment.
     /// </summary>
-    public class SwaggerConfig : ConfigBase, ISwaggerConfig {
+    public class SwaggerConfig : ClientConfig, ISwaggerConfig {
 
         /// <summary>
         /// Swagger configuration
@@ -21,30 +21,19 @@ namespace Microsoft.Azure.IIoT.Services.Swagger.Runtime {
         private const string kSwagger_EnabledKey = "Swagger:Enabled";
         private const string kSwagger_AppIdKey = "Swagger:AppId";
         private const string kSwagger_AppSecretKey = "Swagger:AppSecret";
+        private const string kAuth_RequiredKey = "Auth:Required";
         /// <summary>Enabled</summary>
         public bool UIEnabled => GetBoolOrDefault(kSwagger_EnabledKey,
-            !AuthRequired || !string.IsNullOrEmpty(SwaggerAppSecret));
+            !WithAuth || !string.IsNullOrEmpty(SwaggerAppSecret)); // Disable with auth but no secret
         /// <summary>Auth enabled</summary>
         public bool WithAuth =>
-            AuthRequired;
+            GetBoolOrDefault(kAuth_RequiredKey, !string.IsNullOrEmpty(SwaggerAppId));
         /// <summary>Application id</summary>
         public string SwaggerAppId => GetStringOrDefault(kSwagger_AppIdKey, GetStringOrDefault(
-            _serviceId + "_SWAGGER_APP_ID", GetStringOrDefault("IIOT_AUTH_SWAGGER_APP_ID"))).Trim();
+            _serviceId + "_SWAGGER_APP_ID", AppId)).Trim();
         /// <summary>Application key</summary>
         public string SwaggerAppSecret => GetStringOrDefault(kSwagger_AppSecretKey, GetStringOrDefault(
-            _serviceId + "_SWAGGER_APP_KEY", GetStringOrDefault("IIOT_AUTH_SWAGGER_APP_KEY"))).Trim();
-
-        /// <summary>
-        /// Auth configuration
-        /// </summary>
-        private const string kAuth_RequiredKey = "Auth:Required";
-        private const string kAuth_AppSecretKey = "Auth:AppSecret";
-        /// <summary>Whether required</summary>
-        private bool AuthRequired =>
-            GetBoolOrDefault(kAuth_RequiredKey, !string.IsNullOrEmpty(ClientSecret));
-        /// <summary>Application id</summary>
-        private string ClientSecret => GetStringOrDefault(kAuth_AppSecretKey, GetStringOrDefault(
-            _serviceId + "_APP_KEY", GetStringOrDefault("IIOT_AUTH_APP_KEY"))).Trim();
+            _serviceId + "_SWAGGER_APP_KEY", AppSecret)).Trim();
 
         /// <summary>
         /// Configuration constructor

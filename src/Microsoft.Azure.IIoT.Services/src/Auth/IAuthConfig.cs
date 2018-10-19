@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -13,19 +13,31 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
 
         /// <summary>
         /// Whether the authentication and authorization is
-        /// required or optional. Default: true
+        /// required or optional.
         /// </summary>
         bool AuthRequired { get; }
 
         /// <summary>
-        /// The trusted issuer the address of the token-issuing
+        /// The token's iss parameter must match this string to
+        /// ensure the correct issuer.
+        /// </summary>
+        string TrustedIssuer { get; }
+
+        /// <summary>
+        /// Our service's application or resource id that we must
+        /// validate to be the audience of the token so to ensure
+        /// the token was actually issued for us.
+        /// </summary>
+        string Audience { get; }
+
+        /// <summary>
+        /// The authority is the address of the token-issuing
         /// authentication server. The JWT bearer authentication
         /// middleware will use this URI to find and retrieve the
         /// public key that can be used to validate the token's
-        /// signature. It will also confirm that the iss parameter
-        /// in the token matches this URI.
+        /// signature.
         /// </summary>
-        string TrustedIssuer { get; }
+        string Authority { get; }
 
         /// <summary>
         /// Optionally the tolerated clock skew allowed when
