@@ -179,7 +179,7 @@
             "type": "string",
             "defaultValue": "S1",
             "allowedValues": [
-                "F1", "S1", "S2", "S3"
+                "S1", "S2", "S3"
             ],
             "metadata": {
                 "description": "The Azure IoT Hub SKU"
@@ -280,13 +280,15 @@
             "type": "securestring",
             "metadata": {
                 "description": "The certficate that needs to be updated to the VM"
-            }
+            },
+            "defaultValue": ""
         },
         "remoteEndpointCertificateKey": {
             "type": "securestring",
             "metadata": {
                 "description": "The certficate key that needs to be updated to the VM"
-            }
+            },
+            "defaultValue": ""
         }
     },
     "variables": {
@@ -658,7 +660,7 @@
         {
             "type": "Microsoft.Network/publicIPAddresses",
             "name": "[variables('publicIPName')]",
-            "apiVersion": "2016-03-30",
+            "apiVersion": "2016-11-01",
             "location": "[variables('location')]",
             "properties": {
                 "publicIPAllocationMethod": "Dynamic",
@@ -788,9 +790,9 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
-                        "[concat(variables('twinRepo'), variables('twinBranch'), '/deploy/basic/setup.sh')]",
-                        "[concat(variables('twinRepo'), variables('twinBranch'), '/deploy/basic/ctrl.sh')]",
-                        "[concat(variables('twinRepo'), variables('twinBranch'), '/deploy/basic/docker-compose.yml')]"
+                        "[concat(variables('twinRepo'), variables('twinBranch'), '/deploy/vm/setup.sh')]",
+                        "[concat(variables('twinRepo'), variables('twinBranch'), '/deploy/vm/ctrl.sh')]",
+                        "[concat(variables('twinRepo'), variables('twinBranch'), '/deploy/vm/docker-compose.yml')]"
                     ]
                 },
                 "protectedSettings": {
@@ -800,9 +802,9 @@
         }
     ],
     "outputs": {
-        "resourceGroup" : {
+        "iothub-connstring": {
             "type": "string",
-            "value": "[resourceGroup().name]"
+            "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey)]"
         },
         "azureWebsite": {
             "type": "string",
@@ -815,6 +817,10 @@
         "adminUsername": {
             "type": "string",
             "value": "[parameters('adminUsername')]"
-        }
+        },
+        "resourceGroup" : {
+            "type": "string",
+            "value": "[resourceGroup().name]"
+        }       
     }
 }

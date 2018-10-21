@@ -26,7 +26,7 @@
 
 param(
     [string]
-    $type = "local",
+    $type = "vm",
 
     [string]
     $resourceGroupName,
@@ -45,7 +45,11 @@ param(
 
     [ValidateSet("AzureCloud")] 
     [string]
-    $environmentName = "AzureCloud"
+    $environmentName = "AzureCloud",
+
+    [parameter(ValueFromRemainingArguments=$true)]
+    [String[]]
+    $deploymentArgs
 )
 
 $script:optionIndex = 0
@@ -152,9 +156,9 @@ Function SelectAccount() {
 #*******************************************************************************************************
 Function Login() {
     $rmProfileLoaded = $False
+    $profileFile = Join-Path $script:ScriptDir ".user"
     if ([string]::IsNullOrEmpty($script:accountName)) {
         # Try to use saved profile if one is available
-        $profileFile = Join-Path $script:ScriptDir ".user"
         if (Test-Path "$profileFile") {
             Write-Output ("Use saved profile from '{0}'" -f $profileFile)
             $rmProfile = Import-AzureRmContext -Path "$profileFile"
@@ -176,7 +180,10 @@ Function Login() {
         catch {
             throw "The login to the Azure account was not successful."
         }
-        Save-AzureRmContext -Path "$profileFile"
+        $reply = Read-Host -Prompt "Save user profile in $profileFile? [y/n]"
+        if ( $reply -match "[yY]" ) { 
+            Save-AzureRmContext -Path "$profileFile"
+        }
     }
 }
 
@@ -233,8 +240,7 @@ Function SelectSubscription() {
         }
     }
     $script:subscriptionId = $subscriptionId
-    Select-AzureRmSubscription -SubscriptionId $subscriptionId | Out-Null
-    Write-Host "Azure subscription id '$subscriptionId' selected."
+    Write-Verbose "Azure subscriptionId '$subscriptionId' selected."
 }
 
 #*******************************************************************************************************
@@ -316,19 +322,21 @@ Function GetOrCreateResourceGroup() {
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.storage" | Out-Null
 
     while ([string]::IsNullOrEmpty($script:resourceGroupName)) {
+        Write-Host
         $script:resourceGroupName = Read-Host "Please provide a name for the resource group"
     }
 
     # Create or check for existing resource group
-    $resourceGroup = Get-AzureRmResourceGroup -Name $script:resourceGroupName -ErrorAction SilentlyContinue
+    Select-AzureRmSubscription -SubscriptionId $script:subscriptionId -Force | Out-Host
+    $resourceGroup = Get-AzureRmResourceGroup -Name $script:resourceGroupName `
+        -ErrorAction SilentlyContinue
     if(!$resourceGroup) {
         Write-Host "Resource group '$script:resourceGroupName' does not exist."
         if(!(ValidateLocation $script:resourceGroupLocation)) {
             SelectLocation
         }
-        Write-Host "Creating resource group '$script:resourceGroupName' in '$script:resourceGroupLocation'..."
-        New-AzureRmResourceGroup -Name $script:resourceGroupName -Location $script:resourceGroupLocation | Out-Null
-        Write-Host "Resource group '$script:resourceGroupName' created."
+        New-AzureRmResourceGroup -Name $script:resourceGroupName `
+            -Location $script:resourceGroupLocation | Out-Host
         return $True
     }
     else{
@@ -352,21 +360,24 @@ if(![System.IO.File]::Exists($deploymentScript)) {
 SelectEnvironment
 Login
 SelectSubscription
-$deleteOnError = GetOrCreateResourceGroup
+$deleteOnErrorPrompt = GetOrCreateResourceGroup
 try {
     Write-Host "Starting deployment..."
     & ($deploymentScript) -resourceGroupName $script:resourceGroupName
     Write-Host "Deployment succeeded."
 }
 catch {
-    Write-Host "Deployment failed.  Removing resource group."
+    Write-Host "Deployment failed."
     $ex = $_.Exception
-    if ($deleteOnError) {
-        Try {
-            Remove-AzureRmResourceGroup -Name $script:resourceGroupName -Force
-        }
-        Catch {
-            Write-Host $_.Exception.Message
+    if ($deleteOnErrorPrompt) {
+        $reply = Read-Host -Prompt "Delete resource group? [y/n]"
+        if ( $reply -match "[yY]" ) { 
+            try {
+                Remove-AzureRmResourceGroup -Name $script:resourceGroupName -Force
+            }
+            catch {
+                Write-Host $_.Exception.Message
+            }
         }
     }
     throw $ex

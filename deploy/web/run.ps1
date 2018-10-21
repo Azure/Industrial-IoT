@@ -6,13 +6,13 @@
     Deploys an Azure Resource Manager template of choice
 
  .PARAMETER resourceGroupName
-    The resource group where the template will be deployed. Can be the name of an existing or a new resource group.
+    The resource group where the template will be deployed.
 #>
 
 param(
- [Parameter(Mandatory=$True)]
- [string]
- $resourceGroupName
+    [Parameter(Mandatory=$True)]
+    [string]
+    $resourceGroupName
 )
 
 #******************************************************************************
@@ -31,5 +31,8 @@ Write-Host $dockerComposeFileContent
 
 # Start the deployment
 $templateFilePath = Join-Path $ScriptDir "template.json"
-$templateParameters = @{ dockerComposeFileContent = $dockerComposeFileContent }
-$deployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $templateFilePath -TemplateParameterObject $templateParameters
+$templateParameters = @{ `
+    dockerComposeFileContent = $dockerComposeFileContent `
+}
+$deployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName  `
+    -TemplateFile $templateFilePath -TemplateParameterObject $templateParameters

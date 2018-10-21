@@ -2,46 +2,11 @@
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "aadTenantId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "The AAD tenant identifier (GUID)"
-            }
-        },
-        "aadInstance": {
-            "type": "string",
-            "defaultValue": "https://login.microsoftonline.com/",
-            "metadata": {
-                "description": "Url of the AAD login page (example: https://login.microsoftonline.com/)"
-            }
-        },
-        "aadClientId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "AAD application identifier (GUID)"
-            }
-        },
-        "aadClientSecret": {
-            "type": "securestring",
-            "defaultValue": "",
-            "metadata": {
-                "description": "AAD application secret"
-            }
-        },
         "solutionName": {
             "type": "string",
             "defaultValue": "opctwin",
             "metadata": {
                 "description": "The name of the solution"
-            }
-        },
-        "dockerComposeFileContent": {
-            "type": "string",
-            "defaultValue": "dmVyc2lvbjogJzMnDQpzZXJ2aWNlczoNCiAgdHdpbnJlZ2lzdHJ5Og0KICAgIGltYWdlOiBtYXJjc2NoaWVyL2F6dXJlLWlpb3Qtb3BjLXR3aW4tcmVnaXN0cnk6bGF0ZXN0DQogICAgcmVzdGFydDogYWx3YXlzDQogICAgZW52aXJvbm1lbnQ6DQogICAgICBQQ1NfSU9USFVCX0NPTk5TVFJJTkc6DQogICAgICBQQ1NfVEVMRU1FVFJZX0RPQ1VNRU5UREJfQ09OTlNUUklORzoNCiAgICAgIFBDU19BVVRIX0lTU1VFUjoNCiAgICAgIFBDU19BVVRIX0FVRElFTkNFOg0KICAgICAgUENTX0NPUlNfV0hJVEVMSVNUOg0KICAgICAgUENTX0FQUExJQ0FUSU9OX1NFQ1JFVDoNCiAgdHdpbm9uYm9hcmRpbmc6DQogICAgaW1hZ2U6IG1hcmNzY2hpZXIvYXp1cmUtaWlvdC1vcGMtdHdpbi1vbmJvYXJkaW5nOmxhdGVzdA0KICAgIHJlc3RhcnQ6IGFsd2F5cw0KICAgIGVudmlyb25tZW50Og0KICAgICAgUENTX0lPVEhVQl9DT05OU1RSSU5HOg0KICAgICAgUENTX0lPVEhVQlJFQUNUX0hVQl9FTkRQT0lOVDoNCiAgICAgIFBDU19JT1RIVUJSRUFDVF9IVUJfUEFSVElUSU9OUzoNCiAgICAgIFBDU19JT1RIVUJSRUFDVF9IVUJfTkFNRToNCiAgICAgIFBDU19JT1RIVUJSRUFDVF9BWlVSRUJMT0JfQUNDT1VOVDoNCiAgICAgIFBDU19JT1RIVUJSRUFDVF9BWlVSRUJMT0JfS0VZOg0KICAgICAgUENTX0lPVEhVQlJFQUNUX0FaVVJFQkxPQl9FTkRQT0lOVF9TVUZGSVg6DQogIHR3aW5zZXJ2aWNlOg0KICAgIGltYWdlOiBtYXJjc2NoaWVyL2F6dXJlLWlpb3Qtb3BjLXR3aW4tc2VydmljZTpsYXRlc3QNCiAgICByZXN0YXJ0OiBhbHdheXMNCiAgICBlbnZpcm9ubWVudDoNCiAgICAgIFBDU19JT1RIVUJfQ09OTlNUUklORzoNCiAgICAgIFBDU19URUxFTUVUUllfRE9DVU1FTlREQl9DT05OU1RSSU5HOg0KICAgICAgUENTX0FVVEhfSVNTVUVSOg0KICAgICAgUENTX0FVVEhfQVVESUVOQ0U6DQogICAgICBQQ1NfQ09SU19XSElURUxJU1Q6DQogICAgICBQQ1NfQVBQTElDQVRJT05fU0VDUkVUOg0KICB0d2lud2VidWk6DQogICAgaW1hZ2U6IG1hcmNzY2hpZXIvYXp1cmUtaWlvdC1vcGMtdHdpbi13ZWJ1aTpsYXRlc3QNCiAgICByZXN0YXJ0OiBhbHdheXMNCiAgICBjb21tYW5kOiBucG0gc3RhcnQNCiAgb3Bjc2VydmVyMDoNCiAgICBpbWFnZTogbWFyY3NjaGllci9henVyZS1paW90LW9wYy10d2luOmxhdGVzdA0KICAgIGhvc3RuYW1lOiBvcGNzZXJ2ZXIwDQogICAgcmVzdGFydDogYWx3YXlzDQogICAgY29tbWFuZDogLS1zYW1wbGUgLXAgNTEyMTANCiAgb3Bjc2VydmVyMToNCiAgICBpbWFnZTogbWFyY3NjaGllci9henVyZS1paW90LW9wYy10d2luOmxhdGVzdA0KICAgIGhvc3RuYW1lOiBvcGNzZXJ2ZXIxDQogICAgcmVzdGFydDogYWx3YXlzDQogICAgY29tbWFuZDogLS1zYW1wbGUgLXAgNTEyMTENCiAgb3Bjc2VydmVyMjoNCiAgICBpbWFnZTogbWFyY3NjaGllci9henVyZS1paW90LW9wYy10d2luOmxhdGVzdA0KICAgIGhvc3RuYW1lOiBvcGNzZXJ2ZXIyDQogICAgcmVzdGFydDogYWx3YXlzDQogICAgY29tbWFuZDogLS1zYW1wbGUgLXAgNTEyMTINCiAgdHdpbm1vZHVsZToNCiAgICBpbWFnZTogbWFyY3NjaGllci9henVyZS1paW90LW9wYy10d2luLW1vZHVsZTpsYXRlc3QNCiAgICBjb21tYW5kOiAtLWhvc3QgZGVtbyB0d2luDQogICAgcmVzdGFydDogYWx3YXlzDQogICAgZW52aXJvbm1lbnQ6DQogICAgICBQQ1NfSU9USFVCX0NPTk5TVFJJTkc6DQogIHJldmVyc2Vwcm94eToNCiAgICBpbWFnZTogbWFyY3NjaGllci9henVyZS1paW90LXJldmVyc2UtcHJveHk6bGF0ZXN0DQogICAgcmVzdGFydDogYWx3YXlzDQogICAgcG9ydHM6DQogICAgICAtICI4MDoxMDA4MCINCg==",
-            "metadata": {
-                "description": "The docker compose configuration"
             }
         },
         "storageName": {
@@ -91,7 +56,7 @@
             ],
             "defaultValue": "Strong",
             "metadata": {
-                "description": "The documentDB deault consistency level for this account."
+                "description": "The documentDB default consistency level for this account."
             }
         },
         "docDBMaxStalenessPrefix": {
@@ -184,12 +149,19 @@
         },
         "iotHubSku": {
             "type": "string",
-            "defaultValue": "S1",
+            "defaultValue": "S2",
             "allowedValues": [
-                "F1", "S1", "S2", "S3"
+                "S1", "S2", "S3"
             ],
             "metadata": {
                 "description": "The Azure IoT Hub SKU"
+            }
+        },
+        "iotHubPartitionCount": {
+            "type": "int",
+            "defaultValue": 4,
+            "metadata": {
+                "description": "The iot hub endpoint partition count"
             }
         },
         "iotHubTier": {
@@ -202,16 +174,88 @@
                 "description": "The Azure IoT Hub tier"
             }
         },
+        "agentCount": {
+            "type": "int",
+            "defaultValue": 3,
+            "metadata": {
+                "description": "The number of agents for the cluster.  This value can be from 1 to 100 (note, for Kubernetes clusters you will also get 1 or 2 public agents in addition to these seleted masters)"
+            },
+            "minValue": 1,
+            "maxValue": 100
+        },
+        "agentVMSize": {
+            "type": "string",
+            "defaultValue": "Standard_D2_v2",
+            "allowedValues": [
+                    "Standard_A0", "Standard_A1", "Standard_A2", "Standard_A3", "Standard_A4", "Standard_A5",
+                    "Standard_A6", "Standard_A7", "Standard_A8", "Standard_A9", "Standard_A10", "Standard_A11",
+                    "Standard_D1", "Standard_D2", "Standard_D3", "Standard_D4",
+                    "Standard_D11", "Standard_D12", "Standard_D13", "Standard_D14",
+                    "Standard_D1_v2", "Standard_D2_v2", "Standard_D3_v2", "Standard_D4_v2", "Standard_D5_v2",
+                    "Standard_D11_v2", "Standard_D12_v2", "Standard_D13_v2", "Standard_D14_v2",
+                    "Standard_G1", "Standard_G2", "Standard_G3", "Standard_G4", "Standard_G5",
+                    "Standard_DS1", "Standard_DS2", "Standard_DS3", "Standard_DS4",
+                    "Standard_DS11", "Standard_DS12", "Standard_DS13", "Standard_DS14",
+                    "Standard_GS1", "Standard_GS2", "Standard_GS3", "Standard_GS4", "Standard_GS5"
+            ],
+            "metadata": {
+                "description": "The size of the Virtual Machine."
+            }
+        },
+        "adminUsername": {
+            "type": "string",
+            "defaultValue": "azureuser",
+            "metadata": {
+                "description": "User name for the Linux Virtual Machine."
+            }
+        },
+        "masterCount": {
+            "type": "int",
+            "defaultValue": 1,
+            "allowedValues": [
+                1
+            ],
+            "metadata": {
+                "description": "The number of Kubernetes masters for the cluster."
+            }
+        },
+        "sshRSAPublicKey": {
+            "type": "string",
+            "metadata": {
+                "description": "Configure all linux machines with the SSH RSA public key string.  Your key should include three parts, for example 'ssh-rsa AAAAB...snip...UcyupgH azureuser@linuxvm'"
+            }
+        },
+        "servicePrincipalClientId": {
+            "metadata": {
+                "description": "Client ID (used by cloudprovider)"
+            },
+            "type": "securestring",
+            "defaultValue": "n/a"
+        },
+        "servicePrincipalSecret": {
+            "metadata": {
+                "description": "The Service Principal Client Secret."
+            },
+            "type": "securestring",
+            "defaultValue": "n/a"
+        },
         "azureWebsiteName": {
             "type": "string",
             "metadata": {
                 "description": "The name of the azure website that you want to create. It will be of format {azureWebsiteName}.azurewebsites.net"
             }
+        },
+        "remoteEndpointSSLThumbprint": {
+            "type": "securestring",
+            "metadata": {
+                "description": "This is the thumbprint of the HTTPS SSL Certificate"
+            },
+            "defaultValue": "secretkey"
         }
     },
     "variables": {
         "location": "[resourceGroup().location]",
-        "documentDBApiVersion": "2016-03-19",
+        "documentDBApiVersion": "2015-04-08",
         "documentDBResourceId": "[resourceId('Microsoft.DocumentDb/databaseAccounts', parameters('documentDBName'))]",
         "eventHubApiVersion": "2017-04-01",
         "eventHubKeyName": "RootManageSharedAccessKey",
@@ -219,15 +263,28 @@
         "eventHubNamespaceResourceId": "[resourceId('Microsoft.EventHub/namespaces', parameters('eventHubNamespaceName'))]",
         "eventHubResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventHubNamespaceName'), parameters('eventHubName'))]",
         "eventHubRouteKeyResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs/AuthorizationRules', parameters('eventHubNamespaceName'), parameters('eventHubName'), parameters('eventHubAuthorizationName'))]",
-        "iotHubApiVersion": "2017-01-19",
+        "iotHubApiVersion": "2018-04-01",
         "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]",
         "iotHubKeyName": "iothubowner",
+        "iotHubContainerName": "[parameters('iotHubName')]",
         "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', parameters('iotHubName'), variables('iotHubKeyName'))]",
         "iotHubDefaultEndpoint": "events",
         "deviceNotificationRouteName": "DeviceNotifications",
-        "consumerGroupName": "streamingJobsConsumerGroup",
+        "onboardingConsumerGroupName": "onboarding",
         "storageApiVersion": "2017-06-01",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts/',  parameters('storageName'))]",
+        "adminUsername": "[parameters('adminUsername')]",
+        "agentCount": "[parameters('agentCount')]",
+        "publicIPName": "[concat(take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5), '-public-ip')]",
+        "clusterName": "[concat(resourceGroup().name, '-cluster')]",
+        "agentsEndpointDNSNamePrefix": "[concat(parameters('solutionName'),'-agents')]",
+        "domainNameLabel": "[concat('agent-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+        "agentVMSize": "[parameters('agentVMSize')]",
+        "masterCount": "[parameters('masterCount')]",
+        "mastersEndpointDNSNamePrefix": "[concat(parameters('solutionName'),'-mgmt')]",
+        "orchestratorType": "Kubernetes",
+        "sshRSAPublicKey": "[parameters('sshRSAPublicKey')]",
+        "proxyBranch": "master",
         "hostingPlanName": "[parameters('azureWebsiteName')]",
         "appServiceVersion": "2018-02-01",
         "appServicePlanVersion": "2018-02-01",
@@ -252,9 +309,12 @@
                 "eventHubEndpoints": {
                     "events": {
                         "retentionTimeInDays": 1,
+                        "partitionCount": "[parameters('iotHubPartitionCount')]"
+                    },
+                    "operationsMonitoringEvents": {
+                        "retentionTimeInDays": 1,
                         "partitionCount": 4
                     }
-            
                 },
                 "routing": {
                     "endpoints": {
@@ -277,11 +337,18 @@
                 "storageEndpoints": {
                     "$default": {
                         "sasTtlAsIso8601": "PT1H",
-                        "connectionString": "",
-                        "containerName": ""
+                        "connectionString": "[concat('DefaultEndpointsProtocol=https;EndpointSuffix=', parameters('storageEndpointSuffix'), ';AccountName=', parameters('storageName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
+                        "containerName": "[variables('iotHubContainerName')]"
                     }
                 },
-                "enableFileUploadNotifications": false,
+                "messagingEndpoints": {
+                    "fileNotifications": {
+                        "lockDurationAsIso8601": "PT1M",
+                        "ttlAsIso8601": "PT1H",
+                        "maxDeliveryCount": 10
+                    }
+                },
+                "enableFileUploadNotifications": true,
                 "cloudToDevice": {
                     "maxDeliveryCount": 10,
                     "defaultTtlAsIso8601": "PT1H",
@@ -300,7 +367,7 @@
         {
             "comments": "Consumer Group of IoT Hub",
             "apiVersion": "[variables('iotHubApiVersion')]",
-            "name": "[concat(parameters('iotHubName'), '/events/', variables('consumerGroupName'))]",
+            "name": "[concat(parameters('iotHubName'), '/events/', variables('onboardingConsumerGroupName'))]",
             "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
             "dependsOn": [
                 "[concat('Microsoft.Devices/Iothubs/', parameters('iotHubName'))]"
@@ -316,7 +383,6 @@
             "sku": {
                 "name": "[parameters('storageSkuName')]"
             },
-            "scale": null,
             "properties": {
                 "networkAcls": {
                     "bypass": "AzureServices",
@@ -324,7 +390,7 @@
                     "ipRules": [],
                     "defaultAction": "Allow"
                 },
-                "supportsHttpsTrafficOnly": false,
+                "supportsHttpsTrafficOnly": true,
                 "encryption": {
                     "services": {
                         "file": {
@@ -378,7 +444,6 @@
             "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'))]",
             "apiVersion": "[variables('eventHubApiVersion')]",
             "location": "[variables('location')]",
-            "scale": null,
             "properties": {
                 "messageRetentionInDays": "[parameters('eventHubRetentionInDays')]",
                 "partitionCount": "[parameters('eventHubPartitionCount')]",
@@ -394,7 +459,6 @@
             "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', parameters('eventHubAuthorizationName'))]",
             "apiVersion":  "[variables('eventHubApiVersion')]",
             "location": "[variables('location')]",
-            "scale": null,
             "properties": {
                 "rights": [
                     "Send"
@@ -406,44 +470,56 @@
             ]
         },
         {
-            "comments": "AppService plan to host the Multicontainer Web App",
+            "comments": "AppService plan to host the Application Gateway Web App",
             "type": "Microsoft.Web/serverfarms",
             "sku": {
                 "name": "[variables('appServiceSku')]",
                 "capacity": "[variables('appServiceWorkerSize')]"
             },
-            "kind": "linux",
             "name": "[variables('hostingPlanName')]",
             "apiVersion": "[variables('appServicePlanVersion')]",
             "location": "[resourceGroup().location]",
-            "scale": null,
             "properties": {
-                "name": "[variables('hostingPlanName')]",
-                "workerTierName": null,
-                "adminSiteName": null,
-                "hostingEnvironmentProfile": null,
-                "perSiteScaling": false,
-                "reserved": true,
-                "targetWorkerCount": 0,
-                "targetWorkerSizeId": 0
-            },
-            "dependsOn": []
+                "name": "[variables('hostingPlanName')]"
+            }
         },
         {
-            "comments": "Multicontainer Web App",
+            "comments": "Application Gateway Web App",
             "type": "Microsoft.Web/sites",
-            "kind": "app,linux",
             "name": "[parameters('azureWebsiteName')]",
             "apiVersion": "[variables('appServiceVersion')]",
             "location": "[resourceGroup().location]",
-            "scale": null,
             "properties": {
                 "enabled": true,
                 "clientAffinityEnabled": false,
-                "serverFarmId": "[variables('hostingPlanName')]"
+                "serverFarmId": "[variables('hostingPlanName')]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "REMOTE_ENDPOINT",
+                            "value": "[concat('http://', reference(variables('publicIPName')).dnsSettings.fqdn)]"
+                        },
+                        {
+                            "name": "REMOTE_ENDPOINT_SSL_THUMBPRINT",
+                            "value": "[parameters('remoteEndpointSSLThumbprint')]"
+                        }
+                    ]
                 }
             },
-            "resources" : [
+            "resources": [
+                {
+                    "apiVersion": "[variables('appServiceVersion')]",
+                    "name": "web",
+                    "type": "sourcecontrols",
+                    "properties": {
+                        "RepoUrl": "https://github.com/Azure/reverse-proxy-dotnet.git",
+                        "branch": "[variables('proxyBranch')]",
+                        "IsManualIntegration": true
+                    },
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/Sites', parameters('azureWebsiteName'))]"
+                    ]
+                },
                 {
                     "apiVersion": "[variables('appServiceVersion')]",
                     "name": "web",
@@ -453,49 +529,67 @@
                     ],
                     "properties": {
                         "numberOfWorkers": 1,
-                        "linuxFxVersion": "[concat('COMPOSE', '|', parameters('dockerComposeFileContent'))]",
                         "requestTracingEnabled": true,
                         "httpLoggingEnabled": true,
                         "detailedErrorLoggingEnabled": true,
-                        "use32BitWorkerProcess": true,
                         "alwaysOn": true,
-                        "cors": null,
-                        "managedServiceIdentityId": null,
-                        "xManagedServiceIdentityId": null,
-                        "minTlsVersion": "1.2",
-                        "reservedInstanceCount": 0
-                    }
-                },
-                {
-                    "apiVersion": "[variables('appServiceVersion')]",
-                    "name": "appsettings",
-                    "type": "config",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', parameters('azureWebsiteName'))]"
-                    ],
-                    "properties": {
-                        "PCS_IOTHUB_CONNSTRING": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey)]",
-                        "PCS_TELEMETRY_DOCUMENTDB_CONNSTRING": "[concat('AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';')]",
-                        "PCS_IOTHUBREACT_HUB_NAME": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.path]",
-                        "PCS_IOTHUBREACT_HUB_ENDPOINT": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint]",
-                        "PCS_IOTHUBREACT_HUB_PARTITIONS": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.partitionCount]",
-                        "PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT": "[parameters('storageName')]",
-                        "PCS_IOTHUBREACT_AZUREBLOB_KEY": "[listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]",
-                        "PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX": "[parameters('storageEndpointSuffix')]",
-                        "PCS_AUTH_ISSUER": "[concat('https://sts.windows.net/', parameters('aadTenantId'))]",
-                        "PCS_AUTH_AUDIENCE": "[parameters('aadClientId')]",
-                        "PCS_CORS_WHITELIST": "*",
-                        "PCS_WEBUI_AUTH_TYPE": "aad",
-                        "PCS_WEBUI_AUTH_AAD_TENANT": "[parameters('aadTenantId')]",
-                        "PCS_WEBUI_AUTH_AAD_APPID": "[parameters('aadClientId')]",
-                        "PCS_WEBUI_AUTH_AAD_INSTANCE": "[parameters('aadInstance')]",
-                        "PCS_APPLICATION_SECRET": "[parameters('aadClientSecret')]" 
+                        "minTlsVersion": "1.2"
                     }
                 }
             ],
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
             ]
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('publicIPName')]",
+            "apiVersion": "2016-11-01",
+            "location": "[variables('location')]",
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "dnsSettings": {
+                    "domainNameLabel": "[toLower(variables('domainNameLabel'))]"
+                },
+                "idleTimeoutInMinutes": 4
+            }
+        },
+        {
+            "apiVersion": "2016-09-30",
+            "type": "Microsoft.ContainerService/containerServices",
+            "location": "[resourceGroup().location]",
+            "name": "[variables('clusterName')]",
+            "properties": {
+                "orchestratorProfile": {
+                    "orchestratorType": "[variables('orchestratorType')]"
+                },
+                "masterProfile": {
+                    "count": "[variables('masterCount')]",
+                    "dnsPrefix": "[variables('mastersEndpointDNSNamePrefix')]"
+                },
+                "agentPoolProfiles": [
+                    {
+                        "name": "agentpools",
+                        "count": "[variables('agentCount')]",
+                        "vmSize": "[variables('agentVMSize')]",
+                        "dnsPrefix": "[variables('agentsEndpointDNSNamePrefix')]"
+                    }
+                ],
+                "linuxProfile": {
+                    "adminUsername": "[variables('adminUsername')]",
+                    "ssh": {
+                        "publicKeys": [
+                            {
+                                "keyData": "[variables('sshRSAPublicKey')]"
+                            }
+                        ]
+                    }
+                },
+                "servicePrincipalProfile": {
+                    "ClientId": "[parameters('servicePrincipalClientId')]",
+                    "Secret": "[parameters('servicePrincipalSecret')]"
+                }
+            }
         }
     ],
     "outputs": {
@@ -503,25 +597,33 @@
             "type": "string",
             "value": "[resourceGroup().name]"
         },
-        "messagesEventHubConnectionString": {
-            "type": "string",
-            "value": "[concat('Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey)]"
-        },
-        "messagesEventHubName": {
-            "type": "string",
-            "value": "[parameters('eventHubName')]"
-        },
-        "iotHubConnectionString": {
-            "type": "string",
-            "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey)]"
-        },
-        "documentDBConnectionString" : {
-            "type": "string",
-            "value": "[concat('AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';')]"
-        },
         "azureWebsite": {
             "type": "string",
             "value": "[concat('https://', reference(concat('Microsoft.Web/sites/', parameters('azureWebsiteName'))).hostNames[0])]"
+        },
+        "masterFQDN": {
+            "type": "string",
+            "value": "[reference(concat('Microsoft.ContainerService/containerServices/', variables('clusterName'))).masterProfile.fqdn]"
+        },
+        "adminUsername": {
+            "type": "string",
+            "value": "[parameters('adminUsername')]"
+        },
+        "clusterName": {
+            "type": "string",
+            "value": "[variables('clusterName')]"
+        },
+        "sshMaster0": {
+            "type": "string",
+            "value": "[concat('ssh ', variables('adminUsername'), '@', reference(concat('Microsoft.ContainerService/containerServices/', variables('clusterName'))).masterProfile.fqdn, ' -A -p 22')]"
+        },
+        "loadBalancerIp": {
+            "type": "string",
+            "value": "[reference(variables('publicIPName')).ipAddress]"
+        },
+        "agentFQDN": {
+            "type": "string",
+            "value": "[reference(variables('publicIPName')).dnsSettings.fqdn]"
         }
     }
 }
