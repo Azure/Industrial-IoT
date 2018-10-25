@@ -3,7 +3,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 # OPC Publisher for Azure IoT Edge
 This reference implementation demonstrates how to connect to existing OPC UA servers and publishes JSON encoded telemetry data from these servers in OPC UA "Pub/Sub" format (using a JSON payload) to Azure IoT Hub. All transport protocols supported by Azure IoT Edge can be used, i.e. HTTPS, AMQP and MQTT (the default).
 
-This application, apart from including an OPC UA *client* for connecting to existing OPC UA servers you have on your network, also includes an OPC UA *server* on port 62222 that can be used to manage what gets published.
+This application, apart from including an OPC UA *client* for connecting to existing OPC UA servers you have on your network, also includes an OPC UA *server* on port 62222 that can be used to manage what gets published and offers IoTHub direct methods to do the same.
 
 The application is implemented using .NET Core technology and is able to run on the platforms supported by .NET Core.
 
@@ -13,7 +13,7 @@ For each distinct publishing interval to an OPC UA server it creates a separate 
 
 OPC Publisher supports batching of the data sent to IoTHub, to reduce network load. This batching is sending a packet to IoTHub only if the configured package size is reached.
 
-This application uses the OPC Foundations's OPC UA reference stack and therefore licensing restrictions apply. Visit http://opcfoundation.github.io/UA-.NETStandard/ for OPC UA documentation and licensing terms.
+This application uses the OPC Foundations's OPC UA reference stack as nuget packages and therefore licensing of their nuget packages apply. Visit https://opcfoundation.org/license/redistributables/1.3/ for the licensing terms.
 
 |Branch|Status|
 |------|-------------|
@@ -543,7 +543,7 @@ Build your own container and then start the container:
 ## Using a container from hub.docker.com
 There is a prebuilt container available on DockerHub. To start it, just do:
 
-    docker run microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
+    docker run mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
 ## Using it as a module (container) in Azure IoT Edge
 OPC Publisher is ready to be used as a module to run in [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge) Microsoft's Intelligent Edge framework.
@@ -553,12 +553,12 @@ To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure 
 * Go to IoT Edge and create or select your IoT Edge device.
 * Select `Set Modules`.
 * Select `Add`under `Deployment Modules`and then `IoT Edge Module`.
-* In the `Name` field, enter `iot-edge-opc-publisher`.
-In the `Image URI` field, enter `microsoft/iot-edge-opc-publisher:latest`
+* In the `Name` field, enter `publisher`.
+* In the `Image URI` field, enter `mcr.microsoft.com/iotedge/opc-publisher` The tags available can be found on [Docker Hub](https://hub.docker.com/r/microsoft/iot-edge-opc-publisher/)
 * Paste the following into the `Container Create Options` field:
 
         {
-            "Hostname": "pub-test",
+            "Hostname": "publixher",
             "Cmd": [
                 "publisher",
                 "--pf=./pn.json",
@@ -575,7 +575,6 @@ In the `Image URI` field, enter `microsoft/iot-edge-opc-publisher:latest`
                     }]
                 },
                 "Binds": [
-                    "x509certstores:/root/.dotnet/corefx/cryptography/x509stores",
                     "d:/iiotedge:/appdata"
                 ],
                 "ExtraHosts": [
@@ -586,7 +585,7 @@ In the `Image URI` field, enter `microsoft/iot-edge-opc-publisher:latest`
         }
 
 * Here a short explanation of the effects which this configuration will have:
-  * This configuration will configure IoT Edge to start a container named `iot-edge-opc-publisher`.
+  * This configuration will configure IoT Edge to start a container named `publisher`.
   * The hostname will be set to `publisher`.
   * OPC Publisher is called with the following command line options: `publisher --pf=./pn.json --di=60 --to --aa --si=0 --ms=0`.
     With those options OPC Publisher will read the nodes it should publish from the file `./pn.json`. The container's working directory is set to
@@ -609,7 +608,6 @@ In the `Image URI` field, enter `microsoft/iot-edge-opc-publisher:latest`
           }
         ]
     This allows OPC Publisher to access the OPC UA server running outside of docker on my local dev machine `opctestsvr`.
-  * The `Binds` configuration keeps the certificates of type `X509Store` in docker volume `x509certstores`, which will created if it does not yet exist on startup.
   * The `d://iiotedge:/appdata` bind will map the directory `/appdata` (which is the current working directory on container startup) to the host directory `d://iiotedge`.
   * This is obviously a configuration for a Windows host. On a Linux host you specify a full qualified Linux path (e.g. `/iiotedge`). 
   * This bind will allow that the file `/appdata/pn.json` is accessible on the host (in our example you pub the file on the host system as `d:/iiotedge/pn.json`) and will make the log file and all the certificates visisble on the host.
@@ -628,8 +626,8 @@ In the `Image URI` field, enter `microsoft/iot-edge-opc-publisher:latest`
 
 * Select `Next`
 * Select `Submit` to send your configuration down to IoT Edge
-* When you have started IoT Edge on your edge device and the docker container `iot-edge-opc-publisher` is started, you can check out the log output of OPC Publisher either by
-  using `docker logs -f iot-edge-opc-publisher` or by checking the logfile (in our example above `d:\iiotegde\pub-test-publisher.log` content.
+* When you have started IoT Edge on your edge device and the docker container `publisher` is started, you can check out the log output of OPC Publisher either by
+  using `docker logs -f publisher` or by checking the logfile (in our example above `d:\iiotegde\publisher-publisher.log` content.
 
 
 
@@ -638,14 +636,14 @@ In the `Image URI` field, enter `microsoft/iot-edge-opc-publisher:latest`
 ### Access to the OPC Publisher OPC UA server
 The OPC Publisher OPC UA server listens by default on port 62222. To expose this inbound port in a container, you need to use `docker run` option `-p`:
 
-    docker run -p 62222:62222 microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
+    docker run -p 62222:62222 mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
 ### Enable intercontainer nameresolution
 To enable name resolution from within the container to other containers, you need to create a user define docker bridge network and connect the container to this network using the `--network` option.
 Additionally you need to assign the container a name using the `--name` option as in this example:
 
     docker network create -d bridge iot_edge
-    docker run --network iot_edge --name publisher microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
+    docker run --network iot_edge --name publisher mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
 The container can now be reached by other containers via the name `publisher`over the network.
 
@@ -655,18 +653,15 @@ If operating system on which docker is hosted is DNS enabled, then accessing all
 A problems occurs in a network which does use NetBIOS name resolution. To enable access to other systems (including the one on which docker is hosted) you need to start your container using the `--add-host` option,
 which effectevly is adding an entry to the containers host file.
 
-    docker run --add-host mydevbox:192.168.178.23  microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
+    docker run --add-host mydevbox:192.168.178.23  mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
 ### Assigning a hostname
 OPC Publisher uses the hostname of the machine is running on for certificate and endpoint generation. docker chooses a random hostname if there is none set by the `-h` option. Here an example to set the internal hostname of the container to `publisher`:
 
-    docker run -h publisher microsoft/iot-edge-opc-publisher <applicationname> [<iothubconnectionstring>] [options]
+    docker run -h publisher mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
 ### Using bind mounts (shared filesystem)
 In certain use cases it may make sense to read configuration information from or write log files to locations on the host and not keep them in the container file system only. To achieve this you need to use the `-v` option of `docker run` in the bind mount mode.
-
-### Store for X509 certificates
-Storing X509 certificates does not work with bind mounts, since the permissions of the path to the store need to be `rw` for the owner. Instead you need to use the `-v` option of `docker run` in the volume mode.
 
 ## Performance and memory considerations
 ### Commandline parameters contolling performance and memory
