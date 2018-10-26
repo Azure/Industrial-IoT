@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="pageSize"></param>
         /// <returns></returns>
         Task<ApplicationSiteListModel> ListSitesAsync(
-            string continuation, int? pageSize);
+            string continuation, int? pageSize = null);
 
         /// <summary>
         /// List all applications or continue find query.
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="pageSize"></param>
         /// <returns></returns>
         Task<ApplicationInfoListModel> ListApplicationsAsync(
-            string continuation, int? pageSize);
+            string continuation, int? pageSize = null);
 
         /// <summary>
         /// Find applications for the specified information
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="pageSize"></param>
         /// <returns></returns>
         Task<ApplicationInfoListModel> QueryApplicationsAsync(
-            ApplicationRegistrationQueryModel query, int? pageSize);
+            ApplicationRegistrationQueryModel query, int? pageSize = null);
 
         /// <summary>
         /// Unregister application and all associated endpoints.

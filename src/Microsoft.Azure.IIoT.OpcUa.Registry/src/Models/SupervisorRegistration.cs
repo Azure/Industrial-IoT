@@ -338,9 +338,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Get supervisor registration from twin
         /// </summary>
         /// <param name="twin"></param>
+        /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public static SupervisorRegistration FromTwin(DeviceTwinModel twin) =>
-            FromTwin(twin, false, out var tmp);
+        public static SupervisorRegistration FromTwin(DeviceTwinModel twin,
+            bool onlyServerState) => FromTwin(twin, onlyServerState, out var tmp);
 
         /// <summary>
         /// Make sure to get the registration information from the right place.

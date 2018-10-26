@@ -18,22 +18,18 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Create codec
         /// </summary>
-        /// <param name="contentType"></param>
         /// <param name="context"></param>
-        public TypeSerializer(string contentType, ServiceMessageContext context) {
-            MimeType = contentType;
-            _context = context;
+        public TypeSerializer(ServiceMessageContext context = null) {
+            _context = context ?? ServiceMessageContext.ThreadContext;
         }
 
         /// <inheritdoc/>
-        public string MimeType { get; }
-
-        /// <inheritdoc/>
-        public T Decode<T>(byte[] input, Func<IDecoder, T> reader) {
+        public T Decode<T>(string contentType, byte[] input,
+            Func<IDecoder, T> reader) {
             using (var stream = new MemoryStream(input)) {
                 IDecoder decoder = null;
                 try {
-                    decoder = CreateDecoder(MimeType, stream);
+                    decoder = CreateDecoder(contentType, stream);
                     return reader(decoder);
                 }
                 finally {
@@ -45,11 +41,11 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public byte[] Encode(Action<IEncoder> writer) {
+        public byte[] Encode(string contentType, Action<IEncoder> writer) {
             using (var stream = new MemoryStream()) {
                 IEncoder encoder = null;
                 try {
-                    encoder = CreateEncoder(MimeType, stream);
+                    encoder = CreateEncoder(contentType, stream);
                     writer(encoder);
 
                     // Dispose should flush

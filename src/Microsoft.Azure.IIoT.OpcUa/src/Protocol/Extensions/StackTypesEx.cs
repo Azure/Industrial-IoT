@@ -129,6 +129,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
+        /// Convert security mode
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static UaSecurityMode ToStackType(this SecurityMode mode) {
+            switch (mode) {
+                case SecurityMode.Sign:
+                    return UaSecurityMode.Sign;
+                case SecurityMode.SignAndEncrypt:
+                    return UaSecurityMode.SignAndEncrypt;
+                default:
+                    return UaSecurityMode.None;
+            }
+        }
+
+        /// <summary>
         /// Convert token type
         /// </summary>
         /// <param name="type"></param>
@@ -164,6 +180,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     return ApplicationType.ClientAndServer;
                 default:
                     return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert application type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static UaApplicationType ToStackType(this ApplicationType type) {
+            switch (type) {
+                case ApplicationType.Client:
+                    return UaApplicationType.Client;
+                case ApplicationType.ClientAndServer:
+                    return UaApplicationType.ClientAndServer;
+                default:
+                    return UaApplicationType.Server;
+            }
+        }
+
+        /// <summary>
+        /// Convert to diagnostics level
+        /// </summary>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public static DiagnosticsLevel ToServiceType(this UaDiagnosticsLevel level) {
+            switch (level) {
+                case UaDiagnosticsLevel.SymbolicIdAndText | UaDiagnosticsLevel.InnerDiagnostics:
+                    return DiagnosticsLevel.Diagnostics;
+                case UaDiagnosticsLevel.All:
+                    return DiagnosticsLevel.Verbose;
+                default:
+                    return DiagnosticsLevel.None;
             }
         }
 

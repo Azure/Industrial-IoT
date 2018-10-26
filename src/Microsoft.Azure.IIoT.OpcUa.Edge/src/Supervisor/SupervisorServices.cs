@@ -16,6 +16,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.Devices.Client.Exceptions;
 
     /// <summary>
     /// Twin supervisor service
@@ -45,97 +47,215 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         /// <param name="secret"></param>
         /// <returns></returns>
         public async Task ActivateTwinAsync(string id, string secret) {
-            ILifetimeScope twinScope;
             try {
                 await _lock.WaitAsync();
-                if (_twinScopes.ContainsKey(id)) {
+                if (_twinHosts.TryGetValue(id, out var twin) && twin.Running) {
                     _logger.Debug($"{id} twin already running.");
                     return;
                 }
                 _logger.Debug($"{id} twin starting...");
 
-                // Create twin scoped component context with twin host
-                twinScope = _container.BeginLifetimeScope(builder => {
-                    // Register twin scope level configuration...
-                    var config = new TwinConfig(_config, id, secret);
-                    builder.RegisterInstance(config)
-                        .AsImplementedInterfaces().SingleInstance();
-                });
-                // host is disposed when twin scope is disposed...
-                _twinScopes.Add(id, twinScope);
+                _twinHosts.Remove(id);
+                _twinHosts.Add(id, new TwinHost(this,
+                    new TwinConfig(_config, id, secret)));
+
+                _logger.Info($"{id} twin started.");
             }
             finally {
                 _lock.Release();
-            }
-
-            try {
-                var host = twinScope.Resolve<IModuleHost>();
-                await host.StartAsync("twin", _events.SiteId, "OpcTwin");
-                _logger.Info($"{id} twin started.");
-            }
-            catch (Exception ex) {
-                try {
-                    await _lock.WaitAsync();
-                    _twinScopes.Remove(id);
-                }
-                finally {
-                    _lock.Release();
-                }
-                twinScope.Dispose();
-                _logger.Error($"{id} twin failed to start...", () => ex);
-                throw ex;
             }
         }
 
         /// <summary>
-        /// Stop twin
+        /// Stop twin by id
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
         public async Task DeactivateTwinAsync(string id) {
-            ILifetimeScope twinScope;
+            TwinHost twin;
             try {
                 await _lock.WaitAsync();
-                if (!_twinScopes.TryGetValue(id, out twinScope)) {
+                if (!_twinHosts.TryGetValue(id, out twin)) {
                     _logger.Debug($"{id} twin not running.");
                     return;
                 }
-                _twinScopes.Remove(id);
+                _twinHosts.Remove(id);
             }
             finally {
                 _lock.Release();
             }
+            await StopOneTwinAsync(id, twin);
+        }
 
-            _logger.Debug($"{id} twin stopping...");
-            var host = twinScope.Resolve<IModuleHost>();
+        /// <inheritdoc/>
+        public void Dispose() {
             try {
-                // Clear endpoint module controller
-                var events = twinScope.Resolve<IEventEmitter>();
+                StopAllTwinsAsync().Wait();
+                _container.Dispose();
+            }
+            catch (Exception e) {
+                _logger.Error("Failure in supervisor disposing.", e);
+            }
+        }
 
+        /// <summary>
+        /// Stop one twin
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="twin"></param>
+        /// <returns></returns>
+        private async Task StopOneTwinAsync(string id, TwinHost twin) {
+            _logger.Debug($"{id} twin is stopped...");
+            try {
                 // Stop host async
-                await host.StopAsync();
+                await twin.StopAsync();
             }
             catch (Exception ex) {
-                // _logger.Error($"{id} twin failed to stop...", () => ex);
-                // throw ex;
-
                 // BUGBUG: IoT Hub client SDK throws general exceptions independent
                 // of what actually happened.  Instead of parsing the message,
                 // just continue.
-                _logger.Debug($"{id} twin stop raised exception, continue...",
+                _logger.Debug($"{id} twin stopping raised exception, continue...",
                     () => ex);
             }
             finally {
-                twinScope.Dispose();
+                twin.Dispose();
             }
             _logger.Info($"{id} twin stopped.");
         }
 
         /// <summary>
-        /// Dispose container and remaining active nested scopes...
+        /// Stop all twins
         /// </summary>
-        public void Dispose() {
-            // _container.Dispose();
+        /// <returns></returns>
+        private async Task StopAllTwinsAsync() {
+            IList<KeyValuePair<string, TwinHost>> twins;
+            try {
+                await _lock.WaitAsync();
+                twins = _twinHosts.ToList();
+                _twinHosts.Clear();
+            }
+            finally {
+                _lock.Release();
+            }
+            await Task.WhenAll(twins
+                .Select(kv => StopOneTwinAsync(kv.Key, kv.Value))
+                .ToArray());
+        }
+
+        /// <summary>
+        /// Runs a twin device connected to transparent gateway
+        /// </summary>
+        private class TwinHost : IDisposable {
+
+            /// <summary>
+            /// Whether the host is running
+            /// </summary>
+            public bool Running => !(_runner?.IsCompleted ?? true);
+
+            /// <summary>
+            /// Create runner
+            /// </summary>
+            /// <param name="outer"></param>
+            /// <param name="config"></param>
+            public TwinHost(SupervisorServices outer, IModuleConfig config) {
+                _outer = outer;
+                // Create twin scoped component context for the host
+                _scope = outer._container.BeginLifetimeScope(builder => {
+                    builder.RegisterInstance(config)
+                        .AsImplementedInterfaces().SingleInstance();
+                });
+                _cts = new CancellationTokenSource();
+                _runner = Task.Run(RunAsync);
+            }
+
+            /// <inheritdoc/>
+            public void Dispose() => StopAsync().Wait();
+
+            /// <summary>
+            /// Shutdown twin host
+            /// </summary>
+            /// <returns></returns>
+            public async Task StopAsync() {
+                if (_scope != null) {
+                    try {
+                        // Cancel runner
+                        _cts.Cancel();
+                        await _runner;
+                    }
+                    catch (OperationCanceledException) { }
+                    finally {
+                        _scope.Dispose();
+                        _scope = null;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Run module host for the twin
+            /// </summary>
+            /// <returns></returns>
+            private async Task RunAsync() {
+                var host = _scope.Resolve<IModuleHost>();
+
+                var retryCount = 0;
+                var cancel = new TaskCompletionSource<bool>();
+                _cts.Token.Register(() => cancel.TrySetResult(true));
+                while (!_cts.Token.IsCancellationRequested) {
+                    // Wait until the module unloads or is cancelled
+                    var reset = new TaskCompletionSource<bool>();
+                    try {
+                        await host.StartAsync("twin", _outer._events.SiteId,
+                            "OpcTwin", () => reset.TrySetResult(true));
+
+                        // Reset retry counter on success
+                        retryCount = 0;
+                        await Task.WhenAny(cancel.Task, reset.Task);
+                    }
+                    catch (Exception ex) {
+                        var logger = _scope.Resolve<ILogger>();
+
+                        var notFound = ex.GetFirstOf<DeviceNotFoundException>();
+                        if (notFound != null) {
+                            logger.Info("Twin was deleted - exit host...",
+                                notFound);
+                            throw notFound;
+                        }
+                        var auth = ex.GetFirstOf<UnauthorizedException>();
+                        if (auth != null) {
+                            logger.Info("Twin not authorized using given " +
+                                "secret - exit host...", auth);
+                            throw auth;
+                        }
+
+                        // Linearly delay on exception since we get these when
+                        // the twin was deleted.
+                        await Try.Async(() =>
+                            Task.Delay(kRetryDelayMs * retryCount, _cts.Token));
+                        if (_cts.IsCancellationRequested) {
+                            // Done.
+                            break;
+                        }
+                        if (retryCount++ > kMaxRetryCount) {
+                            logger.Error($"Error #{retryCount} in twin host - " +
+                                $"exit host...", ex);
+                            throw ex;
+                        }
+                        logger.Error($"Error #{retryCount} in twin host - " +
+                            $"restarting...", ex);
+                    }
+                    finally {
+                        await host.StopAsync();
+                    }
+                }
+            }
+
+            private const int kMaxRetryCount = 30;
+            private const int kRetryDelayMs = 5000;
+
+            private ILifetimeScope _scope;
+            private readonly SupervisorServices _outer;
+            private readonly CancellationTokenSource _cts;
+            private readonly Task _runner;
         }
 
         /// <summary>
@@ -216,8 +336,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
 
         private readonly SemaphoreSlim _lock =
             new SemaphoreSlim(1);
-        private readonly Dictionary<string, ILifetimeScope> _twinScopes =
-            new Dictionary<string, ILifetimeScope>();
+        private readonly Dictionary<string, TwinHost> _twinHosts =
+            new Dictionary<string, TwinHost>();
     }
 }
 

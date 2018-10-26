@@ -16,12 +16,13 @@ namespace Opc.Ua {
         /// Encode string
         /// </summary>
         /// <param name="codec"></param>
+        /// <param name="contentType"></param>
         /// <param name="writer"></param>
         /// <param name="encoding"></param>
         /// <returns></returns>
         public static string Encode(this ITypeSerializer codec,
-            Action<IEncoder> writer, Encoding encoding) {
-            var result = codec.Encode(writer);
+            string contentType, Action<IEncoder> writer, Encoding encoding) {
+            var result = codec.Encode(contentType, writer);
             if (result != null) {
                 return (encoding ?? Encoding.UTF8).GetString(result);
             }
@@ -33,17 +34,18 @@ namespace Opc.Ua {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="codec"></param>
+        /// <param name="contentType"></param>
         /// <param name="input"></param>
         /// <param name="reader"></param>
         /// <param name="encoding"></param>
         /// <returns></returns>
         public static T Decode<T>(this ITypeSerializer codec,
-            string input, Func<IDecoder, T> reader, Encoding encoding) {
+            string contentType, string input, Func<IDecoder, T> reader, Encoding encoding) {
             if (string.IsNullOrEmpty(input)) {
                 throw new ArgumentNullException(nameof(input));
             }
             var buffer = (encoding ?? Encoding.UTF8).GetBytes(input);
-            return codec.Decode(buffer, reader);
+            return codec.Decode(contentType, buffer, reader);
         }
     }
 }

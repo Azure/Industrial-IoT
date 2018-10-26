@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Servers {
+namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -17,11 +17,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Servers {
         /// Set auto accept mode
         /// </summary>
         bool AutoAccept { get; set; }
-
-        /// <summary>
-        /// Log status messages
-        /// </summary>
-        bool LogStatus { get; set; }
 
         /// <summary>
         /// Start server listening on the specified

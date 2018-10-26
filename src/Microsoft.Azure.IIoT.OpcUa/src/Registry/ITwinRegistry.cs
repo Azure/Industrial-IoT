@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="pageSize"></param>
         /// <returns></returns>
         Task<TwinInfoListModel> ListTwinsAsync(string continuation,
-            bool onlyServerState, int? pageSize);
+            bool onlyServerState = false, int? pageSize = null);
 
         /// <summary>
         /// Find registration of the supplied endpoint.
@@ -34,8 +34,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="pageSize"></param>
         /// <returns></returns>
         Task<TwinInfoListModel> QueryTwinsAsync(
-            TwinRegistrationQueryModel query, bool onlyServerState,
-            int? pageSize);
+            TwinRegistrationQueryModel query,
+            bool onlyServerState = false, int? pageSize = null);
 
         /// <summary>
         /// Get twin registration by identifer.
@@ -45,7 +45,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// desired twin state should be returned.
         /// </param>
         /// <returns></returns>
-        Task<TwinInfoModel> GetTwinAsync(string id, bool onlyServerState);
+        Task<TwinInfoModel> GetTwinAsync(string id,
+            bool onlyServerState = false);
 
         /// <summary>
         /// Set the twin state to activated

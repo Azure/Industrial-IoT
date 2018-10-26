@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using System;
 
     /// <summary>
     /// Request node value read
@@ -23,6 +24,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// See 7.22 of part 4: NumericRange.
         /// </summary>
         public string IndexRange { get; set; }
+
+        /// <summary>
+        /// Max age of value
+        /// </summary>
+        public TimeSpan? MaxAge { get; set; }
 
         /// <summary>
         /// Optional User Elevation

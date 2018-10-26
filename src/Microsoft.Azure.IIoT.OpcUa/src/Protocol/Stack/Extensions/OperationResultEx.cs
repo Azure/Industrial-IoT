@@ -71,5 +71,41 @@ namespace Opc.Ua.Models {
                 return o;
             }
         }
+
+        /// <summary>
+        /// Convert from json token
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="config"></param>
+        /// <param name="context"></param>
+        /// <param name="code"></param>
+        /// <param name="diagnostics"></param>
+        /// <returns></returns>
+        public static void ToDiagnosticsInfo(JToken token,
+            DiagnosticsModel config, ServiceMessageContext context,
+            out StatusCode code, out DiagnosticInfo diagnostics) {
+
+            code = StatusCodes.Good;
+            diagnostics = null;
+            if ((token?.Type ?? JTokenType.Null) == JTokenType.Null) {
+                return;
+            }
+            var level = config?.Level ?? DiagnosticsLevel.Status;
+            if (level != DiagnosticsLevel.Diagnostics &&
+                level != DiagnosticsLevel.Verbose) {
+                return;
+            }
+
+            var root = nameof(diagnostics);
+            using (var decoder = new JsonDecoderEx(context, token.CreateReader())) {
+                var array = decoder.ReadEncodeableArray(root, typeof(OperationResult));
+                var results = array.OfType<OperationResult>().ToList();
+                if (results.Count == 0) {
+                    return;
+                }
+                code = results[0].StatusCode;
+                diagnostics = results[0].DiagnosticsInfo;
+            }
+        }
     }
 }

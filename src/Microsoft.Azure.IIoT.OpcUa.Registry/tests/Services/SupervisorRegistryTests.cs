@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<RegistryServices>();
 
                 // Run
-                var t = service.GetSupervisorAsync("test");
+                var t = service.GetSupervisorAsync("test", false);
 
                 // Assert
                 Assert.NotNull(t.Exception);
@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<RegistryServices>();
 
                 // Run
-                var result = service.GetSupervisorAsync(supervisors.First().Id).Result;
+                var result = service.GetSupervisorAsync(supervisors.First().Id, false).Result;
 
                 // Assert
                 Assert.True(result.IsSameAs(supervisors.First()));
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<RegistryServices>();
 
                 // Run
-                var records = service.ListSupervisorsAsync(null, null).Result;
+                var records = service.ListSupervisorsAsync(null, false, null).Result;
 
                 // Assert
                 Assert.True(supervisors.IsSameAs(records.Items));
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<RegistryServices>();
 
                 // Run
-                var records = service.QuerySupervisorsAsync(null, null).Result;
+                var records = service.QuerySupervisorsAsync(null, false, null).Result;
 
                 // Assert
                 Assert.True(supervisors.IsSameAs(records.Items));
@@ -107,7 +107,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // Run
                 var records = service.QuerySupervisorsAsync(new SupervisorQueryModel {
                     Discovery = DiscoveryMode.Network
-                }, null).Result;
+                }, false, null).Result;
 
                 // Assert
                 Assert.True(records.Items.Count == supervisors.Count(x => x.Discovery == DiscoveryMode.Network));
@@ -127,7 +127,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // Run
                 var records = service.QuerySupervisorsAsync(new SupervisorQueryModel {
                     SiteId = site
-                }, null).Result;
+                }, false, null).Result;
 
                 // Assert
                 Assert.True(supervisors.IsSameAs(records.Items));
@@ -147,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // Run
                 var records = service.QuerySupervisorsAsync(new SupervisorQueryModel {
                     SiteId = "test"
-                }, null).Result;
+                }, false, null).Result;
 
                 // Assert
                 Assert.True(records.Items.Count == 0);

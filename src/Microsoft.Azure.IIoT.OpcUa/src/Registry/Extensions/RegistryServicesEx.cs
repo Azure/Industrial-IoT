@@ -26,11 +26,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             this ITwinRegistry service, TwinRegistrationQueryModel query,
             bool onlyServerState = false) {
             var registrations = new List<TwinInfoModel>();
-            var result = await service.QueryTwinsAsync(query, onlyServerState, null);
+            var result = await service.QueryTwinsAsync(query, onlyServerState);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
                 result = await service.ListTwinsAsync(result.ContinuationToken,
-                    onlyServerState, null);
+                    onlyServerState);
                 registrations.AddRange(result.Items);
             }
             return registrations;
@@ -45,11 +45,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         public static async Task<List<TwinInfoModel>> ListAllTwinsAsync(
             this ITwinRegistry service, bool onlyServerState = false) {
             var registrations = new List<TwinInfoModel>();
-            var result = await service.ListTwinsAsync(null, onlyServerState, null);
+            var result = await service.ListTwinsAsync(null, onlyServerState);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
                 result = await service.ListTwinsAsync(result.ContinuationToken,
-                    onlyServerState, null);
+                    onlyServerState);
                 registrations.AddRange(result.Items);
             }
             return registrations;
@@ -64,10 +64,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         public static async Task<List<ApplicationInfoModel>> QueryAllApplicationsAsync(
             this IApplicationRegistry service, ApplicationRegistrationQueryModel query) {
             var registrations = new List<ApplicationInfoModel>();
-            var result = await service.QueryApplicationsAsync(query, null);
+            var result = await service.QueryApplicationsAsync(query);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
-                result = await service.ListApplicationsAsync(result.ContinuationToken, null);
+                result = await service.ListApplicationsAsync(result.ContinuationToken);
                 registrations.AddRange(result.Items);
             }
             return registrations;
@@ -81,10 +81,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         public static async Task<List<ApplicationInfoModel>> ListAllApplicationsAsync(
             this IApplicationRegistry service) {
             var registrations = new List<ApplicationInfoModel>();
-            var result = await service.ListApplicationsAsync(null, null);
+            var result = await service.ListApplicationsAsync(null);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
-                result = await service.ListApplicationsAsync(result.ContinuationToken, null);
+                result = await service.ListApplicationsAsync(result.ContinuationToken);
                 registrations.AddRange(result.Items);
             }
             return registrations;
@@ -128,10 +128,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         public static async Task<List<string>> ListAllSitesAsync(
             this IApplicationRegistry service) {
             var sites = new List<string>();
-            var result = await service.ListSitesAsync(null, null);
+            var result = await service.ListSitesAsync(null);
             sites.AddRange(result.Sites);
             while (result.ContinuationToken != null) {
-                result = await service.ListSitesAsync(result.ContinuationToken, null);
+                result = await service.ListSitesAsync(result.ContinuationToken);
                 sites.AddRange(result.Sites);
             }
             return sites;
@@ -141,14 +141,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// List all supervisors
         /// </summary>
         /// <param name="service"></param>
+        /// <param name="onlyServerState"></param>
         /// <returns></returns>
         public static async Task<List<SupervisorModel>> ListAllSupervisorsAsync(
-            this ISupervisorRegistry service) {
+            this ISupervisorRegistry service, bool onlyServerState = false) {
             var supervisors = new List<SupervisorModel>();
-            var result = await service.ListSupervisorsAsync(null, null);
+            var result = await service.ListSupervisorsAsync(null, onlyServerState);
             supervisors.AddRange(result.Items);
             while (result.ContinuationToken != null) {
-                result = await service.ListSupervisorsAsync(result.ContinuationToken, null);
+                result = await service.ListSupervisorsAsync(result.ContinuationToken,
+                    onlyServerState);
                 supervisors.AddRange(result.Items);
             }
             return supervisors;
@@ -158,14 +160,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Returns all supervisor ids from the registry
         /// </summary>
         /// <param name="service"></param>
+        /// <param name="onlyServerState"></param>
         /// <returns></returns>
         public static async Task<List<string>> ListAllSupervisorIdsAsync(
-            this ISupervisorRegistry service) {
+            this ISupervisorRegistry service, bool onlyServerState = false) {
             var supervisors = new List<string>();
-            var result = await service.ListSupervisorsAsync(null, null);
+            var result = await service.ListSupervisorsAsync(null, onlyServerState);
             supervisors.AddRange(result.Items.Select(s => s.Id));
             while (result.ContinuationToken != null) {
-                result = await service.ListSupervisorsAsync(result.ContinuationToken, null);
+                result = await service.ListSupervisorsAsync(result.ContinuationToken,
+                    onlyServerState);
                 supervisors.AddRange(result.Items.Select(s => s.Id));
             }
             return supervisors;

@@ -12,24 +12,23 @@ namespace Opc.Ua {
     public interface ITypeSerializer {
 
         /// <summary>
-        /// Text mime type
-        /// </summary>
-        string MimeType { get; }
-
-        /// <summary>
-        /// Decode string into type
+        /// Decode bytes into type
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="contentType"></param>
         /// <param name="input"></param>
         /// <param name="reader"></param>
         /// <returns></returns>
-        T Decode<T>(byte[] input, Func<IDecoder, T> reader);
+        T Decode<T>(string contentType, byte[] input,
+            Func<IDecoder, T> reader);
 
         /// <summary>
-        /// Encode to string
+        /// Encode to bytes
         /// </summary>
+        /// <param name="contentType"></param>
         /// <param name="writer"></param>
         /// <returns></returns>
-        byte[] Encode(Action<IEncoder> writer);
+        byte[] Encode(string contentType,
+            Action<IEncoder> writer);
     }
 }

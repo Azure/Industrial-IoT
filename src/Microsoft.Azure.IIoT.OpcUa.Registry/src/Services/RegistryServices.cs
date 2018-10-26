@@ -497,13 +497,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public async Task<SupervisorModel> GetSupervisorAsync(string id) {
+        public async Task<SupervisorModel> GetSupervisorAsync(string id,
+            bool onlyServerState) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentException(nameof(id));
             }
             var deviceId = SupervisorModelEx.ParseDeviceId(id, out var moduleId);
             var device = await _iothub.GetAsync(deviceId, moduleId);
-            return SupervisorRegistration.FromTwin(device).ToServiceModel();
+            return SupervisorRegistration.FromTwin(device, onlyServerState)
+                .ToServiceModel();
         }
 
         /// <inheritdoc/>
@@ -599,7 +601,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task<SupervisorListModel> ListSupervisorsAsync(
-            string continuation, int? pageSize) {
+            string continuation, bool onlyServerState, int? pageSize) {
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{BaseRegistration.kTypeProp} = 'supervisor' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
@@ -607,7 +609,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             return new SupervisorListModel {
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
-                    .Select(SupervisorRegistration.FromTwin)
+                    .Select(t => SupervisorRegistration.FromTwin(t, onlyServerState))
                     .Select(s => s.ToServiceModel())
                     .ToList()
             };
@@ -615,7 +617,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task<SupervisorListModel> QuerySupervisorsAsync(
-            SupervisorQueryModel model, int? pageSize) {
+            SupervisorQueryModel model, bool onlyServerState, int? pageSize) {
 
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{BaseRegistration.kTypeProp} = 'supervisor'";
@@ -647,7 +649,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             return new SupervisorListModel {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
-                    .Select(SupervisorRegistration.FromTwin)
+                    .Select(t => SupervisorRegistration.FromTwin(t, onlyServerState))
                     .Select(s => s.ToServiceModel())
                     .ToList()
             };
@@ -702,7 +704,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 //
                 // Merge in global discovery configuration into the one sent by the supervisor.
                 //
-                var supervisor = await GetSupervisorAsync(supervisorId);
+                var supervisor = await GetSupervisorAsync(supervisorId, false);
                 if (result.DiscoveryConfig == null) {
                     // Use global discovery configuration
                     result.DiscoveryConfig = supervisor.DiscoveryConfig;

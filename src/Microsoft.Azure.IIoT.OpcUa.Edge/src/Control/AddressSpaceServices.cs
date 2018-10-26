@@ -59,11 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 if (NodeId.IsNull(typeId)) {
                     typeId = ReferenceTypeIds.HierarchicalReferences;
                 }
-                var view = request?.View == null ? null : new ViewDescription {
-                    ViewId = request.View.ViewId.ToNodeId(session.MessageContext),
-                    Timestamp = request.View.Timestamp ?? DateTime.MinValue,
-                    ViewVersion = request.View.Version ?? 0
-                };
+                var view = request?.View.ToStackModel(session.MessageContext);
                 var excludeReferences = request.MaxReferencesToReturn.HasValue &&
                     request.MaxReferencesToReturn.Value == 0;
                 var result = new BrowseResultModel();

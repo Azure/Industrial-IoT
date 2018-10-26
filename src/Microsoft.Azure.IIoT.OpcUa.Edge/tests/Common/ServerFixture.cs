@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Tests {
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Servers;
-    using Microsoft.Azure.IIoT.OpcUa.Servers.Sample;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Sample;
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.IO;
@@ -51,9 +51,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Tests {
         public ServerFixture() {
             Logger = new TraceLogger();
             Client = new ClientServices(Logger);
-            _serverHost = new SampleServerHost(Logger) {
-                AutoAccept = true,
+            _serverHost = new ServerHost(new SampleServerFactory(Logger) {
                 LogStatus = false
+            }, Logger) {
+                AutoAccept = true
             };
             _serverHost.StartAsync(new int[] { Port }).Wait();
         }

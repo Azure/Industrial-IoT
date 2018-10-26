@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Opc.Ua;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
 
@@ -31,6 +32,61 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 Timestamp = diagnostics?.TimeStamp ?? DateTime.UtcNow,
                 TimeoutHint = timeoutHint,
                 AdditionalHeader = null // TODO
+            };
+        }
+
+        /// <summary>
+        /// Convert request header to diagnostics configuration model
+        /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <returns></returns>
+        public static DiagnosticsModel ToServiceModel(this RequestHeader requestHeader) {
+            return new DiagnosticsModel {
+                AuditId = requestHeader.AuditEntryId,
+                Level = ((DiagnosticsMasks)requestHeader.ReturnDiagnostics)
+                    .ToServiceType(),
+                TimeStamp = requestHeader.Timestamp
+            };
+        }
+
+
+        /// <summary>
+        /// Convert diagnostics to request header
+        /// </summary>
+        /// <param name="viewModel"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static ViewDescription ToStackModel(this BrowseViewModel viewModel,
+            ServiceMessageContext context) {
+            if (viewModel == null) {
+                return null;
+            }
+            return new ViewDescription {
+                Timestamp = viewModel.Timestamp ??
+                    DateTime.MinValue,
+                ViewVersion = viewModel.Version ??
+                    0,
+                ViewId = viewModel.ViewId.ToNodeId(context)
+            };
+        }
+
+        /// <summary>
+        /// Convert request header to diagnostics configuration model
+        /// </summary>
+        /// <param name="view"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static BrowseViewModel ToServiceModel(this ViewDescription view,
+            ServiceMessageContext context) {
+            if (view == null) {
+                return null;
+            }
+            return new BrowseViewModel {
+                Timestamp = view.Timestamp == DateTime.MinValue ?
+                    (DateTime?)null : view.Timestamp,
+                Version = view.ViewVersion == 0 ?
+                    (uint?)null : view.ViewVersion,
+                ViewId = view.ViewId.AsString(context)
             };
         }
 
@@ -68,17 +124,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     Capabilities = caps
                 },
                 Endpoints = new List<TwinRegistrationModel> {
-                    new TwinRegistrationModel {
-                        SiteId = siteId,
-                        SupervisorId = supervisorId,
-                        Certificate = ep.ServerCertificate,
-                        SecurityLevel = ep.SecurityLevel,
-                        Endpoint = new EndpointModel {
-                            Url = ep.EndpointUrl,
-                            SecurityMode = ep.SecurityMode.ToServiceType(),
-                            SecurityPolicy = ep.SecurityPolicyUri
-                        }
-                    }
+                    ep.ToServiceModel(siteId, supervisorId)
+                }
+            };
+        }
+
+        /// <summary>
+        /// Converts an endpoint description to a twin registration model
+        /// </summary>
+        /// <param name="ep"></param>
+        /// <param name="siteId"></param>
+        /// <param name="supervisorId"></param>
+        /// <returns></returns>
+        public static TwinRegistrationModel ToServiceModel(this EndpointDescription ep,
+            string siteId, string supervisorId) {
+            if (ep == null) {
+                return null;
+            }
+            return new TwinRegistrationModel {
+                SiteId = siteId,
+                SupervisorId = supervisorId,
+                Certificate = ep.ServerCertificate,
+                SecurityLevel = ep.SecurityLevel,
+                Endpoint = new EndpointModel {
+                    Url = ep.EndpointUrl,
+                    SecurityMode = ep.SecurityMode.ToServiceType(),
+                    SecurityPolicy = ep.SecurityPolicyUri
                 }
             };
         }

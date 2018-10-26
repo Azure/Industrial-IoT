@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 case "application":
                     return ApplicationRegistration.FromTwin(twin);
                 case "supervisor":
-                    return SupervisorRegistration.FromTwin(twin);
+                    return SupervisorRegistration.FromTwin(twin, false);
             }
             return null;
         }
