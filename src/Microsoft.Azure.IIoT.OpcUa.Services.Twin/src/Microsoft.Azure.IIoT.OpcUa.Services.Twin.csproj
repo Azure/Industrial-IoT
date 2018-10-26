@@ -22,10 +22,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.3" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\common')">
+    <When Condition="Exists('..\..\..\..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\common\src\Microsoft.Azure.IIoT.Services\src\Microsoft.Azure.IIoT.Services.csproj" />
-        <ProjectReference Include="..\..\common\src\Microsoft.Azure.IIoT.Storage\src\Microsoft.Azure.IIoT.Storage.csproj" />
+        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Services\src\Microsoft.Azure.IIoT.Services.csproj" />
+        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Storage\src\Microsoft.Azure.IIoT.Storage.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
@@ -36,9 +36,9 @@
     </Otherwise>
   </Choose>
   <Choose>
-    <When Condition="Exists('..\..\opc-twin')">
+    <When Condition="Exists('..\..\..\..\opc-twin')">
       <ItemGroup>
-        <ProjectReference Include="..\..\opc-twin\src\Microsoft.Azure.IIoT.OpcUa.Twin\src\Microsoft.Azure.IIoT.OpcUa.Twin.csproj" />
+        <ProjectReference Include="..\..\..\..\opc-twin\src\Microsoft.Azure.IIoT.OpcUa.Twin\src\Microsoft.Azure.IIoT.OpcUa.Twin.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>

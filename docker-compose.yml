@@ -1,41 +1,36 @@
 version: '3'
-
 services:
   twinregistry:
-    image: mcr.microsoft.com/iot/opc-twin-registry:latest
+    build: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Registry/docker
     ports:
       - "9042:9042"
-    env_file:
-      - .env
+    restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
       - PCS_AUTH_ISSUER
       - PCS_AUTH_AUDIENCE
       - PCS_CORS_WHITELIST
-      - PCS_APPLICATION_SECRET
   twinonboarding:
-    image: mcr.microsoft.com/iot/opc-twin-onboarding:latest
-    env_file:
-      - .env
+    build: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Onboarding/docker
+    restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
       - PCS_IOTHUBREACT_HUB_ENDPOINT
       - PCS_IOTHUBREACT_HUB_PARTITIONS
       - PCS_IOTHUBREACT_HUB_NAME
+      - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
       - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
   twinservice:
-    build: .
+    build: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Twin/docker
+    restart: always
     ports:
       - "9041:9041"
-    env_file:
-      - .env
     environment:
       - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
       - PCS_AUTH_ISSUER
       - PCS_AUTH_AUDIENCE
       - PCS_CORS_WHITELIST
-      - PCS_APPLICATION_SECRET

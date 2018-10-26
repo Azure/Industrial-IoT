@@ -1,0 +1,69 @@
+version: '3'
+services:
+  reverseproxy:
+    image: marcschier/azure-iiot-reverse-proxy:latest
+    restart: always
+    ports:
+      - "80:8080"
+      - "443:8443"
+    depends_on:
+      - twinregistry
+      - twinonboarding
+      - twinservice
+      - twinwebui
+      - twinmodule
+  twinregistry:
+    image: marcschier/azure-iiot-opc-twin-registry:latest
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_CORS_WHITELIST
+  twinonboarding:
+    image: marcschier/azure-iiot-opc-twin-onboarding:latest
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_HUB_ENDPOINT
+      - PCS_IOTHUBREACT_HUB_PARTITIONS
+      - PCS_IOTHUBREACT_HUB_NAME
+      - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
+      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+      - PCS_IOTHUBREACT_AZUREBLOB_KEY
+      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+  twinservice:
+    image: marcschier/azure-iiot-opc-twin-service:latest
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_CORS_WHITELIST
+  twinwebui:
+    image: marcschier/azure-iiot-opc-twin-webui:latest
+    restart: always
+    command: npm start
+  twinmodule:
+    image: marcschier/azure-iiot-opc-twin-module:latest
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+    command: demo twin
+  opcserver0:
+    image: marcschier/azure-iiot-opc-twin:latest
+    hostname: opcserver0
+    restart: always
+    command: --sample -p 51210
+  opcserver1:
+    image: marcschier/azure-iiot-opc-twin:latest
+    hostname: opcserver1
+    restart: always
+    command: --sample -p 51211
+  opcserver2:
+    image: marcschier/azure-iiot-opc-twin:latest
+    hostname: opcserver2
+    restart: always
+    command: --sample -p 51212

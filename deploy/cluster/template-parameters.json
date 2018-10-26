@@ -1,0 +1,23 @@
+{
+    "solutionName": {
+      "value": "{Added through command line interface}"
+    },
+    "azureWebsiteName" : {
+      "value": "{Added through command line interface}"
+    },
+    "adminUsername": {
+      "value": "{Added through command line interface}"
+    },
+    "servicePrincipalSecret": {
+      "value": "{Added through command line interface}"
+    },
+    "sshRSAPublicKey": {
+      "value": "{Added through command line interface}"
+    },
+    "servicePrincipalClientId": {
+      "value": "{Added through command line interface}"
+    },
+    "remoteEndpointSSLThumbprint": {
+      "value": "{Added through command line interface}"
+    }
+}
