@@ -11,6 +11,11 @@ namespace Microsoft.Azure.IIoT {
     public static class ContentEncodings {
 
         /// <summary>
+        /// Binary blob
+        /// </summary>
+        public const string MimeTypeBinary =
+             "application/octet-stream";
+        /// <summary>
         /// Json encoding
         /// </summary>
         public const string MimeTypeJson =

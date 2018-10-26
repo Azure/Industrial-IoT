@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             }
             var time = DateTimeOffset.UtcNow.ToString("u");
             var preamble = $"[{level}][{Name}][{time}][{method}]";
-            Try.Op(() => WriteLine(preamble, message, parameters));
+            Try.Op(() => WriteLine(preamble, message, exception, parameters));
         }
 
         /// <summary>
@@ -50,9 +50,10 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// </summary>
         /// <param name="preamble"></param>
         /// <param name="message"></param>
+        /// <param name="exception"></param>
         /// <param name="parameters"></param>
         protected abstract void WriteLine(string preamble, string message,
-            object[] parameters);
+            Exception exception, object[] parameters);
 
         /// <summary>Process id to be used by derived class if needed</summary>
         protected readonly string _processId;

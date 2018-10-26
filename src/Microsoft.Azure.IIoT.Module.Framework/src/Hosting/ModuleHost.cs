@@ -60,14 +60,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         }
 
-        /// <summary>
-        /// Stop service
-        /// </summary>
+        /// <inheritdoc/>
         public async Task StopAsync() {
             if (_client != null) {
                 try {
                     await _lock.WaitAsync();
                     if (_client != null) {
+                        _logger.Info($"Stopping Module Host (@{SiteId})...");
                         try {
                             var twinSettings = new TwinCollection {
                                 [kConnectedProp] = false
@@ -84,7 +83,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         }
                         _client.Dispose();
                     }
-                    _logger.Info($"Module Host stopped @{SiteId}.");
+                    _logger.Info($"Module Host stopped (@{SiteId}).");
                 }
                 catch (Exception ce) {
                     _logger.Error("Module Host stopping caused exception.",
@@ -101,18 +100,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
         }
 
-        /// <summary>
-        /// Start service
-        /// </summary>
-        /// <returns></returns>
-        public async Task StartAsync(string type, string siteId, string serviceInfo) {
+        /// <inheritdoc/>
+        public async Task StartAsync(string type, string siteId, string serviceInfo,
+            Action onError) {
             if (_client == null) {
                 try {
                     await _lock.WaitAsync();
                     if (_client == null) {
                         // Create client
                         _logger.Debug("Starting Module Host...");
-                        _client = await _factory.CreateAsync(serviceInfo);
+                        _client = await _factory.CreateAsync(serviceInfo, onError);
                         DeviceId = _factory.DeviceId;
                         ModuleId = _factory.ModuleId;
 
@@ -128,7 +125,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
                         // Set default site if not already provided
                         if (string.IsNullOrEmpty(SiteId)) {
-                            SiteId = siteId ?? ModuleId;
+                            SiteId = (siteId ?? ModuleId) ?? DeviceId;
                         }
 
                         // Report type of service, chosen site, and connection state
@@ -140,7 +137,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         await _client.UpdateReportedPropertiesAsync(twinSettings);
 
                         // Done...
-                        _logger.Info($"Module Host started @{SiteId}).");
+                        _logger.Info($"Module Host started (@{SiteId}).");
                         return;
                     }
                 }
@@ -160,10 +157,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             throw new InvalidOperationException("Already started");
         }
 
-        /// <summary>
-        /// Refresh twin
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task RefreshAsync() {
             try {
                 await _lock.WaitAsync();
@@ -180,10 +174,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
         }
 
-        /// <summary>
-        /// Send events as batch
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task SendAsync(IEnumerable<byte[]> batch, string contentType) {
             try {
                 await _lock.WaitAsync();
@@ -197,10 +188,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
         }
 
-        /// <summary>
-        /// Send event
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task SendAsync(byte[] data, string contentType) {
             try {
                 await _lock.WaitAsync();
@@ -214,11 +202,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
         }
 
-        /// <summary>
-        /// Send a list of updated property
-        /// </summary>
-        /// <param name="properties"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task SendAsync(IEnumerable<KeyValuePair<string, dynamic>> properties) {
             try {
                 await _lock.WaitAsync();
@@ -239,12 +223,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
         }
 
-        /// <summary>
-        /// Send an updated property
-        /// </summary>
-        /// <param name="propertyId"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task SendAsync(string propertyId, dynamic value) {
             try {
                 await _lock.WaitAsync();
@@ -262,21 +241,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
         }
 
-        /// <summary>
-        /// Upload blob
-        /// </summary>
-        /// <param name="fileName"></param>
-        /// <param name="contentType"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task SendFileAsync(string fileName, string contentType) {
             using (var file = new FileStream(fileName, FileMode.Open)) {
                 await _client.UploadToBlobAsync(fileName, file);
             }
         }
 
-        /// <summary>
-        /// Dispose
-        /// </summary>
+        /// <inheritdoc/>
         public void Dispose() {
             if (_client != null) {
                 StopAsync().Wait();
@@ -422,17 +394,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         return;
                     }
 
-                    _logger.Debug("Applying desired state.", () => desired);
+                    _logger.Debug("Processing new settings...");
                     reporting = await _settings.ProcessSettingsAsync(desired);
 
                     if (reporting != null && reporting.Count != 0) {
-                        _logger.Debug("Reporting new state.", () => reporting);
+                        _logger.Debug("Reporting setting results...");
                         await _client.UpdateReportedPropertiesAsync(reporting);
                         foreach (KeyValuePair<string, dynamic> property in reporting) {
                             _reported.Remove(property.Key);
                             _reported.Add(property.Key, property.Value);
                         }
                     }
+                    _logger.Info("New settings processed.");
                 }
                 finally {
                     _lock.Release();

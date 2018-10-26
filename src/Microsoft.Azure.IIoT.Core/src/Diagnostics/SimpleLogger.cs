@@ -14,13 +14,16 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
 
         /// <inheritdoc/>
         protected override void WriteLine(string preamble, string message,
-            object[] parameters) {
+            Exception exception, object[] parameters) {
             if (parameters != null && parameters.Length != 0) {
                 Console.WriteLine(
                     $"{message} ({JsonConvertEx.SerializeObject(parameters)})");
             }
             else {
                 Console.WriteLine(message);
+            }
+            if (exception != null) {
+                Console.WriteLine(exception);
             }
         }
     }

@@ -13,16 +13,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Services {
     public interface IModuleHost : IDisposable {
 
         /// <summary>
-        /// Start service
+        /// Start module host
         /// </summary>
         /// <param name="type"></param>
         /// <param name="siteId"></param>
         /// <param name="serviceInfo"></param>
+        /// <param name="onError"></param>
         /// <returns></returns>
-        Task StartAsync(string type, string siteId, string serviceInfo);
+        Task StartAsync(string type, string siteId,
+            string serviceInfo, Action onError = null);
 
         /// <summary>
-        /// Stop service
+        /// Stop module host
         /// </summary>
         /// <returns></returns>
         Task StopAsync();

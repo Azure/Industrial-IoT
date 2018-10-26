@@ -94,12 +94,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             _timeout = TimeSpan.FromMinutes(5);
         }
 
-        /// <summary>
-        /// Create and open client using the connection string
-        /// </summary>
-        /// <param name="product"></param>
-        /// <returns>Device client</returns>
-        public async Task<IClient> CreateAsync(string product) {
+        /// <inheritdoc/>
+        public async Task<IClient> CreateAsync(string product, Action onError) {
 
             // Configure transport settings
             var transportSettings = new List<ITransportSettings>();
@@ -134,32 +130,38 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             if (transportSettings.Count != 0) {
                 return await Try.Options(transportSettings
                     .Select<ITransportSettings, Func<Task<IClient>>>(t =>
-                         () => CreateAdapterAsync(product, t))
+                         () => CreateAdapterAsync(product, onError, t))
                     .ToArray());
             }
-            return await CreateAdapterAsync(product);
+            return await CreateAdapterAsync(product, onError);
         }
 
         /// <summary>
-        /// Create client
+        /// Create client adapter
         /// </summary>
         /// <param name="product"></param>
+        /// <param name="onError"></param>
         /// <param name="transportSetting"></param>
         /// <returns></returns>
-        private Task<IClient> CreateAdapterAsync(string product,
+        private Task<IClient> CreateAdapterAsync(string product, Action onError,
             ITransportSettings transportSetting = null) {
             if (_cs != null && string.IsNullOrEmpty(_cs.ModuleId)) {
                 return DeviceClientAdapter.CreateAsync(product, _cs, transportSetting,
-                    _timeout, RetryPolicy, _logger);
+                    _timeout, RetryPolicy, onError, _logger);
             }
             return ModuleClientAdapter.CreateAsync(product, _cs, transportSetting,
-                _timeout, RetryPolicy, _logger);
+                _timeout, RetryPolicy, onError, _logger);
         }
 
         /// <summary>
         /// Adapts module client to interface
         /// </summary>
         public sealed class ModuleClientAdapter : IClient {
+
+            /// <summary>
+            /// Whether the client is closed
+            /// </summary>
+            public bool IsClosed { get; internal set; }
 
             /// <summary>
             /// Create client
@@ -178,40 +180,50 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <param name="transportSetting"></param>
             /// <param name="timeout"></param>
             /// <param name="retry"></param>
+            /// <param name="onConnectionLost"></param>
             /// <param name="logger"></param>
             /// <returns></returns>
             public static async Task<IClient> CreateAsync(string product,
                 IotHubConnectionStringBuilder cs, ITransportSettings transportSetting,
-                TimeSpan timeout, IRetryPolicy retry, ILogger logger) {
+                TimeSpan timeout, IRetryPolicy retry, Action onConnectionLost,
+                ILogger logger) {
 
                 var client = await CreateAsync(cs, transportSetting);
+                var adapter = new ModuleClientAdapter(client);
 
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
-                client.SetConnectionStatusChangesHandler((s, r) => logger.Info(
-                    $"Module {cs.DeviceId}_{cs.ModuleId} connection status changed to {s} due to {r}."));
+                client.SetConnectionStatusChangesHandler((s, r) => {
+                    logger.Info($"Module {cs.DeviceId}_{cs.ModuleId} connection status " +
+                        $"changed to {s} due to {r}.");
+                    if (r == ConnectionStatusChangeReason.Client_Close && !adapter.IsClosed) {
+                        adapter.IsClosed = true;
+                        onConnectionLost?.Invoke();
+                    }
+                });
                 if (retry != null) {
                     client.SetRetryPolicy(retry);
                 }
                 client.DiagnosticSamplingPercentage = 5;
                 client.ProductInfo = product;
                 await client.OpenAsync();
-                return new ModuleClientAdapter(client);
+                return adapter;
             }
 
             /// <inheritdoc />
             public Task CloseAsync() {
                 _client.OperationTimeoutInMilliseconds = 3000;
-                return _client.CloseAsync();
+                _client.SetRetryPolicy(new NoRetry());
+                return IsClosed ? Task.CompletedTask : _client.CloseAsync();
             }
 
             /// <inheritdoc />
             public Task SendEventAsync(Message message) =>
-                _client.SendEventAsync(message);
+                IsClosed ? Task.CompletedTask : _client.SendEventAsync(message);
 
             /// <inheritdoc />
             public Task SendEventBatchAsync(IEnumerable<Message> messages) =>
-                _client.SendEventBatchAsync(messages);
+                IsClosed ? Task.CompletedTask : _client.SendEventBatchAsync(messages);
 
             /// <inheritdoc />
             public Task SetMethodHandlerAsync(string methodName,
@@ -234,7 +246,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
             /// <inheritdoc />
             public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) =>
-                _client.UpdateReportedPropertiesAsync(reportedProperties);
+                IsClosed? Task.CompletedTask : _client.UpdateReportedPropertiesAsync(reportedProperties);
 
             /// <inheritdoc />
             public Task UploadToBlobAsync(string blobName, Stream source) =>
@@ -289,6 +301,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         public sealed class DeviceClientAdapter : IClient {
 
             /// <summary>
+            /// Whether the client is closed
+            /// </summary>
+            public bool IsClosed { get; internal set; }
+
+            /// <summary>
             /// Create client
             /// </summary>
             /// <param name="client"></param>
@@ -305,38 +322,51 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <param name="transportSetting"></param>
             /// <param name="timeout"></param>
             /// <param name="retry"></param>
+            /// <param name="onConnectionLost"></param>
             /// <param name="logger"></param>
             /// <returns></returns>
             public static async Task<IClient> CreateAsync(string product,
                 IotHubConnectionStringBuilder cs, ITransportSettings transportSetting,
-                TimeSpan timeout, IRetryPolicy retry, ILogger logger) {
+                TimeSpan timeout, IRetryPolicy retry, Action onConnectionLost,
+                ILogger logger) {
                 var client = Create(cs, transportSetting);
+                var adapter = new DeviceClientAdapter(client);
+
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
-                client.SetConnectionStatusChangesHandler((s, r) => logger.Info(
-                    $"Device {cs.DeviceId} connection status changed to {s} due to {r}."));
+                client.SetConnectionStatusChangesHandler((s, r) => {
+                    logger.Info(
+                        $"Device {cs.DeviceId} connection status changed to {s} due to {r}.");
+
+                    if (r == ConnectionStatusChangeReason.Client_Close && !adapter.IsClosed) {
+                        adapter.IsClosed = true;
+                        onConnectionLost?.Invoke();
+                    }
+                });
                 if (retry != null) {
                     client.SetRetryPolicy(retry);
                 }
                 client.DiagnosticSamplingPercentage = 5;
                 client.ProductInfo = product;
+
                 await client.OpenAsync();
-                return new DeviceClientAdapter(client);
+                return adapter;
             }
 
             /// <inheritdoc />
             public Task CloseAsync() {
                 _client.OperationTimeoutInMilliseconds = 3000;
-                return _client.CloseAsync();
+                _client.SetRetryPolicy(new NoRetry());
+                return IsClosed ? Task.CompletedTask : _client.CloseAsync();
             }
 
             /// <inheritdoc />
             public Task SendEventAsync(Message message) =>
-                _client.SendEventAsync(message);
+                IsClosed ? Task.CompletedTask : _client.SendEventAsync(message);
 
             /// <inheritdoc />
             public Task SendEventBatchAsync(IEnumerable<Message> messages) =>
-                _client.SendEventBatchAsync(messages);
+                IsClosed ? Task.CompletedTask : _client.SendEventBatchAsync(messages);
 
             /// <inheritdoc />
             public Task SetMethodHandlerAsync(string methodName,
@@ -359,11 +389,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
             /// <inheritdoc />
             public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) =>
-                _client.UpdateReportedPropertiesAsync(reportedProperties);
+                IsClosed ? Task.CompletedTask : _client.UpdateReportedPropertiesAsync(reportedProperties);
 
             /// <inheritdoc />
             public Task UploadToBlobAsync(string blobName, Stream source) =>
-                _client.UploadToBlobAsync(blobName, source);
+                IsClosed ? Task.CompletedTask : _client.UploadToBlobAsync(blobName, source);
 
             /// <inheritdoc />
             public Task SetStreamsDefaultHandlerAsync(StreamCallback streamHandler,

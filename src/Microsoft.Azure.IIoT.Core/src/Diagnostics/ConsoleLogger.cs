@@ -45,10 +45,14 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
 
         /// <inheritdoc/>
         protected override void WriteLine(string preamble, string message,
-            object[] parameters) {
+            Exception exception, object[] parameters) {
             message = $"{preamble} {message}";
             if (parameters != null && parameters.Length != 0) {
                 message += $" ({JsonConvertEx.SerializeObject(parameters)})";
+            }
+            if (exception != null) {
+                message += "\r\n";
+                message += JsonConvertEx.SerializeObject(exception);
             }
             Console.WriteLine(message);
         }
