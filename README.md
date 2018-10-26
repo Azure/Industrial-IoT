@@ -1,8 +1,8 @@
-# Azure Industrial IoT (IIoT) OPC Twin API (Preview)
+# Azure Industrial IoT (IIoT) OPC Twin API
 
 This repository contains:
 
-1. The handcrafted C# API for both OPC Twin [Registry](https://github.com/Azure/azure-iiot-opc-twin-service) and [Service](https://github.com/Azure/azure-iiot-opc-twin-registry).
+1. The handcrafted C# API for both [OPC Twin Registry and Service](https://github.com/Azure/azure-iiot-opc-twin-service).
 1. A command line interface (CLI) that allows you to exercise the API.
 1. (Coming soon) A set of AutoREST generated libraries that enable access to the above services using a wider variety of languages.
 
@@ -12,10 +12,7 @@ Clone this repository.
 
 ### Setup Dependencies
 
-The command line interface (CLI) and APIs depend on the following services:
-
-* [OPC Twin Service](https://github.com/Azure/azure-iiot-opc-twin-service).
-* [OPC Registry Service](https://github.com/Azure/azure-iiot-opc-twin-registry).
+The command line interface (CLI) and APIs depend on the [OPC Twin Services](https://github.com/Azure/azure-iiot-opc-twin-service). 
 
 If you have [Docker][docker-url] installed, you can start the corresponding services by changing into the repository root and running `docker-compose up`.
 Otherwise, follow the instructions at the respective link above to ensure that these dependencies are running before using the API or command line interface.
@@ -36,7 +33,7 @@ For more help on setting environment variables on your system:
 
 ## Build and Run
 
-Clone this repository.  If you have [Docker][docker-url] installed, you can start the corresponding services by changing into the repository root and running ```docker-compose up```.   
+Clone this repository.  If you have [Docker][docker-url] installed, you can start the corresponding services by changing into the repository root and running ```docker-compose up```.
 
 ### Building and running the CLI with Visual Studio or VS Code
 
@@ -76,14 +73,11 @@ Clone this repository.  If you have [Docker][docker-url] installed, you can star
 
 ## Other Industrial IoT Solution Accelerator components
 
-* OPC GDS Vault service (Coming soon)
-* [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
-* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-twin-registry)
-* [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
-* OPC Twin management agent service (Coming soon)
+* [OPC Twin services](https://github.com/Azure/azure-iiot-opc-twin-service)
 * OPC Twin common business logic (Coming soon)
 * [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module)
 * [OPC Publisher IoT Edge module](https://github.com/Azure/iot-edge-opc-publisher)
+* OPC Vault service (Coming soon)
 
 ## Contributing
 
