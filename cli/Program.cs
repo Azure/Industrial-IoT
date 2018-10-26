@@ -258,7 +258,9 @@ Options:
         private static async Task HostAsync(IIoTHubConfig config,
             string deviceId, string moduleId) {
             Console.WriteLine("Create or retrieve connection string...");
-            var cs = await AddOrGetAsync(config, deviceId, moduleId);
+            var logger = new ConsoleLogger(null, LogLevel.Error);
+            var cs = await Retry.WithExponentialBackoff(logger,
+                () => AddOrGetAsync(config, deviceId, moduleId));
             Console.WriteLine("Starting module host...");
             Twin.Program.Main(new string[] { $"EdgeHubConnectionString={cs}" });
             Console.WriteLine("Module host exited.");

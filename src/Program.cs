@@ -48,40 +48,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
         }
 
         /// <summary>
-        /// Run
+        /// Run module host
         /// </summary>
         /// <param name="container"></param>
         /// <returns></returns>
         public static async Task RunAsync(IContainer container, IConfigurationRoot config) {
-            // Wait until the module unloads or is cancelled
-            var tcs = new TaskCompletionSource<bool>();
-            AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
-
             using (var hostScope = container.BeginLifetimeScope()) {
                 // BUGBUG: This creates 2 instances one in container one as scope
                 var module = hostScope.Resolve<IModuleHost>();
-                while (true) {
+                var logger = hostScope.Resolve<ILogger>();
+                var exit = new TaskCompletionSource<bool>();
+                AssemblyLoadContext.Default.Unloading += _ => exit.TrySetResult(true);
+                while (!exit.Task.IsCompleted) {
+                    // Wait until the module unloads or is cancelled
                     try {
+                        var reset = new TaskCompletionSource<bool>();
                         await module.StartAsync(
-                            "supervisor", config.GetValue<string>("site", null), "OpcTwin");
-#if DEBUG
-                        if (!Console.IsInputRedirected) {
-                            Console.WriteLine("Press any key to exit...");
-                            Console.TreatControlCAsInput = true;
-                            await Task.WhenAny(tcs.Task, Task.Run(() => Console.ReadKey()));
-                            return;
-                        }
-#endif
-                        await tcs.Task;
+                            "supervisor", config.GetValue<string>("site", null), "OpcTwin",
+                                () => reset.TrySetResult(true));
+                        await Task.WhenAny(reset.Task, exit.Task);
                     }
                     catch (Exception ex) {
-                        var logger = hostScope.Resolve<ILogger>();
-                        logger.Error("Error during module execution - restarting!", () => ex);
+                        logger.Error("Error during module execution - restarting!", ex);
                     }
                     finally {
                         await module.StopAsync();
                     }
                 }
+                logger.Info("Module exits...");
             }
         }
 
