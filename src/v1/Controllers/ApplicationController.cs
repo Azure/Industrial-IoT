@@ -42,7 +42,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
             {
                 throw new ArgumentNullException(nameof(application));
             }
-            return await _applicationDatabase.RegisterApplicationAsync(application.ToServiceModel());
+            var applicationServiceModel = application.ToServiceModel();
+            applicationServiceModel.AuthorityId = User.Identity.Name;
+            return await _applicationDatabase.RegisterApplicationAsync(applicationServiceModel);
         }
 
         /// <summary>
@@ -57,7 +59,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
             {
                 throw new ArgumentNullException(nameof(application));
             }
-            return await _applicationDatabase.UpdateApplicationAsync(applicationId, application.ToServiceModel());
+            var applicationServiceModel = application.ToServiceModel();
+            applicationServiceModel.AuthorityId = User.Identity.Name;
+            return await _applicationDatabase.UpdateApplicationAsync(applicationId, applicationServiceModel);
         }
 
         /// <summary>
@@ -65,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// </summary>
         [HttpDelete("{applicationId}")]
         [SwaggerOperation(OperationId = "UnregisterApplication")]
-        [Authorize(Policy = Policies.CanWrite)]
+        [Authorize(Policy = Policies.CanManage)]
         public async Task UnregisterApplicationAsync(string applicationId)
         {
             await _applicationDatabase.UnregisterApplicationAsync(applicationId);

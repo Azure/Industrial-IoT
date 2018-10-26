@@ -113,6 +113,51 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
             await _certificateRequest.AcceptAsync(requestId);
         }
 
+        /// <summary>
+        /// Delete request.
+        /// </summary>
+        [HttpDelete("{requestId}")]
+        [SwaggerOperation(OperationId = "DeleteCertificateRequest")]
+        [Authorize(Policy = Policies.CanManage)]
+        public async Task DeleteCertificateRequestAsync(string requestId)
+        {
+            await _certificateRequest.DeleteAsync(requestId);
+        }
+
+        /// <summary>
+        /// Purge request.
+        /// </summary>
+        [HttpPost("{requestId}/purge")]
+        [SwaggerOperation(OperationId = "PurgeCertificateRequest")]
+        [Authorize(Policy = Policies.CanManage)]
+        public async Task PurgeCertificateRequestAsync(string requestId)
+        {
+            await _certificateRequest.PurgeAsync(requestId);
+        }
+
+        /// <summary>
+        /// Revoke request.
+        /// </summary>
+        [HttpPost("{requestId}/revoke")]
+        [SwaggerOperation(OperationId = "RevokeCertificateRequest")]
+        [Authorize(Policy = Policies.CanSign)]
+        public async Task RevokeCertificateRequestAsync(string requestId)
+        {
+            var onBehalfOfCertificateRequest = await this._certificateRequest.OnBehalfOfRequest(Request);
+            await onBehalfOfCertificateRequest.RevokeAsync(requestId);
+        }
+
+        /// <summary>Revoke all deleted requests.</summary>
+        [HttpPost("revoke/{groupId}")]
+        [SwaggerOperation(OperationId = "RevokeGroup")]
+        [Authorize(Policy = Policies.CanSign)]
+
+        public async Task PostRevokeGroupAsync(string groupId)
+        {
+            var onBehalfOfCertificateRequest = await this._certificateRequest.OnBehalfOfRequest(Request);
+            await onBehalfOfCertificateRequest.RevokeGroupAsync(groupId);
+        }
+
         /// <summary>Query certificate requests</summary>
         [HttpGet]
         [SwaggerOperation(OperationId = "QueryRequests")]

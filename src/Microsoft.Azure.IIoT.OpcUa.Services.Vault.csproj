@@ -32,6 +32,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
   <ItemGroup>
     <None Remove="Properties\PublishProfiles\AdvancedSettings.pubxml" />
   </ItemGroup>
@@ -78,8 +82,8 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="1.0.0" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Abstractions" Version="1.0.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="1.0.0-preview010" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Abstractions" Version="1.0.0-preview010" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -94,5 +98,8 @@
     <Content Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Update="appsettings.*.json" CopyToPublishDirectory="Never"/>
   </ItemGroup>
 </Project>

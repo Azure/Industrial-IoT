@@ -3,73 +3,75 @@
 @{
     ViewBag.Title = "Certomat";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    IList<string> appTypes = new List<string>() { "Server", "Client", "ClientAndServer", "DiscoveryServer" };
+    IList<string> AppTypes = new List<string>() { "Server", "Client", "ClientAndServer", "DiscoveryServer" };
 }
 
 <h2>Request New Certificate for OPC UA Application</h2>
 
-@using (Html.BeginForm())
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.ApplicationUri)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ApplicationUri)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ApplicationName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ApplicationName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ApplicationType)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => AppTypes[(int)Model.ApplicationType])
+        </dd>
+
+        @if (Model.DiscoveryUrls != null)
+        {
+            @for (int i = 0; i < Model.DiscoveryUrls.Count(); i++)
+            {
+                <dt>
+                    @if (i == 0)
+                    {
+                        @Html.DisplayNameFor(model => model.DiscoveryUrls)
+                    }
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => Model.DiscoveryUrls[i])
+                </dd>
+            }
+        }
+    </dl>
+</div>
+@if (ViewData["Message"] != null)
 {
-    @Html.AntiForgeryToken()
-
-    <div class="form-horizontal">
-        <hr />
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.ApplicationId, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DisplayFor(model => model.ApplicationId, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.ApplicationId, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.ApplicationUri, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DisplayFor(model => model.ApplicationUri, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.ApplicationUri, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.ApplicationName, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DisplayFor(model => model.ApplicationName, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.ApplicationName, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.ApplicationType, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.Raw(appTypes[(int)Model.ApplicationType])
-                @Html.ValidationMessageFor(model => model.ApplicationType, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        @for (int i = 0; i < Model.DiscoveryUrls.Count(); i++)
-        {
-            <div class="form-group">
-                @Html.LabelFor(model => Model.DiscoveryUrls[i], htmlAttributes: new { @class = "control-label col-md-2" })
-                <div class="col-md-10">
-                    @Html.DisplayFor(model => Model.DiscoveryUrls[i], new { htmlAttributes = new { @class = "form-control" } })
-                    @Html.ValidationMessageFor(model => Model.DiscoveryUrls[i], "", new { @class = "text-danger" })
-                </div>
-            </div>
-        }
-
-        @if (ViewData["Message"] != null)
-        {
-            <hr />
-            <div class="alert alert-warning">
-                <h4>@ViewData["Message"]</h4>
-            </div>
-            <hr />
-        }
-        <div class="col-md-offset-2 col-md-10">
-            @Html.ActionLink("Request new KeyPair and Certificate", "StartNewKeyPair", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
-            @Html.ActionLink("Request new Certificate with Signing Request", "StartSigning", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
-        </div>
+    <div class="alert alert-danger">
+        <h4>@ViewData["Message"]</h4>
     </div>
 }
+else
+{
+    <div class="col-md-12">
+        @Html.ActionLink("Request new KeyPair and Certificate", "StartNewKeyPair", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
+        @Html.ActionLink("Request new Certificate with Signing Request", "StartSigning", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
+    </div>
+}
+
+<div class="col-md-12">
+    <hr />
+    <img src="~/images/opcvaultflowstep2.svg" alt="OpcVault Request" class="img-responsive" />
+    <hr />
+    @Html.ActionLink("Back to Register New", "Register", routeValues: new { id = "" })
+    <hr />
+</div>
 

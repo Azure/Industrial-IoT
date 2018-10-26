@@ -12,7 +12,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
     /// <summary>
     /// AuthorizationOptions extension
     /// </summary>
-    public static class AuthorizationOptionsEx {
+    public static class AuthorizationOptionsEx
+    {
 
         /// <summary>
         /// Add v1 policies to options
@@ -21,28 +22,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
         /// <param name="servicesConfig"></param>
         /// <param name="options"></param>
         public static void AddV1Policies(this AuthorizationOptions options,
-            IAuthConfig config, IServicesConfig servicesConfig) {
+            IAuthConfig config, IServicesConfig servicesConfig)
+        {
 
-            if (!config.AuthRequired) {
-                options.AddNoOpPolicies(Policies.All());
-                return;
-            }
-
-            // Otherwise, configure policies here to your liking
             options.AddPolicy(Policies.CanRead, policy =>
-                policy.RequireAuthenticatedUser());
-            options.AddPolicy(Policies.CanWrite, policy =>
                 policy.RequireAuthenticatedUser());
             if (servicesConfig.AutoApprove)
             {
+                // for simplified deployment, 
+                // any authenticated user can Write and Sign
+                // without Approver workflow
+                options.AddPolicy(Policies.CanWrite, policy =>
+                    policy.RequireAuthenticatedUser());
                 options.AddPolicy(Policies.CanSign, policy =>
                     policy.RequireAuthenticatedUser());
             }
             else
             {
+                options.AddPolicy(Policies.CanWrite, policy =>
+                    policy.RequireAuthenticatedUser()
+                    .Require(WriterRights));
                 options.AddPolicy(Policies.CanSign, policy =>
                     policy.RequireAuthenticatedUser()
-                    .Require(AdminRights));
+                    .Require(ApproverRights));
             }
             options.AddPolicy(Policies.CanManage, policy =>
                 policy.RequireAuthenticatedUser()
@@ -52,10 +54,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
         /// <summary>
         /// Admin either has the admin role, or has execute claim
         /// </summary>
-        public static bool AdminRights(AuthorizationHandlerContext context) {
+        public static bool AdminRights(AuthorizationHandlerContext context)
+        {
             return
-                context.User.IsInRole(Roles.Admin) ||
+                context.User.IsInRole(Roles.Administrator) ||
                 context.User.HasClaim(c => c.Type == Claims.Execute);
         }
+
+        /// <summary>
+        /// Approver either has the Sign role, or has execute claim
+        /// </summary>
+        public static bool ApproverRights(AuthorizationHandlerContext context)
+        {
+            return
+                context.User.IsInRole(Roles.Approver) ||
+                context.User.HasClaim(c => c.Type == Claims.Execute);
+        }
+
+        /// <summary>
+        /// Writer either has the Sign, Admin or Writer role, or has execute claim
+        /// </summary>
+        public static bool WriterRights(AuthorizationHandlerContext context)
+        {
+            return
+                context.User.IsInRole(Roles.Writer) ||
+                context.User.IsInRole(Roles.Administrator) ||
+                context.User.IsInRole(Roles.Approver) ||
+                context.User.HasClaim(c => c.Type == Claims.Execute);
+        }
+
     }
 }

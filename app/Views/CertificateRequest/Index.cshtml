@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.CertificateRequestRecordApiModel>
+﻿@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models.CertificateRequestIndexApiModel>
 
 @{
     ViewBag.Title = "CertificateRequests";
@@ -10,10 +10,10 @@
 <table class="table">
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.RequestId)
+            @Html.DisplayNameFor(model => model.ApplicationName)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.ApplicationId)
+            @Html.DisplayNameFor(model => model.ApplicationUri)
         </th>
         <th>
             @Html.DisplayNameFor(model => model.State)
@@ -28,10 +28,10 @@
     {
         <tr>
             <td>
-                @Html.ActionLink(request.RequestId, "Details", new { id = request.RequestId })
+                @Html.ActionLink(request.ApplicationName, "..\\Application\\Details", new { id = request.ApplicationId })
             </td>
             <td>
-                @Html.ActionLink(request.ApplicationId, "..\\Application\\Details", new { id = request.ApplicationId })
+                @Html.ActionLink(request.ApplicationUri, "..\\Application\\Details", new { id = request.ApplicationId })
             </td>
             <td>
                 @Html.DisplayFor(requestItem => request.State)
@@ -40,21 +40,20 @@
                 @Html.DisplayFor(requestItem => request.SubjectName)
             </td>
             <td>
+                @Html.ActionLink("Details", "Details", new { id = request.RequestId })
                 @if (request.State == "New")
                 {
+                    @Html.Raw("&nbsp;|&nbsp;");
                     @Html.ActionLink("Approve", "Approve", new { id = request.RequestId }/*,
                         new { onclick = "return confirm('Do you really want to approve the request " + @request.RequestId + "?')" }*/)
                     @Html.Raw("&nbsp;|&nbsp;");
                     @Html.ActionLink("Reject", "Reject", new { id = request.RequestId }/*,
                         new { onclick = "return confirm('Do you really want to reject the request " + @request.RequestId + "?')" }*/)
-                    @Html.Raw("&nbsp;|&nbsp;");
                 }
-                @Html.ActionLink("Details", "Details", new { id = request.RequestId })
             </td>
         </tr>
     }
     <tr>
-        <th />
         <th />
         <th />
         <th />

@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 using Microsoft.AspNetCore.Authorization;
@@ -16,86 +15,124 @@ using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
 using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.TokenStorage;
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Utils;
-using Microsoft.Rest;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
 {
     [Authorize]
-    public class CertomatController : Controller
+    public class CertomatController : DownloadController
     {
-        private IOpcVault opcVault;
-        private readonly OpcVaultApiOptions opcVaultOptions;
-        private readonly AzureADOptions azureADOptions;
-        private readonly ITokenCacheService tokenCacheService;
+        const int ApplicationTypeClient = 1;
 
         public CertomatController(
             OpcVaultApiOptions opcVaultOptions,
             AzureADOptions azureADOptions,
-            ITokenCacheService tokenCacheService)
+            ITokenCacheService tokenCacheService) :
+            base(opcVaultOptions, azureADOptions, tokenCacheService)
         {
-            this.opcVaultOptions = opcVaultOptions;
-            this.azureADOptions = azureADOptions;
-            this.tokenCacheService = tokenCacheService;
         }
 
         [ActionName("Register")]
-        public async Task<IActionResult> RegisterAsync(string applicationId)
+        public async Task<IActionResult> RegisterAsync(string id)
         {
             var apiModel = new ApplicationRecordApiModel();
             AuthorizeClient();
-            if (applicationId != null)
+            if (id != null)
             {
-                var application = await opcVault.GetApplicationAsync(applicationId);
-                apiModel.ApplicationId = application.ApplicationId;
-                apiModel.ApplicationName = application.ApplicationName;
-                apiModel.ApplicationType = application.ApplicationType;
-                apiModel.ApplicationUri = application.ApplicationUri;
-                apiModel.DiscoveryUrls = application.DiscoveryUrls;
+                try
+                {
+                    apiModel = await opcVault.GetApplicationAsync(id);
+                    ViewData["SuccessMessage"] =
+                        "Application with id " + id + " successfully loaded.";
+                }
+                catch (Exception ex)
+                {
+                    ViewData["ErrorMessage"] =
+                        "An application with id " + id + " could not be found in the database.\r\n" +
+                        "Message:" + ex.Message;
+                }
             }
             UpdateApiModel(apiModel);
-            return View(apiModel);
+            return View(new ApplicationRecordRegisterApiModel(apiModel));
         }
 
         [HttpPost]
         [ActionName("Register")]
         [ValidateAntiForgeryToken]
+        [ApplicationRecordRegisterApiModel]
         public async Task<ActionResult> RegisterAsync(
-            ApplicationRecordApiModel apiModel,
+            ApplicationRecordRegisterApiModel apiModel,
+            string find,
             string reg,
             string add,
-            string update)
+            string del,
+            string req)
         {
-            UpdateApiModel(apiModel);
-            ViewBag.Message = null;
-            if (ModelState.IsValid &&
-                String.IsNullOrEmpty(add) &&
-                String.IsNullOrEmpty(update) &&
-                !String.IsNullOrEmpty(reg))
-            {
-                AuthorizeClient();
+            string command = null;
+            if (!String.IsNullOrEmpty(find)) { command = "find"; }
+            if (!String.IsNullOrEmpty(add)) { command = "add"; }
+            if (!String.IsNullOrEmpty(del)) { command = "delete"; }
+            if (!String.IsNullOrEmpty(reg)) { command = "register"; }
+            if (!String.IsNullOrEmpty(req)) { command = "request"; }
 
-                var applications = await opcVault.FindApplicationAsync(apiModel.ApplicationUri);
-                if (applications == null || applications.Count == 0)
-                {
-                    try
-                    {
-                        apiModel.ApplicationId = await opcVault.RegisterApplicationAsync(apiModel);
-                    }
-                    catch (Exception ex)
-                    {
-                        ViewData["Message"] = ex.Message;
-                        return View(apiModel);
-                    }
-                }
-                else
-                {
-                    apiModel.ApplicationId = applications[0].ApplicationId;
-                }
-                return RedirectToAction("Request", new { applicationId = apiModel.ApplicationId });
+            UpdateApiModel(apiModel);
+
+            if (ModelState.IsValid &&
+                command == "request" &&
+                apiModel.ApplicationId != null)
+            {
+                return RedirectToAction("Request", new { id = apiModel.ApplicationId });
             }
 
-            if (!String.IsNullOrEmpty(add))
+            if (ModelState.IsValid &&
+                command == "register")
+            {
+                AuthorizeClient();
+                try
+                {
+                    if (apiModel.ApplicationType == ApplicationTypeClient)
+                    {
+                        apiModel.ServerCapabilities = null;
+                        apiModel.DiscoveryUrls = null;
+                    }
+                    apiModel.ApplicationId = await opcVault.RegisterApplicationAsync(apiModel);
+                }
+                catch (Exception ex)
+                {
+                    ViewData["ErrorMessage"] =
+                        "The application registration failed.\r\n" +
+                        "Message: " + ex.Message;
+                    return View(apiModel);
+                }
+                return RedirectToAction("Request", new { id = apiModel.ApplicationId });
+            }
+
+            if (command == "find")
+            {
+                AuthorizeClient();
+                try
+                {
+                    var applications = await opcVault.FindApplicationAsync(apiModel.ApplicationUri);
+                    if (applications == null || applications.Count == 0)
+                    {
+                        ViewData["ErrorMessage"] =
+                            "Couldn't find the application with ApplicationUri " + apiModel.ApplicationUri;
+                    }
+                    else
+                    {
+                        return RedirectToAction("Register", new { id = applications[0].ApplicationId });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewData["ErrorMessage"] =
+                        "Failed to find the application with ApplicationUri" + apiModel.ApplicationUri + "\r\n" +
+                        "Message:" + ex.Message;
+                    return View(apiModel);
+                }
+            }
+
+            if (!String.IsNullOrWhiteSpace(apiModel.DiscoveryUrls.Last()) &&
+                command == "add")
             {
                 apiModel.DiscoveryUrls.Add("");
             }
@@ -104,13 +141,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         }
 
         [ActionName("Request")]
-        public async Task<IActionResult> RequestAsync(string applicationId)
+        public async Task<IActionResult> RequestAsync(string id)
         {
             AuthorizeClient();
-            var application = await opcVault.GetApplicationAsync(applicationId);
-
-            UpdateApiModel(application);
-            return View(application);
+            try
+            {
+                var application = await opcVault.GetApplicationAsync(id);
+                UpdateApiModel(application);
+                return View(application);
+            }
+            catch (Exception ex)
+            {
+                var application = new ApplicationRecordApiModel();
+                ViewData["ErrorMessage"] =
+                    "Failed to find the application with ApplicationId " + id + "\r\n" +
+                    "Message:" + ex.Message;
+                return View(application);
+            }
         }
 
         [ActionName("StartNewKeyPair")]
@@ -140,16 +187,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 return new NotFoundResult();
             }
 
+            // preset Domain names with discovery Urls
+            var domainNames = new List<string>();
+            if (application.DiscoveryUrls != null)
+            {
+                foreach (var discoveryUrl in application.DiscoveryUrls)
+                {
+                    Uri url = Opc.Ua.Utils.ParseUri(discoveryUrl);
+                    if (url == null)
+                    {
+                        continue;
+                    }
+
+                    string domainName = url.DnsSafeHost;
+                    if (url.HostNameType != UriHostNameType.Dns)
+                    {
+                        domainName = Opc.Ua.Utils.NormalizedIPAddress(domainName);
+                    }
+
+                    if (!Opc.Ua.Utils.FindStringIgnoreCase(domainNames, domainName))
+                    {
+                        domainNames.Add(domainName);
+                    }
+                }
+            }
+
             ViewData["Application"] = application;
             ViewData["Groups"] = groups;
 
-            var request = new StartNewKeyPairRequestApiModel()
+            var request = new StartNewKeyPairRequestFormApiModel()
             {
                 ApplicationId = id,
                 CertificateGroupId = defaultGroupId,
-                CertificateTypeId = defaultTypeId
+                CertificateTypeId = defaultTypeId,
+                DomainNames = domainNames
             };
-
+            UpdateApiModel(request);
             return View(request);
         }
 
@@ -157,12 +230,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         [ActionName("StartNewKeyPair")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> StartNewKeyPairAsync(
-            StartNewKeyPairRequestApiModel request)
+            StartNewKeyPairRequestFormApiModel request,
+            string add,
+            string del)
         {
-            if (ModelState.IsValid)
+            AuthorizeClient();
+            UpdateApiModel(request);
+            if (ModelState.IsValid &&
+                String.IsNullOrEmpty(add) &&
+                String.IsNullOrEmpty(del))
             {
-                AuthorizeClient();
-                var id = await opcVault.StartNewKeyPairRequestAsync(request);
+                string id;
+                try
+                {
+                    id = await opcVault.StartNewKeyPairRequestAsync(request);
+                }
+                catch (Exception ex)
+                {
+                    ViewData["ErrorMessage"] =
+                        "Failed to create Certificate Request.\r\n" +
+                        "Message:" + ex.Message;
+                    goto LoadAppAndView;
+                }
                 string message = null;
                 try
                 {
@@ -170,10 +259,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 }
                 catch (Exception ex)
                 {
-                    message = ex.Message;
+                    message =
+                    "Failed to approve Certificate Request.\r\n" +
+                    "Please contact Administrator for approval." +
+                    ex.Message;
                 }
                 return RedirectToAction("Details", new { id, message });
             }
+
+            if (!String.IsNullOrWhiteSpace(request.DomainNames.Last()) &&
+                !String.IsNullOrEmpty(add))
+            {
+                request.DomainNames.Add("");
+            }
+
+            LoadAppAndView:
+            // reload app info
+            var application = await opcVault.GetApplicationAsync(request.ApplicationId);
+            if (application == null)
+            {
+                return new NotFoundResult();
+            }
+
+            ViewData["Application"] = application;
 
             return View(request);
         }
@@ -205,8 +313,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 return new NotFoundResult();
             }
 
-            ViewData["Application"] = application;
-
             var request = new StartSigningRequestUploadApiModel()
             {
                 ApiModel = new StartSigningRequestApiModel()
@@ -214,7 +320,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                     ApplicationId = id,
                     CertificateGroupId = defaultGroupId,
                     CertificateTypeId = defaultTypeId
-                }
+                },
+                ApplicationUri = application.ApplicationUri,
+                ApplicationName = application.ApplicationName
             };
 
             return View(request);
@@ -250,161 +358,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 }
                 return RedirectToAction("Details", new { id, message });
             }
-
             return View(request);
-        }
-
-        [ActionName("Details")]
-        public async Task<ActionResult> DetailsAsync(string id, string message)
-        {
-            AuthorizeClient();
-            var request = await opcVault.ReadCertificateRequestAsync(id);
-            var model = new CertificateRequestRecordDetailsApiModel(request, message);
-            ViewData["Message"] = message;
-            return View(model);
-        }
-
-        [ActionName("Approve")]
-        public async Task<ActionResult> ApproveAsync(string id)
-        {
-            AuthorizeClient();
-            try
-            {
-                await opcVault.ApproveCertificateRequestAsync(id, false);
-                return RedirectToAction("Details", new { id, message = "CertificateRequest approved!" });
-            }
-            catch (Exception ex)
-            {
-                return RedirectToAction("Details", new { id, message = ex.Message });
-            }
-        }
-
-        [ActionName("Reject")]
-        public async Task<ActionResult> RejectAsync(string id)
-        {
-            AuthorizeClient();
-            try
-            {
-                await opcVault.ApproveCertificateRequestAsync(id, true);
-                return RedirectToAction("Details", new { id, message = "CertificateRequest rejected!" });
-            }
-            catch (Exception ex)
-            {
-                return RedirectToAction("Details", new { id, message = ex.Message });
-            }
-        }
-
-        [ActionName("Accept")]
-        public async Task<ActionResult> AcceptAsync(string id)
-        {
-            AuthorizeClient();
-            await opcVault.AcceptCertificateRequestAsync(id);
-            return RedirectToAction("Details", new { id });
-        }
-
-        [ActionName("DownloadCertificate")]
-        public async Task<ActionResult> DownloadCertificateAsync(string requestId, string applicationId)
-        {
-            AuthorizeClient();
-            var result = await opcVault.FinishRequestAsync(requestId, applicationId);
-            if (String.Compare(result.State, "Approved", StringComparison.OrdinalIgnoreCase) == 0 &&
-                result.SignedCertificate != null)
-            {
-                var byteArray = Convert.FromBase64String(result.SignedCertificate);
-                return new FileContentResult(byteArray, "application/pkix-cert")
-                {
-                    FileDownloadName = CertFileName(result.SignedCertificate) + ".der"
-                };
-            }
-            return new NotFoundResult();
-        }
-
-        [ActionName("DownloadIssuer")]
-        public async Task<ActionResult> DownloadIssuerAsync(string requestId)
-        {
-            AuthorizeClient();
-            var request = await opcVault.ReadCertificateRequestAsync(requestId);
-            if (request != null)
-            {
-                var issuer = await opcVault.GetCACertificateChainAsync(request.CertificateGroupId);
-                var byteArray = Convert.FromBase64String(issuer.Chain[0].Certificate);
-                return new FileContentResult(byteArray, ContentType.Cert)
-                {
-                    FileDownloadName = CertFileName(issuer.Chain[0].Certificate) + ".der"
-                };
-            }
-            return new NotFoundResult();
-        }
-
-        [ActionName("DownloadIssuerCrl")]
-        public async Task<ActionResult> DownloadIssuerCrlAsync(string requestId)
-        {
-            AuthorizeClient();
-            var request = await opcVault.ReadCertificateRequestAsync(requestId);
-            if (request != null)
-            {
-                var issuer = await opcVault.GetCACertificateChainAsync(request.CertificateGroupId);
-                var crl = await opcVault.GetCACrlChainAsync(request.CertificateGroupId);
-                var byteArray = Convert.FromBase64String(crl.Chain[0].Crl);
-                return new FileContentResult(byteArray, ContentType.Crl)
-                {
-                    FileDownloadName = CertFileName(issuer.Chain[0].Certificate) + ".crl"
-                };
-            }
-            return new NotFoundResult();
-        }
-
-        [ActionName("DownloadPrivateKey")]
-        public async Task<ActionResult> DownloadPrivateKeyAsync(string requestId, string applicationId)
-        {
-            AuthorizeClient();
-            var result = await opcVault.FinishRequestAsync(requestId, applicationId);
-            if (String.Compare(result.State, "Approved", StringComparison.OrdinalIgnoreCase) == 0 &&
-                result.PrivateKey != null)
-            {
-                if (String.Compare(result.PrivateKeyFormat, "PFX", StringComparison.OrdinalIgnoreCase) == 0)
-                {
-                    var byteArray = Convert.FromBase64String(result.PrivateKey);
-                    return new FileContentResult(byteArray, ContentType.Pfx)
-                    {
-                        FileDownloadName = CertFileName(result.SignedCertificate) + ".pfx"
-                    };
-                }
-                else if (String.Compare(result.PrivateKeyFormat, "PEM", StringComparison.OrdinalIgnoreCase) == 0)
-                {
-                    var byteArray = Convert.FromBase64String(result.PrivateKey);
-                    return new FileContentResult(byteArray, ContentType.Pem)
-                    {
-                        FileDownloadName = CertFileName(result.SignedCertificate) + ".pem"
-                    };
-                }
-            }
-            return new NotFoundResult();
-        }
-
-
-        private string CertFileName(string signedCertificate)
-        {
-            try
-            {
-                var signedCertByteArray = Convert.FromBase64String(signedCertificate);
-                X509Certificate2 cert = new X509Certificate2(signedCertByteArray);
-                return cert.Subject + "[" + cert.Thumbprint + "]";
-            }
-            catch
-            {
-                return "Certificate";
-            }
-        }
-
-        private void AuthorizeClient()
-        {
-            if (opcVault == null)
-            {
-                ServiceClientCredentials serviceClientCredentials =
-                    new OpcVaultLoginCredentials(opcVaultOptions, azureADOptions, tokenCacheService, User);
-                opcVault = new OpcVault(new Uri(opcVaultOptions.BaseAddress), serviceClientCredentials);
-            }
         }
 
         private void UpdateApiModel(ApplicationRecordApiModel application)
@@ -432,12 +386,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             else
             {
                 application.DiscoveryUrls = new List<string>();
-                if (application.DiscoveryUrls.Count == 0)
-                {
-                    application.DiscoveryUrls.Add("");
-                }
+            }
+            if (application.DiscoveryUrls.Count == 0)
+            {
+                application.DiscoveryUrls.Add("");
             }
         }
 
+        private void UpdateApiModel(StartNewKeyPairRequestFormApiModel request)
+        {
+            if (request.DomainNames != null)
+            {
+                request.DomainNames = request.DomainNames.Where(x => !string.IsNullOrEmpty(x)).ToList();
+            }
+            else
+            {
+                request.DomainNames = new List<string>();
+            }
+            if (request.DomainNames.Count == 0)
+            {
+                request.DomainNames.Add("");
+            }
+        }
     }
 }
+
+

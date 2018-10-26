@@ -4,6 +4,11 @@
 // ------------------------------------------------------------
 
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.IIoT.Auth.Azure;
 using Microsoft.Azure.IIoT.Diagnostics;
@@ -12,11 +17,6 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         {
             _servicesConfig = servicesConfig;
             _clientConfig = clientConfig;
-            _keyVaultServiceClient = new KeyVaultServiceClient(servicesConfig.KeyVaultBaseUrl, servicesConfig.KeyVaultHSM, logger);
+            _keyVaultServiceClient = new KeyVaultServiceClient(servicesConfig.KeyVaultBaseUrl, true, logger);
             if (clientConfig != null &&
                 clientConfig.AppId != null && clientConfig.AppSecret != null)
             {
@@ -117,7 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                         _servicesConfig.KeyVaultResourceId,
                         _clientConfig.AppId,
                         _clientConfig.AppSecret);
-                var keyVaultServiceClient = new KeyVaultServiceClient(_servicesConfig.KeyVaultBaseUrl, _servicesConfig.KeyVaultHSM, _log);
+                var keyVaultServiceClient = new KeyVaultServiceClient(_servicesConfig.KeyVaultBaseUrl, true, _log);
                 keyVaultServiceClient.SetServiceClientCredentials(serviceClientCredentials);
                 return Task.FromResult<ICertificateGroup>(new KeyVaultCertificateGroup(
                     keyVaultServiceClient,
@@ -171,6 +171,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             var certificateGroup = await KeyVaultCertificateGroupProvider.Create(_keyVaultServiceClient, id).ConfigureAwait(false);
             await certificateGroup.RevokeCertificateAsync(certificate).ConfigureAwait(false);
             return certificateGroup.Crl;
+        }
+
+        /// <inheritdoc/>
+        public async Task RevokeCertificatesAsync(string id, X509Certificate2Collection certificates)
+        {
+            var certificateGroup = await KeyVaultCertificateGroupProvider.Create(_keyVaultServiceClient, id).ConfigureAwait(false);
+            await certificateGroup.RevokeCertificatesAsync(certificates).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>

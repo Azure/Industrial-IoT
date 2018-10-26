@@ -22,6 +22,11 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 {
+    public struct CertificateKeyInfo
+    {
+        public X509Certificate2 Certificate { get; set; }
+        public string KeyIdentifier { get; set; }
+    }
     /// <summary>
     /// 
     /// </summary>
@@ -187,6 +192,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 _logger.Error("Error while loading the certificate versions for " + id + ".", () => new { ex });
             }
             return certificates;
+        }
+
+        /// <summary>
+        /// Read all certificate versions of a CA certificate group.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<IList<CertificateKeyInfo>> GetCertificateVersionsKeyInfoAsync(string id, CancellationToken ct = default(CancellationToken))
+        {
+            var result = new List<CertificateKeyInfo>();
+            try
+            {
+                var certItems = await _keyVaultClient.GetCertificateVersionsAsync(_vaultBaseUrl, id, MaxResults, ct).ConfigureAwait(false);
+                while (certItems != null)
+                {
+                    foreach (var certItem in certItems)
+                    {
+                        var certBundle = await _keyVaultClient.GetCertificateAsync(certItem.Id, ct).ConfigureAwait(false);
+                        var cert = new X509Certificate2(certBundle.Cer);
+                        var certKeyInfo = new CertificateKeyInfo
+                        {
+                            Certificate = new X509Certificate2(certBundle.Cer),
+                            KeyIdentifier = certBundle.KeyIdentifier.Identifier
+                        };
+                        result.Add(certKeyInfo);
+                    }
+                    if (certItems.NextPageLink != null)
+                    {
+                        certItems = await _keyVaultClient.GetCertificateVersionsNextAsync(certItems.NextPageLink, ct).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        certItems = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Error while loading the certificate versions for " + id + ".", () => new { ex });
+            }
+            return result;
         }
 
         /// <summary>

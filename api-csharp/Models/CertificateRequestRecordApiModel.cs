@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// Initializes a new instance of the CertificateRequestRecordApiModel
         /// class.
         /// </summary>
-        public CertificateRequestRecordApiModel(string requestId = default(string), string applicationId = default(string), string state = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), string signingRequest = default(string), string subjectName = default(string), IList<string> domainNames = default(IList<string>), string privateKeyFormat = default(string))
+        public CertificateRequestRecordApiModel(string requestId = default(string), string applicationId = default(string), string state = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), bool? signingRequest = default(bool?), string subjectName = default(string), IList<string> domainNames = default(IList<string>), string privateKeyFormat = default(string))
         {
             RequestId = requestId;
             ApplicationId = applicationId;
@@ -77,7 +77,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "SigningRequest")]
-        public string SigningRequest { get; set; }
+        public bool? SigningRequest { get; set; }
 
         /// <summary>
         /// </summary>

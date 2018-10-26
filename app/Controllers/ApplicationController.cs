@@ -3,18 +3,19 @@
 // license information.
 //
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
 using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.TokenStorage;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Utils;
 using Microsoft.Rest;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
 {
@@ -43,96 +44,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             AuthorizeClient();
             var applicationQuery = new QueryApplicationsApiModel();
             var applications = await opcVault.QueryApplicationsAsync(applicationQuery);
-            return View(applications.Applications);
+            var applicationsTrimmed = new List<ApplicationRecordTrimmedApiModel>();
+            foreach (var app in applications.Applications)
+            {
+                applicationsTrimmed.Add(new ApplicationRecordTrimmedApiModel(app));
+            }
+            return View(applicationsTrimmed);
         }
 
-        [ActionName("Register")]
-        public Task<ActionResult> RegisterAsync()
-        {
-            var application = new ApplicationRecordApiModel();
-            UpdateApiModel(application);
-            return Task.FromResult<ActionResult>(View(application));
-        }
-
-        [HttpPost]
-        [ActionName("Register")]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> RegisterAsync(
-            ApplicationRecordApiModel application,
-            string add,
-            string update)
-        {
-            UpdateApiModel(application);
-            if (ModelState.IsValid && String.IsNullOrEmpty(add) && String.IsNullOrEmpty(update))
-            {
-                AuthorizeClient();
-                await opcVault.RegisterApplicationAsync(application);
-                return RedirectToAction("Index");
-            }
-
-            if (!String.IsNullOrEmpty(add))
-            {
-                application.DiscoveryUrls.Add("");
-            }
-
-            return View(application);
-        }
-
-        [HttpPost]
-        [ActionName("Edit")]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> EditAsync(
-            ApplicationRecordApiModel updatedApplication,
-            string add,
-            string update)
-        {
-            UpdateApiModel(updatedApplication);
-
-            if (ModelState.IsValid && String.IsNullOrEmpty(add) && String.IsNullOrEmpty(update))
-            {
-                AuthorizeClient();
-                var application = await opcVault.GetApplicationAsync(updatedApplication.ApplicationId);
-                if (application == null)
-                {
-                    return new NotFoundResult();
-                }
-
-                application.ApplicationName = updatedApplication.ApplicationName;
-                application.ApplicationType = updatedApplication.ApplicationType;
-                application.ProductUri = updatedApplication.ProductUri;
-                application.DiscoveryUrls = updatedApplication.DiscoveryUrls;
-                application.ServerCapabilities = updatedApplication.ServerCapabilities;
-                await opcVault.UpdateApplicationAsync(application.ApplicationId, application);
-                return RedirectToAction("Index");
-            }
-
-            if (!String.IsNullOrEmpty(add))
-            { 
-                    updatedApplication.DiscoveryUrls.Add("");
-            }
-
-            return View(updatedApplication);
-        }
-
-
-        [ActionName("Edit")]
-        public async Task<ActionResult> EditAsync(string id)
-        {
-            if (String.IsNullOrEmpty(id))
-            {
-                return new BadRequestResult();
-            }
-            AuthorizeClient();
-            var application = await opcVault.GetApplicationAsync(id);
-            if (application == null)
-            {
-                return new NotFoundResult();
-            }
-
-            return View(application);
-        }
-
-        [ActionName("Delete")]
+        [ActionName("Unregister")]
         public async Task<ActionResult> DeleteAsync(string id)
         {
             if (String.IsNullOrEmpty(id))
@@ -150,9 +70,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         }
 
         [HttpPost]
-        [ActionName("Delete")]
+        [ActionName("Unregister")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DeleteConfirmedAsync([Bind("Id")] string id)
+        public async Task<ActionResult> UnregisterConfirmedAsync([Bind("Id")] string id)
         {
             AuthorizeClient();
             await opcVault.UnregisterApplicationAsync(id);

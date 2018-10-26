@@ -9,13 +9,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
     using Newtonsoft.Json;
     using System;
 
-    public partial class CertificateDetailsApiModel
+    public partial class CrlDetailsApiModel
     {
         /// <summary>
-        /// Initializes a new instance of the CertificateDetailsCollectionApiModel
+        /// Initializes a new instance of the CrlDetailsApiModel
         /// class.
         /// </summary>
-        public CertificateDetailsApiModel()
+        public CrlDetailsApiModel()
         {
             CustomInit();
         }
@@ -25,23 +25,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
         /// </summary>
         partial void CustomInit();
 
-        [JsonProperty(PropertyName = "Subject")]
-        public string Subject { get; set; }
-
         [JsonProperty(PropertyName = "Issuer")]
         public string Issuer { get; set; }
 
-        [JsonProperty(PropertyName = "Thumbprint")]
-        public string Thumbprint { get; set; }
+        [JsonProperty(PropertyName = "UpdateTime")]
+        public DateTime UpdateTime { get; set; }
 
-        [JsonProperty(PropertyName = "SerialNumber")]
-        public string SerialNumber { get; set; }
-
-        [JsonProperty(PropertyName = "NotBefore")]
-        public DateTime NotBefore { get; set; }
-
-        [JsonProperty(PropertyName = "NotAfter")]
-        public DateTime NotAfter { get; set; }
+        [JsonProperty(PropertyName = "NextUpdateTime")]
+        public DateTime NextUpdateTime { get; set; }
 
         [JsonProperty(PropertyName = "EncodedBase64")]
         public string EncodedBase64 { get; set; }

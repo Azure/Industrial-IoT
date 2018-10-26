@@ -1,0 +1,48 @@
+﻿@model Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models.CrlDetailsApiModel
+
+<h2>View CRL Details</h2>
+
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Issuer)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Issuer)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.UpdateTime)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.UpdateTime)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.NextUpdateTime)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.NextUpdateTime)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.EncodedBase64)
+        </dt>
+
+        <dd>
+            <kbd>
+                @Html.TextAreaFor(model => model.EncodedBase64, 20, 100, htmlAttributes: new { @class = "control-label col-md-10", @readonly = "readonly" })
+            </kbd>
+        </dd>
+    </dl>
+</div>
+
+<div>
+    <hr />
+    <a href="javascript:history.go(-1)">Back</a>
+</div>

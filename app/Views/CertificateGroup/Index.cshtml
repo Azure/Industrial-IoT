@@ -35,11 +35,7 @@
             </td>
             <td>
                 @Html.ActionLink("Details", "Details", new { id = group.Name }) |
-                @Html.ActionLink("Edit", "Edit", new { id = group.Name }) |
-                @Html.ActionLink("Renew", "Renew", new { id = group.Name },
-                        new { onclick = "return confirm('Do you really want to renew the CA certificate for group " + @group.Name + "?')" }) |
-                @Html.ActionLink("Issuer", "DownloadIssuer", new { id = group.Name }) |
-                @Html.ActionLink("Crl", "DownloadIssuerCrl", new { id = group.Name })
+                @Html.ActionLink("Edit", "Edit", new { id = group.Name })
             </td>
         </tr>
     }

@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
     {
         string KeyVaultBaseUrl { get; set; }
         string KeyVaultResourceId { get; set; }
-        bool KeyVaultHSM { get; set; }
         string CosmosDBEndpoint { get; set; }
         string CosmosDBToken { get; set; }
         bool AutoApprove { get; set; }
@@ -24,7 +23,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         public ServicesConfig()
         {
             KeyVaultResourceId = "https://vault.azure.net";
-            KeyVaultHSM = false;
             AutoApprove = false;
         }
 
@@ -32,8 +30,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         public string KeyVaultBaseUrl { get; set; }
         /// <inheritdoc/>
         public string KeyVaultResourceId { get; set; }
-        /// <inheritdoc/>
-        public bool KeyVaultHSM { get; set; }
         /// <inheritdoc/>
         public string CosmosDBEndpoint { get; set; }
         /// <inheritdoc/>

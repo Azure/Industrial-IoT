@@ -21,12 +21,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
 
         public string CertificateTypeId { get; set; }
 
-        public byte[] SigningRequest { get; set; }
+        public bool SigningRequest { get; set; }
 
         public string SubjectName { get; set; }
         public string[] DomainNames { get; set; }
         public string PrivateKeyFormat { get; set; }
-        public string PrivateKeyPassword { get; set; }
 
         public ReadRequestResultModel(
                 CertificateRequest request
@@ -37,11 +36,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
             this.State = request.State;
             this.CertificateGroupId = request.CertificateGroupId;
             this.CertificateTypeId = request.CertificateTypeId;
-            this.SigningRequest = request.SigningRequest;
+            this.SigningRequest = request.SigningRequest != null;
             this.SubjectName = request.SubjectName;
             this.DomainNames = request.DomainNames;
             this.PrivateKeyFormat = request.PrivateKeyFormat;
-            this.PrivateKeyPassword = request.PrivateKeyPassword;
         }
 
         public ReadRequestResultModel(
@@ -53,8 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
                 byte[] certificateRequest,
                 string subjectName,
                 string[] domainNames,
-                string privateKeyFormat,
-                string privateKeyPassword
+                string privateKeyFormat
                 )
         {
             this.RequestId = requestId;
@@ -62,11 +59,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
             this.State = state;
             this.CertificateGroupId = certificateGroupId;
             this.CertificateTypeId = certificateTypeId;
-            this.SigningRequest = certificateRequest;
+            this.SigningRequest = certificateRequest != null;
             this.SubjectName = subjectName;
             this.DomainNames = domainNames;
             this.PrivateKeyFormat = privateKeyFormat;
-            this.PrivateKeyPassword = privateKeyPassword;
         }
     }
 }

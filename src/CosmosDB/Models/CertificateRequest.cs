@@ -13,7 +13,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models
         New,
         Approved,
         Rejected,
-        Accepted
+        Accepted,
+        Deleted,
+        Revoked
     }
 
     [Serializable]
@@ -38,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models
         public DateTime RequestTime { get; set; }
         public DateTime ApproveRejectTime { get; set; }
         public DateTime AcceptTime { get; set; }
-        public string Authority { get; set; }
-
+        public DateTime DeleteTime { get; set; }
+        public DateTime RevokeTime { get; set; }
     }
 }

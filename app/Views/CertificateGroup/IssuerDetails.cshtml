@@ -63,14 +63,26 @@
         </dl>
     }
 </div>
-<hr/>
-<p>
-    @Html.ActionLink("Back to List", "Index")
-    @Html.Raw("&nbsp;|&nbsp;")
-    @Html.ActionLink("Details", "Details", new { id = Model.Name })
-    @Html.Raw("&nbsp;|&nbsp;")
-    @Html.ActionLink("Renew", "Renew", new { id = Model.Name },
-            new { onclick = "return confirm('Do you really want to renew the CA certificate for group " + Model.Name + "?')" })
-    @Html.Raw("&nbsp;|&nbsp;")
-    @Html.ActionLink("Download Issuer", "DownloadIssuer", new { id = Model.Name })
-</p>
+<hr />
+<dl class="dl-horizontal">
+    <dt>Download Certificate</dt>
+    <dd>
+        @Html.ActionLink("Issuer", "DownloadIssuer", new { id = Model.Name }, new { @class = "btn btn-default" })
+        @Html.ActionLink("Crl", "DownloadIssuerCrl", new { id = Model.Name }, new { @class = "btn btn-default" })
+    </dd>
+    <dt>Download as Base64</dt>
+    <dd>
+        @Html.ActionLink("Issuer", "..\\CertificateRequest\\DownloadIssuerBase64", new { groupId = Model.Name }, htmlAttributes: new { @class = "btn btn-default" })
+        @Html.ActionLink("Crl", "..\\CertificateRequest\\DownloadIssuerCrlBase64", new { groupId = Model.Name }, htmlAttributes: new { @class = "btn btn-default" })
+    </dd>
+</dl>
+<hr />
+<div>
+    @Html.ActionLink("Renew CA Certificate", "Renew", new { id = Model.Name },
+            new { @class = "btn btn-warning",
+                onclick = "return confirm('Do you really want to renew the CA certificate for group " + Model.Name + "?')" })
+</div>
+<div>
+    <hr />
+    @Html.ActionLink("Back to Certificate Group Details", "Details", new { id = Model.Name })
+</div>

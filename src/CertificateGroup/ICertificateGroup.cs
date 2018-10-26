@@ -33,6 +33,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             string id,
             X509Certificate2 certificate
             );
+        Task RevokeCertificatesAsync(
+            string id,
+            X509Certificate2Collection certificates);
+
         Task<X509Certificate2> CreateCACertificateAsync(
             string id
             );

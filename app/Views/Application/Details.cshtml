@@ -1,5 +1,11 @@
 ﻿@model Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationRecordApiModel
 
+@{
+    ViewBag.Title = "Application";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    IList<string> AppTypes = new List<string>() { "Server", "Client", "ClientAndServer", "DiscoveryServer" };
+}
+
 <h2>View Application Details</h2>
 
 <div>
@@ -43,7 +49,7 @@
         </dt>
 
         <dd>
-            @Html.DisplayFor(model => model.ApplicationType)
+            @Html.DisplayFor(model => AppTypes[(int)Model.ApplicationType])
         </dd>
 
         <dt>
@@ -53,7 +59,7 @@
         <dd>
             @Html.DisplayFor(model => model.ProductUri)
         </dd>
-
+        <!--
         <dt>
             @Html.DisplayNameFor(model => model.ApplicationNames)
         </dt>
@@ -64,48 +70,56 @@
                 @Html.DisplayFor(model => applicationName.Text)
             </dd>
         }
-
-        <dt>
-            @Html.DisplayNameFor(model => model.DiscoveryUrls)
-        </dt>
-
-        @foreach (var discoveryUrl in Model.DiscoveryUrls)
+        -->
+        @if (Model.DiscoveryUrls != null)
         {
+
+            <dt>
+                @Html.DisplayNameFor(model => model.DiscoveryUrls)
+            </dt>
+
+            @foreach (var discoveryUrl in Model.DiscoveryUrls)
+            {
+                <dd>
+                    @Html.DisplayFor(model => discoveryUrl)
+                </dd>
+            }
+        }
+        @if (Model.ServerCapabilities != null)
+        {
+            <dt>
+                @Html.DisplayNameFor(model => model.ServerCapabilities)
+            </dt>
+
             <dd>
-                @Html.DisplayFor(model => discoveryUrl)
+                @Html.DisplayFor(model => model.ServerCapabilities)
             </dd>
         }
+        <!--
+                <dt>
+                    @Html.DisplayNameFor(model => model.GatewayServerUri)
+                </dt>
 
+                <dd>
+                    @Html.DisplayFor(model => model.GatewayServerUri)
+                </dd>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.ServerCapabilities)
-        </dt>
+                <dt>
+                    @Html.DisplayNameFor(model => model.DiscoveryProfileUri)
+                </dt>
 
-        <dd>
-            @Html.DisplayFor(model => model.ServerCapabilities)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.GatewayServerUri)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.GatewayServerUri)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.DiscoveryProfileUri)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.DiscoveryProfileUri)
-        </dd>
-
+                <dd>
+                    @Html.DisplayFor(model => model.DiscoveryProfileUri)
+                </dd>
+        -->
     </dl>
 </div>
 <p>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.ApplicationId }) |
-    @Html.ActionLink("New KeyPair", "..\\CertificateRequest\\StartNewKeyPair", new { id = Model.ApplicationId }) |
-    @Html.ActionLink("New Certificate", "..\\CertificateRequest\\StartSigning", new { id = Model.ApplicationId }) |
+    @Html.ActionLink("Edit", "..\\Certomat\\Register", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
+    @Html.ActionLink("Unregister", "Unregister", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
+    @Html.ActionLink("Request New Certificate", "..\\Certomat\\Request", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
+</p>
+<p>
+    <hr />
     @Html.ActionLink("Back to List", "Index")
 </p>

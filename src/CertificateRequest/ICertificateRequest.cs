@@ -41,6 +41,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         Task AcceptAsync(
             string requestId);
 
+        Task DeleteAsync(
+            string requestId);
+
+        Task PurgeAsync(
+            string requestId);
+
+        Task RevokeAsync(
+            string requestId);
+
+        Task RevokeGroupAsync(
+            string groupId);
+
         Task<FinishRequestResultModel> FinishRequestAsync(
             string requestId,
             string applicationId

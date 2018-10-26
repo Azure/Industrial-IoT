@@ -6,7 +6,6 @@
 
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
 using Newtonsoft.Json;
-using System;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
@@ -28,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         public string CertificateTypeId { get; set; }
 
         [JsonProperty(PropertyName = "SigningRequest", Order = 35)]
-        public string SigningRequest { get; set; }
+        public bool SigningRequest { get; set; }
 
         [JsonProperty(PropertyName = "SubjectName", Order = 40)]
         public string SubjectName { get; set; }
@@ -45,7 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
             CertificateRequestState state,
             string certificateGroupId,
             string certificateTypeId,
-            byte[] signingRequest,
+            bool signingRequest,
             string subjectName,
             string[] domainNames,
             string privateKeyFormat)
@@ -55,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
             this.State = state.ToString();
             this.CertificateGroupId = certificateGroupId;
             this.CertificateTypeId = certificateTypeId;
-            this.SigningRequest = (signingRequest != null) ? Convert.ToBase64String(signingRequest) : null; 
+            this.SigningRequest = signingRequest;
             this.SubjectName = subjectName;
             this.DomainNames = domainNames;
             this.PrivateKeyFormat = privateKeyFormat;

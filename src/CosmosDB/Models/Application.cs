@@ -33,7 +33,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models
         public string[] DiscoveryUrls { get; set; }
         public string GatewayServerUri { get; set; }
         public string DiscoveryProfileUri { get; set; }
-        public string Authority { get; set; }
+        public string AuthorityId { get; set; }
+        public DateTime CreateTime { get; set; }
+        public DateTime UpdateTime { get; set; }
+
 
     }
 }

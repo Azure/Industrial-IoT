@@ -627,6 +627,154 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             }
 
             /// <summary>
+            /// Read certificate request
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='requestId'>
+            /// </param>
+            public static CertificateRequestRecordApiModel ReadCertificateRequest(this IOpcVault operations, string requestId)
+            {
+                return operations.ReadCertificateRequestAsync(requestId).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Read certificate request
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='requestId'>
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<CertificateRequestRecordApiModel> ReadCertificateRequestAsync(this IOpcVault operations, string requestId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.ReadCertificateRequestWithHttpMessagesAsync(requestId, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Delete request.
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='requestId'>
+            /// </param>
+            public static void DeleteCertificateRequest(this IOpcVault operations, string requestId)
+            {
+                operations.DeleteCertificateRequestAsync(requestId).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Delete request.
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='requestId'>
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task DeleteCertificateRequestAsync(this IOpcVault operations, string requestId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.DeleteCertificateRequestWithHttpMessagesAsync(requestId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Purge request.
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='requestId'>
+            /// </param>
+            public static void PurgeCertificateRequest(this IOpcVault operations, string requestId)
+            {
+                operations.PurgeCertificateRequestAsync(requestId).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Purge request.
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='requestId'>
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task PurgeCertificateRequestAsync(this IOpcVault operations, string requestId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.PurgeCertificateRequestWithHttpMessagesAsync(requestId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Revoke request.
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='requestId'>
+            /// </param>
+            public static void RevokeCertificateRequest(this IOpcVault operations, string requestId)
+            {
+                operations.RevokeCertificateRequestAsync(requestId).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Revoke request.
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='requestId'>
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task RevokeCertificateRequestAsync(this IOpcVault operations, string requestId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.RevokeCertificateRequestWithHttpMessagesAsync(requestId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Revoke all deleted requests.
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='groupId'>
+            /// </param>
+            public static void RevokeGroup(this IOpcVault operations, string groupId)
+            {
+                operations.RevokeGroupAsync(groupId).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Revoke all deleted requests.
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='groupId'>
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task RevokeGroupAsync(this IOpcVault operations, string groupId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.RevokeGroupWithHttpMessagesAsync(groupId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
             /// Query certificate requests
             /// </summary>
             /// <param name='operations'>
@@ -713,38 +861,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             public static async Task<CertificateRequestRecordQueryResponseApiModel> QueryAppRequests1Async(this IOpcVault operations, string state, CancellationToken cancellationToken = default(CancellationToken))
             {
                 using (var _result = await operations.QueryAppRequests1WithHttpMessagesAsync(state, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Read certificate request
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='requestId'>
-            /// </param>
-            public static CertificateRequestRecordApiModel ReadCertificateRequest(this IOpcVault operations, string requestId)
-            {
-                return operations.ReadCertificateRequestAsync(requestId).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Read certificate request
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='requestId'>
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<CertificateRequestRecordApiModel> ReadCertificateRequestAsync(this IOpcVault operations, string requestId, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.ReadCertificateRequestWithHttpMessagesAsync(requestId, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }

@@ -42,11 +42,14 @@
                 @Html.DisplayFor(modelItem => item.ApplicationUri)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.ApplicationId }/*, new { @class = "btn btn-default" }*/) |
+                @Html.ActionLink("Edit", "..\\Certomat\\Register", new { id = item.ApplicationId }/*, new { @class = "btn btn-default" }*/) |
                 @Html.ActionLink("Details", "Details", new { id = item.ApplicationId })  |
-                @Html.ActionLink("Delete", "Delete", new { id = item.ApplicationId }) |
-                @Html.ActionLink("New KeyPair", "..\\CertificateRequest\\StartNewKeyPair", new { id = item.ApplicationId }) |
-                @Html.ActionLink("New Certificate", "..\\CertificateRequest\\StartSigning", new { id = item.ApplicationId })
+                @Html.ActionLink("Unregister", "Unregister", new { id = item.ApplicationId }) |
+                @Html.ActionLink("New Request", "..\\Certomat\\Request", new { id = item.ApplicationId })
+                <!--
+                    @Html.ActionLink("New KeyPair", "..\\CertificateRequest\\StartNewKeyPair", new { id = item.ApplicationId }) |
+                    @Html.ActionLink("New Certificate", "..\\CertificateRequest\\StartSigning", new { id = item.ApplicationId })
+                -->
             </td>
         </tr>
     }

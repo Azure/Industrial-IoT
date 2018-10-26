@@ -4,16 +4,16 @@
 // ------------------------------------------------------------
 
 
-using Microsoft.Azure.IIoT.Exceptions;
-using Newtonsoft.Json;
-using Opc.Ua;
-using Opc.Ua.Gds;
-using Opc.Ua.Gds.Server;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Microsoft.Azure.IIoT.Exceptions;
+using Newtonsoft.Json;
+using Opc.Ua;
+using Opc.Ua.Gds;
+using Opc.Ua.Gds.Server;
 using static Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault.KeyVaultCertFactory;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
@@ -205,18 +205,73 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             X509Certificate2 certificate)
         {
             await LoadPublicAssets().ConfigureAwait(false);
-#if LOADPRIVATEKEY
-            var issuerCert = await LoadSigningKeyAsync(null, null).ConfigureAwait(false);
-#else
-            var issuerCert = Certificate;
-#endif
             var certificates = new X509Certificate2Collection() { certificate };
-            var crls = new List<X509CRL>() { Crl };
-            Crl = RevokeCertificate(issuerCert, crls, certificates,
-                new KeyVaultSignatureGenerator(_keyVaultServiceClient, _caCertKeyIdentifier, Certificate),
-                this.Configuration.CACertificateHashSize);
-            await _keyVaultServiceClient.ImportCACrl(Configuration.Id, Certificate, Crl).ConfigureAwait(false);
-            return Crl;
+            var caCertKeyInfoCollection = await _keyVaultServiceClient.GetCertificateVersionsKeyInfoAsync(Configuration.Id);
+            var authorityKeyIdentifier = FindAuthorityKeyIdentifier(certificate);
+            foreach (var caCertKeyInfo in caCertKeyInfoCollection)
+            {
+                var subjectKeyId = FindSubjectKeyIdentifierExtension(caCertKeyInfo.Certificate);
+                if (Opc.Ua.Utils.CompareDistinguishedName(caCertKeyInfo.Certificate.Subject, certificate.Issuer) &&
+                    String.Equals(authorityKeyIdentifier.SerialNumber, caCertKeyInfo.Certificate.SerialNumber, StringComparison.OrdinalIgnoreCase) &&
+                    String.Equals(authorityKeyIdentifier.KeyId, subjectKeyId.SubjectKeyIdentifier, StringComparison.OrdinalIgnoreCase)
+                    )
+                {
+                    var crl = await _keyVaultServiceClient.LoadCACrl(Configuration.Id, caCertKeyInfo.Certificate);
+                    var crls = new List<X509CRL>() { crl };
+                    var newCrl = RevokeCertificate(caCertKeyInfo.Certificate, crls, certificates,
+                        new KeyVaultSignatureGenerator(_keyVaultServiceClient, caCertKeyInfo.KeyIdentifier, caCertKeyInfo.Certificate),
+                        this.Configuration.CACertificateHashSize);
+                    await _keyVaultServiceClient.ImportCACrl(Configuration.Id, caCertKeyInfo.Certificate, newCrl).ConfigureAwait(false);
+                    Crl = await _keyVaultServiceClient.LoadCACrl(Configuration.Id, Certificate);
+                    return newCrl;
+                }
+            }
+            return null;
+        }
+
+        public async Task RevokeCertificatesAsync(
+            X509Certificate2Collection certificates)
+        {
+            await LoadPublicAssets().ConfigureAwait(false);
+            var caCertKeyInfoCollection = await _keyVaultServiceClient.GetCertificateVersionsKeyInfoAsync(Configuration.Id);
+            foreach (var caCertKeyInfo in caCertKeyInfoCollection)
+            {
+                if (certificates.Count == 0)
+                {
+                    break;
+                }
+
+                var caRevokeCollection = new X509Certificate2Collection();
+                foreach (var cert in certificates)
+                {
+                    var authorityKeyIdentifier = FindAuthorityKeyIdentifier(cert);
+                    var subjectKeyId = FindSubjectKeyIdentifierExtension(caCertKeyInfo.Certificate);
+                    if (Opc.Ua.Utils.CompareDistinguishedName(caCertKeyInfo.Certificate.Subject, cert.Issuer) &&
+                        String.Equals(authorityKeyIdentifier.SerialNumber, caCertKeyInfo.Certificate.SerialNumber, StringComparison.OrdinalIgnoreCase) &&
+                        String.Equals(authorityKeyIdentifier.KeyId, subjectKeyId.SubjectKeyIdentifier, StringComparison.OrdinalIgnoreCase))
+                    {
+                        caRevokeCollection.Add(cert);
+                    }
+                }
+
+                if (caRevokeCollection.Count == 0)
+                {
+                    continue;
+                }
+
+                var crl = await _keyVaultServiceClient.LoadCACrl(Configuration.Id, caCertKeyInfo.Certificate);
+                var crls = new List<X509CRL>() { crl };
+                var newCrl = RevokeCertificate(caCertKeyInfo.Certificate, crls, caRevokeCollection,
+                    new KeyVaultSignatureGenerator(_keyVaultServiceClient, caCertKeyInfo.KeyIdentifier, caCertKeyInfo.Certificate),
+                    this.Configuration.CACertificateHashSize);
+                await _keyVaultServiceClient.ImportCACrl(Configuration.Id, caCertKeyInfo.Certificate, newCrl).ConfigureAwait(false);
+
+                foreach (var cert in caRevokeCollection)
+                {
+                    certificates.Remove(cert);
+                }
+            }
+            Crl = await _keyVaultServiceClient.LoadCACrl(Configuration.Id, Certificate);
         }
 
         public override async Task<X509Certificate2KeyPair> NewKeyPairRequestAsync(
@@ -482,6 +537,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             certTypeMap.Add(Opc.Ua.ObjectTypeIds.RsaSha256ApplicationCertificateType, "RsaSha256ApplicationCertificateType");
             return certTypeMap;
         }
+
+        private static X509AuthorityKeyIdentifierExtension FindAuthorityKeyIdentifier(X509Certificate2 certificate)
+        {
+            for (int ii = 0; ii < certificate.Extensions.Count; ii++)
+            {
+                X509Extension extension = certificate.Extensions[ii];
+
+                switch (extension.Oid.Value)
+                {
+                    case X509AuthorityKeyIdentifierExtension.AuthorityKeyIdentifierOid:
+                    case X509AuthorityKeyIdentifierExtension.AuthorityKeyIdentifier2Oid:
+                        {
+                            return new X509AuthorityKeyIdentifierExtension(extension, extension.Critical);
+                        }
+                }
+            }
+
+            return null;
+        }
+
+        private static X509SubjectKeyIdentifierExtension FindSubjectKeyIdentifierExtension(X509Certificate2 certificate)
+        {
+            for (int ii = 0; ii < certificate.Extensions.Count; ii++)
+            {
+                X509SubjectKeyIdentifierExtension extension = certificate.Extensions[ii] as X509SubjectKeyIdentifierExtension;
+                if (extension != null)
+                {
+                    return extension;
+                }
+            }
+            return null;
+        }
+
+
 
         private KeyVaultServiceClient _keyVaultServiceClient;
         private string _caCertSecretIdentifier;
