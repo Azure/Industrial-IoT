@@ -4,7 +4,7 @@ EXPOSE 9041
 
 FROM microsoft/dotnet:2.1-sdk-nanoserver-1803 AS build
 WORKDIR /src
-COPY src/Microsoft.Azure.IIoT.OpcUa.Services.Twin/src/Microsoft.Azure.IIoT.OpcUa.Services.Twin.csproj src/
+COPY src/Microsoft.Azure.IIoT.OpcUa.Services.Twin/src/Microsoft.Azure.IIoT.OpcUa.Services.Twin.csproj src/Microsoft.Azure.IIoT.OpcUa.Services.Twin/src/
 COPY NuGet.Config NuGet.Config
 RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.OpcUa.Services.Twin/src/Microsoft.Azure.IIoT.OpcUa.Services.Twin.csproj
 COPY . .

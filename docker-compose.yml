@@ -1,7 +1,9 @@
 version: '3'
 services:
   twinregistry:
-    build: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Registry/docker
+    build: 
+      context: .
+      dockerfile: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Registry/docker/Dockerfile
     ports:
       - "9042:9042"
     restart: always
@@ -12,7 +14,9 @@ services:
       - PCS_AUTH_AUDIENCE
       - PCS_CORS_WHITELIST
   twinonboarding:
-    build: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Onboarding/docker
+    build: 
+      context: .
+      dockerfile: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Onboarding/docker/Dockerfile
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
@@ -24,7 +28,9 @@ services:
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
   twinservice:
-    build: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Twin/docker
+    build: 
+      context: .
+      dockerfile: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Twin/docker/Dockerfile
     restart: always
     ports:
       - "9041:9041"
