@@ -118,7 +118,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             var domainNames = Opc.Ua.Utils.GetDomainsFromCertficate(signedCert);
             foreach (var domainName in testApp.DomainNames)
             {
-                Assert.True(domainNames.Contains(domainName, StringComparer.OrdinalIgnoreCase));
+                Assert.Contains(domainName, domainNames, StringComparer.OrdinalIgnoreCase);
             }
             Assert.True(subjectAlternateName.Uris.Count == 1);
             var applicationUri = Opc.Ua.Utils.GetApplicationUriFromCertificate(signedCert);

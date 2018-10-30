@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationRecordApiModel>
+﻿@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models.ApplicationRecordTrimmedApiModel>
 
 @{
     ViewBag.Title = "List of Applications";
@@ -36,10 +36,10 @@
                 </td>
             -->
             <td>
-                @Html.DisplayFor(modelItem => item.ApplicationName)
+                @Html.DisplayFor(modelItem => item.ApplicationNameTrimmed)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.ApplicationUri)
+                @Html.DisplayFor(modelItem => item.ApplicationUriTrimmed)
             </td>
             <td>
                 @Html.ActionLink("Edit", "..\\Certomat\\Register", new { id = item.ApplicationId }/*, new { @class = "btn btn-default" }*/) |

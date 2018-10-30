@@ -63,7 +63,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.354.19-preview" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.354.20-preview" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -82,8 +82,8 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="1.0.0-preview010" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Abstractions" Version="1.0.0-preview010" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="1.0.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Abstractions" Version="1.0.0" />
       </ItemGroup>
     </Otherwise>
   </Choose>

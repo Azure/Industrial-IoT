@@ -294,7 +294,7 @@ namespace Opc.Ua.Gds.Server.Database.OpcVault
                     ApplicationType = (ApplicationType)application.ApplicationType,
                     GatewayServerUri = application.GatewayServerUri,
                     DiscoveryProfileUri = application.DiscoveryProfileUri,
-                    DiscoveryUrls = new StringCollection(application.DiscoveryUrls)
+                    DiscoveryUrls = application.DiscoveryUrls != null ? new StringCollection(application.DiscoveryUrls) : null
                 });
             }
 

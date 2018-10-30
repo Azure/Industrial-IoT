@@ -19,13 +19,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
             RequestId = apiModel.RequestId;
             ApplicationId = apiModel.ApplicationId;
             State = apiModel.State;
-            // reduce view size, add as approbriate
-            //CertificateGroupId = apiModel.CertificateGroupId;
-            //CertificateTypeId = apiModel.CertificateTypeId;
-            //SigningRequest = apiModel.SigningRequest;
+            CertificateGroupId = apiModel.CertificateGroupId;
+            CertificateTypeId = apiModel.CertificateTypeId;
+            SigningRequest = apiModel.SigningRequest;
             SubjectName = apiModel.SubjectName;
-            //DomainNames = apiModel.DomainNames;
-            //PrivateKeyFormat = apiModel.PrivateKeyFormat;
+            DomainNames = apiModel.DomainNames;
+            PrivateKeyFormat = apiModel.PrivateKeyFormat;
             TrimLength = 40;
         }
 

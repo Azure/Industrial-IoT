@@ -125,7 +125,7 @@ namespace Opc.Ua.Gds.Server
 
     public class VaultGlobalDiscoveryServer
     {
-        GlobalDiscoverySampleServer server;
+        OpcVaultGlobalDiscoveryServer server;
         Task status;
         DateTime lastEventTime;
         static ExitCode exitCode;
@@ -174,7 +174,7 @@ namespace Opc.Ua.Gds.Server
             {
                 Console.WriteLine("Server stopped. Waiting for exit...");
 
-                using (GlobalDiscoverySampleServer _server = server)
+                using (OpcVaultGlobalDiscoveryServer _server = server)
                 {
                     // Stop status thread
                     server = null;
@@ -187,7 +187,7 @@ namespace Opc.Ua.Gds.Server
             exitCode = ExitCode.Ok;
         }
 
-        public static ExitCode ExitCode { get => exitCode; }
+        public static ExitCode ExitCode => exitCode;
 
         private static void CertificateValidator_CertificateValidation(CertificateValidator validator, CertificateValidationEventArgs e)
         {
@@ -294,7 +294,8 @@ namespace Opc.Ua.Gds.Server
             var appDB = new OpcVaultApplicationsDatabase(opcVaultServiceClient);
 
             requestDB.Initialize();
-            server = new GlobalDiscoverySampleServer(appDB, requestDB, certGroup, false);
+            // for UNITTEST set auto approve true
+            server = new OpcVaultGlobalDiscoveryServer(appDB, requestDB, certGroup, false);
 
             // start the server.
             await application.Start(server);

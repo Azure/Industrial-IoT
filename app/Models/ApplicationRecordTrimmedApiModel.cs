@@ -17,14 +17,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
         {
             ApplicationUri = apiModel.ApplicationUri;
             ApplicationName = apiModel.ApplicationName;
-            //ignore other data to reduce View size, add later as needed
-            //ApplicationType = apiModel.ApplicationType;
-            //ApplicationNames = apiModel.ApplicationNames;
-            //ProductUri = apiModel.ProductUri;
-            //DiscoveryUrls = apiModel.DiscoveryUrls;
-            //ServerCapabilities = apiModel.ServerCapabilities;
-            //GatewayServerUri = apiModel.GatewayServerUri;
-            //DiscoveryProfileUri = apiModel.DiscoveryProfileUri;
+            ApplicationType = apiModel.ApplicationType;
+            ApplicationNames = apiModel.ApplicationNames;
+            ProductUri = apiModel.ProductUri;
+            DiscoveryUrls = apiModel.DiscoveryUrls;
+            ServerCapabilities = apiModel.ServerCapabilities;
+            GatewayServerUri = apiModel.GatewayServerUri;
+            DiscoveryProfileUri = apiModel.DiscoveryProfileUri;
             TrimLength = 40;
         }
 

@@ -28,16 +28,16 @@
     {
         <tr>
             <td>
-                @Html.ActionLink(request.ApplicationName, "..\\Application\\Details", new { id = request.ApplicationId })
+                @Html.ActionLink(request.ApplicationNameTrimmed, "..\\Application\\Details", new { id = request.ApplicationId })
             </td>
             <td>
-                @Html.ActionLink(request.ApplicationUri, "..\\Application\\Details", new { id = request.ApplicationId })
+                @Html.ActionLink(request.ApplicationUriTrimmed, "..\\Application\\Details", new { id = request.ApplicationId })
             </td>
             <td>
                 @Html.DisplayFor(requestItem => request.State)
             </td>
             <td>
-                @Html.DisplayFor(requestItem => request.SubjectName)
+                @Html.DisplayFor(requestItem => request.SubjectNameTrimmed)
             </td>
             <td>
                 @Html.ActionLink("Details", "Details", new { id = request.RequestId })

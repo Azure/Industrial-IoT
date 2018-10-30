@@ -81,7 +81,8 @@ namespace Opc.Ua.Gds.Server.OpcVault
                         // TODO: Subject may have changed over time
                         if (Utils.CompareDistinguishedName(certificate.Subject, m_subjectName))
                         {
-                            if (null == rootCACertificateChain.Find(X509FindType.FindByThumbprint, certificate.Thumbprint, false))
+                            var certs = rootCACertificateChain.Find(X509FindType.FindByThumbprint, certificate.Thumbprint, false);
+                            if (certs == null || certs.Count == 0)
                             {
                                 Utils.Trace("Delete CA certificate from authority store: " + certificate.Thumbprint);
 
@@ -135,10 +136,43 @@ namespace Opc.Ua.Gds.Server.OpcVault
                     }
                 }
 
-                await UpdateAuthorityCertInTrustedList();
-
+                // load trust list from server
+                var trustList = await _opcVaultHandler.GetTrustListAsync(Configuration.Id).ConfigureAwait(false);
+                await UpdateTrustList(trustList);
             }
+        }
 
+        protected async Task UpdateTrustList(X509TrustList trustList)
+        {
+            await UpdateGroupStore(Configuration.TrustedListPath, trustList.TrustedCertificates, trustList.TrustedCrls);
+            await UpdateGroupStore(Configuration.IssuerListPath, trustList.IssuerCertificates, trustList.IssuerCrls);
+        }
+
+        protected async Task UpdateGroupStore(string storePath, X509Certificate2Collection certs, IList<Opc.Ua.X509CRL> crls)
+        {
+            if (!String.IsNullOrEmpty(storePath))
+            {
+                using (ICertificateStore store = CertificateStoreIdentifier.OpenStore(storePath))
+                {
+                    X509Certificate2Collection oldCertificates = await store.Enumerate();
+                    foreach (var cert in oldCertificates)
+                    {
+                        await store.Delete(cert.Thumbprint);
+                    }
+                    foreach (var crl in store.EnumerateCRLs())
+                    {
+                        store.DeleteCRL(crl);
+                    }
+                    foreach (var cert in certs)
+                    {
+                        await store.Add(cert);
+                    }
+                    foreach (var crl in crls)
+                    {
+                        store.AddCRL(crl);
+                    }
+                }
+            }
         }
 
 #if CERTSIGNER
@@ -313,5 +347,5 @@ namespace Opc.Ua.Gds.Server.OpcVault
         }
 
     }
-#endregion
+    #endregion
 }

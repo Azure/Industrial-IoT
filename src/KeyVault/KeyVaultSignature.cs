@@ -253,19 +253,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         /// </summary>
         private static Org.BouncyCastle.Crypto.Parameters.RsaKeyParameters GetPublicKeyParameter(X509Certificate2 certificate)
         {
-            RSA rsa = null;
-            try
-            {
-                rsa = certificate.GetRSAPublicKey();
+            using (RSA rsa = certificate.GetRSAPublicKey())
+            { 
                 RSAParameters rsaParams = rsa.ExportParameters(false);
                 return new Org.BouncyCastle.Crypto.Parameters.RsaKeyParameters(
                     false,
                     new Org.BouncyCastle.Math.BigInteger(1, rsaParams.Modulus),
                     new Org.BouncyCastle.Math.BigInteger(1, rsaParams.Exponent));
-            }
-            finally
-            {
-                RsaUtils.RSADispose(rsa);
             }
         }
 

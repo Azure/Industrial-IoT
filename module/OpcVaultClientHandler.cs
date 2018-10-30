@@ -3,15 +3,72 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
+using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
 
 namespace Opc.Ua.Gds.Server.OpcVault
 {
+
+    public class X509TrustList
+    {
+        public X509TrustList()
+        {
+            IssuerCrls = new List<Opc.Ua.X509CRL>();
+            TrustedCrls = new List<Opc.Ua.X509CRL>();
+            IssuerCertificates = new X509Certificate2Collection();
+            TrustedCertificates = new X509Certificate2Collection();
+        }
+
+        public void AddIssuerCertificates(X509Certificate2CollectionApiModel model)
+        {
+            AddCertificates(IssuerCertificates, model);
+        }
+
+        public void AddIssuerCrls(X509CrlCollectionApiModel model)
+        {
+            AddCrls(IssuerCrls, model);
+        }
+
+        public void AddTrustedCertificates(X509Certificate2CollectionApiModel model)
+        {
+            AddCertificates(TrustedCertificates, model);
+        }
+
+        public void AddTrustedCrls(X509CrlCollectionApiModel model)
+        {
+            AddCrls(TrustedCrls, model);
+        }
+
+        public X509Certificate2Collection IssuerCertificates { get; }
+        public IList<Opc.Ua.X509CRL> IssuerCrls { get; }
+        public X509Certificate2Collection TrustedCertificates { get; }
+        public IList<Opc.Ua.X509CRL> TrustedCrls { get; }
+
+        private void AddCertificates(X509Certificate2Collection collection, X509Certificate2CollectionApiModel model)
+        {
+            foreach (var certApiModel in model?.Chain)
+            {
+                var cert = new X509Certificate2(Convert.FromBase64String(certApiModel.Certificate));
+                collection.Add(cert);
+            }
+        }
+
+        private void AddCrls(IList<Opc.Ua.X509CRL> collection, X509CrlCollectionApiModel model)
+        {
+            foreach (var certApiModel in model.Chain)
+            {
+                var crl = new Opc.Ua.X509CRL(Convert.FromBase64String(certApiModel.Crl));
+                collection.Add(crl);
+            }
+        }
+
+    };
+
     public class OpcVaultClientHandler
     {
         private IOpcVault _opcServiceClient;
@@ -19,6 +76,7 @@ namespace Opc.Ua.Gds.Server.OpcVault
         {
             _opcServiceClient = opcServiceClient;
         }
+
 
         public async Task<X509Certificate2Collection> GetCACertificateChainAsync(string id)
         {
@@ -67,6 +125,18 @@ namespace Opc.Ua.Gds.Server.OpcVault
             }
             return groupCollection;
         }
+
+        public async Task<X509TrustList> GetTrustListAsync(string id)
+        {
+            var result = new X509TrustList();
+            var trustList = await _opcServiceClient.GetTrustListAsync(id).ConfigureAwait(false);
+            result.AddIssuerCertificates(trustList.IssuerCertificates);
+            result.AddIssuerCrls(trustList.IssuerCrls);
+            result.AddTrustedCertificates(trustList.TrustedCertificates);
+            result.AddTrustedCrls(trustList.TrustedCrls);
+            return result;
+        }
+
 
 #if CERTSIGNER
         public async Task<X509Certificate2> SigningRequestAsync(

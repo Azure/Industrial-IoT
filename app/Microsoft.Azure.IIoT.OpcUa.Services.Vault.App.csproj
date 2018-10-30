@@ -17,7 +17,7 @@
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.1.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.0.1985401" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.354.19-preview" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.354.20-preview" />
   </ItemGroup>
 
   <ItemGroup>

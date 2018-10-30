@@ -3,31 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+using System;
 using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
 using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
 using Microsoft.Rest;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Opc.Ua.Gds.Server.OpcVault
 {
     public class OpcVaultCertificateRequest : ICertificateRequest
     {
-        private Dictionary<NodeId, string> _certTypeMap;
-
         private IOpcVault _opcVaultServiceClient { get; }
         public OpcVaultCertificateRequest(IOpcVault opcVaultServiceClient)
         {
-            this._opcVaultServiceClient = opcVaultServiceClient;
-            this._certTypeMap = new Dictionary<NodeId, string>();
-
-            // list of supported cert type mappings (V1.04)
-            this._certTypeMap.Add(Opc.Ua.ObjectTypeIds.HttpsCertificateType, "HttpsCertificateType");
-            this._certTypeMap.Add(Opc.Ua.ObjectTypeIds.UserCredentialCertificateType, "UserCredentialCertificateType");
-            this._certTypeMap.Add(Opc.Ua.ObjectTypeIds.ApplicationCertificateType, "ApplicationCertificateType");
-            this._certTypeMap.Add(Opc.Ua.ObjectTypeIds.RsaMinApplicationCertificateType, "RsaMinApplicationCertificateType");
-            this._certTypeMap.Add(Opc.Ua.ObjectTypeIds.RsaSha256ApplicationCertificateType, "RsaSha256ApplicationCertificateType");
+            _opcVaultServiceClient = opcVaultServiceClient;
         }
 
         #region ICertificateRequest
@@ -39,8 +27,8 @@ namespace Opc.Ua.Gds.Server.OpcVault
 
         public NodeId StartSigningRequest(
             NodeId applicationId,
-            NodeId certificateGroupId,
-            NodeId certificateTypeId,
+            string certificateGroupId,
+            string certificateTypeId,
             byte[] certificateRequest,
             string authorityId)
         {
@@ -50,19 +38,23 @@ namespace Opc.Ua.Gds.Server.OpcVault
                 throw new ServiceResultException(StatusCodes.BadNotFound, "The ApplicationId is invalid.");
             }
 
-            string certTypeId;
-            if (!_certTypeMap.TryGetValue(certificateTypeId, out certTypeId))
+            if (String.IsNullOrWhiteSpace(certificateTypeId))
             {
                 throw new ServiceResultException(StatusCodes.BadInvalidArgument, "The CertificateTypeId does not refer to a supported CertificateType.");
+            }
+
+            if (String.IsNullOrWhiteSpace(certificateGroupId))
+            {
+                throw new ServiceResultException(StatusCodes.BadInvalidArgument, "The CertificateGroupId does not refer to a supported CertificateGroup.");
             }
 
             try
             {
                 var model = new StartSigningRequestApiModel(
                     appId,
-                    certTypeId,
-                    Convert.ToBase64String(certificateRequest),
-                    certificateGroupId.ToString()
+                    certificateGroupId,
+                    certificateTypeId,
+                    Convert.ToBase64String(certificateRequest)
                     );
 
                 string requestId = _opcVaultServiceClient.StartSigningRequest(model);
@@ -82,8 +74,8 @@ namespace Opc.Ua.Gds.Server.OpcVault
 
         public NodeId StartNewKeyPairRequest(
             NodeId applicationId,
-            NodeId certificateGroupId,
-            NodeId certificateTypeId,
+            string certificateGroupId,
+            string certificateTypeId,
             string subjectName,
             string[] domainNames,
             string privateKeyFormat,
@@ -96,17 +88,22 @@ namespace Opc.Ua.Gds.Server.OpcVault
                 throw new ServiceResultException(StatusCodes.BadInvalidArgument, "The ApplicationId is invalid.");
             }
 
-            string certTypeId;
-            if (!_certTypeMap.TryGetValue(certificateTypeId, out certTypeId))
+            if (String.IsNullOrWhiteSpace(certificateTypeId))
             {
                 throw new ServiceResultException(StatusCodes.BadInvalidArgument, "The CertificateTypeId does not refer to a supported CertificateType.");
             }
+
+            if (String.IsNullOrWhiteSpace(certificateGroupId))
+            {
+                throw new ServiceResultException(StatusCodes.BadInvalidArgument, "The CertificateGroupId does not refer to a supported CertificateGroup.");
+            }
+
             try
             {
                 var model = new StartNewKeyPairRequestApiModel(
                     appId,
-                    certificateGroupId.ToString(),
-                    certTypeId,
+                    certificateGroupId,
+                    certificateTypeId,
                     subjectName,
                     domainNames,
                     privateKeyFormat,
@@ -162,8 +159,8 @@ namespace Opc.Ua.Gds.Server.OpcVault
         public CertificateRequestState FinishRequest(
             NodeId applicationId,
             NodeId requestId,
-            out NodeId certificateGroupId,
-            out NodeId certificateTypeId,
+            out string certificateGroupId,
+            out string certificateTypeId,
             out byte[] signedCertificate,
             out byte[] privateKey)
         {
@@ -191,8 +188,8 @@ namespace Opc.Ua.Gds.Server.OpcVault
 
                 if (state == CertificateRequestState.Approved)
                 {
-                    certificateGroupId = new NodeId(request.AuthorityId);
-                    certificateTypeId = _certTypeMap.FirstOrDefault(x => x.Value == request.CertificateTypeId).Key;
+                    certificateGroupId = request.CertificateGroupId;
+                    certificateTypeId = request.CertificateTypeId;
                     signedCertificate = request.SignedCertificate != null ? Convert.FromBase64String(request.SignedCertificate) : null;
                     privateKey = request.PrivateKey != null ? Convert.FromBase64String(request.PrivateKey) : null;
                 }
@@ -211,8 +208,8 @@ namespace Opc.Ua.Gds.Server.OpcVault
         public CertificateRequestState ReadRequest(
             NodeId applicationId,
             NodeId requestId,
-            out NodeId certificateGroupId,
-            out NodeId certificateTypeId,
+            out string certificateGroupId,
+            out string certificateTypeId,
             out byte[] certificateRequest,
             out string subjectName,
             out string[] domainNames,
@@ -221,6 +218,6 @@ namespace Opc.Ua.Gds.Server.OpcVault
         {
             throw new NotImplementedException();
         }
-#endregion
+        #endregion
     }
 }
