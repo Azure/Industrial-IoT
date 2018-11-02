@@ -4,6 +4,13 @@
 // ------------------------------------------------------------
 
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
@@ -12,13 +19,7 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Rest;
 using Opc.Ua;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using System.Threading.Tasks;
+using static Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault.KeyVaultCertFactory;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 {
@@ -41,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         const string ContentTypePfx = "application/x-pkcs12";
         // see CertificateContentType.Pem
         const string ContentTypePem = "application/x-pem-file";
-        
+
         // trust list tags
         const string TagIssuerList = "Issuer";
         const string TagTrustedList = "Trusted";
@@ -101,7 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
         }
 
-        
+
         /// <summary>
         /// Service client credentials.
         /// </summary>
@@ -333,41 +334,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         public async Task ImportCACertificate(string id, X509Certificate2Collection certificates, bool trusted, CancellationToken ct = default(CancellationToken))
         {
             X509Certificate2 certificate = certificates[0];
-            CertificateAttributes attributes = new CertificateAttributes
-            {
-                Enabled = true,
-                Expires = certificate.NotAfter,
-                NotBefore = certificate.NotBefore,
-            };
-
-            var policy = new CertificatePolicy
-            {
-                IssuerParameters = new IssuerParameters
-                {
-                    Name = "Self"
-                },
-                KeyProperties = new KeyProperties
-                {
-                    Exportable = false,
-                    KeySize = certificate.GetRSAPublicKey().KeySize,
-                    KeyType = _keyStoreHSM ? "RSA-HSM" : "RSA",
-                    ReuseKey = false
-                },
-                SecretProperties = new SecretProperties
-                {
-                    ContentType = CertificateContentType.Pfx
-                },
-                X509CertificateProperties = new X509CertificateProperties
-                {
-                    Subject = certificate.Subject
-                }
-            };
-
-            Dictionary<string, string> tags = new Dictionary<string, string>
-            {
-                [id] = trusted ? TagTrustedList : TagIssuerList
-            };
-
+            var attributes = CreateCertificateAttributes(certificate);
+            var policy = CreateCertificatePolicy(certificate, true);
+            var tags = CreateCertificateTags(id, trusted);
             var result = await _keyVaultClient.ImportCertificateAsync(
                 _vaultBaseUrl,
                 id,
@@ -380,66 +349,123 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         }
 
         /// <summary>
-        /// Creates a new CA certificate in group id, tags it for trusted or issuer store.
+        /// Creates a new Root CA certificate in group id, tags it for trusted or issuer store.
         /// </summary>
-        public async Task CreateCACertificateAsync(string id, X509Certificate2 certificate, bool trusted, CancellationToken ct = default(CancellationToken))
+        public async Task<X509Certificate2> CreateCACertificateAsync(
+            string id,
+            string subject,
+            DateTime notBefore,
+            DateTime notAfter,
+            int keySize,
+            int hashSize,
+            bool trusted,
+            CancellationToken ct = default)
         {
-            CertificateAttributes attributes = new CertificateAttributes
+            try
             {
-                Enabled = true,
-                Expires = certificate.NotAfter,
-                NotBefore = certificate.NotBefore,
-            };
-
-            var policy = new CertificatePolicy
+                // delete pending operations
+                await _keyVaultClient.DeleteCertificateOperationAsync(_vaultBaseUrl, id);
+            }
+            catch
             {
-                IssuerParameters = new IssuerParameters
-                {
-                    Name = "Self",
-                },
-                KeyProperties = new KeyProperties
-                {
-                    Exportable = false,
-                    KeySize = certificate.GetRSAPublicKey().KeySize,
-                    KeyType = _keyStoreHSM ? "RSA-HSM" : "RSA",
-                    ReuseKey = false
-                },
-                SecretProperties = new SecretProperties
-                {
-                    ContentType = CertificateContentType.Pfx
-                },
-                X509CertificateProperties = new X509CertificateProperties
-                {
-                    Subject = certificate.Subject
-                },
-                Attributes = new CertificateAttributes()
-            };
+                // intentionally ignore errors
+            }
 
-            Dictionary<string, string> tags = new Dictionary<string, string>
+            try
             {
-                [id] = trusted ? TagTrustedList : TagIssuerList
-            };
+                // policy self signed, new key
+                var policySelfSignedNewKey = CreateCertificatePolicy(subject, keySize, true, false);
+                var tempAttributes = CreateCertificateAttributes(DateTime.UtcNow.AddMinutes(-10), DateTime.UtcNow.AddMinutes(10));
+                var createKey = await _keyVaultClient.CreateCertificateAsync(
+                    _vaultBaseUrl,
+                    id,
+                    policySelfSignedNewKey,
+                    tempAttributes,
+                    null,
+                    ct)
+                    .ConfigureAwait(false);
+                CertificateOperation operation;
+                do
+                {
+                    await Task.Delay(1000);
+                    operation = await _keyVaultClient.GetCertificateOperationAsync(_vaultBaseUrl, id, ct);
+                } while (operation.Status == "inProgress" && !ct.IsCancellationRequested);
+                if (operation.Status != "completed")
+                {
+                    throw new ServiceResultException(StatusCodes.BadUnexpectedError, "Failed to create new key pair.");
+                }
+                var createdCertificateBundle = await _keyVaultClient.GetCertificateAsync(_vaultBaseUrl, id).ConfigureAwait(false);
+                var caCertKeyIdentifier = createdCertificateBundle.KeyIdentifier.Identifier;
+                var caTempCertIdentifier = createdCertificateBundle.CertificateIdentifier.Identifier;
 
-            var result2 = await _keyVaultClient.CreateCertificateAsync(
-                _vaultBaseUrl,
-                id,
-                policy,
-                attributes,
-                tags,
-                ct)
-                .ConfigureAwait(false);
+                // policy unknown issuer, reuse key
+                var policyUnknownReuse = CreateCertificatePolicy(subject, keySize, false, true);
+                var attributes = CreateCertificateAttributes(notBefore, notAfter);
+                var tags = CreateCertificateTags(id, trusted);
 
-            var result = await _keyVaultClient.ImportCertificateAsync(
-                _vaultBaseUrl,
-                id,
-                new X509Certificate2Collection(certificate),
-                policy,
-                attributes,
-                tags,
-                ct)
-                .ConfigureAwait(false);
+                // create the CSR
+                var createResult = await _keyVaultClient.CreateCertificateAsync(
+                    _vaultBaseUrl,
+                    id,
+                    policyUnknownReuse,
+                    attributes,
+                    tags,
+                    ct)
+                    .ConfigureAwait(false);
+
+                if (createResult.Csr == null)
+                {
+                    throw new ServiceResultException(StatusCodes.BadInvalidArgument, "Failed to read CSR from CreateCertificate.");
+                }
+
+                // decode the CSR and verify consistency
+                var pkcs10CertificationRequest = new Org.BouncyCastle.Pkcs.Pkcs10CertificationRequest(createResult.Csr);
+                var info = pkcs10CertificationRequest.GetCertificationRequestInfo();
+                if (createResult.Csr == null ||
+                    pkcs10CertificationRequest == null ||
+                    !pkcs10CertificationRequest.Verify())
+                {
+                    throw new ServiceResultException(StatusCodes.BadInvalidArgument, "Invalid CSR.");
+                }
+
+                // create the self signed root CA cert
+                var asn1Decoder = new ASN1Decoder(info.SubjectPublicKeyInfo.GetDerEncoded());
+                var publicKey = asn1Decoder.GetRSAPublicKey();
+                var signedcert = await KeyVaultCertFactory.CreateSignedCertificate(
+                    null,
+                    null,
+                    subject,
+                    null,
+                    (ushort)keySize,
+                    notBefore,
+                    notAfter,
+                    (ushort)hashSize,
+                    null,
+                    publicKey,
+                    new KeyVaultSignatureGenerator(this, caCertKeyIdentifier, null),
+                    true);
+
+                // merge Root CA cert with 
+                var mergeResult = await _keyVaultClient.MergeCertificateAsync(
+                    _vaultBaseUrl,
+                    id,
+                    new X509Certificate2Collection(signedcert)
+                    );
+
+                // disable the temp cert for self signing operation
+                var attr = new CertificateAttributes()
+                {
+                    Enabled = false
+                };
+                await _keyVaultClient.UpdateCertificateAsync(caTempCertIdentifier, null, attr);
+
+                return signedcert;
+            }
+            catch
+            {
+                throw new ServiceResultException(StatusCodes.BadInternalError, "Failed to create new Root CA certificate");
+            }
         }
-
 
         /// <summary>
         /// Imports a new CRL for group id.
@@ -575,6 +601,140 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             }
 
             return trustList;
+        }
+
+        /// <summary>
+        /// Purge all CRL and Certificates groups. Use for unit test only!
+        /// </summary>
+        public async Task PurgeAsync(CancellationToken ct = default(CancellationToken))
+        {
+            var secretItems = await _keyVaultClient.GetSecretsAsync(_vaultBaseUrl, MaxResults, ct).ConfigureAwait(false);
+            while (secretItems != null)
+            {
+                foreach (var secretItem in secretItems.Where(s => s.ContentType == ContentTypeCrl))
+                {
+                    try
+                    {
+                        var deletedSecretBundle = await _keyVaultClient.DeleteSecretAsync(_vaultBaseUrl, secretItem.Identifier.Name, ct);
+                        await _keyVaultClient.PurgeDeletedSecretAsync(_vaultBaseUrl, secretItem.Identifier.Name, ct);
+                    }
+                    catch
+                    {
+                        // intentionally fall through, purge may fail
+                    }
+                }
+
+                if (secretItems.NextPageLink != null)
+                {
+                    secretItems = await _keyVaultClient.GetSecretsNextAsync(secretItems.NextPageLink, ct).ConfigureAwait(false);
+                }
+                else
+                {
+                    secretItems = null;
+                }
+            }
+
+            var certItems = await _keyVaultClient.GetCertificatesAsync(_vaultBaseUrl, MaxResults, true, ct).ConfigureAwait(false);
+            while (certItems != null)
+            {
+                foreach (var certItem in certItems)
+                {
+                    try
+                    {
+                        var deletedCertBundle = await _keyVaultClient.DeleteCertificateAsync(_vaultBaseUrl, certItem.Identifier.Name, ct);
+                        await _keyVaultClient.PurgeDeletedCertificateAsync(_vaultBaseUrl, certItem.Identifier.Name, ct);
+                    }
+                    catch
+                    {
+                        // intentionally fall through, purge may fail
+                    }
+
+                }
+                if (certItems.NextPageLink != null)
+                {
+                    certItems = await _keyVaultClient.GetCertificatesNextAsync(certItems.NextPageLink, ct).ConfigureAwait(false);
+                }
+                else
+                {
+                    certItems = null;
+                }
+            }
+        }
+
+
+        private Dictionary<string, string> CreateCertificateTags(string id, bool trusted)
+        {
+            Dictionary<string, string> tags = new Dictionary<string, string>
+            {
+                [id] = trusted ? TagTrustedList : TagIssuerList
+            };
+            return tags;
+        }
+
+        private CertificateAttributes CreateCertificateAttributes(
+            X509Certificate2 certificate
+            )
+        {
+            return CreateCertificateAttributes(certificate.NotBefore, certificate.NotAfter);
+        }
+
+        private CertificateAttributes CreateCertificateAttributes(
+            DateTime notBefore,
+            DateTime notAfter
+            )
+        {
+            var attributes = new CertificateAttributes
+            {
+                Enabled = true,
+                NotBefore = notBefore,
+                Expires = notAfter
+            };
+            return attributes;
+        }
+
+
+        private CertificatePolicy CreateCertificatePolicy(
+            X509Certificate2 certificate,
+            bool selfSigned)
+        {
+            int keySize;
+            using (RSA rsa = certificate.GetRSAPublicKey())
+            {
+                keySize = rsa.KeySize;
+                return CreateCertificatePolicy(certificate.Subject, rsa.KeySize, selfSigned);
+            }
+        }
+
+        private CertificatePolicy CreateCertificatePolicy(
+            string subject,
+            int keySize,
+            bool selfSigned,
+            bool reuseKey = false)
+        {
+
+            var policy = new CertificatePolicy
+            {
+                IssuerParameters = new IssuerParameters
+                {
+                    Name = selfSigned ? "Self" : "Unknown"
+                },
+                KeyProperties = new KeyProperties
+                {
+                    Exportable = false,
+                    KeySize = keySize,
+                    KeyType = _keyStoreHSM ? "RSA-HSM" : "RSA",
+                    ReuseKey = reuseKey
+                },
+                SecretProperties = new SecretProperties
+                {
+                    ContentType = CertificateContentType.Pfx
+                },
+                X509CertificateProperties = new X509CertificateProperties
+                {
+                    Subject = subject
+                }
+            };
+            return policy;
         }
 
         private string CrlSecretName(string name, X509Certificate2 certificate)

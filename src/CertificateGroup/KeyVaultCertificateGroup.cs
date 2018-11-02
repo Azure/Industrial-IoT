@@ -174,10 +174,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         }
 
         /// <inheritdoc/>
-        public async Task RevokeCertificatesAsync(string id, X509Certificate2Collection certificates)
+        public async Task<X509Certificate2Collection> RevokeCertificatesAsync(string id, X509Certificate2Collection certificates)
         {
             var certificateGroup = await KeyVaultCertificateGroupProvider.Create(_keyVaultServiceClient, id).ConfigureAwait(false);
-            await certificateGroup.RevokeCertificatesAsync(certificates).ConfigureAwait(false);
+            return await certificateGroup.RevokeCertificatesAsync(certificates).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -250,6 +250,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         public async Task<KeyVaultTrustListModel> GetTrustListAsync(string id)
         {
             return await _keyVaultServiceClient.GetTrustListAsync(id).ConfigureAwait(false);
+        }
+
+        public async Task PurgeAsync()
+        {
+            await _keyVaultServiceClient.PurgeAsync().ConfigureAwait(false);
         }
 
         private async Task<X509Certificate2Collection> GetCertificateVersionsAsync(string id)

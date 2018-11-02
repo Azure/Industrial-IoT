@@ -32,12 +32,25 @@
       <StorePath>%LocalApplicationData%/Microsoft/GDS/PKI/rejected</StorePath>
     </RejectedCertificateStore>
 
+    
     <!-- The GDS server must accept connections from any client -->
     <AutoAcceptUntrustedCertificates>true</AutoAcceptUntrustedCertificates>
     
     <!-- WARNING: SHA1 signed certficates are by default rejected and should be phased out. -->
     <RejectSHA1SignedCertificates>false</RejectSHA1SignedCertificates>
     <MinimumCertificateKeySize>1024</MinimumCertificateKeySize>
+    
+    <!-- Where the User issuer certificates are stored -->
+    <UserIssuerCertificates>
+      <StoreType>Directory</StoreType>
+      <StorePath>%LocalApplicationData%/Microsoft/GDS/PKI/issuerUser</StorePath>
+    </UserIssuerCertificates>
+
+    <!-- Where the User trust list is stored-->
+    <TrustedUserCertificates>
+      <StoreType>Directory</StoreType>
+      <StorePath>%LocalApplicationData%/Microsoft/GDS/PKI/trustedUser</StorePath>
+    </TrustedUserCertificates>
 
   </SecurityConfiguration>
   
@@ -62,7 +75,7 @@
     <SecurityPolicies>
       <ServerSecurityPolicy>
         <SecurityMode>SignAndEncrypt_3</SecurityMode>
-        <SecurityPolicyUri>http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256</SecurityPolicyUri>
+        <SecurityPolicyUri></SecurityPolicyUri>
       </ServerSecurityPolicy>
     </SecurityPolicies>
     <UserTokenPolicies>
@@ -70,9 +83,13 @@
         <ua:TokenType>Anonymous_0</ua:TokenType>
         <ua:SecurityPolicyUri>http://opcfoundation.org/UA/SecurityPolicy#None</ua:SecurityPolicyUri>
       </ua:UserTokenPolicy>
+      <!--
       <ua:UserTokenPolicy>
         <ua:TokenType>UserName_1</ua:TokenType>
-        <ua:SecurityPolicyUri>http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256</ua:SecurityPolicyUri>
+      </ua:UserTokenPolicy>
+      -->
+      <ua:UserTokenPolicy>
+        <ua:TokenType>Certificate_2</ua:TokenType>
       </ua:UserTokenPolicy>
     </UserTokenPolicies>
     <DiagnosticsEnabled>true</DiagnosticsEnabled>

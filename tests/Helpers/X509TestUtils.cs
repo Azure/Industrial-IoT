@@ -3,21 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Opc.Ua;
 using System;
-using System.Linq;
+using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
+using Opc.Ua;
 using Xunit;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
 {
-
     public class X509TestUtils
     {
         public static void VerifyApplicationCertIntegrity(
-            X509Certificate2 newCert, 
-            byte[] privateKey, 
-            string privateKeyPassword, 
+            X509Certificate2 newCert,
+            byte[] privateKey,
+            string privateKeyPassword,
             string privateKeyFormat,
             X509Certificate2Collection issuerCertificates)
         {
@@ -91,7 +93,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.DigitalSignature) == X509KeyUsageFlags.DigitalSignature);
             Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.EncipherOnly) == 0);
             Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.KeyAgreement) == 0);
-            Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.KeyCertSign) == X509KeyUsageFlags.KeyCertSign);
+            Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.KeyCertSign) == 0);
             Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.KeyEncipherment) == X509KeyUsageFlags.KeyEncipherment);
             Assert.True((keyUsage.KeyUsages & X509KeyUsageFlags.NonRepudiation) == X509KeyUsageFlags.NonRepudiation);
 
@@ -123,6 +125,74 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             Assert.True(subjectAlternateName.Uris.Count == 1);
             var applicationUri = Opc.Ua.Utils.GetApplicationUriFromCertificate(signedCert);
             Assert.True(testApp.ApplicationRecord.ApplicationUri == applicationUri);
+
+            CertificateIdentifierCollection issuerCertIdCollection = new CertificateIdentifierCollection();
+            foreach (var cert in issuerCerts)
+            {
+                issuerCertIdCollection.Add(new CertificateIdentifier(cert));
+            }
+
+            // verify cert with issuer chain
+            CertificateValidator certValidator = new CertificateValidator();
+            CertificateTrustList issuerStore = new CertificateTrustList();
+            CertificateTrustList trustedStore = new CertificateTrustList();
+            trustedStore.TrustedCertificates = issuerCertIdCollection;
+            certValidator.Update(trustedStore, issuerStore, null);
+            Assert.Throws<Opc.Ua.ServiceResultException>(() =>
+            {
+                certValidator.Validate(signedCert);
+            });
+            issuerStore.TrustedCertificates = issuerCertIdCollection;
+            certValidator.Update(issuerStore, trustedStore, null);
+            certValidator.Validate(signedCert);
+
+        }
+
+        internal static async Task<CertificateValidator> CreateValidatorAsync(KeyVaultTrustListModel trustList)
+        {
+            var storePath = "%LocalApplicationData%/OPCVaultTest/pki/";
+            DeleteDirectory(storePath);
+
+            // verify cert with issuer chain
+            var certValidator = new CertificateValidator();
+            var issuerTrustList = await CreateTrustListAsync(
+                storePath + "issuer",
+                trustList.IssuerCertificates,
+                trustList.IssuerCrls
+                );
+            var trustedTrustList = await CreateTrustListAsync(
+                storePath + "trusted",
+                trustList.TrustedCertificates,
+                trustList.TrustedCrls
+                );
+
+            certValidator.Update(issuerTrustList, trustedTrustList, null);
+            return certValidator;
+        }
+
+        internal static async Task<CertificateTrustList> CreateTrustListAsync(
+            string storePath, 
+            X509Certificate2Collection certCollection,
+            IList<X509CRL> crlCollection)
+        {
+            var certTrustList = new CertificateTrustList();
+            certTrustList.StoreType = CertificateStoreType.Directory;
+            certTrustList.StorePath = storePath;
+            using (var store = certTrustList.OpenStore())
+            {
+                foreach (var cert in certCollection)
+                {
+                    await store.Add(cert);
+                }
+                if (store.SupportsCRLs)
+                {
+                    foreach (var crl in crlCollection)
+                    {
+                        store.AddCRL(crl);
+                    }
+                }
+            }
+            return certTrustList;
         }
 
         internal static X509BasicConstraintsExtension FindBasicConstraintsExtension(X509Certificate2 certificate)
@@ -208,7 +278,66 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             return null;
         }
 
+        public static void CleanupTrustList(ICertificateStore _store)
+        {
+            using (var store = _store)
+            {
+                var certs = store.Enumerate().Result;
+                foreach (var cert in certs)
+                {
+                    store.Delete(cert.Thumbprint);
+                }
+                var crls = store.EnumerateCRLs();
+                foreach (var crl in crls)
+                {
+                    store.DeleteCRL(crl);
+                }
+            }
+        }
 
+        public static void DeleteDirectory(string storePath)
+        {
+            try
+            {
+                string fullStorePath = Opc.Ua.Utils.ReplaceSpecialFolderNames(storePath);
+                if (Directory.Exists(fullStorePath))
+                {
+                    Directory.Delete(fullStorePath, true);
+                }
+            }
+            catch
+            {
+                // intentionally ignore errors
+            }
+        }
+    }
+
+    public static class X509CRLExtension
+    {
+        internal static void AddRange<T>(this IList<T> list, IEnumerable<T> items)
+        {
+            if (list == null)
+            {
+                throw new ArgumentNullException("list");
+            }
+
+            if (items == null)
+            {
+                throw new ArgumentNullException("items");
+            }
+
+            if (list is List<T>)
+            {
+                ((List<T>)list).AddRange(items);
+            }
+            else
+            {
+                foreach (var item in items)
+                {
+                    list.Add(item);
+                }
+            }
+        }
     }
 
 }
