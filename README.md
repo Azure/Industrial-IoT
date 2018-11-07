@@ -540,12 +540,12 @@ Build your own container and then start the container:
 
     docker run <your-container-name> <applicationname> [<iothubconnectionstring>] [options]
 
-## Using a container from hub.docker.com
+## Using a container from Microsoft Container Registry
 There is a prebuilt container available on DockerHub. To start it, just do:
 
     docker run mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
-## Using it as a module (container) in Azure IoT Edge
+## Using it as a module in Azure IoT Edge
 OPC Publisher is ready to be used as a module to run in [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge) Microsoft's Intelligent Edge framework.
 We recommend to take a look on the information available on the beforementioned link and use then the information provided here.
 
@@ -554,11 +554,11 @@ To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure 
 * Select `Set Modules`.
 * Select `Add`under `Deployment Modules`and then `IoT Edge Module`.
 * In the `Name` field, enter `publisher`.
-* In the `Image URI` field, enter `mcr.microsoft.com/iotedge/opc-publisher` The tags available can be found on [Docker Hub](https://hub.docker.com/r/microsoft/iot-edge-opc-publisher/)
+* In the `Image URI` field, enter `mcr.microsoft.com/iotedge/opc-publisher:<tag>` You must specify `<tag>` otherwise IoT Edge will try to pull the nonexistent tag 1.0. The tags available can be found on [Docker Hub](https://hub.docker.com/r/microsoft/iot-edge-opc-publisher/)
 * Paste the following into the `Container Create Options` field:
 
         {
-            "Hostname": "publixher",
+            "Hostname": "publisher",
             "Cmd": [
                 "publisher",
                 "--pf=./pn.json",
@@ -568,6 +568,9 @@ To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure 
                 "--si=0",
                 "--ms=0"
             ],
+            "ExposedPorts": {
+                "62222/tcp": {}
+            }, 
             "HostConfig": {
                 "PortBindings": {
                     "62222/tcp": [{
@@ -584,6 +587,10 @@ To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure 
             }
         }
 
+Here the same with less whitespaces:
+
+        { "Hostname": "publisher", "Cmd": [ "publisher", "--pf=./pn.json", "--di=60", "--to", "--aa", "--si=0", "--ms=0" ], "ExposedPorts": { "62222/tcp": {} }, "HostConfig": { "PortBindings": { "62222/tcp": [{ "HostPort": "62222" }] }, "Binds": [ "d:/iiotedge:/appdata" ], "ExtraHosts": [ "localhost:127.0.0.1", "opctestsvr:192.168.178.26" ] } }
+
 * Here a short explanation of the effects which this configuration will have:
   * This configuration will configure IoT Edge to start a container named `publisher`.
   * The hostname will be set to `publisher`.
@@ -594,9 +601,10 @@ To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure 
   * OPC Publisher will write diagnostic information each 60 seconds to the console (`--di=60`).
   * The log file `publisher-publisher.log` (default name) will be written to `/appdata` and the `CertificateStores` directory will also be created in this directory.
   * OPC Publisher will trust the OPC servers it connects to (`--aa`) will put its own public certificate into the `CertificateStores/trusted/certs`(`--to`) and will send if any value of the published configured nodes changes, immediately a message to IoTHub (`--si=0 ---ms=0`). 
-  * Port 62222 of the container will be exposed to the host system. This is the port on which OPC Publisher's integrated OPC UA server listens. So you can connect with an OPC UA client and call OPC UA methods to configure the nodes to (un)publish.
+  * Port 62222 of the container will be exposed to the host system because of the `ExposedPorts' configuration. This is the port on which OPC Publisher's integrated OPC UA server listens. So you can connect with an OPC UA client and call OPC UA methods to configure the nodes to (un)publish.
   * The `ExtraHosts` configuration enables the container's network stack to do hostname name resolution even without DNS. (Note: on Windows hosts this is essential to configure)
     On my system with the hostname `opctestsvr` and the IPv4 address `192.168.178.26`i run a OPC UA server and my pn.json which i have put in `d:\iiotedge` has the following content:
+
         [
           {
             "EndpointUrl": "opc.tcp://opctestsvr:51210/UA/SampleServer",
@@ -607,6 +615,7 @@ To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure 
             ]
           }
         ]
+
     This allows OPC Publisher to access the OPC UA server running outside of docker on my local dev machine `opctestsvr`.
   * The `d://iiotedge:/appdata` bind will map the directory `/appdata` (which is the current working directory on container startup) to the host directory `d://iiotedge`.
   * This is obviously a configuration for a Windows host. On a Linux host you specify a full qualified Linux path (e.g. `/iiotedge`). 
@@ -615,16 +624,7 @@ To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure 
 * This [reference (here the link to the V1.37 API)](https://docs.docker.com/engine/api/v1.37/#operation/ContainerCreate) explains which `Container Create Options` exist and what the meaning of it is.
 * You can adjust the command line parameters in the `Cmd` object of the IoT Edge module configuration to fit your needs. You can use all available OPC Publisher options as shown in the usage above.
 * Leave the other settings unchanged and select `Save`.
-* Back in the `Set Modules` page, select `Next`
-* Add the following route in the `Specify Routes` page:
-
-        {
-           "routes":{
-              "upstream":"FROM /* INTO $upstream"
-           }
-        }
-
-* Select `Next`
+* Back in the `Set Modules` page, select `Next`, till you reach the last page of the configuration.
 * Select `Submit` to send your configuration down to IoT Edge
 * When you have started IoT Edge on your edge device and the docker container `publisher` is started, you can check out the log output of OPC Publisher either by
   using `docker logs -f publisher` or by checking the logfile (in our example above `d:\iiotegde\publisher-publisher.log` content.
