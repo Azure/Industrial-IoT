@@ -48,14 +48,14 @@ namespace OpcPublisher
 
         public static string PublisherServerSecurityPolicy { get; set; } = SecurityPolicies.Basic128Rsa15;
 
-        public static string OpcOwnCertStoreType { get; set; } = X509Store;
+        public static string OpcOwnCertStoreType { get; set; } = Directory;
 
 
         public static string OpcOwnCertDirectoryStorePathDefault => "CertificateStores/own";
 
         public static string OpcOwnCertX509StorePathDefault => "CurrentUser\\UA_MachineDefault";
 
-        public static string OpcOwnCertStorePath { get; set; } = OpcOwnCertX509StorePathDefault;
+        public static string OpcOwnCertStorePath { get; set; } = OpcOwnCertDirectoryStorePathDefault;
 
         public static string OpcTrustedCertStoreType { get; set; } = Directory;
 
