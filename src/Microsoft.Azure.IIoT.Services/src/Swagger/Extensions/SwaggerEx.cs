@@ -135,14 +135,17 @@ namespace Swashbuckle.AspNetCore.Swagger {
         /// <returns></returns>
         private static string GetAuthorityUrl(IClientConfig config) {
             var authority = config.Authority;
-            if (string.IsNullOrEmpty(authority)) {
+            if (string.IsNullOrEmpty(authority))
+            {
                 authority = "https://login.microsoftonline.com/";
+                var tenantId = config.TenantId;
+                if (string.IsNullOrEmpty(tenantId))
+                {
+                    tenantId = "common";
+                }
+                return authority + tenantId;
             }
-            var tenantId = config.TenantId;
-            if (string.IsNullOrEmpty(tenantId)) {
-                tenantId = "common";
-            }
-            return authority + tenantId;
+            return authority;
         }
 
         /// <summary>
