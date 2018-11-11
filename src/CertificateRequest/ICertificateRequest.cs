@@ -51,7 +51,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             string requestId);
 
         Task RevokeGroupAsync(
-            string groupId);
+            string groupId,
+            bool? allVersions);
 
         Task<FinishRequestResultModel> FinishRequestAsync(
             string requestId,
@@ -61,9 +62,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         Task<ReadRequestResultModel> ReadAsync(
             string requestId);
 
-        Task<ReadRequestResultModel[]> QueryAsync(
+        Task<(string, ReadRequestResultModel[])> QueryPageAsync(
             string appId, 
-            CertificateRequestState? state);
+            CertificateRequestState? state,
+            string NextPageLink,
+            int? maxResults = null
+            );
 
     }
 

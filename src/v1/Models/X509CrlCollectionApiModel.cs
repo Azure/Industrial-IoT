@@ -14,7 +14,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         [JsonProperty(PropertyName = "Chain", Order = 10)]
         public X509CrlApiModel[] Chain { get; set; }
 
-        public X509CrlCollectionApiModel(IList<Opc.Ua.X509CRL> crls)
+        [JsonProperty(PropertyName = "NextPageLink", Order = 20)]
+        public string NextPageLink { get; set; }
+
+        public X509CrlCollectionApiModel(IList<Opc.Ua.X509CRL> crls, string nextPageLink = null)
         {
             var chain = new List<X509CrlApiModel>();
             foreach (var crl in crls)
@@ -23,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
                 chain.Add(crlApiModel);
             }
             this.Chain = chain.ToArray();
+            this.NextPageLink = nextPageLink;
         }
 
     }

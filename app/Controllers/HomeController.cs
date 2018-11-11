@@ -3,10 +3,10 @@
 // license information.
 //
 
+using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models;
-using System.Diagnostics;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
 {

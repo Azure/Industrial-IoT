@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using Newtonsoft.Json;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
@@ -13,8 +13,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
     {
         [JsonProperty(PropertyName = "Chain", Order = 10)]
         public X509Certificate2ApiModel[] Chain { get; set; }
+        [JsonProperty(PropertyName = "NextPageLink", Order = 20)]
+        public string NextPageLink { get; set; }
 
-        public X509Certificate2CollectionApiModel(X509Certificate2Collection certificateCollection)
+
+        public X509Certificate2CollectionApiModel(X509Certificate2Collection certificateCollection, string nextPageLink = null)
         {
             var chain = new List<X509Certificate2ApiModel>();
             foreach (var cert in certificateCollection)
@@ -23,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
                 chain.Add(certApiModel);
             }
             this.Chain = chain.ToArray();
+            this.NextPageLink = nextPageLink;
         }
 
     }

@@ -18,10 +18,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         /// <summary>
         /// Continuation token to use
         /// </summary>
-        [JsonProperty(PropertyName = "ContinuationToken", Order = 20)]
-        public string ContinuationToken { get; set; }
+        [JsonProperty(PropertyName = "NextPageLink", Order = 20)]
+        public string NextPageLink { get; set; }
 
-        public CertificateRequestRecordQueryResponseApiModel(ReadRequestResultModel[] requests)
+        public CertificateRequestRecordQueryResponseApiModel(ReadRequestResultModel[] requests, string nextPageLink)
         {
             List<CertificateRequestRecordApiModel> requestList = new List<CertificateRequestRecordApiModel>();
             foreach (ReadRequestResultModel request in requests)
@@ -38,6 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
                 request.PrivateKeyFormat));
             }
             Requests = requestList.ToArray();
+            NextPageLink = nextPageLink;
         }
 
     }

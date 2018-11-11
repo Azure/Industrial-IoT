@@ -125,6 +125,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// </param>
         Task<HttpOperationResponse<QueryApplicationsResponseApiModel>> QueryApplicationsWithHttpMessagesAsync(QueryApplicationsApiModel query = default(QueryApplicationsApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
+        /// <summary>
+        /// Query applications
+        /// </summary>
+        /// <param name='query'>
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<QueryApplicationsPageResponseApiModel>> QueryApplicationsPageWithHttpMessagesAsync(QueryApplicationsPageApiModel query = default(QueryApplicationsPageApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
         /// </param>
@@ -194,39 +207,96 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// </summary>
         /// <param name='groupId'>
         /// </param>
+        /// <param name='maxResults'>
+        /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
         /// </param>
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<X509Certificate2CollectionApiModel>> GetCACertificateChainWithHttpMessagesAsync(string groupId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<X509Certificate2CollectionApiModel>> GetCACertificateChainWithHttpMessagesAsync(string groupId, int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Get CA Certificate chain
+        /// </summary>
+        /// <param name='groupId'>
+        /// </param>
+        /// <param name='nextPageLink'>
+        /// </param>
+        /// <param name='maxResults'>
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<X509Certificate2CollectionApiModel>> GetCACertificateChainNextWithHttpMessagesAsync(string groupId, string nextPageLink = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Get CA CRL chain
         /// </summary>
         /// <param name='groupId'>
         /// </param>
+        /// <param name='maxResults'>
+        /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
         /// </param>
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<X509CrlCollectionApiModel>> GetCACrlChainWithHttpMessagesAsync(string groupId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<X509CrlCollectionApiModel>> GetCACrlChainWithHttpMessagesAsync(string groupId, int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Get CA CRL chain
+        /// </summary>
+        /// <param name='groupId'>
+        /// </param>
+        /// <param name='nextPageLink'>
+        /// </param>
+        /// <param name='maxResults'>
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<X509CrlCollectionApiModel>> GetCACrlChainNextWithHttpMessagesAsync(string groupId, string nextPageLink = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Get trust list
         /// </summary>
         /// <param name='groupId'>
         /// </param>
+        /// <param name='maxResults'>
+        /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
         /// </param>
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<TrustListApiModel>> GetTrustListWithHttpMessagesAsync(string groupId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<TrustListApiModel>> GetTrustListWithHttpMessagesAsync(string groupId, int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Get trust list
+        /// </summary>
+        /// <param name='groupId'>
+        /// </param>
+        /// <param name='nextPageLink'>
+        /// </param>
+        /// <param name='maxResults'>
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<TrustListApiModel>> GetTrustListNextWithHttpMessagesAsync(string groupId, string nextPageLink = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Create new CA Certificate
@@ -352,42 +422,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// </summary>
         /// <param name='groupId'>
         /// </param>
+        /// <param name='allVersions'>
+        /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
         /// </param>
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse> RevokeGroupWithHttpMessagesAsync(string groupId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse> RevokeGroupWithHttpMessagesAsync(string groupId, bool? allVersions = default(bool?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Query certificate requests
         /// </summary>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>> QueryRequestsWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Query certificate requests by appId
-        /// </summary>
         /// <param name='appId'>
         /// </param>
+        /// <param name='requestState'>
+        /// </param>
+        /// <param name='maxResults'>
+        /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
         /// </param>
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>> QueryAppRequestsWithHttpMessagesAsync(string appId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>> QueryRequestsWithHttpMessagesAsync(string appId = default(string), string requestState = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Query certificate requests by state
+        /// Query certificate requests
         /// </summary>
-        /// <param name='state'>
+        /// <param name='nextPageLink'>
+        /// </param>
+        /// <param name='appId'>
+        /// </param>
+        /// <param name='requestState'>
+        /// </param>
+        /// <param name='maxResults'>
         /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
@@ -395,7 +466,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>> QueryAppRequests1WithHttpMessagesAsync(string state, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>> QueryRequestsNextWithHttpMessagesAsync(string nextPageLink = default(string), string appId = default(string), string requestState = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Complete certificate request

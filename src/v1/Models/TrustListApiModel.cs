@@ -27,6 +27,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         [JsonProperty(PropertyName = "TrustedCrls", Order = 50)]
         public X509CrlCollectionApiModel TrustedCrls { get; set; }
 
+        [JsonProperty(PropertyName = "NextPageLink", Order = 60)]
+        public string NextPageLink { get; set; }
+
         public TrustListApiModel(KeyVaultTrustListModel keyVaultTrustList)
         {
             Id = keyVaultTrustList.Id;
@@ -34,6 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
             IssuerCrls = new X509CrlCollectionApiModel(keyVaultTrustList.IssuerCrls);
             TrustedCertificates = new X509Certificate2CollectionApiModel(keyVaultTrustList.TrustedCertificates);
             TrustedCrls = new X509CrlCollectionApiModel(keyVaultTrustList.TrustedCrls);
+            NextPageLink = keyVaultTrustList.NextPageLink;
         }
 
     }

@@ -30,11 +30,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// Initializes a new instance of the
         /// CertificateRequestRecordQueryResponseApiModel class.
         /// </summary>
-        /// <param name="continuationToken">Continuation token to use</param>
-        public CertificateRequestRecordQueryResponseApiModel(IList<CertificateRequestRecordApiModel> requests = default(IList<CertificateRequestRecordApiModel>), string continuationToken = default(string))
+        /// <param name="nextPageLink">Continuation token to use</param>
+        public CertificateRequestRecordQueryResponseApiModel(IList<CertificateRequestRecordApiModel> requests = default(IList<CertificateRequestRecordApiModel>), string nextPageLink = default(string))
         {
             Requests = requests;
-            ContinuationToken = continuationToken;
+            NextPageLink = nextPageLink;
             CustomInit();
         }
 
@@ -51,8 +51,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// Gets or sets continuation token to use
         /// </summary>
-        [JsonProperty(PropertyName = "ContinuationToken")]
-        public string ContinuationToken { get; set; }
+        [JsonProperty(PropertyName = "NextPageLink")]
+        public string NextPageLink { get; set; }
 
     }
 }

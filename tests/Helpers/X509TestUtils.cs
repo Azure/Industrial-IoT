@@ -318,12 +318,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         {
             if (list == null)
             {
-                throw new ArgumentNullException("list");
+                throw new ArgumentNullException(nameof(list));
             }
 
             if (items == null)
             {
-                throw new ArgumentNullException("items");
+                throw new ArgumentNullException(nameof(items));
             }
 
             if (list is List<T>)
@@ -338,6 +338,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                 }
             }
         }
+
+        internal static void AddRange(this KeyVaultTrustListModel list, KeyVaultTrustListModel items)
+        {
+            if (list == null)
+            {
+                throw new ArgumentNullException(nameof(list));
+            }
+
+            if (items == null)
+            {
+                throw new ArgumentNullException(nameof(items));
+            }
+
+            list.TrustedCertificates.AddRange(items.TrustedCertificates);
+            list.TrustedCrls.AddRange(items.TrustedCrls);
+            list.IssuerCertificates.AddRange(items.IssuerCertificates);
+            list.IssuerCrls.AddRange(items.IssuerCrls);
+        }
+
     }
 
 }

@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
     {
         // services config
         private const string OpcVaultKey = "OpcVault";
+        private const string SwaggerKey = "Swagger";
 
         /// <summary>
         /// Configuration constructor
@@ -44,7 +45,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
             base(processId, configuration) {
             ServicesConfig = new ServicesConfig();
             configuration.Bind(OpcVaultKey, ServicesConfig);
-            _swagger = new SwaggerConfig(configuration, serviceId);
+            SwaggerConfig = new SwaggerConfig();
+            configuration.Bind(SwaggerKey, SwaggerConfig);
             _auth = new AuthConfig(configuration, serviceId);
             _cors = new CorsConfig(configuration);
         }
@@ -64,13 +66,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         /// <inheritdoc/>
         public string Audience => _auth.Audience;
         /// <inheritdoc/>
-        public bool UIEnabled => _swagger.UIEnabled;
+        public bool UIEnabled => SwaggerConfig.Enabled;
         /// <inheritdoc/>
-        public bool WithAuth => _swagger.WithAuth;
+        public bool WithAuth => !String.IsNullOrEmpty(_auth.AppId);
         /// <inheritdoc/>
-        public string SwaggerAppId => _swagger.SwaggerAppId;
+        public string SwaggerAppId => SwaggerConfig.AppId;
         /// <inheritdoc/>
-        public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
+        public string SwaggerAppSecret => SwaggerConfig.AppSecret;
         /// <inheritdoc/>
         public bool AuthRequired => _auth.AuthRequired;
         /// <inheritdoc/>
@@ -80,8 +82,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
 
         /// <summary>Service layer configuration</summary>
         public IServicesConfig ServicesConfig { get; }
+        public SwaggerConfig SwaggerConfig { get; }
 
-        private readonly SwaggerConfig _swagger;
         private readonly AuthConfig _auth;
         private readonly CorsConfig _cors;
     }

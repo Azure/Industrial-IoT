@@ -3,6 +3,10 @@
 // license information.
 //
 
+using System;
+using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +16,6 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.TokenStorage;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Utils;
 using Microsoft.Rest;
-using System;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
 {

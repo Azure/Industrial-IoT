@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// </summary>
         [HttpDelete("{applicationId}")]
         [SwaggerOperation(OperationId = "UnregisterApplication")]
-        [Authorize(Policy = Policies.CanWrite)]
+        [Authorize(Policy = Policies.CanManage)]
         public async Task UnregisterApplicationAsync(string applicationId)
         {
             await _applicationDatabase.UnregisterApplicationAsync(applicationId);
@@ -117,5 +117,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
                 );
             return new QueryApplicationsResponseApiModel(result);
         }
+
+        /// <summary>Query applications</summary>
+        [HttpPost("querypage")]
+        [SwaggerOperation(OperationId = "QueryApplicationsPage")]
+        public async Task<QueryApplicationsPageResponseApiModel> QueryApplicationsPageAsync([FromBody] QueryApplicationsPageApiModel query)
+        {
+            if (query == null)
+            {
+                // query all
+                query = new QueryApplicationsPageApiModel(null, null, 0, null, null);
+            }
+            var result = await _applicationDatabase.QueryApplicationsPageAsync(
+                query.ApplicationName,
+                query.ApplicationUri,
+                query.ApplicationType,
+                query.ProductUri,
+                query.ServerCapabilities,
+                query.NextPageLink,
+                query.MaxRecordsToReturn);
+            return new QueryApplicationsPageResponseApiModel(result);
+        }
+
     }
 }

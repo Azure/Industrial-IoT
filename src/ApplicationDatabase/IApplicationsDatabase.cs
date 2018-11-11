@@ -26,5 +26,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             string productUri,
             string[] serverCapabilities
             );
+        Task<QueryApplicationsPageResponseModel> QueryApplicationsPageAsync(
+            string applicationName, 
+            string applicationUri, 
+            uint applicationType, 
+            string productUri, 
+            string[] serverCapabilities, 
+            string nextPageLink, 
+            int maxRecordsToReturn);
     }
 }

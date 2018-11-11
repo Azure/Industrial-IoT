@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
     /// </summary>
     public class KeyVaultServiceClient
     {
-        const int MaxResults = 10;
+        const int MaxResults = 5;
         const string ContentTypeJson = "application/json";
         // see RFC 2585
         const string ContentTypeCert = "application/pkix-cert";
@@ -521,11 +521,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         /// ii) Then walk all CA cert versions and load all certs tagged with id==Issuer or id==Trusted. 
         ///     Crl is loaded too if CA cert is tagged.
         /// </summary>
-        public async Task<Models.KeyVaultTrustListModel> GetTrustListAsync(string id, CancellationToken ct = default(CancellationToken))
+        public async Task<Models.KeyVaultTrustListModel> GetTrustListAsync(string id, int? maxResults, string nextPageLink, CancellationToken ct = default)
         {
             var trustList = new Models.KeyVaultTrustListModel(id);
-            var secretItems = await _keyVaultClient.GetSecretsAsync(_vaultBaseUrl, MaxResults, ct).ConfigureAwait(false);
+            if (maxResults == null)
+            {
+                maxResults = MaxResults;
+            }
 
+            Rest.Azure.IPage<SecretItem> secretItems = null;
+            if (nextPageLink != null)
+            {
+                if (nextPageLink.Contains("/secrets"))
+                {
+                    secretItems = await _keyVaultClient.GetSecretsNextAsync(nextPageLink, ct).ConfigureAwait(false);
+                }
+            }
+            else
+            {
+                secretItems = await _keyVaultClient.GetSecretsAsync(_vaultBaseUrl, maxResults, ct).ConfigureAwait(false);
+            }
+
+            int results = 0;
             while (secretItems != null)
             {
                 foreach (var secretItem in secretItems.Where(s => s.Tags != null))
@@ -551,12 +568,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                             crl = await LoadCrlSecret(secretItem.Identifier.Name, ct).ConfigureAwait(false);
                             crlCollection.Add(crl);
                         }
+                        results++;
                     }
                 }
 
                 if (secretItems.NextPageLink != null)
                 {
-                    secretItems = await _keyVaultClient.GetSecretsNextAsync(secretItems.NextPageLink, ct).ConfigureAwait(false);
+                    if (results >= maxResults)
+                    {
+                        trustList.NextPageLink = secretItems.NextPageLink;
+                        return trustList;
+                    }
+                    else
+                    {
+                        secretItems = await _keyVaultClient.GetSecretsNextAsync(secretItems.NextPageLink, ct).ConfigureAwait(false);
+                    }
                 }
                 else
                 {
@@ -564,7 +590,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 }
             }
 
-            var certItems = await _keyVaultClient.GetCertificateVersionsAsync(_vaultBaseUrl, id, MaxResults, ct).ConfigureAwait(false);
+            Rest.Azure.IPage<CertificateItem> certItems = null;
+            if (nextPageLink != null)
+            {
+                certItems = await _keyVaultClient.GetCertificateVersionsNextAsync(nextPageLink, ct).ConfigureAwait(false);
+            }
+            else
+            {
+                certItems = await _keyVaultClient.GetCertificateVersionsAsync(_vaultBaseUrl, id, maxResults, ct).ConfigureAwait(false);
+            }
+
             while (certItems != null)
             {
                 foreach (var certItem in certItems.Where(c => c.Tags != null))
@@ -588,11 +623,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                             trustList.TrustedCertificates.Add(cert);
                             trustList.TrustedCrls.Add(crl);
                         }
+                        results++;
                     }
                 }
                 if (certItems.NextPageLink != null)
                 {
-                    certItems = await _keyVaultClient.GetCertificateVersionsNextAsync(certItems.NextPageLink, ct).ConfigureAwait(false);
+                    if (results >= maxResults)
+                    {
+                        trustList.NextPageLink = certItems.NextPageLink;
+                        return trustList;
+                    }
+                    else
+                    {
+                        certItems = await _keyVaultClient.GetCertificateVersionsNextAsync(certItems.NextPageLink, ct).ConfigureAwait(false);
+                    }
                 }
                 else
                 {

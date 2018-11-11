@@ -32,25 +32,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         {
             var appDictionary = new Dictionary<string, ApplicationRecordApiModel>();
             AuthorizeClient();
-            var requests = await opcVault.QueryRequestsAsync();
+            string nextPageLink = null;
             var indexRequests = new List<CertificateRequestIndexApiModel>();
-            foreach (var request in requests.Requests)
+            var requests = await opcVault.QueryRequestsAsync();
+            while (requests != null)
             {
-                var indexRequest = new CertificateRequestIndexApiModel(request);
-                ApplicationRecordApiModel application;
-                if (!appDictionary.TryGetValue(request.ApplicationId, out application))
+                foreach (var request in requests.Requests)
                 {
-                    application = await opcVault.GetApplicationAsync(request.ApplicationId);
-                }
+                    var indexRequest = new CertificateRequestIndexApiModel(request);
+                    ApplicationRecordApiModel application;
+                    if (!appDictionary.TryGetValue(request.ApplicationId, out application))
+                    {
+                        application = await opcVault.GetApplicationAsync(request.ApplicationId);
+                    }
 
-                if (application != null)
-                {
-                    appDictionary[request.ApplicationId] = application;
-                    indexRequest.ApplicationName = application.ApplicationName;
-                    indexRequest.ApplicationUri = application.ApplicationUri;
+                    if (application != null)
+                    {
+                        appDictionary[request.ApplicationId] = application;
+                        indexRequest.ApplicationName = application.ApplicationName;
+                        indexRequest.ApplicationUri = application.ApplicationUri;
+                    }
+                    indexRequests.Add(indexRequest);
                 }
-                indexRequests.Add(indexRequest);
+                if (requests.NextPageLink == null)
+                {
+                    break;
+                }
+                nextPageLink = requests.NextPageLink;
+                requests = await opcVault.QueryRequestsNextAsync(nextPageLink);
             }
+
             return View(indexRequests);
         }
     }

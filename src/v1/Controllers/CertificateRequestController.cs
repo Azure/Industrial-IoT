@@ -4,16 +4,17 @@
 // ------------------------------------------------------------
 
 
+using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models;
 using Swashbuckle.AspNetCore.Annotations;
-using System;
-using System.Threading.Tasks;
-using System.Diagnostics.Contracts;
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
@@ -152,39 +153,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         [SwaggerOperation(OperationId = "RevokeGroup")]
         [Authorize(Policy = Policies.CanSign)]
 
-        public async Task PostRevokeGroupAsync(string groupId)
+        public async Task PostRevokeGroupAsync(string groupId, bool? allVersions)
         {
             var onBehalfOfCertificateRequest = await this._certificateRequest.OnBehalfOfRequest(Request);
-            await onBehalfOfCertificateRequest.RevokeGroupAsync(groupId);
+            await onBehalfOfCertificateRequest.RevokeGroupAsync(groupId, allVersions);
         }
 
         /// <summary>Query certificate requests</summary>
-        [HttpGet]
+        [HttpGet("query")]
         [SwaggerOperation(OperationId = "QueryRequests")]
-        public async Task<CertificateRequestRecordQueryResponseApiModel> QueryRequestsAsync()
+        public async Task<CertificateRequestRecordQueryResponseApiModel> QueryRequestsPageAsync(string appId, string requestState, int? maxResults)
         {
-            var results = await _certificateRequest.QueryAsync(null, null);
-            return new CertificateRequestRecordQueryResponseApiModel(results);
+            CertificateRequestState? parsedState = null;
+            if (requestState != null)
+            {
+                parsedState = (CertificateRequestState)Enum.Parse(typeof(CertificateRequestState), requestState);
+            }
+            ReadRequestResultModel[] results;
+            string nextPageLink;
+            (nextPageLink, results) = await _certificateRequest.QueryPageAsync(appId, parsedState, null, maxResults);
+            return new CertificateRequestRecordQueryResponseApiModel(results, nextPageLink);
         }
 
-        /// <summary>Query certificate requests by appId</summary>
-        [HttpGet("app/{appId}")]
-        [SwaggerOperation(OperationId = "QueryAppRequests")]
-        public async Task<CertificateRequestRecordQueryResponseApiModel> QueryAppRequestsAsync(string appId)
+        /// <summary>Query certificate requests</summary>
+        [HttpPost("querynext")]
+        [SwaggerOperation(OperationId = "QueryRequestsNext")]
+        public async Task<CertificateRequestRecordQueryResponseApiModel> QueryRequestsNextAsync([FromBody] string nextPageLink, string appId, string requestState, int? maxResults)
         {
-            var results = await _certificateRequest.QueryAsync(appId, null);
-            return new CertificateRequestRecordQueryResponseApiModel(results);
-        }
-
-        /// <summary>Query certificate requests by state</summary>
-        [HttpGet("state/{state}")]
-        [SwaggerOperation(OperationId = "QueryAppRequests")]
-        public async Task<CertificateRequestRecordQueryResponseApiModel> QueryStateRequestsAsync(string state)
-        {
-            Contract.Requires(string.IsNullOrEmpty(state) == false);
-            // todo: parse state
-            var results = await _certificateRequest.QueryAsync(null, null);
-            return new CertificateRequestRecordQueryResponseApiModel(results);
+            CertificateRequestState? parsedState = null;
+            if (requestState != null)
+            {
+                parsedState = (CertificateRequestState)Enum.Parse(typeof(CertificateRequestState), requestState);
+            }
+            ReadRequestResultModel[] results;
+            (nextPageLink, results) = await _certificateRequest.QueryPageAsync(appId, parsedState, nextPageLink, maxResults);
+            return new CertificateRequestRecordQueryResponseApiModel(results, nextPageLink);
         }
 
         /// <summary>Read certificate request</summary>

@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         Task<Opc.Ua.Gds.Server.CertificateGroupConfigurationCollection> GetCertificateGroupConfigurationCollection();
         Task<X509Certificate2Collection> GetCACertificateChainAsync(string id);
         Task<IList<Opc.Ua.X509CRL>> GetCACrlChainAsync(string id);
-        Task<KeyVaultTrustListModel> GetTrustListAsync(string id);
+        Task<KeyVaultTrustListModel> GetTrustListAsync(string id, int? maxResults, string nextPageLink);
 
         Task<X509Certificate2> SigningRequestAsync(
             string id,

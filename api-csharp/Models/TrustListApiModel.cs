@@ -26,13 +26,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// Initializes a new instance of the TrustListApiModel class.
         /// </summary>
-        public TrustListApiModel(string id = default(string), X509Certificate2CollectionApiModel issuerCertificates = default(X509Certificate2CollectionApiModel), X509CrlCollectionApiModel issuerCrls = default(X509CrlCollectionApiModel), X509Certificate2CollectionApiModel trustedCertificates = default(X509Certificate2CollectionApiModel), X509CrlCollectionApiModel trustedCrls = default(X509CrlCollectionApiModel))
+        public TrustListApiModel(string id = default(string), X509Certificate2CollectionApiModel issuerCertificates = default(X509Certificate2CollectionApiModel), X509CrlCollectionApiModel issuerCrls = default(X509CrlCollectionApiModel), X509Certificate2CollectionApiModel trustedCertificates = default(X509Certificate2CollectionApiModel), X509CrlCollectionApiModel trustedCrls = default(X509CrlCollectionApiModel), string nextPageLink = default(string))
         {
             Id = id;
             IssuerCertificates = issuerCertificates;
             IssuerCrls = issuerCrls;
             TrustedCertificates = trustedCertificates;
             TrustedCrls = trustedCrls;
+            NextPageLink = nextPageLink;
             CustomInit();
         }
 
@@ -65,6 +66,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// </summary>
         [JsonProperty(PropertyName = "TrustedCrls")]
         public X509CrlCollectionApiModel TrustedCrls { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "NextPageLink")]
+        public string NextPageLink { get; set; }
 
     }
 }

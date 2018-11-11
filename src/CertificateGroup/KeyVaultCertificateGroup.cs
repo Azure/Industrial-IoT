@@ -247,16 +247,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         }
 
         /// <inheritdoc/>
-        public async Task<KeyVaultTrustListModel> GetTrustListAsync(string id)
+        public async Task<KeyVaultTrustListModel> GetTrustListAsync(string id, int? maxResults = null, string nextPageLink = null)
         {
-            return await _keyVaultServiceClient.GetTrustListAsync(id).ConfigureAwait(false);
+            return await _keyVaultServiceClient.GetTrustListAsync(id, maxResults, nextPageLink).ConfigureAwait(false);
         }
 
+        /// <inheritdoc/>
         public async Task PurgeAsync()
         {
             await _keyVaultServiceClient.PurgeAsync().ConfigureAwait(false);
         }
 
+        /// <inheritdoc/>
         private async Task<X509Certificate2Collection> GetCertificateVersionsAsync(string id)
         {
             return await _keyVaultServiceClient.GetCertificateVersionsAsync(id).ConfigureAwait(false);

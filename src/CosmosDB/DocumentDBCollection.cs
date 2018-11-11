@@ -5,18 +5,19 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
 {
-    using Microsoft.Azure.Documents;
-    using Microsoft.Azure.Documents.Client;
-    using Microsoft.Azure.Documents.Linq;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Threading.Tasks;
+    using Microsoft.Azure.Documents;
+    using Microsoft.Azure.Documents.Client;
+    using Microsoft.Azure.Documents.Linq;
 
     /// <inheritdoc/>
     public class DocumentDBCollection<T> : IDocumentDBCollection<T> where T : class
     {
+        const int DefaultMaxItemCount = 10;
         /// <inheritdoc/>
         public DocumentCollection Collection { get; private set; }
         private readonly IDocumentDBRepository db;
@@ -87,6 +88,73 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
             }
 
             return results;
+        }
+
+
+        /// <inheritdoc/>
+        public async Task<(string, IEnumerable<T>)> GetPageAsync(
+            Expression<Func<T, bool>> predicate,
+            string continuationToken,
+            int? maxItemCount
+            )
+        {
+            FeedOptions feedOptions = new FeedOptions
+            {
+                MaxItemCount = maxItemCount ?? DefaultMaxItemCount,
+                RequestContinuation = continuationToken
+            };
+            IDocumentQuery<T> query = db.Client.CreateDocumentQuery<T>(
+                UriFactory.CreateDocumentCollectionUri(db.DatabaseId, CollectionId),
+                feedOptions)
+            .Where(predicate)
+            .AsDocumentQuery();
+
+            List<T> results = new List<T>();
+            FeedResponse<T> queryResult = null;
+            while (query.HasMoreResults)
+            {
+                queryResult = await query.ExecuteNextAsync<T>();
+                results.AddRange(queryResult);
+                if (queryResult.ResponseContinuation != null)
+                {
+                    break;
+                }
+            }
+
+            return (queryResult.ResponseContinuation, results);
+        }
+
+        /// <inheritdoc/>
+        public async Task<(string, IEnumerable<T>)> GetPageAsync(
+            string predicate,
+            string continuationToken,
+            int? maxItemCount
+            )
+        {
+            FeedOptions feedOptions = new FeedOptions
+            {
+                MaxItemCount = maxItemCount ?? DefaultMaxItemCount,
+                RequestContinuation = continuationToken
+            };
+            IDocumentQuery<T> query = db.Client.CreateDocumentQuery<T>(
+                UriFactory.CreateDocumentCollectionUri(db.DatabaseId, CollectionId),
+                predicate,
+                feedOptions)
+            .AsDocumentQuery();
+
+            List<T> results = new List<T>();
+            FeedResponse<T> queryResult = null;
+            while (query.HasMoreResults)
+            {
+                queryResult = await query.ExecuteNextAsync<T>();
+                results.AddRange(queryResult);
+                if (queryResult.ResponseContinuation != null)
+                {
+                    break;
+                }
+            }
+
+            return (queryResult.ResponseContinuation, results);
         }
 
         /// <inheritdoc/>

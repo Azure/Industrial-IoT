@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
     internal sealed class CosmosDBApplicationsDatabase : IApplicationsDatabase
     {
+        const int DefaultRecordsPerQuery = 10;
         private readonly ILogger _log;
         private readonly string Endpoint;
         private readonly SecureString AuthKeyOrResourceToken;
@@ -146,11 +147,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
             ICertificateRequest certificateRequestsService = Scope.Resolve<ICertificateRequest>();
             // mark all requests as deleted
-            var certificateRequests = await certificateRequestsService.QueryAsync(appId.ToString(), null);
-            foreach (var request in certificateRequests)
+            ReadRequestResultModel[] certificateRequests;
+            string nextPageLink = null;
+            do
             {
-                await certificateRequestsService.DeleteAsync(request.RequestId);
-            }
+                (nextPageLink, certificateRequests) = await certificateRequestsService.QueryPageAsync(appId.ToString(), null, nextPageLink);
+                foreach (var request in certificateRequests)
+                {
+                    await certificateRequestsService.DeleteAsync(request.RequestId);
+                }
+            } while (nextPageLink != null);
 
             await Applications.DeleteAsync(appId);
         }
@@ -192,7 +198,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             uint nextRecordId = 0;
 
             List<Application> records = new List<Application>();
-            const uint defaultRecordsPerQuery = 10;
 
             bool matchQuery = false;
             bool complexQuery =
@@ -212,7 +217,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             bool lastQuery = false;
             do
             {
-                uint queryRecords = complexQuery ? defaultRecordsPerQuery : maxRecordsToReturn;
+                uint queryRecords = complexQuery ? DefaultRecordsPerQuery : maxRecordsToReturn;
                 string query = CreateServerQuery(startingRecordId, queryRecords);
                 nextRecordId = startingRecordId + 1;
                 var applications = await Applications.GetAsync(query);
@@ -282,7 +287,105 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
             return new QueryApplicationsResponseModel(records.ToArray(), lastCounterResetTime, nextRecordId);
         }
+
+        public async Task<QueryApplicationsPageResponseModel> QueryApplicationsPageAsync(
+            string applicationName,
+            string applicationUri,
+            uint applicationType,
+            string productUri,
+            string[] serverCapabilities,
+            string nextPageLink,
+            int maxRecordsToReturn)
+        {
+            List<Application> records = new List<Application>();
+            bool matchQuery = false;
+            bool complexQuery =
+                !String.IsNullOrEmpty(applicationName) ||
+                !String.IsNullOrEmpty(applicationUri) ||
+                !String.IsNullOrEmpty(productUri) ||
+                (serverCapabilities != null && serverCapabilities.Length > 0);
+
+            if (complexQuery)
+            {
+                matchQuery =
+                    ApplicationsDatabaseBase.IsMatchPattern(applicationName) ||
+                    ApplicationsDatabaseBase.IsMatchPattern(applicationUri) ||
+                    ApplicationsDatabaseBase.IsMatchPattern(productUri);
+            }
+
+            if (maxRecordsToReturn < 0)
+            {
+                maxRecordsToReturn = DefaultRecordsPerQuery;
+            }
+            string query = CreateServerQuery(0, 0);
+            do
+            {
+                IEnumerable<Application> applications;
+                (nextPageLink, applications) = await Applications.GetPageAsync(query, nextPageLink, maxRecordsToReturn - records.Count);
+
+                foreach (var application in applications)
+                {
+                    if (!String.IsNullOrEmpty(applicationName))
+                    {
+                        if (!ApplicationsDatabaseBase.Match(application.ApplicationName, applicationName))
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (!String.IsNullOrEmpty(applicationUri))
+                    {
+                        if (!ApplicationsDatabaseBase.Match(application.ApplicationUri, applicationUri))
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (!String.IsNullOrEmpty(productUri))
+                    {
+                        if (!ApplicationsDatabaseBase.Match(application.ProductUri, productUri))
+                        {
+                            continue;
+                        }
+                    }
+
+                    string[] capabilities = null;
+                    if (!String.IsNullOrEmpty(application.ServerCapabilities))
+                    {
+                        capabilities = application.ServerCapabilities.Split(',');
+                    }
+
+                    if (serverCapabilities != null && serverCapabilities.Length > 0)
+                    {
+                        bool match = true;
+                        for (int ii = 0; ii < serverCapabilities.Length; ii++)
+                        {
+                            if (capabilities == null || !capabilities.Contains(serverCapabilities[ii]))
+                            {
+                                match = false;
+                                break;
+                            }
+                        }
+
+                        if (!match)
+                        {
+                            continue;
+                        }
+                    }
+
+                    records.Add(application);
+
+                    if (maxRecordsToReturn > 0 && records.Count >= maxRecordsToReturn)
+                    {
+                        break;
+                    }
+                }
+            } while (nextPageLink != null);
+
+            return new QueryApplicationsPageResponseModel(records.ToArray(), nextPageLink);
+        }
         #endregion
+
         #region Private Members
         private void Initialize()
         {

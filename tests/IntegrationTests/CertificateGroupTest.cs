@@ -324,7 +324,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             }
         }
 
-        [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(1000)]
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(3000)]
         public async Task GetTrustListAsync()
         {
             SkipOnInvalidConfiguration();
@@ -333,7 +333,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             string[] groups = await keyVault.GetCertificateGroupIds();
             foreach (string group in groups)
             {
-                var trustList = await keyVault.GetTrustListAsync(group);
+                var trustList = await keyVault.GetTrustListAsync(group, 2);
+                string nextPageLink = trustList.NextPageLink;
+                while (nextPageLink != null)
+                {
+                    var nextTrustList = await keyVault.GetTrustListAsync(group, 2, nextPageLink);
+                    trustList.AddRange(nextTrustList);
+                    nextPageLink = nextTrustList.NextPageLink;
+                }
                 var validator = X509TestUtils.CreateValidatorAsync(trustList);
             }
         }
@@ -361,6 +368,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             foreach (string group in groups)
             {
                 var trustList = await keyVault.GetTrustListAsync(group);
+                string nextPageLink = trustList.NextPageLink;
+                while (nextPageLink != null)
+                {
+                    var nextTrustList = await keyVault.GetTrustListAsync(group, null, nextPageLink);
+                    trustList.AddRange(nextTrustList);
+                    nextPageLink = nextTrustList.NextPageLink;
+                }
                 var validator = await X509TestUtils.CreateValidatorAsync(trustList);
                 foreach (var cert in certCollection)
                 {
@@ -381,10 +395,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             foreach (string group in groups)
             {
                 var trustList = await keyVault.GetTrustListAsync(group);
-                trustListAllGroups.IssuerCertificates.AddRange(trustList.IssuerCertificates);
-                trustListAllGroups.IssuerCrls.AddRange(trustList.IssuerCrls);
-                trustListAllGroups.TrustedCertificates.AddRange(trustList.TrustedCertificates);
-                trustListAllGroups.TrustedCrls.AddRange(trustList.TrustedCrls);
+                string nextPageLink = trustList.NextPageLink;
+                while (nextPageLink != null)
+                {
+                    var nextTrustList = await keyVault.GetTrustListAsync(group, null, nextPageLink);
+                    trustList.AddRange(nextTrustList);
+                    nextPageLink = nextTrustList.NextPageLink;
+                }
+                trustListAllGroups.AddRange(trustList);
             }
             {
                 var validator = await X509TestUtils.CreateValidatorAsync(trustListAllGroups);

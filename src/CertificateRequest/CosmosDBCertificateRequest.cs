@@ -517,10 +517,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             await CertificateRequests.DeleteAsync(request.RequestId);
         }
 
-        public async Task RevokeGroupAsync(string groupId)
+        public async Task RevokeGroupAsync(string groupId, bool? allVersions)
         {
+            // TODO: implement all versions to renew all CSR for all CA versions
             var deletedRequests = await CertificateRequests.GetAsync(x => x.State == CertificateRequestState.Deleted);
-
             if (deletedRequests == null ||
                 deletedRequests.Count() == 0)
             {
@@ -682,33 +682,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
         }
 
-        public async Task<ReadRequestResultModel[]> QueryAsync(
+        public async Task<(string,ReadRequestResultModel[])> QueryPageAsync(
             string appId,
-            CertificateRequestState? state)
+            CertificateRequestState? state,
+            string nextPageLink,
+            int? maxResults)
         {
             IEnumerable<CertificateRequest> requests;
             if (appId == null && state == null)
             {
-                requests = await CertificateRequests.GetAsync(x => x.State < CertificateRequestState.Deleted);
+                (nextPageLink, requests) = await CertificateRequests.GetPageAsync(x => x.State < CertificateRequestState.Deleted, nextPageLink, maxResults);
             }
             else if (appId != null && state != null)
             {
-                requests = await CertificateRequests.GetAsync(x => x.ApplicationId == appId && x.State == state);
+                (nextPageLink, requests) = await CertificateRequests.GetPageAsync(x => x.ApplicationId == appId && x.State == state, nextPageLink, maxResults);
             }
             else if (appId != null)
             {
-                requests = await CertificateRequests.GetAsync(x => x.ApplicationId == appId);
+                (nextPageLink, requests) = await CertificateRequests.GetPageAsync(x => x.ApplicationId == appId, nextPageLink, maxResults);
             }
             else
             {
-                requests = await CertificateRequests.GetAsync(x => x.State == state);
+                (nextPageLink, requests) = await CertificateRequests.GetPageAsync(x => x.State == state, nextPageLink, maxResults);
             }
             List<ReadRequestResultModel> result = new List<ReadRequestResultModel>();
             foreach (CertificateRequest request in requests)
             {
                 result.Add(new ReadRequestResultModel(request));
             }
-            return result.ToArray();
+            return (nextPageLink, result.ToArray());
         }
         #endregion
 

@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
         public IList<X509CRL> IssuerCrls;
         public X509Certificate2Collection TrustedCertificates;
         public IList<X509CRL> TrustedCrls;
+        public string NextPageLink;
 
         public KeyVaultTrustListModel(string id)
         {
@@ -25,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
             IssuerCrls = new List<X509CRL>();
             TrustedCertificates = new X509Certificate2Collection();
             TrustedCrls = new List<X509CRL>();
+            NextPageLink = null;
         }
     }
 }

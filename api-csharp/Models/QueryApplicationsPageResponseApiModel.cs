@@ -15,24 +15,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
     using System.Collections.Generic;
     using System.Linq;
 
-    public partial class X509Certificate2CollectionApiModel
+    public partial class QueryApplicationsPageResponseApiModel
     {
         /// <summary>
         /// Initializes a new instance of the
-        /// X509Certificate2CollectionApiModel class.
+        /// QueryApplicationsPageResponseApiModel class.
         /// </summary>
-        public X509Certificate2CollectionApiModel()
+        public QueryApplicationsPageResponseApiModel()
         {
             CustomInit();
         }
 
         /// <summary>
         /// Initializes a new instance of the
-        /// X509Certificate2CollectionApiModel class.
+        /// QueryApplicationsPageResponseApiModel class.
         /// </summary>
-        public X509Certificate2CollectionApiModel(IList<X509Certificate2ApiModel> chain = default(IList<X509Certificate2ApiModel>), string nextPageLink = default(string))
+        public QueryApplicationsPageResponseApiModel(IList<ApplicationRecordApiModel> applications = default(IList<ApplicationRecordApiModel>), string nextPageLink = default(string))
         {
-            Chain = chain;
+            Applications = applications;
             NextPageLink = nextPageLink;
             CustomInit();
         }
@@ -44,8 +44,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Chain")]
-        public IList<X509Certificate2ApiModel> Chain { get; set; }
+        [JsonProperty(PropertyName = "Applications")]
+        public IList<ApplicationRecordApiModel> Applications { get; set; }
 
         /// <summary>
         /// </summary>
