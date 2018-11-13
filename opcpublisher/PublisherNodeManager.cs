@@ -9,8 +9,8 @@ namespace OpcPublisher
     using Newtonsoft.Json;
     using System.Linq;
     using System.Net;
+    using static OpcApplicationConfiguration;
     using static OpcPublisher.Program;
-    using static OpcStackConfiguration;
     using static PublisherNodeConfiguration;
 
     public class PublisherNodeManager : CustomNodeManager2

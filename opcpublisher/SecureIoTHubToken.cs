@@ -130,11 +130,9 @@ namespace OpcPublisher
                 }
                 else
                 {
-                    RsaUtils.RSADispose(rsa);
                     throw new CryptographicException("Can not encrypt IoTHub security token using generated public key!");
                 }
             }
-            RsaUtils.RSADispose(rsa);
 
             // sign the cert with the private key
             ISignatureFactory signatureFactory = new Asn1SignatureFactory("SHA256WITHRSA", keys.Private, random);
@@ -240,7 +238,6 @@ namespace OpcPublisher
                             return Encoding.ASCII.GetString(token);
                         }
                     }
-                    RsaUtils.RSADispose(rsa);
                 }
             }
             return null;
