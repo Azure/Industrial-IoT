@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Swagger.Runtime {
-    using Microsoft.Azure.IIoT.Services.Auth.Runtime;
     using Microsoft.Azure.IIoT.Services.Swagger;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Extensions.Configuration;
     using System;
 

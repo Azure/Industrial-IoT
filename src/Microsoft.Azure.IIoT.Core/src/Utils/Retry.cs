@@ -23,18 +23,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Default exponential policy with 20% jitter
         /// </summary>
-        public static Func<int, Exception, int> Exponential => (k, ex) => {
-            if (k > ExponentialMaxRetryCount) {
-                k = ExponentialMaxRetryCount;
-            }
-            var backoff = r.Next(
-                (int)(ExponentialBackoffIncrement * 0.8),
-                (int)(ExponentialBackoffIncrement * 1.2));
-            var exp = 0.5 * (Math.Pow(2, k) - 1);
-            var result = (int)(exp * backoff);
-            System.Diagnostics.Debug.Assert(result > 0);
-            return result;
-        };
+        public static Func<int, Exception, int> Exponential => (k, ex) =>
+            GetExponentialDelay(k, ExponentialBackoffIncrement, ExponentialMaxRetryCount);
+
         private static Random r = new Random();
         /// <summary>Max retry count for exponential policy</summary>
         public static int ExponentialMaxRetryCount = 13;
@@ -57,6 +48,24 @@ namespace Microsoft.Azure.IIoT.Utils {
         public static Func<int, Exception, int> NoBackoff => (k, ex) => NoBackoffDelta;
         /// <summary>Time between retry</summary>
         public static int NoBackoffDelta = 1000;
+
+        /// <summary>
+        /// Helper to calcaulate exponential delay with jitter and max.
+        /// </summary>
+        /// <param name="k"></param>
+        /// <param name="increment"></param>
+        /// <param name="maxRetry"></param>
+        /// <returns></returns>
+        public static int GetExponentialDelay(int k, int increment, int maxRetry) {
+            if (k > maxRetry) {
+                k = maxRetry;
+            }
+            var backoff = r.Next((int)(increment * 0.8), (int)(increment * 1.2));
+            var exp = 0.5 * (Math.Pow(2, k) - 1);
+            var result = (int)(exp * backoff);
+            System.Diagnostics.Debug.Assert(result > 0);
+            return result;
+        }
 
         /// <summary>
         /// Retries a piece of work

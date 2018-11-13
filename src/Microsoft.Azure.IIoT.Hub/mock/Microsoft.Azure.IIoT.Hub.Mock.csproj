@@ -6,6 +6,7 @@
     <Description>Azure Industrial IoT common IoT Hub twin registry mocking tool used in testing</Description>
     <NoWarn>1701;1702;1705;3021</NoWarn>
     <Antlr4UseCSharpGenerator>True</Antlr4UseCSharpGenerator>
+    <VersionSuffix>preview011</VersionSuffix>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Antlr4" Version="4.6.5-rc002" />

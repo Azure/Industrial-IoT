@@ -137,6 +137,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         public static IEnumerable<PortRange> WellKnown {
             get {
                 yield return new PortRange(4840, 4841);
+                yield return new PortRange(48000, 48100);
                 yield return new PortRange(51200, 51300);
                 yield return new PortRange(62222);
                 // TODO

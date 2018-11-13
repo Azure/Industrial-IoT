@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Auth {
+    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DependencyInjection;
@@ -35,15 +36,13 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options => {
 
-                    options.Authority = config.Authority;
-                    options.SaveToken = true; // Save token to allow us to request on behalf
+                    options.Authority = config.GetAuthorityUrl();
+                    options.SaveToken = true; // Save token to allow request on behalf
 
                     options.TokenValidationParameters = new TokenValidationParameters {
                         ClockSkew = config.AllowedClockSkew,
                         ValidIssuer = config.TrustedIssuer,
-                        ValidAudience = config.Audience,
-                        ValidateAudience = false,
-                        ValidateIssuer = false
+                        ValidAudience = config.Audience
                     };
 
                     options.Events = new JwtBearerEvents {

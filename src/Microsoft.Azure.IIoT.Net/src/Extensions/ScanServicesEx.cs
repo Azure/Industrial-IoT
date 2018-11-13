@@ -97,7 +97,7 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, IEnumerable<IPEndPoint> source,
             Action<IPEndPoint> target, IPortProbe portProbe, CancellationToken ct) =>
-            services.ScanAsync(source, target, portProbe, null, null, null, ct);
+            services.ScanAsync(source, target, portProbe, 5000, null, null, ct);
 
         /// <summary>
         /// Scan range of addresses and return the ones that are open

@@ -245,7 +245,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// improvement is linear, e.g. all ports on a Windows PC are scanned in
         /// around 16 seconds.
         /// </summary>
-        private const int kDefaultMaxProbeCount = 500;
+        private const int kDefaultMaxProbeCount = 1000;
 
         /// <summary>
         /// By default ensure at least 80% probes are going.

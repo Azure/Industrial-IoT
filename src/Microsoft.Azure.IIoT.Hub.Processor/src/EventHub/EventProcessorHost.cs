@@ -11,12 +11,13 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Autofac;
 
     /// <summary>
     /// Implementation of event processor host interface to host event
     /// processors.
     /// </summary>
-    public class EventProcessorHost : IDisposable, IEventProcessorHost {
+    public class EventProcessorHost : IStartable, IDisposable, IEventProcessorHost {
 
         /// <summary>
         /// Create host wrapper
@@ -48,10 +49,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
             _lock = new SemaphoreSlim(1);
         }
 
-        /// <summary>
-        /// Start processor
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task StartAsync() {
             if (_host != null) {
                 return;
@@ -102,10 +100,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
             }
         }
 
-        /// <summary>
-        /// Stop processor
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task StopAsync() {
             if (_host == null) {
                 return;
@@ -122,12 +117,11 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
             }
         }
 
-        /// <summary>
-        /// Dispose host
-        /// </summary>
-        public void Dispose() {
-            StopAsync().Wait();
-        }
+        /// <inheritdoc/>
+        public void Start() => StartAsync().Wait();
+
+        /// <inheritdoc/>
+        public void Dispose() => StopAsync().Wait();
 
         /// <summary>
         /// Helper to get connection string and validate configuration

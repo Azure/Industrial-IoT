@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Exceptions;
     using Microsoft.Azure.Devices.Shared;
@@ -19,30 +20,27 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Text;
 
     /// <summary>
     /// Module host implementation
     /// </summary>
-    public class ModuleHost : IModuleHost, ITwinProperties, IEventEmitter, IBlobUpload {
+    public class ModuleHost : IModuleHost, ITwinProperties, IEventEmitter,
+        IBlobUpload, IJsonMethodClient {
 
-        /// <summary>
-        /// Twin properties
-        /// </summary>
+        /// <inheritdoc/>
+        public int MaxMethodPayloadCharacterCount => 120 * 1024;
+
+        /// <inheritdoc/>
         public IReadOnlyDictionary<string, dynamic> Reported => _reported;
 
-        /// <summary>
-        /// Device id events are emitted on
-        /// </summary>
+        /// <inheritdoc/>
         public string DeviceId { get; private set; }
 
-        /// <summary>
-        /// Module id events are emitted on
-        /// </summary>
+        /// <inheritdoc/>
         public string ModuleId { get; private set; }
 
-        /// <summary>
-        /// Site id of the module
-        /// </summary>
+        /// <inheritdoc/>
         public string SiteId { get; private set; }
 
         /// <summary>
@@ -246,6 +244,27 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             using (var file = new FileStream(fileName, FileMode.Open)) {
                 await _client.UploadToBlobAsync(fileName, file);
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<string> CallMethodAsync(string deviceId, string moduleId,
+            string method, string payload, TimeSpan? timeout) {
+            var request = new MethodRequest(method, Encoding.UTF8.GetBytes(payload),
+                timeout, null);
+            MethodResponse response;
+            if (string.IsNullOrEmpty(moduleId)) {
+                response = await _client.InvokeMethodAsync(deviceId, request,
+                    CancellationToken.None);
+            }
+            else {
+                response = await _client.InvokeMethodAsync(deviceId, moduleId, request,
+                    CancellationToken.None);
+            }
+            if (response.Status != 200) {
+                throw new MethodCallStatusException(
+                    Encoding.UTF8.GetBytes(response.ResultAsJson), response.Status);
+            }
+            return response.ResultAsJson;
         }
 
         /// <inheritdoc/>

@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Storage.Models {
     using System;
     using System.Collections.Generic;
-    using System.Security.Principal;
 
     /// <summary>
     /// Audit log entry

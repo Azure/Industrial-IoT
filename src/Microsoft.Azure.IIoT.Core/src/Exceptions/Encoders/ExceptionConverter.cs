@@ -71,25 +71,23 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             if (e == null) {
                 return new Dictionary<string, JToken>();
             }
-            var message = e.Message.Split(new[] { "\r", "\n" },
-                StringSplitOptions.RemoveEmptyEntries);
-            JToken token;
-            if (message.Length > 1) {
-                token = JToken.FromObject(message);
+            JToken message;
+            try {
+                // The message might be json e.g. returned from another
+                // service - try to parse it...
+                if (e.Message.Trim().StartsWith("{", StringComparison.Ordinal)) {
+                    message = JToken.Parse(e.Message);
+                }
+                else {
+                    message = JToken.FromObject(e.Message);
+                }
             }
-            else {
-                try {
-                    // The message might be json e.g. returned from another
-                    // service - try to parse it...
-                    token = JToken.Parse(e.Message);
-                }
-                catch {
-                    token = JToken.FromObject(e.Message);
-                }
+            catch {
+                message = JToken.FromObject(e.Message);
             }
             var error = new Dictionary<string, JToken> {
-                { "Exception",  e.GetType().Name },
-                { "Message", token }
+                { "Exception", e.GetType().Name },
+                { "Message", message }
             };
             if (_includeStackTrace) {
                 error.Add("FullType", e.GetType().FullName);

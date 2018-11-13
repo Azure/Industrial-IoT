@@ -24,6 +24,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
         /// <param name="exception"></param>
         /// <param name="status"></param>
         /// <returns>response string or null</returns>
-        public abstract string Filter(Exception exception, out int status);
+        public abstract Exception Filter(Exception exception, out int status);
     }
 }

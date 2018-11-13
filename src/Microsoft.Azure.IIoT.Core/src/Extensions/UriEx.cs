@@ -28,6 +28,23 @@ namespace System {
             Scheme = uri.Scheme, Host = uri.Host, Port = uri.Port }.Uri;
 
         /// <summary>
+        /// Changes scheme
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="scheme"></param>
+        /// <returns></returns>
+        public static Uri ChangeScheme(this Uri uri, string scheme) =>
+            new UriBuilder(uri) { Scheme = scheme }.Uri;
+
+        /// <summary>
+        /// Replace host name with the one in the discovery url
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="host"></param>
+        public static Uri ChangeHost(this Uri uri, string host) =>
+            new UriBuilder(uri) { Host = host }.Uri;
+
+        /// <summary>
         /// Encode a string for inclusion in url
         /// </summary>
         /// <param name="value"></param>

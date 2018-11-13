@@ -24,13 +24,23 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         /// <param name="list"></param>
         /// <returns></returns>
-        public static Dictionary<string, T> EncodeAsDictionary<T>(this List<T> list) {
+        public static Dictionary<string, T> EncodeAsDictionary<T>(this List<T> list) =>
+            EncodeAsDictionary(list, t => t);
+
+        /// <summary>
+        /// Convert list to dictionary
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="converter"></param>
+        /// <returns></returns>
+        public static Dictionary<string, V> EncodeAsDictionary<T, V>(this List<T> list,
+            Func<T, V> converter) {
             if (list == null) {
                 return null;
             }
-            var result = new Dictionary<string, T>();
+            var result = new Dictionary<string, V>();
             for (var i = 0; i < list.Count; i++) {
-                result.Add(i.ToString(), list[i]);
+                result.Add(i.ToString(), converter(list[i]));
             }
             return result;
         }
@@ -40,13 +50,23 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         /// <param name="dictionary"></param>
         /// <returns></returns>
-        public static List<T> DecodeAsList<T>(this Dictionary<string, T> dictionary) {
+        public static List<T> DecodeAsList<T>(this Dictionary<string, T> dictionary) =>
+            DecodeAsList(dictionary, t => t);
+
+        /// <summary>
+        /// Convert dictionary to list
+        /// </summary>
+        /// <param name="dictionary"></param>
+        /// <param name="converter"></param>
+        /// <returns></returns>
+        public static List<T> DecodeAsList<T, V>(this Dictionary<string, V> dictionary,
+            Func<V, T> converter) {
             if (dictionary == null) {
                 return null;
             }
             var result = Enumerable.Repeat(default(T), dictionary.Count).ToList();
             foreach (var kv in dictionary) {
-                result[int.Parse(kv.Key)] = kv.Value;
+                result[int.Parse(kv.Key)] = converter(kv.Value);
             }
             return result;
         }

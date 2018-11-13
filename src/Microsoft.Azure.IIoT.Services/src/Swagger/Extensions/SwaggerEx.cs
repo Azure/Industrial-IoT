@@ -7,18 +7,16 @@ namespace Swashbuckle.AspNetCore.Swagger {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Mvc.Controllers;
-    using Microsoft.Azure.IIoT.Auth.Azure;
+    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Services.Swagger;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
-    using Microsoft.Net.Http.Headers;
     using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Net.Http.Headers;
 
     /// <summary>
     /// Configure swagger
@@ -68,11 +66,11 @@ namespace Swashbuckle.AspNetCore.Swagger {
                         options.AddSecurityDefinition("oauth2", new OAuth2Scheme {
                             Type = "oauth2",
                             Flow = "implicit",
-                            AuthorizationUrl = GetAuthorityUrl(resource) +
+                            AuthorizationUrl = resource.GetAuthorityUrl() +
                                 "/oauth2/authorize",
                             Scopes = services.GetRequiredScopes()
                                 .ToDictionary(k => k, k => $"Access {k} operations"),
-                            TokenUrl = GetAuthorityUrl(resource) +
+                            TokenUrl = resource.GetAuthorityUrl() +
                                 "/oauth2/token"
                         });
                         options.OperationFilter<SecurityRequirementsOperationFilter>();
@@ -126,26 +124,6 @@ namespace Swashbuckle.AspNetCore.Swagger {
                 options.RoutePrefix = "";
                 options.SwaggerEndpoint("v1/swagger.json", info.Version);
             });
-        }
-
-        /// <summary>
-        /// Helper to create the autority url
-        /// </summary>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        private static string GetAuthorityUrl(IClientConfig config) {
-            var authority = config.Authority;
-            if (string.IsNullOrEmpty(authority))
-            {
-                authority = "https://login.microsoftonline.com/";
-                var tenantId = config.TenantId;
-                if (string.IsNullOrEmpty(tenantId))
-                {
-                    tenantId = "common";
-                }
-                return authority + tenantId;
-            }
-            return authority;
         }
 
         /// <summary>

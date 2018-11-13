@@ -5,6 +5,7 @@
 
 namespace System.IO {
     using System;
+    using System.IO.Compression;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -13,6 +14,35 @@ namespace System.IO {
     /// Stream extensions
     /// </summary>
     public static class StreamEx {
+
+
+        /// <summary>
+        /// Zip string
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static byte[] Zip(this Stream input) {
+            using (var result = new MemoryStream()) {
+                using (var gs = new GZipStream(result, CompressionMode.Compress)) {
+                    input.CopyTo(gs);
+                }
+                return result.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Unzip byte array
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static byte[] Unzip(this Stream input) {
+            using (var output = new MemoryStream()) {
+                using (var gs = new GZipStream(input, CompressionMode.Decompress)) {
+                    gs.CopyTo(output);
+                }
+                return output.ToArray();
+            }
+        }
 
         /// <summary>
         /// Helper extension to convert an entire stream into a string...

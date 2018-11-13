@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Azure;
+    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
     using System;

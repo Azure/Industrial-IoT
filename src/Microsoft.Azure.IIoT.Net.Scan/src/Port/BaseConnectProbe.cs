@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
     using System.Net;
     using System.Net.Sockets;
     using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// A connect probe is a ip endpoint consumer that tries to connect
@@ -18,17 +17,6 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
     /// </summary>
     /// <returns></returns>
     public abstract class BaseConnectProbe : IDisposable {
-
-        /// <summary>
-        /// Internal probe state
-        /// </summary>
-        private enum State {
-            Begin,
-            Connect,
-            Probe,
-            Timeout,
-            Disposed
-        }
 
         /// <summary>
         /// Create connect probe
@@ -40,27 +28,19 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             _probe = probe ?? throw new ArgumentNullException(nameof(probe));
             _index = index;
             _logger = logger;
-            _timer = new Timer(OnTimerTimeout);
             _lock = new SemaphoreSlim(1);
-            _arg = new SocketAsyncEventArgs();
-            _arg.Completed += OnComplete;
+            _arg = new AsyncConnect(this);
         }
 
         /// <summary>
         /// Dispose probe
         /// </summary>
         public void Dispose() {
-            if (_state == State.Disposed) {
-                return;
-            }
             _lock.Wait();
             try {
-                if (_state != State.Disposed) {
-                    _state = State.Disposed;
-                    Socket.CancelConnectAsync(_arg);
-                    _probe.Dispose();
-                    _arg.Dispose();
-                }
+                _cts.Cancel();
+                _probe?.Dispose();
+                DisposeArgsNoLock();
             }
             finally {
                 _lock.Release();
@@ -70,16 +50,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// <summary>
         /// Start probe
         /// </summary>
-        public void Start() {
-            if (_state != State.Disposed) {
-#if FALSE
-                Task.Delay(_scanner._rand.Next(0, 500)).ContinueWith(_ =>
-                    Task.Run(() => OnBeginAsync(_arg)));
-#else
-                Task.Run(() => OnBeginAsync(_arg));
-#endif
-            }
-        }
+        public void Start() => OnBegin();
 
         /// <summary>
         /// Retrieve next endpoint
@@ -120,44 +91,13 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         protected virtual void OnExit() { }
 
         /// <summary>
-        /// Complete
+        /// Begin connecting to next endpoint
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="arg"></param>
-        private void OnComplete(object sender, SocketAsyncEventArgs arg) {
+        private void OnBegin() {
+            var exit = false;
             _lock.Wait();
             try {
-                if (!OnCompleteNoLock(arg)) {
-                    return; // assume next OnComplete will occur or timeout...
-                }
-
-                // Cancel timer and start next
-                _timer.Change(Timeout.Infinite, Timeout.Infinite);
-            }
-            catch (Exception ex) {
-                _logger.Debug($"Error during completion of probe {_index}",
-                    () => ex);
-            }
-            finally {
-                _lock.Release();
-            }
-            // We are now disposed, or at begin, go to next to cleanup or continue
-            OnBeginAsync(arg);
-        }
-
-        /// <summary>
-        /// Start connect
-        /// </summary>
-        /// <param name="arg"></param>
-        private async void OnBeginAsync(SocketAsyncEventArgs arg) {
-            await _lock.WaitAsync();
-            try {
-                if (_state == State.Disposed) {
-                    return;
-                }
-
-                var exit = false;
-                while (_state != State.Disposed && !exit) {
+                while (!_cts.IsCancellationRequested && !exit) {
                     IPEndPoint ep = null;
                     var timeout = 3000;
                     try {
@@ -180,29 +120,28 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                         break;
                     }
 
-                    // Now try to connect
-                    arg.RemoteEndPoint = ep;
-                    while (_state != State.Disposed) {
+                    if (_arg != null && _arg.IsRunning) {
+                        // Reset args since it is in running state and cannot be used...
+                        _logger.Verbose("Disposing args in running state.");
+                        DisposeArgsNoLock();
+                    }
+
+                    while (!_cts.IsCancellationRequested) {
+                        if (_arg == null) {
+                            _arg = new AsyncConnect(this);
+                        }
                         try {
-                            // Reset probe and start connect
-                            _probe.Reset();
-                            _state = State.Connect;
-                            if (!Socket.ConnectAsync(SocketType.Stream, ProtocolType.IP, arg)) {
-                                // Complete inline and pull next...
-                                if (OnCompleteNoLock(arg)) {
-                                    // Go to next candidate
-                                    break;
-                                }
+                            if (_arg.BeginConnect(ep, timeout)) {
+                                // Completed synchronously - go to next candidate
+                                break;
                             }
-                            // Wait for completion or timeout after x seconds
-                            _timer.Change(timeout, Timeout.Infinite);
                             return;
                         }
                         catch (ObjectDisposedException) {
-                            continue; // Try again
+                            // Try again
                         }
                         catch (InvalidOperationException) {
-                            continue; // Operation in progress - try again
+                            // Operation in progress - try again
                         }
                         catch (SocketException sex) {
                             if (sex.SocketErrorCode == SocketError.NoBufferSpaceAvailable ||
@@ -213,12 +152,12 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                                     break;
                                 }
                                 // Otherwise retry...
-                                continue;
                             }
-                            _logger.Error(
-                                $"{sex.SocketErrorCode} in connect of probe {_index}...",
-                                    () => sex);
-                            continue;
+                            else {
+                                _logger.Error(
+                                    $"{sex.SocketErrorCode} in connect of probe {_index}...",
+                                        () => sex);
+                            }
                         }
                         catch (Exception ex) {
                             // Unexpected - shut probe down
@@ -228,6 +167,9 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                             exit = true;
                             break;
                         }
+
+                        // Retry same endpoint address with new args
+                        DisposeArgsNoLock();
                     }
 
                     if (exit) {
@@ -237,6 +179,15 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                     }
                 }
 
+                if (_cts.IsCancellationRequested) {
+                    return;
+                }
+            }
+            finally {
+                _lock.Release();
+            }
+
+            if (exit) {
                 //
                 // We are here because we either...
                 //
@@ -245,134 +196,269 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                 // c) Connect failed due to lack of ephimeral ports.
                 // d) A non socket exception occurred.
                 //
-                // and we need to kill this probe and dispose of the underlying argument.
+                // Notify of exit.
                 //
-                _probe.Dispose();
-                _arg.Dispose();
-                _state = State.Disposed;
                 OnExit();
             }
-            finally {
-                _lock.Release();
-            }
         }
 
         /// <summary>
-        /// No lock complete
+        /// Dispose of args and resources
         /// </summary>
-        /// <param name="arg"></param>
-        private bool OnCompleteNoLock(SocketAsyncEventArgs arg) {
-            try {
-                switch (_state) {
-                    case State.Connect:
-                        if (arg.SocketError != SocketError.Success) {
-                            // Reset back to begin
-                            _state = State.Begin;
+        private void DisposeArgsNoLock() {
+            _arg?.Dispose();
+            _arg = null;
+        }
+
+        /// <summary>
+        /// Internal arg state
+        /// </summary>
+        private enum State {
+            Begin,
+            Connect,
+            Probe,
+            Timeout,
+            Error,
+            Disposed
+        }
+
+        /// <summary>
+        /// Wraps socket event arg and connection state
+        /// </summary>
+        private class AsyncConnect : IDisposable {
+
+            /// <summary>
+            /// Whether the connect is running
+            /// </summary>
+            internal bool IsRunning => _state != State.Begin;
+
+            /// <summary>
+            /// Create event arg wrapper
+            /// </summary>
+            /// <param name="outer"></param>
+            public AsyncConnect(BaseConnectProbe outer) {
+                _outer = outer;
+                _timer = new Timer(OnTimerTimeout);
+                _lock = new SemaphoreSlim(1);
+                _arg = new SocketAsyncEventArgs();
+                _arg.Completed += OnComplete;
+                _arg.UserToken = this;
+            }
+
+            /// <summary>
+            /// Dispose probe
+            /// </summary>
+            public void Dispose() {
+                _lock.Wait();
+                try {
+                    if (_state != State.Disposed) {
+                        Socket.CancelConnectAsync(_arg);
+                        _arg.ConnectSocket.SafeDispose();
+                        _socket.SafeDispose();
+                        _arg.Dispose();
+                        _timer.Dispose();
+                        _state = State.Disposed;
+                    }
+                }
+                finally {
+                    _lock.Release();
+                }
+            }
+
+            /// <summary>
+            /// Begins a connect and returns whether it completed
+            /// synchronously so outer can loop.
+            /// </summary>
+            /// <param name="ep"></param>
+            /// <param name="timeout"></param>
+            /// <returns></returns>
+            internal bool BeginConnect(IPEndPoint ep, int timeout) {
+                _lock.Wait();
+                try {
+                    _arg.RemoteEndPoint = ep;
+
+                    // Reset arg, probe, and start connecting
+                    _outer._probe.Reset();
+                    _arg.ConnectSocket.SafeDispose();
+                    _state = State.Connect;
+
+                    // Open new socket
+                    _socket.SafeDispose();
+                    _socket = new Socket(SocketType.Stream, ProtocolType.IP);
+                    if (!_socket.ConnectAsync(_arg)) {
+                        // Complete inline and pull next...
+                        if (OnCompleteNoLock()) {
+                            // Go to next candidate
                             return true;
                         }
-                        // Start probe
-                        _state = State.Probe;
-                        return OnProbeNoLock(arg);
-                    case State.Probe:
-                        // Continue probing until completed
-                        return OnProbeNoLock(arg);
-                    case State.Timeout:
-                        // Timeout caused cancel, go back to begin
-                        _state = State.Begin;
-                        return true;
-                    case State.Disposed:
-                        // Stay disposed
-                        return true;
-                    default:
-                        throw new SystemException("Unexpected");
-                }
-            }
-            catch {
-                // Error, continue at beginning
-                _state = State.Begin;
-                return true;
-            }
-            finally {
-                if (_state == State.Begin || _state == State.Disposed) {
-                    OnComplete((IPEndPoint)arg.RemoteEndPoint);
-                    arg.ConnectSocket.SafeDispose();
-                    arg.SocketError = SocketError.NotSocket;
-                }
-            }
-        }
+                    }
 
-        /// <summary>
-        /// Perform probe
-        /// </summary>
-        /// <param name="arg"></param>
-        /// <returns></returns>
-        private bool OnProbeNoLock(SocketAsyncEventArgs arg) {
-            var completed = _probe.CompleteAsync(_index, arg,
-                out var ok, out var timeout);
-            if (completed) {
-                if (ok) {
-                    OnSuccess((IPEndPoint)arg.RemoteEndPoint);
+                    // Wait for completion or timeout after x seconds
+                    _timer.Change(timeout, Timeout.Infinite);
+                    return false;
+                }
+                finally {
+                    _lock.Release();
+                }
+            }
+
+            /// <summary>
+            /// Complete is called from completion queue on cancel or connect/error
+            /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="arg"></param>
+            private void OnComplete(object sender, SocketAsyncEventArgs arg) {
+                _lock.Wait();
+                try {
+                    if (!OnCompleteNoLock()) {
+                        return; // assume next OnComplete will occur or timeout...
+                    }
+                    // Cancel timer and start next
+                    _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                }
+                catch (Exception ex) {
+                    _outer._logger.Debug($"Error during completion of probe {_outer._index}",
+                        () => ex);
+                }
+                finally {
+                    _lock.Release();
+                }
+                // We are now disposed, or at begin, go to next to cleanup or continue
+                _outer.OnBegin();
+            }
+
+            /// <summary>
+            /// No lock complete
+            /// </summary>
+            private bool OnCompleteNoLock() {
+                try {
+                    switch (_state) {
+                        case State.Connect:
+                            if (_arg.SocketError != SocketError.Success) {
+                                // Reset back to begin
+                                _state = State.Begin;
+                                return true;
+                            }
+                            // Start probe
+                            _state = State.Probe;
+                            return OnProbeNoLock();
+                        case State.Probe:
+                            // Continue probing until completed
+                            return OnProbeNoLock();
+                        case State.Timeout:
+                            // Timeout caused cancel already - stay in timeout condition.
+                            return true;
+                        case State.Error:
+                        case State.Disposed:
+                            // Stay in error state or disposed - this should not happen.
+                            return true;
+                        default:
+                            throw new SystemException("Unexpected");
+                    }
+                }
+                catch {
+                    // Go to error state
+                    _state = State.Error;
+                    return true;
+                }
+                finally {
+                    if (_state != State.Connect && _state != State.Probe) {
+                        // Terminal - complete address now
+                        _outer.OnComplete((IPEndPoint)_arg.RemoteEndPoint);
+                        _arg.SocketError = SocketError.NotSocket;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Perform probe
+            /// </summary>
+            /// <returns></returns>
+            private bool OnProbeNoLock() {
+                var completed = _outer._probe.CompleteAsync(_outer._index, _arg,
+                    out var ok, out var timeout);
+                if (completed) {
+                    if (ok) {
+                        _outer.OnSuccess((IPEndPoint)_arg.RemoteEndPoint);
+                    }
+                    else {
+                        _outer.OnComplete((IPEndPoint)_arg.RemoteEndPoint);
+                    }
+                    _state = State.Begin;
                 }
                 else {
-                    OnComplete((IPEndPoint)arg.RemoteEndPoint);
+                    // Wait for completion or timeout after x seconds
+                    _timer.Change(timeout, Timeout.Infinite);
                 }
-                _state = State.Begin;
+                return completed;
             }
-            else {
-                // Wait for completion or timeout after x seconds
-                _timer.Change(timeout, Timeout.Infinite);
-            }
-            return completed;
-        }
 
-        /// <summary>
-        /// Timeout current probe
-        /// </summary>
-        /// <param name="state"></param>
-        private void OnTimerTimeout(object state) {
-            if (!_lock.Wait(0)) {
-                // lock is taken either by having completed or having re-begun.
-                return;
-            }
-            try {
-                switch (_state) {
-                    case State.Timeout:
-                        return;
-                    case State.Connect:
-                        // Cancel current arg and mark as timedout then recycle
-                        Socket.CancelConnectAsync(_arg);
-                        _arg.SocketError = SocketError.TimedOut;
-                        return;
-                    case State.Probe:
-                        _logger.Debug(
-                            $"Probe {_index} {_arg.RemoteEndPoint} timed out...");
-                        _arg.SocketError = SocketError.TimedOut;
-                        if (_probe.Reset()) {
+            /// <summary>
+            /// Timeout current probe
+            /// </summary>
+            /// <param name="state"></param>
+            private void OnTimerTimeout(object state) {
+                if (!_lock.Wait(0)) {
+                    // lock is taken either by having completed or having re-begun.
+                    return;
+                }
+                try {
+                    switch (_state) {
+                        case State.Timeout:
                             return;
-                        }
-                        // Has not cancelled the operation in progress.
-                        _logger.Info(
-                            $"Probe {_index} not cancelled - try restart...");
-                        OnBeginAsync(_arg);
-                        return;
+                        case State.Connect:
+                            //
+                            // Cancel current arg and mark as timedout which will
+                            // dispose the arg and open a new one.  Should the arg
+                            // still complete later it will be in terminal state.
+                            //
+                            Socket.CancelConnectAsync(_arg);
+                            _state = State.Timeout;
+                            _arg.SocketError = SocketError.TimedOut;
+                            return;
+                        case State.Probe:
+                            _outer._logger.Debug(
+                                $"Probe {_outer._index} {_arg.RemoteEndPoint} timed out...");
+                            _arg.SocketError = SocketError.TimedOut;
+                            _state = State.Timeout;
+                            if (_outer._probe.Reset()) {
+                                // We will get a disconnect complete callback now.
+                                return;
+                            }
+                            //
+                            // There was nothing to cancel so start from beginning.
+                            // Since connect socket is connected, go to begin state
+                            // This will close the socket and reconnect a new one.
+                            //
+                            _outer._logger.Info(
+                                $"Probe {_outer._index} not cancelled - try restart...");
+                            _state = State.Begin;
+                            _outer.OnBegin();
+                            return;
+                    }
+                }
+                catch (Exception ex) {
+                    _outer._logger.Debug($"Error during timeout of probe {_outer._index}",
+                        () => ex);
+                }
+                finally {
+                    _lock.Release();
                 }
             }
-            catch (Exception ex) {
-                _logger.Debug($"Error during timeout of probe {_index}",
-                    () => ex);
-            }
-            finally {
-                _state = State.Timeout;
-                _lock.Release();
-            }
+
+            private readonly Timer _timer;
+            private readonly SocketAsyncEventArgs _arg;
+            private readonly SemaphoreSlim _lock;
+            private readonly BaseConnectProbe _outer;
+            private State _state;
+            private Socket _socket;
         }
 
-        private readonly ILogger _logger;
-        private readonly SocketAsyncEventArgs _arg;
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
         private readonly SemaphoreSlim _lock;
         private readonly int _index;
-        private readonly Timer _timer;
         private readonly IAsyncProbe _probe;
-        private State _state;
+        private readonly ILogger _logger;
+        private AsyncConnect _arg;
     }
 }

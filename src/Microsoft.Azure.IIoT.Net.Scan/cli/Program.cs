@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -101,8 +101,8 @@ Operations (Mutually exclusive):
                         TestNetworkScanner().Wait();
                         break;
                     case Op.TestPortScanner:
-                        TestPortScanner(host).Wait();
-                        break;
+                        while(true) TestPortScanner(host).Wait();
+                        //break;
                     default:
                         throw new ArgumentException("Unknown.");
                 }
@@ -111,6 +111,7 @@ Operations (Mutually exclusive):
                 Console.WriteLine(e);
             }
 
+            DumpMemory();
             Console.WriteLine("Press key to exit...");
             Console.ReadKey();
         }
@@ -127,6 +128,7 @@ Operations (Mutually exclusive):
             var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var watch = Stopwatch.StartNew();
             var scanning = new ScanServices(logger);
+            DumpMemory();
             var results = await scanning.ScanAsync(
                 PortRange.All.SelectMany(r => r.GetEndpoints(addresses.First())),
                 cts.Token);
@@ -134,6 +136,7 @@ Operations (Mutually exclusive):
                 Console.WriteLine($"Found {result} open.");
             }
             Console.WriteLine($"Scan took: {watch.Elapsed}");
+            DumpMemory();
         }
 
         /// <summary>
@@ -145,11 +148,25 @@ Operations (Mutually exclusive):
             var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var watch = Stopwatch.StartNew();
             var scanning = new ScanServices(logger);
+            DumpMemory();
             var results = await scanning.ScanAsync(NetworkClass.Wired, cts.Token);
             foreach (var result in results) {
                 Console.WriteLine($"Found {result.Address}...");
             }
             Console.WriteLine($"Scan took: {watch.Elapsed}");
+            DumpMemory();
+        }
+
+        /// <summary>
+        /// Write memory dump
+        /// </summary>
+        private static void DumpMemory() {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            Console.WriteLine($"GC Mem: {GC.GetTotalMemory(false) / 1024} kb, Working set /" +
+              $" Private Mem: {Process.GetCurrentProcess().WorkingSet64 / 1024} kb / " +
+              $"{Process.GetCurrentProcess().PrivateMemorySize64 / 1024} kb, Handles:" +
+              Process.GetCurrentProcess().HandleCount);
         }
     }
 }
