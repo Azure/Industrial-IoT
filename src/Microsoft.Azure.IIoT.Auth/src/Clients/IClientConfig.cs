@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <summary>
         /// Instance url (This is optional as it
         /// defaults to Azure global cloud, i.e.
-        /// https://login.microsoft.com/, but can
+        /// https://login.microsoftonline.com/, but can
         /// be set to another azure cloud as well.)
         /// </summary>
         string InstanceUrl { get; }
