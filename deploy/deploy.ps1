@@ -6,7 +6,7 @@
     Deploys the opc twin dependencies and optionally micro services and UI to Azure.
 
  .PARAMETER type
-    The type of deployment (basic = vm, standard = aks, local)
+    The type of deployment (vm, local)
 
  .PARAMETER resourceGroupName
     Can be the name of an existing or a new resource group.
@@ -311,49 +311,6 @@ Function AddResourcePermission($requiredAccess, $exposedPermissions, [string]$re
 }
 
 #*******************************************************************************************************
-# Called when no configuration for the AAD tenant to use was found to let the user choose one.
-#*******************************************************************************************************
-Function SelectAzureADTenantId2() {
-    $tenants = Get-AzureRmTenant
-    if ($tenants.Count -eq 0) {
-        throw "No Active Directory domains found for '$($script:AzureAccountName)'";
-    }
-
-    if ($tenants.Count -eq 1) {
-        # Select single one
-        $tenantId = $tenants[0].Id
-    }
-    else {
-        Write-Host "Select AD tenant to use..."
-        Write-Host
-        Write-Host "Available AAD tenants in Azure environment '$($script:environmentName)':"
-        Write-Host
-        Write-Host (($tenants |  `
-        Format-Table @{ `
-            Name = 'Option'; `
-            Expression = { `
-                $script:optionIndex; $script:optionIndex+=1 `
-            }; `
-            Alignment = 'right' `
-        }, Id, Directory -AutoSize) | Out-String).Trim()
-        while ($tenantId -eq $null) {
-            try {
-                [int]$script:optionIndex = Read-Host "Select an option"
-            }
-            catch {
-                Write-Host "Must be a number"
-                continue
-            }
-            if ($script:optionIndex -lt 1 -or $script:optionIndex -gt $tenants.length) {
-                continue
-            }
-            $tenantId = $tenants[$script:optionIndex - 1].TenantId
-        }
-    }
-    return $tenantId
-}
-
-#*******************************************************************************************************
 # Acquire bearer token for user
 #*******************************************************************************************************
 Function AcquireToken() {
@@ -417,14 +374,14 @@ Function SelectAzureADTenantId() {
             $index += 1
         }
         if ($selectedIndex -eq -1) {
-            Write-Host "Select an Active Directories to use"
             Write-Host
-            Write-Host "Available Active Directories:"
+            Write-Host "Select an Active Directory Tenant to use..."
+            Write-Host "Available:"
             Write-Host
             Write-Host ($directories | Out-String) -NoNewline
             while ($selectedIndex -lt 1 -or $selectedIndex -ge $index) {
                 try {
-                    [int]$selectedIndex = Read-Host "Select an option"
+                    [int]$selectedIndex = Read-Host "Select an option:"
                 }
                 catch {
                     Write-Host "Must be a number"
@@ -442,7 +399,13 @@ Function SelectAzureADTenantId() {
 Function GetAzureADTenantId() {
     if (!$Credential) {
         if (!$tenantId) {
-            $tenantId = SelectAzureADTenantId
+            $reply = Read-Host -Prompt "Enable authentication? [y/n]"
+            if ( $reply -match "[yY]" ) { 
+                return SelectAzureADTenantId
+            }
+            else {
+                return $null;
+            }
         }
         # Interactive logon
         $creds = Connect-AzureAD -TenantId $tenantId
@@ -451,13 +414,11 @@ Function GetAzureADTenantId() {
         if (!$tenantId) {
             # use home tenant
             $creds = Connect-AzureAD -Credential $Credential
+            $tenantId = $creds.Tenant.Id
         }
         else {
             $creds = Connect-AzureAD -TenantId $tenantId -Credential $Credential
         }
-    }
-    if (!$tenantId) {
-        $tenantId = $creds.Tenant.Id
     }
     return $tenantId
 }
@@ -528,15 +489,19 @@ Function DeleteAzureADApplications() {
 Function CreateAzureADApplications() {
     try {
         $tenantId = GetAzureADTenantId
+        if (!$tenantId) {
+            return $null;
+        }
     }
     catch {
-        Write-Error $_.Exception.Message
+        $ex = $_.Exception
 
         Write-Host
         Write-Host "Ensure you have installed the AzureAD cmdlets:" 
         Write-Host "1) Run Powershell as an administrator" 
         Write-Host "2) in the PowerShell window, type: Install-Module AzureAD" 
         Write-Host
+
         $reply = Read-Host -Prompt "Continue without authentication? [y/n]"
         if ( $reply -match "[yY]" ) { 
             return;

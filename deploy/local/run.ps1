@@ -10,9 +10,8 @@
 #>
 
 param(
-    [Parameter(Mandatory=$True)]
-    [string]
-    $resourceGroupName
+    [Parameter(Mandatory=$True)] [string] $resourceGroupName,
+    $aadConfig
 )
 
 #******************************************************************************

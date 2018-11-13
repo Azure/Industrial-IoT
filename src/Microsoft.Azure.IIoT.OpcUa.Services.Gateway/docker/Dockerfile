@@ -3,7 +3,7 @@ WORKDIR /app
 
 FROM microsoft/dotnet:2.1-sdk AS build
 WORKDIR /src
-COPY src/Microsoft.Azure.IIoT.OpcUa.Services.Gateway/src/Microsoft.Azure.IIoT.OpcUa.Services.Gateway.csproj src/
+COPY src/Microsoft.Azure.IIoT.OpcUa.Services.Gateway/src/Microsoft.Azure.IIoT.OpcUa.Services.Gateway.csproj src/Microsoft.Azure.IIoT.OpcUa.Services.Gateway/src/
 COPY NuGet.Config NuGet.Config
 RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.OpcUa.Services.Gateway/src/Microsoft.Azure.IIoT.OpcUa.Services.Gateway.csproj
 COPY . .
