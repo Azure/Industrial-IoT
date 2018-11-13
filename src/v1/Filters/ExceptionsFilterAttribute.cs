@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Filters {
     public class ExceptionsFilterAttribute : ExceptionFilterAttribute {
 
         /// <inheritdoc />
-        public override string Filter(Exception exception, out int status) {
+        public override Exception Filter(Exception exception, out int status) {
             switch (exception) {
                 case AggregateException ae:
                     var root = ae.GetBaseException();
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Filters {
                     }
                     ae = root as AggregateException;
                     status = (int)HttpStatusCode.InternalServerError;
-                    var result = string.Empty;
+                    Exception result = null;
                     foreach (var ex in ae.InnerExceptions) {
                         result = Filter(ex, out status);
                         if (status != (int)HttpStatusCode.InternalServerError) {
@@ -97,7 +97,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Filters {
                     status = (int)HttpStatusCode.InternalServerError;
                     break;
             }
-            return JsonConvertEx.SerializeObject(exception);
+            return exception;
         }
     }
 }

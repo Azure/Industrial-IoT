@@ -28,13 +28,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// <param name="discover"></param>
         /// <param name="activator"></param>
         /// <param name="nodes"></param>
+        /// <param name="publisher"></param>
         /// <param name="logger"></param>
         public SupervisorMethodsController(IDiscoveryServices discover,
             IBrowseServices<EndpointModel> browse, IActivationServices<string> activator,
-            INodeServices<EndpointModel> nodes, ILogger logger) {
+            INodeServices<EndpointModel> nodes, IPublishServices<EndpointModel> publisher,
+            ILogger logger) {
 
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
+            _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             _discover = discover ?? throw new ArgumentNullException(nameof(discover));
             _activator = activator ?? throw new ArgumentNullException(nameof(activator));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -51,6 +54,54 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
             }
             await _discover.DiscoverAsync(request.ToServiceModel());
             return true;
+        }
+
+        /// <summary>
+        /// Publish
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<PublishStartResponseApiModel> PublishStartAsync(
+            EndpointApiModel endpoint, PublishStartRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _publisher.NodePublishStartAsync(
+                endpoint.ToServiceModel(), request.ToServiceModel());
+            return new PublishStartResponseApiModel(result);
+        }
+
+        /// <summary>
+        /// Unpublish
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<PublishStopResponseApiModel> PublishStopAsync(
+            EndpointApiModel endpoint, PublishStopRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _publisher.NodePublishStopAsync(
+                endpoint.ToServiceModel(), request.ToServiceModel());
+            return new PublishStopResponseApiModel(result);
+        }
+
+        /// <summary>
+        /// List published nodes
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<PublishedNodeListResponseApiModel> PublishListAsync(
+            EndpointApiModel endpoint, PublishedNodeListRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _publisher.NodePublishListAsync(
+                endpoint.ToServiceModel(), request.ToServiceModel());
+            return new PublishedNodeListResponseApiModel(result);
         }
 
         /// <summary>
@@ -89,6 +140,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
             var result = await _browse.NodeBrowseNextAsync(
                 endpoint.ToServiceModel(), request.ToServiceModel());
             return new BrowseNextResponseApiModel(result);
+        }
+
+        /// <summary>
+        /// Browse by path
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<BrowsePathResponseApiModel> BrowsePathAsync(
+            EndpointApiModel endpoint, BrowsePathRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (endpoint == null) {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+            var result = await _browse.NodeBrowsePathAsync(
+                endpoint.ToServiceModel(), request.ToServiceModel());
+            return new BrowsePathResponseApiModel(result);
         }
 
         /// <summary>
@@ -168,6 +238,86 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         /// <summary>
+        /// Read attributes
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<BatchReadResponseApiModel> BatchReadAsync(
+            EndpointApiModel endpoint, BatchReadRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _nodes.NodeBatchReadAsync(
+                endpoint.ToServiceModel(), request.ToServiceModel());
+            return new BatchReadResponseApiModel(result);
+        }
+
+        /// <summary>
+        /// Write attributes
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<BatchWriteResponseApiModel> BatchWriteAsync(
+            EndpointApiModel endpoint, BatchWriteRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _nodes.NodeBatchWriteAsync(
+                endpoint.ToServiceModel(), request.ToServiceModel());
+            return new BatchWriteResponseApiModel(result);
+        }
+
+        /// <summary>
+        /// Read history
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<HistoryReadResponseApiModel> HistoryReadAsync(
+            EndpointApiModel endpoint, HistoryReadRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _nodes.NodeHistoryReadAsync(
+               endpoint.ToServiceModel(), request.ToServiceModel());
+            return new HistoryReadResponseApiModel(result);
+        }
+
+        /// <summary>
+        /// Read next history
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<HistoryReadNextResponseApiModel> HistoryReadNextAsync(
+            EndpointApiModel endpoint, HistoryReadNextRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _nodes.NodeHistoryReadNextAsync(
+               endpoint.ToServiceModel(), request.ToServiceModel());
+            return new HistoryReadNextResponseApiModel(result);
+        }
+
+        /// <summary>
+        /// Update history
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<HistoryUpdateResponseApiModel> HistoryUpdateAsync(
+            EndpointApiModel endpoint, HistoryUpdateRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _nodes.NodeHistoryUpdateAsync(
+               endpoint.ToServiceModel(), request.ToServiceModel());
+            return new HistoryUpdateResponseApiModel(result);
+        }
+
+        /// <summary>
         /// Activate twin
         /// </summary>
         /// <param name="id"></param>
@@ -204,6 +354,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         private readonly IActivationServices<string> _activator;
         private readonly IBrowseServices<EndpointModel> _browse;
         private readonly INodeServices<EndpointModel> _nodes;
+        private readonly IPublishServices<EndpointModel> _publisher;
         private readonly IDiscoveryServices _discover;
     }
 }

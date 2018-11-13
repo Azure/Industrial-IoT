@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Twin registration model
@@ -21,8 +23,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public TwinRegistrationApiModel(TwinRegistrationModel model) {
-            Id = model.Id;
-            Endpoint = new EndpointApiModel(model?.Endpoint);
+            Id = model?.Id;
+            Endpoint = model?.Endpoint == null ? null :
+                new EndpointApiModel(model.Endpoint);
+            AuthenticationMethods = model.AuthenticationMethods?
+                .Select(p => new AuthenticationMethodApiModel(p)).ToList();
             Certificate = model?.Certificate;
             SiteId = model?.SiteId;
             SecurityLevel = model?.SecurityLevel;
@@ -33,7 +38,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         public TwinRegistrationModel ToServiceModel() {
             return new TwinRegistrationModel {
-                Endpoint = Endpoint.ToServiceModel(),
+                Id = Id,
+                Endpoint = Endpoint?.ToServiceModel(),
+                AuthenticationMethods = AuthenticationMethods?
+                    .Select(p => p.ToServiceModel()).ToList(),
                 SecurityLevel = SecurityLevel,
                 SiteId = SiteId,
                 Certificate = Certificate
@@ -64,5 +72,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// Endpoint cert
         /// </summary>
         public byte[] Certificate { get; set; }
+
+        /// <summary>
+        /// Supported authentication methods that can be selected to
+        /// obtain a credential and used to interact with the endpoint.
+        /// </summary>
+        public List<AuthenticationMethodApiModel> AuthenticationMethods { get; set; }
     }
 }

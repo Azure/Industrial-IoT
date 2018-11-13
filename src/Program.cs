@@ -5,23 +5,26 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
+    using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Control;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using System;
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Tasks.Default;
-    using Microsoft.Azure.IIoT.OpcUa.Edge;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
 
     /// <summary>
@@ -56,12 +59,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
             using (var hostScope = container.BeginLifetimeScope()) {
                 // BUGBUG: This creates 2 instances one in container one as scope
                 var module = hostScope.Resolve<IModuleHost>();
+                var publisher = hostScope.Resolve<IPublisher>();
                 var logger = hostScope.Resolve<ILogger>();
                 var exit = new TaskCompletionSource<bool>();
                 AssemblyLoadContext.Default.Unloading += _ => exit.TrySetResult(true);
                 while (!exit.Task.IsCompleted) {
                     // Wait until the module unloads or is cancelled
                     try {
+                        // Find publisher in network
+                        await publisher.StartAsync();
+
+                        // Start module
                         var reset = new TaskCompletionSource<bool>();
                         await module.StartAsync(
                             "supervisor", config.GetValue<string>("site", null), "OpcTwin",
@@ -104,6 +112,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<JsonVariantEncoder>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<PublisherClient>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Register discovery services
             builder.RegisterType<DiscoveryServices>()
@@ -135,9 +145,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
             /// </summary>
             /// <param name="client"></param>
             /// <param name="logger"></param>
-            public TwinContainerFactory(IClientHost client, ILogger logger) {
+            public TwinContainerFactory(IClientHost client, ILogger logger, IPublisher publisher) {
                 _client = client ?? throw new ArgumentNullException(nameof(client));
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+                _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             }
 
             /// <inheritdoc/>
@@ -148,26 +159,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
 
                 // Register outer instances
                 builder.RegisterInstance(_logger)
+                    .OnRelease(_ => { }) // Do not dispose
                     .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterInstance(_client)
+                    .OnRelease(_ => { }) // Do not dispose
+                    .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterInstance(_publisher)
+                    .OnRelease(_ => { }) // Do not dispose
                     .AsImplementedInterfaces().SingleInstance();
 
                 // Register other opc ua services
                 builder.RegisterType<JsonVariantEncoder>()
                     .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<TwinServices>()
+                    .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<AddressSpaceServices>()
                     .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<ModelExportServices>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
-#if PUBLISHER_MODULE_CONTROL
-                builder.RegisterType<PublisherModuleServices>()
-                    .AsImplementedInterfaces().InstancePerLifetimeScope();
-                builder.RegisterType<PublisherModuleServerClient>()
-                    .AsImplementedInterfaces().InstancePerLifetimeScope();
-#else
-                builder.RegisterType<PublisherServicesStub>()
-                    .AsImplementedInterfaces().SingleInstance();
-#endif
 
                 // Register module framework
                 builder.RegisterModule<ModuleFramework>();
@@ -186,6 +195,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
 
             private readonly IClientHost _client;
             private readonly ILogger _logger;
+            private readonly IPublisher _publisher;
         }
     }
 }

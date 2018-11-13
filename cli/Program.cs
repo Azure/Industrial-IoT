@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Clients;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
@@ -261,9 +261,9 @@ Options:
             var logger = new ConsoleLogger(null, LogLevel.Error);
             var cs = await Retry.WithExponentialBackoff(logger,
                 () => AddOrGetAsync(config, deviceId, moduleId));
-            Console.WriteLine("Starting module host...");
+            Console.WriteLine("Starting twin module...");
             Twin.Program.Main(new string[] { $"EdgeHubConnectionString={cs}" });
-            Console.WriteLine("Module host exited.");
+            Console.WriteLine("Twin module exited.");
         }
 
         /// <summary>

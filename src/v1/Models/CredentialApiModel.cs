@@ -7,47 +7,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Newtonsoft.Json.Linq;
 
-    public class AuthenticationApiModel {
+    /// <summary>
+    /// Credential model
+    /// </summary>
+    public class CredentialApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public AuthenticationApiModel() { }
+        public CredentialApiModel() { }
 
         /// <summary>
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public AuthenticationApiModel(AuthenticationModel model) {
-            User = model?.User;
-            Token = model?.Token;
-            TokenType = model?.TokenType;
+        public CredentialApiModel(CredentialModel model) {
+            Value = model.Value;
+            Type = model.Type;
         }
 
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public AuthenticationModel ToServiceModel() {
-            return new AuthenticationModel {
-                User = User,
-                Token = Token,
-                TokenType = TokenType
+        public CredentialModel ToServiceModel() {
+            return new CredentialModel {
+                Value = Value,
+                Type = Type
             };
         }
 
         /// <summary>
-        /// User name to use
+        /// Type of credential
         /// </summary>
-        public string User { get; set; }
+        public CredentialType? Type { get; set; }
 
         /// <summary>
-        /// Type of token
+        /// Value to pass to server
         /// </summary>
-        public TokenType? TokenType { get; set; }
-
-        /// <summary>
-        /// User token to pass to server
-        /// </summary>
-        public JToken Token { get; set; }
+        public JToken Value { get; set; }
     }
 }

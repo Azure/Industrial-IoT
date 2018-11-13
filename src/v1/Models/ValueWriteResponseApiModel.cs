@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Value write response model for twin module
@@ -22,12 +21,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public ValueWriteResponseApiModel(ValueWriteResultModel model) {
-            Diagnostics = model.Diagnostics;
+            ErrorInfo = model.ErrorInfo == null ? null :
+                new ServiceResultApiModel(model.ErrorInfo);
         }
 
         /// <summary>
-        /// Optional error diagnostics
+        /// Service result in case of error
         /// </summary>
-        public JToken Diagnostics { get; set; }
+        public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

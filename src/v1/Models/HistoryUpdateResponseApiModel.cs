@@ -9,40 +9,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Result of node browse continuation
+    /// History update results
     /// </summary>
-    public class BrowseNextResponseApiModel {
+    public class HistoryUpdateResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BrowseNextResponseApiModel() { }
+        public HistoryUpdateResponseApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public BrowseNextResponseApiModel(BrowseNextResultModel model) {
-            ErrorInfo = model?.ErrorInfo == null ? null :
-                new ServiceResultApiModel(model?.ErrorInfo);
-            ContinuationToken = model?.ContinuationToken;
-            References = model?.References?
-                .Select(r => new NodeReferenceApiModel(r))
-                .ToList();
+        public HistoryUpdateResponseApiModel(HistoryUpdateResultModel model) {
+            Results = model.Results?
+                .Select(r => new ServiceResultApiModel(r)).ToList();
+            ErrorInfo = model.ErrorInfo == null ? null :
+                new ServiceResultApiModel(model.ErrorInfo);
         }
 
         /// <summary>
-        /// References, if included, otherwise null.
+        /// List of results from the update operation
         /// </summary>
-        public List<NodeReferenceApiModel> References { get; set; }
+        public List<ServiceResultApiModel> Results { get; set; }
 
         /// <summary>
-        /// Continuation token if more results pending.
-        /// </summary>
-        public string ContinuationToken { get; set; }
-
-        /// <summary>
-        /// Service result in case of error
+        /// Service result in case of service call error
         /// </summary>
         public ServiceResultApiModel ErrorInfo { get; set; }
     }

@@ -9,41 +9,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Result of node browse continuation
+    /// List of published nodes
     /// </summary>
-    public class BrowseNextResponseApiModel {
+    public class PublishedNodeListResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BrowseNextResponseApiModel() { }
+        public PublishedNodeListResponseApiModel() { }
 
         /// <summary>
-        /// Create from service model
+        /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public BrowseNextResponseApiModel(BrowseNextResultModel model) {
-            ErrorInfo = model?.ErrorInfo == null ? null :
-                new ServiceResultApiModel(model?.ErrorInfo);
+        public PublishedNodeListResponseApiModel(PublishedNodeListResultModel model) {
             ContinuationToken = model?.ContinuationToken;
-            References = model?.References?
-                .Select(r => new NodeReferenceApiModel(r))
+            Items = model?.Items?
+                .Select(n => new PublishedNodeApiModel(n))
                 .ToList();
         }
 
         /// <summary>
-        /// References, if included, otherwise null.
-        /// </summary>
-        public List<NodeReferenceApiModel> References { get; set; }
-
-        /// <summary>
-        /// Continuation token if more results pending.
+        /// Continuation or null if final
         /// </summary>
         public string ContinuationToken { get; set; }
 
         /// <summary>
-        /// Service result in case of error
+        /// Monitored items
         /// </summary>
-        public ServiceResultApiModel ErrorInfo { get; set; }
+        public List<PublishedNodeApiModel> Items { get; set; }
     }
 }

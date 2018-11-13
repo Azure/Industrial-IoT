@@ -11,35 +11,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     /// <summary>
     /// Result of node browse continuation
     /// </summary>
-    public class BrowseNextResponseApiModel {
+    public class BrowsePathResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BrowseNextResponseApiModel() { }
+        public BrowsePathResponseApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public BrowseNextResponseApiModel(BrowseNextResultModel model) {
+        public BrowsePathResponseApiModel(BrowsePathResultModel model) {
             ErrorInfo = model?.ErrorInfo == null ? null :
-                new ServiceResultApiModel(model?.ErrorInfo);
-            ContinuationToken = model?.ContinuationToken;
-            References = model?.References?
-                .Select(r => new NodeReferenceApiModel(r))
+                new ServiceResultApiModel(model.ErrorInfo);
+            Targets = model?.Targets?
+                .Select(r => new NodePathTargetApiModel(r))
                 .ToList();
         }
 
-        /// <summary>
-        /// References, if included, otherwise null.
-        /// </summary>
-        public List<NodeReferenceApiModel> References { get; set; }
 
         /// <summary>
-        /// Continuation token if more results pending.
+        /// Targets
         /// </summary>
-        public string ContinuationToken { get; set; }
+        public List<NodePathTargetApiModel> Targets { get; set; }
 
         /// <summary>
         /// Service result in case of error

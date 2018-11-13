@@ -5,28 +5,34 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// publish response model for twin module
+    /// Node path target
     /// </summary>
-    public class PublishResponseApiModel {
+    public class NodePathTargetApiModel {
+
         /// <summary>
         /// Default constructor
         /// </summary>
-        public PublishResponseApiModel() {}
+        public NodePathTargetApiModel() { }
 
         /// <summary>
-        /// Create from service model
+        /// Create reference api model
         /// </summary>
         /// <param name="model"></param>
-        public PublishResponseApiModel(PublishResultModel model) {
-            Diagnostics = model.Diagnostics;
+        public NodePathTargetApiModel(NodePathTargetModel model) {
+            RemainingPathIndex = model.RemainingPathIndex;
+            Target = new NodeApiModel(model.Target);
         }
 
         /// <summary>
-        /// Optional error diagnostics
+        /// Target node
         /// </summary>
-        public JToken Diagnostics { get; set; }
+        public NodeApiModel Target { get; set; }
+
+        /// <summary>
+        /// Remaining index in path
+        /// </summary>
+        public int? RemainingPathIndex { get; set; }
     }
 }

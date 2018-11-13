@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -24,17 +23,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public BrowseResponseApiModel(BrowseResultModel model) {
-            Node = new NodeApiModel(model.Node);
-            Diagnostics = model.Diagnostics;
-            ContinuationToken = model.ContinuationToken;
-            if (model.References != null) {
-                References = model.References
-                    .Select(r => new NodeReferenceApiModel(r))
-                    .ToList();
-            }
-            else {
-                model.References = new List<NodeReferenceModel>();
-            }
+            Node = model?.Node == null ? null :
+                new NodeApiModel(model.Node);
+            ErrorInfo = model?.ErrorInfo == null ? null :
+                new ServiceResultApiModel(model?.ErrorInfo);
+            ContinuationToken = model?.ContinuationToken;
+            References = model?.References?
+                .Select(r => new NodeReferenceApiModel(r))
+                .ToList();
         }
 
         /// <summary>
@@ -53,8 +49,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public string ContinuationToken { get; set; }
 
         /// <summary>
-        /// Optional error diagnostics
+        /// Service result in case of error
         /// </summary>
-        public JToken Diagnostics { get; set; }
+        public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

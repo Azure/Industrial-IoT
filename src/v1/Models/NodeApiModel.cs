@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public NodeApiModel(NodeModel model) {
             Id = model.Id;
             HasChildren = model.HasChildren;
+            Name = model.Name;
             IsAbstract = model.IsAbstract;
             DisplayName = model.DisplayName;
             Description = model.Description;
@@ -56,6 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             return new NodeModel {
                 Id = Id,
                 HasChildren = HasChildren,
+                Name = Name,
                 IsAbstract = IsAbstract,
                 DisplayName = DisplayName,
                 Description = Description,
@@ -110,10 +112,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public bool? HasChildren { get; set; }
 
         /// <summary>
+        /// Browse name
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
         /// Node access restrictions if any.
         /// (default: none)
         /// </summary>
-        public uint? AccessRestrictions { get; set; }
+        public NodeAccessRestrictions? AccessRestrictions { get; set; }
 
         /// <summary>
         /// Default write mask for the node

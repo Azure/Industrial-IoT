@@ -29,27 +29,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// User name to use
-        /// </summary>
-        public string User {
-            get => _user;
-            set => _user = string.IsNullOrEmpty(value) ? null : value;
-        }
-
-        /// <summary>
         /// User token to pass to server
         /// </summary>
-        public JToken Token {
-            get => _token;
-            set => _token = value;
+        public JToken Credential {
+            get => _credential;
+            set => _credential = value;
         }
 
         /// <summary>
         /// Type of token
         /// </summary>
-        public JToken TokenType {
-            get => JToken.FromObject(_tokenType);
-            set => _tokenType = value?.ToObject<TokenType>();
+        public JToken CredentialType {
+            get => JToken.FromObject(_credentialType);
+            set => _credentialType = value?.ToObject<CredentialType>();
         }
 
         /// <summary>
@@ -69,18 +61,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// Endpoint certificate to validate against
+        /// Endpoint certificate thumbprint to validate
         /// </summary>
-        public Dictionary<string, string> Validation {
-            get => _validation.EncodeAsDictionary();
-            set => _validation = value.DecodeAsByteArray();
+        public Dictionary<string, string> ServerThumbprint {
+            get => _serverThumbprint.EncodeAsDictionary();
+            set => _serverThumbprint = value.DecodeAsByteArray();
+        }
+
+        /// <summary>
+        /// Full client certificate to use when connecting to endpoint
+        /// </summary>
+        public Dictionary<string, string> ClientCertificate {
+            get => _clientCertificate.EncodeAsDictionary();
+            set => _clientCertificate = value.DecodeAsByteArray();
         }
 
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="logger"></param>
-        public TwinSettingsController(IPublisherServices twin, ILogger logger) {
+        public TwinSettingsController(ITwinServices twin, ILogger logger) {
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -94,27 +94,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
                 new EndpointModel {
                     SecurityMode = _securityMode,
                     SecurityPolicy = _securityPolicy,
-                    Authentication =
-                        _tokenType == Registry.Models.TokenType.None ? null :
-                        new AuthenticationModel {
-                            User = _user,
-                            Token = _token,
-                            TokenType = _tokenType,
-                        },
+                    User =
+                        _credentialType == Registry.Models.CredentialType.None ? null :
+                            new CredentialModel {
+                                Value = _credential,
+                                Type = _credentialType,
+                            },
                     Url = _endpointUrl,
-                    Validation = _validation
+                    ServerThumbprint = _serverThumbprint,
+                    ClientCertificate = _clientCertificate
                 });
         }
 
-        private TokenType? _tokenType;
-        private JToken _token;
-        private string _user;
+        private CredentialType? _credentialType;
+        private JToken _credential;
         private string _endpointUrl;
         private string _securityPolicy;
         private SecurityMode? _securityMode;
-        private byte[] _validation;
+        private byte[] _serverThumbprint;
+        private byte[] _clientCertificate;
 
-        private readonly IPublisherServices _twin;
+        private readonly ITwinServices _twin;
         private readonly ILogger _logger;
     }
 }

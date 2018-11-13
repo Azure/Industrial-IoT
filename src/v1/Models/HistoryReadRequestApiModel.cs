@@ -5,48 +5,68 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Method metadata request model for twin module
+    /// Request node history read
     /// </summary>
-    public class MethodMetadataRequestApiModel {
+    public class HistoryReadRequestApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public MethodMetadataRequestApiModel() { }
+        public HistoryReadRequestApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public MethodMetadataRequestApiModel(MethodMetadataRequestModel model) {
-            MethodId = model.MethodId;
+        public HistoryReadRequestApiModel(HistoryReadRequestModel model) {
+            NodeId = model.NodeId;
+            IndexRange = model.IndexRange;
+            Request = model.Request;
             Elevation = model.Elevation == null ? null :
                 new CredentialApiModel(model.Elevation);
             Diagnostics = model.Diagnostics == null ? null :
-               new DiagnosticsApiModel(model.Diagnostics);
+                new DiagnosticsApiModel(model.Diagnostics);
         }
 
         /// <summary>
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public MethodMetadataRequestModel ToServiceModel() {
-            return new MethodMetadataRequestModel {
-                MethodId = MethodId,
+        public HistoryReadRequestModel ToServiceModel() {
+            return new HistoryReadRequestModel {
+                NodeId = NodeId,
+                IndexRange = IndexRange,
+                Request = Request,
                 Diagnostics = Diagnostics?.ToServiceModel(),
                 Elevation = Elevation?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Count of input arguments
+        /// Node to read from (mandatory)
         /// </summary>
-        public string MethodId { get; set; }
+        public string NodeId { get; set; }
 
         /// <summary>
-        /// Optional User elevation
+        /// The HistoryReadDetailsType extension object
+        /// encoded in json and containing the tunneled
+        /// Historian reader request.
+        /// </summary>
+        public JToken Request { get; set; }
+
+        /// <summary>
+        /// Index range to read, e.g. 1:2,0:1 for 2 slices
+        /// out of a matrix or 0:1 for the first item in
+        /// an array, string or bytestring.
+        /// See 7.22 of part 4: NumericRange.
+        /// </summary>
+        public string IndexRange { get; set; }
+
+        /// <summary>
+        /// Optional User Elevation
         /// </summary>
         public CredentialApiModel Elevation { get; set; }
 

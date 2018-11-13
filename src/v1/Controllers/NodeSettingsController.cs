@@ -48,13 +48,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// <summary>
         /// Create controller with service
         /// </summary>
+        /// <param name="nodes"></param>
+        /// <param name="publisher"></param>
+        /// <param name="twin"></param>
         /// <param name="logger"></param>
-        public NodeSettingsController(IBrowseServices<EndpointModel> browse,
-            INodeServices<EndpointModel> nodes, IPublisherServices twin,
-            ILogger logger) {
-            _browse = browse ?? throw new ArgumentNullException(nameof(browse));
+        public NodeSettingsController(
+            INodeServices<EndpointModel> nodes, IPublishServices<EndpointModel> publisher,
+            ITwinServices twin, ILogger logger) {
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
+            _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _action = new Dictionary<string, JToken>();
         }
@@ -89,34 +92,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// <param name="value"></param>
         /// <returns></returns>
         private async Task WriteAsync(string nodeId, JToken value) {
-            var result = await _browse.NodeBrowseFirstAsync(
-                _twin.Endpoint,
-                new BrowseRequestModel {
-                    NodeId = nodeId,
-                    MaxReferencesToReturn = 0
-                });
-            await _nodes.NodeValueWriteAsync(
-                _twin.Endpoint,
+            await _nodes.NodeValueWriteAsync(_twin.Endpoint,
                 new ValueWriteRequestModel {
-                    NodeId = result.Node.Id,
-                    DataType = result.Node.DataType,
-                    Value = (string)value
+                    NodeId = nodeId,
+                    Value = value
                 });
         }
 
         /// <summary>
-        /// Publish the node
+        /// Publish or unpublish a node
         /// </summary>
         /// <param name="nodeId"></param>
         /// <param name="enabled"></param>
         /// <returns></returns>
         private async Task PublishAsync(string nodeId, bool? enabled) {
-            await _twin.NodePublishAsync(nodeId, enabled);
+            if (enabled ?? true) {
+                await _publisher.NodePublishStartAsync(_twin.Endpoint,
+                    new PublishStartRequestModel {
+                        Node = new PublishedNodeModel {
+                            NodeId = nodeId
+                        }
+                    });
+            }
+            else {
+                await _publisher.NodePublishStopAsync(_twin.Endpoint,
+                    new PublishStopRequestModel {
+                        NodeId = nodeId
+                    });
+
+            }
         }
 
         private readonly Dictionary<string, JToken> _action;
-        private readonly IPublisherServices _twin;
-        private readonly IBrowseServices<EndpointModel> _browse;
+        private readonly ITwinServices _twin;
+        private readonly IPublishServices<EndpointModel> _publisher;
         private readonly INodeServices<EndpointModel> _nodes;
         private readonly ILogger _logger;
     }

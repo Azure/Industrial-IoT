@@ -29,7 +29,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             SourceTimestamp = model.SourceTimestamp;
             ServerPicoseconds = model.ServerPicoseconds;
             ServerTimestamp = model.ServerTimestamp;
-            Diagnostics = model.Diagnostics;
+            ErrorInfo = model.ErrorInfo == null ? null :
+                new ServiceResultApiModel(model.ErrorInfo);
         }
 
         /// <summary>
@@ -63,8 +64,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public DateTime? ServerTimestamp { get; set; }
 
         /// <summary>
-        /// Optional error diagnostics
+        /// Service result in case of error
         /// </summary>
-        public JToken Diagnostics { get; set; }
+        public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

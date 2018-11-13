@@ -5,48 +5,51 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Method metadata request model for twin module
+    /// Request node history update
     /// </summary>
-    public class MethodMetadataRequestApiModel {
+    public class HistoryUpdateRequestApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public MethodMetadataRequestApiModel() { }
+        public HistoryUpdateRequestApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public MethodMetadataRequestApiModel(MethodMetadataRequestModel model) {
-            MethodId = model.MethodId;
+        public HistoryUpdateRequestApiModel(HistoryUpdateRequestModel model) {
+            Request = model.Request;
             Elevation = model.Elevation == null ? null :
                 new CredentialApiModel(model.Elevation);
             Diagnostics = model.Diagnostics == null ? null :
-               new DiagnosticsApiModel(model.Diagnostics);
+                new DiagnosticsApiModel(model.Diagnostics);
         }
 
         /// <summary>
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public MethodMetadataRequestModel ToServiceModel() {
-            return new MethodMetadataRequestModel {
-                MethodId = MethodId,
+        public HistoryUpdateRequestModel ToServiceModel() {
+            return new HistoryUpdateRequestModel {
+                Request = Request,
                 Diagnostics = Diagnostics?.ToServiceModel(),
                 Elevation = Elevation?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Count of input arguments
+        /// The HistoryUpdateDetailsType extension object
+        /// encoded in json and containing the tunneled
+        /// update request for the Historian server.
         /// </summary>
-        public string MethodId { get; set; }
+        public JToken Request { get; set; }
 
         /// <summary>
-        /// Optional User elevation
+        /// Optional User Elevation
         /// </summary>
         public CredentialApiModel Elevation { get; set; }
 

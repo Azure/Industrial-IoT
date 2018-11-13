@@ -7,46 +7,54 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
 
     /// <summary>
-    /// Method metadata request model for twin module
+    /// Request node history read continuation
     /// </summary>
-    public class MethodMetadataRequestApiModel {
+    public class HistoryReadNextRequestApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public MethodMetadataRequestApiModel() { }
+        public HistoryReadNextRequestApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public MethodMetadataRequestApiModel(MethodMetadataRequestModel model) {
-            MethodId = model.MethodId;
+        public HistoryReadNextRequestApiModel(HistoryReadNextRequestModel model) {
+            ContinuationToken = model.ContinuationToken;
+            Abort = model.Abort;
             Elevation = model.Elevation == null ? null :
                 new CredentialApiModel(model.Elevation);
             Diagnostics = model.Diagnostics == null ? null :
-               new DiagnosticsApiModel(model.Diagnostics);
+                new DiagnosticsApiModel(model.Diagnostics);
         }
 
         /// <summary>
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public MethodMetadataRequestModel ToServiceModel() {
-            return new MethodMetadataRequestModel {
-                MethodId = MethodId,
+        public HistoryReadNextRequestModel ToServiceModel() {
+            return new HistoryReadNextRequestModel {
+                ContinuationToken = ContinuationToken,
+                Abort = Abort,
                 Diagnostics = Diagnostics?.ToServiceModel(),
                 Elevation = Elevation?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Count of input arguments
+        /// Continuation token to continue reading more
+        /// results.
         /// </summary>
-        public string MethodId { get; set; }
+        public string ContinuationToken { get; set; }
 
         /// <summary>
-        /// Optional User elevation
+        /// Abort reading after this read
+        /// </summary>
+        public bool? Abort { get; set; }
+
+        /// <summary>
+        /// Optional User Elevation
         /// </summary>
         public CredentialApiModel Elevation { get; set; }
 

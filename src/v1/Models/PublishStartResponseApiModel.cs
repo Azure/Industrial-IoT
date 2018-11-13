@@ -5,34 +5,25 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using System.Collections.Generic;
-    using System.Linq;
 
     /// <summary>
-    /// Method call response model for twin module
+    /// Result of publish request
     /// </summary>
-    public class MethodCallResponseApiModel {
+    public class PublishStartResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public MethodCallResponseApiModel() {}
+        public PublishStartResponseApiModel() { }
 
         /// <summary>
-        /// Create from service model
+        /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public MethodCallResponseApiModel(MethodCallResultModel model) {
-            Results = model.Results?
-                .Select(arg => new MethodCallArgumentApiModel(arg)).ToList();
+        public PublishStartResponseApiModel(PublishStartResultModel model) {
             ErrorInfo = model.ErrorInfo == null ? null :
                 new ServiceResultApiModel(model.ErrorInfo);
         }
-
-        /// <summary>
-        /// Output results
-        /// </summary>
-        public List<MethodCallArgumentApiModel> Results { get; set; }
 
         /// <summary>
         /// Service result in case of error

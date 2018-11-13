@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             TargetNodesOnly = model.TargetNodesOnly;
             ReadVariableValues = model.ReadVariableValues;
             Elevation = model.Elevation == null ? null :
-                new AuthenticationApiModel(model.Elevation);
+                new CredentialApiModel(model.Elevation);
             Diagnostics = model.Diagnostics == null ? null :
                 new DiagnosticsApiModel(model.Diagnostics);
         }
@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <summary>
         /// Optional elevation
         /// </summary>
-        public AuthenticationApiModel Elevation { get; set; }
+        public CredentialApiModel Elevation { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration

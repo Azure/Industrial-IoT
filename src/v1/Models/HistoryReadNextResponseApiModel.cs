@@ -5,36 +5,33 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using System.Collections.Generic;
-    using System.Linq;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Result of node browse continuation
+    /// History read continuation result
     /// </summary>
-    public class BrowseNextResponseApiModel {
+    public class HistoryReadNextResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BrowseNextResponseApiModel() { }
+        public HistoryReadNextResponseApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public BrowseNextResponseApiModel(BrowseNextResultModel model) {
-            ErrorInfo = model?.ErrorInfo == null ? null :
-                new ServiceResultApiModel(model?.ErrorInfo);
-            ContinuationToken = model?.ContinuationToken;
-            References = model?.References?
-                .Select(r => new NodeReferenceApiModel(r))
-                .ToList();
+        public HistoryReadNextResponseApiModel(HistoryReadNextResultModel model) {
+            History = model.History;
+            ContinuationToken = model.ContinuationToken;
+            ErrorInfo = model.ErrorInfo == null ? null :
+                new ServiceResultApiModel(model.ErrorInfo);
         }
 
         /// <summary>
-        /// References, if included, otherwise null.
+        /// History as json encoded extension object
         /// </summary>
-        public List<NodeReferenceApiModel> References { get; set; }
+        public JToken History { get; set; }
 
         /// <summary>
         /// Continuation token if more results pending.

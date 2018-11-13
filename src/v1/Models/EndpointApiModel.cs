@@ -22,9 +22,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <param name="model"></param>
         public EndpointApiModel(EndpointModel model) {
             Url = model?.Url;
-            Authentication = model?.Authentication == null ? null :
-                new AuthenticationApiModel(model.Authentication);
-            Validation = model?.Validation;
+            User = model?.User == null ? null :
+                new CredentialApiModel(model.User);
+            Validation = model?.ServerThumbprint;
             SecurityMode = model?.SecurityMode;
             SecurityPolicy = model?.SecurityPolicy;
         }
@@ -35,8 +35,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public EndpointModel ToServiceModel() {
             return new EndpointModel {
                 Url = Url,
-                Authentication = Authentication?.ToServiceModel(),
-                Validation = Validation,
+                User = User?.ToServiceModel(),
+                ServerThumbprint = Validation,
                 SecurityMode = SecurityMode,
                 SecurityPolicy = SecurityPolicy,
             };
@@ -48,9 +48,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public string Url { get; set; }
 
         /// <summary>
-        /// Authentication
+        /// User Authentication
         /// </summary>
-        public AuthenticationApiModel Authentication { get; set; }
+        public CredentialApiModel User { get; set; }
 
         /// <summary>
         /// Endpoint security policy to use - null = Best.

@@ -10,13 +10,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     /// reference model for twin module
     /// </summary>
     public class NodeReferenceApiModel {
+
         /// <summary>
         /// Default constructor
         /// </summary>
         public NodeReferenceApiModel() {}
 
         /// <summary>
-        /// Create reference api model
+        /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
         public NodeReferenceApiModel(NodeReferenceModel model) {
@@ -24,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             BrowseName = model.BrowseName;
             Direction = model.Direction;
             DisplayName = model.DisplayName;
+            TypeDefinition = model.TypeDefinition;
             Target = new NodeApiModel(model.Target);
         }
 
@@ -51,5 +53,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// Display name of reference
         /// </summary>
         public string DisplayName { get; set; }
+
+        /// <summary>
+        /// Optional type definition of the reference
+        /// </summary>
+        public string TypeDefinition { get; set; }
     }
 }

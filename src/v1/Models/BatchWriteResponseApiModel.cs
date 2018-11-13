@@ -9,34 +9,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Method call response model for twin module
+    /// Result of attribute write
     /// </summary>
-    public class MethodCallResponseApiModel {
+    public class BatchWriteResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public MethodCallResponseApiModel() {}
+        public BatchWriteResponseApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public MethodCallResponseApiModel(MethodCallResultModel model) {
+        public BatchWriteResponseApiModel(BatchWriteResultModel model) {
             Results = model.Results?
-                .Select(arg => new MethodCallArgumentApiModel(arg)).ToList();
-            ErrorInfo = model.ErrorInfo == null ? null :
-                new ServiceResultApiModel(model.ErrorInfo);
+                .Select(a => new AttributeWriteResponseApiModel(a)).ToList();
         }
 
         /// <summary>
-        /// Output results
+        /// All results of attribute writes
         /// </summary>
-        public List<MethodCallArgumentApiModel> Results { get; set; }
-
-        /// <summary>
-        /// Service result in case of error
-        /// </summary>
-        public ServiceResultApiModel ErrorInfo { get; set; }
+        public List<AttributeWriteResponseApiModel> Results { set; get; }
     }
 }

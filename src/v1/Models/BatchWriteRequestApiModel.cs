@@ -5,48 +5,51 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
-    /// Method metadata request model for twin module
+    /// Request node attribute write
     /// </summary>
-    public class MethodMetadataRequestApiModel {
+    public class BatchWriteRequestApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public MethodMetadataRequestApiModel() { }
+        public BatchWriteRequestApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public MethodMetadataRequestApiModel(MethodMetadataRequestModel model) {
-            MethodId = model.MethodId;
+        public BatchWriteRequestApiModel(BatchWriteRequestModel model) {
+            Attributes = model.Attributes?
+                .Select(a => new AttributeWriteRequestApiModel(a)).ToList();
             Elevation = model.Elevation == null ? null :
                 new CredentialApiModel(model.Elevation);
             Diagnostics = model.Diagnostics == null ? null :
-               new DiagnosticsApiModel(model.Diagnostics);
+                new DiagnosticsApiModel(model.Diagnostics);
         }
 
         /// <summary>
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public MethodMetadataRequestModel ToServiceModel() {
-            return new MethodMetadataRequestModel {
-                MethodId = MethodId,
+        public BatchWriteRequestModel ToServiceModel() {
+            return new BatchWriteRequestModel {
+                Attributes = Attributes?.Select(a => a.ToServiceModel()).ToList(),
                 Diagnostics = Diagnostics?.ToServiceModel(),
                 Elevation = Elevation?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Count of input arguments
+        /// Attributes to update
         /// </summary>
-        public string MethodId { get; set; }
+        public List<AttributeWriteRequestApiModel> Attributes { get; set; }
 
         /// <summary>
-        /// Optional User elevation
+        /// Optional User Elevation
         /// </summary>
         public CredentialApiModel Elevation { get; set; }
 
