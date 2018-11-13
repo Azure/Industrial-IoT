@@ -25,9 +25,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         /// <param name="model"></param>
         public TwinRegistrationUpdateApiModel(TwinRegistrationUpdateModel model) {
             Id = model.Id;
-            Duplicate = model.Duplicate;
-            Authentication = model.Authentication == null ?
-                null : new AuthenticationApiModel(model.Authentication);
+            User = model.User == null ?
+                null : new CredentialApiModel(model.User);
         }
 
         /// <summary>
@@ -37,8 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public TwinRegistrationUpdateModel ToServiceModel() {
             return new TwinRegistrationUpdateModel {
                 Id = Id,
-                Duplicate = Duplicate,
-                Authentication = Authentication?.ToServiceModel()
+                User = User?.ToServiceModel()
             };
         }
 
@@ -50,20 +48,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public string Id { get; set; }
 
         /// <summary>
-        /// Whether to copy existing registration
-        /// rather than replacing, null == false
+        /// User authentication to change on the twin.
         /// </summary>
-        [JsonProperty(PropertyName = "duplicate",
+        [JsonProperty(PropertyName = "user",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public bool? Duplicate { get; set; }
-
-        /// <summary>
-        /// Authentication to change on the twin.
-        /// </summary>
-        [JsonProperty(PropertyName = "authentication",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public AuthenticationApiModel Authentication { get; set; }
+        public CredentialApiModel User { get; set; }
     }
 }

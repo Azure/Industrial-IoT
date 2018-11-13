@@ -18,11 +18,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
         /// <summary>
         /// Name of service
         /// </summary>
-        public const string NAME = "Opc-Twin";
+        public const string NAME = "IIoT-Opc-Twin-Service";
 
         /// <summary>
         /// Description of service
         /// </summary>
-        public const string DESCRIPTION = "Opc UA Twin API Micro Service";
+        public const string DESCRIPTION = "IIoT Opc UA Twin Service";
     }
 }

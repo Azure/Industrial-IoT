@@ -23,6 +23,9 @@
     "vmFQDNSuffix": {
       "value": "{Added through command line interface}"
     },
+    "branchName": {
+      "value": "{Added through command line interface}"
+    },
     "azureWebsiteName": {
       "value": "{Added through command line interface}"
     },

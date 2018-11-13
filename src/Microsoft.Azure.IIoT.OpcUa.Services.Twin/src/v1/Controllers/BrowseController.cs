@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <param name="request">The browse request</param>
         /// <returns>The browse response</returns>
         [HttpPost("{id}")]
-        public async Task<BrowseResponseApiModel> BrowseByIdAsync(string id,
+        public async Task<BrowseResponseApiModel> BrowseAsync(string id,
             [FromBody] BrowseRequestApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <returns>The browse response</returns>
         /// <param name="request">Continuation token</param>
         [HttpPost("{id}/next")]
-        public async Task<BrowseNextResponseApiModel> BrowseNextByIdAsync(string id,
+        public async Task<BrowseNextResponseApiModel> BrowseNextAsync(string id,
             [FromBody] BrowseNextRequestApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -73,6 +73,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             var browseresult = await _twin.NodeBrowseNextAsync(id,
                 request.ToServiceModel());
             return new BrowseNextResponseApiModel(browseresult);
+        }
+
+        /// <summary>
+        /// Browse using a path from the specified node id.
+        /// The twin must be activated and connected and twin and server must trust
+        /// each other.
+        /// </summary>
+        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="request">The browse path request</param>
+        /// <returns>The browse path response</returns>
+        [HttpPost("{id}/path")]
+        public async Task<BrowsePathResponseApiModel> BrowsePathAsync(string id,
+            [FromBody] BrowsePathRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var browseresult = await _twin.NodeBrowsePathAsync(id,
+                request.ToServiceModel());
+            return new BrowsePathResponseApiModel(browseresult);
         }
 
         /// <summary>
@@ -91,7 +110,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// object root</param>
         /// <returns>The browse response</returns>
         [HttpGet("{id}")]
-        public async Task<BrowseResponseApiModel> BrowseByIdAsGetAsync(string id,
+        public async Task<BrowseResponseApiModel> BrowseAsGetAsync(string id,
             [FromQuery] string nodeId) {
             if (string.IsNullOrEmpty(nodeId)) {
                 nodeId = null;
@@ -118,7 +137,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <param name="continuationToken">Optional Continuation
         /// token</param>
         [HttpGet("{id}/next")]
-        public async Task<BrowseNextResponseApiModel> BrowseNextByIdAsGetAsync(string id,
+        public async Task<BrowseNextResponseApiModel> BrowseNextAsGetAsync(string id,
             [FromQuery] string continuationToken) {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken]

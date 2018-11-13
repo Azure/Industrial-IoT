@@ -6,8 +6,10 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Newtonsoft.Json;
+    using System.Collections.Generic;
     using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
+    using System.Linq;
 
     /// <summary>
     /// Twin registration model
@@ -25,7 +27,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         /// <param name="model"></param>
         public TwinRegistrationApiModel(TwinRegistrationModel model) {
             Id = model.Id;
-            Endpoint = new EndpointApiModel(model.Endpoint);
+            Endpoint = model.Endpoint == null ? null :
+                new EndpointApiModel(model.Endpoint);
+            AuthenticationMethods = model.AuthenticationMethods?
+                .Select(p => new AuthenticationMethodApiModel(p)).ToList();
             Certificate = model.Certificate;
             SiteId = model.SiteId;
             SecurityLevel = model.SecurityLevel;
@@ -39,7 +44,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
             return new TwinRegistrationModel {
                 Id = Id,
                 SiteId = SiteId,
-                Endpoint = Endpoint.ToServiceModel(),
+                AuthenticationMethods = AuthenticationMethods?
+                    .Select(p => p.ToServiceModel()).ToList(),
+                Endpoint = Endpoint?.ToServiceModel(),
                 SecurityLevel = SecurityLevel,
                 Certificate = Certificate
             };
@@ -81,5 +88,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public byte[] Certificate { get; set; }
+
+        /// <summary>
+        /// Supported authentication methods for the endpoint.
+        /// </summary>
+        [JsonProperty(PropertyName = "authenticationMethods",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<AuthenticationMethodApiModel> AuthenticationMethods { get; set; }
     }
 }

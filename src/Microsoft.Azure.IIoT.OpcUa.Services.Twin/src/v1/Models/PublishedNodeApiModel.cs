@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// Info about a published nodes
+    /// A monitored and published node
     /// </summary>
     public class PublishedNodeApiModel {
 
@@ -19,37 +19,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         public PublishedNodeApiModel() { }
 
         /// <summary>
-        /// Create from service model
+        /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
         public PublishedNodeApiModel(PublishedNodeModel model) {
             NodeId = model.NodeId;
-            Enabled = model.Enabled;
+            SamplingInterval = model.SamplingInterval;
+            PublishingInterval = model.PublishingInterval;
         }
 
         /// <summary>
-        /// Convert back to service model
+        /// Create service model from api model
         /// </summary>
-        /// <returns></returns>
         public PublishedNodeModel ToServiceModel() {
             return new PublishedNodeModel {
                 NodeId = NodeId,
-                Enabled = Enabled
+                SamplingInterval = SamplingInterval,
+                PublishingInterval = PublishingInterval
             };
         }
 
         /// <summary>
-        /// Node
+        /// Node to monitor
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
         [Required]
         public string NodeId { get; set; }
 
         /// <summary>
-        /// Enabled or disabled
+        /// Publishing interval to use
         /// </summary>
-        [JsonProperty(PropertyName = "enabled")]
-        [Required]
-        public bool Enabled { get; set; }
+        [JsonProperty(PropertyName = "publishingInterval",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public int? PublishingInterval { get; set; }
+
+        /// <summary>
+        /// Sampling interval to use
+        /// </summary>
+        [JsonProperty(PropertyName = "samplingInterval",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public int? SamplingInterval { get; set; }
     }
 }

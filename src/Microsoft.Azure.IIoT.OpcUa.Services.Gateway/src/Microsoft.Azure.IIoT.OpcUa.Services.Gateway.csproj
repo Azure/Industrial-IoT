@@ -1,20 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk;Microsoft.NET.Sdk.Publish">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="appsettings.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Autofac" Version="4.8.1" />
-    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.3.0" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.3.1" />
     <PackageReference Include="Microsoft.AspNetCore.AzureKeyVault.HostingStartup" Version="2.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.3" />
   </ItemGroup>
@@ -27,8 +17,8 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="1.0.0" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="1.0.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="1.0.*" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="1.0.*" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -41,14 +31,23 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Twin" Version="1.0.0" />
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Registry" Version="1.0.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Twin" Version="1.0.*" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Registry" Version="1.0.*" />
       </ItemGroup>
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <None Update="Settings.job">
+    <Folder Include="Properties" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="appsettings.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\opc-twin\src\Microsoft.Azure.IIoT.OpcUa.Gateway\src\Microsoft.Azure.IIoT.OpcUa.Gateway.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
   </ItemGroup>
 </Project>

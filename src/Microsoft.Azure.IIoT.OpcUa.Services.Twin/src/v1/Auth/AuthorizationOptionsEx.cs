@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1 {
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Auth;
     using Microsoft.Azure.IIoT.Services.Auth;
+    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.AspNetCore.Authorization;
 
     /// <summary>

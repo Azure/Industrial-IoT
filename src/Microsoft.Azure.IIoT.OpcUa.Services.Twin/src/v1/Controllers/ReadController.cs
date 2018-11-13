@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <param name="request">The read value request</param>
         /// <returns>The read value response</returns>
         [HttpPost("{id}")]
-        public async Task<ValueReadResponseApiModel> ReadByIdAsync(string id,
+        public async Task<ValueReadResponseApiModel> ReadAsync(string id,
             [FromBody] ValueReadRequestApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -48,6 +48,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             var readresult = await _twin.NodeValueReadAsync(
                 id, request.ToServiceModel());
             return new ValueReadResponseApiModel(readresult);
+        }
+
+        /// <summary>
+        /// Read any node attribute as batches. This allows reading attributes
+        /// of any node in batch fashion.  However, note that batch requests
+        /// and responses must fit into the device method  payload size limits.
+        /// This is therefore considered an advanced api and should be used only
+        /// when the request and response payload size is not dynamic and was
+        /// well tested against a known endpoint.
+        /// </summary>
+        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="request">The batch read request</param>
+        /// <returns>The batch read response</returns>
+        [HttpPost("{id}/batch")]
+        public async Task<BatchReadResponseApiModel> ReadBatchAsync(string id,
+            [FromBody] BatchReadRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var readresult = await _twin.NodeBatchReadAsync(
+                id, request.ToServiceModel());
+            return new BatchReadResponseApiModel(readresult);
         }
 
         /// <summary>
@@ -60,7 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <param name="nodeId">The node to read</param>
         /// <returns>The read value response</returns>
         [HttpGet("{id}")]
-        public async Task<ValueReadResponseApiModel> ReadByIdAsGetAsync(string id,
+        public async Task<ValueReadResponseApiModel> ReadAsGetAsync(string id,
             [FromQuery] string nodeId) {
             if (string.IsNullOrEmpty(nodeId)) {
                 throw new ArgumentNullException(nameof(nodeId));

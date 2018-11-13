@@ -194,6 +194,7 @@ echo "PCS_EVENTHUB_CONNSTRING=${PCS_EVENTHUB_CONNSTRING}" >> ${ENVVARS}
 echo "PCS_EVENTHUB_NAME=${PCS_EVENTHUB_NAME}" >> ${ENVVARS}
 echo "PCS_APPLICATION_SECRET=${PCS_APPLICATION_SECRET}" >> ${ENVVARS}
 echo "PCS_LOG_LEVEL=${PCS_LOG_LEVEL}" >> ${ENVVARS}
+echo "PCS_RELEASE_VERSION=${PCS_RELEASE_VERSION}" >> ${ENVVARS}
 
 # ========================================================================
 

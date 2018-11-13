@@ -7,64 +7,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
     using System.ComponentModel.DataAnnotations;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Node publis request webservice api model
+    /// Attribute and value to write to it
     /// </summary>
-    public class PublishRequestApiModel {
+    public class AttributeWriteRequestApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public PublishRequestApiModel() { }
+        public AttributeWriteRequestApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public PublishRequestApiModel(PublishRequestModel model) {
+        public AttributeWriteRequestApiModel(AttributeWriteRequestModel model) {
             NodeId = model.NodeId;
-            Enabled = model.Enabled;
-            DisplayName = model.DisplayName;
-            PublishingInterval = model.PublishingInterval;
+            Value = model.Value;
+            Attribute = model.Attribute;
         }
 
         /// <summary>
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public PublishRequestModel ToServiceModel() {
-            return new PublishRequestModel {
+        public AttributeWriteRequestModel ToServiceModel() {
+            return new AttributeWriteRequestModel {
                 NodeId = NodeId,
-                Enabled = Enabled,
-                DisplayName = DisplayName,
-                PublishingInterval = PublishingInterval
+                Value = Value,
+                Attribute = Attribute
             };
         }
 
         /// <summary>
-        /// Node to publish or unpublish
+        /// Node to write to (mandatory)
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
         [Required]
         public string NodeId { get; set; }
 
         /// <summary>
-        /// Publishing interval of the item
+        /// Attribute to write (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "publishingInterval")]
-        public int? PublishingInterval { get; set; }
+        [JsonProperty(PropertyName = "attribute")]
+        [Required]
+        public NodeAttribute Attribute { get; set; }
 
         /// <summary>
-        /// Whether to enable or disable (null == false)
+        /// Value to write (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "enabled")]
-        public bool? Enabled { get; set; }
-
-        /// <summary>
-        /// Display name to use for publishing
-        /// </summary>
-        [JsonProperty(PropertyName = "displayName")]
-        public string DisplayName { get; set; }
+        [JsonProperty(PropertyName = "value")]
+        [Required]
+        public JToken Value { get; set; }
     }
 }

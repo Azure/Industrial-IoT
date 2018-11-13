@@ -9,27 +9,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// publish response model
+    /// Attribute value read
     /// </summary>
-    public class PublishResponseApiModel {
+    public class AttributeReadResponseApiModel {
+
         /// <summary>
         /// Default constructor
         /// </summary>
-        public PublishResponseApiModel() {}
+        public AttributeReadResponseApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public PublishResponseApiModel(PublishResultModel model) {
-            Diagnostics = model.Diagnostics;
+        public AttributeReadResponseApiModel(AttributeReadResultModel model) {
+            Value = model.Value;
+            ErrorInfo = model.ErrorInfo == null ? null :
+                new ServiceResultApiModel(model.ErrorInfo);
         }
 
         /// <summary>
-        /// Optional error diagnostics
+        /// Attribute value
         /// </summary>
-        [JsonProperty(PropertyName = "diagnostics",
+        [JsonProperty(PropertyName = "value")]
+        public JToken Value { get; set; }
+
+        /// <summary>
+        /// Service result in case of error
+        /// </summary>
+        [JsonProperty(PropertyName = "errorInfo",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Diagnostics { get; set; }
+        public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

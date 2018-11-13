@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
             NodeId = model.NodeId;
             IndexRange = model.IndexRange;
             Elevation = model.Elevation == null ? null :
-                new AuthenticationApiModel(model.Elevation);
+                new CredentialApiModel(model.Elevation);
             Diagnostics = model.Diagnostics == null ? null :
                 new DiagnosticsApiModel(model.Diagnostics);
         }
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         [JsonProperty(PropertyName = "elevation",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public AuthenticationApiModel Elevation { get; set; }
+        public CredentialApiModel Elevation { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration

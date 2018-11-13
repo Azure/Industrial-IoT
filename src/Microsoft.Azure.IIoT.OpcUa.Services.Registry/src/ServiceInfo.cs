@@ -13,16 +13,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
         /// <summary>
         /// ID
         /// </summary>
-        public const string ID = "OPC_REGISTRY";
+        public const string ID = "OPC_TWIN_REGISTRY";
 
         /// <summary>
         /// Name of service
         /// </summary>
-        public const string NAME = "Opc-Registry";
+        public const string NAME = "IIoT-Opc-Twin-Registry";
 
         /// <summary>
         /// Description of service
         /// </summary>
-        public const string DESCRIPTION = "Opc UA Registry API Micro Service";
+        public const string DESCRIPTION = "IIoT Opc UA Twin Registry Service";
     }
 }

@@ -10,58 +10,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
     using System.ComponentModel;
 
     /// <summary>
-    /// Authentication model
+    /// Credential model
     /// </summary>
-    public class AuthenticationApiModel {
+    public class CredentialApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public AuthenticationApiModel() { }
+        public CredentialApiModel() { }
 
         /// <summary>
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public AuthenticationApiModel(AuthenticationModel model) {
-            User = model.User;
-            Token = model.Token;
-            TokenType = model.TokenType;
+        public CredentialApiModel(CredentialModel model) {
+            Value = model.Value;
+            Type = model.Type;
         }
 
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public AuthenticationModel ToServiceModel() {
-            return new AuthenticationModel {
-                User = User,
-                Token = Token,
-                TokenType = TokenType
+        public CredentialModel ToServiceModel() {
+            return new CredentialModel {
+                Value = Value,
+                Type = Type
             };
         }
 
         /// <summary>
-        /// User name to use
+        /// Type of credential
         /// </summary>
-        [JsonProperty(PropertyName = "user",
+        [JsonProperty(PropertyName = "type",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public string User { get; set; }
+        [DefaultValue(Microsoft.Azure.IIoT.OpcUa.Registry.Models.CredentialType.None)]
+        public CredentialType? Type { get; set; }
 
         /// <summary>
-        /// User token to pass to server
+        /// Value to pass to server
         /// </summary>
-        [JsonProperty(PropertyName = "token",
+        [JsonProperty(PropertyName = "value",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public JToken Token { get; set; }
-
-        /// <summary>
-        /// Type of token
-        /// </summary>
-        [JsonProperty(PropertyName = "tokenType",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(Microsoft.Azure.IIoT.OpcUa.Registry.Models.TokenType.None)]
-        public TokenType? TokenType { get; set; }
+        public JToken Value { get; set; }
     }
 }

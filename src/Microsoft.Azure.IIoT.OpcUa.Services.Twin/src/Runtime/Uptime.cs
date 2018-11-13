@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime {
     /// Simple helper capturing uptime information
     /// </summary>
     public static class Uptime {
-
         /// <summary>
         /// When the service started
         /// </summary>
@@ -24,6 +23,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime {
         /// <summary>
         /// A randomly generated ID used to identify the process in the logs
         /// </summary>
-        public static string ProcessId { get; } = "WebService." + Guid.NewGuid();
+        public static string ProcessId { get; } = "Twin." + Guid.NewGuid();
     }
 }

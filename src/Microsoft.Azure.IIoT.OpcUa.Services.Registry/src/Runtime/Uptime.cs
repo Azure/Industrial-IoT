@@ -24,6 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.Runtime {
         /// <summary>
         /// A randomly generated ID used to identify the process in the logs
         /// </summary>
-        public static string ProcessId { get; } = "WebService." + Guid.NewGuid();
+        public static string ProcessId { get; } = "Registry." + Guid.NewGuid();
     }
 }

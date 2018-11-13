@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -25,7 +24,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public MethodMetadataResponseApiModel(MethodMetadataResultModel model) {
-            Diagnostics = model.Diagnostics;
+            ErrorInfo = model.ErrorInfo == null ? null :
+                new ServiceResultApiModel(model.ErrorInfo);
             ObjectId = model.ObjectId;
             if (model.InputArguments == null) {
                 InputArguments = new List<MethodMetadataArgumentApiModel>();
@@ -67,10 +67,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         public List<MethodMetadataArgumentApiModel> OutputArguments { get; set; }
 
         /// <summary>
-        /// Optional error diagnostics
+        /// Service result in case of error
         /// </summary>
-        [JsonProperty(PropertyName = "diagnostics",
+        [JsonProperty(PropertyName = "errorInfo",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Diagnostics { get; set; }
+        public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

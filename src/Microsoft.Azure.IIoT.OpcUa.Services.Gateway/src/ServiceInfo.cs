@@ -23,6 +23,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Gateway {
         /// <summary>
         /// Description of service
         /// </summary>
-        public const string DESCRIPTION = "IIoT Opc UA Twin Gateway";
+        public const string DESCRIPTION = "IIoT Opc UA Twin Gateway Service";
     }
 }

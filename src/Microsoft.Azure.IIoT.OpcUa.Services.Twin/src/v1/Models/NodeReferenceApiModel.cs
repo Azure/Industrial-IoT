@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
             BrowseName = model.BrowseName;
             DisplayName = model.DisplayName;
             Direction = model.Direction;
+            TypeDefinition = model.TypeDefinition;
             Target = new NodeApiModel(model.Target);
         }
 
@@ -63,5 +64,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         [JsonProperty(PropertyName = "target")]
         [Required]
         public NodeApiModel Target { get; set; }
+
+        /// <summary>
+        /// Optional type definition of the reference
+        /// </summary>
+        [JsonProperty(PropertyName = "typeDefinition",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string TypeDefinition { get; set; }
     }
 }

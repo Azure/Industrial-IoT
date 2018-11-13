@@ -11,13 +11,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
     using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.IIoT.Services.Diagnostics;
     using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth.Azure;
+    using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Storage.Azure;
-    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Clients;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -184,14 +183,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Http client services ...
-            builder.RegisterType<HttpClient>().SingleInstance()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HttpHandlerFactory>().SingleInstance()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HttpClientFactory>().SingleInstance()
-                .AsImplementedInterfaces();
-
+            // Register http client module
+            builder.RegisterModule<HttpClientModule>();
             // ... with bearer auth
             if (Config.AuthRequired) {
                 builder.RegisterType<BehalfOfTokenProvider>()
@@ -206,6 +199,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry {
             builder.RegisterType<IoTHubServiceHttpClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubMessagingHttpClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubTwinMethodClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Opc Ua services

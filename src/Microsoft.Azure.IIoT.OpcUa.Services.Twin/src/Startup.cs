@@ -7,16 +7,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Clients;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Http.Auth;
-    using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Storage.Azure;
-    using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.IIoT.Services.Diagnostics;
     using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth.Azure;
+    using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Services.Cors;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Http.Auth;
+    using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Hub.Clients;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -172,8 +171,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
             builder.RegisterType<AuditLogFilter>()
                 .AsImplementedInterfaces().SingleInstance();
 
-#if ENABLE_AUDIT_LOG
             // ... audit log to cosmos db
+#if ENABLE_AUDIT_LOG
             if (Config.DbConnectionString != null) {
                 builder.RegisterType<CosmosDbAuditLogWriter>()
                     .AsImplementedInterfaces().SingleInstance();
@@ -183,26 +182,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Http client services ...
-            builder.RegisterType<HttpClient>().SingleInstance()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HttpHandlerFactory>().SingleInstance()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HttpClientFactory>().SingleInstance()
-                .AsImplementedInterfaces();
+            // Register http client module
+            builder.RegisterModule<HttpClientModule>();
 
             // ... with bearer auth
             if (Config.AuthRequired) {
                 builder.RegisterType<BehalfOfTokenProvider>()
                     .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<DistributedTokenCache>()
-                   .AsImplementedInterfaces().SingleInstance();
+                    .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<HttpBearerAuthentication>()
                     .AsImplementedInterfaces().SingleInstance();
             }
 
-            // Iot hub services for twin and methods
+            // Iot hub services
             builder.RegisterType<IoTHubServiceHttpClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubTwinMethodClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Edge clients

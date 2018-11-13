@@ -25,31 +25,14 @@
 #>
 
 param(
-    [string]
-    $type = "vm",
-
-    [string]
-    $resourceGroupName,
-
-    [string]
-    $resourceGroupLocation,
- 
-    [string]
-    $subscriptionName,
- 
-    [string]
-    $subscriptionId,
-
-    [string]
-    $accountName,
-
-    [ValidateSet("AzureCloud")] 
-    [string]
-    $environmentName = "AzureCloud",
-
-    [parameter(ValueFromRemainingArguments=$true)]
-    [String[]]
-    $deploymentArgs
+    [string] $type = "vm",
+    [string] $resourceGroupName,
+    [string] $resourceGroupLocation,
+    [string] $subscriptionName,
+    [string] $subscriptionId,
+    [string] $accountName,
+    [ValidateSet("AzureCloud")] [string] $environmentName = "AzureCloud",
+    [parameter(ValueFromRemainingArguments=$true)] [String[]] $deploymentArgs
 )
 
 $script:optionIndex = 0
@@ -311,6 +294,330 @@ Function ValidateLocation() {
 }
 
 #*******************************************************************************************************
+# Adds the requiredAccesses (expressed as a pipe separated string) to the requiredAccess structure
+#*******************************************************************************************************
+Function AddResourcePermission($requiredAccess, $exposedPermissions, [string]$requiredAccesses, `
+                               [string]$permissionType) {
+    foreach($permission in $requiredAccesses.Trim().Split("|")) {
+        foreach($exposedPermission in $exposedPermissions) {
+            if ($exposedPermission.Value -eq $permission) {
+                $resourceAccess = New-Object Microsoft.Open.AzureAD.Model.ResourceAccess
+                $resourceAccess.Type = $permissionType # Scope = Delegated permissions | Role = Application permissions
+                $resourceAccess.Id = $exposedPermission.Id # Read directory data
+                $requiredAccess.ResourceAccess.Add($resourceAccess)
+             }
+        }
+    }
+}
+
+#*******************************************************************************************************
+# Called when no configuration for the AAD tenant to use was found to let the user choose one.
+#*******************************************************************************************************
+Function SelectAzureADTenantId2() {
+    $tenants = Get-AzureRmTenant
+    if ($tenants.Count -eq 0) {
+        throw "No Active Directory domains found for '$($script:AzureAccountName)'";
+    }
+
+    if ($tenants.Count -eq 1) {
+        # Select single one
+        $tenantId = $tenants[0].Id
+    }
+    else {
+        Write-Host "Select AD tenant to use..."
+        Write-Host
+        Write-Host "Available AAD tenants in Azure environment '$($script:environmentName)':"
+        Write-Host
+        Write-Host (($tenants |  `
+        Format-Table @{ `
+            Name = 'Option'; `
+            Expression = { `
+                $script:optionIndex; $script:optionIndex+=1 `
+            }; `
+            Alignment = 'right' `
+        }, Id, Directory -AutoSize) | Out-String).Trim()
+        while ($tenantId -eq $null) {
+            try {
+                [int]$script:optionIndex = Read-Host "Select an option"
+            }
+            catch {
+                Write-Host "Must be a number"
+                continue
+            }
+            if ($script:optionIndex -lt 1 -or $script:optionIndex -gt $tenants.length) {
+                continue
+            }
+            $tenantId = $tenants[$script:optionIndex - 1].TenantId
+        }
+    }
+    return $tenantId
+}
+
+#*******************************************************************************************************
+# Acquire bearer token for user
+#*******************************************************************************************************
+Function AcquireToken() {
+    Param (
+        [string] $tenant,
+        [string] $authUri,
+        [string] $resourceUri,
+        [Parameter(Mandatory=$false)] [string] $user = $null,
+        [Parameter(Mandatory=$false)] [string] $prompt = "Auto"
+    )
+    $psAadClientId = "1950a258-227b-4e31-a9cf-717495945fc2"
+    [Uri]$aadRedirectUri = "urn:ietf:wg:oauth:2.0:oob"
+    $authority = "{0}{1}" -f $authUri, $tenant
+    $authContext = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" `
+         -ArgumentList $authority,$true
+    $userId = [Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier]::AnyUser
+    if (![string]::IsNullOrEmpty($user)) {
+        $userId = new-object Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier  `
+            -ArgumentList $user, "OptionalDisplayableId"
+    }
+    $authResult = $authContext.AcquireToken($resourceUri, $psAadClientId, `
+        $aadRedirectUri, $prompt, $userId)
+    return $authResult
+}
+
+
+#*******************************************************************************************************
+# Select azure ad tenant available to user
+#*******************************************************************************************************
+Function SelectAzureADTenantId() {
+    $tenants = Get-AzureRmTenant
+    if ($tenants.Count -eq 0) {
+        Write-Error ("No Active Directory domains found for '{0}'" -f $script:accountName)
+        throw ("No Active Directory domains found for '{0}'" -f $script:accountName)
+    }
+    if ($tenants.Count -eq 1) {
+        $tenantId = $tenants[0].Id
+    }
+    else {
+        # List Active directories associated with account
+        $directories = @()
+        $index = 1
+        [int]$selectedIndex = -1
+        foreach ($tenantObj in $tenants) {
+            $tenant = $tenantObj.Id
+            $uri = "{0}{1}/me?api-version=1.6" -f $script:environment.GraphUrl, $tenant
+            $token = AcquireToken $tenant $script:environment.ActiveDirectoryAuthority `
+                $script:environment.GraphUrl $script:accountName "Auto"
+            $result = Invoke-RestMethod -Method "GET" -Uri $uri -Headers @{ `
+                "Authorization"=$($token.CreateAuthorizationHeader()); `
+                "Content-Type"="application/json" `
+            }
+            $directory = New-Object System.Object
+            $directory | Add-Member -MemberType NoteProperty `
+                -Name "Option" -Value $index
+            $directory | Add-Member -MemberType NoteProperty `
+                -Name "Directory Name" -Value ($result.userPrincipalName.Split('@')[1])
+            $directory | Add-Member -MemberType NoteProperty `
+                -Name "Tenant Id" -Value $tenant
+            $directories += $directory
+            $index += 1
+        }
+        if ($selectedIndex -eq -1) {
+            Write-Host "Select an Active Directories to use"
+            Write-Host
+            Write-Host "Available Active Directories:"
+            Write-Host
+            Write-Host ($directories | Out-String) -NoNewline
+            while ($selectedIndex -lt 1 -or $selectedIndex -ge $index) {
+                try {
+                    [int]$selectedIndex = Read-Host "Select an option"
+                }
+                catch {
+                    Write-Host "Must be a number"
+                }
+            }
+        }
+        $tenantId = $tenants[$selectedIndex - 1].Id
+    }
+    return $tenantId
+}
+
+#*******************************************************************************************************
+# Login to Azure AD (interactive if credentials are not already provided.
+#*******************************************************************************************************
+Function GetAzureADTenantId() {
+    if (!$Credential) {
+        if (!$tenantId) {
+            $tenantId = SelectAzureADTenantId
+        }
+        # Interactive logon
+        $creds = Connect-AzureAD -TenantId $tenantId
+    }
+    else {
+        if (!$tenantId) {
+            # use home tenant
+            $creds = Connect-AzureAD -Credential $Credential
+        }
+        else {
+            $creds = Connect-AzureAD -TenantId $tenantId -Credential $Credential
+        }
+    }
+    if (!$tenantId) {
+        $tenantId = $creds.Tenant.Id
+    }
+    return $tenantId
+}
+
+#*******************************************************************************************************
+# Example: GetRequiredPermissions "Microsoft Graph" "Graph.Read|User.Read"
+#*******************************************************************************************************
+Function GetRequiredPermissions() {
+    Param(
+        [string] $applicationDisplayName,
+        [string] $requiredDelegatedPermissions, 
+        [string] $requiredApplicationPermissions, 
+        $servicePrincipal
+    )
+
+    # If we are passed the service principal we use it directly, otherwise we find it from 
+    # the display name (which might not be unique)
+    if ($servicePrincipal) {
+        $sp = $servicePrincipal
+    }
+    else {
+        $sp = Get-AzureADServicePrincipal -Filter "DisplayName eq '$applicationDisplayName'"
+    }
+
+    $appid = $sp.AppId
+    $requiredAccess = New-Object Microsoft.Open.AzureAD.Model.RequiredResourceAccess
+    $requiredAccess.ResourceAppId = $appid 
+    $requiredAccess.ResourceAccess =  
+        New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.ResourceAccess]
+
+    if ($requiredDelegatedPermissions) {
+        AddResourcePermission $requiredAccess -exposedPermissions $sp.Oauth2Permissions `
+            -requiredAccesses $requiredDelegatedPermissions -permissionType "Scope"
+    }
+    if ($requiredApplicationPermissions) {
+        AddResourcePermission $requiredAccess -exposedPermissions $sp.AppRoles `
+            -requiredAccesses $requiredApplicationPermissions -permissionType "Role"
+    }
+    return $requiredAccess
+}
+
+#*******************************************************************************************************
+# Delete Azure AD applications for service and clients
+#*******************************************************************************************************
+Function DeleteAzureADApplications() {
+    $appFile = Join-Path $script:ScriptDir ".app"
+    if (Test-Path $appFile) {
+        $config = Get-Content -Raw -Path $appFile | ConvertFrom-Json
+        # Removes all applications
+        Write-Host "Cleaning-up applications from tenant '$($config.TenantName)'..."
+        $app=Get-AzureADApplication -Filter "AppId eq '$($config.AppId)'"  
+        if ($app) {
+            Remove-AzureADApplication -ObjectId $app.ObjectId
+            Write-Host "Removed."
+        }
+        $app=Get-AzureADApplication -Filter "AppId eq '$($config.ClientId)'"  
+        if ($app) {
+            Remove-AzureADApplication -ObjectId $app.ObjectId
+            Write-Host "Removed."
+        }
+        Remove-Item -Path $appFile -Force
+    }
+}
+
+#*******************************************************************************************************
+# Create Azure AD applications for service and clients
+#*******************************************************************************************************
+Function CreateAzureADApplications() {
+    try {
+        $tenantId = GetAzureADTenantId
+    }
+    catch {
+        Write-Error $_.Exception.Message
+
+        Write-Host
+        Write-Host "Ensure you have installed the AzureAD cmdlets:" 
+        Write-Host "1) Run Powershell as an administrator" 
+        Write-Host "2) in the PowerShell window, type: Install-Module AzureAD" 
+        Write-Host
+        $reply = Read-Host -Prompt "Continue without authentication? [y/n]"
+        if ( $reply -match "[yY]" ) { 
+            return;
+        }
+        throw $_.Exception;
+    }
+
+    # Delete any existing application for force update
+    DeleteAzureADApplication
+
+    $tenant = Get-AzureADTenantDetail
+    $tenantName =  ($tenant.VerifiedDomains | Where { $_._Default -eq $True }).Name
+    Write-Host ("Using Tenant {0}..." -f $tenantName)
+
+    Write-Host "Creating AAD service application..."
+    $serviceAadApplication = New-AzureADApplication -DisplayName "opc-twin-services" `
+        -HomePage "https://localhost:44324" -IdentifierUris "https://$tenantName/opc-twin-services" `
+        -PublicClient $False
+    $currentAppId = $serviceAadApplication.AppId
+    $serviceServicePrincipal = New-AzureADServicePrincipal -AppId $currentAppId `
+        -Tags {WindowsAzureActiveDirectoryIntegratedApp}
+
+    # add current user as app owner
+    $user = Get-AzureADUser -ObjectId $creds.Account.Id
+    Add-AzureADApplicationOwner -ObjectId $serviceAadApplication.ObjectId -RefObjectId $user.ObjectId
+    Write-Host "'$($user.UserPrincipalName)' added as a owner for '$($serviceAadApplication.DisplayName)'"
+    Write-Host "... Done."
+
+    Write-Host "Creating AAD client application..."
+    $clientAadApplication = New-AzureADApplication -DisplayName "opc-twin-client" `
+        -ReplyUrls "https://opctwin" -PublicClient $True
+
+    $currentAppId = $clientAadApplication.AppId
+    $clientServicePrincipal = New-AzureADServicePrincipal -AppId $currentAppId `
+        -Tags {WindowsAzureActiveDirectoryIntegratedApp}
+
+    # add current user as app owner
+    Add-AzureADApplicationOwner -ObjectId $clientAadApplication.ObjectId -RefObjectId $user.ObjectId
+    Write-Host "'$($user.UserPrincipalName)' added as owner for '$($clientServicePrincipal.DisplayName)'"
+    Write-Host "... Done."
+
+    #
+    # Register client with service
+    #
+    $requiredResourcesAccess = `
+        New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
+    Write-Host "Add Required Resources Access from 'client' to 'service'..."
+    $requiredPermissions = GetRequiredPermissions -applicationDisplayName "opc-twin-services" `
+        -requiredDelegatedPermissions "user_impersonation";
+    $requiredResourcesAccess.Add($requiredPermissions)
+    Set-AzureADApplication -ObjectId $clientAadApplication.ObjectId `
+        -RequiredResourceAccess $requiredResourcesAccess
+    Write-Host "... Done."
+    Write-Host "Configure known client applications for the 'service'..."
+    $knowApplications = New-Object System.Collections.Generic.List[System.String]
+    $knowApplications.Add($clientAadApplication.AppId)
+    Set-AzureADApplication -ObjectId $serviceAadApplication.ObjectId `
+        -KnownClientApplications $knowApplications
+    Write-Host "... Done."
+
+    Write-Host "Write configuration to .app file..."
+    $config = [pscustomobject]@{ 
+        TenantId = $tenantId
+        TenantName = $tenantName
+        
+        AppId = $serviceAadApplication.AppId
+        AppName = $serviceAadApplication.DisplayName
+        ResourceId = $serviceAadApplication.IdentifierUris 
+
+        ClientName = $clientAadApplication.DisplayName 
+        ClientId = $clientAadApplication.AppId 
+        ClientUri = $clientAadApplication.ReplyUrls
+    } 
+    $appFile = Join-Path $script:ScriptDir ".app"
+    ($config | ConvertTo-Json -Compress) | Out-File $appFile 
+    Write-Host "... Done."
+
+    return $config
+}
+
+#*******************************************************************************************************
 # Get or create new resource group
 #*******************************************************************************************************
 Function GetOrCreateResourceGroup() {
@@ -360,10 +667,22 @@ if(![System.IO.File]::Exists($deploymentScript)) {
 SelectEnvironment
 Login
 SelectSubscription
+
+# Get aad configuration
+$deleteApp = $false
+if (Test-Path ".app") {
+    $appFile = Join-Path $script:ScriptDir ".app"
+    $aadConfig = Get-Content -Raw -Path $appFile  | ConvertFrom-Json
+}
+else {
+    $aadConfig = CreateAzureADApplications
+    $deleteApp = $true
+}
+
 $deleteOnErrorPrompt = GetOrCreateResourceGroup
 try {
     Write-Host "Starting deployment..."
-    & ($deploymentScript) -resourceGroupName $script:resourceGroupName
+    & ($deploymentScript) -resourceGroupName $script:resourceGroupName -aadConfig $aadConfig
     Write-Host "Deployment succeeded."
 }
 catch {
@@ -371,9 +690,12 @@ catch {
     $ex = $_.Exception
     if ($deleteOnErrorPrompt) {
         $reply = Read-Host -Prompt "Delete resource group? [y/n]"
-        if ( $reply -match "[yY]" ) { 
+        if ($reply -match "[yY]") { 
             try {
                 Remove-AzureRmResourceGroup -Name $script:resourceGroupName -Force
+                if ($deleteApp) {
+                    DeleteAzureADApplications
+                }
             }
             catch {
                 Write-Host $_.Exception.Message

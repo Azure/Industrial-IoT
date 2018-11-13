@@ -24,8 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         /// <param name="model"></param>
         public TwinRegistrationQueryApiModel(TwinRegistrationQueryModel model) {
             Url = model.Url;
-            User = model.User;
-            TokenType = model.TokenType;
+            UserAuthentication = model.UserAuthentication;
             Connected = model.Connected;
             Activated = model.Activated;
             Certificate = model.Certificate;
@@ -41,8 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public TwinRegistrationQueryModel ToServiceModel() {
             return new TwinRegistrationQueryModel {
                 Url = Url,
-                User = User,
-                TokenType = TokenType,
+                UserAuthentication = UserAuthentication,
                 Connected = Connected,
                 Activated = Activated,
                 Certificate = Certificate,
@@ -61,20 +59,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public string Url { get; set; }
 
         /// <summary>
-        /// User name to use
+        /// Type of credential selected for authentication
         /// </summary>
-        [JsonProperty(PropertyName = "user",
+        [JsonProperty(PropertyName = "userAuthentication",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public string User { get; set; }
-
-        /// <summary>
-        /// Type of token
-        /// </summary>
-        [JsonProperty(PropertyName = "tokenType",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public TokenType? TokenType { get; set; }
+        public CredentialType? UserAuthentication { get; set; }
 
         /// <summary>
         /// Certificate of the endpoint

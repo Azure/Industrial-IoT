@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Onboarding {
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
-    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Clients;
     using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -100,20 +100,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Onboarding {
             builder.RegisterType<ConsoleLogger>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Http client services ...
-            builder.RegisterType<HttpClient>().SingleInstance()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HttpClientFactory>().SingleInstance()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HttpHandlerFactory>().SingleInstance()
-                .AsImplementedInterfaces();
-
+            // Register http client module
+            builder.RegisterModule<HttpClientModule>();
 #if DEBUG
             builder.RegisterType<NoOpCertValidator>()
                 .AsImplementedInterfaces();
 #endif
             // Iot hub services
             builder.RegisterType<IoTHubServiceHttpClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubTwinMethodClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Opc Ua services

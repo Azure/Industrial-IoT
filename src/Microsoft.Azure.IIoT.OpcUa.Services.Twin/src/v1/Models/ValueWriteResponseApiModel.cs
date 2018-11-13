@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Value write response model
@@ -23,14 +22,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public ValueWriteResponseApiModel(ValueWriteResultModel model) {
-            Diagnostics = model.Diagnostics;
+            ErrorInfo = model.ErrorInfo == null ? null :
+                new ServiceResultApiModel(model.ErrorInfo);
         }
 
         /// <summary>
-        /// Optional error diagnostics
+        /// Service result in case of error
         /// </summary>
-        [JsonProperty(PropertyName = "diagnostics",
+        [JsonProperty(PropertyName = "errorInfo",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Diagnostics { get; set; }
+        public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

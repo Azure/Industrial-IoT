@@ -13,7 +13,7 @@ services:
       - twinwebui
       - twinmodule
   twinregistry:
-    image: mcr.microsoft.com/iot/opc-twin-registry:latest
+    image: marcschier/azure-iiot-opc-twin-registry:latest
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
@@ -22,7 +22,7 @@ services:
       - PCS_AUTH_AUDIENCE
       - PCS_CORS_WHITELIST
   twinonboarding:
-    image: mcr.microsoft.com/iot/opc-twin-onboarding:latest
+    image: marcschier/azure-iiot-opc-twin-onboarding:latest
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
@@ -34,7 +34,7 @@ services:
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
   twinservice:
-    image: mcr.microsoft.com/iot/opc-twin-service:latest
+    image: marcschier/azure-iiot-opc-twin-service:latest
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING

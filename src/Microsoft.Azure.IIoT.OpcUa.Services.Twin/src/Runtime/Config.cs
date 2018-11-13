@@ -6,13 +6,13 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime {
     using Microsoft.Azure.IIoT.Services.Swagger;
     using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
-    using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth.Runtime;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Services.Cors.Runtime;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Azure;
+    using Microsoft.Azure.IIoT.Auth.Server;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Storage.Azure;
     using Microsoft.Azure.IIoT.Storage.Azure.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime {
         /// <inheritdoc/>
         public string TenantId => _auth.TenantId;
         /// <inheritdoc/>
-        public string Authority => _auth.Authority;
+        public string InstanceUrl => _auth.InstanceUrl;
         /// <inheritdoc/>
         public string Audience => _auth.Audience;
         /// <inheritdoc/>

@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <param name="request">The write value request</param>
         /// <returns>The write value response</returns>
         [HttpPost("{id}")]
-        public async Task<ValueWriteResponseApiModel> WriteByIdAsync(string id,
+        public async Task<ValueWriteResponseApiModel> WriteAsync(string id,
             [FromBody] ValueWriteRequestApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -48,6 +48,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             var writeResult = await _twin.NodeValueWriteAsync(
                 id, request.ToServiceModel());
             return new ValueWriteResponseApiModel(writeResult);
+        }
+
+        /// <summary>
+        /// Write any node attribute as batches. This allows updating attributes
+        /// of any node in batch fashion.  However, note that batch requests
+        /// and responses must fit into the device method  payload size limits.
+        /// This is therefore considered an advanced api and should be used only
+        /// when the request and response payload size is not dynamic and was
+        /// well tested against a known endpoint.
+        /// </summary>
+        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="request">The batch write request</param>
+        /// <returns>The batch write response</returns>
+        [HttpPost("{id}/batch")]
+        public async Task<BatchWriteResponseApiModel> WriteBatchAsync(string id,
+            [FromBody] BatchWriteRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var writeResult = await _twin.NodeBatchWriteAsync(
+                id, request.ToServiceModel());
+            return new BatchWriteResponseApiModel(writeResult);
         }
 
         private readonly INodeServices<string> _twin;

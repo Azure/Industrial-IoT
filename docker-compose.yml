@@ -40,3 +40,17 @@ services:
       - PCS_AUTH_ISSUER
       - PCS_AUTH_AUDIENCE
       - PCS_CORS_WHITELIST
+  twingateway:
+    build: 
+      context: .
+      dockerfile: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Gateway/docker/Dockerfile
+    ports:
+      - "9040:9040"
+      - "51111:4840"
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_CORS_WHITELIST

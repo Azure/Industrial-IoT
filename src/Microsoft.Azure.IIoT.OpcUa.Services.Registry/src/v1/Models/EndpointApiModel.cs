@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
 
@@ -26,11 +25,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         /// <param name="model"></param>
         public EndpointApiModel(EndpointModel model) {
             Url = model.Url;
-            Authentication = model.Authentication == null ? null :
-                new AuthenticationApiModel(model.Authentication);
+            User = model.User == null ? null :
+                new CredentialApiModel(model.User);
             SecurityMode = model.SecurityMode;
             SecurityPolicy = model.SecurityPolicy;
-            Validation = model.Validation;
+            ServerThumbprint = model.ServerThumbprint;
         }
 
         /// <summary>
@@ -39,10 +38,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public EndpointModel ToServiceModel() {
             return new EndpointModel {
                 Url = Url,
-                Authentication = Authentication?.ToServiceModel(),
+                User = User?.ToServiceModel(),
                 SecurityMode = SecurityMode,
                 SecurityPolicy = SecurityPolicy,
-                Validation = Validation,
+                ServerThumbprint = ServerThumbprint,
             };
         }
 
@@ -54,39 +53,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public string Url { get; set; }
 
         /// <summary>
-        /// User name to use
+        /// User Authentication
         /// </summary>
         [JsonProperty(PropertyName = "user",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public string User { get; set; }
+        public CredentialApiModel User { get; set; }
 
         /// <summary>
-        /// User token to pass to server
-        /// </summary>
-        [JsonProperty(PropertyName = "token",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public JToken Token { get; set; }
-
-        /// <summary>
-        /// User Authentication
-        /// </summary>
-        [JsonProperty(PropertyName = "authentication",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public AuthenticationApiModel Authentication { get; set; }
-
-        /// <summary>
-        /// Security Mode to use for communication - default to best.
+        /// Security Mode to use for communication
+        /// default to best.
         /// </summary>
         [JsonProperty(PropertyName = "securityMode",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best)]
+        [DefaultValue(OpcUa.Registry.Models.SecurityMode.Best)]
         public SecurityMode? SecurityMode { get; set; }
 
         /// <summary>
-        /// Security policy uri to use for communication - default to best.
+        /// Security policy uri to use for communication
+        /// default to best.
         /// </summary>
         [JsonProperty(PropertyName = "securityPolicy",
             NullValueHandling = NullValueHandling.Ignore)]
@@ -94,11 +79,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public string SecurityPolicy { get; set; }
 
         /// <summary>
-        /// Certificate to validate against or null to trust any.
+        /// Thumbprint to validate against or null to trust any.
         /// </summary>
-        [JsonProperty(PropertyName = "validation",
+        [JsonProperty(PropertyName = "serverThumbprint",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public byte[] Validation { get; set; }
+        public byte[] ServerThumbprint { get; set; }
     }
 }

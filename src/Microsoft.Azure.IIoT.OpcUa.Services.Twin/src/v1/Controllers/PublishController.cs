@@ -33,21 +33,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// Publish node value as specified in the publish value request on the
-        /// server specified by the endpoint id.
+        /// Start publishing node values on the specified server twin endpoint.
         /// </summary>
         /// <param name="id">The identifier of the twin.</param>
         /// <param name="request">The publish request</param>
         /// <returns>The publish response</returns>
-        [HttpPost("{id}")]
-        public async Task<PublishResponseApiModel> PublishByIdAsync(string id,
-            [FromBody] PublishRequestApiModel request) {
+        [HttpPost("{id}/start")]
+        public async Task<PublishStartResponseApiModel> PublishAsync(string id,
+            [FromBody] PublishStartRequestApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _twin.NodePublishAsync(
+            var result = await _twin.NodePublishStartAsync(
                 id, request.ToServiceModel());
-            return new PublishResponseApiModel(result);
+            return new PublishStartResponseApiModel(result);
+        }
+
+        /// <summary>
+        /// Stop publishing node values on the specified server twin endpoint.
+        /// </summary>
+        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="request">The unpublish request</param>
+        /// <returns>The unpublish response</returns>
+        [HttpPost("{id}/stop")]
+        public async Task<PublishStopResponseApiModel> UnpublishAsync(string id,
+            [FromBody] PublishStopRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _twin.NodePublishStopAsync(
+                id, request.ToServiceModel());
+            return new PublishStopResponseApiModel(result);
         }
 
         /// <summary>
@@ -55,14 +71,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// </summary>
         /// <param name="id">The identifier of the twin.</param>
         /// <returns>The list of published nodes</returns>
-        [HttpGet("{id}/state")]
-        public async Task<PublishedNodeListApiModel> ListPublishedNodesByIdAsync(string id) {
+        [HttpGet("{id}")]
+        public async Task<PublishedNodeListResponseApiModel> ListAsync(
+            string id) {
             string continuationToken = null;
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
             }
-            var result = await _twin.ListPublishedNodesAsync(id, continuationToken);
-            return new PublishedNodeListApiModel(result);
+            var result = await _twin.NodePublishListAsync(id,
+                new PublishedNodeListRequestApiModel {
+                    ContinuationToken = continuationToken
+                }.ToServiceModel());
+            return new PublishedNodeListResponseApiModel(result);
         }
 
         private readonly IPublishServices<string> _twin;
