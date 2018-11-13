@@ -28,19 +28,9 @@
  * ======================================================================*/
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Reflection;
-using System.Threading;
 using Opc.Ua;
-using Opc.Ua.Server;
 
-namespace Boiler
-{       
+namespace Boiler {
     /// <summary>
     /// A object representing a generic controller.
     /// </summary>

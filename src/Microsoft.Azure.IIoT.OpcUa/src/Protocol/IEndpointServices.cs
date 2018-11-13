@@ -19,10 +19,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="endpoint"></param>
+        /// <param name="elevation"></param>
         /// <param name="service">callback providing a session to use</param>
         /// <param name="exception">exception handler</param>
         /// <returns></returns>
-        Task<T> ExecuteServiceAsync<T>(EndpointModel endpoint,
+        Task<T> ExecuteServiceAsync<T>(EndpointModel endpoint, CredentialModel elevation,
             Func<Session, Task<T>> service, Func<Exception, bool> exception);
     }
 }

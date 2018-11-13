@@ -16,9 +16,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string Url { get; set; }
 
         /// <summary>
-        /// Authentication
+        /// Default user credential to use for all access.
         /// </summary>
-        public AuthenticationModel Authentication { get; set; }
+        public CredentialModel User { get; set; }
 
         /// <summary>
         /// Endpoint security policy to use - null = Best.
@@ -33,6 +33,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Certificate to validate against - null = trust all
         /// </summary>
-        public byte[] Validation { get; set; }
+        public byte[] ServerThumbprint { get; set; }
+
+        /// <summary>
+        /// Certificate with private key to use to connect to
+        /// endpoint - null = create self signed certificate.
+        /// </summary>
+        public byte[] ClientCertificate { get; set; }
     }
 }

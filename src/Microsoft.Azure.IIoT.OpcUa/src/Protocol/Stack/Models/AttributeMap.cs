@@ -410,7 +410,7 @@ namespace Opc.Ua.Models {
             _map[DataType, Attributes.BrowseName] =
                 new MapEntry(QualifiedName.Null);
             _map[DataType, Attributes.DataTypeDefinition] =
-                new MapEntry(new DataTypeDefinition(), true);
+                new MapEntry(new ExtensionObject(), true);
             _map[DataType, Attributes.Description] =
                 new MapEntry(LocalizedText.Null, true);
             _map[DataType, Attributes.DisplayName] =
@@ -533,6 +533,6 @@ namespace Opc.Ua.Models {
             public bool Optional { get; }
         }
 
-        private MapEntry[,] _map = new MapEntry[8, 32];
+        private readonly MapEntry[,] _map = new MapEntry[8, 32];
     }
 }

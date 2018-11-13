@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -39,47 +40,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
-        /// <summary>
-        /// Browse a tree node, returns node properties and all child nodes
-        /// if not excluded.
-        /// </summary>
-        /// <param name="endpoint">Endpoint url of the server to talk to</param>
-        /// <param name="request">browse node and filters</param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<BrowseResultModel> NodeBrowseFirstAsync(EndpointModel endpoint,
             BrowseRequestModel request) {
-
-            // browse child nodes
-            return await _client.ExecuteServiceAsync(endpoint, async session => {
-                var rootId = request?.NodeId?.ToNodeId(session.MessageContext);
+            return await _client.ExecuteServiceAsync(endpoint, request.Elevation, async session => {
+                var rootId = request.NodeId?.ToNodeId(session.MessageContext);
                 if (NodeId.IsNull(rootId)) {
                     rootId = ObjectIds.RootFolder;
                 }
-                var typeId = request?.ReferenceTypeId?.ToNodeId(session.MessageContext);
+                var typeId = request.ReferenceTypeId?.ToNodeId(session.MessageContext);
                 if (NodeId.IsNull(typeId)) {
                     typeId = ReferenceTypeIds.HierarchicalReferences;
                 }
-                var view = request?.View.ToStackModel(session.MessageContext);
+                var view = request.View.ToStackModel(session.MessageContext);
                 var excludeReferences = request.MaxReferencesToReturn.HasValue &&
                     request.MaxReferencesToReturn.Value == 0;
                 var result = new BrowseResultModel();
                 var diagnostics = new List<OperationResult>();
                 if (!excludeReferences) {
-                    var direction = (request.Direction ?? Twin.Models.BrowseDirection.Forward)
+                    var direction = (request.Direction ?? OpcUa.Twin.Models.BrowseDirection.Forward)
                         .ToStackType();
                     // Browse and read children
                     result.References = new List<NodeReferenceModel>();
 
-                    var response = await session.BrowseAsync(
-                        request.Diagnostics.ToStackModel(),
+                    var response = await session.BrowseAsync(request.Diagnostics.ToStackModel(),
                         ViewDescription.IsDefault(view) ? null : view, rootId,
                         request.MaxReferencesToReturn ?? 0u, direction, typeId,
-                        !(request?.NoSubtypes ?? false), 0, BrowseResultMask.All);
+                        !(request?.NoSubtypes ?? false),
+                        (uint)request.NodeClassFilter.ToStackMask(), BrowseResultMask.All);
 
-                    SessionClientEx.Validate("Browse_" + rootId,
+                    OperationResultEx.Validate("Browse_" + rootId,
                         diagnostics, response.Results.Select(r => r.StatusCode),
                         response.DiagnosticInfos);
                     SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
+
                     result.ContinuationToken = await AddReferencesToBrowseResult(session,
                         request.Diagnostics.ToStackModel(), request.TargetNodesOnly ?? false,
                         request.ReadVariableValues ?? false, result.References, diagnostics,
@@ -89,20 +83,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 result.Node = await ReadNodeModelAsync(session, request.Diagnostics.ToStackModel(),
                     rootId, true, !excludeReferences ? result.References.Count != 0 : (bool?)null,
                     diagnostics);
-                result.Diagnostics = diagnostics.ToJToken(request.Diagnostics,
+                result.ErrorInfo = diagnostics.ToServiceModel(request.Diagnostics,
                     session.MessageContext);
                 return result;
             });
         }
 
-        /// <summary>
-        /// Browse remainder of references
-        /// </summary>
-        /// <param name="endpoint">Endpoint url of the server to talk to</param>
-        /// <param name="request">Continuation token</param>
-        /// <returns></returns>
-        public async Task<BrowseNextResultModel> NodeBrowseNextAsync(EndpointModel endpoint,
-            BrowseNextRequestModel request) {
+        /// <inheritdoc/>
+        public async Task<BrowseNextResultModel> NodeBrowseNextAsync(
+            EndpointModel endpoint, BrowseNextRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -110,15 +99,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 throw new ArgumentNullException(nameof(request.ContinuationToken));
             }
             var continuationPoint = request.ContinuationToken.DecodeAsBase64();
-            return await _client.ExecuteServiceAsync(endpoint, async session => {
-                // Browse and read children
+            return await _client.ExecuteServiceAsync(endpoint, request.Elevation, async session => {
                 var diagnostics = new List<OperationResult>();
                 var result = new BrowseNextResultModel {
                     References = new List<NodeReferenceModel>()
                 };
                 var response = await session.BrowseNextAsync(request.Diagnostics.ToStackModel(),
                     request.Abort ?? false, new ByteStringCollection { continuationPoint });
-                SessionClientEx.Validate("BrowseNext_" + request.ContinuationToken,
+                OperationResultEx.Validate("BrowseNext_" + request.ContinuationToken,
                     diagnostics, response.Results.Select(r => r.StatusCode),
                     response.DiagnosticInfos);
 
@@ -126,18 +114,55 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     request.Diagnostics.ToStackModel(), request.TargetNodesOnly ?? false,
                     request.ReadVariableValues ?? false, result.References, diagnostics,
                     response.Results[0].ContinuationPoint, response.Results[0].References);
-                result.Diagnostics = diagnostics.ToJToken(request.Diagnostics,
+                result.ErrorInfo = diagnostics.ToServiceModel(request.Diagnostics,
                     session.MessageContext);
                 return result;
             });
         }
 
-        /// <summary>
-        /// Read method meta data
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
+        public async Task<BrowsePathResultModel> NodeBrowsePathAsync(
+            EndpointModel endpoint, BrowsePathRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.PathElements == null || request.PathElements.Length == 0) {
+                throw new ArgumentNullException(nameof(request.PathElements));
+            }
+            return await _client.ExecuteServiceAsync(endpoint, request.Elevation, async session => {
+                var rootId = request?.NodeId?.ToNodeId(session.MessageContext);
+                if (NodeId.IsNull(rootId)) {
+                    rootId = ObjectIds.RootFolder;
+                }
+                var diagnostics = new List<OperationResult>();
+                var result = new BrowsePathResultModel {
+                    Targets = new List<NodePathTargetModel>()
+                };
+                var response = await session.TranslateBrowsePathsToNodeIdsAsync(
+                    request.Diagnostics.ToStackModel(),
+                    new BrowsePathCollection {
+                        new BrowsePath {
+                            StartingNode = rootId,
+                            RelativePath = request.PathElements
+                                .ToRelativePath(session.MessageContext)
+                        }
+                    });
+                OperationResultEx.Validate("Translate" + request.NodeId,
+                    diagnostics, response.Results.Select(r => r.StatusCode),
+                    response.DiagnosticInfos);
+
+                await AddTargetsToBrowseResult(session,
+                    request.Diagnostics.ToStackModel(),
+                    request.ReadVariableValues ?? false, result.Targets, diagnostics,
+                    response.Results[0].Targets);
+
+                result.ErrorInfo = diagnostics.ToServiceModel(request.Diagnostics,
+                    session.MessageContext);
+                return result;
+            });
+        }
+
+        /// <inheritdoc/>
         public async Task<MethodMetadataResultModel> NodeMethodGetMetadataAsync(
             EndpointModel endpoint, MethodMetadataRequestModel request) {
             if (request == null) {
@@ -146,7 +171,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             if (string.IsNullOrEmpty(request.MethodId)) {
                 throw new ArgumentException(nameof(request.MethodId));
             }
-            return await _client.ExecuteServiceAsync(endpoint, async session => {
+            return await _client.ExecuteServiceAsync(endpoint, request.Elevation, async session => {
                 var methodId = request.MethodId?.ToNodeId(session.MessageContext);
                 if (NodeId.IsNull(methodId)) {
                     throw new ArgumentException(nameof(request.MethodId));
@@ -157,7 +182,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     request.Diagnostics.ToStackModel(), null, methodId, 0,
                     Opc.Ua.BrowseDirection.Both, ReferenceTypeIds.Aggregates,
                     true, 0, BrowseResultMask.All);
-                SessionClientEx.Validate("Browse_" + methodId, diagnostics,
+                OperationResultEx.Validate("Browse_" + methodId, diagnostics,
                     response.Results.Select(r => r.StatusCode), response.DiagnosticInfos);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
 
@@ -215,19 +240,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         result.OutputArguments = argList;
                     }
                 }
-                result.Diagnostics = diagnostics.ToJToken(request.Diagnostics,
+                result.ErrorInfo = diagnostics.ToServiceModel(request.Diagnostics,
                     session.MessageContext);
                 return result;
             });
         }
 
-        /// <summary>
-        /// Read a variable value
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public Task<ValueReadResultModel> NodeValueReadAsync(EndpointModel endpoint,
+        /// <inheritdoc/>
+        public async Task<ValueReadResultModel> NodeValueReadAsync(EndpointModel endpoint,
             ValueReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -235,7 +255,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             if (string.IsNullOrEmpty(request.NodeId)) {
                 throw new ArgumentException(nameof(request.NodeId));
             }
-            return _client.ExecuteServiceAsync(endpoint, async session => {
+            return await _client.ExecuteServiceAsync(endpoint, request.Elevation, async session => {
                 var readNode = request.NodeId.ToNodeId(session.MessageContext);
                 if (NodeId.IsNull(readNode)) {
                     throw new ArgumentException(nameof(request.NodeId));
@@ -258,7 +278,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         DataEncoding = null
                     }
                 });
-                SessionClientEx.Validate("ReadValue_" + readNode, diagnostics,
+                OperationResultEx.Validate("ReadValue_" + readNode, diagnostics,
                     response.Results.Select(r => r.StatusCode), response.DiagnosticInfos);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
 
@@ -277,19 +297,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         session.MessageContext);
                     result.DataType = type == BuiltInType.Null ? null : type.ToString();
                 }
-                result.Diagnostics = diagnostics.ToJToken(request.Diagnostics,
+                result.ErrorInfo = diagnostics.ToServiceModel(request.Diagnostics,
                     session.MessageContext);
                 return result;
             });
         }
 
-        /// <summary>
-        /// Write variable value
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public Task<ValueWriteResultModel> NodeValueWriteAsync(EndpointModel endpoint,
+        /// <inheritdoc/>
+        public async Task<ValueWriteResultModel> NodeValueWriteAsync(EndpointModel endpoint,
             ValueWriteRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -300,7 +315,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             if (string.IsNullOrEmpty(request.NodeId)) {
                 throw new ArgumentException(nameof(request.NodeId));
             }
-            return _client.ExecuteServiceAsync(endpoint, async session => {
+            return await _client.ExecuteServiceAsync(endpoint, request.Elevation, async session => {
                 var writeNode = request.NodeId.ToNodeId(session.MessageContext);
                 if (NodeId.IsNull(writeNode)) {
                     throw new ArgumentException(nameof(request.NodeId));
@@ -331,22 +346,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 var result = new ValueWriteResultModel();
                 var response = await session.WriteAsync(request.Diagnostics.ToStackModel(),
                     nodesToWrite);
-                SessionClientEx.Validate("WriteValue_" + writeNode, diagnostics, response.Results,
+                OperationResultEx.Validate("WriteValue_" + writeNode, diagnostics, response.Results,
                     response.DiagnosticInfos);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
-                result.Diagnostics = diagnostics.ToJToken(request.Diagnostics,
+                result.ErrorInfo = diagnostics.ToServiceModel(request.Diagnostics,
                     session.MessageContext);
                 return result;
             });
         }
 
-        /// <summary>
-        /// Call method on endpoint.
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public Task<MethodCallResultModel> NodeMethodCallAsync(EndpointModel endpoint,
+        /// <inheritdoc/>
+        public async Task<MethodCallResultModel> NodeMethodCallAsync(EndpointModel endpoint,
             MethodCallRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -354,7 +364,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             if (string.IsNullOrEmpty(request.MethodId)) {
                 throw new ArgumentNullException(nameof(request.MethodId));
             }
-            return _client.ExecuteServiceAsync(endpoint, async session => {
+            return await _client.ExecuteServiceAsync(endpoint, request.Elevation, async session => {
                 var methodId = request.MethodId?.ToNodeId(session.MessageContext);
                 if (NodeId.IsNull(methodId)) {
                     throw new ArgumentException(nameof(request.MethodId));
@@ -365,7 +375,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 var browse = await session.BrowseAsync(request.Diagnostics.ToStackModel(),
                     null, methodId, 0, Opc.Ua.BrowseDirection.Forward,
                     ReferenceTypeIds.HasProperty, true, 0, BrowseResultMask.All);
-                SessionClientEx.Validate("Browse_" + methodId,
+                OperationResultEx.Validate("Browse_" + methodId,
                     diagnostics, browse.Results.Select(r => r.StatusCode),
                     browse.DiagnosticInfos);
                 SessionClientEx.Validate(browse.Results, browse.DiagnosticInfos);
@@ -443,7 +453,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 // Call method
                 var response = await session.CallAsync(request.Diagnostics.ToStackModel(),
                     requests);
-                SessionClientEx.Validate("Call" + methodId, diagnostics,
+                OperationResultEx.Validate("Call" + methodId, diagnostics,
                     response.Results.Select(r => r.StatusCode), response.DiagnosticInfos);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
 
@@ -471,9 +481,200 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                             null : type.ToString();
                     }
                 }
-                result.Diagnostics = diagnostics.ToJToken(request.Diagnostics,
+                result.ErrorInfo = diagnostics.ToServiceModel(request.Diagnostics,
                     session.MessageContext);
                 return result;
+            });
+        }
+
+        /// <inheritdoc/>
+        public async Task<BatchReadResultModel> NodeBatchReadAsync(EndpointModel endpoint,
+            BatchReadRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.Attributes == null) {
+                throw new ArgumentNullException(nameof(request.Attributes));
+            }
+            if (request.Attributes.Any(a => string.IsNullOrEmpty(a.NodeId))) {
+                throw new ArgumentException(nameof(request.Attributes));
+            }
+            return await _client.ExecuteServiceAsync(endpoint, request.Elevation, async session => {
+                var requests = new ReadValueIdCollection(request.Attributes
+                    .Select(a => new ReadValueId {
+                        AttributeId = (uint)a.Attribute,
+                        NodeId = a.NodeId?.ToNodeId(session.MessageContext)
+                    }));
+                var response = await session.ReadAsync(request.Diagnostics.ToStackModel(),
+                    0, TimestampsToReturn.Both, requests);
+                SessionClientEx.Validate(response.Results, response.DiagnosticInfos, requests);
+                return new BatchReadResultModel {
+                    Results = response.Results
+                        .Select((value, index) => {
+                            var diagnostics = response.DiagnosticInfos == null ||
+                                        response.DiagnosticInfos.Count == 0 ? null :
+                                response.DiagnosticInfos[index];
+                            return new AttributeReadResultModel {
+                                Value = _codec.Encode(value.WrappedValue, out var wellKnown,
+                                    session.MessageContext),
+                                ErrorInfo = diagnostics.ToServiceModel(
+                                    value.StatusCode, "BatchRead", request.Diagnostics,
+                                    session.MessageContext)
+                            };
+                        }).ToList()
+                };
+            });
+        }
+
+        /// <inheritdoc/>
+        public async Task<BatchWriteResultModel> NodeBatchWriteAsync(EndpointModel endpoint,
+            BatchWriteRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.Attributes == null) {
+                throw new ArgumentNullException(nameof(request.Attributes));
+            }
+            if (request.Attributes.Any(a => string.IsNullOrEmpty(a.NodeId))) {
+                throw new ArgumentException(nameof(request.Attributes));
+            }
+            return await _client.ExecuteServiceAsync(endpoint, request.Elevation, async session => {
+                var requests = new WriteValueCollection(request.Attributes
+                    .Select(a => new WriteValue {
+                        AttributeId = (uint)a.Attribute,
+                        NodeId = a.NodeId?.ToNodeId(session.MessageContext),
+                        Value = new DataValue(_codec.Decode(a.Value,
+                            Attributes.GetBuiltInType((uint)a.Attribute),
+                            session.MessageContext))
+                    }));
+                var response = await session.WriteAsync(request.Diagnostics.ToStackModel(),
+                    requests);
+                SessionClientEx.Validate(response.Results, response.DiagnosticInfos, requests);
+                return new BatchWriteResultModel {
+                    Results = response.Results
+                        .Select((value, index) => {
+                            var diagnostics = response.DiagnosticInfos == null ||
+                                        response.DiagnosticInfos.Count == 0 ? null :
+                                response.DiagnosticInfos[index];
+                            return new AttributeWriteResultModel {
+                                ErrorInfo = diagnostics.ToServiceModel(
+                                    value, "BatchWrite", request.Diagnostics,
+                                    session.MessageContext)
+                            };
+                        }).ToList()
+                };
+            });
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResultModel> NodeHistoryReadAsync(EndpointModel endpoint,
+            HistoryReadRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (string.IsNullOrEmpty(request.NodeId)) {
+                throw new ArgumentNullException(nameof(request.NodeId));
+            }
+            if (request.Request == null) {
+                throw new ArgumentNullException(nameof(request.Request));
+            }
+            return await _client.ExecuteServiceAsync(endpoint, request.Elevation, async session => {
+                var nodeId = request.NodeId.ToNodeId(session.MessageContext);
+                var details = _codec.Decode(request.Request,
+                    BuiltInType.ExtensionObject, session.MessageContext);
+                if (!(details.Value is ExtensionObject readDetails)) {
+                    throw new ArgumentNullException(nameof(request.Request));
+                }
+                var diagnostics = new List<OperationResult>();
+                var response = await session.HistoryReadAsync(request.Diagnostics.ToStackModel(),
+                    readDetails, TimestampsToReturn.Both,
+                    false, new HistoryReadValueIdCollection {
+                        new HistoryReadValueId {
+                            IndexRange = request.IndexRange,
+                            NodeId = nodeId,
+                            DataEncoding = null // TODO
+                        }
+                    });
+                OperationResultEx.Validate("HistoryRead_" + nodeId,
+                    diagnostics, response.Results.Select(r => r.StatusCode),
+                    response.DiagnosticInfos);
+                SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
+
+                return new HistoryReadResultModel {
+                    ContinuationToken = response.Results[0].ContinuationPoint.ToBase64String(),
+                    History = _codec.Encode(new Variant(response.Results[0].HistoryData),
+                        out var tmp, session.MessageContext),
+                    ErrorInfo = diagnostics.ToServiceModel(request.Diagnostics,
+                        session.MessageContext)
+                };
+            });
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadNextResultModel> NodeHistoryReadNextAsync(EndpointModel endpoint,
+            HistoryReadNextRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (string.IsNullOrEmpty(request.ContinuationToken)) {
+                throw new ArgumentNullException(nameof(request.ContinuationToken));
+            }
+            return await _client.ExecuteServiceAsync(endpoint, request.Elevation, async session => {
+                var diagnostics = new List<OperationResult>();
+                var response = await session.HistoryReadAsync(request.Diagnostics.ToStackModel(),
+                    null, TimestampsToReturn.Both, request.Abort ?? false,
+                    new HistoryReadValueIdCollection {
+                        new HistoryReadValueId {
+                            ContinuationPoint = request.ContinuationToken?.DecodeAsBase64(),
+                            DataEncoding = null // TODO
+                        }
+                    });
+                OperationResultEx.Validate("HistoryReadNext_" + request.ContinuationToken,
+                    diagnostics, response.Results.Select(r => r.StatusCode),
+                    response.DiagnosticInfos);
+                SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
+                return new HistoryReadNextResultModel {
+                    ContinuationToken = response.Results[0].ContinuationPoint.ToBase64String(),
+                    History = _codec.Encode(new Variant(response.Results[0].HistoryData),
+                        out var tmp, session.MessageContext),
+                    ErrorInfo = diagnostics.ToServiceModel(request.Diagnostics,
+                        session.MessageContext)
+                };
+            });
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResultModel> NodeHistoryUpdateAsync(EndpointModel endpoint,
+            HistoryUpdateRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.Request == null) {
+                throw new ArgumentNullException(nameof(request.Request));
+            }
+            return await _client.ExecuteServiceAsync(endpoint, request.Elevation, async session => {
+                var diagnostics = new List<OperationResult>();
+                var details = _codec.Decode(request.Request,
+                    BuiltInType.ExtensionObject, session.MessageContext);
+                if (!(details.Value is ExtensionObject updateDetails)) {
+                    throw new ArgumentNullException(nameof(request.Request));
+                }
+                var response = await session.HistoryUpdateAsync(request.Diagnostics.ToStackModel(),
+                    new ExtensionObjectCollection { updateDetails });
+                OperationResultEx.Validate("HistoryUpdate",
+                    diagnostics, response.Results.Select(r => r.StatusCode),
+                    response.DiagnosticInfos);
+                SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
+
+                return new HistoryUpdateResultModel {
+                    Results = response.Results[0].OperationResults.Select(s => new ServiceResultModel {
+                        StatusCode = s.CodeBits,
+                        ErrorMessage = StatusCode.LookupSymbolicId(s.CodeBits),
+                        Diagnostics = null
+                    }).ToList(),
+                    ErrorInfo = diagnostics.ToServiceModel(request.Diagnostics,
+                        session.MessageContext)
+                };
             });
         }
 
@@ -495,17 +696,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             return new NodeModel {
                 HasChildren = children,
                 Id = nodeId.AsString(session.MessageContext),
+                Name = node.BrowseName?.AsString(session.MessageContext),
                 DisplayName = node.DisplayName?.ToString(),
                 Description = node.Description?.ToString(),
                 NodeClass = node.NodeClass.ToServiceType(),
-                AccessRestrictions = node.AccessRestrictions == null ||
-                    node.AccessRestrictions.Value == 0 ?
-                        null : node.AccessRestrictions,
-                UserWriteMask =
-                    node.UserWriteMask == null || node.UserWriteMask.Value == 0 ?
-                        null : node.AccessRestrictions,
-                WriteMask = node.WriteMask == null || node.WriteMask.Value == 0 ?
-                    null : node.WriteMask,
+                AccessRestrictions = node.AccessRestrictions == null ?
+                    (NodeAccessRestrictions?)null : (NodeAccessRestrictions)node.AccessRestrictions,
+                UserWriteMask = node.UserWriteMask,
+                WriteMask = node.WriteMask,
                 DataType = node.DataType?.AsString(session.MessageContext),
                 ArrayDimensions = node.ArrayDimensions,
                 ValueRank = (NodeValueRank?)node.ValueRank,
@@ -513,18 +711,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     node.AccessLevel == null ? (NodeAccessLevel?)null :
                         (NodeAccessLevel)((node.AccessLevelEx ?? 0) | (node.AccessLevel ?? 0)),
                 UserAccessLevel =
-                    node.UserAccessLevel == null || node.UserAccessLevel.Value == 0 ?
+                    node.UserAccessLevel == null ?
                         (NodeAccessLevel?)null : (NodeAccessLevel)node.UserAccessLevel,
-                Historizing = node.Historizing == null || !node.Historizing.Value ?
-                    null : node.Historizing,
-                MinimumSamplingInterval = node.MinimumSamplingInterval == null ||
-                    (int)node.MinimumSamplingInterval.Value == 0 ?
-                        null : node.MinimumSamplingInterval,
-                IsAbstract = node.IsAbstract == null || !node.IsAbstract.Value ?
-                    null : node.IsAbstract,
+                Historizing = node.Historizing,
+                MinimumSamplingInterval = node.MinimumSamplingInterval,
+                IsAbstract = node.IsAbstract,
                 Value = node.Value == null ? null : _codec.Encode(node.Value.Value, out var type,
                     session.MessageContext),
-                EventNotifier = node.EventNotifier == null || node.EventNotifier.Value == 0 ?
+                EventNotifier = node.EventNotifier == null ?
                     (NodeEventNotifier?)null : (NodeEventNotifier)node.EventNotifier,
                 DataTypeDefinition = node.DataTypeDefinition == null ? null :
                     _codec.Encode(new Variant(node.DataTypeDefinition)),
@@ -532,8 +726,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 Symmetric = node.Symmetric,
                 ContainsNoLoops = node.ContainsNoLoops,
                 Executable = node.Executable,
-                UserExecutable = node.UserExecutable == null || !node.Executable.Value ?
-                    null : node.UserExecutable
+                UserExecutable = node.UserExecutable
             };
         }
 
@@ -551,48 +744,84 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         /// <returns></returns>
         private async Task<string> AddReferencesToBrowseResult(Session session,
             RequestHeader header, bool targetNodesOnly, bool readValues,
-            List<NodeReferenceModel> result, List<OperationResult> diagnostics, byte[] continuationPoint,
-            List<ReferenceDescription> references) {
-            if (references != null) {
-                foreach (var reference in references) {
+            List<NodeReferenceModel> result, List<OperationResult> diagnostics,
+            byte[] continuationPoint, List<ReferenceDescription> references) {
+            if (references == null) {
+                return null;
+            }
+            foreach (var reference in references) {
+                try {
+                    var nodeId = reference.NodeId.ToNodeId(session.NamespaceUris);
+                    var id = nodeId.AsString(session.MessageContext);
+                    if (targetNodesOnly && result.Any(r => r.Target.Id == id)) {
+                        continue;
+                    }
+                    // Check for children
+                    bool? children = null;
                     try {
-                        var nodeId = reference.NodeId.ToNodeId(session.NamespaceUris);
-                        if (targetNodesOnly &&
-                            result.Any(r => r.Target.Id == nodeId.AsString(session.MessageContext))) {
-                            continue;
+                        var response = await session.BrowseAsync(header, null, nodeId, 1,
+                            Opc.Ua.BrowseDirection.Forward,
+                            ReferenceTypeIds.HierarchicalReferences,
+                            true, 0, BrowseResultMask.All);
+                        OperationResultEx.Validate("FetchChildren_" + nodeId, diagnostics,
+                            response?.Results?.Select(r => r.StatusCode), response?.DiagnosticInfos);
+                        if (response.Results.Count == 1) {
+                            children = response.Results[0].References.Count != 0;
                         }
-                        // Check for children
-                        bool? children = null;
-                        try {
-                            var response = await session.BrowseAsync(header, null, nodeId, 1,
-                                Opc.Ua.BrowseDirection.Forward,
-                                ReferenceTypeIds.HierarchicalReferences,
-                                true, 0, BrowseResultMask.All);
-                            SessionClientEx.Validate("FetchChildren_" + nodeId, diagnostics,
-                                response?.Results?.Select(r => r.StatusCode), response?.DiagnosticInfos);
-                            if (response.Results.Count == 1) {
-                                children = response.Results[0].References.Count != 0;
-                            }
-                        }
-                        catch (Exception ex) {
-                            _logger.Debug("Failed to obtain hasChildren information", () => ex);
-                            // TODO: Add diagnostics result for diagnostics.
-                        }
-                        var model = await ReadNodeModelAsync(session, header, nodeId, !readValues,
-                            children, diagnostics);
-                        if (targetNodesOnly) {
-                            result.Add(new NodeReferenceModel { Target = model });
-                            continue;
-                        }
-                        result.Add(new NodeReferenceModel {
-                            BrowseName =
-                                reference.BrowseName.AsString(session.MessageContext),
-                            Id =
-                                reference.ReferenceTypeId.AsString(session.MessageContext),
-                            Direction = reference.IsForward ?
-                                Twin.Models.BrowseDirection.Forward :
-                                Twin.Models.BrowseDirection.Backward,
-                            Target = model
+                    }
+                    catch (Exception ex) {
+                        _logger.Debug("Failed to obtain hasChildren information", () => ex);
+                        // TODO: Add diagnostics result for diagnostics.
+                    }
+                    var model = await ReadNodeModelAsync(session, header, nodeId, !readValues,
+                        children, diagnostics);
+                    if (targetNodesOnly) {
+                        result.Add(new NodeReferenceModel { Target = model });
+                        continue;
+                    }
+                    result.Add(new NodeReferenceModel {
+                        BrowseName = reference.BrowseName.AsString(session.MessageContext),
+                        DisplayName = reference.DisplayName.ToString(),
+                        Id = reference.ReferenceTypeId.AsString(session.MessageContext),
+                        Direction = reference.IsForward ?
+                            OpcUa.Twin.Models.BrowseDirection.Forward :
+                            OpcUa.Twin.Models.BrowseDirection.Backward,
+                        Target = model,
+                        TypeDefinition = reference.TypeDefinition.AsString(session.MessageContext),
+                    });
+                }
+                catch {
+                    // TODO: Add diagnostics result for diagnostics.
+                    continue;
+                }
+            }
+            return continuationPoint.ToBase64String();
+        }
+
+        /// <summary>
+        /// Add targets
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="header"></param>
+        /// <param name="readValues"></param>
+        /// <param name="result"></param>
+        /// <param name="diagnostics"></param>
+        /// <param name="targets"></param>
+        /// <returns></returns>
+        private async Task AddTargetsToBrowseResult(Session session,
+            RequestHeader header, bool readValues,
+            List<NodePathTargetModel> result, List<OperationResult> diagnostics,
+            BrowsePathTargetCollection targets) {
+            if (targets != null) {
+                foreach (var target in targets) {
+                    try {
+                        var nodeId = target.TargetId.ToNodeId(session.NamespaceUris);
+                        var model = await ReadNodeModelAsync(session, header, nodeId,
+                            !readValues, false, diagnostics);
+                        result.Add(new NodePathTargetModel {
+                            Target = model,
+                            RemainingPathIndex = target.RemainingPathIndex == 0 ?
+                                (int?)null : (int)target.RemainingPathIndex
                         });
                     }
                     catch {
@@ -601,9 +830,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         continue;
                     }
                 }
-                return continuationPoint.ToBase64String();
             }
-            return null;
         }
 
         private readonly ILogger _logger;

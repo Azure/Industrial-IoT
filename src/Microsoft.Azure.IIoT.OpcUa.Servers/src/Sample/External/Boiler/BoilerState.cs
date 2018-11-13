@@ -29,12 +29,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using Opc.Ua;
 
-namespace Boiler
-{
+namespace Boiler {
     public partial class BoilerState
     {
         #region Initialization

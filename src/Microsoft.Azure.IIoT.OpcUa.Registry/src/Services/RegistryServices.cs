@@ -98,22 +98,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 query += $"AND properties.desired.{nameof(EndpointRegistration.SecurityPolicy)} = " +
                     $"'{model.SecurityPolicy}' ";
             }
-            if (model?.TokenType != null) {
+            if (model?.UserAuthentication != null) {
                 // If TokenType provided, include it in search
-                if (model.TokenType.Value != TokenType.None) {
-                    query += $"AND properties.desired.{nameof(EndpointRegistration.TokenType)} = " +
-                            $"'{model.TokenType}' ";
+                if (model.UserAuthentication.Value != CredentialType.None) {
+                    query += $"AND properties.desired.{nameof(EndpointRegistration.CredentialType)} = " +
+                            $"'{model.UserAuthentication}' ";
                 }
                 else {
-                    query += $"AND (properties.desired.{nameof(EndpointRegistration.TokenType)} = " +
-                            $"'{model.TokenType}' " +
-                        $"OR NOT IS_DEFINED(tags.{nameof(EndpointRegistration.TokenType)})) ";
+                    query += $"AND (properties.desired.{nameof(EndpointRegistration.CredentialType)} = " +
+                            $"'{model.UserAuthentication}' " +
+                        $"OR NOT IS_DEFINED(tags.{nameof(EndpointRegistration.CredentialType)})) ";
                 }
-            }
-            if (model?.User != null) {
-                // If User provided, include it in search
-                query += $"AND properties.desired.{nameof(EndpointRegistration.User)} = " +
-                    $"'{model.User}' ";
             }
             if (model?.Connected != null) {
                 // If flag provided, include it in search
@@ -163,38 +158,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
 
             // Convert to twin registration
-            var registration = EndpointRegistration.FromTwin(twin, true);
+            var registration = BaseRegistration.ToRegistration(twin, true)
+                as EndpointRegistration;
+            if (registration == null) {
+                throw new ResourceNotFoundException(
+                    $"{request.Id} is not a endpoint registration.");
+            }
 
             // Update registration from update request
             var patched = registration.ToServiceModel();
 
-            if (request.Authentication != null) {
-                patched.Registration.Endpoint.Authentication = new AuthenticationModel();
+            var duplicate = false;
+            if (request.User != null) {
+                patched.Registration.Endpoint.User = new CredentialModel();
 
-                if (request.Authentication.TokenType != null) {
-                    patched.Registration.Endpoint.Authentication.TokenType =
-                        (TokenType)request.Authentication.TokenType;
+                if (request.User.Type != null) {
+                    // Change token type?  Always duplicate since id changes.
+                    duplicate = request.User.Type !=
+                        patched.Registration.Endpoint.User.Type;
+
+                    patched.Registration.Endpoint.User.Type =
+                        (CredentialType)request.User.Type;
                 }
-                if (request.Authentication.User != null) {
-                    patched.Registration.Endpoint.Authentication.User =
-                        string.IsNullOrEmpty(request.Authentication.User) ? null :
-                            request.Authentication.User;
-                    // Change user?  Always duplicate since id changes.
-                    request.Duplicate = true;
-                }
-                if ((patched.Registration.Endpoint.Authentication.TokenType
-                    ?? TokenType.None) != TokenType.None) {
-                    patched.Registration.Endpoint.Authentication.Token =
-                        request.Authentication.Token;
+                if ((patched.Registration.Endpoint.User.Type
+                    ?? CredentialType.None) != CredentialType.None) {
+                    patched.Registration.Endpoint.User.Value =
+                        request.User.Value;
                 }
                 else {
-                    patched.Registration.Endpoint.Authentication.Token = null;
+                    patched.Registration.Endpoint.User.Value = null;
                 }
             }
 
             // Patch
             await _iothub.CreateOrUpdateAsync(EndpointRegistration.Patch(
-                (request.Duplicate ?? false) ? null : registration,
+                duplicate ? null : registration,
                 EndpointRegistration.FromServiceModel(patched, registration.IsDisabled)));
                         // To have duplicate item disabled, too if needed
         }
@@ -212,9 +210,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     nameof(id));
             }
 
-            var registration = EndpointRegistration.FromTwin(twin, true);
+            // Convert to twin registration
+            var registration = BaseRegistration.ToRegistration(twin, true)
+                as EndpointRegistration;
+            if (registration == null) {
+                throw new ResourceNotFoundException(
+                    $"{id} is not an activatable endpoint registration.");
+            }
             if (string.IsNullOrEmpty(registration.SupervisorId)) {
-                throw new ArgumentException("Twin not registered with supervisor");
+                throw new ArgumentException($"Twin {id} not registered with a supervisor.");
             }
             if (!(registration.Activated ?? false)) {
                 var patched = registration.ToServiceModel();
@@ -254,9 +258,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 throw new ArgumentException("Id must be same as twin to deactivate",
                     nameof(id));
             }
-            var registration = EndpointRegistration.FromTwin(twin, true);
+            // Convert to twin registration
+            var registration = BaseRegistration.ToRegistration(twin, true)
+                as EndpointRegistration;
+            if (registration == null) {
+                throw new ResourceNotFoundException(
+                    $"{id} is not an activatable endpoint registration.");
+            }
             if (string.IsNullOrEmpty(registration.SupervisorId)) {
-                throw new ArgumentException("Twin not registered with supervisor");
+                throw new ArgumentException($"Twin {id} not registered with a supervisor.");
             }
             var patched = registration.ToServiceModel();
 
@@ -320,7 +330,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
 
             // Convert to application registration
-            var registration = ApplicationRegistration.FromTwin(application);
+            var registration = BaseRegistration.ToRegistration(application)
+                as ApplicationRegistration;
+            if (registration == null) {
+                throw new ResourceNotFoundException(
+                    $"{request.Id} is not a registered application.");
+            }
 
             // Update registration from update request
             var patched = registration.ToServiceModel();
@@ -358,19 +373,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public async Task<ApplicationRegistrationModel> GetApplicationAsync(string applicationId) {
+        public async Task<ApplicationRegistrationModel> GetApplicationAsync(
+            string applicationId, bool filterInactiveTwins) {
             if (string.IsNullOrEmpty(applicationId)) {
                 throw new ArgumentException(nameof(applicationId));
             }
             var device = await _iothub.GetAsync(applicationId);
-            var application = ApplicationRegistration.FromTwin(device).ToServiceModel();
-
+            var registration = BaseRegistration.ToRegistration(device)
+                as ApplicationRegistration;
+            if (registration == null) {
+                throw new ResourceNotFoundException(
+                    $"{applicationId} is not an application registration.");
+            }
+            var application = registration.ToServiceModel();
             // Include deleted twins if the application itself is deleted.  Otherwise omit.
             var endpoints = await GetEndpointsAsync(applicationId,
                 application.NotSeenSince != null);
             return new ApplicationRegistrationModel {
-                Application = ApplicationRegistration.FromTwin(device).ToServiceModel(),
+                Application = application,
                 Endpoints = endpoints
+                    .Where(e => !filterInactiveTwins || (e.Connected && (e.Activated ?? false)))
                     .Select(e => e.ToServiceModel())
                     .Select(t => t.Registration)
                     .ToList()
@@ -504,8 +526,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             var deviceId = SupervisorModelEx.ParseDeviceId(id, out var moduleId);
             var device = await _iothub.GetAsync(deviceId, moduleId);
-            return SupervisorRegistration.FromTwin(device, onlyServerState)
-                .ToServiceModel();
+            var registration = BaseRegistration.ToRegistration(device, onlyServerState)
+                as SupervisorRegistration;
+            if (registration == null) {
+                throw new ResourceNotFoundException(
+                    $"{id} is not a supervisor registration.");
+            }
+            return registration.ToServiceModel();
         }
 
         /// <inheritdoc/>
@@ -520,14 +547,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             // Get existing endpoint and compare to see if we need to patch.
             var deviceId = SupervisorModelEx.ParseDeviceId(request.Id, out var moduleId);
             var twin = await _iothub.GetAsync(deviceId, moduleId);
+
             if (twin.Id != deviceId && twin.ModuleId != moduleId) {
                 throw new ArgumentException("Id must be same as twin to patch",
                     nameof(request.Id));
             }
 
-            // Convert to supervisor registration
-            var registration = SupervisorRegistration.FromTwin(twin, true,
-                out var tmp);
+            var registration = BaseRegistration.ToRegistration(twin, true)
+                as SupervisorRegistration;
+            if (registration == null) {
+                throw new ResourceNotFoundException(
+                    $"{request.Id} is not a supervisor registration.");
+            }
 
             // Update registration from update request
             var patched = registration.ToServiceModel();
@@ -739,7 +770,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     $"(tags.{nameof(ApplicationRegistration.SiteId)} = '{siteId}' OR" +
                     $" tags.{nameof(BaseRegistration.SupervisorId)} = '{supervisorId}')");
                 var existing = twins
-                    .Select(t => ApplicationRegistration.FromTwin(t));
+                    .Select(ApplicationRegistration.FromTwin);
                 var found = events
                     .Select(ev => ApplicationRegistration.FromServiceModel(ev.Application,
                         false));
@@ -1191,13 +1222,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <returns></returns>
         private static TwinInfoModel TwinModelToTwinRegistrationModel(
             DeviceTwinModel twin, bool onlyServerState, bool skipInvalid) {
-            var registration = EndpointRegistration.FromTwin(twin, onlyServerState);
+
+            // Convert to twin registration
+            var registration = BaseRegistration.ToRegistration(twin, onlyServerState)
+                as EndpointRegistration;
             if (registration == null) {
                 if (skipInvalid) {
                     return null;
                 }
                 throw new ResourceNotFoundException(
-                    $"{twin.Id} is not a registered opc ua twin");
+                    $"{twin.Id} is not a registered opc ua twin endpoint.");
             }
             return registration.ToServiceModel();
         }

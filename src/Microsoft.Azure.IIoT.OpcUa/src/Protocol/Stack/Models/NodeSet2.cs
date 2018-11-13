@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.Models {
     using Opc.Ua;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System;
     using System.Linq;
     using System.IO;
@@ -37,7 +38,7 @@ namespace Opc.Ua.Models {
                 if (_uaNodeSet.Models != null && _uaNodeSet.Models.Count() == 1) {
                     return new Uri(_uaNodeSet.Models.First().ModelUri);
                 }
-                if (_uaNodeSet.NamespaceUris != null && _uaNodeSet.NamespaceUris.Count() > 0) {
+                if (_uaNodeSet.NamespaceUris != null && _uaNodeSet.NamespaceUris.Any()) {
                     return new Uri(_uaNodeSet.NamespaceUris.First());
                 }
                 return _uri;

@@ -108,7 +108,7 @@ Options:
 
             var tcs = new TaskCompletionSource<bool>();
             AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
-            using (var server = new ServerHost(new SampleServerFactory(logger), logger) {
+            using (var server = new ServerConsoleHost(new SampleServerFactory(logger), logger) {
                 AutoAccept = true
             }) {
                 await server.StartAsync(ports);

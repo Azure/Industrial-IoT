@@ -3,7 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using System.Collections.Generic;
 
     /// <summary>
     /// Twin registration
@@ -11,7 +13,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public class TwinRegistrationModel {
 
         /// <summary>
-        /// Twin and therefore endpoint identifier
+        /// Twin and therefore endpoint identifier which is hashed from
+        /// the supervisor, site and url.
         /// </summary>
         public string Id { get; set; }
 
@@ -21,23 +24,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string SiteId { get; set; }
 
         /// <summary>
+        /// Supervisor that registered the twin.
+        /// </summary>
+        public string SupervisorId { get; set; }
+
+        /// <summary>
         /// Endpoint information in the registration
         /// </summary>
         public EndpointModel Endpoint { get; set; }
 
         /// <summary>
-        /// Security level of the endpoint
+        /// Security level of the endpoint as advertised by server.
         /// </summary>
         public int? SecurityLevel { get; set; }
 
         /// <summary>
-        /// Endpoint cert that was registered.
+        /// Certificate that was registered as belonging to the endpoint.
         /// </summary>
         public byte[] Certificate { get; set; }
 
         /// <summary>
-        /// Supervisor that registered the twin.
+        /// Supported credential configurations that can be selected to
+        /// obtain a credential and used to interact with the endpoint.
         /// </summary>
-        public string SupervisorId { get; set; }
+        public List<AuthenticationMethodModel> AuthenticationMethods { get; set; }
     }
 }

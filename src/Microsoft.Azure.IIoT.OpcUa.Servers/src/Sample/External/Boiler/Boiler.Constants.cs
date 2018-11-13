@@ -27,16 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
-using System.Xml;
-using System.Runtime.Serialization;
 using Opc.Ua;
 
-namespace Boiler
-{
+namespace Boiler {
     #region Method Identifiers
     /// <summary>
     /// A class that declares constants for all Methods in the Model Design.

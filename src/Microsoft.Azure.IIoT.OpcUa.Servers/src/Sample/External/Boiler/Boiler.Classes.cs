@@ -29,15 +29,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml;
-using System.Runtime.Serialization;
 using Opc.Ua;
 
-namespace Boiler
-{
+namespace Boiler {
     #region GenericControllerState Class
-    #if !OPCUA_EXCLUDE_GenericControllerState
+#if !OPCUA_EXCLUDE_GenericControllerState
     /// <summary>
     /// Stores an instance of the GenericControllerType ObjectType.
     /// </summary>

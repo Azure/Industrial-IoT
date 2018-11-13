@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Stack.Encoders {
     using System;
     using Xunit;
     using System.Globalization;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
 
     public class TypeSerializerTests {
 

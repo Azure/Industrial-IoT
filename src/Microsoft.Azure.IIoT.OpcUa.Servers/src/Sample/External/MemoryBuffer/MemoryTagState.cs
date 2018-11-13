@@ -27,17 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Xml;
-using System.IO;
-using System.Reflection;
-using System.Threading;
 using Opc.Ua;
-using Opc.Ua.Server;
 
-namespace MemoryBuffer
-{
+namespace MemoryBuffer {
     public partial class MemoryTagState
     {
         #region Constructors

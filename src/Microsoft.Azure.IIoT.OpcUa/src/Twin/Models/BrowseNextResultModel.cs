@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
 
     /// <summary>
@@ -23,8 +22,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public string ContinuationToken { get; set; }
 
         /// <summary>
-        /// Diagnostics in case of error
+        /// Service result in case of error
         /// </summary>
-        public JToken Diagnostics { get; set; }
+        public ServiceResultModel ErrorInfo { get; set; }
     }
 }

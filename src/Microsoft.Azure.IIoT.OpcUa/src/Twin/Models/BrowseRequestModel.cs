@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Request node browsing service
@@ -65,9 +66,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public bool? ReadVariableValues { get; set; }
 
         /// <summary>
+        /// Filter returned target nodes by only returning
+        /// nodes that have classes in this array.
+        /// (default: null - all targets are returned)
+        /// </summary>
+        public List<NodeClass> NodeClassFilter { get; set; }
+
+        /// <summary>
         /// Optional elevation.
         /// </summary>
-        public AuthenticationModel Elevation { get; set; }
+        public CredentialModel Elevation { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration

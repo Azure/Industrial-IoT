@@ -4,16 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Newtonsoft.Json.Linq;
-
     /// <summary>
     /// Result of value write
     /// </summary>
     public class ValueWriteResultModel {
 
         /// <summary>
-        /// Diagnostics data in case of error
+        /// Service result in case of error
         /// </summary>
-        public JToken Diagnostics { get; set; }
+        public ServiceResultModel ErrorInfo { get; set; }
     }
 }

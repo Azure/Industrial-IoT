@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Tests {
         public ServerFixture() {
             Logger = new TraceLogger();
             Client = new ClientServices(Logger);
-            _serverHost = new ServerHost(new SampleServerFactory(Logger) {
+            _serverHost = new ServerConsoleHost(new SampleServerFactory(Logger) {
                 LogStatus = false
             }, Logger) {
                 AutoAccept = true

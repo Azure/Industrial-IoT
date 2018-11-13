@@ -1377,7 +1377,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 });
 
             // Assert
-            Assert.Null(results.Diagnostics);
+            Assert.NotNull(results.ErrorInfo);
+            Assert.Null(results.ErrorInfo.Diagnostics);
+            Assert.NotNull(results.ErrorInfo.StatusCode);
+            Assert.Equal(results.ErrorInfo.StatusCode, Opc.Ua.StatusCodes.BadNodeIdUnknown);
         }
 
         [Fact]
@@ -1398,9 +1401,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 });
 
             // Assert
-            Assert.NotNull(results.Diagnostics);
-            Assert.Equal(JTokenType.Array, results.Diagnostics.Type);
-            Assert.Collection(results.Diagnostics, j => {
+            Assert.NotNull(results.ErrorInfo.Diagnostics);
+            Assert.Equal(JTokenType.Array, results.ErrorInfo.Diagnostics.Type);
+            Assert.Collection(results.ErrorInfo.Diagnostics, j => {
                 Assert.Equal(JTokenType.String, j.Type);
                 Assert.Equal("BadNodeIdUnknown", (string)j);
             });
@@ -1422,9 +1425,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 });
 
             // Assert
-            Assert.NotNull(results.Diagnostics);
-            Assert.Equal(JTokenType.Object, results.Diagnostics.Type);
-            Assert.Collection(results.Diagnostics,
+            Assert.NotNull(results.ErrorInfo.Diagnostics);
+            Assert.Equal(JTokenType.Object, results.ErrorInfo.Diagnostics.Type);
+            Assert.Collection(results.ErrorInfo.Diagnostics,
                 j => {
                     Assert.Equal(JTokenType.Property, j.Type);
                     Assert.Equal("BadNodeIdUnknown", ((JProperty)j).Name);
@@ -1450,8 +1453,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 });
 
             // Assert
-            Assert.NotNull(results.Diagnostics);
-            Assert.Equal(JTokenType.Array, results.Diagnostics.Type);
+            Assert.NotNull(results.ErrorInfo.Diagnostics);
+            Assert.Equal(JTokenType.Array, results.ErrorInfo.Diagnostics.Type);
         }
 
         public AddressSpaceBrowseTests(ServerFixture server) {

@@ -6,18 +6,23 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
 
     /// <summary>
-    /// Info about a published nodes
+    /// A monitored and published node
     /// </summary>
     public class PublishedNodeModel {
 
         /// <summary>
-        /// Node
+        /// Node to monitor
         /// </summary>
         public string NodeId { get; set; }
 
         /// <summary>
-        /// Enabled or disabled
+        /// Publishing interval to use
         /// </summary>
-        public bool Enabled { get; set; }
+        public int? PublishingInterval { get; set; }
+
+        /// <summary>
+        /// Sampling interval to use
+        /// </summary>
+        public int? SamplingInterval { get; set; }
     }
 }

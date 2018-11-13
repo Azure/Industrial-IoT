@@ -29,11 +29,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Opc.Ua.Server; 
+using Opc.Ua.Server;
 
-namespace Opc.Ua.Sample
-{
+namespace Opc.Ua.Sample {
     /// <summary>
     /// Keeps track of the monitored items for a single node.
     /// </summary>

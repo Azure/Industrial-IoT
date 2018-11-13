@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Newtonsoft.Json.Linq;
     using System.Net;
@@ -680,7 +681,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 });
 
             // Assert
-            Assert.Null(results.Diagnostics);
+            Assert.Null(results.ErrorInfo.Diagnostics);
         }
 
         [Fact]
@@ -699,9 +700,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 });
 
             // Assert
-            Assert.NotNull(results.Diagnostics);
-            Assert.Equal(JTokenType.Array, results.Diagnostics.Type);
-            Assert.Collection(results.Diagnostics, j => {
+            Assert.NotNull(results.ErrorInfo.Diagnostics);
+            Assert.Equal(JTokenType.Array, results.ErrorInfo.Diagnostics.Type);
+            Assert.Collection(results.ErrorInfo.Diagnostics, j => {
                 Assert.Equal(JTokenType.String, j.Type);
                 Assert.Equal("BadNodeIdUnknown", (string)j);
             });
@@ -723,9 +724,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 });
 
             // Assert
-            Assert.NotNull(results.Diagnostics);
-            Assert.Equal(JTokenType.Object, results.Diagnostics.Type);
-            Assert.Collection(results.Diagnostics,
+            Assert.NotNull(results.ErrorInfo.Diagnostics);
+            Assert.Equal(JTokenType.Object, results.ErrorInfo.Diagnostics.Type);
+            Assert.Collection(results.ErrorInfo.Diagnostics,
                 j => {
                     Assert.Equal(JTokenType.Property, j.Type);
                     Assert.Equal("BadNodeIdUnknown", ((JProperty)j).Name);
@@ -751,8 +752,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 });
 
             // Assert
-            Assert.NotNull(results.Diagnostics);
-            Assert.Equal(JTokenType.Array, results.Diagnostics.Type);
+            Assert.NotNull(results.ErrorInfo.Diagnostics);
+            Assert.Equal(JTokenType.Array, results.ErrorInfo.Diagnostics.Type);
         }
 
         public AddressSpaceValueReadScalarTests(ServerFixture server) {

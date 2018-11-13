@@ -28,18 +28,10 @@
  * ======================================================================*/
 
 using System;
-using System.Collections.Generic;
-using System.Xml;
-using System.IO;
-using System.Text;
-using System.Reflection;
-using System.Threading;
-using System.Globalization;
 using Opc.Ua;
 using Opc.Ua.Server;
 
-namespace TestData
-{
+namespace TestData {
     /// <summary>
     /// A class used to read values from a history data source.
     /// </summary>

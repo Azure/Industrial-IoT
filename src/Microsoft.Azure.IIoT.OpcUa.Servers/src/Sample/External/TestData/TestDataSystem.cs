@@ -29,15 +29,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Xml;
-using System.IO;
 using Opc.Ua;
-using Opc.Ua.Server;
 
-namespace TestData
-{   
+namespace TestData {
     public interface ITestDataSystemCallback
     {
         void OnDataChange(

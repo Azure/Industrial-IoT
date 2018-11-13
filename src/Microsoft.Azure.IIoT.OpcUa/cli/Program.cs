@@ -14,11 +14,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Clients;
     using Microsoft.Azure.IIoT.Net;
     using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Azure.IIoT.Net.Scanner;
@@ -457,7 +457,7 @@ Operations (Mutually exclusive):
         private static async Task TestOpcUaServerClient(EndpointModel endpoint) {
             var logger = new ConsoleLogger("test", LogLevel.Debug);
             var client = new ClientServices(logger);
-            await client.ExecuteServiceAsync(endpoint, session => {
+            await client.ExecuteServiceAsync(endpoint, null, session => {
                 Console.WriteLine("Browse the OPC UA server namespace.");
                 var w = Stopwatch.StartNew();
                 var stack = new Stack<Tuple<string, ReferenceDescription>>();
@@ -635,6 +635,16 @@ Operations (Mutually exclusive):
 
         /// <inheritdoc/>
         private class ConsoleUploader : IBlobUpload {
+
+            /// <inheritdoc/>
+            public string DeviceId { get; } = "";
+
+            /// <inheritdoc/>
+            public string ModuleId { get; } = "";
+
+            /// <inheritdoc/>
+            public string SiteId { get; } = "";
+
             /// <inheritdoc/>
             public Task SendFileAsync(string fileName, string contentType) {
                 using (var stream = new FileStream(fileName, FileMode.Open)) {

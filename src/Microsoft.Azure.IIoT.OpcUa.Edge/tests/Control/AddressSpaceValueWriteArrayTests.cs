@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Newtonsoft.Json.Linq;
     using Opc.Ua;
@@ -1209,7 +1210,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             ValueWriteResultModel result) {
             var value = await _server.Client.ReadValueAsync(GetEndpoint(), node);
             Assert.NotNull(value);
-            Assert.Null(result.Diagnostics);
+            Assert.Null(result.ErrorInfo);
             Assert.Equal(expected.ToString(Newtonsoft.Json.Formatting.None),
                 value.ToString(Newtonsoft.Json.Formatting.None));
         }

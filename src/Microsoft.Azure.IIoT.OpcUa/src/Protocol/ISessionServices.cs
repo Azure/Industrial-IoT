@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     /// <summary>
     /// Session manager
     /// </summary>
-    public interface ISessionServices : IDisposable{
+    public interface ISessionServices : IDisposable {
 
         /// <summary>
         /// Activation events
@@ -37,22 +37,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         event EventHandler SessionClosing;
 
         /// <summary>
-        /// Create session
+        /// User validation handlers
+        /// </summary>
+        event UserIdentityHandler ValidateUser;
+
+        /// <summary>
+        /// Creates a new session and monitors it for timeout.
         /// </summary>
         /// <param name="context"></param>
+        /// <param name="endpoint"></param>
         /// <param name="serverCertificate"></param>
         /// <param name="clientNonce"></param>
         /// <param name="clientCertificate"></param>
-        /// <param name="requestedimeout"></param>
+        /// <param name="requestedTimeout"></param>
         /// <param name="sessionId"></param>
         /// <param name="authenticationToken"></param>
         /// <param name="serverNonce"></param>
         /// <param name="revisedTimeout"></param>
         /// <returns></returns>
-        ISession CreateSession(RequestContextModel context,
-            X509Certificate2 serverCertificate,
+        IServerSession CreateSession(RequestContextModel context,
+            EndpointDescription endpoint, X509Certificate2 serverCertificate,
             byte[] clientNonce, X509Certificate2 clientCertificate,
-            double requestedimeout,
+            double requestedTimeout,
             out NodeId sessionId, out NodeId authenticationToken,
             out byte[] serverNonce, out double revisedTimeout);
 
@@ -88,7 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Get all active sessions
         /// </summary>
         /// <returns></returns>
-        IList<ISession> GetSessions();
+        IList<IServerSession> GetSessions();
 
         /// <summary>
         /// Close session with specified id
@@ -96,4 +102,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="sessionId"></param>
         void CloseSession(NodeId sessionId);
     }
+
+    /// <summary>
+    /// Handler args
+    /// </summary>
+    public class UserIdentityHandlerArgs {
+
+        /// <summary>
+        /// Token to validate
+        /// </summary>
+        public UserIdentityToken Token { get; set; }
+
+        /// <summary>
+        /// Effective identities
+        /// </summary>
+        public List<IUserIdentity> CurrentIdentities { get; set; }
+
+        /// <summary>
+        /// New set of identitites after token application
+        /// </summary>
+        public List<IUserIdentity> NewIdentities { get; set; }
+
+        /// <summary>
+        /// Exception to throw
+        /// </summary>
+        public ServiceResultException ValidationException { get; set; }
+    }
+
+    /// <summary>
+    /// Delegate to validate user identity tokens
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="args"></param>
+    public delegate void UserIdentityHandler(object sender, UserIdentityHandlerArgs args);
 }

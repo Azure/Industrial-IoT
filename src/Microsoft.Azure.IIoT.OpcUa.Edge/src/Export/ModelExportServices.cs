@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Tasks;
-    using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.Module;
     using Opc.Ua;
     using Opc.Ua.Encoders;
     using System;
@@ -236,7 +236,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
         /// <returns></returns>
         private Task<ReferenceDescriptionCollection> FetchReferencesAsync(
             EndpointModel endpoint, Node node, CancellationToken ct) =>
-            _client.ExecuteServiceAsync(endpoint, session =>
+            _client.ExecuteServiceAsync(endpoint, null, session =>
                 Task.Run(() => session.FetchReferences(node.NodeId), ct));
 
         /// <summary>
@@ -248,7 +248,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
         /// <returns></returns>
         private Task<Node> ReadNodeAsync(EndpointModel endpoint,
             ExpandedNodeId nodeId, CancellationToken ct) =>
-            _client.ExecuteServiceAsync(endpoint, session =>
+            _client.ExecuteServiceAsync(endpoint, null, session =>
                 Task.Run(() => session.ReadNode((NodeId)nodeId), ct));
 
         /// <summary>

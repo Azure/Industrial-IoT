@@ -29,17 +29,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Diagnostics;
-using System.Xml;
-using System.IO;
 using System.Threading;
 using Opc.Ua;
 using Opc.Ua.Server;
 using System.Reflection;
 
-namespace TestData
-{
+namespace TestData {
     /// <summary>
     /// A node manager for a variety of test data.
     /// </summary>

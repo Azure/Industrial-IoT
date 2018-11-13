@@ -88,6 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }
             }
         }
+
         private List<string> _supervisors;
         private readonly Timer _timer;
 

@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = mock.Create<RegistryServices>();
 
                 // Run
-                var t = service.GetApplicationAsync("test");
+                var t = service.GetApplicationAsync("test", false);
 
                 // Assert
                 Assert.NotNull(t.Exception);
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // Run
                 var result = service.GetApplicationAsync(
                     ApplicationInfoModelEx.CreateApplicationId(site,
-                    first.ApplicationUri, first.ApplicationType)).Result;
+                    first.ApplicationUri, first.ApplicationType), false).Result;
 
                 // Assert
                 Assert.True(result.Application.IsSameAs(apps.First()));

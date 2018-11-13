@@ -6,7 +6,6 @@
 // #define USE_TASK_RUN
 
 namespace Opc.Ua.Client {
-    using Opc.Ua.Models;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -803,57 +802,6 @@ namespace Opc.Ua.Client {
                 return NewDeleteSubscriptionsResponse(response, results, diagnosticInfos);
             });
 #endif
-        }
-
-        /// <summary>
-        /// Validates responses
-        /// </summary>
-        /// <param name="operation"></param>
-        /// <param name="operations"></param>
-        /// <param name="results"></param>
-        /// <param name="diagnostics"></param>
-        public static void Validate(string operation,
-            List<OperationResult> operations, IEnumerable<StatusCode> results,
-            DiagnosticInfoCollection diagnostics) {
-            Validate<object>(operation, operations, results, diagnostics, null);
-        }
-
-        /// <summary>
-        /// Validates responses against requests
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="operation"></param>
-        /// <param name="results"></param>
-        /// <param name="diagnostics"></param>
-        /// <param name="requested"></param>
-        /// <param name="operations"></param>
-        public static void Validate<T>(string operation,
-            List<OperationResult> operations, IEnumerable<StatusCode> results,
-            DiagnosticInfoCollection diagnostics, IEnumerable<T> requested) {
-            if (operations == null) {
-                Validate(results, diagnostics, requested);
-                return;
-            }
-            var statusCodes = results?.ToList();
-            if (statusCodes == null || (statusCodes.Count == 0 && diagnostics.Count == 0)) {
-                throw new ServiceResultException(StatusCodes.BadUnexpectedError,
-                    "The server returned no results or diagnostics information.");
-            }
-            // Add diagnostics
-            var ids = requested?.ToArray() ?? new T[0];
-            for (var index = statusCodes.Count; index < diagnostics.Count; index++) {
-                statusCodes.Add(diagnostics[index] == null ? StatusCodes.Good :
-                    StatusCodes.BadUnexpectedError);
-            }
-            if (!statusCodes.All(s => s == StatusCodes.Good)) {
-                operations.AddRange(results
-                    .Select((status, index) => new OperationResult {
-                        Operation = index < ids.Length ? $"{operation}_{ids[index]}" : operation,
-                        DiagnosticsInfo = index < diagnostics.Count ? diagnostics[index] : null,
-                        StatusCode = status
-                    })
-                    .Where(o => o.StatusCode != StatusCodes.Good || o.DiagnosticsInfo != null));
-            }
         }
 
         /// <summary>

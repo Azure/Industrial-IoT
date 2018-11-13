@@ -47,5 +47,50 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         /// <returns></returns>
         Task<MethodCallResultModel> NodeMethodCallAsync(T endpoint,
             MethodCallRequestModel request);
+
+        /// <summary>
+        /// Read node attributes in batch
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<BatchReadResultModel> NodeBatchReadAsync(T endpoint,
+            BatchReadRequestModel request);
+
+        /// <summary>
+        /// Write node attributes in batch
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<BatchWriteResultModel> NodeBatchWriteAsync(T endpoint,
+            BatchWriteRequestModel request);
+
+        /// <summary>
+        /// Read node history
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<HistoryReadResultModel> NodeHistoryReadAsync(T endpoint,
+            HistoryReadRequestModel request);
+
+        /// <summary>
+        /// Read node history continuation
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<HistoryReadNextResultModel> NodeHistoryReadNextAsync(T endpoint,
+            HistoryReadNextRequestModel request);
+
+        /// <summary>
+        /// Update node history
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<HistoryUpdateResultModel> NodeHistoryUpdateAsync(T endpoint,
+            HistoryUpdateRequestModel request);
     }
 }

@@ -34,5 +34,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// Target node
         /// </summary>
         public NodeModel Target { get; set; }
+
+        /// <summary>
+        /// Optional type definition of the reference
+        /// </summary>
+        public string TypeDefinition { get; set; }
     }
 }

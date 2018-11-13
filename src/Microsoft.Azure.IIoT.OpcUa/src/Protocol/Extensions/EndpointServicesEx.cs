@@ -19,12 +19,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="client"></param>
+        /// <param name="elevation"></param>
         /// <param name="endpoint"></param>
         /// <param name="service"></param>
         /// <returns></returns>
         public static Task<T> ExecuteServiceAsync<T>(this IEndpointServices client,
-            EndpointModel endpoint, Func<Session, Task<T>> service) {
-            return client.ExecuteServiceAsync(endpoint, service, _ => true);
+            EndpointModel endpoint, CredentialModel elevation, Func<Session, Task<T>> service) {
+            return client.ExecuteServiceAsync(endpoint, elevation, service, _ => true);
         }
     }
 }

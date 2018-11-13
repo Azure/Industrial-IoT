@@ -26,8 +26,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             return
                 that.Url == model.Url &&
-                that.Authentication.IsSameAs(that.Authentication) &&
-                that.Validation.SequenceEqualsSafe(model.Validation) &&
+                that.User.IsSameAs(that.User) &&
+                that.ServerThumbprint.SequenceEqualsSafe(model.ServerThumbprint) &&
                 that.SecurityPolicy == model.SecurityPolicy &&
                 (that.SecurityMode ?? SecurityMode.Best) ==
                     (model.SecurityMode ?? SecurityMode.Best);
@@ -43,10 +43,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 return null;
             }
             return new EndpointModel {
-                Validation = model.Validation,
+                ServerThumbprint = model.ServerThumbprint,
                 SecurityMode = model.SecurityMode,
                 SecurityPolicy = model.SecurityPolicy,
-                Authentication = model.Authentication.Clone(),
+                User = model.User.Clone(),
                 Url = model.Url
             };
         }

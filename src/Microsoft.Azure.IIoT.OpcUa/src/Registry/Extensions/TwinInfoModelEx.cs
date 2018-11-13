@@ -19,26 +19,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="applicationId"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        public static string CreateTwinId(string applicationId, EndpointModel endpoint) =>
-            CreateTwinId(applicationId, endpoint.Url, endpoint.Authentication?.User,
-                endpoint.SecurityMode, endpoint.SecurityPolicy);
+        public static string CreateTwinId(string applicationId,
+            EndpointModel endpoint) => CreateTwinId(applicationId,
+                endpoint.Url, endpoint.SecurityMode, endpoint.SecurityPolicy);
 
         /// <summary>
         /// Create unique endpoint
         /// </summary>
         /// <param name="applicationId"></param>
         /// <param name="url"></param>
-        /// <param name="user"></param>
         /// <param name="mode"></param>
         /// <param name="securityPolicy"></param>
         /// <returns></returns>
-        public static string CreateTwinId(string applicationId, string url, string user,
+        public static string CreateTwinId(string applicationId, string url,
             SecurityMode? mode, string securityPolicy) {
             if (applicationId == null || url == null) {
                 return null;
             }
 
-            user = user?.ToLowerInvariant() ?? "";
             url = url.ToLowerInvariant();
 
             if (!mode.HasValue || mode.Value == SecurityMode.None) {
@@ -46,7 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             securityPolicy = securityPolicy?.ToLowerInvariant() ?? "";
 
-            var id = $"{url}-{applicationId}-{user}-{mode}-{securityPolicy}";
+            var id = $"{url}-{applicationId}-{mode}-{securityPolicy}";
             return "uat" + id.ToSha1Hash();
         }
 

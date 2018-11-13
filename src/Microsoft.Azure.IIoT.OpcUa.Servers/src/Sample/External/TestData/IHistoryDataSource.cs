@@ -28,18 +28,9 @@
  * ======================================================================*/
 
 using System;
-using System.Collections.Generic;
-using System.Xml;
-using System.IO;
-using System.Text;
-using System.Reflection;
-using System.Threading;
-using System.Globalization;
 using Opc.Ua;
-using Opc.Ua.Server;
 
-namespace TestData
-{
+namespace TestData {
     /// <summary>
     /// An interface to an object which can access historical data for a variable.
     /// </summary>

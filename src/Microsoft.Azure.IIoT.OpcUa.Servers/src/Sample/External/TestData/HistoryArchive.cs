@@ -29,14 +29,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
-using System.Xml;
-using System.IO;
 using Opc.Ua;
 
-namespace TestData
-{
+namespace TestData {
     /// <summary>
     /// A class that provides access to archived data.
     /// </summary>

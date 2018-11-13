@@ -103,6 +103,11 @@ namespace Opc.Ua.Sample
         /// </summary>
         private void SessionManager_ImpersonateUser(Session session, ImpersonateEventArgs args)
         {
+            if (session == null)
+            {
+                throw new ArgumentNullException(nameof(session));
+            }
+
             // check for a WSS token.
             IssuedIdentityToken wssToken = args.NewIdentity as IssuedIdentityToken;
 

@@ -27,15 +27,10 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.ServiceModel;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
 
-using Opc.Ua.Server;
-
-namespace MemoryBuffer
-{
+namespace MemoryBuffer {
     /// <summary>
     /// Stores the configuration the test node manager
     /// </summary>

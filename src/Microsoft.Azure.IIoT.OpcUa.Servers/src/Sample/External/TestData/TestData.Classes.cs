@@ -29,16 +29,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
 using System.Xml;
-using System.Runtime.Serialization;
 using Opc.Ua;
 
-namespace TestData
-{
+namespace TestData {
     #region GenerateValuesMethodState Class
-    #if (!OPCUA_EXCLUDE_GenerateValuesMethodState)
+#if (!OPCUA_EXCLUDE_GenerateValuesMethodState)
     /// <summary>
     /// Stores an instance of the GenerateValuesMethodType Method.
     /// </summary>

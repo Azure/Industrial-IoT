@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+
     /// <summary>
     /// Twin query
     /// </summary>
@@ -15,14 +16,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string Url { get; set; }
 
         /// <summary>
-        /// User name in authentication
+        /// Type of credential to use for authentication
         /// </summary>
-        public string User { get; set; }
-
-        /// <summary>
-        /// Type of token
-        /// </summary>
-        public TokenType? TokenType { get; set; }
+        public CredentialType? UserAuthentication { get; set; }
 
         /// <summary>
         /// Certificate of the endpoint

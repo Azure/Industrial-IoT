@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public bool? RegisterOnly { get; set; }
 
         /// <summary>
-        /// If discovery failed, diagnostic information
+        /// If discovery failed, result information
         /// </summary>
         public JToken Diagnostics { get; set; }
     }

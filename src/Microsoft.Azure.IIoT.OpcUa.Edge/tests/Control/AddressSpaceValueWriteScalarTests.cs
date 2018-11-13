@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using MemoryBuffer;
     using Newtonsoft.Json.Linq;
     using System;
@@ -641,7 +642,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             ValueWriteResultModel result) {
             var value = await _server.Client.ReadValueAsync(GetEndpoint(), node);
             Assert.NotNull(value);
-            Assert.Null(result.Diagnostics);
+            Assert.Null(result.ErrorInfo);
             Assert.True(JToken.DeepEquals(expected, value),
                 $"Expected: {expected} != Actual: {value}");
         }

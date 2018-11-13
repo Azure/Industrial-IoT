@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
     using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Tasks;
-    using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json;
@@ -268,7 +268,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 #endif
             var addresses = new List<IPAddress>();
             using (var netscanner = new NetworkScanner(_logger, reply => {
-                _logger.Debug($"{reply.Address} found.");
+                _logger.Verbose($"{reply.Address} found.");
                 addresses.Add(reply.Address);
             }, local, local ? null : request.AddressRanges, request.NetworkClass,
                 request.Configuration.MaxNetworkProbes,
@@ -455,8 +455,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// </summary>
         /// <param name="message"></param>
         private void ProgressTimer(Func<string> message) {
+            if ((_counter % 3) == 0) {
+                _logger.Info($"GC Mem: {GC.GetTotalMemory(false) / 1024} kb, Working set /" +
+                    $" Private Mem: {Process.GetCurrentProcess().WorkingSet64 / 1024} kb / " +
+                    $"{Process.GetCurrentProcess().PrivateMemorySize64 / 1024} kb, Handles:" +
+                    Process.GetCurrentProcess().HandleCount);
+            }
+            ++_counter;
 #if !NO_SCHEDULER_DUMP
-            if ((++_counter % 500) == 0) {
+            if ((_counter % 200) == 0) {
                 _processor.Scheduler.Dump(_logger);
                 if (_counter >= 2000) {
                     throw new ThreadStateException("Stuck");
@@ -476,11 +483,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         private readonly SortedDictionary<DateTime, List<ApplicationRegistrationModel>> _discovered;
         private readonly SemaphoreSlim _lock;
         private readonly ILogger _logger;
-        private readonly TimeSpan _progressInterval = TimeSpan.FromSeconds(3);
+        private readonly TimeSpan _progressInterval = TimeSpan.FromSeconds(10);
         private readonly IEventEmitter _events;
         private readonly ITaskProcessor _processor;
         private readonly IEndpointDiscovery _client;
-
-        private const int kPortScanBatchSize = 10000;
     }
 }

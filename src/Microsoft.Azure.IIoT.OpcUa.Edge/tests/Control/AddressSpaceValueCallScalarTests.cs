@@ -1199,7 +1199,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
 
             // Assert
             Assert.Empty(result.Results);
-            Assert.Null(result.Diagnostics);
+            Assert.Null(result.ErrorInfo);
         }
 
         [Fact]
@@ -1219,7 +1219,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
 
             // Assert
             Assert.Empty(result.Results);
-            Assert.Null(result.Diagnostics);
+            Assert.Null(result.ErrorInfo);
         }
 
         public AddressSpaceValueCallScalarTests(ServerFixture server) {

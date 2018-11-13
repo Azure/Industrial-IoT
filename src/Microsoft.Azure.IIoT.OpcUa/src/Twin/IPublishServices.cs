@@ -8,28 +8,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Publish services via endpoint model
+    /// Publish services
     /// </summary>
     public interface IPublishServices<T> {
 
         /// <summary>
-        /// Publish or unpublish from node
+        /// Start publishing node values
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<PublishResultModel> NodePublishAsync(T endpoint,
-            PublishRequestModel request);
+        Task<PublishStartResultModel> NodePublishStartAsync(T endpoint,
+            PublishStartRequestModel request);
 
         /// <summary>
-        /// Get all published node ids for endpoint - provides for inter
-        /// service communication between opc node services and publisher
-        /// to enable filtering and tagging of published nodes.
+        /// Start publishing node values
         /// </summary>
         /// <param name="endpoint"></param>
-        /// <param name="continuation"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        Task<PublishedNodeListModel> ListPublishedNodesAsync(
-            T endpoint, string continuation);
+        Task<PublishStopResultModel> NodePublishStopAsync(T endpoint,
+            PublishStopRequestModel request);
+
+        /// <summary>
+        /// Get all published nodes for endpoint.
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<PublishedNodeListResultModel> NodePublishListAsync(
+            T endpoint, PublishedNodeListRequestModel request);
     }
 }

@@ -3,10 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Newtonsoft.Json.Linq;
     using System.Threading.Tasks;
     using Opc.Ua.Extensions;
@@ -22,9 +21,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         /// <param name="readNode"></param>
         /// <returns></returns>
         public static Task<JToken> ReadValueAsync(this IEndpointServices client,
-            EndpointModel endpoint, string readNode) {
+            EndpointModel endpoint, string readNode) =>
+            ReadValueAsync(client, endpoint, null, readNode);
+
+        /// <summary>
+        /// Read value
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="endpoint"></param>
+        /// <param name="elevation"></param>
+        /// <param name="readNode"></param>
+        /// <returns></returns>
+        public static Task<JToken> ReadValueAsync(this IEndpointServices client,
+            EndpointModel endpoint, CredentialModel elevation, string readNode) {
             var codec = new JsonVariantEncoder();
-            return client.ExecuteServiceAsync(endpoint, session => {
+            return client.ExecuteServiceAsync(endpoint, elevation, session => {
                 var nodesToRead = new ReadValueIdCollection {
                     new ReadValueId {
                         NodeId = readNode.ToNodeId(session.MessageContext),

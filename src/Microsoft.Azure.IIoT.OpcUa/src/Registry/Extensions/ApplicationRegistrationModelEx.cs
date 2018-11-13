@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -21,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="siteId"></param>
         /// <param name="supervisorId"></param>
         /// <returns></returns>
-        public static ApplicationRegistrationModel ToServiceModel(this DiscoveredEndpointsModel result,
+        public static ApplicationRegistrationModel ToServiceModel(this DiscoveredEndpointModel result,
             string hostAddress, string siteId, string supervisorId) {
             var type = result.Description.Server.ApplicationType.ToServiceType() ??
                 ApplicationType.Server;
@@ -49,6 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                         SupervisorId = supervisorId,
                         Certificate = result.Description.ServerCertificate,
                         SecurityLevel = result.Description.SecurityLevel,
+                        AuthenticationMethods = result.Description.UserIdentityTokens.ToServiceModel(),
                         Endpoint = new EndpointModel {
                             Url = result.Description.EndpointUrl,
                             SecurityMode = result.Description.SecurityMode.ToServiceType() ??

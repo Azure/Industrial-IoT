@@ -52,15 +52,19 @@ namespace Opc.Ua {
                 }
                 var systemType = TypeInfo.GetSystemType(typeInfo.BuiltInType,
                     typeInfo.ValueRank);
-                if (typeInfo.ValueRank > 1) {
-                    systemType = typeof(Matrix);
+                if (typeInfo.BuiltInType == BuiltInType.Null) {
+                    if (typeInfo.ValueRank == 1) {
+                        systemType = typeof(Variant[]);
+                    }
                 }
                 if (value is object[] boxed) {
                     var array = Array.CreateInstance(
-                        TypeInfo.GetSystemType(typeInfo.BuiltInType, -1),
-                        boxed.Length);
+                        TypeInfo.GetSystemType(typeInfo.BuiltInType, -1), boxed.Length);
                     Array.Copy(boxed, array, boxed.Length);
                     value = array;
+                }
+                if (typeInfo.ValueRank > 2) {
+                    systemType = typeof(Matrix);
                 }
                 var constructor = typeof(Variant).GetConstructor(new Type[] {
                     systemType

@@ -27,14 +27,10 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Opc.Ua;
 using Opc.Ua.Server;
 
-namespace MemoryBuffer
-{
+namespace MemoryBuffer {
     /// <summary>
     /// Provides a basic monitored item implementation which does not support queuing.
     /// </summary>

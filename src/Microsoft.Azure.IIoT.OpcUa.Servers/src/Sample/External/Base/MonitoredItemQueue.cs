@@ -29,10 +29,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace Opc.Ua.Sample
-{
+namespace Opc.Ua.Sample {
     /// <summary>
     /// Provides a queue for data changes.
     /// </summary>

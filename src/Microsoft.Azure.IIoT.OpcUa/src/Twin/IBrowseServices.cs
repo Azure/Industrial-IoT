@@ -31,5 +31,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         /// <returns></returns>
         Task<BrowseNextResultModel> NodeBrowseNextAsync(T endpoint,
             BrowseNextRequestModel request);
+
+        /// <summary>
+        /// Browse by path
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<BrowsePathResultModel> NodeBrowsePathAsync(T endpoint,
+            BrowsePathRequestModel request);
     }
 }

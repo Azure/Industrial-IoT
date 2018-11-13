@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -22,7 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="locales"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<IEnumerable<DiscoveredEndpointsModel>> FindEndpointsAsync(
+        Task<IEnumerable<DiscoveredEndpointModel>> FindEndpointsAsync(
             Uri discoveryUrl, List<string> locales, CancellationToken ct);
     }
 }

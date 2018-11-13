@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Collections.Concurrent;
 
     /// <summary>
-    /// A generic session manager object for a server.
+    /// A generic session manager services for servers.
     /// </summary>
     public class SessionServices : ISessionServices {
 
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="logger"></param>
-        public SessionServices(ApplicationConfiguration configuration,
+        public SessionServices(ISessionServicesConfig configuration,
             ILogger logger) {
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
@@ -74,8 +74,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public IList<ISession> GetSessions() {
-            return new List<ISession>(_sessions.Values);
+        public event UserIdentityHandler ValidateUser {
+            add {
+                _validateUser += value;
+            }
+            remove {
+                _validateUser -= value;
+            }
+        }
+
+        /// <inheritdoc/>
+        public IList<IServerSession> GetSessions() {
+            return new List<IServerSession>(_sessions.Values);
         }
 
         /// <inheritdoc/>
@@ -93,35 +103,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
         }
 
-        /// <summary>
-        /// Creates a new session and monitors it for timeout.
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="serverCertificate"></param>
-        /// <param name="clientNonce"></param>
-        /// <param name="clientCertificate"></param>
-        /// <param name="requestedTimeout"></param>
-        /// <param name="sessionId"></param>
-        /// <param name="authenticationToken"></param>
-        /// <param name="serverNonce"></param>
-        /// <param name="revisedTimeout"></param>
-        /// <returns></returns>
-        public ISession CreateSession(RequestContextModel context,
-            X509Certificate2 serverCertificate, byte[] clientNonce,
-            X509Certificate2 clientCertificate, double requestedTimeout,
-            out NodeId sessionId, out NodeId authenticationToken, out byte[] serverNonce,
-            out double revisedTimeout) {
+        /// <inheritdoc/>
+        public IServerSession CreateSession(RequestContextModel context,
+            EndpointDescription endpoint, X509Certificate2 serverCertificate,
+            byte[] clientNonce, X509Certificate2 clientCertificate, double requestedTimeout,
+            out NodeId sessionId, out NodeId authenticationToken,
+            out byte[] serverNonce, out double revisedTimeout) {
 
             GatewaySession session = null;
             lock (_lock) {
                 // check session count.
-                if (_configuration.ServerConfiguration.MaxSessionCount > 0 &&
-                    _sessions.Count >= _configuration.ServerConfiguration.MaxSessionCount) {
+                if (_configuration.MaxSessionCount > 0 &&
+                    _sessions.Count >= _configuration.MaxSessionCount) {
                     throw new ServiceResultException(StatusCodes.BadTooManySessions);
                 }
 
                 // check for same Nonce in another session
-                var nonceLength = (uint)_configuration.SecurityConfiguration.NonceLength;
                 if (clientNonce != null) {
                     foreach (var sessionIterator in _sessions.Values) {
                         if (Utils.CompareNonce(sessionIterator.ClientNonce, clientNonce)) {
@@ -132,22 +129,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 // Create session
                 sessionId = new NodeId(Guid.NewGuid());
-                authenticationToken = new NodeId(Utils.Nonce.CreateNonce(32));
-                serverNonce = Utils.Nonce.CreateNonce(nonceLength);
-                if (requestedTimeout > _configuration.ServerConfiguration.MaxSessionTimeout) {
-                    revisedTimeout = _configuration.ServerConfiguration.MaxSessionTimeout;
+                authenticationToken = new NodeId(Utils.Nonce.CreateNonce(kDefaultNonceLength));
+                var nonceLength = (uint)_configuration.NonceLength;
+                serverNonce = Utils.Nonce.CreateNonce(nonceLength == 0 ? kDefaultNonceLength :
+                    nonceLength);
+
+                var maxSessionTimeout = _configuration.MaxSessionTimeout.TotalMilliseconds;
+                var minSessionTimeout = _configuration.MinSessionTimeout.TotalMilliseconds;
+                if (requestedTimeout > maxSessionTimeout) {
+                    revisedTimeout = maxSessionTimeout;
                 }
-                else if (requestedTimeout < _configuration.ServerConfiguration.MinSessionTimeout) {
-                    revisedTimeout = _configuration.ServerConfiguration.MinSessionTimeout;
+                else if (requestedTimeout < minSessionTimeout) {
+                    revisedTimeout = minSessionTimeout;
                 }
                 else {
                     revisedTimeout = requestedTimeout;
                 }
 
                 // Add session to list
-                session = new GatewaySession(this, context, sessionId,
-                    clientCertificate, clientNonce, serverCertificate, serverNonce, revisedTimeout,
-                    _configuration.ServerConfiguration.MaxRequestAge);
+                session = new GatewaySession(this, context, sessionId, endpoint,
+                    clientCertificate, clientNonce, serverCertificate, serverNonce,
+                    TimeSpan.FromMilliseconds(revisedTimeout), _configuration.MaxRequestAge,
+                    _validateUser);
                 if (!_sessions.TryAdd(authenticationToken, session)) {
                     throw new ServiceResultException(StatusCodes.BadInternalError);
                 }
@@ -157,18 +160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             return session;
         }
 
-        /// <summary>
-        /// Activates an existing session
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="authenticationToken"></param>
-        /// <param name="clientSignature"></param>
-        /// <param name="clientSoftwareCertificates"></param>
-        /// <param name="userIdentityToken"></param>
-        /// <param name="userTokenSignature"></param>
-        /// <param name="localeIds"></param>
-        /// <param name="serverNonce"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public virtual bool ActivateSession(RequestContextModel context,
             NodeId authenticationToken, SignatureData clientSignature,
             List<SoftwareCertificate> clientSoftwareCertificates,
@@ -187,18 +179,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 throw new ServiceResultException(StatusCodes.BadSessionClosed);
             }
 
-            // Validate session can be activated
-            session.ValidateActivation(context, clientSignature, clientSoftwareCertificates,
-                userIdentityToken, userTokenSignature, out var identity, out var userTokenPolicy);
-
-            // Validate user identity
-            var effectiveIdentity = ValidateUserIdentity(identity, userTokenPolicy);
-
             // Activate session.
-            var nonceLength = (uint)_configuration.SecurityConfiguration.NonceLength;
+            var nonceLength = (uint)_configuration.NonceLength;
             serverNonce = Utils.Nonce.CreateNonce(nonceLength);
-            var contextChanged = session.Activate(
-                context, effectiveIdentity, serverNonce, clientSoftwareCertificates);
+            var contextChanged = session.Activate(context, clientSignature,
+                clientSoftwareCertificates, userIdentityToken, userTokenSignature,
+                serverNonce);
             if (contextChanged) {
                 _sessionActivated?.Invoke(session, null);
             }
@@ -207,10 +193,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             return contextChanged;
         }
 
-        /// <summary>
-        /// Closes the specifed session.
-        /// </summary>
-        /// <param name="sessionId"></param>
+        /// <inheritdoc/>
         public virtual void CloseSession(NodeId sessionId) {
             var authenticationToken = _sessions.FirstOrDefault(
                 s => s.Value.Id == sessionId);
@@ -222,12 +205,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
         }
 
-        /// <summary>
-        /// Validates request header and returns a request context.
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="requestType"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public virtual RequestContextModel GetContext(RequestHeader requestHeader,
             RequestType requestType) {
             if (requestHeader == null) {
@@ -237,15 +215,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             try {
                 lock (_lock) {
                     // check for create / activate session request which are handled differently.
-                    if (requestType == RequestType.CreateSession ||
-                        requestType == RequestType.ActivateSession) {
+                    if (requestType == RequestType.CreateSession) {
                         return new RequestContextModel(requestHeader, requestType);
                     }
                     // find session.
                     if (_sessions.TryGetValue(requestHeader.AuthenticationToken, out session)) {
                         // validate request header in context of this session.
                         session.ValidateRequest(requestHeader, requestType);
-                        return new RequestContextModel(requestHeader, requestType);
+                        return new RequestContextModel(requestHeader, requestType, session);
                     }
                     // No session, validate the request as a session less request
                     var identity = ValidateSessionLessRequest(requestHeader.AuthenticationToken,
@@ -331,13 +308,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Represents the session
         /// </summary>
-        class GatewaySession : ISession, IDisposable {
+        class GatewaySession : IServerSession, IDisposable {
 
             /// <inheritdoc/>
             public NodeId Id { get; }
 
             /// <inheritdoc/>
             public ServiceMessageContext MessageContext { get; }
+
+            /// <inheritdoc/>
+            public EndpointDescription Endpoint { get; private set; }
+
+            /// <inheritdoc/>
+            public List<IUserIdentity> Identities { get; private set; }
 
             /// <summary>
             /// The client nonce associated with the session.
@@ -356,21 +339,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <param name="manager"></param>
             /// <param name="context"></param>
             /// <param name="id"></param>
+            /// <param name="endpoint"></param>
             /// <param name="serverCertificate"></param>
             /// <param name="clientNonce"></param>
             /// <param name="timeout"></param>
             /// <param name="serverNonce"></param>
             /// <param name="clientCertificate"></param>
             /// <param name="maxRequestAge"></param>
-            public GatewaySession(SessionServices manager, RequestContextModel context, NodeId id,
+            /// <param name="validator"></param>
+            public GatewaySession(SessionServices manager,
+                RequestContextModel context, NodeId id, EndpointDescription endpoint,
                 X509Certificate2 clientCertificate, byte[] clientNonce,
                 X509Certificate2 serverCertificate, byte[] serverNonce,
-                double timeout, double maxRequestAge) {
-
-                _serverNonce = serverNonce;
-                _serverCertificate = serverCertificate;
-                _clientCertificate = clientCertificate;
-                _maxRequestAge = maxRequestAge;
+                TimeSpan timeout, TimeSpan maxRequestAge, UserIdentityHandler validator) {
 
                 if (context == null) {
                     throw new ArgumentNullException(nameof(context));
@@ -378,8 +359,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (context.ChannelContext == null) {
                     throw new ServiceResultException(StatusCodes.BadSecureChannelIdInvalid);
                 }
-                _endpoint = context.ChannelContext.EndpointDescription;
+                _validator = validator;
                 _secureChannelId = context.ChannelContext.SecureChannelId;
+                _serverNonce = serverNonce;
+                _serverCertificate = serverCertificate;
+                _clientCertificate = clientCertificate;
+                _maxRequestAge = maxRequestAge;
+                Endpoint = endpoint;
+                Identities = new List<IUserIdentity>();
 
                 Id = id;
                 ClientNonce = clientNonce;
@@ -388,7 +375,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _cts = new CancellationTokenSource();
                 _timeout = timeout;
                 _timeoutTimer = new Timer(o => OnTimeout(manager), null,
-                    (int)timeout, Timeout.Infinite);
+                    timeout, Timeout.InfiniteTimeSpan);
             }
 
             /// <inheritdoc/>
@@ -410,67 +397,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     // verify that session has been activated.
                     if (!_activated) {
-                        if (requestType != RequestType.CloseSession) {
+                        if (requestType != RequestType.CloseSession &&
+                            requestType != RequestType.ActivateSession) {
                             throw new ServiceResultException(StatusCodes.BadSessionNotActivated);
                         }
                     }
                     // verify timestamp.
-                    if (requestHeader.Timestamp.AddMilliseconds(_maxRequestAge) < DateTime.UtcNow) {
+                    var maxAge = _maxRequestAge.TotalMilliseconds;
+                    if (requestHeader.Timestamp.AddMilliseconds(maxAge) < DateTime.UtcNow) {
                         throw new ServiceResultException(StatusCodes.BadInvalidTimestamp);
                     }
-                    _timeoutTimer.Change((int)_timeout, Timeout.Infinite);
-                }
-            }
-
-            /// <summary>
-            /// Validate before activation
-            /// </summary>
-            /// <param name="context"></param>
-            /// <param name="clientSignature"></param>
-            /// <param name="clientSoftwareCertificates"></param>
-            /// <param name="userIdentityToken"></param>
-            /// <param name="userTokenSignature"></param>
-            /// <param name="identityToken"></param>
-            /// <param name="userTokenPolicy"></param>
-            internal void ValidateActivation(RequestContextModel context, SignatureData clientSignature,
-                List<SoftwareCertificate> clientSoftwareCertificates, ExtensionObject userIdentityToken,
-                SignatureData userTokenSignature, out UserIdentityToken identityToken,
-                out UserTokenPolicy userTokenPolicy) {
-
-                lock (_lock) {
-                    // verify that a secure channel was specified.
-                    if (context.ChannelContext == null) {
-                        throw new ServiceResultException(StatusCodes.BadSecureChannelIdInvalid);
-                    }
-
-                    // verify that the same security policy has been used.
-                    var endpoint = context.ChannelContext.EndpointDescription;
-
-                    if (endpoint.SecurityPolicyUri != _endpoint.SecurityPolicyUri ||
-                        endpoint.SecurityMode != _endpoint.SecurityMode) {
-                        throw new ServiceResultException(StatusCodes.BadSecurityPolicyRejected);
-                    }
-
-                    // verify the client signature.
-                    if (_clientCertificate != null) {
-                        VerifyClientSignature(clientSignature);
-                    }
-
-                    if (!_activated) {
-                        // must active the session on the channel that was used to create it.
-                        if (_secureChannelId != context.ChannelContext.SecureChannelId) {
-                            throw new ServiceResultException(StatusCodes.BadSecureChannelIdInvalid);
-                        }
-                    }
-                    else {
-                        // cannot change the certificates after activation.
-                        if (clientSoftwareCertificates != null && clientSoftwareCertificates.Count > 0) {
-                            throw new ServiceResultException(StatusCodes.BadInvalidArgument);
-                        }
-                    }
-                    // validate the user identity token.
-                    identityToken = ValidateUserIdentityToken(userIdentityToken, userTokenSignature,
-                        out userTokenPolicy);
+                    _timeoutTimer.Change(_timeout, Timeout.InfiniteTimeSpan);
                 }
             }
 
@@ -478,19 +415,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// Activates the session and binds it to the current secure channel.
             /// </summary>
             /// <param name="context"></param>
-            /// <param name="effectiveIdentity"></param>
-            /// <param name="serverNonce"></param>
+            /// <param name="clientSignature"></param>
             /// <param name="clientSoftwareCertificates"></param>
+            /// <param name="userIdentityToken"></param>
+            /// <param name="userTokenSignature"></param>
+            /// <param name="serverNonce"></param>
             /// <returns></returns>
-            internal bool Activate(RequestContextModel context, IUserIdentity effectiveIdentity,
-                byte[] serverNonce, List<SoftwareCertificate> clientSoftwareCertificates) {
+            internal bool Activate(RequestContextModel context, SignatureData clientSignature,
+                List<SoftwareCertificate> clientSoftwareCertificates, ExtensionObject userIdentityToken,
+                SignatureData userTokenSignature, byte[] serverNonce) {
+
                 lock (_lock) {
-                    // update user identity.
-                    var changed = _effectiveIdentity == null && effectiveIdentity != null;
-                    if (_effectiveIdentity != null) {
-                        changed = !_effectiveIdentity.Equals(effectiveIdentity);
-                    }
-                    _effectiveIdentity = effectiveIdentity;
+                    var changed = ValidateActivation(context, clientSignature, clientSoftwareCertificates,
+                        userIdentityToken, userTokenSignature);
                     if (!_activated) {
                         _activated = true;
                     }
@@ -511,9 +448,56 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             signedSoftwareCertificates.Add(item);
                         }
                     }
-                    _timeoutTimer.Change((int)_timeout, Timeout.Infinite);
+                    _timeoutTimer.Change(_timeout, Timeout.InfiniteTimeSpan);
                     return changed;
                 }
+            }
+
+            /// <summary>
+            /// Validate before activation
+            /// </summary>
+            /// <param name="context"></param>
+            /// <param name="clientSignature"></param>
+            /// <param name="clientSoftwareCertificates"></param>
+            /// <param name="userIdentityToken"></param>
+            /// <param name="userTokenSignature"></param>
+            /// <returns></returns>
+            private bool ValidateActivation(RequestContextModel context, SignatureData clientSignature,
+                List<SoftwareCertificate> clientSoftwareCertificates, ExtensionObject userIdentityToken,
+                SignatureData userTokenSignature) {
+
+                // verify that a secure channel was specified.
+                if (context.ChannelContext == null) {
+                    throw new ServiceResultException(StatusCodes.BadSecureChannelIdInvalid);
+                }
+
+                // verify that the same security policy has been used.
+                var endpoint = context.ChannelContext.EndpointDescription;
+
+                if (endpoint.SecurityPolicyUri != Endpoint.SecurityPolicyUri ||
+                    endpoint.SecurityMode != Endpoint.SecurityMode) {
+                    throw new ServiceResultException(StatusCodes.BadSecurityPolicyRejected);
+                }
+
+                // verify the client signature.
+                if (_clientCertificate != null) {
+                    VerifyClientSignature(clientSignature);
+                }
+
+                if (!_activated) {
+                    // must active the session on the channel that was used to create it.
+                    if (_secureChannelId != context.ChannelContext.SecureChannelId) {
+                        throw new ServiceResultException(StatusCodes.BadSecureChannelIdInvalid);
+                    }
+                }
+                else {
+                    // cannot change the certificates after activation.
+                    if (clientSoftwareCertificates != null && clientSoftwareCertificates.Count > 0) {
+                        throw new ServiceResultException(StatusCodes.BadInvalidArgument);
+                    }
+                }
+                // validate the user identity token.
+                return ValidateUserIdentityToken(userIdentityToken, userTokenSignature);
             }
 
             /// <summary>
@@ -521,29 +505,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// </summary>
             /// <param name="identityToken"></param>
             /// <param name="userTokenSignature"></param>
-            /// <param name="policy"></param>
             /// <returns></returns>
-            private UserIdentityToken ValidateUserIdentityToken(ExtensionObject identityToken,
-                SignatureData userTokenSignature, out UserTokenPolicy policy) {
+            private bool ValidateUserIdentityToken(ExtensionObject identityToken,
+                SignatureData userTokenSignature) {
 
-                if (identityToken == null || identityToken.Body == null) {
-                    if (!_activated) {
-                        return ValidateAnonymousAccess(out policy);
-                    }
-                    // not changing the token if already activated.
-                    policy = null;
-                    return null;
-                }
-
-                // Decode identity token from binary if needed.
                 UserIdentityToken token = null;
-                if (!typeof(UserIdentityToken).IsInstanceOfType(identityToken.Body)) {
+                UserTokenPolicy policy;
+                if (identityToken == null || identityToken.Body == null) {
+                    if (_activated) {
+                        // not changing the token if already activated.
+                        return false;
+                    }
+                    policy = Endpoint.UserIdentityTokens?
+                        .FirstOrDefault(t => t.TokenType == UserTokenType.Anonymous);
+                    if (policy == null) {
+                        throw ServiceResultException.Create(StatusCodes.BadUserAccessDenied,
+                            "Anonymous user token policy not supported.");
+                    }
+                    // create an anonymous token to use for subsequent validation.
+                    token = new AnonymousIdentityToken {
+                        PolicyId = policy.PolicyId
+                    };
+                }
+                else if (!typeof(UserIdentityToken).IsInstanceOfType(identityToken.Body)) {
+                    // Decode identity token from binary.
                     token = DecodeUserIdentityToken(identityToken, out policy);
                 }
                 else {
                     token = (UserIdentityToken)identityToken.Body;
                     // find the user token policy.
-                    policy = _endpoint.FindUserTokenPolicy(token.PolicyId);
+                    policy = Endpoint.FindUserTokenPolicy(token.PolicyId);
                     if (policy == null) {
                         throw ServiceResultException.Create(StatusCodes.BadIdentityTokenInvalid,
                             "User token policy not supported.");
@@ -553,14 +544,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // determine the security policy uri.
                 var securityPolicyUri = policy.SecurityPolicyUri;
                 if (string.IsNullOrEmpty(securityPolicyUri)) {
-                    securityPolicyUri = _endpoint.SecurityPolicyUri;
+                    securityPolicyUri = Endpoint.SecurityPolicyUri;
                 }
 
-                if (ServerBase.RequireEncryption(_endpoint)) {
+                if (securityPolicyUri != SecurityPolicies.None) {
                     // decrypt the user identity token.
                     if (_serverCertificate == null) {
-                        _serverCertificate = CertificateFactory.Create(_endpoint.ServerCertificate,
-                            true);
+                        _serverCertificate = CertificateFactory.Create(
+                            Endpoint.ServerCertificate, true);
                         // check for valid certificate.
                         if (_serverCertificate == null) {
                             throw ServiceResultException.Create(StatusCodes.BadConfigurationError,
@@ -574,36 +565,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         throw;
                     }
                     catch (Exception e) {
-                        throw ServiceResultException.Create(StatusCodes.BadIdentityTokenInvalid, e,
-                            "Could not decrypt identity token.");
+                        throw ServiceResultException.Create(StatusCodes.BadIdentityTokenInvalid,
+                            e, "Could not decrypt identity token.");
                     }
-                    // verify the signature.
-                    if (securityPolicyUri != SecurityPolicies.None) {
-                        VerifyUserTokenSignature(userTokenSignature, token, securityPolicyUri);
-                    }
+                    // ... and verify the signature if any.
+                    VerifyUserTokenSignature(userTokenSignature, token, securityPolicyUri);
                 }
-                // validate user identity token.
-                return token;
-            }
 
-            /// <summary>
-            /// Check whether anonymous access is allowed and return a token that
-            /// represents it in further validation.
-            /// </summary>
-            /// <param name="policy"></param>
-            /// <returns></returns>
-            private AnonymousIdentityToken ValidateAnonymousAccess(out UserTokenPolicy policy) {
-                // check if an anonymous login is permitted.
-                policy = _endpoint.UserIdentityTokens?
-                    .FirstOrDefault(t => t.TokenType == UserTokenType.Anonymous);
-                if (policy != null) {
-                    // create an anonymous token to use for subsequent validation.
-                    return new AnonymousIdentityToken {
-                        PolicyId = policy.PolicyId
-                    };
+                // We have a valid token - validate it through the handler chain.
+                var arg = new UserIdentityHandlerArgs {
+                    CurrentIdentities = Identities,
+                    Token = token
+                };
+                _validator?.Invoke(this, arg);
+                if (arg.ValidationException != null) {
+                    throw arg.ValidationException;
                 }
-                throw ServiceResultException.Create(StatusCodes.BadUserAccessDenied,
-                    "Anonymous user token policy not supported.");
+                if (arg.NewIdentities != null) {
+                    Identities = arg.NewIdentities;
+                    return true;
+                }
+                return false; // No new identities
             }
 
             /// <summary>
@@ -624,7 +606,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     throw ServiceResultException.Create(StatusCodes.BadUserAccessDenied,
                         "Invalid user identity token provided.");
                 }
-                policy = _endpoint.FindUserTokenPolicy(token.PolicyId);
+                policy = Endpoint.FindUserTokenPolicy(token.PolicyId);
                 if (policy == null) {
                     throw ServiceResultException.Create(StatusCodes.BadUserAccessDenied,
                         "User token policy not supported.", "ValidateUserIdentityToken");
@@ -659,13 +641,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private void VerifyClientSignature(SignatureData clientSignature) {
                 var dataToSign = Utils.Append(_serverCertificate.RawData, _serverNonce);
                 // Verify with leaf certificate
-                if (SecurityPolicies.Verify(_clientCertificate, _endpoint.SecurityPolicyUri,
+                if (SecurityPolicies.Verify(_clientCertificate, Endpoint.SecurityPolicyUri,
                     dataToSign, clientSignature)) {
                     return;
                 }
                 // verify entire certificate chain in endpoint.
                 var serverCertificateChain = Utils.ParseCertificateChainBlob(
-                    _endpoint.ServerCertificate);
+                    Endpoint.ServerCertificate);
                 if (serverCertificateChain.Count <= 1) {
                     throw new ServiceResultException(StatusCodes.BadApplicationSignatureInvalid);
                 }
@@ -676,7 +658,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var serverCertificateChainData = serverCertificateChainList.ToArray();
                 dataToSign = Utils.Append(serverCertificateChainData, _serverNonce);
                 if (!SecurityPolicies.Verify(_clientCertificate,
-                    _endpoint.SecurityPolicyUri, dataToSign, clientSignature)) {
+                    Endpoint.SecurityPolicyUri, dataToSign, clientSignature)) {
                     throw new ServiceResultException(StatusCodes.BadApplicationSignatureInvalid);
                 }
             }
@@ -697,7 +679,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 // Validate the signature with complete chain
                 var serverCertificateChain = Utils.ParseCertificateChainBlob(
-                    _endpoint.ServerCertificate);
+                    Endpoint.ServerCertificate);
                 if (serverCertificateChain.Count <= 1) {
                     throw new ServiceResultException(StatusCodes.BadUserSignatureInvalid,
                         "Invalid user signature!");
@@ -725,18 +707,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             private readonly object _lock = new object();
-            private readonly double _maxRequestAge;
-            private readonly double _timeout;
+            private readonly TimeSpan _maxRequestAge;
+            private readonly TimeSpan _timeout;
             private readonly X509Certificate2 _clientCertificate;
             private readonly Timer _timeoutTimer;
             private readonly CancellationTokenSource _cts;
-            private IUserIdentity _effectiveIdentity;
+            private readonly UserIdentityHandler _validator;
             private bool _activated;
             private byte[] _serverNonce;
             private string _secureChannelId;
-            private EndpointDescription _endpoint;
             private X509Certificate2 _serverCertificate;
         }
+
+        private const int kDefaultNonceLength = 32;
 
         private readonly object _eventLock = new object();
         private readonly object _lock = new object();
@@ -744,11 +727,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             new ConcurrentDictionary<NodeId, GatewaySession>();
         private readonly ManualResetEvent _shutdownEvent =
             new ManualResetEvent(true);
-        private readonly ApplicationConfiguration _configuration;
+        private readonly ISessionServicesConfig _configuration;
         private readonly ILogger _logger;
         private event EventHandler _sessionCreated;
         private event EventHandler _sessionActivated;
         private event EventHandler _sessionTimeout;
         private event EventHandler _sessionClosing;
+        private event UserIdentityHandler _validateUser;
     }
 }

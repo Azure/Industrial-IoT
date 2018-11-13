@@ -4,56 +4,80 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
-    using Microsoft.Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Newtonsoft.Json;
     using System;
     using System.Threading.Tasks;
     using System.Diagnostics;
+    using System.Linq;
 
     /// <summary>
     /// Represents the supervisor api surface for browse and node operations.
     /// </summary>
-    public sealed class SupervisorClient :
-        IBrowseServices<TwinRegistrationModel>, INodeServices<TwinRegistrationModel> {
+    public sealed class SupervisorClient : IBrowseServices<TwinRegistrationModel>,
+        INodeServices<TwinRegistrationModel>, IPublishServices<TwinRegistrationModel> {
 
         /// <summary>
         /// Create service
         /// </summary>
-        /// <param name="twin"></param>
+        /// <param name="client"></param>
         /// <param name="logger"></param>
-        public SupervisorClient(IIoTHubTwinServices twin, ILogger logger) {
-            _twin = twin ?? throw new ArgumentNullException(nameof(twin));
+        public SupervisorClient(IMethodClient client, ILogger logger) {
+            _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Browse a tree node, returns node properties and all child nodes
-        /// if not excluded.
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <param name="request">browse node and filters</param>
-        /// <returns></returns>
-        public async Task<BrowseResultModel> NodeBrowseFirstAsync(
-            TwinRegistrationModel registration, BrowseRequestModel request) {
+        /// <inheritdoc/>
+        public async Task<PublishStartResultModel> NodePublishStartAsync(
+            TwinRegistrationModel registration, PublishStartRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
+            if (request.Node == null) {
+                throw new ArgumentNullException(nameof(request.Node));
+            }
+            if (string.IsNullOrEmpty(request.Node.NodeId)) {
+                throw new ArgumentNullException(nameof(request.Node.NodeId));
+            }
+            var result = await CallServiceOnSupervisor<PublishStartRequestModel, PublishStartResultModel>(
+                "PublishStart_V1", registration, request);
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public async Task<PublishStopResultModel> NodePublishStopAsync(
+            TwinRegistrationModel registration, PublishStopRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (string.IsNullOrEmpty(request.NodeId)) {
+                throw new ArgumentNullException(nameof(request.NodeId));
+            }
+            var result = await CallServiceOnSupervisor<PublishStopRequestModel, PublishStopResultModel>(
+                "PublishStop_V1", registration, request);
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public async Task<PublishedNodeListResultModel> NodePublishListAsync(
+            TwinRegistrationModel registration, PublishedNodeListRequestModel request) {
+            var result = await CallServiceOnSupervisor<PublishedNodeListRequestModel, PublishedNodeListResultModel>(
+                "PublishList_V1", registration, request);
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public async Task<BrowseResultModel> NodeBrowseFirstAsync(
+            TwinRegistrationModel registration, BrowseRequestModel request) {
             return await CallServiceOnSupervisor<BrowseRequestModel, BrowseResultModel>(
                 "Browse_V1", registration, request);
         }
 
-        /// <summary>
-        /// Browse remainder of nodes from browser request using continuation
-        /// token.
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<BrowseNextResultModel> NodeBrowseNextAsync(
             TwinRegistrationModel registration, BrowseNextRequestModel request) {
             if (request == null) {
@@ -66,12 +90,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
                 "BrowseNext_V1", registration, request);
         }
 
-        /// <summary>
-        /// Read a variable value
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <param name="request">Read nodes</param>
-        /// <returns></returns>
+        /// <inheritdoc/>
+        public async Task<BrowsePathResultModel> NodeBrowsePathAsync(
+            TwinRegistrationModel registration, BrowsePathRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.PathElements == null || request.PathElements.Length == 0) {
+                throw new ArgumentNullException(nameof(request.PathElements));
+            }
+            return await CallServiceOnSupervisor<BrowsePathRequestModel, BrowsePathResultModel>(
+                "BrowsePath_V1", registration, request);
+        }
+
+        /// <inheritdoc/>
         public async Task<ValueReadResultModel> NodeValueReadAsync(
             TwinRegistrationModel registration, ValueReadRequestModel request) {
             if (request == null) {
@@ -84,12 +116,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
                 "ValueRead_V1", registration, request);
         }
 
-        /// <summary>
-        /// Write variable value
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<ValueWriteResultModel> NodeValueWriteAsync(
             TwinRegistrationModel registration, ValueWriteRequestModel request) {
             if (request == null) {
@@ -105,12 +132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
                 "ValueWrite_V1", registration, request);
         }
 
-        /// <summary>
-        /// Get method meta data
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<MethodMetadataResultModel> NodeMethodGetMetadataAsync(
             TwinRegistrationModel registration, MethodMetadataRequestModel request) {
             if (request == null) {
@@ -123,12 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
                 "MethodMetadata_V1", registration, request);
         }
 
-        /// <summary>
-        /// Call method
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<MethodCallResultModel> NodeMethodCallAsync(
             TwinRegistrationModel registration, MethodCallRequestModel request) {
             if (request == null) {
@@ -140,6 +157,78 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             return await CallServiceOnSupervisor<MethodCallRequestModel, MethodCallResultModel>(
                 "MethodCall_V1", registration, request);
         }
+
+        /// <inheritdoc/>
+        public async Task<BatchReadResultModel> NodeBatchReadAsync(
+            TwinRegistrationModel registration, BatchReadRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.Attributes == null || request.Attributes.Count == 0) {
+                throw new ArgumentNullException(nameof(request.Attributes));
+            }
+            if (request.Attributes.Any(r => string.IsNullOrEmpty(r.NodeId))) {
+                throw new ArgumentException(nameof(request.Attributes));
+            }
+            return await CallServiceOnSupervisor<BatchReadRequestModel, BatchReadResultModel>(
+                "BatchRead_V1", registration, request);
+        }
+
+        /// <inheritdoc/>
+        public async Task<BatchWriteResultModel> NodeBatchWriteAsync(
+            TwinRegistrationModel registration, BatchWriteRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.Attributes == null || request.Attributes.Count == 0) {
+                throw new ArgumentNullException(nameof(request.Attributes));
+            }
+            if (request.Attributes.Any(r => string.IsNullOrEmpty(r.NodeId))) {
+                throw new ArgumentException(nameof(request.Attributes));
+            }
+            return await CallServiceOnSupervisor<BatchWriteRequestModel, BatchWriteResultModel>(
+                "BatchWrite_V1", registration, request);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResultModel> NodeHistoryReadAsync(
+            TwinRegistrationModel registration, HistoryReadRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (string.IsNullOrEmpty(request.NodeId)) {
+                throw new ArgumentNullException(nameof(request.NodeId));
+            }
+            return await CallServiceOnSupervisor<HistoryReadRequestModel, HistoryReadResultModel>(
+                "HistoryRead_V1", registration, request);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadNextResultModel> NodeHistoryReadNextAsync(
+            TwinRegistrationModel registration, HistoryReadNextRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (string.IsNullOrEmpty(request.ContinuationToken)) {
+                throw new ArgumentNullException(nameof(request.ContinuationToken));
+            }
+            return await CallServiceOnSupervisor<HistoryReadNextRequestModel, HistoryReadNextResultModel>(
+                "HistoryRead_V1", registration, request);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResultModel> NodeHistoryUpdateAsync(
+            TwinRegistrationModel registration, HistoryUpdateRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.Request == null) {
+                throw new ArgumentNullException(nameof(request.Request));
+            }
+            return await CallServiceOnSupervisor<HistoryUpdateRequestModel, HistoryUpdateResultModel>(
+                "HistoryUpdate_V1", registration, request);
+        }
+
 
         /// <summary>
         /// helper to invoke service
@@ -164,23 +253,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             var sw = Stopwatch.StartNew();
             var deviceId = SupervisorModelEx.ParseDeviceId(registration.SupervisorId,
                 out var moduleId);
-            var result = await _twin.CallMethodAsync(deviceId, moduleId,
-                new MethodParameterModel {
-                    Name = service,
-                    JsonPayload = JsonConvertEx.SerializeObject(new {
-                        endpoint = registration.Endpoint,
-                        request
-                    })
-                });
+            var result = await _client.CallMethodAsync(deviceId, moduleId, service,
+                JsonConvertEx.SerializeObject(new {
+                    endpoint = registration.Endpoint,
+                    request
+                }));
             _logger.Debug($"Calling supervisor service '{service}' on {deviceId}/{moduleId} " +
-                $"took {sw.ElapsedMilliseconds} ms and returned {result.Status}!");
-            if (result.Status != 200) {
-                throw new MethodCallStatusException(result.Status, result.JsonPayload);
-            }
-            return JsonConvertEx.DeserializeObject<R>(result.JsonPayload);
+                $"took {sw.ElapsedMilliseconds} ms and returned {result}!");
+            return JsonConvertEx.DeserializeObject<R>(result);
         }
 
-        private readonly IIoTHubTwinServices _twin;
+        private readonly IMethodClient _client;
         private readonly ILogger _logger;
     }
 }

@@ -5,9 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Exceptions;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Newtonsoft.Json;
     using System;
@@ -22,10 +21,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         /// <summary>
         /// Create service
         /// </summary>
-        /// <param name="twin"></param>
+        /// <param name="client"></param>
         /// <param name="logger"></param>
-        public ActivationClient(IIoTHubTwinServices twin, ILogger logger) {
-            _twin = twin ?? throw new ArgumentNullException(nameof(twin));
+        public ActivationClient(IMethodClient client, ILogger logger) {
+            _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -80,19 +79,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             var sw = Stopwatch.StartNew();
             var deviceId = SupervisorModelEx.ParseDeviceId(registration.SupervisorId,
                 out var moduleId);
-            var result = await _twin.CallMethodAsync(deviceId, moduleId,
-                new MethodParameterModel {
-                    Name = service,
-                    JsonPayload = JsonConvertEx.SerializeObject(payload)
-                });
-            _logger.Debug($"Calling supervisor service '{service}' on {deviceId}/{moduleId} " +
-                $"took {sw.ElapsedMilliseconds} ms and returned {result.Status}!");
-            if (result.Status != 200) {
-                throw new MethodCallStatusException(result.Status, result.JsonPayload);
-            }
+            var result = await _client.CallMethodAsync(deviceId, moduleId, service,
+                JsonConvertEx.SerializeObject(payload) );
+            _logger.Debug($"Calling supervisor service '{service}' on " +
+                $"{deviceId}/{moduleId} took {sw.ElapsedMilliseconds} ms.");
         }
 
-        private readonly IIoTHubTwinServices _twin;
+        private readonly IMethodClient _client;
         private readonly ILogger _logger;
     }
 }

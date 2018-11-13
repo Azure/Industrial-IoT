@@ -7,17 +7,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.Devices.Client.Exceptions;
     using Autofac;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.Devices.Client.Exceptions;
 
     /// <summary>
     /// Twin supervisor service

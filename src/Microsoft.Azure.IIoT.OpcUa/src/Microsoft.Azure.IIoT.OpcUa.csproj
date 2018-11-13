@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7</LangVersion>
@@ -15,9 +15,6 @@
     <PackageReference Include="System.Net.WebSockets.Client" Version="4.3.2" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.5.3" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Protocol\Stack\Transport\Fork\" />
-  </ItemGroup>
   <Choose>
     <When Condition="Exists('..\..\..\..\opc-stack')">
       <ItemGroup>
@@ -27,8 +24,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.354.19-preview" />
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.354.19-preview" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.354.23" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -40,7 +36,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Core" Version="1.0.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Core" Version="1.0.*" />
       </ItemGroup>
     </Otherwise>
   </Choose>

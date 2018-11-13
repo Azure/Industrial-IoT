@@ -40,10 +40,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public bool? HasChildren { get; set; }
 
         /// <summary>
-        /// Node access restrictions if any.
-        /// (default: none)
+        /// Browse name
         /// </summary>
-        public uint? AccessRestrictions { get; set; }
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Node access restrictions if any.
+        /// (default: null)
+        /// </summary>
+        public NodeAccessRestrictions? AccessRestrictions { get; set; }
 
         /// <summary>
         /// Default write mask for the node
@@ -91,9 +96,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public bool? UserExecutable { get; set; }
 
         /// <summary>
-        /// Data type definition in case node is a
-        /// data type node and definition is available,
-        /// otherwise null.
+        /// Data type definition as extension object
+        /// in case node is a data type node and definition
+        /// is available, otherwise null.
         /// </summary>
         public JToken DataTypeDefinition { get; set; }
 

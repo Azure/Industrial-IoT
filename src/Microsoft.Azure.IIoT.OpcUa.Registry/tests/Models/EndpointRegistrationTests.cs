@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public void TestEqualIsNotEqualWithDeviceModel() {
             var r1 = CreateRegistration();
             var m = EndpointRegistration.Patch(null, r1);
-            m.Properties.Desired["Token"] = "password";
+            m.Properties.Desired["Credential"] = "password";
             var r2 = BaseRegistration.ToRegistration(m);
 
             Assert.NotEqual(r1, r2);
@@ -130,6 +130,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var r1 = fix.Build<EndpointRegistration>()
                 .With(x => x.Certificate, cert.EncodeAsDictionary())
                 .With(x => x.Thumbprint, cert.ToSha1Hash())
+                .With(x => x.ClientCertificate, cert.EncodeAsDictionary())
+                .With(x => x.AuthenticationMethods,
+                    fix.CreateMany<AuthenticationMethodModel>()
+                        .Select(JToken.FromObject).ToList().EncodeAsDictionary())
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)
                 .Create();

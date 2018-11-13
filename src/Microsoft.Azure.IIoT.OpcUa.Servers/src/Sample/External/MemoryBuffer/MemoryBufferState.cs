@@ -29,16 +29,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Xml;
-using System.IO;
-using System.Reflection;
 using System.Threading;
 using Opc.Ua;
 using Opc.Ua.Server;
 using System.Diagnostics;
 
-namespace MemoryBuffer
-{    
+namespace MemoryBuffer {
     public partial class MemoryBufferState
     {
         #region Constructors

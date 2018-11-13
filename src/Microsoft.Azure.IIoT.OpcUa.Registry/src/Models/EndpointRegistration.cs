@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Twin (endpoint) registration persisted and comparable
@@ -27,9 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Device id is twin id
         /// </summary>
-        public override string DeviceId {
-            get => base.DeviceId ?? Id;
-        }
+        public override string DeviceId => base.DeviceId ?? Id;
 
         #region Twin Tags
 
@@ -49,6 +48,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         public bool? Activated { get; set; }
 
+        /// <summary>
+        /// The credential policies supported by the registered endpoint
+        /// </summary>
+        public Dictionary<string, JToken> AuthenticationMethods { get; set; }
+
         #endregion Twin Tags
 
         #region Twin Properties
@@ -59,19 +63,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string EndpointUrl { get; set; }
 
         /// <summary>
-        /// User name to use
+        /// Default user authentication credential type
         /// </summary>
-        public string User { get; set; }
+        public CredentialType? CredentialType { get; set; }
 
         /// <summary>
-        /// User token to pass to server
+        /// Default user authentication credential to use on endpoint
         /// </summary>
-        public JToken Token { get; set; }
-
-        /// <summary>
-        /// Type of token
-        /// </summary>
-        public TokenType? TokenType { get; set; }
+        public JToken Credential { get; set; }
 
         /// <summary>
         /// Endpoint security policy to use.
@@ -84,9 +83,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public SecurityMode? SecurityMode { get; set; }
 
         /// <summary>
-        /// The certificate to validate endpoints with
+        /// The thumbprint to validate endpoints against
         /// </summary>
-        public Dictionary<string, string> Validation { get; set; }
+        public Dictionary<string, string> ServerThumbprint { get; set; }
+
+        /// <summary>
+        /// Use this certificate as client certificate
+        /// </summary>
+        public Dictionary<string, string> ClientCertificate { get; set; }
 
         #endregion Twin Properties
 
@@ -94,7 +98,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Device id is the twin/endpoint id
         /// </summary>
         public string Id => TwinInfoModelEx.CreateTwinId(
-            ApplicationId, EndpointUrl, User, SecurityMode, SecurityPolicy);
+            ApplicationId, EndpointUrl, SecurityMode, SecurityPolicy);
 
         /// <summary>
         /// Create patch twin model to upload
@@ -129,11 +133,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 twin.Tags.Add(nameof(Activated), update?.Activated);
             }
 
-            // Endpoint Property
-
-            if (update.User != existing?.User) {
-                twin.Properties.Desired.Add(nameof(User), update?.User);
+            var methodEqual = update?.AuthenticationMethods.DecodeAsList().SetEqualsSafe(
+                existing?.AuthenticationMethods?.DecodeAsList(), JToken.DeepEquals);
+            if (!(methodEqual ?? true)) {
+                twin.Tags.Add(nameof(AuthenticationMethods), update?.AuthenticationMethods == null ?
+                    null : JToken.FromObject(update.AuthenticationMethods,
+                        new JsonSerializer { NullValueHandling = NullValueHandling.Ignore }));
             }
+
+            // Endpoint Property
 
             if (update?.SecurityMode != null &&
                 update.SecurityMode != existing?.SecurityMode) {
@@ -147,20 +155,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     update.SecurityPolicy);
             }
 
-            if (update?.TokenType != existing?.TokenType) {
-                twin.Properties.Desired.Add(nameof(TokenType), update?.TokenType == null ?
-                    null : JToken.FromObject(update?.TokenType));
+            if (update?.CredentialType != existing?.CredentialType) {
+                twin.Properties.Desired.Add(nameof(CredentialType), update?.CredentialType == null ?
+                    null : JToken.FromObject(update?.CredentialType));
             }
 
-            if (!JToken.DeepEquals(update?.Token, existing?.Token)) {
-                twin.Properties.Desired.Add(nameof(Token), update?.Token);
+            if (!JToken.DeepEquals(update?.Credential, existing?.Credential)) {
+                twin.Properties.Desired.Add(nameof(Credential), update?.Credential);
             }
 
-            var certUpdate = update?.Validation.DecodeAsByteArray().SequenceEqualsSafe(
-                existing?.Validation.DecodeAsByteArray());
-            if (!(certUpdate ?? true)) {
-                twin.Properties.Desired.Add(nameof(Validation), update?.Validation == null ?
-                    null : JToken.FromObject(update.Validation));
+            var thumbEqual = update?.ServerThumbprint.DecodeAsByteArray().SequenceEqualsSafe(
+                existing?.ServerThumbprint.DecodeAsByteArray());
+            if (!(thumbEqual ?? true)) {
+                twin.Properties.Desired.Add(nameof(ServerThumbprint), update?.ServerThumbprint == null ?
+                    null : JToken.FromObject(update.ServerThumbprint));
+            }
+
+            var certEqual = update?.ClientCertificate.DecodeAsByteArray().SequenceEqualsSafe(
+                existing?.ClientCertificate.DecodeAsByteArray());
+            if (update?.ClientCertificate != null && !(certEqual ?? true)) {
+                twin.Properties.Desired.Add(nameof(ClientCertificate), update?.ClientCertificate == null ?
+                    null : JToken.FromObject(update.ClientCertificate));
             }
 
             // Recalculate identity
@@ -189,7 +204,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
 
             twin.Id = TwinInfoModelEx.CreateTwinId(
-                applicationId, endpointUrl, update?.User, securityMode, securityPolicy);
+                applicationId, endpointUrl, securityMode, securityPolicy);
 
             if (existing?.DeviceId != twin.Id) {
                 twin.Etag = null; // Force creation of new identity
@@ -236,6 +251,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     tags.GetValueOrDefault<string>(nameof(ApplicationId), null),
                 SecurityLevel =
                     tags.GetValueOrDefault<int>(nameof(SecurityLevel), null),
+                AuthenticationMethods =
+                    tags.GetValueOrDefault<Dictionary<string, JToken>>(nameof(AuthenticationMethods), null),
 
                 // Properties
 
@@ -247,18 +264,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     properties.GetValueOrDefault(kSiteIdProp, tags.GetValueOrDefault<string>(nameof(SiteId), null)),
                 EndpointUrl =
                     properties.GetValueOrDefault<string>(nameof(EndpointUrl), null),
-                User =
-                    properties.GetValueOrDefault<string>(nameof(User), null),
-                Token =
-                    properties.GetValueOrDefault<JToken>(nameof(Token), null),
-                TokenType =
-                    properties.GetValueOrDefault<TokenType>(nameof(TokenType), null),
+                Credential =
+                    properties.GetValueOrDefault<JToken>(nameof(Credential), null),
+                CredentialType =
+                    properties.GetValueOrDefault<CredentialType>(nameof(CredentialType), null),
                 SecurityMode =
                     properties.GetValueOrDefault<SecurityMode>(nameof(SecurityMode), null),
                 SecurityPolicy =
                     properties.GetValueOrDefault<string>(nameof(SecurityPolicy), null),
-                Validation =
-                    properties.GetValueOrDefault<Dictionary<string, string>>(nameof(Validation), null)
+                ClientCertificate =
+                    properties.GetValueOrDefault<Dictionary<string, string>>(nameof(ClientCertificate), null),
+                ServerThumbprint =
+                    properties.GetValueOrDefault<Dictionary<string, string>>(nameof(ServerThumbprint), null)
             };
             return registration;
         }
@@ -311,23 +328,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     SupervisorId = string.IsNullOrEmpty(SupervisorId) ?
                         null : SupervisorId,
                     Certificate = Certificate.DecodeAsByteArray(),
+                    AuthenticationMethods = AuthenticationMethods?.DecodeAsList(j =>
+                        j.ToObject<AuthenticationMethodModel>()),
                     SecurityLevel = SecurityLevel,
                     Endpoint = new EndpointModel {
                         Url = string.IsNullOrEmpty(EndpointUrl) ?
                             EndpointUrlLC : EndpointUrl,
-                        Authentication = TokenType == null ? null :
-                            new AuthenticationModel {
-                                User = string.IsNullOrEmpty(User) ?
-                                    null : User,
-                                Token = Token,
-                                TokenType = TokenType == Models.TokenType.None ?
-                                    null : TokenType
+                        User = CredentialType == null ? null :
+                            new CredentialModel {
+                                Value = Credential,
+                                Type = CredentialType == Models.CredentialType.None ?
+                                    null : CredentialType
                         },
                         SecurityMode = SecurityMode == Models.SecurityMode.Best ?
                             null : SecurityMode,
                         SecurityPolicy = string.IsNullOrEmpty(SecurityPolicy) ?
                             null : SecurityPolicy,
-                        Validation = Validation.DecodeAsByteArray()
+                        ClientCertificate = ClientCertificate.DecodeAsByteArray(),
+                        ServerThumbprint = ServerThumbprint.DecodeAsByteArray()
                     }
                 },
                 Connected = Connected ? true : (bool?)null,
@@ -374,14 +392,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Thumbprint = model.Registration?.Certificate?.ToSha1Hash(),
                 SecurityLevel = model.Registration?.SecurityLevel,
                 EndpointUrl = model.Registration?.Endpoint.Url,
-                User = model.Registration?.Endpoint.Authentication?.User,
-                Token = model.Registration?.Endpoint.Authentication?.Token,
-                TokenType = model.Registration?.Endpoint.Authentication?.TokenType ??
-                    Models.TokenType.None,
+                AuthenticationMethods = model.Registration?.AuthenticationMethods?
+                    .EncodeAsDictionary(JToken.FromObject),
+                Credential = model.Registration?.Endpoint.User?.Value,
+                CredentialType = model.Registration?.Endpoint.User?.Type ??
+                    Models.CredentialType.None,
                 SecurityMode = model.Registration?.Endpoint.SecurityMode ??
                     Models.SecurityMode.Best,
                 SecurityPolicy = model.Registration?.Endpoint.SecurityPolicy,
-                Validation = model.Registration?.Endpoint?.Validation.EncodeAsDictionary(),
+                ServerThumbprint = model.Registration?.Endpoint?
+                    .ServerThumbprint.EncodeAsDictionary(),
+                ClientCertificate = model.Registration?.Endpoint?
+                    .ClientCertificate.EncodeAsDictionary(),
                 Activated = model.Activated,
                 Connected = model.Connected ?? false
             };
@@ -396,13 +418,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public bool Matches(EndpointModel endpoint) {
             return endpoint != null &&
                 EndpointUrl == endpoint.Url &&
-                User == endpoint.Authentication?.User &&
-                TokenType == (endpoint.Authentication?.TokenType ?? Models.TokenType.None) &&
-                JToken.DeepEquals(Token, endpoint.Authentication?.Token) &&
+                CredentialType == (endpoint.User?.Type ?? Models.CredentialType.None) &&
+                JToken.DeepEquals(Credential, endpoint.User?.Value) &&
                 SecurityMode == (endpoint.SecurityMode ?? Models.SecurityMode.Best) &&
                 SecurityPolicy == endpoint.SecurityPolicy &&
-                endpoint.Validation.SequenceEqualsSafe(
-                    Validation.DecodeAsByteArray());
+                endpoint.ClientCertificate.SequenceEqualsSafe(
+                    ClientCertificate.DecodeAsByteArray()) &&
+                endpoint.ServerThumbprint.SequenceEqualsSafe(
+                    ServerThumbprint.DecodeAsByteArray());
         }
 
         /// <summary>
@@ -413,13 +436,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             _isInSync =
                 other != null &&
                 EndpointUrl == other.EndpointUrl &&
-                User == other.User &&
-                TokenType == other.TokenType &&
-                JToken.DeepEquals(Token, other.Token) &&
+                CredentialType == other.CredentialType &&
+                JToken.DeepEquals(Credential, other.Credential) &&
                 SecurityPolicy == other.SecurityPolicy &&
                 SecurityMode == other.SecurityMode &&
-                Validation.DecodeAsByteArray().SequenceEqualsSafe(
-                    other.Validation.DecodeAsByteArray());
+                ClientCertificate.DecodeAsByteArray().SequenceEqualsSafe(
+                    other.ClientCertificate.DecodeAsByteArray()) &&
+                ServerThumbprint.DecodeAsByteArray().SequenceEqualsSafe(
+                    other.ServerThumbprint.DecodeAsByteArray());
         }
         internal bool IsInSync() => _isInSync;
 
@@ -430,14 +454,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 (Activated ?? false) == (registration.Activated ?? false) &&
                 EndpointUrlLC == registration.EndpointUrlLC &&
                 SupervisorId == registration.SupervisorId &&
-                User == registration.User &&
-                JToken.DeepEquals(Token, registration.Token) &&
-                TokenType == registration.TokenType &&
+                JToken.DeepEquals(Credential, registration.Credential) &&
+                CredentialType == registration.CredentialType &&
                 SecurityLevel == registration.SecurityLevel &&
                 SecurityPolicy == registration.SecurityPolicy &&
                 SecurityMode == registration.SecurityMode &&
-                Validation.DecodeAsByteArray().SequenceEqualsSafe(
-                    registration.Validation.DecodeAsByteArray());
+                AuthenticationMethods.DecodeAsList().SetEqualsSafe(
+                    AuthenticationMethods.DecodeAsList(), JToken.DeepEquals) &&
+                ClientCertificate.DecodeAsByteArray().SequenceEqualsSafe(
+                    registration.ClientCertificate.DecodeAsByteArray()) &&
+                ServerThumbprint.DecodeAsByteArray().SequenceEqualsSafe(
+                    registration.ServerThumbprint.DecodeAsByteArray());
         }
 
         /// <inheritdoc/>
@@ -459,20 +486,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<bool>.Default.GetHashCode(Activated ?? false);
             hashCode = hashCode * -1521134295 +
-                EqualityComparer<string>.Default.GetHashCode(User);
-            hashCode = hashCode * -1521134295 +
-                JToken.EqualityComparer.GetHashCode(Token);
+                JToken.EqualityComparer.GetHashCode(Credential);
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<int?>.Default.GetHashCode(SecurityLevel);
             hashCode = hashCode * -1521134295 +
-                EqualityComparer<TokenType?>.Default.GetHashCode(TokenType);
+                EqualityComparer<CredentialType?>.Default.GetHashCode(CredentialType);
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<SecurityMode?>.Default.GetHashCode(SecurityMode);
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(SecurityPolicy);
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(
-                    Validation.DecodeAsByteArray().ToSha1Hash());
+                    ClientCertificate.DecodeAsByteArray().ToSha1Hash());
+            hashCode = hashCode * -1521134295 +
+                EqualityComparer<string>.Default.GetHashCode(
+                    ServerThumbprint.DecodeAsByteArray().ToSha1Hash());
             return hashCode;
         }
 

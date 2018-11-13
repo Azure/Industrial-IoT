@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Net;

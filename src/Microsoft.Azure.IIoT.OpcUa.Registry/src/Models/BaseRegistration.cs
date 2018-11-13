@@ -158,8 +158,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Convert twin to registration information.
         /// </summary>
         /// <param name="twin"></param>
+        /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public static BaseRegistration ToRegistration(DeviceTwinModel twin) {
+        public static BaseRegistration ToRegistration(DeviceTwinModel twin,
+            bool onlyServerState = false) {
             if (twin == null || twin.Tags == null) {
                 return null;
             }
@@ -169,11 +171,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             switch (type?.ToLowerInvariant() ?? "") {
                 case "endpoint":
-                    return EndpointRegistration.FromTwin(twin, false);
+                    return EndpointRegistration.FromTwin(twin, onlyServerState);
                 case "application":
                     return ApplicationRegistration.FromTwin(twin);
                 case "supervisor":
-                    return SupervisorRegistration.FromTwin(twin, false);
+                    return SupervisorRegistration.FromTwin(twin, onlyServerState);
             }
             return null;
         }

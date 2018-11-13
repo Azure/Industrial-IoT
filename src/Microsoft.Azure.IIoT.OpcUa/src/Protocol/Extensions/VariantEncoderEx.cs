@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Newtonsoft.Json.Linq;
     using Opc.Ua;
+    using Opc.Ua.Extensions;
 
     /// <summary>
     /// Variant encoder extensions
@@ -29,5 +30,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <returns></returns>
         public static Variant Decode(this IVariantEncoder encoder, JToken value) =>
             encoder.Decode(value, BuiltInType.Null);
+
+        /// <summary>
+        /// Decode with data type as string
+        /// </summary>
+        /// <param name="encoder"></param>
+        /// <param name="value"></param>
+        /// <param name="type"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static Variant Decode(this IVariantEncoder encoder, JToken value,
+            string type, ServiceMessageContext context) =>
+            encoder.Decode(value,
+                string.IsNullOrEmpty(type) || context == null ? BuiltInType.Null :
+                TypeInfo.GetBuiltInType(type.ToNodeId(context)), context);
     }
 }

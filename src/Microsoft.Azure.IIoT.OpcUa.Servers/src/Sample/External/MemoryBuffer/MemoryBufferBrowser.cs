@@ -29,15 +29,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Xml;
-using System.IO;
-using System.Reflection;
-using System.Threading;
 using Opc.Ua;
-using Opc.Ua.Server;
 
-namespace MemoryBuffer
-{
+namespace MemoryBuffer {
     /// <summary>
     /// A class to browse the references for a memory buffer. 
     /// </summary>

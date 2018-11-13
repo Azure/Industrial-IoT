@@ -28,14 +28,10 @@
  * ======================================================================*/
 
 using System;
-using System.Collections.Generic;
 using System.Xml;
-using System.IO;
-using System.Reflection;
 using Opc.Ua;
 
-namespace TestData
-{
+namespace TestData {
     public partial class MethodTestState
     {
         #region Initialization

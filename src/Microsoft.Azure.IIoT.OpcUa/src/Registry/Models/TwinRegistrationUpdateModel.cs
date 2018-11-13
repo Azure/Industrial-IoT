@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+
     /// <summary>
     /// Endpoint registration update request
     /// </summary>
@@ -15,14 +16,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string Id { get; set; }
 
         /// <summary>
-        /// Whether to copy existing registration
-        /// rather than replacing
+        /// User authentication to change on the twin.
         /// </summary>
-        public bool? Duplicate { get; set; }
-
-        /// <summary>
-        /// Authentication to change on the twin.
-        /// </summary>
-        public AuthenticationModel Authentication { get; set; }
+        public CredentialModel User { get; set; }
     }
 }

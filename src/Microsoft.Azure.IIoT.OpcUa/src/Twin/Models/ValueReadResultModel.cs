@@ -43,8 +43,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public ushort? ServerPicoseconds { get; set; }
 
         /// <summary>
-        /// Diagnostics data in case of error
+        /// Service result in case of error
         /// </summary>
-        public JToken Diagnostics { get; set; }
+        public ServiceResultModel ErrorInfo { get; set; }
     }
 }

@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// The session
         /// </summary>
-        public new ISession Session { get; }
+        public new IServerSession Session { get; }
 
         /// <inheritdoc/>
         public RequestContextModel(RequestHeader requestHeader,
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
 
         /// <inheritdoc/>
         public RequestContextModel(RequestHeader requestHeader,
-            RequestType requestType, ISession session) :
+            RequestType requestType, IServerSession session) :
             base(requestHeader, requestType) {
             Session = session;
         }

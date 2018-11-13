@@ -379,7 +379,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         private static List<ApplicationRegistrationModel> ApplicationsIn(IoTHubDeviceRegistry registry) {
             var registrations = registry.Devices
                 .Select(d => d.Twin)
-                .Select(BaseRegistration.ToRegistration)
+                .Select(t => BaseRegistration.ToRegistration(t))
                 .ToList();
             var endpoints = registrations
                 .OfType<EndpointRegistration>()

@@ -28,9 +28,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// endpoints if there are any.
         /// </summary>
         /// <param name="applicationId"></param>
+        /// <param name="filterInactiveTwins"></param>
         /// <returns></returns>
         Task<ApplicationRegistrationModel> GetApplicationAsync(
-            string applicationId);
+            string applicationId, bool filterInactiveTwins = false);
 
         /// <summary>
         /// Update an existing application, e.g. server

@@ -29,14 +29,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
-using System.Xml;
-using System.Runtime.Serialization;
 using Opc.Ua;
 
-namespace MemoryBuffer
-{
+namespace MemoryBuffer {
     #region Object Identifiers
     /// <summary>
     /// A class that declares constants for all Objects in the Model Design.

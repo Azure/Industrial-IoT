@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// <summary>
         /// Optional Elevation
         /// </summary>
-        public AuthenticationModel Elevation { get; set; }
+        public CredentialModel Elevation { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration

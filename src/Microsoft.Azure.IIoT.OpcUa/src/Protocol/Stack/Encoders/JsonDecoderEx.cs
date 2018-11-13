@@ -867,10 +867,15 @@ namespace Opc.Ua.Encoders {
                         if (found) {
                             return variant;
                         }
-                        // TODO: Try to read other structures
-                        // ...
-                        //
-                        return new Variant(((JObject)token).ToObject<XmlElement>());
+                        try {
+                            return new Variant(((JObject)token).ToObject<XmlElement>());
+                        }
+                        catch {
+                            // TODO: Try to read other structures
+                            // ...
+                            //
+                            return Variant.Null; // Give up
+                        }
                     case JTokenType.Array:
                         return ReadVariantFromArray((JArray)token);
                     default:
@@ -944,7 +949,10 @@ namespace Opc.Ua.Encoders {
             var result = array
                 .Select(t => ReadVariantFromToken(t, unsigned))
                 .ToArray();
-            if (result.All(v => v.TypeInfo.BuiltInType == result[0].TypeInfo.BuiltInType)) {
+            if (result
+                .Where(v => v != Variant.Null)
+                .All(v => v.TypeInfo.BuiltInType == result[0].TypeInfo.BuiltInType)) {
+                // TODO: This needs tests as it should not work.
                 return new Variant(result.Select(v => v.Value).ToArray());
             }
             return new Variant(result);

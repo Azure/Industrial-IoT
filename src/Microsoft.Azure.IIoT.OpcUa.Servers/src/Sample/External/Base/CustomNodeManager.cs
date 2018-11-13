@@ -29,16 +29,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Diagnostics;
-using System.Xml;
-using System.IO;
 using System.Threading;
 using System.Reflection;
 using Opc.Ua.Server;
 
-namespace Opc.Ua.Sample
-{
+namespace Opc.Ua.Sample {
     /// <summary>
     /// A node manager for a variety of test data.
     /// </summary>

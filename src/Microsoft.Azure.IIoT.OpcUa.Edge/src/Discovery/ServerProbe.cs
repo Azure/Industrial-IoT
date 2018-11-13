@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 ok = false;
                 timeout = _timeout;
                 if (arg.SocketError != SocketError.Success) {
-                    _logger.Debug($"Probe {index} : {_socket.RemoteEndPoint} found no opc server.",
+                    _logger.Debug($"Probe {index} : {_socket?.RemoteEndPoint} found no opc server.",
                         () => arg.SocketError);
                     _state = State.BeginProbe;
                     return true;
