@@ -48,29 +48,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// User Authentication
         /// </summary>
-        [JsonProperty(PropertyName = "authentication",
+        [JsonProperty(PropertyName = "user",
             NullValueHandling = NullValueHandling.Ignore)]
-        public AuthenticationApiModel Authentication { get; set; }
+        public CredentialApiModel User { get; set; }
 
         /// <summary>
-        /// Security Mode to use for communication - default to best.
+        /// Security Mode to use for communication.
+        /// default to best.
         /// </summary>
         [JsonProperty(PropertyName = "securityMode",
             NullValueHandling = NullValueHandling.Ignore)]
         public SecurityMode? SecurityMode { get; set; }
 
         /// <summary>
-        /// Security policy uri to use for communication - default to best.
+        /// Security policy uri to use for communication.
+        /// default to best.
         /// </summary>
         [JsonProperty(PropertyName = "securityPolicy",
             NullValueHandling = NullValueHandling.Ignore)]
         public string SecurityPolicy { get; set; }
 
         /// <summary>
-        /// Certificate to validate against or null to trust any.
+        /// Thumbprint to validate against or null to trust any.
         /// </summary>
-        [JsonProperty(PropertyName = "validation",
+        [JsonProperty(PropertyName = "serverThumbprint",
             NullValueHandling = NullValueHandling.Ignore)]
-        public byte[] Validation { get; set; }
+        public byte[] ServerThumbprint { get; set; }
     }
 }

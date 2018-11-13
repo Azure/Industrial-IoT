@@ -185,6 +185,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     }
 
     /// <summary>
+    /// Flags for use with the AccessRestrictions attribute.
+    /// </summary>
+    [Flags]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum NodeAccessRestrictions {
+
+        /// <summary>
+        /// Requires SecureChannel which digitally signs all messages.
+        /// </summary>
+        SigningRequired = 0x1,
+
+        /// <summary>
+        /// Requires SecureChannel which encrypts all messages.
+        /// </summary>
+        EncryptionRequired = 0x2,
+
+        /// <summary>
+        /// No SessionlessInvoke invocation.
+        /// </summary>
+        SessionRequired = 0x4
+    }
+
+    /// <summary>
     /// Node model
     /// </summary>
     public class NodeApiModel {
@@ -204,8 +227,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public string DisplayName { get; set; }
 
         /// <summary>
-        /// Id of node.
-        /// (Mandatory).
+        /// Id of node (Mandatory).
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
@@ -227,12 +249,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public bool? HasChildren { get; set; }
 
         /// <summary>
+        /// Browse name
+        /// </summary>
+        [JsonProperty(PropertyName = "name",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string Name { get; set; }
+
+        /// <summary>
         /// Node access restrictions if any.
         /// (default: none)
         /// </summary>
         [JsonProperty(PropertyName = "accessRestrictions",
             NullValueHandling = NullValueHandling.Ignore)]
-        public uint? AccessRestrictions { get; set; }
+        public NodeAccessRestrictions? AccessRestrictions { get; set; }
 
         /// <summary>
         /// Default write mask for the node

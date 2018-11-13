@@ -44,5 +44,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "target")]
         public NodeApiModel Target { get; set; }
+
+        /// <summary>
+        /// Optional type definition of the reference
+        /// </summary>
+        [JsonProperty(PropertyName = "typeDefinition",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string TypeDefinition { get; set; }
     }
 }

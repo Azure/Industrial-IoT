@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Method argument metadata model 
+    /// Method argument metadata model
     /// </summary>
     public class MethodMetadataArgumentApiModel {
 

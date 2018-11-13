@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "elevation",
             NullValueHandling = NullValueHandling.Ignore)]
-        public AuthenticationApiModel Elevation { get; set; }
+        public CredentialApiModel Elevation { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration

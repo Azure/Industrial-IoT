@@ -94,6 +94,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
         }
 
         /// <inheritdoc/>
+        public async Task<BrowsePathResponseApiModel> NodeBrowsePathAsync(string twinId,
+            BrowsePathRequestApiModel content) {
+            if (string.IsNullOrEmpty(twinId)) {
+                throw new ArgumentNullException(nameof(twinId));
+            }
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            if (content.PathElements == null || content.PathElements.Length == 0) {
+                throw new ArgumentNullException(nameof(content.PathElements));
+            }
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/browse/{twinId}/path",
+                _resourceId);
+            request.SetContent(content);
+            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
+            response.Validate();
+            return JsonConvertEx.DeserializeObject<BrowsePathResponseApiModel>(
+                response.GetContentAsString());
+        }
+
+        /// <inheritdoc/>
         public async Task<PublishResponseApiModel> NodePublishAsync(string twinId,
             PublishRequestApiModel content) {
             if (string.IsNullOrEmpty(twinId)) {

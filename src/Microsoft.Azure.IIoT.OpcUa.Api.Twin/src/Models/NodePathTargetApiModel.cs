@@ -7,15 +7,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Value write response model
+    /// Node path target
     /// </summary>
-    public class ValueWriteResponseApiModel {
+    public class NodePathTargetApiModel {
 
         /// <summary>
-        /// Service result in case of error
+        /// Target node
         /// </summary>
-        [JsonProperty(PropertyName = "errorInfo",
+        [JsonProperty(PropertyName = "target")]
+        public NodeApiModel Target { get; set; }
+
+        /// <summary>
+        /// Remaining index in path
+        /// </summary>
+        [JsonProperty(PropertyName = "remainingPathIndex",
             NullValueHandling = NullValueHandling.Ignore)]
-        public ServiceResultApiModel ErrorInfo { get; set; }
+        public int? RemainingPathIndex { get; set; }
     }
 }

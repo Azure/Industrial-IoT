@@ -9,10 +9,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Type of token to use for serverauth
+    /// Type of credential to use for serverauth
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum TokenType {
+    public enum CredentialType {
 
         /// <summary>
         /// No token
@@ -27,33 +27,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Certificate
         /// </summary>
-        X509Certificate
+        X509Certificate,
+
+        /// <summary>
+        /// Token is a jwt token
+        /// </summary>
+        JwtToken
     }
 
     /// <summary>
-    /// Authentication model
+    /// Credential model
     /// </summary>
-    public class AuthenticationApiModel {
+    public class CredentialApiModel {
 
         /// <summary>
-        /// User name to use
+        /// Type of credential
         /// </summary>
-        [JsonProperty(PropertyName = "user",
+        [JsonProperty(PropertyName = "type",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string User { get; set; }
+        public CredentialType? Type { get; set; }
 
         /// <summary>
-        /// User token to pass to server
+        /// Value to pass to server
         /// </summary>
-        [JsonProperty(PropertyName = "token",
+        [JsonProperty(PropertyName = "value",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Token { get; set; }
-
-        /// <summary>
-        /// Type of token
-        /// </summary>
-        [JsonProperty(PropertyName = "tokenType",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public TokenType? TokenType { get; set; }
+        public JToken Value { get; set; }
     }
 }

@@ -18,18 +18,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string Id { get; set; }
 
         /// <summary>
-        /// Whether to copy existing registration
-        /// rather than replacing
+        /// User authentication to use on the twin.
         /// </summary>
-        [JsonProperty(PropertyName = "duplicate",
+        [JsonProperty(PropertyName = "user",
             NullValueHandling = NullValueHandling.Ignore)]
-        public bool? Duplicate { get; set; }
-
-        /// <summary>
-        /// Authentication to use on the twin.
-        /// </summary>
-        [JsonProperty(PropertyName = "authentication",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public AuthenticationApiModel Authentication { get; set; }
+        public CredentialApiModel User { get; set; }
     }
 }

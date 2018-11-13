@@ -56,10 +56,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public ushort? ServerPicoseconds { get; set; }
 
         /// <summary>
-        /// Optional error diagnostics
+        /// Service result in case of error
         /// </summary>
-        [JsonProperty(PropertyName = "diagnostics",
+        [JsonProperty(PropertyName = "errorInfo",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Diagnostics { get; set; }
+        public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

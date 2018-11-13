@@ -6,32 +6,31 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using System.Collections.Generic;
 
     /// <summary>
-    /// Result of node browse continuation
+    /// Service result
     /// </summary>
-    public class BrowseNextResponseApiModel {
+    public class ServiceResultApiModel {
 
         /// <summary>
-        /// References, if included, otherwise null.
+        /// Error code - if null operation succeeded.
         /// </summary>
-        [JsonProperty(PropertyName = "references",
+        [JsonProperty(PropertyName = "statusCode",
             NullValueHandling = NullValueHandling.Ignore)]
-        public List<NodeReferenceApiModel> References { get; set; }
+        public uint? StatusCode { get; set; }
 
         /// <summary>
-        /// Continuation token if more results pending.
+        /// Error message in case of error or null.
         /// </summary>
-        [JsonProperty(PropertyName = "continuationToken",
+        [JsonProperty(PropertyName = "errorMessage",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string ContinuationToken { get; set; }
+        public string ErrorMessage { get; set; }
 
         /// <summary>
-        /// Optional error diagnostics
+        /// Additional diagnostics information
         /// </summary>
         [JsonProperty(PropertyName = "diagnostics",
             NullValueHandling = NullValueHandling.Ignore)]
-        public ServiceResultApiModel ErrorInfo { get; set; }
+        public JToken Diagnostics{ get; set; }
     }
 }

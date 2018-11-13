@@ -1,10 +1,11 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Twin registration model
@@ -37,10 +38,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public int? SecurityLevel { get; set; }
 
         /// <summary>
-        /// Endpoint cert that was registered.
+        /// Endpoint certificate that was registered.
         /// </summary>
         [JsonProperty(PropertyName = "certificate",
             NullValueHandling = NullValueHandling.Ignore)]
         public byte[] Certificate { get; set; }
+
+        /// <summary>
+        /// Supported authentication methods for the endpoint.
+        /// </summary>
+        [JsonProperty(PropertyName = "authenticationMethods",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<AuthenticationMethodApiModel> AuthenticationMethods { get; set; }
     }
 }

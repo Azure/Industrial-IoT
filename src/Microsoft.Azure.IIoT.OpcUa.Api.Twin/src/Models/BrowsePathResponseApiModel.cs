@@ -5,11 +5,20 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
+    using System.Collections.Generic;
 
     /// <summary>
-    /// Value write response model
+    /// Result of node browse continuation
     /// </summary>
-    public class ValueWriteResponseApiModel {
+    public class BrowsePathResponseApiModel {
+
+
+        /// <summary>
+        /// Targets
+        /// </summary>
+        [JsonProperty(PropertyName = "targets",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<NodePathTargetApiModel> Targets { get; set; }
 
         /// <summary>
         /// Service result in case of error

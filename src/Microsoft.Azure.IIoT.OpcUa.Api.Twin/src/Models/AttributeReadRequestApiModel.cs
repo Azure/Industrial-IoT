@@ -7,15 +7,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Value write response model
+    /// Attribute to read
     /// </summary>
-    public class ValueWriteResponseApiModel {
+    public class AttributeReadRequestApiModel {
 
         /// <summary>
-        /// Service result in case of error
+        /// Node to read from or write to (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "errorInfo",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public ServiceResultApiModel ErrorInfo { get; set; }
+        [JsonProperty(PropertyName = "nodeId")]
+        public string NodeId { get; set; }
+
+        /// <summary>
+        /// Attribute to read or write
+        /// </summary>
+        [JsonProperty(PropertyName = "attribute")]
+        public NodeAttribute Attribute { get; set; }
     }
 }

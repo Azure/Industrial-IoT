@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Value write response model
+    /// Attribute write result
     /// </summary>
-    public class ValueWriteResponseApiModel {
+    public class AttributeWriteResponseApiModel {
 
         /// <summary>
         /// Service result in case of error

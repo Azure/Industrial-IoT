@@ -37,6 +37,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
             BrowseNextRequestApiModel request);
 
         /// <summary>
+        /// Browse by path on twin
+        /// </summary>
+        /// <param name="twinId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<BrowsePathResponseApiModel> NodeBrowsePathAsync(string twinId,
+            BrowsePathRequestApiModel request);
+
+        /// <summary>
         /// Call method on twin
         /// </summary>
         /// <param name="twinId"></param>

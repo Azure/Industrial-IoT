@@ -5,11 +5,18 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Value write response model
+    /// Attribute value read
     /// </summary>
-    public class ValueWriteResponseApiModel {
+    public class AttributeReadResponseApiModel {
+
+        /// <summary>
+        /// Attribute value
+        /// </summary>
+        [JsonProperty(PropertyName = "value")]
+        public JToken Value { get; set; }
 
         /// <summary>
         /// Service result in case of error

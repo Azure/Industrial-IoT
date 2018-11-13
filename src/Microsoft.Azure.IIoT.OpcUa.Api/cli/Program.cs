@@ -10,7 +10,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
-    using Microsoft.Azure.IIoT.Auth.Azure;
+    using Microsoft.Azure.IIoT.Auth.Clients;
+    using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -24,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
     using System.Threading.Tasks;
     using System.Linq;
     using System.Diagnostics;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Api command line interface
@@ -47,14 +49,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             builder.RegisterType<TraceLogger>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Register http client implementation
-            builder.RegisterType<HttpClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<HttpClientFactory>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<HttpHandlerFactory>()
-                .AsImplementedInterfaces().SingleInstance();
-
+            // Register http client module
+            builder.RegisterModule<HttpClientModule>();
             // Use bearer authentication
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -801,12 +797,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task UpdateTwinAsync(IRegistryServiceApi service,
             CliOptions options) {
+
+            var credential = options.GetValue<Registry.Models.CredentialType>(
+                "-c", "--credential");
+            var user = new Registry.Models.CredentialApiModel {
+                Type = credential
+            };
+            switch (credential) {
+                case Registry.Models.CredentialType.None:
+                    user.Value = null;
+                    break;
+                case Registry.Models.CredentialType.UserNamePassword:
+                    Console.WriteLine("User: ");
+                    var name = Console.ReadLine();
+                    Console.WriteLine("Password: ");
+                    user.Value = JObject.FromObject(new {
+                        user = name,
+                        password = ConsoleEx.ReadPassword().ToString()
+                    });
+                    break;
+                case Registry.Models.CredentialType.JwtToken:
+                    // TODO:
+                    throw new NotSupportedException();
+                case Registry.Models.CredentialType.X509Certificate:
+                    // TODO:
+                    throw new NotSupportedException();
+                default:
+                    throw new ArgumentException(nameof(credential));
+            }
             await service.UpdateTwinAsync(
                 new TwinRegistrationUpdateApiModel {
                     Id = options.GetValue<string>("-i", "--id"),
-                    Duplicate = options.GetValue<bool>("-d", "--duplicate"),
-
-                    // ...
+                    User = user
                 });
         }
 
@@ -922,7 +944,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             public string TenantId =>
                 Configuration.GetValue<string>("OPC_TWIN_CLI_TENANT_ID");
 
-            public string Authority => null;
+            public string InstanceUrl => null;
             public string AppSecret => null;
 
             private const string kOpcUaTwinServiceUrlKey = "OpcTwinServiceUrl";
@@ -1082,7 +1104,8 @@ Commands and Options
      update      Update twin
         with ...
         -i, --id        Id of twin
-        -d, --duplicate Create duplicate twin identity.
+        -c, --credential
+                        Credential type
 
      deactivate  Deactivate twins with specified
         with ...

@@ -19,18 +19,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string Url { get; set; }
 
         /// <summary>
-        /// User name to use
+        /// Type of credential selected for authentication
         /// </summary>
-        [JsonProperty(PropertyName = "user",
+        [JsonProperty(PropertyName = "userAuthentication",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string User { get; set; }
-
-        /// <summary>
-        /// Type of token
-        /// </summary>
-        [JsonProperty(PropertyName = "tokenType",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public TokenType? TokenType { get; set; }
+        public CredentialType? UserAuthentication { get; set; }
 
         /// <summary>
         /// Certificate of the endpoint

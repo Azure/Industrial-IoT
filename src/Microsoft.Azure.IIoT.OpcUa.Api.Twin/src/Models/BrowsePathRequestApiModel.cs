@@ -7,34 +7,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Request node browsing continuation
+    /// Browse nodes by path
     /// </summary>
-    public class BrowseNextRequestApiModel {
+    public class BrowsePathRequestApiModel {
 
         /// <summary>
-        /// Continuation token from previews browse request.
+        /// Node to browse.
+        /// (default: RootFolder).
+        /// </summary>
+        [JsonProperty(PropertyName = "nodeId")]
+        public string NodeId { get; set; }
+
+        /// <summary>
+        /// The path elements of the path to browse from node.
         /// (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "continuationToken")]
-        public string ContinuationToken { get; set; }
-
-        /// <summary>
-        /// Whether to abort browse and release.
-        /// (default: false)
-        /// </summary>
-        [JsonProperty(PropertyName = "abort",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public bool? Abort { get; set; }
-
-        /// <summary>
-        /// Whether to collapse all references into a set of
-        /// unique target nodes and not show reference
-        /// information.
-        /// (default is false)
-        /// </summary>
-        [JsonProperty(PropertyName = "targetNodesOnly",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public bool? TargetNodesOnly { get; set; }
+        [JsonProperty(PropertyName = "pathElements")]
+        public string[] PathElements { get; set; }
 
         /// <summary>
         /// Whether to read variable values on target nodes.
