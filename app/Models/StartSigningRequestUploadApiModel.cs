@@ -167,7 +167,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
                 var oid = Org.BouncyCastle.Asn1.DerObjectIdentifier.GetInstance(sequence[0].ToAsn1Object());
                 if (oid.Equals(Org.BouncyCastle.Asn1.Pkcs.PkcsObjectIdentifiers.Pkcs9AtExtensionRequest))
                 {
-                    var extensionInstance = Org.BouncyCastle.Asn1.DerSet.GetInstance(sequence[1]);
+                    var extensionInstance = Org.BouncyCastle.Asn1.Asn1Set.GetInstance(sequence[1]);
                     var extensionSequence = Org.BouncyCastle.Asn1.Asn1Sequence.GetInstance(extensionInstance[0]);
                     var extensions = Org.BouncyCastle.Asn1.X509.X509Extensions.GetInstance(extensionSequence);
                     Org.BouncyCastle.Asn1.X509.X509Extension extension = extensions.GetExtension(Org.BouncyCastle.Asn1.X509.X509Extensions.SubjectAlternativeName);

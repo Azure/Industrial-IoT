@@ -83,7 +83,7 @@ namespace Opc.Ua.Gds.Server.OpcVault
         {
             if (request == null)
             {
-                throw new ArgumentNullException("request");
+                throw new ArgumentNullException(nameof(request));
             }
 
             DateTime now = DateTime.UtcNow;

@@ -10,7 +10,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.Azure.IIoT.Auth.Azure;
+using Microsoft.Azure.IIoT.Auth.Clients;
 using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
@@ -62,7 +62,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
 
     public class ClientConfig : IClientConfig
     {
-
         /// <summary>
         /// The AAD application id for the client.
         /// </summary>
@@ -81,7 +80,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         /// <summary>
         /// Instance or authority (optional)
         /// </summary>
-        public string Authority { get; set; }
+        public string InstanceUrl { get; set; }
+
+        /// <summary>
+        /// Audience to talk to.
+        /// </summary>
+        public string Audience { get; set; }
     }
 
     public class LogConfig : ILogConfig

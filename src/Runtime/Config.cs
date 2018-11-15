@@ -5,10 +5,10 @@
 
 
 using System;
-using Microsoft.Azure.IIoT.Auth.Azure;
+using Microsoft.Azure.IIoT.Auth.Clients;
 using Microsoft.Azure.IIoT.Diagnostics;
-using Microsoft.Azure.IIoT.Services.Auth;
-using Microsoft.Azure.IIoT.Services.Auth.Runtime;
+using Microsoft.Azure.IIoT.Auth.Server;
+using Microsoft.Azure.IIoT.Auth.Runtime;
 using Microsoft.Azure.IIoT.Services.Cors;
 using Microsoft.Azure.IIoT.Services.Cors.Runtime;
 using Microsoft.Azure.IIoT.Services.Swagger;
@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         /// <inheritdoc/>
         public string TenantId => _auth.TenantId;
         /// <inheritdoc/>
-        public string Authority => _auth.Authority;
+        public string InstanceUrl => _auth.InstanceUrl;
         /// <inheritdoc/>
         public string Audience => _auth.Audience;
         /// <inheritdoc/>

@@ -10,7 +10,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.IIoT.Auth.Azure;
+using Microsoft.Azure.IIoT.Auth.Clients;
 using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 var serviceClientCredentials =
                     new KeyVaultCredentials(
                         token,
-                        (String.IsNullOrEmpty(_clientConfig.Authority) ? kAuthority : _clientConfig.Authority) + _clientConfig.TenantId,
+                        (String.IsNullOrEmpty(_clientConfig.InstanceUrl) ? kAuthority : _clientConfig.InstanceUrl) + _clientConfig.TenantId,
                         _servicesConfig.KeyVaultResourceId,
                         _clientConfig.AppId,
                         _clientConfig.AppSecret);

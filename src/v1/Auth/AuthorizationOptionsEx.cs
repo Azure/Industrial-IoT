@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
 {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
-    using Microsoft.Azure.IIoT.Services.Auth;
+    using Microsoft.Azure.IIoT.Auth.Server;
 
     /// <summary>
     /// AuthorizationOptions extension
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
                 policy.RequireAuthenticatedUser());
             if (servicesConfig.AutoApprove)
             {
-                // for simplified deployment, 
+                // for simplified deployment,
                 // any authenticated user can Write and Sign
                 // without Approver workflow
                 options.AddPolicy(Policies.CanWrite, policy =>

@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         public string KeyIdentifier { get; set; }
     }
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public class KeyVaultServiceClient
     {
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         // see RFC 2585
         const string ContentTypeCert = "application/pkix-cert";
         const string ContentTypeCrl = "application/pkix-crl";
-        // see CertificateContentType.Pfx and 
+        // see CertificateContentType.Pfx and
         const string ContentTypePfx = "application/x-pkcs12";
         // see CertificateContentType.Pem
         const string ContentTypePem = "application/x-pem-file";
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         const string GroupSecret = "groups";
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="vaultBaseUrl">The Url of the Key Vault.</param>
         /// <param name="keyStoreHSM">The KeyVault is HSM backed.</param>
@@ -445,7 +445,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                     new KeyVaultSignatureGenerator(this, caCertKeyIdentifier, null),
                     true);
 
-                // merge Root CA cert with 
+                // merge Root CA cert with
                 var mergeResult = await _keyVaultClient.MergeCertificateAsync(
                     _vaultBaseUrl,
                     id,
@@ -518,7 +518,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         /// <summary>
         /// Creates a trust list with all certs and crls in issuer and trusted list.
         /// i) First load all certs and crls tagged with id==Issuer or id==Trusted.
-        /// ii) Then walk all CA cert versions and load all certs tagged with id==Issuer or id==Trusted. 
+        /// ii) Then walk all CA cert versions and load all certs tagged with id==Issuer or id==Trusted.
         ///     Crl is loaded too if CA cert is tagged.
         /// </summary>
         public async Task<Models.KeyVaultTrustListModel> GetTrustListAsync(string id, int? maxResults, string nextPageLink, CancellationToken ct = default)
@@ -788,7 +788,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
         private async Task<X509CRL> LoadCrlSecret(string secretIdentifier, CancellationToken ct = default(CancellationToken))
         {
-            var secret = await _keyVaultClient.GetSecretAsync(_vaultBaseUrl, secretIdentifier, ct).ConfigureAwait(false); ;
+            var secret = await _keyVaultClient.GetSecretAsync(_vaultBaseUrl, secretIdentifier, ct).ConfigureAwait(false);
             if (secret.ContentType == ContentTypeCrl)
             {
                 var crlBlob = Convert.FromBase64String(secret.Value);
@@ -799,7 +799,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
         private async Task<X509Certificate2> LoadCertSecret(string secretIdentifier, CancellationToken ct = default(CancellationToken))
         {
-            var secret = await _keyVaultClient.GetSecretAsync(_vaultBaseUrl, secretIdentifier, ct).ConfigureAwait(false); ;
+            var secret = await _keyVaultClient.GetSecretAsync(_vaultBaseUrl, secretIdentifier, ct).ConfigureAwait(false);
             if (secret.ContentType == ContentTypeCrl)
             {
                 var certBlob = Convert.FromBase64String(secret.Value);
