@@ -89,6 +89,8 @@ Function GetEnvironmentVariables() {
     Write-Output `
         "PCS_AUTH_AUDIENCE=$AUTH_AUDIENCE"
     Write-Output `
+        "PCS_AUTH_ISSUER=https://sts.windows.net/$AUTH_AAD_TENANT/"
+    Write-Output `
         "PCS_WEBUI_AUTH_AAD_APPID=$AUTH_AAD_APPID"
     Write-Output `
         "PCS_WEBUI_AUTH_AAD_AUTHORITY=$AUTH_AAD_AUTHORITY"

@@ -104,19 +104,19 @@ services:
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
-    command: demo twin
+    command: --host demo demo
   opcserver0:
-    image: mcr.microsoft.com/iotedge/opc-plc:latest
+    image: marcschier/azure-iiot-opc-twin:latest
     hostname: opcserver0
     restart: always
     command: --sample -p 51210
   opcserver1:
-    image: mcr.microsoft.com/iotedge/opc-plc:latest
+    image: marcschier/azure-iiot-opc-twin:latest
     hostname: opcserver1
     restart: always
     command: --sample -p 51211
   opcserver2:
-    image: mcr.microsoft.com/iotedge/opc-plc:latest
+    image: marcschier/azure-iiot-opc-twin:latest
     hostname: opcserver2
     restart: always
     command: --sample -p 51212

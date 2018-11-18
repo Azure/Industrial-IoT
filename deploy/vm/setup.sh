@@ -1,9 +1,6 @@
 #!/bin/bash -ex
 
 APP_PATH="/app"
-WEBUICONFIG="${APP_PATH}/webui-config.js"
-WEBUICONFIG_SAFE="${APP_PATH}/webui-config.js.safe"
-WEBUICONFIG_UNSAFE="${APP_PATH}/webui-config.js.unsafe"
 ENVVARS="${APP_PATH}/.env"
 DOCKERCOMPOSE="${APP_PATH}/docker-compose.yml"
 CERTS="${APP_PATH}/certs"
@@ -140,34 +137,6 @@ rm -f ${PFX}
 
 # ========================================================================
 
-# Web App configuration
-rm -f ${WEBUICONFIG_SAFE}
-rm -f ${WEBUICONFIG_UNSAFE}
-
-echo "var DeploymentConfig = {" >> ${WEBUICONFIG_SAFE}
-echo "  authEnabled: true," >> ${WEBUICONFIG_SAFE}
-echo "  authType: '${PCS_WEBUI_AUTH_TYPE}'," >> ${WEBUICONFIG_SAFE}
-echo "  aad : {" >> ${WEBUICONFIG_SAFE}
-echo "    tenant: '${PCS_WEBUI_AUTH_AAD_TENANT}'," >> ${WEBUICONFIG_SAFE}
-echo "    appId: '${PCS_WEBUI_AUTH_AAD_APPID}'," >> ${WEBUICONFIG_SAFE}
-echo "    instance: '${PCS_WEBUI_AUTH_AAD_INSTANCE}'" >> ${WEBUICONFIG_SAFE}
-echo "  }" >> ${WEBUICONFIG_SAFE}
-echo "}" >> ${WEBUICONFIG_SAFE}
-touch ${WEBUICONFIG_SAFE} && chmod 444 ${WEBUICONFIG_SAFE}
-
-echo "var DeploymentConfig = {" >> ${WEBUICONFIG_UNSAFE}
-echo "  authEnabled: false," >> ${WEBUICONFIG_UNSAFE}
-echo "  authType: '${PCS_WEBUI_AUTH_TYPE}'," >> ${WEBUICONFIG_UNSAFE}
-echo "  aad : {" >> ${WEBUICONFIG_UNSAFE}
-echo "    tenant: '${PCS_WEBUI_AUTH_AAD_TENANT}'," >> ${WEBUICONFIG_UNSAFE}
-echo "    appId: '${PCS_WEBUI_AUTH_AAD_APPID}'," >> ${WEBUICONFIG_UNSAFE}
-echo "    instance: '${PCS_WEBUI_AUTH_AAD_INSTANCE}'" >> ${WEBUICONFIG_UNSAFE}
-echo "  }" >> ${WEBUICONFIG_UNSAFE}
-echo "}" >> ${WEBUICONFIG_UNSAFE}
-touch ${WEBUICONFIG_UNSAFE} && chmod 444 ${WEBUICONFIG_UNSAFE}
-
-# ========================================================================
-
 # Environment variables
 rm -f ${ENVVARS}
 touch ${ENVVARS} && chmod 644 ${ENVVARS}
@@ -175,9 +144,9 @@ touch ${ENVVARS} && chmod 644 ${ENVVARS}
 echo "HOST_NAME=${HOST_NAME}" >> ${ENVVARS}
 echo "PCS_AUTH_ISSUER=${PCS_AUTH_ISSUER}" >> ${ENVVARS}
 echo "PCS_AUTH_AUDIENCE=${PCS_AUTH_AUDIENCE}" >> ${ENVVARS}
-echo "PCS_AUTH_AAD_GLOBAL_TENANTID=${PCS_AUTH_AAD_GLOBAL_TENANTID}" >> ${ENVVARS}
-echo "PCS_AUTH_AAD_GLOBAL_CLIENTID=${PCS_AUTH_AAD_GLOBAL_CLIENTID}" >> ${ENVVARS}
-echo "PCS_AUTH_AAD_GLOBAL_LOGINURI=${PCS_AUTH_AAD_GLOBAL_LOGINURI}" >> ${ENVVARS}
+echo "PCS_WEBUI_AUTH_AAD_TENANT=${PCS_WEBUI_AUTH_AAD_TENANT}" >> ${ENVVARS}
+echo "PCS_WEBUI_AUTH_AAD_APPID=${PCS_WEBUI_AUTH_AAD_APPID}" >> ${ENVVARS}
+echo "PCS_WEBUI_AUTH_AAD_INSTANCE=${PCS_WEBUI_AUTH_AAD_INSTANCE}" >> ${ENVVARS}
 echo "PCS_IOTHUB_CONNSTRING=${PCS_IOTHUB_CONNSTRING}" >> ${ENVVARS}
 echo "PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING=${PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING}" >> ${ENVVARS}
 echo "PCS_TELEMETRY_DOCUMENTDB_CONNSTRING=${PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING}" >> ${ENVVARS}
@@ -200,18 +169,15 @@ echo "PCS_RELEASE_VERSION=${PCS_RELEASE_VERSION}" >> ${ENVVARS}
 
 # ========================================================================
 
-rm -f ${WEBUICONFIG}
 if [[ "$UNSAFE" == "true" ]]; then
   echo -e "${COL_ERR}WARNING! Starting services in UNSAFE mode!${COL_NO}"
   # Disable Auth
   # Allow cross-origin requests from anywhere
   echo "PCS_AUTH_REQUIRED=false" >> ${ENVVARS}
   echo "PCS_CORS_WHITELIST={ 'origins': ['*'], 'methods': ['*'], 'headers': ['*'] }" >> ${ENVVARS}
-  cp -p ${WEBUICONFIG_UNSAFE} ${WEBUICONFIG}
 else
   echo "PCS_AUTH_REQUIRED=" >> ${ENVVARS}
   echo "PCS_CORS_WHITELIST=" >> ${ENVVARS}
-  cp -p ${WEBUICONFIG_SAFE} ${WEBUICONFIG}
 fi
 
 chown -R $ADMIN ${APP_PATH}
