@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 try {
                     await _lock.WaitAsync();
                     if (_client != null) {
-                        _logger.Info($"Stopping Module Host (@{SiteId})...");
+                        _logger.Info($"Stopping Module Host...");
                         try {
                             var twinSettings = new TwinCollection {
                                 [kConnectedProp] = false
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         }
                         _client.Dispose();
                     }
-                    _logger.Info($"Module Host stopped (@{SiteId}).");
+                    _logger.Info($"Module Host stopped.");
                 }
                 catch (Exception ce) {
                     _logger.Error("Module Host stopping caused exception.",
@@ -121,21 +121,21 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         await _client.SetDesiredPropertyUpdateCallbackAsync(
                             (settings, _) => ProcessSettingsAsync(settings), null);
 
-                        // Set default site if not already provided
-                        if (string.IsNullOrEmpty(SiteId)) {
-                            SiteId = (siteId ?? ModuleId) ?? DeviceId;
-                        }
-
                         // Report type of service, chosen site, and connection state
                         var twinSettings = new TwinCollection {
                             [kTypeProp] = type,
-                            [kSiteIdProp] = SiteId,
                             [kConnectedProp] = true
                         };
+
+                        // Set site if provided
+                        if (string.IsNullOrEmpty(SiteId)) {
+                            SiteId = siteId;
+                            twinSettings[kSiteIdProp] = SiteId;
+                        }
                         await _client.UpdateReportedPropertiesAsync(twinSettings);
 
                         // Done...
-                        _logger.Info($"Module Host started (@{SiteId}).");
+                        _logger.Info($"Module Host started.");
                         return;
                     }
                 }

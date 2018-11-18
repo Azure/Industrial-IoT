@@ -211,7 +211,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
             foreach (var file in Directory.EnumerateFiles(from)) {
                 await UploadFileAsync(shell, options, to, from, file);
             }
-            if (!options.GetValueOrDefault("-r", "--recursive", false)) {
+            if (!options.IsSet("-r", "--recursive")) {
                 return;
             }
             foreach (var dir in Directory.EnumerateDirectories(from)) {

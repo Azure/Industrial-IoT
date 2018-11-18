@@ -28,13 +28,13 @@ namespace Microsoft.Azure.IIoT.Utils {
                 }
                 i++;
                 if (i == args.Length) {
-                    options.Add(key, "true");
+                    options.Add(key, "");
                     break;
                 }
                 var val = args[i];
                 if (val[0] == '-') {
                     // An option, so previous one is a boolean option
-                    options.Add(key, "true");
+                    options.Add(key, "");
                     continue;
                 }
                 options.Add(key, val);
@@ -103,6 +103,23 @@ namespace Microsoft.Azure.IIoT.Utils {
         }
 
         /// <summary>
+        /// Get boolean option value
+        /// </summary>
+        /// <param name="key1"></param>
+        /// <param name="key2"></param>
+        /// <returns></returns>
+        public bool IsSet(string key1, string key2) {
+            if (!options.TryGetValue(key1, out var value) &&
+                !options.TryGetValue(key2, out value)) {
+                return false;
+            }
+            if (string.IsNullOrEmpty(value)) {
+                return true;
+            }
+            return value.As<bool>();
+        }
+
+        /// <summary>
         /// Get mandatory option value
         /// </summary>
         /// <param name="key1"></param>
@@ -119,6 +136,23 @@ namespace Microsoft.Azure.IIoT.Utils {
                 return (T)Enum.Parse(typeof(T), value, true);
             }
             return value.As<T>();
+        }
+
+        /// <summary>
+        /// Get boolean option value or nullable
+        /// </summary>
+        /// <param name="key1"></param>
+        /// <param name="key2"></param>
+        /// <returns></returns>
+        public bool? IsProvidedOrNull(string key1, string key2) {
+            if (!options.TryGetValue(key1, out var value) &&
+                !options.TryGetValue(key2, out value)) {
+                return null;
+            }
+            if (string.IsNullOrEmpty(value)) {
+                return true;
+            }
+            return value.As<bool>();
         }
 
         private readonly Dictionary<string, string> options;

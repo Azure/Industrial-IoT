@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
 
         /// <summary>Whether required</summary>
         public bool AuthRequired => GetBoolOrDefault(kAuth_RequiredKey,
-            GetBoolOrDefault("PCS_AUTH_REQUIRED", !string.IsNullOrEmpty(TenantId)));
+            GetBoolOrDefault("PCS_AUTH_REQUIRED", !string.IsNullOrEmpty(Audience)));
 
         /// <summary>Trusted issuer</summary>
         public string TrustedIssuer => GetStringOrDefault(kAuth_TrustedIssuerKey,
