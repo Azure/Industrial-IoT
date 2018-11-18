@@ -1,13 +1,15 @@
-# OPC Twin Core Packages (Preview)
+# Azure Industrial IoT OPC UA Components
 
 This repo contains the core business logic for the OPC Twin Industrial IIoT services and modules and consists of the following packages:
 
-* [Microsoft.Azure.IIoT.OpcUa](src/Microsoft.Azure.IIoT.OpcUa/src) contains shared and common code among...
-  * [Microsoft.Azure.IIoT.OpcUa.Edge](src/Microsoft.Azure.IIoT.OpcUa.Edge/src) contains the services hosted by the [OPC Twin module](https://github.com/Azure/azure-iiot-opc-twin-module).
-  * [Microsoft.Azure.IIoT.OpcUa.Twin](src/Microsoft.Azure.IIoT.OpcUa.Twin/src) is the business logic behind the [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
-  * [Microsoft.Azure.IIoT.OpcUa.Registry](src/Microsoft.Azure.IIoT.OpcUa.Registry/src) is the core logic of the [OPC Twin Registry](https://github.com/Azure/azure-iiot-opc-twin-registry) service.
+* [Microsoft.Azure.IIoT.OpcUa](src/Microsoft.Azure.IIoT.OpcUa/src) contains OPC UA stack and protocol as well as shared and common code among...
+  * [Microsoft.Azure.IIoT.OpcUa.Edge](src/Microsoft.Azure.IIoT.OpcUa.Edge/src) contains the services hosted by the [OPC UA Device Twin module](https://github.com/Azure/azure-iiot-opc-ua-twin-module).
+  * [Microsoft.Azure.IIoT.OpcUa.Twin](src/Microsoft.Azure.IIoT.OpcUa.Twin/src) contains services hosted by the [OPC UA Device Twin service](https://github.com/Azure/azure-iiot-opc-ua-services).
+  * [Microsoft.Azure.IIoT.OpcUa.Registry](src/Microsoft.Azure.IIoT.OpcUa.Registry/src) contains the [OPC UA Device Registry](https://github.com/Azure/azure-iiot-opc-ua-services) micro service business logic.
+  * [Microsoft.Azure.IIoT.OpcUa.Gateway](src/Microsoft.Azure.IIoT.OpcUa.Gateway/src) contains the business logic of the [OPC UA Device Twin Gateway](https://github.com/Azure/azure-iiot-opc-ua-services).
+* [Microsoft.Azure.IIoT.OpcUa.Servers](src/Microsoft.Azure.IIoT.OpcUa.Servers/src) contains test servers.
 
-The consuming services are part of our [Industrial IoT (IIoT) solution accelerator components](#Other-Industrial-IoT-Solution-Accelerator-components) suite.
+The consuming services are part of our [Azure Industrial IoT (IIoT) components](#Other-Azure-Industrial-IoT-components) suite.
 
 ## Build
 
@@ -19,21 +21,19 @@ The consuming services are part of our [Industrial IoT (IIoT) solution accelerat
    * If you already have VS Code installed, then ensure you have the [C# for Visual Studio Code (powered by OmniSharp)][omnisharp-url] extension installed.
 1. Open and build the solution file in Visual Studio or VS Code
 
-### Building on the command line
+### Building from the command line
 
 1. [Install .NET Core 2.1+][dotnet-install]
 1. Open a command line window or terminal session in the repo root
 1. Run `dotnet build -c Release`
 1. Run `dotnet pack`
 
-## Other Industrial IoT Solution Accelerator components
+## Other Azure Industrial IoT components
 
-* [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
-* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-twin-registry)
-* [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
-* [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module)
-* [OPC Twin API](https://github.com/Azure/azure-iiot-opc-twin-api)
-* OPC GDS Vault service (Coming soon)
+* [OPC UA micro services](https://github.com/Azure/azure-iiot-opc-ua-services)
+* OPC UA Certificate Management service (Coming soon)
+* [OPC UA API](https://github.com/Azure/azure-iiot-opc-ua-api)
+* [OPC UA Device Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-ua-twin-module)
 * [OPC Publisher IoT Edge module](https://github.com/Azure/iot-edge-opc-publisher)
 
 ## Contributing
@@ -42,7 +42,7 @@ Refer to our [contribution guidelines](CONTRIBUTING.md).
 
 ## Feedback
 
-Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-opc-twin-service/issues).
+Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-opc-ua/issues).
 
 ## License
 
