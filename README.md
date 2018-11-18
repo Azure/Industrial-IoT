@@ -1,18 +1,18 @@
-# OPC Twin Services
+# Azure Industrial IoT OPC UA Services
 
 ![Build Status](https://msazure.visualstudio.com/_apis/public/build/definitions/b32aa71e-8ed2-41b2-9d77-5bc261222004/33977/badge)
 
-The Twin micro services contained in this repository provide a REST front end for OPC UA application, endpoint, and module identity management and control using the Azure IoT Hub Device Twin service.  
+The OPC UA micro services contained in this repository provide a REST like API to control and manage OPC UA applications, endpoints, and module identities using the Azure IoT Hub Device Twin service.  
 
-The **OPC UA twin registry micro service** provides access to registered OPC UA applications and their endpoints.  Operators and administrators can register and unregister new OPC UA applications and browse the existing ones, including their endpoints.  
+The **OPC UA device registry micro service** provides access to registered OPC UA applications and their endpoints.  Operators and administrators can register and unregister new OPC UA applications and browse the existing ones, including their endpoints.  
 
-In addition to application and endpoint management, the registry service also catalogues registered [OPC Twin IoT Edge modules](https://github.com/Azure/azure-iiot-opc-twin-module).  The service API gives you control of edge module functionality, e.g. starting or stopping Server discovery (Scanning services), or activating new 'Endpoint twins' that can be accessed using the OPC Twin micro service.
+In addition to application and endpoint management, the registry service also catalogues registered [OPC UA Device Twin IoT Edge modules](https://github.com/Azure/azure-iiot-opc-ua-twin-module).  The service API gives you control of edge module functionality, e.g. starting or stopping Server discovery (Scanning services), or activating new 'Endpoint twins' that can be accessed using the OPC Twin micro service.
 
-The **OPC UA twin micro service** facilitates communication with factory floor edge OPC UA server devices via a [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module) and exposes OPC UA services (Browse, Read, Write, and Execute) via its REST API.  
+The **OPC UA device twin micro service** facilitates communication with factory floor edge OPC UA server devices via a [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-ua-twin-module) and exposes OPC UA services (Browse, Read, Write, and Execute) via its REST API.  
 
-The **onboarding agent service** is a worker role that processes OPC UA server discovery events sent by the [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module) when in discovery (or scan) mode.  The discovery events result in application registration and updates in the OPC Twin Registry.
+The **OPC UA device onboarding agent** is a worker role that processes OPC UA server discovery events sent by the [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-ua-twin-module) when in discovery (or scan) mode.  The discovery events result in application registration and updates in the OPC UA device registry.
 
-The OPC Twin services are part of our suite of [Industrial IoT (IIoT) solution accelerator components](#Other-Industrial-IoT-components).
+The OPC UA micro services are part of our suite of [Azure Industrial IoT components](#Other-Azure-Industrial-IoT-components).
 
 ## Getting started
 
@@ -34,21 +34,23 @@ This service has at a minimum a dependency on the following Azure resources:
 * [Azure IoT Hub][iothub-docs-url]
 * [Azure Storage][storage-docs-url]
 
-If you have [PowerShell](#Install-any-tools-and-depdendencies) installed on your machine you can deploy them using the deploy.ps1 script contained in the deploy folder of the repo.  Run `./deploy.ps1 -type local` and choose to save the resulting .env file.
+If you have [PowerShell](#Install-any-tools-and-depdendencies) installed on your machine you can deploy them using the ./deploy.ps1 script contained in the deploy folder of this repo.  Run `./deploy.ps1 -type local` and choose to save the resulting .env file for use with docker-compose.
 
 ### Setup Environment variables
 
 In order to run the services, some environment variables need to be created at least once. More information on environment variables [below](#Configuration-And-Environment-Variables).  
 
-If you deploy all dependencies using [PowerShell](#Deploy-required-Azure-Services), the resulting .env file or script output shows all the variables the services expect.  Export each, or source them into your development environment before starting any service locally.  If you run the services using docker-compose, no further action is required.
+If you deploy all dependencies using [PowerShell](#Deploy-required-Azure-Services), the resulting `.env` file or script output shows all the variables the services expect.  This file is used directly when starting the services using docker-compose and must be in the same folder as your `docker-compose.yml` file (e.g. the one in the root of this repo).
+
+If you want to run the services locally, you need to export these environment variables into your environment, e.g. by including them in your shell init script.  On Wndows you can also use the `setenv.bat` file in the `scripts` folder to read the `.env` file and set the variables in your system.
 
 ## Build and Run
 
 ### Running all services using docker
 
-If you have [Docker](#Install-any-tools-and-depdendencies) installed, you can start all services by changing into the repo root and running `docker-compose up`.  This requires that all needed environment variables were written into the .env file by the deployment script.
+If you have [Docker](#Install-any-tools-and-depdendencies) installed, you can start all services by changing into the repo root and running `docker-compose up`.  This requires a `.env` file generated by the deployment script.
 
-To start the OPC Twin module follow the instructions [here](https://github.com/Azure/azure-iiot-opc-twin-module).
+To start the OPC UA device Twin module follow the instructions [here](https://github.com/Azure/azure-iiot-opc-ua-twin-module).
 
 > For real world usage, run one or more OPC UA servers in the same network that the above module deployment is part of.
 
@@ -58,7 +60,7 @@ To start the OPC Twin module follow the instructions [here](https://github.com/A
 1. Open the solution in Visual Studio or VS Code
 1. Configure the solution start up projects as `Microsoft.Azure.IIoT.OpcUa.Services.Twin`, `Microsoft.Azure.IIoT.OpcUa.Services.Onboarding`, and `Microsoft.Azure.IIoT.OpcUa.Services.Registry`
 1. Start all projects (e.g. press F5).
-1. Open a browser to `http://localhost:9041/` and `http://localhost:9042/` and test the each REST API using the services' Swagger UI or the [OPC Twin CLI](https://github.com/Azure/azure-iiot-opc-twin-api).
+1. Open a browser to `http://localhost:9041/` and `http://localhost:9042/` and test the each REST API using the services' Swagger UI or the [OPC Twin CLI](https://github.com/Azure/azure-iiot-opc-ua-api).
 
 ### Configuration and Environment variables
 
@@ -69,13 +71,13 @@ Each service can be configured in its [appsettings.json](src/appsettings.json) f
 
 > Make sure to restart your editor or IDE after setting your environment variables to ensure they are picked up.
 
-## Other Industrial IoT components
+## Other Azure Industrial IoT components
 
-* OPC Twin common business logic (Coming soon)
-* [OPC Twin API](https://github.com/Azure/azure-iiot-opc-twin-api)
-* [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module)
+* [OPC UA micro services](https://github.com/Azure/azure-iiot-opc-ua-services)
+* OPC UA Certificate Management service (Coming soon)
+* [OPC UA API](https://github.com/Azure/azure-iiot-opc-ua-api)
+* [OPC UA Device Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-ua-twin-module)
 * [OPC Publisher IoT Edge module](https://github.com/Azure/iot-edge-opc-publisher)
-* OPC Vault service (Coming soon)
 
 ## Contributing
 
@@ -83,7 +85,7 @@ Refer to our [contribution guidelines](CONTRIBUTING.md).
 
 ## Feedback
 
-Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-opc-twin-service/issues).
+Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-opc-ua/issues).
 
 ## License
 
