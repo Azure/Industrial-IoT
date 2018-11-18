@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Twin activation filter model
+    /// Endpoint Activation Filter model
     /// </summary>
-    public class TwinActivationFilterModel {
+    public class EndpointActivationFilterModel {
 
         /// <summary>
         /// Certificate trust list identifiers to use for

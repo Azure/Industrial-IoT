@@ -60,14 +60,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// </summary>
         /// <param name="registry"></param>
         /// <param name="sessions"></param>
-        /// <param name="twin"></param>
+        /// <param name="nodes"></param>
         /// <param name="browser"></param>
         /// <param name="codec"></param>
         /// <param name="auth"></param>
         /// <param name="validator"></param>
         /// <param name="logger"></param>
         public GatewayServer(IApplicationRegistry registry, ISessionServices sessions,
-            INodeServices<string> twin, IBrowseServices<string> browser,
+            INodeServices<string> nodes, IBrowseServices<string> browser,
             IVariantEncoder codec, IAuthConfig auth, ITokenValidator validator,
             ILogger logger) {
 
@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _browser = browser ?? throw new ArgumentNullException(nameof(browser));
-            _twin = twin ?? throw new ArgumentNullException(nameof(twin));
+            _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
             _auth = auth ?? throw new ArgumentNullException(nameof(auth));
             _validator = validator ?? throw new ArgumentNullException(nameof(_validator));
 
@@ -711,7 +711,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
 
         /// <summary>
         /// Get endpoints for the application from the registry and return
-        /// an endpoint description collection.  Each twin endpoint is published
+        /// an endpoint description collection.  Each endpoint is published
         /// onto each registered listener endpoint.
         /// </summary>
         /// <param name="discoveryUrl"></param>
@@ -719,16 +719,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <returns></returns>
         protected async Task<EndpointDescriptionCollection> GetEndpointsAsync(
             string discoveryUrl, StringCollection profileUris = null) {
-            ParseTwinUri(discoveryUrl, out var applicationId, out var twinId);
+            ParseUri(discoveryUrl, out var applicationId, out var endpointId);
             if (string.IsNullOrEmpty(applicationId)) {
                 return new EndpointDescriptionCollection();
             }
             var registration = await _registry.GetApplicationAsync(applicationId, true);
-            // Make endpoints for the twins and publish on all transport endpoints
+            // Make endpoints and publish on all transport endpoints
             var server = ToApplicationDescription(registration.Application);
             var endpoints = _endpoints.SelectMany(ep => {
                 return registration.Endpoints
-                    .Where(t => twinId == null || t.Id == twinId)
+                    .Where(t => endpointId == null || t.Id == endpointId)
                     .Select(t => new EndpointDescription {
                         Server = server,
                         EndpointUrl = ToTwinUri(ep, applicationId, t.Id)
@@ -749,7 +749,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         }
 
         /// <summary>
-        /// Browse on twin
+        /// Browse on endpoint
         /// </summary>
         /// <param name="context"></param>
         /// <param name="requestHeader"></param>
@@ -763,13 +763,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             RequestHeader requestHeader, ViewDescription view,
             uint requestedMaxReferencesPerNode, BrowseDescriptionCollection nodesToBrowse,
             BrowseResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
-            var twin = ToTwinId(context.ChannelContext.EndpointDescription);
+            var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
             for (var i = 0; i < nodesToBrowse.Count; i++) {
                 try {
                     // Call service
-                    var response = await _browser.NodeBrowseFirstAsync(twin,
+                    var response = await _browser.NodeBrowseFirstAsync(endpointId,
                         new BrowseRequestModel {
                             NodeId = nodesToBrowse[i].NodeId
                                 .AsString(context.Session.MessageContext),
@@ -827,7 +827,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         }
 
         /// <summary>
-        /// Browse next on twin
+        /// Browse next on endpoint
         /// </summary>
         /// <param name="context"></param>
         /// <param name="requestHeader"></param>
@@ -840,13 +840,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             RequestHeader requestHeader, bool releaseContinuationPoints,
             ByteStringCollection continuationPoints, BrowseResultCollection results,
             DiagnosticInfoCollection diagnosticInfos) {
-            var twin = ToTwinId(context.ChannelContext.EndpointDescription);
+            var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
             for (var i = 0; i < continuationPoints.Count; i++) {
                 try {
                     // Call service
-                    var response = await _browser.NodeBrowseNextAsync(twin,
+                    var response = await _browser.NodeBrowseNextAsync(endpointId,
                         new BrowseNextRequestModel {
                             ContinuationToken =
                                 continuationPoints[i]?.ToBase64String(),
@@ -895,7 +895,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         }
 
         /// <summary>
-        /// Call browse by path on twin
+        /// Call browse by path on endpoint
         /// </summary>
         /// <param name="context"></param>
         /// <param name="requestHeader"></param>
@@ -906,13 +906,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         protected async Task BrowsePathAsync(RequestContextModel context,
             RequestHeader requestHeader, BrowsePathCollection browsePaths,
             BrowsePathResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
-            var twin = ToTwinId(context.ChannelContext.EndpointDescription);
+            var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
             for (var i = 0; i < browsePaths.Count; i++) {
                 try {
                     // Call service
-                    var response = await _browser.NodeBrowsePathAsync(twin,
+                    var response = await _browser.NodeBrowsePathAsync(endpointId,
                         new BrowsePathRequestModel {
                             NodeId = browsePaths[i].StartingNode
                                 .AsString(context.Session.MessageContext),
@@ -952,7 +952,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         }
 
         /// <summary>
-        /// Call method on twin
+        /// Call method on endpoint
         /// </summary>
         /// <param name="context"></param>
         /// <param name="requestHeader"></param>
@@ -963,7 +963,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         protected async Task CallAsync(RequestContextModel context,
             RequestHeader requestHeader, CallMethodRequestCollection methodsToCall,
             CallMethodResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
-            var twin = ToTwinId(context.ChannelContext.EndpointDescription);
+            var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
             for (var i = 0; i < methodsToCall.Count; i++) {
@@ -978,7 +978,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         .ToList();
 
                     // Call service
-                    var response = await _twin.NodeMethodCallAsync(twin,
+                    var response = await _nodes.NodeMethodCallAsync(endpointId,
                         new MethodCallRequestModel {
                             MethodId = methodsToCall[i].MethodId.AsString(
                                 context.Session.MessageContext),
@@ -1016,7 +1016,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         }
 
         /// <summary>
-        /// Read from twin
+        /// Read from endpoint
         /// </summary>
         /// <param name="context"></param>
         /// <param name="requestHeader"></param>
@@ -1029,7 +1029,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             RequestHeader requestHeader, double maxAge,
             ReadValueIdCollection nodesToRead, DataValueCollection results,
             DiagnosticInfoCollection diagnosticInfos) {
-            var twin = ToTwinId(context.ChannelContext.EndpointDescription);
+            var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
 
@@ -1044,7 +1044,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     try {
                         nodesToRead[i].Processed = true;
                         // Call service
-                        var response = await _twin.NodeValueReadAsync(twin,
+                        var response = await _nodes.NodeValueReadAsync(endpointId,
                             new ValueReadRequestModel {
                                 IndexRange = nodesToRead[i].IndexRange,
                                 NodeId = nodesToRead[i].NodeId.AsString(
@@ -1094,7 +1094,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             else {
                 try {
                     // Do batch read
-                    var batchResponse = await _twin.NodeBatchReadAsync(twin, batch);
+                    var batchResponse = await _nodes.NodeBatchReadAsync(endpointId, batch);
                     if ((batchResponse.Results?.Count ?? 0) != batch.Attributes.Count) {
                         // Batch response is missing results
                         throw new IndexOutOfRangeException("Read response is missing results");
@@ -1130,7 +1130,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         }
 
         /// <summary>
-        /// Write to twin
+        /// Write to endpoint
         /// </summary>
         /// <param name="context"></param>
         /// <param name="requestHeader"></param>
@@ -1141,7 +1141,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         protected async Task WriteAsync(RequestContextModel context,
             RequestHeader requestHeader, WriteValueCollection nodesToWrite,
             StatusCodeCollection results, DiagnosticInfoCollection diagnosticInfos) {
-            var twin = ToTwinId(context.ChannelContext.EndpointDescription);
+            var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
 
@@ -1156,7 +1156,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     try {
                         nodesToWrite[i].Processed = true;
                         // Call service
-                        var response = await _twin.NodeValueWriteAsync(twin,
+                        var response = await _nodes.NodeValueWriteAsync(endpointId,
                             new ValueWriteRequestModel {
                                 IndexRange = nodesToWrite[i].IndexRange,
                                 NodeId = nodesToWrite[i].NodeId.AsString(
@@ -1204,7 +1204,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             else {
                 try {
                     // Do batch write
-                    var batchResponse = await _twin.NodeBatchWriteAsync(twin, batch);
+                    var batchResponse = await _nodes.NodeBatchWriteAsync(endpointId, batch);
                     if ((batchResponse.Results?.Count ?? 0) != batch.Attributes.Count) {
                         // Batch response is missing results
                         throw new IndexOutOfRangeException("Write response is missing results");
@@ -1249,14 +1249,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             RequestHeader requestHeader, ExtensionObject historyReadDetails,
             bool releaseContinuationPoints, HistoryReadValueIdCollection nodesToRead,
             HistoryReadResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
-            var twin = ToTwinId(context.ChannelContext.EndpointDescription);
+            var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
             for (var i = 0; i < nodesToRead.Count; i++) {
                 try {
                     if (nodesToRead[i].ContinuationPoint == null) {
                         // Call read first
-                        var response = await _twin.NodeHistoryReadAsync(twin,
+                        var response = await _nodes.NodeHistoryReadAsync(endpointId,
                             new HistoryReadRequestModel {
                                 NodeId = nodesToRead[i].NodeId
                                     .AsString(context.Session.MessageContext),
@@ -1283,7 +1283,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     }
                     else {
                         // Continue reading
-                        var response = await _twin.NodeHistoryReadNextAsync(twin,
+                        var response = await _nodes.NodeHistoryReadNextAsync(endpointId,
                             new HistoryReadNextRequestModel {
                                 ContinuationToken = nodesToRead[i].ContinuationPoint
                                     .ToBase64String(),
@@ -1329,13 +1329,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         protected async Task HistoryUpdateAsync(RequestContextModel context,
             RequestHeader requestHeader, ExtensionObjectCollection historyUpdateDetails,
             HistoryUpdateResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
-            var twin = ToTwinId(context.ChannelContext.EndpointDescription);
+            var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
             for (var i = 0; i < historyUpdateDetails.Count; i++) {
                 try {
                     // Call service
-                    var response = await _twin.NodeHistoryUpdateAsync(twin,
+                    var response = await _nodes.NodeHistoryUpdateAsync(endpointId,
                         new HistoryUpdateRequestModel {
                             Request = historyUpdateDetails == null ? null :
                                 _codec.Encode(new Variant(historyUpdateDetails), out var tmp,
@@ -1385,61 +1385,61 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         }
 
         /// <summary>
-        /// Parse the twin id out of the endpoint description.  The endpoint url is
-        /// assumed to end in the twin identifier.  This is what we use.
+        /// Parse the endpoint id out of the endpoint description.  The endpoint url is
+        /// assumed to end in the endpoint identifier.  This is what we use.
         /// </summary>
         /// <param name="endpointDescription"></param>
         /// <returns></returns>
-        private string ToTwinId(EndpointDescription endpointDescription) {
+        private string ToEndpointId(EndpointDescription endpointDescription) {
             if (endpointDescription == null) {
                 throw new ArgumentNullException(nameof(endpointDescription));
             }
             if (string.IsNullOrEmpty(endpointDescription.EndpointUrl)) {
                 throw new ArgumentNullException(nameof(endpointDescription.EndpointUrl));
             }
-            ParseTwinUri(endpointDescription.EndpointUrl, out var tmp, out var twinId);
-            return twinId;
+            ParseUri(endpointDescription.EndpointUrl, out var tmp, out var endpointId);
+            return endpointId;
         }
 
         /// <summary>
-        /// Convert to twin uri
+        /// Convert to endpoint uri
         /// </summary>
         /// <param name="endpointDescription"></param>
         /// <param name="applicationId"></param>
-        /// <param name="twinId"></param>
+        /// <param name="endpointId"></param>
         /// <returns></returns>
         private static Uri ToTwinUri(EndpointDescription endpointDescription,
-            string applicationId, string twinId = null) {
+            string applicationId, string endpointId = null) {
             if (endpointDescription == null) {
                 throw new ArgumentNullException(nameof(endpointDescription));
             }
             if (string.IsNullOrEmpty(endpointDescription.EndpointUrl)) {
                 throw new ArgumentNullException(nameof(endpointDescription.EndpointUrl));
             }
-            return FormatTwinUri(endpointDescription.EndpointUrl, applicationId, twinId);
+            return FormatTwinUri(endpointDescription.EndpointUrl, applicationId, endpointId);
         }
 
         /// <summary>
-        /// Parse the application and twin ids out of the endpoint url.
-        /// The endpoint url is assumed to end in the twin identifier.
+        /// Parse the application and endpoint ids out of the endpoint url.
+        /// The endpoint url is assumed to end in the endpoint identifier.
         /// </summary>
         /// <param name="endpointUrl"></param>
         /// <param name="applicationId"></param>
-        /// <param name="twinId"></param>
+        /// <param name="endpointId"></param>
         /// <returns>base uri</returns>
-        private string ParseTwinUri(string endpointUrl, out string applicationId,
-            out string twinId) {
+        private string ParseUri(string endpointUrl, out string applicationId,
+            out string endpointId) {
             if (string.IsNullOrEmpty(endpointUrl)) {
                 throw new ArgumentNullException(nameof(endpointUrl));
             }
             applicationId = null;
-            twinId = null;
+            endpointId = null;
             var url = Utils.ParseUri(endpointUrl);
             var path = url.AbsolutePath.Split(new char[] { '/' },
                 StringSplitOptions.RemoveEmptyEntries);
             foreach (var segment in path.Reverse()) {
-                if (segment.EqualsIgnoreCase("twin")) {
-                    twinId = applicationId;
+                if (segment.EqualsIgnoreCase("endpoint")) {
+                    endpointId = applicationId;
                     applicationId = null;
                 }
                 else if (segment.EqualsIgnoreCase("applications")) {
@@ -1458,19 +1458,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             }
             // Malformed url
             applicationId = null;
-            twinId = null;
+            endpointId = null;
             return endpointUrl;
         }
 
         /// <summary>
-        /// Format twin uri
+        /// Format endpoint uri
         /// </summary>
         /// <param name="endpointUrl"></param>
         /// <param name="applicationId"></param>
-        /// <param name="twinId"></param>
+        /// <param name="endpointId"></param>
         /// <returns></returns>
         private static Uri FormatTwinUri(string endpointUrl,
-            string applicationId, string twinId) {
+            string applicationId, string endpointId) {
             if (string.IsNullOrEmpty(endpointUrl)) {
                 throw new ArgumentNullException(nameof(endpointUrl));
             }
@@ -1485,8 +1485,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             if (!string.IsNullOrEmpty(applicationId)) {
                 path += "/applications/" + applicationId;
             }
-            if (!string.IsNullOrEmpty(twinId)) {
-                path += "/twin/" + twinId;
+            if (!string.IsNullOrEmpty(endpointId)) {
+                path += "/endpoint/" + endpointId;
             }
             builder.Path = path;
             return builder.Uri;
@@ -1562,10 +1562,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// </summary>
         private async Task InitAsync() {
             var config = new ApplicationConfiguration {
-                ApplicationName = "Opc Twin Gateway Server",
+                ApplicationName = "Opc UA Gateway Server",
                 ApplicationType = Opc.Ua.ApplicationType.ClientAndServer,
                 ApplicationUri =
-                    $"urn:{Utils.GetHostName()}:Microsoft:OpcTwinGatewayServer",
+                    $"urn:{Utils.GetHostName()}:Microsoft:OpcGatewayServer",
                 ProductUri = "http://opcfoundation.org/UA/SampleServer",
 
                 SecurityConfiguration = new SecurityConfiguration {
@@ -1573,7 +1573,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         StoreType = "Directory",
                         StorePath =
                 "OPC Foundation/CertificateStores/MachineDefault",
-                        SubjectName = "Opc Twin Gateway Server"
+                        SubjectName = "Opc UA Gateway Server"
                     },
                     TrustedPeerCertificates = new CertificateTrustList {
                         StoreType = "Directory",
@@ -1735,7 +1735,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             ApplicationConfiguration configuration, EndpointDescription description) {
             var policies = new UserTokenPolicyCollection();
 
-            // Allow anonymous access through the twins
+            // Allow anonymous access through the endpoints
             if (!_auth.AuthRequired) {
                 policies.Add(new UserTokenPolicy {
                     PolicyId = kGatewayPolicyPrefix + "Anonymous",
@@ -1744,7 +1744,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 });
             }
 
-            // Authenticate and then use twins
+            // Authenticate and then use endpoints
             if (!string.IsNullOrEmpty(_auth.InstanceUrl)) {
                 policies.Add(new UserTokenPolicy {
                     PolicyId = kGatewayPolicyPrefix + "Jwt",
@@ -1760,15 +1760,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         }
 
         /// <summary>
-        /// Advertise the correct user auth policies based on twin
+        /// Advertise the correct user auth policies based on endpoint
         /// </summary>
-        /// <param name="twin"></param>
+        /// <param name="endpoint"></param>
         /// <param name="description"></param>
         /// <returns></returns>
-        private UserTokenPolicyCollection GetUserTokenPolicies(TwinRegistrationModel twin,
+        private UserTokenPolicyCollection GetUserTokenPolicies(EndpointRegistrationModel endpoint,
             EndpointDescription description) {
-            if (twin == null) {
-                throw new ArgumentNullException(nameof(twin));
+            if (endpoint == null) {
+                throw new ArgumentNullException(nameof(endpoint));
             }
             if (description == null) {
                 throw new ArgumentNullException(nameof(description));
@@ -1777,10 +1777,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             // Get gateway specific policies
             var policies = GetUserTokenPolicies(Configuration, description);
 
-            // Add twin policies from registration model
-            var twinPolicies = twin.AuthenticationMethods.ToStackModel();
-            if (twinPolicies != null) {
-                policies.AddRange(twinPolicies);
+            // Add endpoint policies from registration model
+            var endpointPolicies = endpoint.AuthenticationMethods.ToStackModel();
+            if (endpointPolicies != null) {
+                policies.AddRange(endpointPolicies);
             }
             return policies;
         }
@@ -1880,7 +1880,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 // Test remote credential on server side by doing a simple batch read with
                 // the token.
                 //
-                var batchResponse = _twin.NodeBatchReadAsync(ToTwinId(session.Endpoint),
+                var batchResponse = _nodes.NodeBatchReadAsync(ToEndpointId(session.Endpoint),
                     new BatchReadRequestModel {
                         Attributes = new List<AttributeReadRequestModel> {
                         new AttributeReadRequestModel {
@@ -2038,7 +2038,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         private readonly IVariantEncoder _codec;
         private readonly ILogger _logger;
         private readonly IBrowseServices<string> _browser;
-        private readonly INodeServices<string> _twin;
+        private readonly INodeServices<string> _nodes;
         private readonly IAuthConfig _auth;
         private readonly ITokenValidator _validator;
         private readonly RequestState _requestState;

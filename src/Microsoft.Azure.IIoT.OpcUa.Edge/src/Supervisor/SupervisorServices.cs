@@ -21,12 +21,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Twin supervisor service
+    /// Supervisor service
     /// </summary>
     public class SupervisorServices : IActivationServices<string>, IDisposable {
 
         /// <summary>
-        /// Create twin supervisor creating and managing twin instances
+        /// Create supervisor creating and managing twin instances
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="config"></param>
@@ -42,12 +42,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         }
 
         /// <summary>
-        /// Start twin
+        /// Start twin with endpoint id
         /// </summary>
         /// <param name="id"></param>
         /// <param name="secret"></param>
         /// <returns></returns>
-        public async Task ActivateTwinAsync(string id, string secret) {
+        public async Task ActivateEndpointAsync(string id, string secret) {
             try {
                 await _lock.WaitAsync();
                 if (_twinHosts.TryGetValue(id, out var twin) && twin.Running) {
@@ -68,11 +68,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         }
 
         /// <summary>
-        /// Stop twin by id
+        /// Stop twin by endpoint id
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task DeactivateTwinAsync(string id) {
+        public async Task DeactivateEndpointAsync(string id) {
             TwinHost twin;
             try {
                 await _lock.WaitAsync();
@@ -260,7 +260,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         }
 
         /// <summary>
-        /// Twin host configuration wrapper
+        /// Endpoint twin host configuration wrapper
         /// </summary>
         private class TwinConfig : IModuleConfig {
 
@@ -278,7 +278,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
             }
 
             /// <summary>
-            /// Twin configuration
+            /// Endpoint twin configuration
             /// </summary>
             public string EdgeHubConnectionString { get; }
             public bool BypassCertVerification { get; }

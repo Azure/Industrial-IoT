@@ -4,21 +4,20 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using System.Collections.Generic;
 
     /// <summary>
-    /// Twin info list
+    /// Endpoint registration update request
     /// </summary>
-    public class TwinInfoListModel {
+    public class EndpointRegistrationUpdateModel {
 
         /// <summary>
-        /// Continuation or null if final
+        /// Identifier of the endpoint to update
         /// </summary>
-        public string ContinuationToken { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
-        /// Twin registrations
+        /// User authentication to change on the endpoint.
         /// </summary>
-        public List<TwinInfoModel> Items { get; set; }
+        public CredentialModel User { get; set; }
     }
 }

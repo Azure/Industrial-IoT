@@ -22,9 +22,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public int Index { get; set; }
 
         /// <summary>
-        /// Discovered endpoint in form of twin registration
+        /// Discovered endpoint in form of endpoint registration
         /// </summary>
-        public TwinRegistrationModel Registration { get; set; }
+        public EndpointRegistrationModel Registration { get; set; }
 
         /// <summary>
         /// Application to which this endpoint belongs

@@ -581,8 +581,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Returns activation filter model
         /// </summary>
         /// <returns></returns>
-        private TwinActivationFilterModel ToFilterModel() {
-            return IsNullFilter() ? null : new TwinActivationFilterModel {
+        private EndpointActivationFilterModel ToFilterModel() {
+            return IsNullFilter() ? null : new EndpointActivationFilterModel {
                 SecurityMode = SecurityModeFilter,
                 SecurityPolicies = SecurityPoliciesFilter.DecodeAsList(),
                 TrustLists = TrustListsFilter.DecodeAsList()

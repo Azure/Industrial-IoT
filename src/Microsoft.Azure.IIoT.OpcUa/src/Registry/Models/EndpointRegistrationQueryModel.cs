@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
     /// <summary>
-    /// Twin query
+    /// Endpoint query
     /// </summary>
-    public class TwinRegistrationQueryModel {
+    public class EndpointRegistrationQueryModel {
 
         /// <summary>
         /// Endoint url for direct server access
@@ -36,17 +36,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public SecurityMode? SecurityMode { get; set; }
 
         /// <summary>
-        /// Whether the twin is activated
+        /// Whether the endpoint is activated
         /// </summary>
         public bool? Activated { get; set; }
 
         /// <summary>
-        /// Whether the twin is connected
+        /// Whether the endpoint is connected
         /// </summary>
         public bool? Connected { get; set; }
 
         /// <summary>
-        /// Whether to include twins that were soft deleted
+        /// Whether to include endpoints that were soft deleted
         /// </summary>
         public bool? IncludeNotSeenSince { get; set; }
     }

@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         Task UnregisterApplicationAsync(string applicationId);
 
         /// <summary>
-        /// Clean up all applications and twins that have not
+        /// Clean up all applications and endpoints that have not
         /// been seen since for the amount of time
         /// </summary>
         /// <param name="notSeenFor"></param>

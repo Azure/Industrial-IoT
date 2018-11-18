@@ -44,8 +44,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     Certificate = result.Description.ServerCertificate,
                     Capabilities = new HashSet<string>(result.Capabilities)
                 },
-                Endpoints = new List<TwinRegistrationModel> {
-                    new TwinRegistrationModel {
+                Endpoints = new List<EndpointRegistrationModel> {
+                    new EndpointRegistrationModel {
                         SiteId = siteId,
                         SupervisorId = supervisorId,
                         Certificate = result.Description.ServerCertificate,

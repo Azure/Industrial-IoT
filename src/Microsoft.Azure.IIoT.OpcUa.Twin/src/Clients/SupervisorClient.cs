@@ -18,8 +18,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     /// <summary>
     /// Represents the supervisor api surface for browse and node operations.
     /// </summary>
-    public sealed class SupervisorClient : IBrowseServices<TwinRegistrationModel>,
-        INodeServices<TwinRegistrationModel>, IPublishServices<TwinRegistrationModel> {
+    public sealed class SupervisorClient : IBrowseServices<EndpointRegistrationModel>,
+        INodeServices<EndpointRegistrationModel>, IPublishServices<EndpointRegistrationModel> {
 
         /// <summary>
         /// Create service
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishStartResultModel> NodePublishStartAsync(
-            TwinRegistrationModel registration, PublishStartRequestModel request) {
+            EndpointRegistrationModel registration, PublishStartRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishStopResultModel> NodePublishStopAsync(
-            TwinRegistrationModel registration, PublishStopRequestModel request) {
+            EndpointRegistrationModel registration, PublishStopRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishedNodeListResultModel> NodePublishListAsync(
-            TwinRegistrationModel registration, PublishedNodeListRequestModel request) {
+            EndpointRegistrationModel registration, PublishedNodeListRequestModel request) {
             var result = await CallServiceOnSupervisor<PublishedNodeListRequestModel, PublishedNodeListResultModel>(
                 "PublishList_V1", registration, request);
             return result;
@@ -72,14 +72,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<BrowseResultModel> NodeBrowseFirstAsync(
-            TwinRegistrationModel registration, BrowseRequestModel request) {
+            EndpointRegistrationModel registration, BrowseRequestModel request) {
             return await CallServiceOnSupervisor<BrowseRequestModel, BrowseResultModel>(
                 "Browse_V1", registration, request);
         }
 
         /// <inheritdoc/>
         public async Task<BrowseNextResultModel> NodeBrowseNextAsync(
-            TwinRegistrationModel registration, BrowseNextRequestModel request) {
+            EndpointRegistrationModel registration, BrowseNextRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<BrowsePathResultModel> NodeBrowsePathAsync(
-            TwinRegistrationModel registration, BrowsePathRequestModel request) {
+            EndpointRegistrationModel registration, BrowsePathRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<ValueReadResultModel> NodeValueReadAsync(
-            TwinRegistrationModel registration, ValueReadRequestModel request) {
+            EndpointRegistrationModel registration, ValueReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -118,7 +118,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<ValueWriteResultModel> NodeValueWriteAsync(
-            TwinRegistrationModel registration, ValueWriteRequestModel request) {
+            EndpointRegistrationModel registration, ValueWriteRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -134,7 +134,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<MethodMetadataResultModel> NodeMethodGetMetadataAsync(
-            TwinRegistrationModel registration, MethodMetadataRequestModel request) {
+            EndpointRegistrationModel registration, MethodMetadataRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -147,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<MethodCallResultModel> NodeMethodCallAsync(
-            TwinRegistrationModel registration, MethodCallRequestModel request) {
+            EndpointRegistrationModel registration, MethodCallRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -160,7 +160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<BatchReadResultModel> NodeBatchReadAsync(
-            TwinRegistrationModel registration, BatchReadRequestModel request) {
+            EndpointRegistrationModel registration, BatchReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -176,7 +176,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<BatchWriteResultModel> NodeBatchWriteAsync(
-            TwinRegistrationModel registration, BatchWriteRequestModel request) {
+            EndpointRegistrationModel registration, BatchWriteRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -192,7 +192,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryReadResultModel> NodeHistoryReadAsync(
-            TwinRegistrationModel registration, HistoryReadRequestModel request) {
+            EndpointRegistrationModel registration, HistoryReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -205,7 +205,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResultModel> NodeHistoryReadNextAsync(
-            TwinRegistrationModel registration, HistoryReadNextRequestModel request) {
+            EndpointRegistrationModel registration, HistoryReadNextRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -218,7 +218,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResultModel> NodeHistoryUpdateAsync(
-            TwinRegistrationModel registration, HistoryUpdateRequestModel request) {
+            EndpointRegistrationModel registration, HistoryUpdateRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -240,7 +240,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         /// <param name="request"></param>
         /// <returns></returns>
         private async Task<R> CallServiceOnSupervisor<T, R>(string service,
-            TwinRegistrationModel registration, T request) {
+            EndpointRegistrationModel registration, T request) {
             if (registration == null) {
                 throw new ArgumentNullException(nameof(registration));
             }

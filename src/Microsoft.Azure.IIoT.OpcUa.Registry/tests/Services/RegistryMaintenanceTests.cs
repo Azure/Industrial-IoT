@@ -442,7 +442,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     .Create())
                 .Without(x => x.Endpoints)
                 .Do(c => c.Endpoints = fix
-                    .Build<TwinRegistrationModel>()
+                    .Build<EndpointRegistrationModel>()
                     .With(x => x.SiteId, sitex)
                     .With(x => x.SupervisorId, superx)
                     .CreateMany(5)
@@ -484,7 +484,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var epdevices = existing
                 .SelectMany(a => a.Endpoints
                     .Select(e => EndpointRegistration.FromServiceModel(
-                        new TwinInfoModel {
+                        new EndpointInfoModel {
                             ApplicationId = a.Application.ApplicationId,
                             Registration = e
                         }, disable)))

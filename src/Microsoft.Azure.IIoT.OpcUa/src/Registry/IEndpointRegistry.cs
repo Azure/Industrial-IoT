@@ -8,12 +8,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Twin registry
+    /// Endpoint registry
     /// </summary>
-    public interface ITwinRegistry {
+    public interface IEndpointRegistry {
 
         /// <summary>
-        /// Get all twins in paged form
+        /// Get all endpoints in paged form
         /// </summary>
         /// <param name="onlyServerState">Whether only
         /// desired endpoint state should be returned.
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="continuation"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        Task<TwinInfoListModel> ListTwinsAsync(string continuation,
+        Task<EndpointInfoListModel> ListEndpointsAsync(string continuation,
             bool onlyServerState = false, int? pageSize = null);
 
         /// <summary>
@@ -29,46 +29,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// </summary>
         /// <param name="query"></param>
         /// <param name="onlyServerState">Whether only
-        /// desired twin state should be returned.
+        /// desired endpoint state should be returned.
         /// </param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        Task<TwinInfoListModel> QueryTwinsAsync(
-            TwinRegistrationQueryModel query,
+        Task<EndpointInfoListModel> QueryEndpointsAsync(
+            EndpointRegistrationQueryModel query,
             bool onlyServerState = false, int? pageSize = null);
 
         /// <summary>
-        /// Get twin registration by identifer.
+        /// Get endpoint registration by identifer.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="onlyServerState">Whether only
-        /// desired twin state should be returned.
+        /// desired endpoint state should be returned.
         /// </param>
         /// <returns></returns>
-        Task<TwinInfoModel> GetTwinAsync(string id,
+        Task<EndpointInfoModel> GetEndpointAsync(string id,
             bool onlyServerState = false);
 
         /// <summary>
-        /// Set the twin state to activated
+        /// Set the endpoint state to activated
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task ActivateTwinAsync(string id);
+        Task ActivateEndpointAsync(string id);
 
         /// <summary>
-        /// Update existing server twin registration. Note that
+        /// Update existing server endpoint registration.
         /// Id and url field in request must not be null and
         /// endpoint registration must exist.
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task UpdateTwinAsync(TwinRegistrationUpdateModel request);
+        Task UpdateEndpointAsync(EndpointRegistrationUpdateModel request);
 
         /// <summary>
-        /// Set the twin state to deactivated
+        /// Set the endpoint state to deactivated
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task DeactivateTwinAsync(string id);
+        Task DeactivateEndpointAsync(string id);
     }
 }

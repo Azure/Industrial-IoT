@@ -16,20 +16,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     public static class RegistryServicesEx {
 
         /// <summary>
-        /// Find twins
+        /// Find endpoints using query
         /// </summary>
         /// <param name="service"></param>
         /// <param name="query"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public static async Task<List<TwinInfoModel>> QueryAllTwinsAsync(
-            this ITwinRegistry service, TwinRegistrationQueryModel query,
+        public static async Task<List<EndpointInfoModel>> QueryAllEndpointsAsync(
+            this IEndpointRegistry service, EndpointRegistrationQueryModel query,
             bool onlyServerState = false) {
-            var registrations = new List<TwinInfoModel>();
-            var result = await service.QueryTwinsAsync(query, onlyServerState);
+            var registrations = new List<EndpointInfoModel>();
+            var result = await service.QueryEndpointsAsync(query, onlyServerState);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
-                result = await service.ListTwinsAsync(result.ContinuationToken,
+                result = await service.ListEndpointsAsync(result.ContinuationToken,
                     onlyServerState);
                 registrations.AddRange(result.Items);
             }
@@ -37,18 +37,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         }
 
         /// <summary>
-        /// List all twins
+        /// List all endpoints
         /// </summary>
         /// <param name="service"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public static async Task<List<TwinInfoModel>> ListAllTwinsAsync(
-            this ITwinRegistry service, bool onlyServerState = false) {
-            var registrations = new List<TwinInfoModel>();
-            var result = await service.ListTwinsAsync(null, onlyServerState);
+        public static async Task<List<EndpointInfoModel>> ListAllEndpointsAsync(
+            this IEndpointRegistry service, bool onlyServerState = false) {
+            var registrations = new List<EndpointInfoModel>();
+            var result = await service.ListEndpointsAsync(null, onlyServerState);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
-                result = await service.ListTwinsAsync(result.ContinuationToken,
+                result = await service.ListEndpointsAsync(result.ContinuationToken,
                     onlyServerState);
                 registrations.AddRange(result.Items);
             }
@@ -107,7 +107,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         }
 
         /// <summary>
-        /// Unregister all applications and twins
+        /// Unregister all applications and endpoints
         /// </summary>
         /// <param name="service"></param>
         /// <returns></returns>

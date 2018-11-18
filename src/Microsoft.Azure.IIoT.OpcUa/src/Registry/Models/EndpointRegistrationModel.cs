@@ -8,12 +8,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Twin registration
+    /// Endpoint registration
     /// </summary>
-    public class TwinRegistrationModel {
+    public class EndpointRegistrationModel {
 
         /// <summary>
-        /// Twin and therefore endpoint identifier which is hashed from
+        /// Endpoint identifier which is hashed from
         /// the supervisor, site and url.
         /// </summary>
         public string Id { get; set; }
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor that registered the twin.
+        /// Supervisor that registered the endpoint.
         /// </summary>
         public string SupervisorId { get; set; }
 

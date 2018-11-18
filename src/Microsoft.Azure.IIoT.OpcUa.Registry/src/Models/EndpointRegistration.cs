@@ -95,9 +95,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         #endregion Twin Properties
 
         /// <summary>
-        /// Device id is the twin/endpoint id
+        /// Device id is the endpoint id
         /// </summary>
-        public string Id => TwinInfoModelEx.CreateTwinId(
+        public string Id => EndpointInfoModelEx.CreateEndpointId(
             ApplicationId, EndpointUrl, SecurityMode, SecurityPolicy);
 
         /// <summary>
@@ -203,7 +203,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 securityPolicy = update.SecurityPolicy;
             }
 
-            twin.Id = TwinInfoModelEx.CreateTwinId(
+            twin.Id = EndpointInfoModelEx.CreateEndpointId(
                 applicationId, endpointUrl, securityMode, securityPolicy);
 
             if (existing?.DeviceId != twin.Id) {
@@ -318,10 +318,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Convert to service model
         /// </summary>
         /// <returns></returns>
-        public TwinInfoModel ToServiceModel() {
-            return new TwinInfoModel {
+        public EndpointInfoModel ToServiceModel() {
+            return new EndpointInfoModel {
                 ApplicationId = ApplicationId,
-                Registration = new TwinRegistrationModel {
+                Registration = new EndpointRegistrationModel {
                     Id = DeviceId,
                     SiteId = string.IsNullOrEmpty(SiteId) ?
                         null : SiteId,
@@ -361,7 +361,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public bool Matches(TwinInfoModel model) {
+        public bool Matches(EndpointInfoModel model) {
             return model != null &&
                 Matches(model.Registration?.Endpoint) &&
                 NotSeenSince == model.NotSeenSince &&
@@ -377,7 +377,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="model"></param>
         /// <param name="disabled"></param>
         /// <returns></returns>
-        public static EndpointRegistration FromServiceModel(TwinInfoModel model,
+        public static EndpointRegistration FromServiceModel(EndpointInfoModel model,
             bool? disabled = null) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));

@@ -21,10 +21,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         /// <summary>
         /// Create client
         /// </summary>
-        /// <param name="twin"></param>
+        /// <param name="client"></param>
         /// <param name="logger"></param>
-        public DiscoveryClient(IMethodClient twin, ILogger logger) {
-            _client = twin ?? throw new ArgumentNullException(nameof(twin));
+        public DiscoveryClient(IMethodClient client, ILogger logger) {
+            _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 

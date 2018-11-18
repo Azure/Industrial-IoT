@@ -780,14 +780,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         continue;
                     }
                     result.Add(new NodeReferenceModel {
-                        BrowseName = reference.BrowseName.AsString(session.MessageContext),
-                        DisplayName = reference.DisplayName.ToString(),
-                        Id = reference.ReferenceTypeId.AsString(session.MessageContext),
+                        BrowseName = reference.BrowseName?.AsString(session.MessageContext),
+                        DisplayName = reference.DisplayName?.ToString(),
+                        Id = reference.ReferenceTypeId?
+                            .AsString(session.MessageContext),
                         Direction = reference.IsForward ?
                             OpcUa.Twin.Models.BrowseDirection.Forward :
                             OpcUa.Twin.Models.BrowseDirection.Backward,
                         Target = model,
-                        TypeDefinition = reference.TypeDefinition.AsString(session.MessageContext),
+                        TypeDefinition = reference.TypeDefinition?
+                            .AsString(session.MessageContext),
                     });
                 }
                 catch {

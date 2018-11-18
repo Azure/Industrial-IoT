@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// <summary>
     /// Service model extensions for discovery service
     /// </summary>
-    public static class TwinInfoModelEx {
+    public static class EndpointInfoModelEx {
 
         /// <summary>
         /// Create unique endpoint id
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="endpoint"></param>
         /// <returns></returns>
         public static string CreateTwinId(string applicationId,
-            EndpointModel endpoint) => CreateTwinId(applicationId,
+            EndpointModel endpoint) => CreateEndpointId(applicationId,
                 endpoint.Url, endpoint.SecurityMode, endpoint.SecurityPolicy);
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="mode"></param>
         /// <param name="securityPolicy"></param>
         /// <returns></returns>
-        public static string CreateTwinId(string applicationId, string url,
+        public static string CreateEndpointId(string applicationId, string url,
             SecurityMode? mode, string securityPolicy) {
             if (applicationId == null || url == null) {
                 return null;
@@ -54,8 +54,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this IEnumerable<TwinInfoModel> model,
-            IEnumerable<TwinInfoModel> that) {
+        public static bool IsSameAs(this IEnumerable<EndpointInfoModel> model,
+            IEnumerable<EndpointInfoModel> that) {
             if (model == that) {
                 return true;
             }
@@ -74,8 +74,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this TwinInfoModel model,
-            TwinInfoModel that) {
+        public static bool IsSameAs(this EndpointInfoModel model,
+            EndpointInfoModel that) {
             if (model == that) {
                 return true;
             }
@@ -91,11 +91,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static TwinInfoModel Clone(this TwinInfoModel model) {
+        public static EndpointInfoModel Clone(this EndpointInfoModel model) {
             if (model == null) {
                 return null;
             }
-            return new TwinInfoModel {
+            return new EndpointInfoModel {
                 ApplicationId = model.ApplicationId,
                 OutOfSync = model.OutOfSync,
                 Registration = model.Registration.Clone()

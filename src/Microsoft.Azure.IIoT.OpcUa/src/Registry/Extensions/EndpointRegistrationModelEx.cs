@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// <summary>
     /// Service model extensions for discovery service
     /// </summary>
-    public static class TwinRegistrationModelEx {
+    public static class EndpointRegistrationModelEx {
 
         /// <summary>
         /// Equality comparison
@@ -20,8 +20,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this IEnumerable<TwinRegistrationModel> model,
-            IEnumerable<TwinRegistrationModel> that) {
+        public static bool IsSameAs(this IEnumerable<EndpointRegistrationModel> model,
+            IEnumerable<EndpointRegistrationModel> that) {
             if (model == that) {
                 return true;
             }
@@ -40,8 +40,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this TwinRegistrationModel model,
-            TwinRegistrationModel that) {
+        public static bool IsSameAs(this EndpointRegistrationModel model,
+            EndpointRegistrationModel that) {
             if (model == that) {
                 return true;
             }
@@ -61,11 +61,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static TwinRegistrationModel Clone(this TwinRegistrationModel model) {
+        public static EndpointRegistrationModel Clone(this EndpointRegistrationModel model) {
             if (model == null) {
                 return null;
             }
-            return new TwinRegistrationModel {
+            return new EndpointRegistrationModel {
                 Certificate = model.Certificate,
                 Endpoint = model.Endpoint.Clone(),
                 Id = model.Id,
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         /// <param name="model"></param>
         public static SecurityAssessment GetSecurityAssessment(
-            this TwinRegistrationModel model) {
+            this EndpointRegistrationModel model) {
             if (model.Endpoint.SecurityMode == SecurityMode.None) {
                 return SecurityAssessment.Low;
             }

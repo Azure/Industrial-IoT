@@ -7,23 +7,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Twin activation services
+    /// Endpoint activation services
     /// </summary>
     public interface IActivationServices<T> {
 
         /// <summary>
-        /// Activate twin
+        /// Activate endpoint
         /// </summary>
         /// <param name="id"></param>
         /// <param name="secret"></param>
         /// <returns></returns>
-        Task ActivateTwinAsync(T id, string secret);
+        Task ActivateEndpointAsync(T id, string secret);
 
         /// <summary>
-        /// Deactivate twin
+        /// Deactivate endpoint
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task DeactivateTwinAsync(T id);
+        Task DeactivateEndpointAsync(T id);
     }
 }

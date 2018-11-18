@@ -32,8 +32,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public CallbackModel Callback { get; set; }
 
         /// <summary>
-        /// Upon discovery, activate all twins with this filter.
+        /// Upon discovery, activate all endpoints with this filter.
         /// </summary>
-        public TwinActivationFilterModel ActivationFilter { get; set; }
+        public EndpointActivationFilterModel ActivationFilter { get; set; }
     }
 }

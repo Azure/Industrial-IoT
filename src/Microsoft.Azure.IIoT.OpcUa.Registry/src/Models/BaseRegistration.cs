@@ -67,12 +67,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         #region Twin Tags or properties
 
         /// <summary>
-        /// The certificate of the twin
+        /// The certificate of the endpoint
         /// </summary>
         public Dictionary<string, string> Certificate { get; set; }
 
         /// <summary>
-        /// Site of the twin
+        /// Site of the endpoint
         /// </summary>
         public virtual string SiteId { get; set; }
 
@@ -162,12 +162,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <returns></returns>
         public static BaseRegistration ToRegistration(DeviceTwinModel twin,
             bool onlyServerState = false) {
-            if (twin == null || twin.Tags == null) {
+            if (twin == null) {
                 return null;
             }
             var type = twin.Tags.GetValueOrDefault<string>(nameof(DeviceType), null);
             if (string.IsNullOrEmpty(type) && twin.Properties.Reported != null) {
-                type = twin.Properties.Reported.GetValueOrDefault<string>("type", null);
+                type = twin.Properties.Reported.GetValueOrDefault<string>(kTypeProp, null);
             }
             switch (type?.ToLowerInvariant() ?? "") {
                 case "endpoint":

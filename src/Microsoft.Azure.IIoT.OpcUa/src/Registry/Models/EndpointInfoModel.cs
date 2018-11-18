@@ -7,14 +7,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using System;
 
     /// <summary>
-    /// Twin registration info
+    /// Endpoint info
     /// </summary>
-    public class TwinInfoModel {
+    public class EndpointInfoModel {
 
         /// <summary>
-        /// Twin registration
+        /// Endpoint registration
         /// </summary>
-        public TwinRegistrationModel Registration { get; set; }
+        public EndpointRegistrationModel Registration { get; set; }
 
         /// <summary>
         /// Application id endpoint is registered under.
@@ -27,12 +27,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public DateTime? NotSeenSince { get; set; }
 
         /// <summary>
-        /// Whether twin is activated in the twin module
+        /// Whether endpoint is activated in the twin module
         /// </summary>
         public bool? Activated { get; set; }
 
         /// <summary>
-        /// Whether twin is connected through the twin module
+        /// Whether endpoint is connected through the twin module
         /// </summary>
         public bool? Connected { get; set; }
 

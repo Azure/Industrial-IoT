@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         /// <param name="client"></param>
         /// <param name="identity"></param>
         /// <param name="logger"></param>
-        public PublisherMethodClient(IMethodClient client, IIdentity identity,
+        public PublisherMethodClient(IJsonMethodClient client, IIdentity identity,
             ILogger logger) : this(client, identity.DeviceId, "publisher", logger) {
             if (string.IsNullOrEmpty(identity.ModuleId)) {
                 throw new ArgumentException("Identity is not a module identity",
@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <param name="logger"></param>
-        public PublisherMethodClient(IMethodClient client, string deviceId,
+        public PublisherMethodClient(IJsonMethodClient client, string deviceId,
             string moduleId, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _moduleId = moduleId ?? throw new ArgumentNullException(nameof(moduleId));
@@ -193,7 +193,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             }
         }
 
-        private readonly IMethodClient _client;
+        private readonly IJsonMethodClient _client;
         private readonly string _deviceId;
         private readonly string _moduleId;
         private readonly ILogger _logger;

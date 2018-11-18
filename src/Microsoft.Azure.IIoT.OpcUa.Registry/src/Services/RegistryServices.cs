@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     /// Endpoint services using the IoT Hub twin services for endpoint
     /// identity registration/retrieval.
     /// </summary>
-    public sealed class RegistryServices : ITwinRegistry, ISupervisorRegistry,
+    public sealed class RegistryServices : IEndpointRegistry, ISupervisorRegistry,
         IApplicationRegistry, IRegistryMaintenance {
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="activate"></param>
         /// <param name="logger"></param>
         public RegistryServices(IIoTHubTwinServices iothub, IHttpClient client,
-            IActivationServices<TwinRegistrationModel> activate, ILogger logger) {
+            IActivationServices<EndpointRegistrationModel> activate, ILogger logger) {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -40,17 +40,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public async Task<TwinInfoModel> GetTwinAsync(string id,
+        public async Task<EndpointInfoModel> GetEndpointAsync(string id,
             bool onlyServerState) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentException(nameof(id));
             }
             var device = await _iothub.GetAsync(id);
-            return TwinModelToTwinRegistrationModel(device, onlyServerState, false);
+            return TwinModelToEndpointRegistrationModel(device, onlyServerState, false);
         }
 
         /// <inheritdoc/>
-        public async Task<TwinInfoListModel> ListTwinsAsync(string continuation,
+        public async Task<EndpointInfoListModel> ListEndpointsAsync(string continuation,
             bool onlyServerState, int? pageSize) {
             // Find all devices where endpoint information is configured
             var query = $"SELECT * FROM devices WHERE " +
@@ -58,18 +58,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize);
 
-            return new TwinInfoListModel {
+            return new EndpointInfoListModel {
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
-                    .Select(d => TwinModelToTwinRegistrationModel(d, onlyServerState, true))
+                    .Select(d => TwinModelToEndpointRegistrationModel(d, onlyServerState, true))
                     .Where(x => x != null)
                     .ToList()
             };
         }
 
         /// <inheritdoc/>
-        public async Task<TwinInfoListModel> QueryTwinsAsync(
-            TwinRegistrationQueryModel model, bool onlyServerState, int? pageSize) {
+        public async Task<EndpointInfoListModel> QueryEndpointsAsync(
+            EndpointRegistrationQueryModel model, bool onlyServerState, int? pageSize) {
 
             var query = "SELECT * FROM devices WHERE " +
                 $"tags.{nameof(EndpointRegistration.DeviceType)} = 'Endpoint' ";
@@ -132,7 +132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }
             }
             var result = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize);
-            return new TwinInfoListModel {
+            return new EndpointInfoListModel {
                 ContinuationToken = result.ContinuationToken,
                 Items = result.Items
                     .Select(t => EndpointRegistration.FromTwin(t, onlyServerState))
@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public async Task UpdateTwinAsync(TwinRegistrationUpdateModel request) {
+        public async Task UpdateEndpointAsync(EndpointRegistrationUpdateModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -198,7 +198,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public async Task ActivateTwinAsync(string id) {
+        public async Task ActivateEndpointAsync(string id) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentException(nameof(id));
             }
@@ -229,7 +229,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     registration.DeviceId, true);
                 try {
                     // ... then call down to supervisor to wait for activation to complete
-                    await _activator.ActivateTwinAsync(patched.Registration, secret);
+                    await _activator.ActivateEndpointAsync(patched.Registration, secret);
                     // Write twin activation status in twin settings
                     await _iothub.CreateOrUpdateAsync(EndpointRegistration.Patch(
                         registration, EndpointRegistration.FromServiceModel(patched,
@@ -239,7 +239,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     // Undo activation
                     await Try.Async(() => SetTwinActivationStatusAsync(
                         registration.SupervisorId, registration.DeviceId, false));
-                    await Try.Async(() => _activator.DeactivateTwinAsync(
+                    await Try.Async(() => _activator.DeactivateEndpointAsync(
                         patched.Registration));
                     _logger.Error("Failed to activate twin", ex);
                     throw ex;
@@ -248,7 +248,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public async Task DeactivateTwinAsync(string id) {
+        public async Task DeactivateEndpointAsync(string id) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentException(nameof(id));
             }
@@ -274,7 +274,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             await SetTwinActivationStatusAsync(registration.SupervisorId,
                 registration.DeviceId, false);
             // Call down to supervisor to ensure deactivation is complete
-            await Try.Async(() => _activator.DeactivateTwinAsync(patched.Registration));
+            await Try.Async(() => _activator.DeactivateEndpointAsync(patched.Registration));
 
             // Mark as deactivated
             if (registration.Activated ?? false) {
@@ -691,7 +691,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var absolute = DateTime.UtcNow - notSeenSince;
             var query = "SELECT * FROM devices WHERE " +
                 $"tags.{nameof(BaseRegistration.DeviceType)} = 'Application' " +
-            //    $"AND tags.{nameof(OpcUaTwinRegistration.NotSeenSince)} <= '{absolute}' " +
+            //    $"AND tags.{nameof(OpcUaEndpointRegistration.NotSeenSince)} <= '{absolute}' " +
                 $"AND IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)}) ";
             string continuation = null;
             do {
@@ -780,7 +780,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     group => group.Key,
                     group => group
                         .Select(ev =>
-                            EndpointRegistration.FromServiceModel(new TwinInfoModel {
+                            EndpointRegistration.FromServiceModel(new EndpointInfoModel {
                                 ApplicationId = group.Key,
                                 Registration = ev.Registration
                             }, false))
@@ -1122,7 +1122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="filter"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        private void ApplyActivationFilter(TwinActivationFilterModel filter,
+        private void ApplyActivationFilter(EndpointActivationFilterModel filter,
             EndpointRegistration endpoint) {
             if (filter == null || endpoint == null) {
                 return;
@@ -1220,7 +1220,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="onlyServerState">Only desired should be returned
         /// this means that you will look at stale information.</param>
         /// <returns></returns>
-        private static TwinInfoModel TwinModelToTwinRegistrationModel(
+        private static EndpointInfoModel TwinModelToEndpointRegistrationModel(
             DeviceTwinModel twin, bool onlyServerState, bool skipInvalid) {
 
             // Convert to twin registration
@@ -1231,12 +1231,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     return null;
                 }
                 throw new ResourceNotFoundException(
-                    $"{twin.Id} is not a registered opc ua twin endpoint.");
+                    $"{twin.Id} is not a registered opc ua endpoint.");
             }
             return registration.ToServiceModel();
         }
 
-        private readonly IActivationServices<TwinRegistrationModel> _activator;
+        private readonly IActivationServices<EndpointRegistrationModel> _activator;
         private readonly IIoTHubTwinServices _iothub;
         private readonly IHttpClient _client;
         private readonly ILogger _logger;

@@ -8,9 +8,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// All twin related services
+    /// All endpoint related services
     /// </summary>
-    public class TwinServices : ITwinServices {
+    public class TwinServices : IEndpointServices {
 
         /// <inheritdoc/>
         public EndpointModel Endpoint { get; set; }

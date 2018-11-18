@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using System.Linq;
 
     /// <summary>
-    /// Twin (application) registration persisted and comparable
+    /// Aapplication registration persisted and comparable
     /// </summary>
     public sealed class ApplicationRegistration : BaseRegistration {
 

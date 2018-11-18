@@ -7,20 +7,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using System.Linq;
 
     /// <summary>
-    /// Twin activation filter model extensions
+    /// Endpoint Activation Filter model extensions
     /// </summary>
-    public static class TwinActivationFilterModelEx {
+    public static class EndpointActivationFilterModelEx {
 
         /// <summary>
         /// Clone
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static TwinActivationFilterModel Clone(this TwinActivationFilterModel model) {
+        public static EndpointActivationFilterModel Clone(this EndpointActivationFilterModel model) {
             if (model == null) {
                 return null;
             }
-            return new TwinActivationFilterModel {
+            return new EndpointActivationFilterModel {
                 SecurityMode = model.SecurityMode,
                 SecurityPolicies = model.SecurityPolicies?.ToList(),
                 TrustLists = model.TrustLists?.ToList()

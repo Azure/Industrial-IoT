@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Net;
     using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Azure.IIoT.Net.Scanner;
@@ -47,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <param name="identity"></param>
         /// <param name="logger"></param>
         public PublisherClient(IModuleDiscovery modules, IIdentity identity,
-            IMethodClient methods, IEndpointDiscovery discovery, IEndpointServices opc,
+            IJsonMethodClient methods, IEndpointDiscovery discovery, IEndpointServices opc,
             ILogger logger) {
             _identity = identity ?? throw new ArgumentNullException(nameof(identity));
             _methods = methods ?? throw new ArgumentNullException(nameof(methods));
@@ -233,7 +234,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         private IPublishServices<EndpointModel> _publisher;
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
         private readonly IIdentity _identity;
-        private readonly IMethodClient _methods;
+        private readonly IJsonMethodClient _methods;
         private readonly IEndpointServices _opc;
         private readonly IModuleDiscovery _modules;
         private readonly IEndpointDiscovery _discovery;

@@ -5,13 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Specialized services provided by twin identity
+    /// Specialized services provided by endpoint identity
     /// </summary>
-    public interface ITwinServices {
+    public interface IEndpointServices {
 
         /// <summary>
         /// Endpoint

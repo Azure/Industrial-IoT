@@ -125,25 +125,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     Locale = ep.Server.ApplicationName.Locale,
                     Capabilities = caps
                 },
-                Endpoints = new List<TwinRegistrationModel> {
+                Endpoints = new List<EndpointRegistrationModel> {
                     ep.ToServiceModel(siteId, supervisorId)
                 }
             };
         }
 
         /// <summary>
-        /// Converts an endpoint description to a twin registration model
+        /// Converts an endpoint description to a endpoint registration model
         /// </summary>
         /// <param name="ep"></param>
         /// <param name="siteId"></param>
         /// <param name="supervisorId"></param>
         /// <returns></returns>
-        public static TwinRegistrationModel ToServiceModel(this EndpointDescription ep,
+        public static EndpointRegistrationModel ToServiceModel(this EndpointDescription ep,
             string siteId, string supervisorId) {
             if (ep == null) {
                 return null;
             }
-            return new TwinRegistrationModel {
+            return new EndpointRegistrationModel {
                 SiteId = siteId,
                 SupervisorId = supervisorId,
                 Certificate = ep.ServerCertificate,

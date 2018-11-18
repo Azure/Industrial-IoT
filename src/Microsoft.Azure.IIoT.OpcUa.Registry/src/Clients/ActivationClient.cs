@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     /// <summary>
     /// Client for Activation services in supervisor
     /// </summary>
-    public sealed class ActivationClient : IActivationServices<TwinRegistrationModel> {
+    public sealed class ActivationClient : IActivationServices<EndpointRegistrationModel> {
 
         /// <summary>
         /// Create service
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task ActivateTwinAsync(TwinRegistrationModel registration,
+        public async Task ActivateEndpointAsync(EndpointRegistrationModel registration,
             string secret) {
             if (registration == null) {
                 throw new ArgumentNullException(nameof(registration));
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task DeactivateTwinAsync(TwinRegistrationModel registration) {
+        public async Task DeactivateEndpointAsync(EndpointRegistrationModel registration) {
             if (registration == null) {
                 throw new ArgumentNullException(nameof(registration));
             }
@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         /// <param name="payload"></param>
         /// <returns></returns>
         private async Task CallServiceOnSupervisor(string service,
-            TwinRegistrationModel registration, object payload) {
+            EndpointRegistrationModel registration, object payload) {
             var sw = Stopwatch.StartNew();
             var deviceId = SupervisorModelEx.ParseDeviceId(registration.SupervisorId,
                 out var moduleId);
