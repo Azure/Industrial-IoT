@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
     <PackageLicenseUrl>$(RepositoryUrl)/blob/master/LICENSE</PackageLicenseUrl>
+    <NoWarn>NU5125</NoWarn>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>

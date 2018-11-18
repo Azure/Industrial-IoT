@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Onboarding {
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Hub.Clients;
+    using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -110,6 +111,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Onboarding {
             builder.RegisterType<IoTHubServiceHttpClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubTwinMethodClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ChunkMethodClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Opc Ua services

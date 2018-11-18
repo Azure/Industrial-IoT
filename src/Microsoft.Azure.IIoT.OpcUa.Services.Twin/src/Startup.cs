@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub.Clients;
+    using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -81,11 +82,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
             services.AddCors();
 
             // Add authentication
-            services.AddJwtBearerAuthentication(Config, Environment.IsDevelopment());
+            services.AddJwtBearerAuthentication(Config,
+                Environment.IsDevelopment());
 
             // Add authorization
             services.AddAuthorization(options => {
-                options.AddV1Policies(Config);
+                options.AddV1Policies(Config.AuthRequired,
+                    Config.UseRoles && !Environment.IsDevelopment());
             });
 
             // TODO: Remove http client factory and use
@@ -98,7 +101,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
                 .AddJsonOptions(options => {
                     options.SerializerSettings.Formatting = Formatting.Indented;
                     options.SerializerSettings.Converters.Add(new ExceptionConverter(
-                        true)); //Environment.IsDevelopment()));
+                        Environment.IsDevelopment()));
                     options.SerializerSettings.MaxDepth = 10;
                 });
 
@@ -199,6 +202,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin {
             builder.RegisterType<IoTHubServiceHttpClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubTwinMethodClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ChunkMethodClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Edge clients

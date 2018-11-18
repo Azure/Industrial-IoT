@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Gateway {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Hub.Clients;
     using Microsoft.Azure.IIoT.Auth.Server.Default;
     using Microsoft.Extensions.Configuration;
@@ -182,6 +183,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Gateway {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubTwinMethodClient>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ChunkMethodClient>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Opc Ua services
             builder.RegisterType<RegistryServices>()
@@ -190,8 +193,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Gateway {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<OnboardingClient>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            // Edge clients
             builder.RegisterType<TwinClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<SupervisorClient>()

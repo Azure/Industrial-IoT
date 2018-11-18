@@ -11,21 +11,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// Twin registration model
+    /// Endpoint registration model
     /// </summary>
-    public class TwinInfoApiModel {
+    public class EndpointInfoApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public TwinInfoApiModel() {}
+        public EndpointInfoApiModel() {}
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public TwinInfoApiModel(TwinInfoModel model) {
-            Registration = new TwinRegistrationApiModel(model.Registration);
+        public EndpointInfoApiModel(EndpointInfoModel model) {
+            Registration = new EndpointRegistrationApiModel(model.Registration);
             ApplicationId = model.ApplicationId;
             NotSeenSince = model.NotSeenSince;
             Activated = model.Activated;
@@ -37,8 +37,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public TwinInfoModel ToServiceModel() {
-            return new TwinInfoModel {
+        public EndpointInfoModel ToServiceModel() {
+            return new EndpointInfoModel {
                 ApplicationId = ApplicationId,
                 NotSeenSince = NotSeenSince,
                 Registration = Registration.ToServiceModel(),
@@ -49,11 +49,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         }
 
         /// <summary>
-        /// Twin registration
+        /// Endpoint registration
         /// </summary>
         [JsonProperty(PropertyName = "registration")]
         [Required]
-        public TwinRegistrationApiModel Registration { get; set; }
+        public EndpointRegistrationApiModel Registration { get; set; }
 
         /// <summary>
         /// Application id endpoint is registered under.
@@ -63,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public string ApplicationId { get; set; }
 
         /// <summary>
-        /// Whether twin is activated on this registration
+        /// Whether endpoint is activated on this registration
         /// </summary>
         [JsonProperty(PropertyName = "activated",
             NullValueHandling = NullValueHandling.Ignore)]
@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public bool? Activated { get; set; }
 
         /// <summary>
-        /// Whether twin is connected on this registration
+        /// Whether endpoint is connected on this registration
         /// </summary>
         [JsonProperty(PropertyName = "connected",
             NullValueHandling = NullValueHandling.Ignore)]
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public bool? OutOfSync { get; set; }
 
         /// <summary>
-        /// Last time twin was seen
+        /// Last time endpoint was seen
         /// </summary>
         [JsonProperty(PropertyName = "notSeenSince",
             NullValueHandling = NullValueHandling.Ignore)]

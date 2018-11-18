@@ -25,9 +25,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <summary>
         /// Create controller with service
         /// </summary>
-        /// <param name="twin"></param>
-        public CallController(INodeServices<string> twin) {
-            _twin = twin;
+        /// <param name="nodes"></param>
+        public CallController(INodeServices<string> nodes) {
+            _nodes = nodes;
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// The twin must be activated and connected and twin and server must trust
         /// each other.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <param name="request">The method metadata request</param>
         /// <returns>The method metadata response</returns>
         [HttpPost("{id}/$metadata")]
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var metadataresult = await _twin.NodeMethodGetMetadataAsync(
+            var metadataresult = await _nodes.NodeMethodGetMetadataAsync(
                 id, request.ToServiceModel());
             return new MethodMetadataResponseApiModel(metadataresult);
         }
@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// The twin must be activated and connected and twin and server must trust
         /// each other.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <param name="request">The method call request</param>
         /// <returns>The method call response</returns>
         [HttpPost("{id}")]
@@ -68,11 +68,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
 
             // TODO: Permissions
 
-            var callresult = await _twin.NodeMethodCallAsync(
+            var callresult = await _nodes.NodeMethodCallAsync(
                 id, request.ToServiceModel());
             return new MethodCallResponseApiModel(callresult);
         }
 
-        private readonly INodeServices<string> _twin;
+        private readonly INodeServices<string> _nodes;
     }
 }

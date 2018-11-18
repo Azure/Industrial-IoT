@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Controllers {
         /// </summary>
         /// <param name="id">supervisor identifier</param>
         /// <param name="onlyServerState">Whether to include only server
-        /// state, or display current client state of the twin if
+        /// state, or display current client state of the endpoint if
         /// available</param>
         /// <returns>Supervisor registration</returns>
         [HttpGet("{id}")]
@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Controllers {
         /// <param name="continuationToken">Optional Continuation
         /// token</param>
         /// <param name="onlyServerState">Whether to include only server
-        /// state, or display current client state of the twin if
+        /// state, or display current client state of the endpoint if
         /// available</param>
         /// <returns>
         /// List of supervisors and continuation token to use for next request
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Controllers {
         /// <param name="query">Supervisors query</param>
         /// <param name="pageSize">Optional number of results to
         /// <param name="onlyServerState">Whether to include only server
-        /// state, or display current client state of the twin if
+        /// state, or display current client state of the endpoint if
         /// available</param>
         /// return</param>
         /// <returns>Supervisors</returns>
@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Controllers {
         /// <param name="query">Supervisors Query</param>
         /// <param name="pageSize">Optional number of results to
         /// <param name="onlyServerState">Whether to include only server
-        /// state, or display current client state of the twin if
+        /// state, or display current client state of the endpoint if
         /// available</param>
         /// return</param>
         /// <returns>Supervisors</returns>

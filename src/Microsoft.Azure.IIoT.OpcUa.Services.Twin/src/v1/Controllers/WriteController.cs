@@ -25,9 +25,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <summary>
         /// Create controller with service
         /// </summary>
-        /// <param name="twin"></param>
-        public WriteController(INodeServices<string> twin) {
-            _twin = twin;
+        /// <param name="nodes"></param>
+        public WriteController(INodeServices<string> nodes) {
+            _nodes = nodes;
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// The twin must be activated and connected and twin and server must trust
         /// each other.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <param name="request">The write value request</param>
         /// <returns>The write value response</returns>
         [HttpPost("{id}")]
@@ -45,20 +45,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _twin.NodeValueWriteAsync(
+            var writeResult = await _nodes.NodeValueWriteAsync(
                 id, request.ToServiceModel());
             return new ValueWriteResponseApiModel(writeResult);
         }
 
         /// <summary>
         /// Write any node attribute as batches. This allows updating attributes
-        /// of any node in batch fashion.  However, note that batch requests
-        /// and responses must fit into the device method  payload size limits.
-        /// This is therefore considered an advanced api and should be used only
-        /// when the request and response payload size is not dynamic and was
-        /// well tested against a known endpoint.
+        /// of any node in batch fashion.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <param name="request">The batch write request</param>
         /// <returns>The batch write response</returns>
         [HttpPost("{id}/batch")]
@@ -67,11 +63,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _twin.NodeBatchWriteAsync(
+            var writeResult = await _nodes.NodeBatchWriteAsync(
                 id, request.ToServiceModel());
             return new BatchWriteResponseApiModel(writeResult);
         }
 
-        private readonly INodeServices<string> _twin;
+        private readonly INodeServices<string> _nodes;
     }
 }

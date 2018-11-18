@@ -9,20 +9,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
     using System.ComponentModel;
 
     /// <summary>
-    /// Twin query
+    /// Endpoint query
     /// </summary>
-    public class TwinRegistrationQueryApiModel {
+    public class EndpointRegistrationQueryApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public TwinRegistrationQueryApiModel() { }
+        public EndpointRegistrationQueryApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public TwinRegistrationQueryApiModel(TwinRegistrationQueryModel model) {
+        public EndpointRegistrationQueryApiModel(EndpointRegistrationQueryModel model) {
             Url = model.Url;
             UserAuthentication = model.UserAuthentication;
             Connected = model.Connected;
@@ -37,8 +37,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public TwinRegistrationQueryModel ToServiceModel() {
-            return new TwinRegistrationQueryModel {
+        public EndpointRegistrationQueryModel ToServiceModel() {
+            return new EndpointRegistrationQueryModel {
                 Url = Url,
                 UserAuthentication = UserAuthentication,
                 Connected = Connected,
@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public string SecurityPolicy { get; set; }
 
         /// <summary>
-        /// Whether the twin was activated
+        /// Whether the endpoint was activated
         /// </summary>
         [JsonProperty(PropertyName = "activated",
             NullValueHandling = NullValueHandling.Ignore)]
@@ -99,7 +99,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public bool? Activated { get; set; }
 
         /// <summary>
-        /// Whether the twin is connected on supervisor.
+        /// Whether the endpoint is connected on supervisor.
         /// </summary>
         [JsonProperty(PropertyName = "connected",
             NullValueHandling = NullValueHandling.Ignore)]
@@ -107,7 +107,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public bool? Connected { get; set; }
 
         /// <summary>
-        /// Whether to include twins that were soft deleted
+        /// Whether to include endpoints that were soft deleted
         /// </summary>
         [JsonProperty(PropertyName = "includeNotSeenSince",
             NullValueHandling = NullValueHandling.Ignore)]

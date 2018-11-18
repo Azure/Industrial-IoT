@@ -12,20 +12,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Twin registration model
+    /// Endpoint registration model
     /// </summary>
-    public class TwinRegistrationApiModel {
+    public class EndpointRegistrationApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public TwinRegistrationApiModel() {}
+        public EndpointRegistrationApiModel() {}
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public TwinRegistrationApiModel(TwinRegistrationModel model) {
+        public EndpointRegistrationApiModel(EndpointRegistrationModel model) {
             Id = model.Id;
             Endpoint = model.Endpoint == null ? null :
                 new EndpointApiModel(model.Endpoint);
@@ -40,8 +40,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public TwinRegistrationModel ToServiceModel() {
-            return new TwinRegistrationModel {
+        public EndpointRegistrationModel ToServiceModel() {
+            return new EndpointRegistrationModel {
                 Id = Id,
                 SiteId = SiteId,
                 AuthenticationMethods = AuthenticationMethods?
@@ -53,14 +53,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         }
 
         /// <summary>
-        /// Registered identifier of the twin
+        /// Registered identifier of the endpoint
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         [Required]
         public string Id { get; set; }
 
         /// <summary>
-        /// Registered site of the twin
+        /// Registered site of the endpoint
         /// </summary>
         [JsonProperty(PropertyName = "siteId")]
         [DefaultValue(null)]

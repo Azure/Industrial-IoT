@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1 {
     using Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Auth;
     using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.AspNetCore.Authorization;
 
     /// <summary>
@@ -17,31 +16,62 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1 {
         /// <summary>
         /// Add v1 policies to options
         /// </summary>
-        /// <param name="config"></param>
         /// <param name="options"></param>
+        /// <param name="withAuthorization"></param>
+        /// <param name="useRoleBasedAccess"></param>
         public static void AddV1Policies(this AuthorizationOptions options,
-            IAuthConfig config) {
+            bool withAuthorization, bool useRoleBasedAccess) {
 
-            if (!config.AuthRequired) {
+            if (!withAuthorization) {
                 options.AddNoOpPolicies(Policies.All());
                 return;
             }
 
-            // Otherwise, configure policies here to your liking
             options.AddPolicy(Policies.CanQuery, policy =>
                 policy.RequireAuthenticatedUser());
-            options.AddPolicy(Policies.CanManage, policy =>
-                policy.RequireAuthenticatedUser().Require(AdminRights));
-            options.AddPolicy(Policies.CanChange, policy =>
-                policy.RequireAuthenticatedUser().Require(AdminRights));
+            if (!useRoleBasedAccess) {
+                options.AddPolicy(Policies.CanChange, policy =>
+                    policy.RequireAuthenticatedUser());
+                options.AddPolicy(Policies.CanManage, policy =>
+                    policy.RequireAuthenticatedUser());
+            }
+            else {
+                options.AddPolicy(Policies.CanChange, policy =>
+                    policy.RequireAuthenticatedUser()
+                    .Require(ChangeRights));
+                options.AddPolicy(Policies.CanManage, policy =>
+                    policy.RequireAuthenticatedUser()
+                    .Require(ManageRights));
+            }
         }
 
         /// <summary>
-        /// can do all system functions
+        /// Admin has admin role or execute and can do all system functions
         /// </summary>
         public static bool AdminRights(AuthorizationHandlerContext context) {
             return
                 context.User.IsInRole(Roles.Admin) ||
+                context.User.HasClaim(c => c.Type == Claims.Execute);
+        }
+
+        /// <summary>
+        /// Approver either has the Sign role, or has execute claim
+        /// </summary>
+        public static bool ManageRights(AuthorizationHandlerContext context) {
+            return
+                context.User.IsInRole(Roles.Admin) ||
+                context.User.IsInRole(Roles.Sign) ||
+                context.User.HasClaim(c => c.Type == Claims.Execute);
+        }
+
+        /// <summary>
+        /// Writer either has the Sign, Admin or Writer role, or has execute claim
+        /// </summary>
+        public static bool ChangeRights(AuthorizationHandlerContext context) {
+            return
+                context.User.IsInRole(Roles.Write) ||
+                context.User.IsInRole(Roles.Admin) ||
+                context.User.IsInRole(Roles.Sign) ||
                 context.User.HasClaim(c => c.Type == Claims.Execute);
         }
     }

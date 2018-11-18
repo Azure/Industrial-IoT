@@ -10,20 +10,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Twin activation filter model
+    /// Endpoint Activation Filter model
     /// </summary>
-    public class TwinActivationFilterApiModel {
+    public class EndpointActivationFilterApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public TwinActivationFilterApiModel() { }
+        public EndpointActivationFilterApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public TwinActivationFilterApiModel(TwinActivationFilterModel model) {
+        public EndpointActivationFilterApiModel(EndpointActivationFilterModel model) {
             SecurityPolicies = model.SecurityPolicies;
             SecurityPolicies = model.SecurityPolicies;
             SecurityMode = model.SecurityMode;
@@ -33,8 +33,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public TwinActivationFilterModel ToServiceModel() {
-            return new TwinActivationFilterModel {
+        public EndpointActivationFilterModel ToServiceModel() {
+            return new EndpointActivationFilterModel {
                 TrustLists = TrustLists,
                 SecurityPolicies = SecurityPolicies,
                 SecurityMode = SecurityMode

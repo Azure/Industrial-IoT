@@ -25,9 +25,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <summary>
         /// Create controller with service
         /// </summary>
-        /// <param name="twin"></param>
-        public ReadController(INodeServices<string> twin) {
-            _twin = twin;
+        /// <param name="nodes"></param>
+        public ReadController(INodeServices<string> nodes) {
+            _nodes = nodes;
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// The twin must be activated and connected and twin and server must trust
         /// each other.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <param name="request">The read value request</param>
         /// <returns>The read value response</returns>
         [HttpPost("{id}")]
@@ -45,20 +45,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _twin.NodeValueReadAsync(
+            var readresult = await _nodes.NodeValueReadAsync(
                 id, request.ToServiceModel());
             return new ValueReadResponseApiModel(readresult);
         }
 
         /// <summary>
         /// Read any node attribute as batches. This allows reading attributes
-        /// of any node in batch fashion.  However, note that batch requests
-        /// and responses must fit into the device method  payload size limits.
-        /// This is therefore considered an advanced api and should be used only
-        /// when the request and response payload size is not dynamic and was
-        /// well tested against a known endpoint.
+        /// of any node in batch fashion.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <param name="request">The batch read request</param>
         /// <returns>The batch read response</returns>
         [HttpPost("{id}/batch")]
@@ -67,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _twin.NodeBatchReadAsync(
+            var readresult = await _nodes.NodeBatchReadAsync(
                 id, request.ToServiceModel());
             return new BatchReadResponseApiModel(readresult);
         }
@@ -78,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// The twin must be activated and connected and twin and server must trust
         /// each other.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <param name="nodeId">The node to read</param>
         /// <returns>The read value response</returns>
         [HttpGet("{id}")]
@@ -88,11 +84,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
                 throw new ArgumentNullException(nameof(nodeId));
             }
             var request = new ValueReadRequestApiModel { NodeId = nodeId };
-            var readresult = await _twin.NodeValueReadAsync(
+            var readresult = await _nodes.NodeValueReadAsync(
                 id, request.ToServiceModel());
             return new ValueReadResponseApiModel(readresult);
         }
 
-        private readonly INodeServices<string> _twin;
+        private readonly INodeServices<string> _nodes;
     }
 }

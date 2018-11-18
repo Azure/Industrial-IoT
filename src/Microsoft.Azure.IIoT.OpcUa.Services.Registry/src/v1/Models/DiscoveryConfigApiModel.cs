@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
             DiscoveryUrls = model.DiscoveryUrls;
             Locales = model.Locales;
             ActivationFilter = model.ActivationFilter == null ? null :
-               new TwinActivationFilterApiModel(model.ActivationFilter);
+               new EndpointActivationFilterApiModel(model.ActivationFilter);
         }
 
         /// <summary>
@@ -159,6 +159,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         [JsonProperty(PropertyName = "activationFilter",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public TwinActivationFilterApiModel ActivationFilter { get; set; }
+        public EndpointActivationFilterApiModel ActivationFilter { get; set; }
     }
 }

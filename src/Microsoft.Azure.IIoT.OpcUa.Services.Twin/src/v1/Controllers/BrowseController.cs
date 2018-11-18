@@ -28,9 +28,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <summary>
         /// Create controller with service
         /// </summary>
-        /// <param name="twin"></param>
-        public BrowseController(IBrowseServices<string> twin) {
-            _twin = twin;
+        /// <param name="browser"></param>
+        public BrowseController(IBrowseServices<string> browser) {
+            _broser = browser;
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// The twin must be activated and connected and twin and server must trust
         /// each other.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <param name="request">The browse request</param>
         /// <returns>The browse response</returns>
         [HttpPost("{id}")]
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var browseresult = await _twin.NodeBrowseAsync(id,
+            var browseresult = await _broser.NodeBrowseAsync(id,
                 request.ToServiceModel());
             return new BrowseResponseApiModel(browseresult);
         }
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// The twin must be activated and connected and twin and server must trust
         /// each other.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <returns>The browse response</returns>
         /// <param name="request">Continuation token</param>
         [HttpPost("{id}/next")]
@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             if (request.ContinuationToken == null) {
                 throw new ArgumentNullException(nameof(request.ContinuationToken));
             }
-            var browseresult = await _twin.NodeBrowseNextAsync(id,
+            var browseresult = await _broser.NodeBrowseNextAsync(id,
                 request.ToServiceModel());
             return new BrowseNextResponseApiModel(browseresult);
         }
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// The twin must be activated and connected and twin and server must trust
         /// each other.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <param name="request">The browse path request</param>
         /// <returns>The browse path response</returns>
         [HttpPost("{id}/path")]
@@ -89,7 +89,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var browseresult = await _twin.NodeBrowsePathAsync(id,
+            var browseresult = await _broser.NodeBrowsePathAsync(id,
                 request.ToServiceModel());
             return new BrowsePathResponseApiModel(browseresult);
         }
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// The twin must be activated and connected and twin and server must trust
         /// each other.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <param name="nodeId">The node to browse or omit to browse
         /// object root</param>
         /// <returns>The browse response</returns>
@@ -120,7 +120,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
                 TargetNodesOnly = true,
                 ReadVariableValues = true
             };
-            var browseresult = await _twin.NodeBrowseAsync(id, request);
+            var browseresult = await _broser.NodeBrowseAsync(id, request);
             return new BrowseResponseApiModel(browseresult);
         }
 
@@ -132,7 +132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// The twin must be activated and connected and twin and server must trust
         /// each other.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <returns>The browse response</returns>
         /// <param name="continuationToken">Optional Continuation
         /// token</param>
@@ -151,10 +151,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
                 TargetNodesOnly = true,
                 ReadVariableValues = true
             };
-            var browseresult = await _twin.NodeBrowseNextAsync(id, request);
+            var browseresult = await _broser.NodeBrowseNextAsync(id, request);
             return new BrowseNextResponseApiModel(browseresult);
         }
 
-        private readonly IBrowseServices<string> _twin;
+        private readonly IBrowseServices<string> _broser;
     }
 }

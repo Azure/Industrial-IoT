@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
             Callback = model.Callback == null ? null :
                 new CallbackApiModel(model.Callback);
             ActivationFilter = model.ActivationFilter == null ? null :
-                new TwinActivationFilterApiModel(model.ActivationFilter);
+                new EndpointActivationFilterApiModel(model.ActivationFilter);
         }
 
         /// <summary>
@@ -69,11 +69,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         public CallbackApiModel Callback { get; private set; }
 
         /// <summary>
-        /// Upon discovery, activate all twins with this filter.
+        /// Upon discovery, activate all endpoints with this filter.
         /// </summary>
         [JsonProperty(PropertyName = "activationFilter",
            NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public TwinActivationFilterApiModel ActivationFilter { get; set; }
+        public EndpointActivationFilterApiModel ActivationFilter { get; set; }
     }
 }

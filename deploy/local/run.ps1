@@ -7,12 +7,95 @@
 
  .PARAMETER resourceGroupName
     The resource group where the template will be deployed.
+
+ .PARAMETER aadConfig
+    The AAD configuration the template will be configured with.
+
+ .PARAMETER interactive
+    Whether to run in interactive mode
 #>
 
 param(
     [Parameter(Mandatory=$True)] [string] $resourceGroupName,
-    $aadConfig
+    $aadConfig = $null,
+    $interactive = $true
 )
+
+#******************************************************************************
+# Get env file content from deployment
+#******************************************************************************
+Function GetEnvironmentVariables() {
+    Param(
+        $deployment
+    )
+
+    $IOTHUB_NAME = $deployment.Outputs["iothub-name"].Value
+    $IOTHUB_ENDPOINT = $deployment.Outputs["iothub-endpoint"].Value
+    $IOTHUB_CONSUMERGROUP = $deployment.Outputs["iothub-consumer-group"].Value
+    $IOTHUB_CONNSTRING = $deployment.Outputs["iothub-connstring"].Value
+    $BLOB_ACCOUNT = $deployment.Outputs["azureblob-account"].Value
+    $BLOB_KEY = $deployment.Outputs["azureblob-key"].Value
+    $BLOB_ENDPOINT_SUFFIX = $deployment.Outputs["azureblob-endpoint-suffix"].Value
+    $DOCUMENTDB_CONNSTRING = $deployment.Outputs["docdb-connstring"].Value
+    $EVENTHUB_CONNSTRING = $deployment.Outputs["eventhub-connstring"].Value
+    $EVENTHUB_NAME = $deployment.Outputs["eventhub-name"].Value
+
+    Write-Output `
+        "PCS_IOTHUB_CONNSTRING=$IOTHUB_CONNSTRING"
+    Write-Output `
+        "PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING=$DOCUMENTDB_CONNSTRING"
+    Write-Output `
+        "PCS_TELEMETRY_DOCUMENTDB_CONNSTRING=$DOCUMENTDB_CONNSTRING"
+    Write-Output `
+        "PCS_TELEMETRYAGENT_DOCUMENTDB_CONNSTRING=$DOCUMENTDB_CONNSTRING"
+    Write-Output `
+        "PCS_IOTHUBREACT_ACCESS_CONNSTRING=$IOTHUB_CONNSTRING"
+    Write-Output `
+        "PCS_IOTHUBREACT_HUB_NAME=$IOTHUB_NAME"
+    Write-Output `
+        "PCS_IOTHUBREACT_HUB_ENDPOINT=$IOTHUB_ENDPOINT"
+    Write-Output `
+        "PCS_IOTHUBREACT_HUB_CONSUMERGROUP=$IOTHUB_CONSUMERGROUP"
+    Write-Output `
+        "PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT=$BLOB_ACCOUNT"
+    Write-Output `
+        "PCS_IOTHUBREACT_AZUREBLOB_KEY=$BLOB_KEY"
+    Write-Output `
+        "PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX=$BLOB_ENDPOINT_SUFFIX"
+    Write-Output `
+        "PCS_ASA_DATA_AZUREBLOB_ACCOUNT=$BLOB_ACCOUNT"
+    Write-Output `
+        "PCS_ASA_DATA_AZUREBLOB_KEY=$BLOB_KEY"
+    Write-Output `
+        "PCS_ASA_DATA_AZUREBLOB_ENDPOINT_SUFFIX=$BLOB_ENDPOINT_SUFFIX"
+    Write-Output `
+        "PCS_EVENTHUB_CONNSTRING=$EVENTHUB_CONNSTRING"
+    Write-Output `
+        "PCS_EVENTHUB_NAME=$EVENTHUB_NAME"
+
+    if (!$aadConfig) {
+    Write-Output `
+        "PCS_AUTH_REQUIRED=false"
+        return;
+    }
+
+    $AUTH_AUDIENCE = $aadConfig.Audience
+    $AUTH_AAD_APPID = $aadConfig.ClientId
+    $AUTH_AAD_TENANT = $aadConfig.TenantId
+    $AUTH_AAD_AUTHORITY = $aadConfig.Instance
+
+    Write-Output `
+        "PCS_AUTH_REQUIRED=true"
+    Write-Output `
+        "PCS_AUTH_AUDIENCE=$AUTH_AUDIENCE"
+    Write-Output `
+        "PCS_WEBUI_AUTH_AAD_APPID=$AUTH_AAD_APPID"
+    Write-Output `
+        "PCS_WEBUI_AUTH_AAD_AUTHORITY=$AUTH_AAD_AUTHORITY"
+    Write-Output `
+        "PCS_WEBUI_AUTH_AAD_TENANT=$AUTH_AAD_TENANT"
+}
+
 
 #******************************************************************************
 # Script body
@@ -36,46 +119,45 @@ while ($True) {
 
 # Start the deployment
 $templateFilePath = Join-Path $ScriptDir "template.json"
-$deployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $templateFilePath
+$deployment = New-AzureRmResourceGroupDeployment `
+    -ResourceGroupName $resourceGroupName -TemplateFile $templateFilePath
 
-#******************************************************************************
-# Write environment to console or .env file
-#******************************************************************************
-
-$PCS_IOTHUBREACT_HUB_NAME = $deployment.Outputs["iothub-name"].Value
-$PCS_IOTHUBREACT_HUB_ENDPOINT = $deployment.Outputs["iothub-endpoint"].Value
-$PCS_IOTHUBREACT_HUB_CONSUMERGROUP = $deployment.Outputs["iothub-consumer-group"].Value
-$PCS_IOTHUB_CONNSTRING = $deployment.Outputs["iothub-connstring"].Value
-$PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT = $deployment.Outputs["azureblob-account"].Value
-$PCS_IOTHUBREACT_AZUREBLOB_KEY = $deployment.Outputs["azureblob-key"].Value
-$PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX = $deployment.Outputs["azureblob-endpoint-suffix"].Value
-$PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING = $deployment.Outputs["docdb-connstring"].Value
-$PCS_EVENTHUB_CONNSTRING = $deployment.Outputs["eventhub-connstring"].Value
-$PCS_EVENTHUB_NAME = $deployment.Outputs["eventhub-name"].Value
-
-$prompt = "Save environment as $ENVVARS? [y/n]"
-$ENVVARS = Join-Path $rootDir ".env"
-if (Test-Path $ENVVARS) {
-    $prompt = "Overwrite existing .env file in $rootDir? [y/n]"
+if ($aadConfig -and $aadConfig.ClientObjectId) {
+    # 
+    # Update client application to add reply urls 
+    #
+    $replyUrls = New-Object System.Collections.Generic.List[System.String]
+    $replyUrls.Add("http://localhost/oauth2-redirect.html")
+    $replyUrls.Add("https://localhost/oauth2-redirect.html")
+    $replyUrls.Add("urn:ietf:wg:oauth:2.0:oob")
+    # still connected
+    Set-AzureADApplication -ObjectId $aadConfig.ClientObjectId -ReplyUrls $replyUrls
 }
-$reply = Read-Host -Prompt $prompt
-if ( $reply -match "[yY]" ) {
-    "PCS_IOTHUB_CONNSTRING=${PCS_IOTHUB_CONNSTRING}" > ${ENVVARS}
-    "PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING=${PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING}" >> ${ENVVARS}
-    "PCS_TELEMETRY_DOCUMENTDB_CONNSTRING=${PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING}" >> ${ENVVARS}
-    "PCS_TELEMETRYAGENT_DOCUMENTDB_CONNSTRING=${PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING}" >> ${ENVVARS}
-    "PCS_IOTHUBREACT_ACCESS_CONNSTRING=${PCS_IOTHUB_CONNSTRING}" >> ${ENVVARS}
-    "PCS_IOTHUBREACT_HUB_NAME=${PCS_IOTHUBREACT_HUB_NAME}" >> ${ENVVARS}
-    "PCS_IOTHUBREACT_HUB_ENDPOINT=${PCS_IOTHUBREACT_HUB_ENDPOINT}" >> ${ENVVARS}
-    "PCS_IOTHUBREACT_HUB_CONSUMERGROUP=${PCS_IOTHUBREACT_HUB_CONSUMERGROUP}" >> ${ENVVARS}
-    "PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT=${PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT}" >> ${ENVVARS}
-    "PCS_IOTHUBREACT_AZUREBLOB_KEY=${PCS_IOTHUBREACT_AZUREBLOB_KEY}" >> ${ENVVARS}
-    "PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX=${PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX}" >> ${ENVVARS}
-    "PCS_ASA_DATA_AZUREBLOB_ACCOUNT=${PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT}" >> ${ENVVARS}
-    "PCS_ASA_DATA_AZUREBLOB_KEY=${PCS_IOTHUBREACT_AZUREBLOB_KEY}" >> ${ENVVARS}
-    "PCS_ASA_DATA_AZUREBLOB_ENDPOINT_SUFFIX=${PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX}" >> ${ENVVARS}
-    "PCS_EVENTHUB_CONNSTRING=${PCS_EVENTHUB_CONNSTRING}" >> ${ENVVARS}
-    "PCS_EVENTHUB_NAME=${PCS_EVENTHUB_NAME}" >> ${ENVVARS}
+
+$writeFile = $false
+if ($script:interactive) {
+    $prompt = "Save environment as $ENVVARS? [y/n]"
+    $reply = Read-Host -Prompt $prompt
+    if ($reply -match "[yY]") {
+        $writeFile = $true
+    }
+    if ($writeFile) {
+        $ENVVARS = Join-Path $rootDir ".env"
+        if (Test-Path $ENVVARS) {
+            $prompt = "Overwrite existing .env file in $rootDir? [y/n]"
+            if ( $reply -match "[yY]" ) {
+                Remove-Item $ENVVARS -Force
+            }
+            else {
+                $writeFile = $false
+            }
+        }
+    }
+}
+if ($writeFile) {
+    GetEnvironmentVariables $deployment | Out-File -Encoding ascii `
+        -FilePath $ENVVARS
+
     Write-Host
     Write-Host ".env file created in $rootDir."
     Write-Host
@@ -92,20 +174,5 @@ if ( $reply -match "[yY]" ) {
     Write-Host
 }
 else {
-    Write-Host "PCS_IOTHUB_CONNSTRING=${PCS_IOTHUB_CONNSTRING}" 
-    Write-Host "PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING=${PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING}" 
-    Write-Host "PCS_TELEMETRY_DOCUMENTDB_CONNSTRING=${PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING}" 
-    Write-Host "PCS_TELEMETRYAGENT_DOCUMENTDB_CONNSTRING=${PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING}" 
-    Write-Host "PCS_IOTHUBREACT_ACCESS_CONNSTRING=${PCS_IOTHUB_CONNSTRING}" 
-    Write-Host "PCS_IOTHUBREACT_HUB_NAME=${PCS_IOTHUBREACT_HUB_NAME}" 
-    Write-Host "PCS_IOTHUBREACT_HUB_ENDPOINT=${PCS_IOTHUBREACT_HUB_ENDPOINT}" 
-    Write-Host "PCS_IOTHUBREACT_HUB_CONSUMERGROUP=${PCS_IOTHUBREACT_HUB_CONSUMERGROUP}" 
-    Write-Host "PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT=${PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT}" 
-    Write-Host "PCS_IOTHUBREACT_AZUREBLOB_KEY=${PCS_IOTHUBREACT_AZUREBLOB_KEY}" 
-    Write-Host "PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX=${PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX}" 
-    Write-Host "PCS_ASA_DATA_AZUREBLOB_ACCOUNT=${PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT}" 
-    Write-Host "PCS_ASA_DATA_AZUREBLOB_KEY=${PCS_IOTHUBREACT_AZUREBLOB_KEY}" 
-    Write-Host "PCS_ASA_DATA_AZUREBLOB_ENDPOINT_SUFFIX=${PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX}" 
-    Write-Host "PCS_EVENTHUB_CONNSTRING=${PCS_EVENTHUB_CONNSTRING}" 
-    Write-Host "PCS_EVENTHUB_NAME=${PCS_EVENTHUB_NAME}" 
+    GetEnvironmentVariables $deployment | Out-Default
 }

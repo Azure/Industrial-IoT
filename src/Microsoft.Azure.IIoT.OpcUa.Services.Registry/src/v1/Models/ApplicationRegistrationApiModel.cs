@@ -30,11 +30,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
             SecurityAssessment = model.SecurityAssessment;
             if (model.Endpoints != null) {
                 Endpoints = model.Endpoints
-                    .Select(s => new TwinRegistrationApiModel(s))
+                    .Select(s => new EndpointRegistrationApiModel(s))
                     .ToList();
             }
             else {
-                Endpoints = new List<TwinRegistrationApiModel>();
+                Endpoints = new List<EndpointRegistrationApiModel>();
             }
         }
 
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         [JsonProperty(PropertyName = "endpoints",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public List<TwinRegistrationApiModel> Endpoints { get; set; }
+        public List<EndpointRegistrationApiModel> Endpoints { get; set; }
 
         /// <summary>
         /// Application security assessment

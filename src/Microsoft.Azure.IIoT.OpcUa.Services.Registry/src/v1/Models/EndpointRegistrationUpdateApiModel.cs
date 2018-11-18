@@ -10,20 +10,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// Twin registration update request
+    /// Endpoint registration update request
     /// </summary>
-    public class TwinRegistrationUpdateApiModel {
+    public class EndpointRegistrationUpdateApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public TwinRegistrationUpdateApiModel() { }
+        public EndpointRegistrationUpdateApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public TwinRegistrationUpdateApiModel(TwinRegistrationUpdateModel model) {
+        public EndpointRegistrationUpdateApiModel(EndpointRegistrationUpdateModel model) {
             Id = model.Id;
             User = model.User == null ?
                 null : new CredentialApiModel(model.User);
@@ -33,22 +33,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public TwinRegistrationUpdateModel ToServiceModel() {
-            return new TwinRegistrationUpdateModel {
+        public EndpointRegistrationUpdateModel ToServiceModel() {
+            return new EndpointRegistrationUpdateModel {
                 Id = Id,
                 User = User?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Identifier of the twin to patch
+        /// Identifier of the endpoint to patch
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         [Required]
         public string Id { get; set; }
 
         /// <summary>
-        /// User authentication to change on the twin.
+        /// User authentication to change on the endpoint.
         /// </summary>
         [JsonProperty(PropertyName = "user",
             NullValueHandling = NullValueHandling.Ignore)]

@@ -16,81 +16,81 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Controllers {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Twins controller
+    /// Endpoints controller
     /// </summary>
-    [Route(VersionInfo.PATH + "/twins")]
+    [Route(VersionInfo.PATH + "/endpoints")]
     [ExceptionsFilter]
     [Produces(ContentEncodings.MimeTypeJson)]
     [Authorize(Policy = Policies.CanQuery)]
-    public class TwinsController : Controller {
+    public class EndpointsController : Controller {
 
         /// <summary>
         /// Create controller with service
         /// </summary>
-        /// <param name="twins"></param>
-        public TwinsController(ITwinRegistry twins) {
-            _twins = twins;
+        /// <param name="endpoints"></param>
+        public EndpointsController(IEndpointRegistry endpoints) {
+            _endpoints = endpoints;
         }
 
         /// <summary>
-        /// Activates the twin registration with the specified identifier.
+        /// Activates the endpoint registration with the specified identifier.
         /// </summary>
-        /// <param name="id">twin identifier</param>
-        [HttpPost("activate/{id}")]
+        /// <param name="id">endpoint identifier</param>
+        [HttpPost("{id}/activate")]
         [Authorize(Policy = Policies.CanChange)]
         public async Task ActivateAsync(string id) {
-            await _twins.ActivateTwinAsync(id);
+            await _endpoints.ActivateEndpointAsync(id);
         }
 
         /// <summary>
-        /// Update existing twin. Note that Id field in request
-        /// must not be null and twin registration must exist.
+        /// Update existing endpoint. Note that Id field in request
+        /// must not be null and endpoint registration must exist.
         /// </summary>
-        /// <param name="request">Twin update request</param>
+        /// <param name="request">Endpoint update request</param>
         [HttpPatch]
         [Authorize(Policy = Policies.CanChange)]
         public async Task PatchAsync(
-            [FromBody] TwinRegistrationUpdateApiModel request) {
+            [FromBody] EndpointRegistrationUpdateApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _twins.UpdateTwinAsync(request.ToServiceModel());
+            await _endpoints.UpdateEndpointAsync(request.ToServiceModel());
         }
 
         /// <summary>
-        /// Returns the twin registration with the specified identifier.
+        /// Returns the endpoint registration with the specified identifier.
         /// </summary>
-        /// <param name="id">twin identifier</param>
+        /// <param name="id">endpoint identifier</param>
         /// <param name="onlyServerState">Whether to include only server
-        /// state, or display current client state of the twin if
+        /// state, or display current client state of the endpoint if
         /// available</param>
-        /// <returns>Twin registration</returns>
+        /// <returns>Endpoint registration</returns>
         [HttpGet("{id}")]
-        public async Task<TwinInfoApiModel> GetAsync(string id,
+        public async Task<EndpointInfoApiModel> GetAsync(string id,
             [FromQuery] bool? onlyServerState) {
-            var result = await _twins.GetTwinAsync(id, onlyServerState ?? false);
+            var result = await _endpoints.GetEndpointAsync(id, onlyServerState ?? false);
 
-            // TODO: Redact username/token in twin based on policy/permission
+            // TODO: Redact username/token in endpoint based on policy/permission
 
-            return new TwinInfoApiModel(result);
+            return new EndpointInfoApiModel(result);
         }
 
         /// <summary>
-        /// Get all registered twins in paged form.
+        /// Get all registered endpoints in paged form.
         /// </summary>
         /// <param name="pageSize">Optional number of results to
         /// return</param>
         /// <param name="continuationToken">Optional Continuation
         /// token</param>
         /// <param name="onlyServerState">Whether to include only server
-        /// state, or display current client state of the twin if
+        /// state, or display current client state of the endpoint if
         /// available</param>
         /// <returns>
-        /// List of twins and continuation token to use for next request
+        /// List of endpoints and continuation token to use for next request
         /// in x-ms-continuation header.
         /// </returns>
         [HttpGet]
-        public async Task<TwinInfoListApiModel> ListAsync(
+        public async Task<EndpointInfoListApiModel> ListAsync(
             [FromQuery] bool? onlyServerState,
             [FromQuery] string continuationToken,
             [FromQuery] int? pageSize) {
@@ -102,27 +102,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _twins.ListTwinsAsync(continuationToken,
+            var result = await _endpoints.ListEndpointsAsync(continuationToken,
                 onlyServerState ?? false, pageSize);
 
             // TODO: Redact username/token based on policy/permission
 
-            return new TwinInfoListApiModel(result);
+            return new EndpointInfoListApiModel(result);
         }
 
         /// <summary>
-        /// Returns the twins that match the query.
+        /// Returns the endpoints that match the query.
         /// </summary>
         /// <param name="onlyServerState">Whether to include only server
-        /// state, or display current client state of the twin if
+        /// state, or display current client state of the endpoint if
         /// available</param>
         /// <param name="model">Query to match</param>
         /// <param name="pageSize">Optional number of results to
         /// return</param>
-        /// <returns>Twin model list</returns>
+        /// <returns>Endpoint model list</returns>
         [HttpPost("query")]
-        public async Task<TwinInfoListApiModel> FindAsync(
-            [FromBody] TwinRegistrationQueryApiModel model,
+        public async Task<EndpointInfoListApiModel> FindAsync(
+            [FromBody] EndpointRegistrationQueryApiModel model,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
 
@@ -130,25 +130,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _twins.QueryTwinsAsync(model.ToServiceModel(),
+            var result = await _endpoints.QueryEndpointsAsync(model.ToServiceModel(),
                 onlyServerState ?? false, pageSize);
 
-            return new TwinInfoListApiModel(result);
+            return new EndpointInfoListApiModel(result);
         }
 
         /// <summary>
-        /// Returns the twins using query from uri query
+        /// Returns the endpoints using query from uri query
         /// </summary>
         /// <param name="onlyServerState">Whether to include only server
-        /// state, or display current client state of the twin if
+        /// state, or display current client state of the endpoint if
         /// available</param>
         /// <param name="model">Query to match</param>
         /// <param name="pageSize">Optional number of results to
         /// return</param>
-        /// <returns>Twin model list</returns>
+        /// <returns>Endpoint model list</returns>
         [HttpGet("query")]
-        public async Task<TwinInfoListApiModel> QueryAsync(
-            [FromQuery] TwinRegistrationQueryApiModel model,
+        public async Task<EndpointInfoListApiModel> QueryAsync(
+            [FromQuery] EndpointRegistrationQueryApiModel model,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
 
@@ -156,22 +156,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _twins.QueryTwinsAsync(model.ToServiceModel(),
+            var result = await _endpoints.QueryEndpointsAsync(model.ToServiceModel(),
                 onlyServerState ?? false, pageSize);
 
-            return new TwinInfoListApiModel(result);
+            return new EndpointInfoListApiModel(result);
         }
 
         /// <summary>
-        /// Deactivates the twin registration with the specified identifier.
+        /// Deactivates the endpoint registration with the specified identifier.
         /// </summary>
-        /// <param name="id">twin identifier</param>
-        [HttpPost("deactivate/{id}")]
+        /// <param name="id">endpoint identifier</param>
+        [HttpPost("{id}/deactivate")]
         [Authorize(Policy = Policies.CanChange)]
         public async Task DeactivateAsync(string id) {
-            await _twins.DeactivateTwinAsync(id);
+            await _endpoints.DeactivateEndpointAsync(id);
         }
 
-        private readonly ITwinRegistry _twins;
+        private readonly IEndpointRegistry _endpoints;
     }
 }

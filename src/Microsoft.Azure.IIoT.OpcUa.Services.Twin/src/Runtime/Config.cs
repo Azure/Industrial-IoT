@@ -44,6 +44,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime {
         /// <inheritdoc/>
         public string Audience => _auth.Audience;
         /// <inheritdoc/>
+        public bool AuthRequired => _auth.AuthRequired;
+        /// <inheritdoc/>
+        public string TrustedIssuer => _auth.TrustedIssuer;
+        /// <inheritdoc/>
+        public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
+        /// <inheritdoc/>
         public bool UIEnabled => _swagger.UIEnabled;
         /// <inheritdoc/>
         public bool WithAuth => _swagger.WithAuth;
@@ -52,17 +58,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.Runtime {
         /// <inheritdoc/>
         public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
         /// <inheritdoc/>
-        public bool AuthRequired => _auth.AuthRequired;
-        /// <inheritdoc/>
-        public string TrustedIssuer => _auth.TrustedIssuer;
-        /// <inheritdoc/>
-        public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
-        /// <inheritdoc/>
         public string DbConnectionString => _db.DbConnectionString;
         /// <inheritdoc/>
         public string DatabaseId => _db.DatabaseId;
         /// <inheritdoc/>
         public string CollectionId => _db.CollectionId;
+
+        /// <summary>
+        /// Whether to use role based access
+        /// </summary>
+        public bool UseRoles => GetBoolOrDefault("PCS_DEMO_MODE");
 
         /// <summary>
         /// Configuration constructor

@@ -7,6 +7,7 @@ WEBUICONFIG_UNSAFE="${APP_PATH}/webui-config.js.unsafe"
 ENVVARS="${APP_PATH}/.env"
 DOCKERCOMPOSE="${APP_PATH}/docker-compose.yml"
 CERTS="${APP_PATH}/certs"
+PFX="${CERTS}/tls.pfx"
 CERT="${CERTS}/tls.crt"
 PKEY="${CERTS}/tls.key"
 UNSAFE="false"
@@ -34,7 +35,6 @@ while [ "$#" -gt 0 ]; do
         --azureblob-endpoint-suffix)    PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX="$2" ;;
         --docdb-connstring)             PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING="$2" ;;
         --ssl-certificate)              PCS_CERTIFICATE="$2" ;;
-        --ssl-certificate-key)          PCS_CERTIFICATE_KEY="$2" ;;
         --auth-audience)                PCS_AUTH_AUDIENCE="$2" ;;
         --auth-type)                    PCS_WEBUI_AUTH_TYPE="$2" ;;
         --aad-appid)                    PCS_WEBUI_AUTH_AAD_APPID="$2" ;;
@@ -53,7 +53,7 @@ done
 apt-get update
 apt-get remove -y docker docker-engine docker.io
 apt-get autoremove -y
-apt-get install -y --no-install-recommends apt-transport-https ca-certificates curl software-properties-common
+apt-get install -y --no-install-recommends apt-transport-https ca-certificates curl software-properties-common openssl
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 apt-key fingerprint 0EBFCD88
 add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
@@ -130,11 +130,13 @@ chmod 755 ctrl.sh
 chmod 755 setup.sh
 
 mkdir -p ${CERTS}
-# Always have quotes around the certificate and key value to preserve the formatting
-echo "${PCS_CERTIFICATE}" > ${CERT}
-echo "${PCS_CERTIFICATE_KEY}" > ${PKEY}
+# Always have quotes around the pfx to preserve the formatting
+echo "${PCS_CERTIFICATE}" | base64 --decode > ${PFX}
+openssl pkcs12 -in ${PFX} -clcerts -nokeys -out ${CERT}
+openssl pkcs12 -in ${PFX} -nocerts -nodes -out ${PKEY}
 touch ${CERT} && chmod 444 ${CERT}
 touch ${PKEY} && chmod 444 ${PKEY}
+rm -f ${PFX}
 
 # ========================================================================
 

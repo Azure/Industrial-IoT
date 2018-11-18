@@ -27,15 +27,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <summary>
         /// Create controller with service
         /// </summary>
-        /// <param name="twin"></param>
-        public PublishController(IPublishServices<string> twin) {
-            _twin = twin;
+        /// <param name="publisher"></param>
+        public PublishController(IPublishServices<string> publisher) {
+            _publisher = publisher;
         }
 
         /// <summary>
         /// Start publishing node values on the specified server twin endpoint.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <param name="request">The publish request</param>
         /// <returns>The publish response</returns>
         [HttpPost("{id}/start")]
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _twin.NodePublishStartAsync(
+            var result = await _publisher.NodePublishStartAsync(
                 id, request.ToServiceModel());
             return new PublishStartResponseApiModel(result);
         }
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <summary>
         /// Stop publishing node values on the specified server twin endpoint.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <param name="request">The unpublish request</param>
         /// <returns>The unpublish response</returns>
         [HttpPost("{id}/stop")]
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _twin.NodePublishStopAsync(
+            var result = await _publisher.NodePublishStopAsync(
                 id, request.ToServiceModel());
             return new PublishStopResponseApiModel(result);
         }
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// <summary>
         /// Returns currently published node ids.
         /// </summary>
-        /// <param name="id">The identifier of the twin.</param>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <returns>The list of published nodes</returns>
         [HttpGet("{id}")]
         public async Task<PublishedNodeListResponseApiModel> ListAsync(
@@ -78,13 +78,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
             }
-            var result = await _twin.NodePublishListAsync(id,
+            var result = await _publisher.NodePublishListAsync(id,
                 new PublishedNodeListRequestApiModel {
                     ContinuationToken = continuationToken
                 }.ToServiceModel());
             return new PublishedNodeListResponseApiModel(result);
         }
 
-        private readonly IPublishServices<string> _twin;
+        private readonly IPublishServices<string> _publisher;
     }
 }

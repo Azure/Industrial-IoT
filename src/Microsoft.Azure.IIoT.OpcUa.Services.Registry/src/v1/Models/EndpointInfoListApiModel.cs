@@ -10,30 +10,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Twin registration list
+    /// Endpoint registration list
     /// </summary>
-    public class TwinInfoListApiModel {
+    public class EndpointInfoListApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public TwinInfoListApiModel() {
-            Items = new List<TwinInfoApiModel>();
+        public EndpointInfoListApiModel() {
+            Items = new List<EndpointInfoApiModel>();
         }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public TwinInfoListApiModel(TwinInfoListModel model) {
+        public EndpointInfoListApiModel(EndpointInfoListModel model) {
             ContinuationToken = model.ContinuationToken;
             if (model.Items != null) {
                 Items = model.Items
-                    .Select(s => new TwinInfoApiModel(s))
+                    .Select(s => new EndpointInfoApiModel(s))
                     .ToList();
             }
             else {
-                Items = new List<TwinInfoApiModel>();
+                Items = new List<EndpointInfoApiModel>();
             }
         }
 
@@ -41,18 +41,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Registry.v1.Models {
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public TwinInfoListModel ToServiceModel() {
-            return new TwinInfoListModel {
+        public EndpointInfoListModel ToServiceModel() {
+            return new EndpointInfoListModel {
                 ContinuationToken = ContinuationToken,
                 Items = Items.Select(s => s.ToServiceModel()).ToList()
             };
         }
 
         /// <summary>
-        /// Twin registrations
+        /// Endpoint registrations
         /// </summary>
         [JsonProperty(PropertyName = "items")]
-        public List<TwinInfoApiModel> Items { get; set; }
+        public List<EndpointInfoApiModel> Items { get; set; }
 
         /// <summary>
         /// Continuation or null if final

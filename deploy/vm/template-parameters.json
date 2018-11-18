@@ -8,6 +8,9 @@
     "aadClientId": {
       "value": "{Added through command line interface}"
     },
+    "authAudience": {
+      "value": "{Added through command line interface}"
+    },
     "aadClientSecret": {
       "value": "{Added through command line interface}"
     },

@@ -1,6 +1,18 @@
 version: '3'
 services:
-  twinregistry:
+  reverseproxy:
+    image: marcschier/azure-iiot-reverse-proxy:latest
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - registryservice
+      - onboardingservice
+      - gatewayservice
+      - twinservice
+      - twinwebui
+      - twinmodule
+  registryservice:
     build: 
       context: .
       dockerfile: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Registry/docker/Dockerfile
@@ -10,10 +22,14 @@ services:
     environment:
       - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
       - PCS_AUTH_ISSUER
       - PCS_AUTH_AUDIENCE
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
-  twinonboarding:
+  onboardingservice:
     build: 
       context: .
       dockerfile: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Onboarding/docker/Dockerfile
@@ -37,20 +53,70 @@ services:
     environment:
       - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
       - PCS_AUTH_ISSUER
       - PCS_AUTH_AUDIENCE
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
-  twingateway:
+  gatewayservice:
     build: 
       context: .
       dockerfile: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Gateway/docker/Dockerfile
     ports:
       - "9040:9040"
-      - "51111:4840"
+      - "51111:51111"
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
       - PCS_AUTH_ISSUER
+      - PCS_AUTH_REQUIRED
       - PCS_AUTH_AUDIENCE
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
+  auth:
+    image: azureiotpcs/pcs-auth-dotnet:1.0.0
+    environment:
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER=${PCS_WEBUI_AUTH_AAD_AUTHORITY}/${PCS_WEBUI_AUTH_AAD_TENANT}
+      - PCS_AUTH_AUDIENCE
+      - PCS_APPLICATION_SECRET
+      - PCS_CORS_WHITELIST
+  twinwebui:
+    image: marcschier/azure-iiot-opc-twin-webui:latest
+    ports:
+      - "3000:3000"
+    restart: always
+    command: npm start
+    environment:
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
+  twinmodule:
+    image: marcschier/azure-iiot-opc-twin-module:latest
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+    command: demo twin
+  opcserver0:
+    image: mcr.microsoft.com/iotedge/opc-plc:latest
+    hostname: opcserver0
+    restart: always
+    command: --sample -p 51210
+  opcserver1:
+    image: mcr.microsoft.com/iotedge/opc-plc:latest
+    hostname: opcserver1
+    restart: always
+    command: --sample -p 51211
+  opcserver2:
+    image: mcr.microsoft.com/iotedge/opc-plc:latest
+    hostname: opcserver2
+    restart: always
+    command: --sample -p 51212
