@@ -446,7 +446,7 @@ Operations (Mutually exclusive):
                 new ConsoleEmitter(), new LimitingScheduler(), logger) {
                 ExportIdleTime = TimeSpan.FromMilliseconds(1)
             };
-            var id = await exporter.StartModelExportAsync(endpoint, "application/ua-json");
+            var id = await exporter.StartModelExportAsync(endpoint, ContentEncodings.MimeTypeUaJson);
             await Task.Delay(TimeSpan.FromMinutes(10));
             await exporter.StopModelExportAsync(id);
         }
