@@ -72,7 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public Dictionary<string, string> Certificate { get; set; }
 
         /// <summary>
-        /// Site of the endpoint
+        /// Site of the registration
         /// </summary>
         public virtual string SiteId { get; set; }
 

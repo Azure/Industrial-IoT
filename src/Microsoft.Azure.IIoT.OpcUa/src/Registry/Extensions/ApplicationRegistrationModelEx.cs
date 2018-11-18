@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     SupervisorId = supervisorId,
                     ApplicationType = type,
                     ApplicationId = ApplicationInfoModelEx.CreateApplicationId(
-                        siteId, result.Description.Server.ApplicationUri, type),
+                        siteId ?? supervisorId, result.Description.Server.ApplicationUri, type),
                     ProductUri = result.Description.Server.ProductUri,
                     ApplicationUri = result.Description.Server.ApplicationUri,
                     DiscoveryUrls = new HashSet<string>(result.Description.Server.DiscoveryUrls),

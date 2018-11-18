@@ -8,9 +8,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Opc.Ua;
     using Opc.Ua.Extensions;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
-    using Newtonsoft.Json.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Linq;
 
@@ -89,71 +89,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 Version = view.ViewVersion == 0 ?
                     (uint?)null : view.ViewVersion,
                 ViewId = view.ViewId.AsString(context)
-            };
-        }
-
-        /// <summary>
-        /// Convert endpoint description to application registration
-        /// </summary>
-        /// <param name="ep"></param>
-        /// <param name="hostAddress"></param>
-        /// <param name="siteId"></param>
-        /// <param name="supervisorId"></param>
-        /// <returns></returns>
-        public static ApplicationRegistrationModel ToServiceModel(this EndpointDescription ep,
-            string hostAddress, string siteId, string supervisorId) {
-            var caps = new HashSet<string>();
-            if (ep.Server.ApplicationType == Opc.Ua.ApplicationType.DiscoveryServer) {
-                caps.Add("LDS");
-            }
-            var type = ep.Server.ApplicationType.ToServiceType() ??
-                Registry.Models.ApplicationType.Server;
-            return new ApplicationRegistrationModel {
-                Application = new ApplicationInfoModel {
-                    SiteId = siteId,
-                    SupervisorId = supervisorId,
-                    ApplicationType = type,
-                    HostAddresses = new HashSet<string> { hostAddress },
-                    ApplicationId = ApplicationInfoModelEx.CreateApplicationId(
-                        siteId, ep.Server.ApplicationUri, type),
-                    ApplicationUri = ep.Server.ApplicationUri,
-                    DiscoveryUrls = new HashSet<string>(ep.Server.DiscoveryUrls),
-                    DiscoveryProfileUri = ep.Server.DiscoveryProfileUri,
-                    ProductUri = ep.Server.ProductUri,
-                    Certificate = ep.ServerCertificate,
-                    ApplicationName = ep.Server.ApplicationName.Text,
-                    Locale = ep.Server.ApplicationName.Locale,
-                    Capabilities = caps
-                },
-                Endpoints = new List<EndpointRegistrationModel> {
-                    ep.ToServiceModel(siteId, supervisorId)
-                }
-            };
-        }
-
-        /// <summary>
-        /// Converts an endpoint description to a endpoint registration model
-        /// </summary>
-        /// <param name="ep"></param>
-        /// <param name="siteId"></param>
-        /// <param name="supervisorId"></param>
-        /// <returns></returns>
-        public static EndpointRegistrationModel ToServiceModel(this EndpointDescription ep,
-            string siteId, string supervisorId) {
-            if (ep == null) {
-                return null;
-            }
-            return new EndpointRegistrationModel {
-                SiteId = siteId,
-                SupervisorId = supervisorId,
-                Certificate = ep.ServerCertificate,
-                SecurityLevel = ep.SecurityLevel,
-                AuthenticationMethods = ep.UserIdentityTokens.ToServiceModel(),
-                Endpoint = new EndpointModel {
-                    Url = ep.EndpointUrl,
-                    SecurityMode = ep.SecurityMode.ToServiceType(),
-                    SecurityPolicy = ep.SecurityPolicyUri
-                }
             };
         }
 

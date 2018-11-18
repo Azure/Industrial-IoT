@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="model"></param>
         /// <returns></returns>
         public static string CreateApplicationId(ApplicationInfoModel model) =>
-            CreateApplicationId(model.SiteId, model.ApplicationUri,
+            CreateApplicationId(model.SiteId ?? model.SupervisorId, model.ApplicationUri,
                 model.ApplicationType);
 
         /// <summary>

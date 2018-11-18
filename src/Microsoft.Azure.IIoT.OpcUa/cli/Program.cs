@@ -600,7 +600,7 @@ Operations (Mutually exclusive):
             public string ModuleId { get; } = "";
 
             /// <inheritdoc/>
-            public string SiteId { get; } = "";
+            public string SiteId => null;
 
             /// <inheritdoc/>
             public Task SendAsync(byte[] data, string contentType) {
