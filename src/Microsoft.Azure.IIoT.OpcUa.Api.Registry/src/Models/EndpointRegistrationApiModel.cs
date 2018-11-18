@@ -21,7 +21,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Registered site of the endpoint
         /// </summary>
-        [JsonProperty(PropertyName = "siteId")]
+        [JsonProperty(PropertyName = "siteId",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string SiteId { get; set; }
 
         /// <summary>

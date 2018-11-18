@@ -356,8 +356,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 options.GetValue<string>("-i", "--id"),
                 new PublishRequestApiModel {
                     NodeId = options.GetValue<string>("-n", "--nodeid"),
-                    Enabled = options.GetValueOrDefault("-x", "--delete", false) ? (bool?)null :
-                        !options.GetValueOrDefault("-d", "--disable", false)
+                    Enabled = options.IsSet("-x", "--delete") ? (bool?)null :
+                        !options.IsSet("-d", "--disable")
                 });
             PrintResult(options, result);
         }
@@ -368,11 +368,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task BrowseAsync(ITwinServiceApi service,
             CliOptions options) {
             var id = options.GetValue<string>("-i", "--id");
-            var silent = options.GetValueOrDefault("-s", "--silent", false);
-            var recursive = options.GetValueOrDefault("-r", "--recursive", false);
-            var readDuringBrowse = options.GetValueOrDefault<bool>("-v", "--readvalue", null);
+            var silent = options.IsSet("-s", "--silent");
+            var recursive = options.IsSet("-r", "--recursive");
+            var readDuringBrowse = options.IsProvidedOrNull("-v", "--readvalue");
             var request = new BrowseRequestApiModel {
-                TargetNodesOnly = options.GetValueOrDefault<bool>("-t", "--targets", null),
+                TargetNodesOnly = options.IsProvidedOrNull("-t", "--targets"),
                 ReadVariableValues = readDuringBrowse,
                 MaxReferencesToReturn = options.GetValueOrDefault<uint>("-x", "--maxrefs", null),
                 Direction = options.GetValueOrDefault<BrowseDirection>("-d", "--direction", null)
@@ -446,7 +446,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task ListNodesAsync(ITwinServiceApi service,
             CliOptions options) {
-            if (options.GetValueOrDefault("-A", "--all", false)) {
+            if (options.IsSet("-A", "--all")) {
                 var result = await service.ListAllPublishedNodesAsync(
                     options.GetValue<string>("-i", "--id"));
                 PrintResult(options, result);
@@ -465,7 +465,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task ListSupervisorsAsync(IRegistryServiceApi service,
             CliOptions options) {
-            if (options.GetValueOrDefault("-A", "--all", false)) {
+            if (options.IsSet("-A", "--all")) {
                 var result = await service.ListAllSupervisorsAsync();
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
@@ -484,11 +484,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task QuerySupervisorsAsync(IRegistryServiceApi service,
             CliOptions options) {
             var query = new SupervisorQueryApiModel {
-                Connected = options.GetValueOrDefault<bool>("-c", "--connected", null),
+                Connected = options.IsProvidedOrNull("-c", "--connected"),
                 Discovery = options.GetValueOrDefault<DiscoveryMode>("-d", "--discovery", null),
                 SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
             };
-            if (options.GetValueOrDefault("-A", "--all", false)) {
+            if (options.IsSet("-A", "--all")) {
                 var result = await service.QueryAllSupervisorsAsync(query);
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
@@ -517,7 +517,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             CliOptions options) {
             var config = new DiscoveryConfigApiModel();
 
-            if (options.GetValueOrDefault("-a", "--activate", false)) {
+            if (options.IsSet("-a", "--activate")) {
                 config.ActivationFilter = new EndpointActivationFilterApiModel {
                     SecurityMode = SecurityMode.None
                 };
@@ -586,7 +586,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task RegisterServerAsync(IRegistryServiceApi service,
             CliOptions options) {
-            var activate = options.GetValueOrDefault("-a", "--activate", false);
+            var activate = options.IsSet("-a", "--activate");
             await service.RegisterAsync(
                 new ServerRegistrationRequestApiModel {
                     RegistrationId = Guid.NewGuid().ToString(),
@@ -602,7 +602,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task DiscoverServerAsync(IRegistryServiceApi service,
             CliOptions options) {
-            var activate = options.GetValueOrDefault("-a", "--activate", false);
+            var activate = options.IsSet("-a", "--activate");
             await service.DiscoverAsync(
                 new DiscoveryRequestApiModel {
                     Id = Guid.NewGuid().ToString(),
@@ -652,7 +652,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task ListApplicationsAsync(IRegistryServiceApi service,
             CliOptions options) {
-            if (options.GetValueOrDefault("-A", "--all", false)) {
+            if (options.IsSet("-A", "--all")) {
                 var result = await service.ListAllApplicationsAsync();
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
@@ -670,7 +670,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task ListSitesAsync(IRegistryServiceApi service,
             CliOptions options) {
-            if (options.GetValueOrDefault("-A", "--all", false)) {
+            if (options.IsSet("-A", "--all")) {
                 var result = await service.ListAllSitesAsync();
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
@@ -694,9 +694,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 ApplicationType = options.GetValueOrDefault<ApplicationType>("-t", "--type", null),
                 ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
                 Locale = options.GetValueOrDefault<string>("-l", "--locale", null),
-                IncludeNotSeenSince = options.GetValueOrDefault<bool>("-d", "--deleted", null)
+                IncludeNotSeenSince = options.IsProvidedOrNull("-d", "--deleted")
             };
-            if (options.GetValueOrDefault("-A", "--all", false)) {
+            if (options.IsSet("-A", "--all")) {
                 var result = await service.QueryAllApplicationsAsync(query);
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
@@ -723,16 +723,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task ListEndpointsAsync(IRegistryServiceApi service,
             CliOptions options) {
-            if (options.GetValueOrDefault("-A", "--all", false)) {
+            if (options.IsSet("-A", "--all")) {
                 var result = await service.ListAllEndpointsAsync(
-                    options.GetValueOrDefault<bool>("-s", "--server", null));
+                    options.IsProvidedOrNull("-s", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
                 var result = await service.ListEndpointsAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
-                    options.GetValueOrDefault<bool>("-s", "--server", null),
+                    options.IsProvidedOrNull("-s", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -747,19 +747,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 Url = options.GetValueOrDefault<string>("-u", "--uri", null),
                 SecurityMode = options.GetValueOrDefault<SecurityMode>("-m", "--mode", null),
                 SecurityPolicy = options.GetValueOrDefault<string>("-l", "--policy", null),
-                Connected = options.GetValueOrDefault<bool>("-c", "--connected", null),
-                Activated = options.GetValueOrDefault<bool>("-a", "--activated", null),
-                IncludeNotSeenSince = options.GetValueOrDefault<bool>("-d", "--deleted", null)
+                Connected = options.IsProvidedOrNull("-c", "--connected"),
+                Activated = options.IsProvidedOrNull("-a", "--activated"),
+                IncludeNotSeenSince = options.IsProvidedOrNull("-d", "--deleted")
             };
-            if (options.GetValueOrDefault("-A", "--all", false)) {
+            if (options.IsSet("-A", "--all")) {
                 var result = await service.QueryAllEndpointsAsync(query,
-                    options.GetValueOrDefault<bool>("-s", "--server", null));
+                    options.IsProvidedOrNull("-s", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
                 var result = await service.QueryEndpointsAsync(query,
-                    options.GetValueOrDefault<bool>("-s", "--server", null),
+                    options.IsProvidedOrNull("-s", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -856,7 +856,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             CliOptions options) {
             var result = await service.GetEndpointAsync(
                 options.GetValue<string>("-i", "--id"),
-                options.GetValueOrDefault<bool>("-s", "--server", null));
+                options.IsProvidedOrNull("-s", "--server"));
             PrintResult(options, result);
         }
 
