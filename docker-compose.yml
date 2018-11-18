@@ -1,0 +1,8 @@
+version: '3'
+services:
+  twinmodule:
+    build: ./opc-twin-module
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+    command: --host demo demo

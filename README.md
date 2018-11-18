@@ -1,14 +1,14 @@
-# OPC Twin Module
+# Azure Industrial IoT OPC UA Device Twin Module
 
 ![Build Status](https://msazure.visualstudio.com/_apis/public/build/definitions/b32aa71e-8ed2-41b2-9d77-5bc261222004/33979/badge)
 
-The OPC Twin module runs on the edge and provides serveral edge services to the [OPC Twin](https://github.com/Azure/azure-iiot-opc-twin-service) micro services. Core of the module is the Supervisor identity.
+The OPC UA Device Twin module runs on the edge and provides serveral edge services to the [OPC UA Device Twin and Registry Services](https://github.com/Azure/azure-iiot-opc-ua-services). 
 
-The supervisor manages endpoint twins, which correspond to OPC UA server endpoints that were activated in the OPC Twin registry.  These endpoint twins translate OPC UA JSON received from the Twin micro service running in the cloud into OPC UA binary messages which are sent over a stateful secure channel to the managed endpoint.
+Core of the module is the Supervisor identity.  The supervisor manages endpoint "twins", which correspond to OPC UA server endpoints that are activated using the corresponding OPC UA registry API.  These endpoint twins translate OPC UA JSON received from the Twin micro service running in the cloud into OPC UA binary messages which are sent over a stateful secure channel to the managed endpoint.  
 
-The supervisor also provides discovery services which send discovery events to the [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-service) for processing, where these events result in updates to the OPC Twin registry.
+The supervisor also provides discovery services which send device discovery events to the [OPC UA Device Onboarding service](https://github.com/Azure/azure-iiot-opc-ua-services) for processing, where these events result in updates to the OPC UA registry.
 
-The OPC Twin module is intended to be part of a module deployment in [IoT Edge][iotedge-url].  For development and testing purposes it can be run standalone following the instructions [below](#Build-and-Run).  The OPC Twin module is part of our [Industrial IoT (IIoT) solution accelerator components](#Other-Industrial-IoT-components) suite.
+The OPC UA Device Twin module can be deployed in an [IoT Edge][iotedge-url] gateway.  For development and testing purposes it can also be run standalone following the instructions [below](#Build-and-Run).  This module is part of our [Azure Industrial IoT (IIoT) components](#Other-Azure-Industrial-IoT-components) suite.
 
 ## Getting started
 
@@ -22,7 +22,7 @@ The OPC Twin module is intended to be part of a module deployment in [IoT Edge][
 
 ### Deploy Azure Services
 
-Follow the instructions [here](https://github.com/Azure/azure-iiot-opc-twin-service) to deploy all required services and retrieve the module configuration information, in particular the value for the `PCS_IOTHUB_CONNSTRING` environment variable, which will be needed later on.
+Follow the instructions [here](https://github.com/Azure/azure-iiot-opc-ua-services) to deploy all required services and retrieve the module configuration information, in particular the value for the `PCS_IOTHUB_CONNSTRING` environment variable, which will be needed later on.
 
 ## Build and Run
 
@@ -32,7 +32,7 @@ Follow the instructions [here](https://github.com/Azure/azure-iiot-opc-twin-serv
 1. Change into the repo root and ensure the .env file containing an entry for `PCS_IOTHUB_CONNSTRING` exists.
 1. Start the module by running `docker-compose up`.
 
-> Also, make sure you run one or more OPC UA servers in a network reachable from your development machine to utilize the OPC Twin capabilities.
+> Also, make sure you run one or more OPC UA servers in a network reachable from your development machine to utilize the OPC UA Twin capabilities.
 
 ### Build, run and deploy the module to IoT Edge (Production)
 
@@ -55,13 +55,13 @@ Follow the instructions [here](https://github.com/Azure/azure-iiot-opc-twin-serv
 1. Configure the `Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli` project properties to pass `--host` as command line argument when starting. 
 1. Start the `Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli` project (e.g. press F5).
 
-## Other Industrial IoT components
+## Other Azure Industrial IoT components
 
-* [OPC Twin services](https://github.com/Azure/azure-iiot-opc-twin-service)
-* [OPC Twin API](https://github.com/Azure/azure-iiot-opc-twin-api)
-* OPC Twin common business logic (Coming soon)
+* [OPC UA micro services](https://github.com/Azure/azure-iiot-opc-ua-services)
+* OPC UA Certificate Management service (Coming soon)
+* [OPC UA API](https://github.com/Azure/azure-iiot-opc-ua-api)
+* [OPC UA Device Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-ua-twin-module)
 * [OPC Publisher IoT Edge module](https://github.com/Azure/iot-edge-opc-publisher)
-* OPC Vault service (Coming soon)
 
 ## Contributing
 
@@ -69,7 +69,7 @@ Refer to our [contribution guidelines](CONTRIBUTING.md).
 
 ## Feedback
 
-Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-opc-twin-service/issues).
+Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-opc-ua/issues).
 
 ## License
 
