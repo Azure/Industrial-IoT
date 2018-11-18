@@ -1,7 +1,5 @@
 # Azure Industrial IoT OPC UA Device Twin Module
 
-![Build Status](https://msazure.visualstudio.com/_apis/public/build/definitions/b32aa71e-8ed2-41b2-9d77-5bc261222004/33979/badge)
-
 The OPC UA Device Twin module runs on the edge and provides serveral edge services to the [OPC UA Device Twin and Registry Services](https://github.com/Azure/azure-iiot-opc-ua-services). 
 
 Core of the module is the Supervisor identity.  The supervisor manages endpoint "twins", which correspond to OPC UA server endpoints that are activated using the corresponding OPC UA registry API.  These endpoint twins translate OPC UA JSON received from the Twin micro service running in the cloud into OPC UA binary messages which are sent over a stateful secure channel to the managed endpoint.  
