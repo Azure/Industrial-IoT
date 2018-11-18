@@ -1,7 +1,5 @@
 # Azure Industrial IoT OPC UA Services
 
-![Build Status](https://msazure.visualstudio.com/_apis/public/build/definitions/b32aa71e-8ed2-41b2-9d77-5bc261222004/33977/badge)
-
 The OPC UA micro services contained in this repository provide a REST like API to control and manage OPC UA applications, endpoints, and module identities using the Azure IoT Hub Device Twin service.  
 
 The **OPC UA device registry micro service** provides access to registered OPC UA applications and their endpoints.  Operators and administrators can register and unregister new OPC UA applications and browse the existing ones, including their endpoints.  
