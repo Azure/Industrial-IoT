@@ -21,11 +21,6 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     public class ChunkMethodClient : IMethodClient {
 
         /// <summary>
-        /// Name of the processor method
-        /// </summary>
-        public const string kProcessorMethod = "$call";
-
-        /// <summary>
         /// Create client wrapping a json method client
         /// </summary>
         /// <param name="client"></param>
@@ -65,7 +60,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     var length = Math.Min(buffer.Length - offset, _maxSize);
                     var chunk = buffer.AsSpan(offset, length).ToArray();
                     var result = await _client.CallMethodAsync(deviceId, moduleId,
-                        kProcessorMethod, JsonConvertEx.SerializeObject(offset == 0 ?
+                        MethodNames.Call, JsonConvertEx.SerializeObject(offset == 0 ?
                             new MethodChunkModel {
                                 Timeout = timeout,
                                 MethodName = method,
@@ -90,7 +85,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 // Receive all responses
                 while (!string.IsNullOrEmpty(handle)) {
                     var result = await _client.CallMethodAsync(deviceId, moduleId,
-                        kProcessorMethod, JsonConvertEx.SerializeObject(new MethodChunkModel {
+                        MethodNames.Call, JsonConvertEx.SerializeObject(new MethodChunkModel {
                             Handle = handle,
                         }), timeout);
                     var response = JsonConvertEx.DeserializeObject<MethodChunkModel>(result);

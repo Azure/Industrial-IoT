@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.Devices.Client;
@@ -47,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             // Create chunk server
             var server = new ChunkMethodServer(this, logger);
             _calltable = new Dictionary<string, IMethodInvoker> {
-                ["$call"] = new ChunkMethodServerInvoker(server)
+                [MethodNames.Call] = new ChunkMethodServerInvoker(server)
             };
         }
 

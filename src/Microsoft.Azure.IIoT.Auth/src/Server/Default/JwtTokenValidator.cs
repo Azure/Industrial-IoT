@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Auth.Server.Default {
 
                 // Get tenant information that's used to validate incoming jwt tokens
                 var configManager = new ConfigurationManager<OpenIdConnectConfiguration>(
-                    $"{_config.GetAuthorityUrl()}/.well-known/openid-configuration",
+                    $"{_config.GetAuthorityUrl()}/v2.0/.well-known/openid-configuration",
                     new OpenIdConnectConfigurationRetriever());
 
                 var config = await configManager.GetConfigurationAsync(ct);

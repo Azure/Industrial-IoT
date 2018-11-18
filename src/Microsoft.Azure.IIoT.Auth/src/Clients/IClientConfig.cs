@@ -33,5 +33,11 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// be set to another azure cloud as well.)
         /// </summary>
         string InstanceUrl { get; }
+
+        /// <summary>
+        /// Audience is the resource for which the
+        /// client requests a token.
+        /// </summary>
+        string Audience { get; }
     }
 }

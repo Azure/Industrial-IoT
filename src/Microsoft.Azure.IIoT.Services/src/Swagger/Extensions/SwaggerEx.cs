@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Swashbuckle.AspNetCore.Swagger {
+    using Swashbuckle.AspNetCore.SwaggerGen;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Mvc.Controllers;
@@ -12,11 +13,11 @@ namespace Swashbuckle.AspNetCore.Swagger {
     using Microsoft.Azure.IIoT.Services.Swagger;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
-    using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Microsoft.Azure.IIoT.Auth.Server;
 
     /// <summary>
     /// Configure swagger
@@ -110,16 +111,19 @@ namespace Swashbuckle.AspNetCore.Swagger {
                 return;
             }
             app.UseSwaggerUI(options => {
-                var resource = config as IClientConfig;
-                if (config.WithAuth && resource != null) {
+                if (config.WithAuth) {
                     options.OAuthAppName(info.Title);
                     options.OAuthClientId(config.SwaggerAppId);
-                    options.OAuthClientSecret(config.SwaggerAppSecret);
-                    options.OAuthRealm(resource.AppId);
-                    options.OAuthAdditionalQueryStringParams(
-                        new Dictionary<string, string> {
-                            ["resource"] = resource.AppId
-                        });
+                    if (!string.IsNullOrEmpty(config.SwaggerAppSecret)) {
+                        options.OAuthClientSecret(config.SwaggerAppSecret);
+                    }
+                    var resource = config as IAuthConfig;
+                    if (!string.IsNullOrEmpty(resource?.Audience)) {
+                        options.OAuthAdditionalQueryStringParams(
+                            new Dictionary<string, string> {
+                                ["resource"] = resource.Audience
+                            });
+                    }
                 }
                 options.RoutePrefix = "";
                 options.SwaggerEndpoint("v1/swagger.json", info.Version);

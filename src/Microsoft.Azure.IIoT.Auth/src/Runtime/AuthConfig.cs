@@ -18,22 +18,18 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// </summary>
         private const string kAuth_RequiredKey = "Auth:Required";
         private const string kAuth_TrustedIssuerKey = "Auth:TrustedIssuer";
-        private const string kAuth_AudienceKey = "Auth:Audience";
         private const string kAuth_AllowedClockSkewKey = "Auth:AllowedClockSkewSeconds";
+
         /// <summary>Whether required</summary>
         public bool AuthRequired => GetBoolOrDefault(kAuth_RequiredKey,
-            GetBoolOrDefault("PCS_AUTH_REQUIRED", !string.IsNullOrEmpty(Audience)));
+            GetBoolOrDefault("PCS_AUTH_REQUIRED", !string.IsNullOrEmpty(TenantId)));
+
         /// <summary>Trusted issuer</summary>
         public string TrustedIssuer => GetStringOrDefault(kAuth_TrustedIssuerKey,
-            GetStringOrDefault("PCS_AUTH_ISSUER", string.IsNullOrEmpty(TenantId) ?
-                null : $"https://sts.windows.net/{TenantId}/"));
-        /// <summary>Audience</summary>
-        public string Audience => GetStringOrDefault(kAuth_AudienceKey,
-            GetStringOrDefault("PCS_AUTH_AUDIENCE", null));
+            GetStringOrDefault("PCS_AUTH_ISSUER", "https://sts.windows.net/"));
         /// <summary>Allowed clock skew</summary>
         public TimeSpan AllowedClockSkew =>
             TimeSpan.FromSeconds(GetIntOrDefault(kAuth_AllowedClockSkewKey, 120));
-
 
         /// <summary>
         /// Configuration constructor

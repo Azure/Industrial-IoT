@@ -35,16 +35,16 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
             services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options => {
-
-                    options.Authority = config.GetAuthorityUrl();
+                    options.Authority = config.GetAuthorityUrl() + "/v2.0";
                     options.SaveToken = true; // Save token to allow request on behalf
 
                     options.TokenValidationParameters = new TokenValidationParameters {
                         ClockSkew = config.AllowedClockSkew,
-                        ValidIssuer = config.TrustedIssuer,
+                        ValidateIssuer = true,
+                        IssuerValidator = (iss, t, p) => ValidateIssuer(iss, config),
+                        ValidateAudience = !string.IsNullOrEmpty(config.Audience),
                         ValidAudience = config.Audience
                     };
-
                     options.Events = new JwtBearerEvents {
                         OnAuthenticationFailed = ctx => {
                             if (config.AuthRequired) {
@@ -68,6 +68,40 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
         }
 
         /// <summary>
+        /// Validate the issuer. The issuer is considered as valid if it
+        /// has the same http scheme and authority as the trusted issuer uri
+        /// from the configuration file or default uri, plus it has to have
+        /// a tenant Id, and optionally v2.0 but nothing more..
+        /// </summary>
+        /// <param name="issuer">Issuer to validate (will be tenanted)</param>
+        /// <param name="config">Authentication configuration</param>
+        /// <returns>The <c>issuer</c> if it's valid</returns>
+        private static string ValidateIssuer(string issuer, IAuthConfig config) {
+            var uri = new Uri(issuer);
+            var authorityUri = new Uri(config?.TrustedIssuer ?? kDefaultIssuerUri);
+            if (uri.Scheme != authorityUri.Scheme ||
+                uri.Authority != authorityUri.Authority) {
+                throw new SecurityTokenInvalidIssuerException(
+                    "Issuer has wrong authority.");
+            }
+            var parts = uri.AbsolutePath.Split(new char[] { '/' },
+                StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0) {
+                throw new SecurityTokenInvalidIssuerException(
+                    "Issuer is not tenanted.");
+            }
+            if (parts.Length >= 1 && !Guid.TryParse(parts[0], out var tenantId)) {
+                throw new SecurityTokenInvalidIssuerException(
+                    "No valid tenant Id for the issuer.");
+            }
+            if (parts.Length > 1 && parts[2] != "v2.0") {
+                throw new SecurityTokenInvalidIssuerException(
+                    "Only accepted protocol versions are AAD v1.0 or V2.0");
+            }
+            return issuer;
+        }
+
+        /// <summary>
         /// Helper to write response error
         /// </summary>
         /// <param name="response"></param>
@@ -80,7 +114,10 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
                 // Debug only, in production do not share exceptions with the remote host.
                 return response.WriteAsync(ex.ToString());
             }
-            return response.WriteAsync("An error occurred processing your authentication.");
+            return response.WriteAsync(
+                "An error occurred processing your authentication.");
         }
+
+        private const string kDefaultIssuerUri = "https://sts.windows.net/";
     }
 }

@@ -4,15 +4,13 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT common IoT Hub twin registry mocking tool used in testing</Description>
-    <NoWarn>1701;1702;1705;3021</NoWarn>
     <Antlr4UseCSharpGenerator>True</Antlr4UseCSharpGenerator>
-    <VersionSuffix>preview011</VersionSuffix>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Antlr4" Version="4.6.5-rc002" />
+    <PackageReference Include="Antlr4" Version="4.6.5" />
   </ItemGroup>
   <ItemGroup>
-    <Antlr4 Include="**/*.g4">
+    <Antlr4 Update="**/*.g4">
       <Generator>MSBuild:Compile</Generator>
       <CustomToolNamespace>$(RootNamespace).SqlParser</CustomToolNamespace>
       <Listener>False</Listener>

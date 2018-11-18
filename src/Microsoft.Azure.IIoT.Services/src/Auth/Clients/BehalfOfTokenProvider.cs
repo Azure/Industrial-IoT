@@ -106,14 +106,16 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
         /// <returns></returns>
         private static AuthenticationContext CreateAuthenticationContext(
             string authorityUrl, string tenantId, TokenCache cache) {
-            var tenant = tenantId ?? "common";
             if (string.IsNullOrEmpty(authorityUrl)) {
                 authorityUrl = kDefaultAuthorityUrl;
             }
-            var ctx = new AuthenticationContext(authorityUrl + tenant, cache);
+            var uri = new UriBuilder(authorityUrl) {
+                Path = tenantId ?? "common"
+            };
+            var ctx = new AuthenticationContext(uri.ToString(), cache);
             if (tenantId == null && ctx.TokenCache.Count > 0) {
-                tenant = ctx.TokenCache.ReadItems().First().TenantId;
-                ctx = new AuthenticationContext(authorityUrl + tenant, cache);
+                uri.Path = ctx.TokenCache.ReadItems().First().TenantId;
+                ctx = new AuthenticationContext(uri.ToString(), cache);
             }
             return ctx;
         }

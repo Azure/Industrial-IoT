@@ -10,8 +10,7 @@ namespace Microsoft.Azure.IIoT.Services.Swagger.Runtime {
     using System;
 
     /// <summary>
-    /// Web service configuration - wraps a configuration root as well
-    /// as reads simple configuration from environment.
+    /// Swagger configuration with fall back to client configuration.
     /// </summary>
     public class SwaggerConfig : ClientConfig, ISwaggerConfig {
 
@@ -24,16 +23,16 @@ namespace Microsoft.Azure.IIoT.Services.Swagger.Runtime {
         private const string kAuth_RequiredKey = "Auth:Required";
         /// <summary>Enabled</summary>
         public bool UIEnabled => GetBoolOrDefault(kSwagger_EnabledKey,
-            !WithAuth || !string.IsNullOrEmpty(SwaggerAppSecret)); // Disable with auth but no secret
+            !WithAuth || !string.IsNullOrEmpty(SwaggerAppId)); // Disable with auth but no appid
         /// <summary>Auth enabled</summary>
-        public bool WithAuth =>
-            GetBoolOrDefault(kAuth_RequiredKey, !string.IsNullOrEmpty(SwaggerAppId));
+        public bool WithAuth => GetBoolOrDefault(kAuth_RequiredKey,
+            !string.IsNullOrEmpty(SwaggerAppId));
         /// <summary>Application id</summary>
-        public string SwaggerAppId => GetStringOrDefault(kSwagger_AppIdKey, GetStringOrDefault(
-            _serviceId + "_SWAGGER_APP_ID", AppId)).Trim();
+        public string SwaggerAppId => GetStringOrDefault(kSwagger_AppIdKey,
+            GetStringOrDefault(_serviceId + "_SWAGGER_APP_ID", AppId)).Trim();
         /// <summary>Application key</summary>
-        public string SwaggerAppSecret => GetStringOrDefault(kSwagger_AppSecretKey, GetStringOrDefault(
-            _serviceId + "_SWAGGER_APP_KEY", AppSecret)).Trim();
+        public string SwaggerAppSecret => GetStringOrDefault(kSwagger_AppSecretKey,
+            GetStringOrDefault(_serviceId + "_SWAGGER_APP_KEY", AppSecret)).Trim();
 
         /// <summary>
         /// Configuration constructor

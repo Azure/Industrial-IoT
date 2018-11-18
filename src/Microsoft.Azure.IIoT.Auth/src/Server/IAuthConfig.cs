@@ -18,14 +18,7 @@ namespace Microsoft.Azure.IIoT.Auth.Server {
         bool AuthRequired { get; }
 
         /// <summary>
-        /// The token's iss parameter must match this string to
-        /// ensure the correct issuer. This is typically set as
-        /// https://sts.windows.net/{TenantId}/ for aad.
-        /// </summary>
-        string TrustedIssuer { get; }
-
-        /// <summary>
-        /// Our service's application id that was registered and
+        /// Our service's id or url that was registered and
         /// that we must validate to be the audience of the
         /// token so to ensure the token was actually issued
         /// for us.
@@ -35,16 +28,24 @@ namespace Microsoft.Azure.IIoT.Auth.Server {
         /// <summary>
         /// The instance url is the base address of the
         /// token-issuing authentication server instance.
-        /// Defaults to https://login.microsoft.com/ for azure
-        /// global cloud.
+        /// Defaults to https://login.microsoft.com/ for
+        /// Azure global cloud.
         /// </summary>
         string InstanceUrl { get; }
 
         /// <summary>
-        /// Tenant id if any (optional - defaults
-        /// to "common" for universal endpoint.)
+        /// Tenant id if any. Defaults to "common" for
+        /// universal Azure AD endpoint.
         /// </summary>
         string TenantId { get; }
+
+        /// <summary>
+        /// The token's iss parameter must match this string
+        /// to ensure the correct issuer. If the value is not
+        /// set, the issuer is validated against the instance
+        /// url and that it contains a tenant.
+        /// </summary>
+        string TrustedIssuer { get; }
 
         /// <summary>
         /// Optionally the tolerated clock skew allowed when
