@@ -252,9 +252,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<TwinInfoListApiModel> ListTwinsAsync(string continuation,
+        public async Task<EndpointInfoListApiModel> ListEndpointsAsync(string continuation,
             bool? onlyServerState, int? pageSize) {
-            var uri = new UriBuilder($"{_serviceUri}/v1/twins");
+            var uri = new UriBuilder($"{_serviceUri}/v1/endpoints");
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
@@ -267,14 +267,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             }
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<TwinInfoListApiModel>(
+            return JsonConvertEx.DeserializeObject<EndpointInfoListApiModel>(
                 response.GetContentAsString());
         }
 
         /// <inheritdoc/>
-        public async Task<TwinInfoListApiModel> QueryTwinsAsync(TwinRegistrationQueryApiModel query,
+        public async Task<EndpointInfoListApiModel> QueryEndpointsAsync(EndpointRegistrationQueryApiModel query,
             bool? onlyServerState, int? pageSize) {
-            var uri = new UriBuilder($"{_serviceUri}/v1/twins/query");
+            var uri = new UriBuilder($"{_serviceUri}/v1/endpoints/query");
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
@@ -285,17 +285,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             request.SetContent(query);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<TwinInfoListApiModel>(
+            return JsonConvertEx.DeserializeObject<EndpointInfoListApiModel>(
                 response.GetContentAsString());
         }
 
         /// <inheritdoc/>
-        public async Task<TwinInfoApiModel> GetTwinAsync(string twinId,
+        public async Task<EndpointInfoApiModel> GetEndpointAsync(string endpointId,
             bool? onlyServerState) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v1/twins/{twinId}");
+            var uri = new UriBuilder($"{_serviceUri}/v1/endpoints/{endpointId}");
 
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
@@ -303,16 +303,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<TwinInfoApiModel>(
+            return JsonConvertEx.DeserializeObject<EndpointInfoApiModel>(
                 response.GetContentAsString());
         }
 
         /// <inheritdoc/>
-        public async Task UpdateTwinAsync(TwinRegistrationUpdateApiModel content) {
+        public async Task UpdateEndpointAsync(EndpointRegistrationUpdateApiModel content) {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/twins",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/endpoints",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PatchAsync(request).ConfigureAwait(false);
@@ -320,23 +320,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task ActivateTwinAsync(string twinId) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
+        public async Task ActivateÉndpointAsync(string endpointId) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/twins/activate/{twinId}",
-                _resourceId);
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v1/endpoints/{endpointId}/activate", _resourceId);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
         }
 
         /// <inheritdoc/>
-        public async Task DeactivateTwinAsync(string twinId) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
+        public async Task DeactivateEndpointAsync(string endpointId) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/twins/deactivate/{twinId}",
-                _resourceId);
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v1/endpoints/{endpointId}/deactivate", _resourceId);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
         }

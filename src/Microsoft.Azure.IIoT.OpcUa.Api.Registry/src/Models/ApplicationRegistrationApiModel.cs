@@ -42,11 +42,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public ApplicationInfoApiModel Application { get; set; }
 
         /// <summary>
-        /// List of endpoint twins
+        /// List of endpoints for the application
         /// </summary>
         [JsonProperty(PropertyName = "endpoints",
             NullValueHandling = NullValueHandling.Ignore)]
-        public List<TwinRegistrationApiModel> Endpoints { get; set; }
+        public List<EndpointRegistrationApiModel> Endpoints { get; set; }
 
         /// <summary>
         /// Application security assessment

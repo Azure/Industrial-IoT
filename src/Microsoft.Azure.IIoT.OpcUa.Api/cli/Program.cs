@@ -10,14 +10,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using Autofac;
     using System;
     using System.IO;
@@ -25,7 +26,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
     using System.Threading.Tasks;
     using System.Linq;
     using System.Diagnostics;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Api command line interface
@@ -35,22 +35,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Configure Dependency injection
         /// </summary>
-        public static IContainer ConfigureContainer(IConfigurationRoot configuration) {
+        public static IContainer ConfigureContainer(
+            IConfigurationRoot configuration) {
             var builder = new ContainerBuilder();
 
-            // Register configuration interfaces
-            builder.RegisterInstance(
-                new ApiConfig {
-                    Configuration = configuration
-                })
+            // Register configuration interfaces and logger
+            builder.RegisterInstance(new ApiConfig(configuration))
                 .AsImplementedInterfaces().SingleInstance();
-
-            // Register logger
             builder.RegisterType<TraceLogger>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
+
             // Use bearer authentication
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -58,11 +55,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             builder.RegisterType<DeviceCodeTokenProvider>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Register twin services and ...
+            // Register twin and registry services clients
             builder.RegisterType<TwinServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            // registry services and ...
             builder.RegisterType<RegistryServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
@@ -93,7 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// Run client
         /// </summary>
         public static async Task RunAsync(string[] args, IComponentContext context) {
-            var twin = context.Resolve<ITwinServiceApi>();
+            var service = context.Resolve<ITwinServiceApi>();
             var registry = context.Resolve<IRegistryServiceApi>();
             var interactive = false;
             do {
@@ -117,7 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                             break;
                         case "status":
                             options = new CliOptions(args);
-                            await GetStatusAsync(twin, registry, options);
+                            await GetStatusAsync(service, registry, options);
                             break;
                         case "apps":
                             if (args.Length < 2) {
@@ -166,7 +161,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                     throw new ArgumentException($"Unknown command {command}.");
                             }
                             break;
-                        case "twins":
+                        case "endpoints":
                             if (args.Length < 2) {
                                 throw new ArgumentException("Need a command!");
                             }
@@ -174,28 +169,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                             options = new CliOptions(args, 2);
                             switch (command) {
                                 case "update":
-                                    await UpdateTwinAsync(registry, options);
+                                    await UpdateEndpointAsync(registry, options);
                                     break;
                                 case "get":
-                                    await GetTwinAsync(registry, options);
+                                    await GetEndpointAsync(registry, options);
                                     break;
                                 case "list":
-                                    await ListTwinsAsync(registry, options);
+                                    await ListEndpointsAsync(registry, options);
                                     break;
                                 case "query":
-                                    await QueryTwinsAsync(registry, options);
+                                    await QueryEndpointsAsync(registry, options);
                                     break;
                                 case "activate":
-                                    await ActivateTwinsAsync(registry, options);
+                                    await ActivateEndpointsAsync(registry, options);
                                     break;
                                 case "deactivate":
-                                    await DeactivateTwinsAsync(registry, options);
+                                    await DeactivateEndpointsAsync(registry, options);
                                     break;
                                 case "-?":
                                 case "-h":
                                 case "--help":
                                 case "help":
-                                    PrintTwinsHelp();
+                                    PrintEndpointsHelp();
                                     break;
                                 default:
                                     throw new ArgumentException($"Unknown command {command}.");
@@ -238,25 +233,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                             options = new CliOptions(args, 2);
                             switch (command) {
                                 case "browse":
-                                    await BrowseAsync(twin, options);
+                                    await BrowseAsync(service, options);
                                     break;
                                 case "publish":
-                                    await PublishAsync(twin, options);
+                                    await PublishAsync(service, options);
                                     break;
                                 case "nodes":
-                                    await ListNodesAsync(twin, options);
+                                    await ListNodesAsync(service, options);
                                     break;
                                 case "read":
-                                    await ReadAsync(twin, options);
+                                    await ReadAsync(service, options);
                                     break;
                                 case "write":
-                                    await WriteAsync(twin, options);
+                                    await WriteAsync(service, options);
                                     break;
                                 case "metadata":
-                                    await MethodMetadataAsync(twin, options);
+                                    await MethodMetadataAsync(service, options);
                                     break;
                                 case "call":
-                                    await MethodCallAsync(twin, options);
+                                    await MethodCallAsync(service, options);
                                     break;
                                 case "-?":
                                 case "-h":
@@ -516,14 +511,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         }
 
         /// <summary>
-        /// Update twin
+        /// Update supervisor
         /// </summary>
         private static async Task UpdateSupervisorAsync(IRegistryServiceApi service,
             CliOptions options) {
             var config = new DiscoveryConfigApiModel();
 
             if (options.GetValueOrDefault("-a", "--activate", false)) {
-                config.ActivationFilter = new TwinActivationFilterApiModel {
+                config.ActivationFilter = new EndpointActivationFilterApiModel {
                     SecurityMode = SecurityMode.None
                 };
             }
@@ -596,7 +591,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 new ServerRegistrationRequestApiModel {
                     RegistrationId = Guid.NewGuid().ToString(),
                     DiscoveryUrl = options.GetValue<string>("-u", "--url"),
-                    ActivationFilter = !activate ? null : new TwinActivationFilterApiModel {
+                    ActivationFilter = !activate ? null : new EndpointActivationFilterApiModel {
                         SecurityMode = SecurityMode.None
                     }
                 });
@@ -613,7 +608,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     Id = Guid.NewGuid().ToString(),
                     Discovery = options.GetValueOrDefault<DiscoveryMode>("-d", "--discovery", null),
                     Configuration = new DiscoveryConfigApiModel {
-                        ActivationFilter = !activate ? null : new TwinActivationFilterApiModel {
+                        ActivationFilter = !activate ? null : new EndpointActivationFilterApiModel {
                             SecurityMode = SecurityMode.None
                         }
                     }
@@ -724,18 +719,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         }
 
         /// <summary>
-        /// List twin registrations
+        /// List endpoint registrations
         /// </summary>
-        private static async Task ListTwinsAsync(IRegistryServiceApi service,
+        private static async Task ListEndpointsAsync(IRegistryServiceApi service,
             CliOptions options) {
             if (options.GetValueOrDefault("-A", "--all", false)) {
-                var result = await service.ListAllTwinsAsync(
+                var result = await service.ListAllEndpointsAsync(
                     options.GetValueOrDefault<bool>("-s", "--server", null));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await service.ListTwinsAsync(
+                var result = await service.ListEndpointsAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
                     options.GetValueOrDefault<bool>("-s", "--server", null),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
@@ -744,11 +739,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         }
 
         /// <summary>
-        /// Query twins
+        /// Query endpoints
         /// </summary>
-        private static async Task QueryTwinsAsync(IRegistryServiceApi service,
+        private static async Task QueryEndpointsAsync(IRegistryServiceApi service,
             CliOptions options) {
-            var query = new TwinRegistrationQueryApiModel {
+            var query = new EndpointRegistrationQueryApiModel {
                 Url = options.GetValueOrDefault<string>("-u", "--uri", null),
                 SecurityMode = options.GetValueOrDefault<SecurityMode>("-m", "--mode", null),
                 SecurityPolicy = options.GetValueOrDefault<string>("-l", "--policy", null),
@@ -757,13 +752,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 IncludeNotSeenSince = options.GetValueOrDefault<bool>("-d", "--deleted", null)
             };
             if (options.GetValueOrDefault("-A", "--all", false)) {
-                var result = await service.QueryAllTwinsAsync(query,
+                var result = await service.QueryAllEndpointsAsync(query,
                     options.GetValueOrDefault<bool>("-s", "--server", null));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await service.QueryTwinsAsync(query,
+                var result = await service.QueryEndpointsAsync(query,
                     options.GetValueOrDefault<bool>("-s", "--server", null),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
@@ -771,31 +766,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         }
 
         /// <summary>
-        /// Activate twins
+        /// Activate endpoints
         /// </summary>
-        private static async Task ActivateTwinsAsync(IRegistryServiceApi service,
+        private static async Task ActivateEndpointsAsync(IRegistryServiceApi service,
             CliOptions options) {
 
             var id = options.GetValueOrDefault<string>("-i", "--id", null);
             if (id != null) {
-                await service.ActivateTwinAsync(id);
+                await service.ActivateÉndpointAsync(id);
                 return;
             }
 
-            // Activate all sign and encrypt twins
-            var result = await service.QueryAllTwinsAsync(new TwinRegistrationQueryApiModel {
+            // Activate all sign and encrypt endpoints
+            var result = await service.QueryAllEndpointsAsync(new EndpointRegistrationQueryApiModel {
                 SecurityMode = options.GetValueOrDefault<SecurityMode>("-m", "mode", null),
                 Activated = false
             });
             foreach (var item in result) {
-                await service.ActivateTwinAsync(item.Registration.Id);
+                await service.ActivateÉndpointAsync(item.Registration.Id);
             }
         }
 
         /// <summary>
-        /// Update twin
+        /// Update endpoint
         /// </summary>
-        private static async Task UpdateTwinAsync(IRegistryServiceApi service,
+        private static async Task UpdateEndpointAsync(IRegistryServiceApi service,
             CliOptions options) {
 
             var credential = options.GetValue<Registry.Models.CredentialType>(
@@ -825,41 +820,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 default:
                     throw new ArgumentException(nameof(credential));
             }
-            await service.UpdateTwinAsync(
-                new TwinRegistrationUpdateApiModel {
+            await service.UpdateEndpointAsync(
+                new EndpointRegistrationUpdateApiModel {
                     Id = options.GetValue<string>("-i", "--id"),
                     User = user
                 });
         }
 
         /// <summary>
-        /// Deactivate twins
+        /// Deactivate endpoints
         /// </summary>
-        private static async Task DeactivateTwinsAsync(IRegistryServiceApi service,
+        private static async Task DeactivateEndpointsAsync(IRegistryServiceApi service,
             CliOptions options) {
 
             var id = options.GetValueOrDefault<string>("-i", "--id", null);
             if (id != null) {
-                await service.DeactivateTwinAsync(id);
+                await service.DeactivateEndpointAsync(id);
                 return;
             }
 
-            // Activate all sign and encrypt twins
-            var result = await service.QueryAllTwinsAsync(new TwinRegistrationQueryApiModel {
+            // Activate all sign and encrypt endpoints
+            var result = await service.QueryAllEndpointsAsync(new EndpointRegistrationQueryApiModel {
                 SecurityMode = options.GetValueOrDefault<SecurityMode>("-m", "mode", null),
                 Activated = true
             });
             foreach (var item in result) {
-                await service.DeactivateTwinAsync(item.Registration.Id);
+                await service.DeactivateEndpointAsync(item.Registration.Id);
             }
         }
 
         /// <summary>
-        /// Get twin
+        /// Get endpoint
         /// </summary>
-        private static async Task GetTwinAsync(IRegistryServiceApi service,
+        private static async Task GetEndpointAsync(IRegistryServiceApi service,
             CliOptions options) {
-            var result = await service.GetTwinAsync(
+            var result = await service.GetEndpointAsync(
                 options.GetValue<string>("-i", "--id"),
                 options.GetValueOrDefault<bool>("-s", "--server", null));
             PrintResult(options, result);
@@ -897,61 +892,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             Console.WriteLine("==================");
         }
 
-
         /// <summary>
         /// Configuration - wraps a configuration root
         /// </summary>
-        private class ApiConfig : ITwinConfig, IRegistryConfig, IClientConfig {
-
-            /// <summary>
-            /// Configuration
-            /// </summary>
-            public IConfigurationRoot Configuration { get; set; }
+        private class ApiConfig : ClientConfig, ITwinConfig, IRegistryConfig {
 
             /// <summary>
             /// Service configuration
             /// </summary>
-
-            /// <summary>OPC twin endpoint url</summary>
-            public string OpcUaTwinServiceUrl =>
-                Configuration.GetValue(kOpcUaTwinServiceUrlKey,
-                    Configuration.GetValue("PCS_TWIN_SERVICE_URL",
-                        "http://localhost:9041"));
-            /// <summary>OPC twin endpoint url</summary>
-            public string OpcUaRegistryServiceUrl =>
-                Configuration.GetValue(kOpcUaRegistryServiceUrlKey,
-                    Configuration.GetValue("PCS_TWIN_REGISTRY_URL",
-                        "http://localhost:9042"));
-
-            public string OpcUaTwinServiceResourceId =>
-                Configuration.GetValue(kOpcUaTwinServiceIdKey,
-                    Configuration.GetValue("OPC_TWIN_APP_ID",
-                         Configuration.GetValue<string>("IIOT_AUTH_APP_ID")));
-            public string OpcUaRegistryServiceResourceId =>
-                Configuration.GetValue(kOpcUaRegistryServiceIdKey,
-                    Configuration.GetValue("OPC_REGISTRY_APP_ID",
-                         Configuration.GetValue<string>("IIOT_AUTH_APP_ID")));
-
-            /// <summary>
-            /// Client configuration
-            /// </summary>
-
-            public string AppId =>
-                Configuration.GetValue(kOpcUaTwinServiceIdKey,
-                    Configuration.GetValue("OPC_TWIN_CLI_APP_ID",
-                         Configuration.GetValue<string>("IIOT_AUTH_CLIENT_ID")));
-
-            public string TenantId =>
-                Configuration.GetValue<string>("OPC_TWIN_CLI_TENANT_ID");
-
-            public string InstanceUrl => null;
-            public string AppSecret => null;
-
             private const string kOpcUaTwinServiceUrlKey = "OpcTwinServiceUrl";
             private const string kOpcUaRegistryServiceUrlKey = "OpcRegistryServiceUrl";
-
             private const string kOpcUaTwinServiceIdKey = "OpcTwinServiceResourceId";
             private const string kOpcUaRegistryServiceIdKey = "OpcRegistryServiceResourceId";
+
+            /// <summary>OPC twin endpoint url</summary>
+            public string OpcUaTwinServiceUrl => GetStringOrDefault(
+                kOpcUaTwinServiceUrlKey, GetStringOrDefault(
+                     "PCS_TWIN_SERVICE_URL", "http://localhost:9041"));
+            /// <summary>OPC registry endpoint url</summary>
+            public string OpcUaRegistryServiceUrl => GetStringOrDefault(
+                kOpcUaRegistryServiceUrlKey, GetStringOrDefault(
+                    "PCS_TWIN_REGISTRY_URL", "http://localhost:9042"));
+            /// <summary>OPC twin service audience</summary>
+            public string OpcUaTwinServiceResourceId => GetStringOrDefault(
+                kOpcUaTwinServiceIdKey, GetStringOrDefault(
+                    "OPC_TWIN_APP_ID", Audience));
+            /// <summary>OPC registry audience</summary>
+            public string OpcUaRegistryServiceResourceId => GetStringOrDefault(
+                kOpcUaRegistryServiceIdKey, GetStringOrDefault(
+                    "OPC_REGISTRY_APP_ID", Audience));
+
+            /// <inheritdoc/>
+            public ApiConfig(IConfigurationRoot configuration, string serviceId = "") :
+                base(configuration, serviceId) {
+            }
         }
 
         /// <summary>
@@ -960,7 +934,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static void PrintHelp() {
             Console.WriteLine(
                 @"
-OpcUaTwinCtrl cli - Allows to script opc twin web service api.
+OpcUaTwinCtrl cli - Allows to script opc service api.
 usage:      OpcUaTwinCtrl command [options]
 
 Commands and Options
@@ -968,9 +942,9 @@ Commands and Options
      console     Run in interactive mode. Enter commands after the >
      exit        Exit interactive mode and thus the cli.
      apps        Manage applications
-     twins       Manage Twins
+     endpoints   Manage Endpoints
      supervisors Manage supervisors
-     nodes       Call nodes services on twin
+     nodes       Call nodes services on endpoint
      status      Print service status
      help, -h, -? --help
                  Prints out this help.
@@ -1004,15 +978,15 @@ Commands and Options
         -A, --all       Return all application infos (unpaged)
         -F, --format    Json format for result
 
-     add         Register server and twins through discovery url
+     add         Register server and endpoints through discovery url
         with ...
         -u, --url       Url of the discovery endpoint (mandatory)
-        -a, --activate  Activate all twins during onboarding.
+        -a, --activate  Activate all endpoints during onboarding.
 
-     discover    Discover applications and twins through config.
+     discover    Discover applications and endpoints through config.
         with ...
         -d, --discovery Set discovery mode to use
-        -a, --activate  Activate all twins during onboarding.
+        -a, --activate  Activate all endpoints during onboarding.
 
      register    Register Application
         with ...
@@ -1062,14 +1036,14 @@ Commands and Options
         /// <summary>
         /// Print help
         /// </summary>
-        private static void PrintTwinsHelp() {
+        private static void PrintEndpointsHelp() {
             Console.WriteLine(
                 @"
-Manage Twins in registry.
+Manage Endpoints in registry.
 
 Commands and Options
 
-     list        List twins
+     list        List endpoints
         with ...
         -s, --server    Return only server state (default:false)
         -C, --continuation
@@ -1078,38 +1052,38 @@ Commands and Options
         -A, --all       Return all endpoints (unpaged)
         -F, --format    Json format for result
 
-     query       Find twins
+     query       Find endpoints
         -s, --server    Return only server state (default:false)
         -u, --uri       Endpoint uri to seach for
         -m, --mode      Security mode to search for
         -p, --policy    Security policy to match
         -a, --activated Only return activated or deactivated.
         -c, --connected Only return connected or disconnected.
-        -d, --deleted   Include soft deleted twins.
+        -d, --deleted   Include soft deleted endpoints.
         -P, --page-size Size of page
         -A, --all       Return all endpoints (unpaged)
         -F, --format    Json format for result
 
-     activate    Activate twins with specified
+     activate    Activate endpoints with specified
         with ...
-        -i, --id        Id of twin or ...
+        -i, --id        Id of endpoint or ...
         -m, --mode      Security mode (default:SignAndEncrypt)
 
-     get         Get twin
+     get         Get endpoint
         with ...
-        -i, --id        Id of twin to retrieve (mandatory)
+        -i, --id        Id of endpoint to retrieve (mandatory)
         -s, --server    Return only server state (default:false)
         -F, --format    Json format for result
 
-     update      Update twin
+     update      Update endpoint
         with ...
-        -i, --id        Id of twin
+        -i, --id        Id of endpoint
         -c, --credential
                         Credential type
 
-     deactivate  Deactivate twins with specified
+     deactivate  Deactivate endpoints with specified
         with ...
-        -i, --id        Id of twin or ...
+        -i, --id        Id of endpoint or ...
         -m, --mode      Security mode (default:SignAndEncrypt)
 
      help, -h, -? --help
@@ -1124,13 +1098,13 @@ Commands and Options
         private static void PrintNodesHelp() {
             Console.WriteLine(
                 @"
-Access Nodes on twin.
+Access Nodes on endpoint.
 
 Commands and Options
 
-     browse      Browse nodes on twin
+     browse      Browse nodes on endpoint
         with ...
-        -i, --id        Id of twin to browse (mandatory)
+        -i, --id        Id of endpoint to browse (mandatory)
         -n, --nodeid    Node to browse
         -x, --maxrefs   Max number of references
         -x, --direction Browse direction (Forward, Backward, Both)
@@ -1146,43 +1120,43 @@ Commands and Options
                         Continuation from previous result.
         -F, --format    Json format for result
 
-     publish     Publish node values on twin
+     publish     Publish node values on endpoint
         with ...
-        -i, --id        Id of twin to publish value from (mandatory)
+        -i, --id        Id of endpoint to publish value from (mandatory)
         -n, --nodeid    Node to browse (mandatory)
         -d, --disable   Disable (Pause) publishing (default: false)
         -x, --delete    Delete publish state (default: false)
 
-     list        List published nodes on twin
+     list        List published nodes on endpoint
         with ...
-        -i, --id        Id of twin with published nodes (mandatory)
+        -i, --id        Id of endpoint with published nodes (mandatory)
         -C, --continuation
                         Continuation from previous result.
-        -A, --all       Return all twins (unpaged)
+        -A, --all       Return all endpoints (unpaged)
         -F, --format    Json format for result
 
-     read        Read node value on twin
+     read        Read node value on endpoint
         with ...
-        -i, --id        Id of twin to read value from (mandatory)
+        -i, --id        Id of endpoint to read value from (mandatory)
         -n, --nodeid    Node to read value from (mandatory)
         -F, --format    Json format for result
 
-     write       Write node value on twin
+     write       Write node value on endpoint
         with ...
-        -i, --id        Id of twin to write value on (mandatory)
+        -i, --id        Id of endpoint to write value on (mandatory)
         -n, --nodeid    Node to write value to (mandatory)
         -t, --datatype  Datatype of value (mandatory)
         -v, --value     Value to write (mandatory)
 
      metadata    Get Call meta data
         with ...
-        -i, --id        Id of twin with meta data (mandatory)
+        -i, --id        Id of endpoint with meta data (mandatory)
         -n, --nodeid    Method Node to get meta data for (mandatory)
         -F, --format    Json format for result
 
-     call        Call method node on twin
+     call        Call method node on endpoint
         with ...
-        -i, --id        Id of twin to call method on (mandatory)
+        -i, --id        Id of endpoint to call method on (mandatory)
         -n, --nodeid    Method Node to call (mandatory)
         -o, --objectid  Object context for method
 
@@ -1198,7 +1172,7 @@ Commands and Options
         private static void PrintSupervisorsHelp() {
             Console.WriteLine(
                 @"
-Manage and configure Twin supervisors
+Manage and configure Endpoint supervisors
 
 Commands and Options
 
@@ -1225,10 +1199,10 @@ Commands and Options
 
      update      Update supervisor
         with ...
-        -i, --id        Id of twin to update (mandatory)
+        -i, --id        Id of supervisor to update (mandatory)
         -s, --siteId    Updated site of the supervisor.
         -d, --discovery Set supervisor discovery mode
-        -a, --activate  Activate all twins during onboarding.
+        -a, --activate  Activate all endpoints during onboarding.
         -p, --port-ranges
                         Port ranges to scan.
         -r, --address-ranges

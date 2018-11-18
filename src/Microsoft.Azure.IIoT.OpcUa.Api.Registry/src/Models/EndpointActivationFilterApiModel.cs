@@ -8,9 +8,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Twin activation filter model
+    /// Endpoint Activation Filter model
     /// </summary>
-    public class TwinActivationFilterApiModel {
+    public class EndpointActivationFilterApiModel {
 
         /// <summary>
         /// Certificate trust list identifiers to use for

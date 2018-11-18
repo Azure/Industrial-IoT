@@ -14,20 +14,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
     public static class RegistryServiceApiEx {
 
         /// <summary>
-        /// Find twins
+        /// Find endpoints
         /// </summary>
         /// <param name="service"></param>
         /// <param name="query"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<TwinInfoApiModel>> QueryAllTwinsAsync(
-            this IRegistryServiceApi service, TwinRegistrationQueryApiModel query,
+        public static async Task<IEnumerable<EndpointInfoApiModel>> QueryAllEndpointsAsync(
+            this IRegistryServiceApi service, EndpointRegistrationQueryApiModel query,
             bool? onlyServerState = null) {
-            var registrations = new List<TwinInfoApiModel>();
-            var result = await service.QueryTwinsAsync(query, onlyServerState, null);
+            var registrations = new List<EndpointInfoApiModel>();
+            var result = await service.QueryEndpointsAsync(query, onlyServerState, null);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
-                result = await service.ListTwinsAsync(result.ContinuationToken,
+                result = await service.ListEndpointsAsync(result.ContinuationToken,
                     onlyServerState, null);
                 registrations.AddRange(result.Items);
             }
@@ -35,18 +35,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         }
 
         /// <summary>
-        /// List all twins
+        /// List all endpoints
         /// </summary>
         /// <param name="service"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<TwinInfoApiModel>> ListAllTwinsAsync(
+        public static async Task<IEnumerable<EndpointInfoApiModel>> ListAllEndpointsAsync(
             this IRegistryServiceApi service, bool? onlyServerState = null) {
-            var registrations = new List<TwinInfoApiModel>();
-            var result = await service.ListTwinsAsync(null, onlyServerState, null);
+            var registrations = new List<EndpointInfoApiModel>();
+            var result = await service.ListEndpointsAsync(null, onlyServerState, null);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
-                result = await service.ListTwinsAsync(result.ContinuationToken,
+                result = await service.ListEndpointsAsync(result.ContinuationToken,
                     onlyServerState, null);
                 registrations.AddRange(result.Items);
             }

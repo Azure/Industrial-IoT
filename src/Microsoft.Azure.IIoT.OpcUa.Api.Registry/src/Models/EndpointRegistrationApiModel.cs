@@ -8,18 +8,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Twin registration model
+    /// Endpoint registration model
     /// </summary>
-    public class TwinRegistrationApiModel {
+    public class EndpointRegistrationApiModel {
 
         /// <summary>
-        /// Registered identifier of the twin
+        /// Registered identifier of the endpoint
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// Registered site of the twin
+        /// Registered site of the endpoint
         /// </summary>
         [JsonProperty(PropertyName = "siteId")]
         public string SiteId { get; set; }

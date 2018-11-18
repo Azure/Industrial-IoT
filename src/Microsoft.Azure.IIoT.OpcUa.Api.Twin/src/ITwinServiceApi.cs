@@ -19,84 +19,84 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         Task<StatusResponseApiModel> GetServiceStatusAsync();
 
         /// <summary>
-        /// Browse node on twin
+        /// Browse node on endpoint
         /// </summary>
-        /// <param name="twinId"></param>
+        /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<BrowseResponseApiModel> NodeBrowseAsync(string twinId,
+        Task<BrowseResponseApiModel> NodeBrowseAsync(string endpointId,
             BrowseRequestApiModel request);
 
         /// <summary>
-        /// Browse next references on twin
+        /// Browse next references on endpoint
         /// </summary>
-        /// <param name="twinId"></param>
+        /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<BrowseNextResponseApiModel> NodeBrowseNextAsync(string twinId,
+        Task<BrowseNextResponseApiModel> NodeBrowseNextAsync(string endpointId,
             BrowseNextRequestApiModel request);
 
         /// <summary>
-        /// Browse by path on twin
+        /// Browse by path on endpoint
         /// </summary>
-        /// <param name="twinId"></param>
+        /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<BrowsePathResponseApiModel> NodeBrowsePathAsync(string twinId,
+        Task<BrowsePathResponseApiModel> NodeBrowsePathAsync(string endpointId,
             BrowsePathRequestApiModel request);
 
         /// <summary>
-        /// Call method on twin
+        /// Call method on endpoint
         /// </summary>
-        /// <param name="twinId"></param>
+        /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<MethodCallResponseApiModel> NodeMethodCallAsync(string twinId,
+        Task<MethodCallResponseApiModel> NodeMethodCallAsync(string endpointId,
             MethodCallRequestApiModel request);
 
         /// <summary>
-        /// Get meta data for method call on twin
+        /// Get meta data for method call on endpoint
         /// </summary>
-        /// <param name="twinId"></param>
+        /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
         Task<MethodMetadataResponseApiModel> NodeMethodGetMetadataAsync(
-            string twinId, MethodMetadataRequestApiModel request);
+            string endpointId, MethodMetadataRequestApiModel request);
 
         /// <summary>
-        /// Publish or unpublish node on twin
+        /// Publish or unpublish node on endpoint
         /// </summary>
-        /// <param name="twinId"></param>
+        /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<PublishResponseApiModel> NodePublishAsync(string twinId,
+        Task<PublishResponseApiModel> NodePublishAsync(string endpointId,
             PublishRequestApiModel request);
 
         /// <summary>
-        /// Get list of published nodes on twin
+        /// Get list of published nodes on endpoint
         /// </summary>
         /// <param name="continuation"></param>
-        /// <param name="twinId"></param>
+        /// <param name="endpointId"></param>
         /// <returns></returns>
         Task<PublishedNodeListApiModel> ListPublishedNodesAsync(
-            string continuation, string twinId);
+            string continuation, string endpointId);
 
         /// <summary>
-        /// Read node value on twin
+        /// Read node value on endpoint
         /// </summary>
-        /// <param name="twinId"></param>
+        /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<ValueReadResponseApiModel> NodeValueReadAsync(string twinId,
+        Task<ValueReadResponseApiModel> NodeValueReadAsync(string endpointId,
             ValueReadRequestApiModel request);
 
         /// <summary>
-        /// Write node value on twin
+        /// Write node value on endpoint
         /// </summary>
-        /// <param name="twinId"></param>
+        /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<ValueWriteResponseApiModel> NodeValueWriteAsync(string twinId,
+        Task<ValueWriteResponseApiModel> NodeValueWriteAsync(string endpointId,
             ValueWriteRequestApiModel request);
     }
 }

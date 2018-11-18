@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             string resourceId, ILogger logger) {
             if (string.IsNullOrEmpty(serviceUri)) {
                 throw new ArgumentNullException(nameof(serviceUri),
-                    "Please configure the Url of the twin micro service.");
+                    "Please configure the Url of the endpoint micro service.");
             }
             _serviceUri = serviceUri;
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
@@ -58,12 +58,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<BrowseResponseApiModel> NodeBrowseAsync(string twinId,
+        public async Task<BrowseResponseApiModel> NodeBrowseAsync(string endpointId,
             BrowseRequestApiModel content) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/browse/{twinId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/browse/{endpointId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
@@ -73,10 +73,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<BrowseNextResponseApiModel> NodeBrowseNextAsync(string twinId,
+        public async Task<BrowseNextResponseApiModel> NodeBrowseNextAsync(string endpointId,
             BrowseNextRequestApiModel content) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
             }
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (content.ContinuationToken == null) {
                 throw new ArgumentNullException(nameof(content.ContinuationToken));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/browse/{twinId}/next",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/browse/{endpointId}/next",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
@@ -94,10 +94,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<BrowsePathResponseApiModel> NodeBrowsePathAsync(string twinId,
+        public async Task<BrowsePathResponseApiModel> NodeBrowsePathAsync(string endpointId,
             BrowsePathRequestApiModel content) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
             }
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (content.PathElements == null || content.PathElements.Length == 0) {
                 throw new ArgumentNullException(nameof(content.PathElements));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/browse/{twinId}/path",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/browse/{endpointId}/path",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
@@ -115,10 +115,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<PublishResponseApiModel> NodePublishAsync(string twinId,
+        public async Task<PublishResponseApiModel> NodePublishAsync(string endpointId,
             PublishRequestApiModel content) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
             }
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (string.IsNullOrEmpty(content.NodeId)) {
                 throw new ArgumentNullException(nameof(content.NodeId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/publish/{twinId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/publish/{endpointId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
@@ -137,11 +137,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishedNodeListApiModel> ListPublishedNodesAsync(
-            string continuation, string twinId) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
+            string continuation, string endpointId) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/publish/{twinId}/state",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/publish/{endpointId}/state",
                 _resourceId);
             if (continuation != null) {
                 request.AddHeader(kContinuationTokenHeaderKey, continuation);
@@ -153,10 +153,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<ValueReadResponseApiModel> NodeValueReadAsync(string twinId,
+        public async Task<ValueReadResponseApiModel> NodeValueReadAsync(string endpointId,
             ValueReadRequestApiModel content) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
             }
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
@@ -164,7 +164,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (string.IsNullOrEmpty(content.NodeId)) {
                 throw new ArgumentException(nameof(content.NodeId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/read/{twinId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/read/{endpointId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
@@ -174,10 +174,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<ValueWriteResponseApiModel> NodeValueWriteAsync(string twinId,
+        public async Task<ValueWriteResponseApiModel> NodeValueWriteAsync(string endpointId,
             ValueWriteRequestApiModel content) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
             }
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
@@ -188,7 +188,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (string.IsNullOrEmpty(content.NodeId)) {
                 throw new ArgumentException(nameof(content.NodeId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/write/{twinId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/write/{endpointId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
@@ -199,9 +199,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<MethodMetadataResponseApiModel> NodeMethodGetMetadataAsync(
-            string twinId, MethodMetadataRequestApiModel content) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
+            string endpointId, MethodMetadataRequestApiModel content) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
             }
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
@@ -209,7 +209,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (string.IsNullOrEmpty(content.MethodId)) {
                 throw new ArgumentNullException(nameof(content.MethodId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/call/{twinId}/$metadata",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/call/{endpointId}/$metadata",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
@@ -220,9 +220,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
 
         /// <inheritdoc/>
         public async Task<MethodCallResponseApiModel> NodeMethodCallAsync(
-            string twinId, MethodCallRequestApiModel content) {
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
+            string endpointId, MethodCallRequestApiModel content) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
             }
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
@@ -230,7 +230,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (string.IsNullOrEmpty(content.MethodId)) {
                 throw new ArgumentNullException(nameof(content.MethodId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/call/{twinId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/call/{endpointId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);

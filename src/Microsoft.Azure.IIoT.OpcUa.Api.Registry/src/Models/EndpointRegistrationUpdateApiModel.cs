@@ -7,18 +7,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Twin registration update request
+    /// Endpoint registration update request
     /// </summary>
-    public class TwinRegistrationUpdateApiModel {
+    public class EndpointRegistrationUpdateApiModel {
 
         /// <summary>
-        /// Identifier of the twin to patch
+        /// Identifier of the endpoint to patch
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// User authentication to use on the twin.
+        /// User authentication to use on the endpoint.
         /// </summary>
         [JsonProperty(PropertyName = "user",
             NullValueHandling = NullValueHandling.Ignore)]

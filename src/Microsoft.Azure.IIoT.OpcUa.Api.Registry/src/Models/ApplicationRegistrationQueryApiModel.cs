@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string SiteOrSupervisorId { get; set; }
 
         /// <summary>
-        /// Whether to include twins that were soft deleted
+        /// Whether to include applications that were soft deleted
         /// </summary>
         [JsonProperty(PropertyName = "includeNotSeenSince",
             NullValueHandling = NullValueHandling.Ignore)]

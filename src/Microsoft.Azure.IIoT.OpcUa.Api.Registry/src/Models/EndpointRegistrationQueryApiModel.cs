@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Twin query
+    /// Endpoint query
     /// </summary>
-    public class TwinRegistrationQueryApiModel {
+    public class EndpointRegistrationQueryApiModel {
 
         /// <summary>
         /// Endoint url for direct server access
@@ -47,21 +47,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string SecurityPolicy { get; set; }
 
         /// <summary>
-        /// Whether the twin was activated
+        /// Whether the endpoint was activated
         /// </summary>
         [JsonProperty(PropertyName = "activated",
             NullValueHandling = NullValueHandling.Ignore)]
         public bool? Activated { get; set; }
 
         /// <summary>
-        /// Whether the twin is connected on supervisor.
+        /// Whether the endpoint is connected on supervisor.
         /// </summary>
         [JsonProperty(PropertyName = "connected",
             NullValueHandling = NullValueHandling.Ignore)]
         public bool? Connected { get; set; }
 
         /// <summary>
-        /// Whether to include twins that were soft deleted
+        /// Whether to include endpoints that were soft deleted
         /// </summary>
         [JsonProperty(PropertyName = "includeNotSeenSince",
             NullValueHandling = NullValueHandling.Ignore)]

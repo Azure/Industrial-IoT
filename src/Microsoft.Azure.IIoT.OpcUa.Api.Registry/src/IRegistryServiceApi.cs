@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             string applicationId);
 
         /// <summary>
-        /// Register new application and all twins with it.
+        /// Register new application and all endpoints with it.
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
@@ -88,7 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             ApplicationRegistrationQueryApiModel query, int? pageSize);
 
         /// <summary>
-        /// Unregister and delete application and all twins.
+        /// Unregister and delete application and all endpoints.
         /// </summary>
         /// <param name="applicationId"></param>
         /// <returns></returns>
@@ -103,48 +103,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         Task PurgeDisabledApplicationsAsync(TimeSpan notSeenSince);
 
         /// <summary>
-        /// Get twin
+        /// Get endpoint
         /// </summary>
-        /// <param name="twinId"></param>
+        /// <param name="endpointId"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        Task<TwinInfoApiModel> GetTwinAsync(
-            string twinId, bool? onlyServerState);
+        Task<EndpointInfoApiModel> GetEndpointAsync(
+            string endpointId, bool? onlyServerState);
 
         /// <summary>
-        /// Set twin activation state to activated
+        /// Set endpoint activation state to activated
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task ActivateTwinAsync(string id);
+        Task ActivateÉndpointAsync(string id);
 
         /// <summary>
-        /// Update twin registration
+        /// Update endpoint registration
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task UpdateTwinAsync(
-            TwinRegistrationUpdateApiModel request);
+        Task UpdateEndpointAsync(
+            EndpointRegistrationUpdateApiModel request);
 
         /// <summary>
-        /// Set twin activation state to deactivated
+        /// Set endpoint activation state to deactivated
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task DeactivateTwinAsync(string id);
+        Task DeactivateEndpointAsync(string id);
 
         /// <summary>
-        /// List all twins
+        /// List all endpoints
         /// </summary>
         /// <param name="continuation"></param>
         /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        Task<TwinInfoListApiModel> ListTwinsAsync(
+        Task<EndpointInfoListApiModel> ListEndpointsAsync(
             string continuation, bool? onlyServerState, int? pageSize);
 
         /// <summary>
-        /// Find twins based on specified critiria. Pass continuation
+        /// Find endpoint based on specified critiria. Pass continuation
         /// token if any is returned to ListTwins to retrieve
         /// the remaining items
         /// </summary>
@@ -152,8 +152,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        Task<TwinInfoListApiModel> QueryTwinsAsync(
-            TwinRegistrationQueryApiModel query, bool? onlyServerState,
+        Task<EndpointInfoListApiModel> QueryEndpointsAsync(
+            EndpointRegistrationQueryApiModel query, bool? onlyServerState,
             int? pageSize);
 
         /// <summary>

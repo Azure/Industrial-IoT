@@ -32,10 +32,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public CallbackApiModel Callback { get; private set; }
 
         /// <summary>
-        /// Upon discovery, activate all twins with this filter.
+        /// Upon discovery, activate all endpoints with this filter.
         /// </summary>
         [JsonProperty(PropertyName = "activationFilter",
            NullValueHandling = NullValueHandling.Ignore)]
-        public TwinActivationFilterApiModel ActivationFilter { get; set; }
+        public EndpointActivationFilterApiModel ActivationFilter { get; set; }
     }
 }

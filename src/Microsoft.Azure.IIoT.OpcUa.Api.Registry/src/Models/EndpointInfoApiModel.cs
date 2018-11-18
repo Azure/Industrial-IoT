@@ -8,31 +8,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using System;
 
     /// <summary>
-    /// Twin registration model
+    /// Endpoint registration model
     /// </summary>
-    public class TwinInfoApiModel {
+    public class EndpointInfoApiModel {
 
         /// <summary>
-        /// Twin registration
+        /// Endpoint registration
         /// </summary>
         [JsonProperty(PropertyName = "registration")]
-        public TwinRegistrationApiModel Registration { get; set; }
+        public EndpointRegistrationApiModel Registration { get; set; }
 
         /// <summary>
-        /// Application id twin is registered with.
+        /// Application id endpoint is registered with.
         /// </summary>
         [JsonProperty(PropertyName = "applicationId")]
         public string ApplicationId { get; set; }
 
         /// <summary>
-        /// Whether twin is activated on this registration
+        /// Whether endpoint is activated on this registration
         /// </summary>
         [JsonProperty(PropertyName = "activated",
             NullValueHandling = NullValueHandling.Ignore)]
         public bool? Activated { get; set; }
 
         /// <summary>
-        /// Whether twin is connected on this registration
+        /// Whether endpoint is connected on this registration
         /// </summary>
         [JsonProperty(PropertyName = "connected",
             NullValueHandling = NullValueHandling.Ignore)]
@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public bool? OutOfSync { get; set; }
 
         /// <summary>
-        /// Last time twin was seen
+        /// Last time endpoint was seen
         /// </summary>
         [JsonProperty(PropertyName = "notSeenSince",
             NullValueHandling = NullValueHandling.Ignore)]

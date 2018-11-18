@@ -91,10 +91,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public List<CallbackApiModel> Callbacks { get; set; }
 
         /// <summary>
-        /// Activate all twins with this filter during onboarding.
+        /// Activate all endpoints with this filter during onboarding.
         /// </summary>
         [JsonProperty(PropertyName = "activationFilter",
             NullValueHandling = NullValueHandling.Ignore)]
-        public TwinActivationFilterApiModel ActivationFilter { get; set; }
+        public EndpointActivationFilterApiModel ActivationFilter { get; set; }
     }
 }
