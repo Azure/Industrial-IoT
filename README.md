@@ -1,20 +1,6 @@
-# Common Azure Industrial IoT (IIoT) libraries (Preview)
+# Azure Industrial IoT Common Libraries
 
-These helper libraries are used across our [Industrial IoT (IIoT) solution accelerator components](#Other-Industrial-IoT-Solution-Accelerator-components) suite and are available as nuget packages on nuget.org:
-
-* [Microsoft.Azure.IIoT.Abstractions](src/Microsoft.Azure.IIoT.Abstractions/src) contains shared code and abstractions for the following...
-  * [Microsoft.Azure.IIoT.Auth](src/Microsoft.Azure.IIoT.Auth/src) has several authN and authZ abstraction implementations that can be used outside of a web service context.
-  * [Microsoft.Azure.IIoT.Hub](src/Microsoft.Azure.IIoT.Hub/src) contains the IoT Hub service client models and service interfaces as well as the core HttpClient based clients.
-    * [Microsoft.Azure.IIoT.Hub.Client](src/Microsoft.Azure.IIoT.Hub.Client/src) contains a IoT Sdk based client for production use.
-    * [Microsoft.Azure.IIoT.Hub.Processor](src/Microsoft.Azure.IIoT.Hub.Processor/src) contain the core event / telemetry processor framework for IoT Hub.
-  * [Microsoft.Azure.IIoT.Infrastructure](src/Microsoft.Azure.IIoT.Infrastructure/src) contains API wrappers around the Azure management SDK.
-  * Microsoft.Azure.IIoT.Module
-    * [Microsoft.Azure.IIoT.Module.Deployment](src/Microsoft.Azure.IIoT.Module.Deployment/src) supports programmatic module deployment to IoT Edge.
-    * [Microsoft.Azure.IIoT.Module.Framework](src/Microsoft.Azure.IIoT.Module.Framework/src) contains a MVC framework to build modules for IoT Edge similar to Asp.Net Core.
-  * [Microsoft.Azure.IIoT.Net](src/Microsoft.Azure.IIoT.Net/src) contains common networking code and helpers.
-    * [Microsoft.Azure.IIoT.Net.Scan](src/Microsoft.Azure.IIoT.Net.Scan/src) contains network and port scanner implementations.
-    * [Microsoft.Azure.IIoT.Net.Ssh](src/Microsoft.Azure.IIoT.Net.Ssh/src) contains a secure shell interface implementation using Renci.Ssh.
-  * [Microsoft.Azure.IIoT.Services](src/Microsoft.Azure.IIoT.Services/src) contains common helpers and utilities for Asp.net Core based web services.
+These libraries are used across our [Azure Industrial IoT (IIoT) components](#Other-Azure-Industrial-IoT-components) suite and are available as nuget packages on nuget.org.  They are maintained in their own repository to encourage use outside of our components.  We welcome [Community contributions](#Contributing).
 
 ## Build
 
@@ -33,16 +19,13 @@ These helper libraries are used across our [Industrial IoT (IIoT) solution accel
 1. Run `dotnet build -c Release`
 1. Run `dotnet pack`
 
-## Industrial IoT Solution Accelerator components
+## Other Azure Industrial IoT components
 
-* OPC GDS Vault service (Coming soon)
-* [OPC Twin service](https://github.com/Azure/azure-iiot-opc-twin-service)
-* [OPC Twin Registry service](https://github.com/Azure/azure-iiot-opc-twin-registry)
-* [OPC Twin Onboarding service](https://github.com/Azure/azure-iiot-opc-twin-onboarding)
-* OPC Twin common business logic (Coming soon)
-* [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module)
+* [OPC UA micro services](https://github.com/Azure/azure-iiot-opc-ua-services)
+* OPC UA Certificate Management service (Coming soon)
+* [OPC UA API](https://github.com/Azure/azure-iiot-opc-ua-api)
+* [OPC UA Device Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-ua-twin-module)
 * [OPC Publisher IoT Edge module](https://github.com/Azure/iot-edge-opc-publisher)
-* [OPC Twin API](https://github.com/Azure/azure-iiot-opc-twin-api)
 
 ## Contributing
 
@@ -50,7 +33,7 @@ Refer to our [contribution guidelines](CONTRIBUTING.md).
 
 ## Feedback
 
-Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-opc-twin-service/issues).
+Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-common/issues).
 
 ## License
 
