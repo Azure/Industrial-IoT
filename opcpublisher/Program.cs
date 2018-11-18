@@ -301,7 +301,7 @@ namespace OpcPublisher
                             }
                         },
 
-                        { "aa|autoaccept", $"the publisher trusts all servers it is establishing a connection to.\nDefault: {OpcPublisherAutoTrustServerCerts}", b => OpcPublisherAutoTrustServerCerts = b != null },
+                        { "aa|autoaccept", $"the publisher trusts all servers it is establishing a connection to.\nDefault: {AutoAcceptCerts}", b => AutoAcceptCerts = b != null },
 
                         // trust own public cert option
                         { "tm|trustmyself=", $"same as trustowncert.\nDefault: {TrustMyself}", (bool b) => TrustMyself = b  },
@@ -462,7 +462,7 @@ namespace OpcPublisher
                             }
                          },
                         { "vc|verboseconsole=", $"ignored, only supported for backward comaptibility.", b => {}},
-                        { "as|autotrustservercerts=", $"same as autoaccept, only supported for backward cmpatibility.\nDefault: {OpcPublisherAutoTrustServerCerts}", (bool b) => OpcPublisherAutoTrustServerCerts = b },
+                        { "as|autotrustservercerts=", $"same as autoaccept, only supported for backward cmpatibility.\nDefault: {AutoAcceptCerts}", (bool b) => AutoAcceptCerts = b },
                         { "tt|trustedcertstoretype=", $"ignored, only supported for backward compatibility. the trusted cert store will always reside in a directory.", s => { }},
                         { "rt|rejectedcertstoretype=", $"ignored, only supported for backward compatibility. the rejected cert store will always reside in a directory.", s => { }},
                         { "it|issuercertstoretype=", $"ignored, only supported for backward compatibility. the trusted issuer cert store will always reside in a directory.", s => { }},
@@ -580,18 +580,6 @@ namespace OpcPublisher
                 else
                 {
                     Logger.Information($"Publisher is in site '{PublisherSite}'.");
-                }
-
-                // Set certificate validator.
-                if (OpcPublisherAutoTrustServerCerts)
-                {
-                    Logger.Information("Publisher configured to auto trust server certificates of the servers it is connecting to.");
-                    OpcApplicationConfiguration.ApplicationConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_AutoTrustServerCerts);
-                }
-                else
-                {
-                    Logger.Information("Publisher configured to not auto trust server certificates. When connecting to servers, you need to manually copy the rejected server certs to the trusted store to trust them.");
-                    OpcApplicationConfiguration.ApplicationConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_Default);
                 }
 
                 // start our server interface
@@ -816,34 +804,6 @@ namespace OpcPublisher
             foreach (var line in helpLines)
             {
                 Logger.Information(line);
-            }
-        }
-
-        /// <summary>
-        /// Default certificate validation callback
-        /// </summary>
-        private static void CertificateValidator_Default(CertificateValidator validator, CertificateValidationEventArgs e)
-        {
-            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
-            {
-                Logger.Information($"OPC Publisher does not trust the server with the certificate subject '{e.Certificate.Subject}'.");
-                Logger.Information("If you want to trust this certificate, please copy it from the directory:");
-                Logger.Information($"{OpcApplicationConfiguration.ApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore.StorePath}/certs");
-                Logger.Information("to the directory:");
-                Logger.Information($"{OpcApplicationConfiguration.ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath}/certs");
-            }
-        }
-
-        /// <summary>
-        /// Auto trust server certificate validation callback
-        /// </summary>
-        private static void CertificateValidator_AutoTrustServerCerts(CertificateValidator validator, CertificateValidationEventArgs e)
-        {
-            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
-            {
-                Logger.Information($"Certificate '{e.Certificate.Subject}' will be trusted, since the autotrustservercerts options was specified.");
-                e.Accept = true;
-                return;
             }
         }
 

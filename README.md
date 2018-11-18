@@ -731,6 +731,13 @@ data via base64 encoded strings.
 
 If you want to see how a CA signed certificate can be used, please open an issue on this repo and we follow up.
 
+You need to take special care how certificate stores are handled. Especially for the application certificate the runtime 
+environment has impact and you want to make sure that it is persisted and not created new on each start:
+* Running on Windows natively, you can not use an application certificate store of type `Directory`, since the access to the private key fails. Please use the option `--at X509Store` in this case.
+* Running as Linux docker container, you can map the certificate stores to the host file system by using the docker run option `-v <hostdirectory>:/appdata`. This will make the certificate persistent over starts.
+* Running as Linux docker container and want to use an X509Store for the application certificate, you need to use the docker run option `-v x509certstores:/root/.dotnet/corefx/cryptography/x509stores` and the application option `--at X509Store`
+
+
 
 ## Performance and memory considerations
 ### Commandline parameters contolling performance and memory

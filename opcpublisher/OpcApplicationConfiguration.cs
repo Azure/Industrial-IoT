@@ -53,7 +53,8 @@ namespace OpcPublisher
         /// <summary>
         /// Set the max string length the OPC stack supports.
         /// </summary>
-        public static int OpcMaxStringLength { get; set; } = 4 * 1024 * 1024;
+        //public static int OpcMaxStringLength { get; set; } = 4 * 1024 * 1024;
+        public static int OpcMaxStringLength { get; set; } = 128 * 1024;
 
         /// <summary>
         /// <summary>
@@ -76,8 +77,6 @@ namespace OpcPublisher
         /// </summary>
         public static int OpcOperationTimeout { get; set; } = 120000;
 
-
-        public static bool OpcPublisherAutoTrustServerCerts { get; set; } = false;
 
         public static uint OpcSessionCreationTimeout { get; set; } = 10;
 
@@ -120,7 +119,7 @@ namespace OpcPublisher
             ApplicationConfiguration.ApplicationName = ApplicationName;
             ApplicationConfiguration.ApplicationUri = ApplicationUri;
             ApplicationConfiguration.ProductUri = ProductUri;
-            ApplicationConfiguration.ApplicationType = ApplicationType.Server;
+            ApplicationConfiguration.ApplicationType = ApplicationType.ClientAndServer;
 
             // configure OPC stack tracing
             ApplicationConfiguration.TraceConfiguration = new TraceConfiguration();
@@ -133,6 +132,10 @@ namespace OpcPublisher
             ApplicationConfiguration.TransportQuotas = new TransportQuotas();
             ApplicationConfiguration.TransportQuotas.MaxStringLength = OpcMaxStringLength;
             ApplicationConfiguration.TransportQuotas.MaxMessageSize = 4 * 1024 * 1024;
+
+            // the OperationTimeout should be twice the minimum value for PublishingInterval * KeepAliveCount, so set to 120s
+            ApplicationConfiguration.TransportQuotas.OperationTimeout = OpcOperationTimeout;
+            Logger.Information($"OperationTimeout set to {ApplicationConfiguration.TransportQuotas.OperationTimeout}");
 
             // configure OPC UA server
             ApplicationConfiguration.ServerConfiguration = new ServerConfiguration();
@@ -169,6 +172,9 @@ namespace OpcPublisher
                 Logger.Information($"Unsecure security policy {newPolicy.SecurityPolicyUri} with mode {newPolicy.SecurityMode} added");
                 Logger.Warning($"Note: This is a security risk and needs to be disabled for production use");
             }
+
+            // add default client configuration
+            ApplicationConfiguration.ClientConfiguration = new ClientConfiguration();
 
             // security configuration
             await InitApplicationSecurityAsync();

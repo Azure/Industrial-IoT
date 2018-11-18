@@ -38,7 +38,7 @@ namespace OpcPublisher
         public static string OpcIssuerCertStorePath { get; set; } = OpcIssuerCertDirectoryStorePathDefault;
 
         /// <summary>
-        /// Accept certs of the clients automatically.
+        /// Accept certs automatically.
         /// </summary>
         public static bool AutoAcceptCerts { get; set; } = false;
 
@@ -417,11 +417,16 @@ namespace OpcPublisher
                 e.Accept = AutoAcceptCerts;
                 if (AutoAcceptCerts)
                 {
-                    Logger.Information($"Accepting Certificate: {e.Certificate.Subject}");
+                    Logger.Information($"Certificate '{e.Certificate.Subject}' will be trusted, because of corresponding command line option.");
                 }
                 else
                 {
-                    Logger.Information($"Rejecting Certificate: {e.Certificate.Subject}");
+                    Logger.Information($"Not trusting OPC application  with the certificate subject '{e.Certificate.Subject}'.");
+                    Logger.Information("If you want to trust this certificate, please copy it from the directory:");
+                    Logger.Information($"{OpcApplicationConfiguration.ApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore.StorePath}/certs");
+                    Logger.Information("to the directory:");
+                    Logger.Information($"{OpcApplicationConfiguration.ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath}/certs");
+                    Logger.Information($"Rejecting certificate for now.");
                 }
             }
         }
