@@ -14,7 +14,7 @@ namespace OpcPublisher
     using static HubCommunication;
     using static OpcPublisher.OpcMonitoredItem;
     using static OpcPublisher.PublisherTelemetryConfiguration;
-    using static OpcStackConfiguration;
+    using static OpcApplicationConfiguration;
     using static Program;
     using static PublisherNodeConfiguration;
 
@@ -606,15 +606,15 @@ namespace OpcPublisher
 
                     // start connecting
                     selectedEndpoint = CoreClientUtils.SelectEndpoint(EndpointUrl.AbsoluteUri, UseSecurity);
-                    configuredEndpoint = new ConfiguredEndpoint(null, selectedEndpoint, EndpointConfiguration.Create(PublisherOpcApplicationConfiguration));
+                    configuredEndpoint = new ConfiguredEndpoint(null, selectedEndpoint, EndpointConfiguration.Create(OpcApplicationConfiguration.ApplicationConfiguration));
                     uint timeout = SessionTimeout * ((UnsuccessfulConnectionCount >= OpcSessionCreationBackoffMax) ? OpcSessionCreationBackoffMax : UnsuccessfulConnectionCount + 1);
                     Logger.Information($"Create {(UseSecurity ? "secured" : "unsecured")} session for endpoint URI '{EndpointUrl.AbsoluteUri}' with timeout of {timeout} ms.");
                     OpcUaClientSession = await Session.Create(
-                            PublisherOpcApplicationConfiguration,
+                            OpcApplicationConfiguration.ApplicationConfiguration,
                             configuredEndpoint,
                             true,
                             false,
-                            PublisherOpcApplicationConfiguration.ApplicationName,
+                            OpcApplicationConfiguration.ApplicationConfiguration.ApplicationName,
                             timeout,
                             new UserIdentity(new AnonymousIdentityToken()),
                             null);
