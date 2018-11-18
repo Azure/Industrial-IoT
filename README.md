@@ -1,10 +1,12 @@
-# Azure Industrial IoT (IIoT) OPC Twin API
+# Azure Industrial IoT OPC UA API
 
 This repository contains:
 
-1. The handcrafted C# API for both [OPC Twin Registry and Service](https://github.com/Azure/azure-iiot-opc-twin-service).
+1. The handcrafted C# API for both [OPC UA Registry and Device Twin Services](https://github.com/Azure/azure-iiot-opc-ua-services).
 1. A command line interface (CLI) that allows you to exercise the API.
 1. (Coming soon) A set of AutoREST generated libraries that enable access to the above services using a wider variety of languages.
+
+The API and dependent services are part of our [Azure Industrial IoT (IIoT) components](#Other-Azure-Industrial-IoT-components) suite.
 
 ## Prerequisites
 
@@ -12,7 +14,7 @@ Clone this repository.
 
 ### Setup Dependencies
 
-The command line interface (CLI) and APIs depend on the [OPC Twin Services](https://github.com/Azure/azure-iiot-opc-twin-service). 
+The command line interface (CLI) and APIs depend on the [OPC UA Services](https://github.com/Azure/azure-iiot-opc-ua-services). 
 
 If you have [Docker][docker-url] installed, you can start the corresponding services by changing into the repository root and running `docker-compose up`.
 Otherwise, follow the instructions at the respective link above to ensure that these dependencies are running before using the API or command line interface.
@@ -71,13 +73,13 @@ Clone this repository.  If you have [Docker][docker-url] installed, you can star
 1. To run the image run `docker run -e OpcTwinServiceUrl=$OpcTwinServiceUrl -e OpcRegistryServiceUrl=$OpcRegistryServiceUrl -it azure-iiot-opc-twin-api console`.  
 1. Type `help` to see the available options.
 
-## Other Industrial IoT Solution Accelerator components
+## Other Azure Industrial IoT components
 
-* [OPC Twin services](https://github.com/Azure/azure-iiot-opc-twin-service)
-* OPC Twin common business logic (Coming soon)
-* [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module)
+* [OPC UA micro services](https://github.com/Azure/azure-iiot-opc-ua-services)
+* OPC UA Certificate Management service (Coming soon)
+* [OPC UA API](https://github.com/Azure/azure-iiot-opc-ua-api)
+* [OPC UA Device Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-ua-twin-module)
 * [OPC Publisher IoT Edge module](https://github.com/Azure/iot-edge-opc-publisher)
-* OPC Vault service (Coming soon)
 
 ## Contributing
 
@@ -85,7 +87,7 @@ Refer to our [contribution guidelines](CONTRIBUTING.md).
 
 ## Feedback
 
-Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-opc-twin-service/issues).
+Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-opc-ua/issues).
 
 ## License
 
