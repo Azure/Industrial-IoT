@@ -318,12 +318,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// Activate twin
+        /// Activate endpoint
         /// </summary>
         /// <param name="id"></param>
         /// <param name="secret"></param>
         /// <returns></returns>
-        public async Task<bool> ActivateTwinAsync(string id, string secret) {
+        public async Task<bool> ActivateEndpointAsync(string id, string secret) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentNullException(nameof(id));
             }
@@ -333,20 +333,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
             if (!secret.IsBase64()) {
                 throw new ArgumentException("not base64", nameof(secret));
             }
-            await _activator.ActivateTwinAsync(id, secret);
+            await _activator.ActivateEndpointAsync(id, secret);
             return true;
         }
 
         /// <summary>
-        /// Deactivate twin
+        /// Deactivate endpoint
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<bool> DeactivateTwinAsync(string id) {
+        public async Task<bool> DeactivateEndpointAsync(string id) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentNullException(nameof(id));
             }
-            await _activator.DeactivateTwinAsync(id);
+            await _activator.DeactivateEndpointAsync(id);
             return true;
         }
 

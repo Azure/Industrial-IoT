@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Method call response model for twin module
+    /// Method call response model for module
     /// </summary>
     public class MethodCallResponseApiModel {
 

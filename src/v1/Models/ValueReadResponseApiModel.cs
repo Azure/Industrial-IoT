@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System;
 
     /// <summary>
-    /// Value read response model for twin module
+    /// Value read response model for module
     /// </summary>
     public class ValueReadResponseApiModel {
 

@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
 
     /// <summary>
-    /// Value write response model for twin module
+    /// Value write response model for module
     /// </summary>
     public class ValueWriteResponseApiModel {
 

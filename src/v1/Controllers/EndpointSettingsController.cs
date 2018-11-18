@@ -15,10 +15,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Twin settings controller
+    /// Endpoint settings controller
     /// </summary>
     [Version(1)]
-    public class TwinSettingsController : ISettingsController {
+    public class EndpointSettingsController : ISettingsController {
 
         /// <summary>
         /// Endoint url for direct server access
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="logger"></param>
-        public TwinSettingsController(ITwinServices twin, ILogger logger) {
+        public EndpointSettingsController(IEndpointServices twin, ILogger logger) {
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -114,7 +114,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         private byte[] _serverThumbprint;
         private byte[] _clientCertificate;
 
-        private readonly ITwinServices _twin;
+        private readonly IEndpointServices _twin;
         private readonly ILogger _logger;
     }
 }

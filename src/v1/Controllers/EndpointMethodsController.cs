@@ -16,11 +16,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Twin settings controller
+    /// Endpoint methods controller
     /// </summary>
     [Version(1)]
     [ExceptionsFilter]
-    public class TwinMethodsController : IMethodController {
+    public class EndpointMethodsController : IMethodController {
 
         /// <summary>
         /// Create controller with service
@@ -28,9 +28,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// <param name="browse"></param>
         /// <param name="nodes"></param>
         /// <param name="logger"></param>
-        public TwinMethodsController(IBrowseServices<EndpointModel> browse,
+        public EndpointMethodsController(IBrowseServices<EndpointModel> browse,
             INodeServices<EndpointModel> nodes, IPublishServices<EndpointModel> publisher,
-            ITwinServices twin, IEventEmitter events, ILogger logger) {
+            IEndpointServices twin, IEventEmitter events, ILogger logger) {
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
@@ -273,7 +273,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
 
         private readonly IBrowseServices<EndpointModel> _browse;
         private readonly INodeServices<EndpointModel> _nodes;
-        private readonly ITwinServices _twin;
+        private readonly IEndpointServices _twin;
         private readonly IPublishServices<EndpointModel> _publisher;
         private readonly IEventEmitter _events;
         private readonly ILogger _logger;

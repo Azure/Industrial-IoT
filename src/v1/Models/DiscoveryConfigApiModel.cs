@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             DiscoveryUrls = model.DiscoveryUrls;
             Locales = model.Locales;
             ActivationFilter = model.ActivationFilter == null ? null :
-               new TwinActivationFilterApiModel(model.ActivationFilter);
+               new EndpointActivationFilterApiModel(model.ActivationFilter);
         }
 
         /// <summary>
@@ -120,6 +120,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <summary>
         /// Activate all twins with this filter during onboarding.
         /// </summary>
-        public TwinActivationFilterApiModel ActivationFilter { get; set; }
+        public EndpointActivationFilterApiModel ActivationFilter { get; set; }
     }
 }

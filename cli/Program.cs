@@ -188,7 +188,7 @@ Operations (Mutually exclusive):
              Clear all registered supervisor module identities.
 
     --cleanup
-             Clear entire OPC Twin registry content.
+             Clear entire Registry content.
 
     --delete-all
              Cleanup and delete all supervisor identities.

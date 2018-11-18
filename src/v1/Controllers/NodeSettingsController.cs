@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Twin settings controller
+    /// Node settings controller
     /// </summary>
     [Version(1)]
     public class NodeSettingsController : ISettingsController {
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// <param name="logger"></param>
         public NodeSettingsController(
             INodeServices<EndpointModel> nodes, IPublishServices<EndpointModel> publisher,
-            ITwinServices twin, ILogger logger) {
+            IEndpointServices twin, ILogger logger) {
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
@@ -124,7 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         private readonly Dictionary<string, JToken> _action;
-        private readonly ITwinServices _twin;
+        private readonly IEndpointServices _twin;
         private readonly IPublishServices<EndpointModel> _publisher;
         private readonly INodeServices<EndpointModel> _nodes;
         private readonly ILogger _logger;

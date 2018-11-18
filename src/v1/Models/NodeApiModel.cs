@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// node model for twin module
+    /// node model for module
     /// </summary>
     public class NodeApiModel {
 

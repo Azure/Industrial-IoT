@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
 
     /// <summary>
-    /// reference model for twin module
+    /// reference model for module
     /// </summary>
     public class NodeReferenceApiModel {
 

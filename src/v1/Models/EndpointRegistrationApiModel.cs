@@ -9,20 +9,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Twin registration model
+    /// Endpoint registration model
     /// </summary>
-    public class TwinRegistrationApiModel {
+    public class EndpointRegistrationApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public TwinRegistrationApiModel() { }
+        public EndpointRegistrationApiModel() { }
 
         /// <summary>
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public TwinRegistrationApiModel(TwinRegistrationModel model) {
+        public EndpointRegistrationApiModel(EndpointRegistrationModel model) {
             Id = model?.Id;
             Endpoint = model?.Endpoint == null ? null :
                 new EndpointApiModel(model.Endpoint);
@@ -36,8 +36,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public TwinRegistrationModel ToServiceModel() {
-            return new TwinRegistrationModel {
+        public EndpointRegistrationModel ToServiceModel() {
+            return new EndpointRegistrationModel {
                 Id = Id,
                 Endpoint = Endpoint?.ToServiceModel(),
                 AuthenticationMethods = AuthenticationMethods?
@@ -49,12 +49,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         }
 
         /// <summary>
-        /// Identifier of the twin
+        /// Identifier of the endpoint
         /// </summary>
         public string Id { get; set; }
 
         /// <summary>
-        /// Registered site of the twin
+        /// Registered site of the endpoint
         /// </summary>
         public string SiteId { get; set; }
 

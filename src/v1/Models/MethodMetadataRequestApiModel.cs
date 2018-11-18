@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
 
     /// <summary>
-    /// Method metadata request model for twin module
+    /// Method metadata request model for module
     /// </summary>
     public class MethodMetadataRequestApiModel {
 

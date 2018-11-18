@@ -26,11 +26,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             Application = new ApplicationInfoApiModel(model?.Application);
             SecurityAssessment = model.SecurityAssessment;
             if (model?.Endpoints == null) {
-                Endpoints = new List<TwinRegistrationApiModel>();
+                Endpoints = new List<EndpointRegistrationApiModel>();
             }
             else {
                 Endpoints = model.Endpoints
-                    .Select(e => new TwinRegistrationApiModel(e))
+                    .Select(e => new EndpointRegistrationApiModel(e))
                     .ToList();
             }
         }
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <summary>
         /// Endoint validated
         /// </summary>
-        public List<TwinRegistrationApiModel> Endpoints { get; set; }
+        public List<EndpointRegistrationApiModel> Endpoints { get; set; }
 
         /// <summary>
         /// Registration security assessment

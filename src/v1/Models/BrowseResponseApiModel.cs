@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// browse response model for twin module
+    /// browse response model for module
     /// </summary>
     public class BrowseResponseApiModel {
 

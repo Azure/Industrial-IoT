@@ -10,9 +10,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -25,7 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
 
     /// <summary>
     /// Main entry point
@@ -182,9 +180,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
                 builder.RegisterModule<ModuleFramework>();
 
                 // Register twin controllers
-                builder.RegisterType<v1.Controllers.TwinMethodsController>()
+                builder.RegisterType<v1.Controllers.EndpointMethodsController>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
-                builder.RegisterType<v1.Controllers.TwinSettingsController>()
+                builder.RegisterType<v1.Controllers.EndpointSettingsController>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
                 builder.RegisterType<v1.Controllers.NodeSettingsController>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();

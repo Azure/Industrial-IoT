@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
 
     /// <summary>
-    /// Browse request model for twin module
+    /// Browse request model for module
     /// </summary>
     public class BrowseRequestApiModel {
 

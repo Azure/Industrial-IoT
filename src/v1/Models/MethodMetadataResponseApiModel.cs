@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Method metadata query model for twin module
+    /// Method metadata query model for module
     /// </summary>
     public class MethodMetadataResponseApiModel {
 

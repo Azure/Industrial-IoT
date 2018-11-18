@@ -10,8 +10,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
     using System;
     using System.Threading.Tasks;
     using System.Collections.Generic;
-    using Newtonsoft.Json.Linq;
     using System.Linq;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Supervisor settings controller
@@ -57,11 +57,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// <summary>
         /// Create controller with service
         /// </summary>
-        /// <param name="supervisor"></param>
+        /// <param name="activator"></param>
         /// <param name="logger"></param>
-        public SupervisorSettingsController(IActivationServices<string> supervisor,
+        public SupervisorSettingsController(IActivationServices<string> activator,
             ILogger logger) {
-            _supervisor = supervisor ?? throw new ArgumentNullException(nameof(supervisor));
+            _activator = activator ?? throw new ArgumentNullException(nameof(activator));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _endpoints = new Dictionary<string, string>();
         }
@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
             foreach (var item in _endpoints.ToList()) {
                 if (string.IsNullOrEmpty(item.Value)) {
                     try {
-                        await _supervisor.DeactivateTwinAsync(item.Key);
+                        await _activator.DeactivateEndpointAsync(item.Key);
                     }
                     catch (Exception ex) {
                         _logger.Error($"Error stopping twin {item.Key}", () => ex);
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
                 else {
                     try {
                         if (item.Value.IsBase64()) {
-                            await _supervisor.ActivateTwinAsync(item.Key, item.Value);
+                            await _activator.ActivateEndpointAsync(item.Key, item.Value);
                             continue;
                         }
                     }
@@ -97,7 +97,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         private readonly Dictionary<string, string> _endpoints;
-        private readonly IActivationServices<string> _supervisor;
+        private readonly IActivationServices<string> _activator;
         private readonly ILogger _logger;
     }
 }
