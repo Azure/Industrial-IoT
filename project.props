@@ -1,8 +1,7 @@
 <Project>
   <PropertyGroup>
-    <Product>Azure Industrial IoT OPC Twin Logic</Product>
-    <RepositoryUrl>https://github.com/Azure/azure-iiot-opc-twin</RepositoryUrl>
-    <RepositoryUrl>https://github.com/Azure/azure-iot-pcs-remote-monitoring-dotnet</RepositoryUrl>
+    <Product>Azure Industrial IoT OPC UA Components</Product>
+    <RepositoryUrl>https://github.com/Azure/azure-iiot-opc-ua</RepositoryUrl>
     <PackageTags>Industrial;Manufacturing;Azure;IoT;IIoT;Twin;OPC;OPCUA;.NET</PackageTags>
   </PropertyGroup>
 </Project>
