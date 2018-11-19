@@ -1,9 +1,9 @@
 <#
  .SYNOPSIS
-    Deploys opc twin to Azure
+    Deploys opc ua services to Azure
 
  .DESCRIPTION
-    Deploys the opc twin dependencies and optionally micro services and UI to Azure.
+    Deploys the opc ua services dependencies and optionally micro services and UI to Azure.
 
  .PARAMETER type
     The type of deployment (vm, local)
@@ -231,7 +231,7 @@ Function SelectSubscription() {
         }
     }
     $script:subscriptionId = $subscriptionId
-    Write-Verbose "Azure subscriptionId '$subscriptionId' selected."
+    Write-Host "Azure subscriptionId '$subscriptionId' selected."
 }
 
 #*******************************************************************************************************
@@ -519,8 +519,8 @@ Function CreateAppRole() {
 # Get configuration object for service and client applications
 #*******************************************************************************************************
 Function GetAzureADApplicationConfig() {
-    $serviceDisplayName = "opc-twin-services"
-    $clientDisplayName = "opc-twin-client"
+    $serviceDisplayName = "opc-ua-services"
+    $clientDisplayName = "opc-ua-client"
     try {
         $creds = ConnectToAzureADTenant
         if (!$creds) {
@@ -707,6 +707,7 @@ if(![System.IO.File]::Exists($deploymentScript)) {
 }
 
 $script:interactive = $($script:credential -eq $null)
+$script:subscriptionId = $null
 
 SelectEnvironment
 Login

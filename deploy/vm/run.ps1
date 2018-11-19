@@ -107,7 +107,8 @@ if ($cert) {
         $templateParameters.Add("remoteEndpointSSLThumbprint", $thumbprint)
     }
     $certificate = [Convert]::ToBase64String(`
-        $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx))
+        $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx, `
+        $adminPassword))
     if (![string]::IsNullOrEmpty($certificate)) { 
         $templateParameters.Add("remoteEndpointCertificate", $certificate)
     }

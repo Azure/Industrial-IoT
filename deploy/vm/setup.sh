@@ -32,6 +32,7 @@ while [ "$#" -gt 0 ]; do
         --azureblob-endpoint-suffix)    PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX="$2" ;;
         --docdb-connstring)             PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING="$2" ;;
         --ssl-certificate)              PCS_CERTIFICATE="$2" ;;
+        --ssl-certificate-key)          PCS_CERTIFICATE_KEY="$2" ;;
         --auth-audience)                PCS_AUTH_AUDIENCE="$2" ;;
         --auth-type)                    PCS_WEBUI_AUTH_TYPE="$2" ;;
         --aad-appid)                    PCS_WEBUI_AUTH_AAD_APPID="$2" ;;
@@ -129,8 +130,8 @@ chmod 755 setup.sh
 mkdir -p ${CERTS}
 # Always have quotes around the pfx to preserve the formatting
 echo "${PCS_CERTIFICATE}" | base64 --decode > ${PFX}
-openssl pkcs12 -in ${PFX} -clcerts -nokeys -out ${CERT}
-openssl pkcs12 -in ${PFX} -nocerts -nodes -out ${PKEY}
+openssl pkcs12 -in ${PFX} -clcerts -nokeys -out ${CERT} -passin pass:${PCS_CERTIFICATE_KEY}
+openssl pkcs12 -in ${PFX} -nocerts -nodes -out ${PKEY} -passin pass:${PCS_CERTIFICATE_KEY}
 touch ${CERT} && chmod 444 ${CERT}
 touch ${PKEY} && chmod 444 ${PKEY}
 rm -f ${PFX}

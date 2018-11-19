@@ -9,13 +9,14 @@ services:
       - registryservice
       - onboardingservice
       - gatewayservice
+      - authservice
       - twinservice
       - twinwebui
       - twinmodule
     volumes:
       - /app/certs:/app/certs:ro
   registryservice:
-    image: marcschier/azure-iiot-opc-registry-service:latest
+    image: marcschier/azure-iiot-opc-ua-registry-service:latest
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
@@ -28,7 +29,7 @@ services:
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
   onboardingservice:
-    image: marcschier/azure-iiot-opc-onboarding-service:latest
+    image: marcschier/azure-iiot-opc-ua-onboarding-service:latest
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
@@ -40,7 +41,7 @@ services:
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
   twinservice:
-    image: marcschier/azure-iiot-opc-twin-service:latest
+    image: marcschier/azure-iiot-opc-ua-twin-service:latest
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
@@ -53,7 +54,7 @@ services:
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
   gatewayservice:
-    image: marcschier/azure-iiot-opc-gateway-service:latest
+    image: marcschier/azure-iiot-opc-ua-gateway-service:latest
     ports:
       - "51111:4840"
     restart: always
@@ -67,7 +68,7 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
-  auth:
+  authservice:
     image: azureiotpcs/pcs-auth-dotnet:1.0.0
     environment:
       - PCS_AUTH_REQUIRED
@@ -76,7 +77,7 @@ services:
       - PCS_APPLICATION_SECRET
       - PCS_CORS_WHITELIST
   twinwebui:
-    image: marcschier/azure-iiot-opc-twin-webui:latest
+    image: marcschier/azure-iiot-opc-ua-twin-webui:latest
     restart: always
     command: npm start
     environment:
@@ -87,23 +88,23 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
   twinmodule:
-    image: marcschier/azure-iiot-opc-twin-module:latest
+    image: marcschier/azure-iiot-opc-ua-twin-module:latest
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
     command: --host demo demo
   opcserver0:
-    image: marcschier/azure-iiot-opc-twin:latest
+    image: marcschier/azure-iiot-opc-ua:latest
     hostname: opcserver0
     restart: always
     command: --sample -p 51210
   opcserver1:
-    image: marcschier/azure-iiot-opc-twin:latest
+    image: marcschier/azure-iiot-opc-ua:latest
     hostname: opcserver1
     restart: always
     command: --sample -p 51211
   opcserver2:
-    image: marcschier/azure-iiot-opc-twin:latest
+    image: marcschier/azure-iiot-opc-ua:latest
     hostname: opcserver2
     restart: always
     command: --sample -p 51212

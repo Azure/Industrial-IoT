@@ -39,7 +39,7 @@
         },
         "solutionName": {
             "type": "string",
-            "defaultValue": "opctwin",
+            "defaultValue": "opcuaservices",
             "metadata": {
                 "description": "The name of the solution"
             }
@@ -335,8 +335,8 @@
         "subnetResourceId": "[concat(variables('vnetResourceId'),'/subnets/',variables('subnetName'))]",
         "publicIPName": "[concat(parameters('solutionName'), '-public-ip')]",
         "nicName": "[concat(parameters('solutionName'), '-nic')]",
-        "twinBranch": "[parameters('branchName')]",
-        "twinRepo": "https://raw.githubusercontent.com/Azure/azure-iiot-opc-twin-service/",
+        "servicesBranch": "[parameters('branchName')]",
+        "servicesRepoUrl": "https://raw.githubusercontent.com/Azure/azure-iiot-opc-ua-services/",
         "proxyBranch": "master",
         "hostingPlanName": "[parameters('azureWebsiteName')]",
         "appServiceVersion": "2018-02-01",
@@ -550,7 +550,7 @@
                     "appSettings": [
                         {
                             "name": "REMOTE_ENDPOINT",
-                            "value": "[concat('https://', reference(variables('publicIPName')).dnsSettings.fqdn), ':8080']"
+                            "value": "[concat('https://', reference(variables('publicIPName')).dnsSettings.fqdn, ':8080')]"
                         },
                         {
                             "name": "REMOTE_ENDPOINT_SSL_THUMBPRINT",
@@ -778,13 +778,13 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
-                        "[concat(variables('twinRepo'), variables('twinBranch'), '/deploy/vm/setup.sh')]",
-                        "[concat(variables('twinRepo'), variables('twinBranch'), '/deploy/vm/ctrl.sh')]",
-                        "[concat(variables('twinRepo'), variables('twinBranch'), '/deploy/vm/docker-compose.yml')]"
+                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/deploy/vm/setup.sh')]",
+                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/deploy/vm/ctrl.sh')]",
+                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/deploy/vm/docker-compose.yml')]"
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('sh setup.sh ', ' --unsafe true --admin ', concat('\"', parameters('adminUsername'), '\"'), ' --hostname ', concat('\"', variables('vmFQDN'), '\"'), ' --ssl-certificate ', concat('\"', parameters('remoteEndpointCertificate'), '\"'), ' --auth-type aad ', ' --auth-audience ', concat('\"', parameters('authAudience'), '\"'), ' --aad-appid ', concat('\"', parameters('aadClientId'), '\"'), ' --aad-tenant ', concat('\"', parameters('aadTenantId'), '\"'), ' --aad-instance ', concat('\"', parameters('aadInstance'), '\"'), ' --iothub-connstring ', concat('\"', 'HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey, '\"'), ' --docdb-connstring ', concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"'), ' --iothub-name ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.path, '\"'), ' --iothub-endpoint ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, '\"'), ' --azureblob-account ', concat('\"', parameters('storageName'), '\"'), ' --azureblob-key ', concat('\"', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\"'), ' --azureblob-endpoint-suffix ',  concat('\"', parameters('storageEndpointSuffix'), '\"'), ' --release-version ', concat('\"', variables('twinBranch'), '\"'), ' --iothub-consumer-group ', concat('\"', variables('onboardingConsumerGroupName'), '\"'), ' --evenhub-connstring ', concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"'), ' --eventhub-name ', parameters('eventHubName'))]"
+                    "commandToExecute": "[concat('sh setup.sh ', ' --unsafe true --admin ', concat('\"', parameters('adminUsername'), '\"'), ' --hostname ', concat('\"', variables('vmFQDN'), '\"'), ' --ssl-certificate-key ', concat('\"', parameters('adminPassword'), '\"'), ' --ssl-certificate ', concat('\"', parameters('remoteEndpointCertificate'), '\"'), ' --auth-type aad ', ' --auth-audience ', concat('\"', parameters('authAudience'), '\"'), ' --aad-appid ', concat('\"', parameters('aadClientId'), '\"'), ' --aad-tenant ', concat('\"', parameters('aadTenantId'), '\"'), ' --aad-instance ', concat('\"', parameters('aadInstance'), '\"'), ' --iothub-connstring ', concat('\"', 'HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey, '\"'), ' --docdb-connstring ', concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"'), ' --iothub-name ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.path, '\"'), ' --iothub-endpoint ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, '\"'), ' --azureblob-account ', concat('\"', parameters('storageName'), '\"'), ' --azureblob-key ', concat('\"', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\"'), ' --azureblob-endpoint-suffix ',  concat('\"', parameters('storageEndpointSuffix'), '\"'), ' --release-version ', concat('\"', variables('servicesBranch'), '\"'), ' --iothub-consumer-group ', concat('\"', variables('onboardingConsumerGroupName'), '\"'), ' --evenhub-connstring ', concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"'), ' --eventhub-name ', parameters('eventHubName'))]"
                 }
             }
         }

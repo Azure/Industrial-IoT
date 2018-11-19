@@ -1,17 +1,5 @@
 version: '3'
 services:
-  reverseproxy:
-    image: marcschier/azure-iiot-reverse-proxy:latest
-    restart: always
-    ports:
-      - "8080:8080"
-    depends_on:
-      - registryservice
-      - onboardingservice
-      - gatewayservice
-      - twinservice
-      - twinwebui
-      - twinmodule
   registryservice:
     build: 
       context: .
@@ -78,45 +66,3 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
-  auth:
-    image: azureiotpcs/pcs-auth-dotnet:1.0.0
-    environment:
-      - PCS_AUTH_REQUIRED
-      - PCS_AUTH_ISSUER=${PCS_WEBUI_AUTH_AAD_AUTHORITY}/${PCS_WEBUI_AUTH_AAD_TENANT}
-      - PCS_AUTH_AUDIENCE
-      - PCS_APPLICATION_SECRET
-      - PCS_CORS_WHITELIST
-  twinwebui:
-    image: marcschier/azure-iiot-opc-twin-webui:latest
-    ports:
-      - "3000:3000"
-    restart: always
-    command: npm start
-    environment:
-      - PCS_AUTH_REQUIRED
-      - PCS_AUTH_ISSUER
-      - PCS_AUTH_AUDIENCE
-      - PCS_WEBUI_AUTH_AAD_APPID
-      - PCS_WEBUI_AUTH_AAD_AUTHORITY
-      - PCS_WEBUI_AUTH_AAD_TENANT
-  twinmodule:
-    image: marcschier/azure-iiot-opc-twin-module:latest
-    restart: always
-    environment:
-      - PCS_IOTHUB_CONNSTRING
-    command: --host demo demo
-  opcserver0:
-    image: marcschier/azure-iiot-opc-twin:latest
-    hostname: opcserver0
-    restart: always
-    command: --sample -p 51210
-  opcserver1:
-    image: marcschier/azure-iiot-opc-twin:latest
-    hostname: opcserver1
-    restart: always
-    command: --sample -p 51211
-  opcserver2:
-    image: marcschier/azure-iiot-opc-twin:latest
-    hostname: opcserver2
-    restart: always
-    command: --sample -p 51212
