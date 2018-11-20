@@ -15,11 +15,11 @@ startall() {
   nohup docker-compose up > /dev/null 2>&1&
 
   # assume http -> https redirect in place.
-  ISUP=$(curl -ks http://localhost/ | grep -i "html" | wc -l)
+  ISUP=$(curl -ks https://localhost/ | grep -i "html" | wc -l)
   while [[ "$ISUP" == "0" ]]; do
     echo "Waiting for web site to start..."
     sleep 3
-    ISUP=$(curl -ks http://localhost/ | grep -i "html" | wc -l)
+    ISUP=$(curl -ks https://localhost/ | grep -i "html" | wc -l)
   done
   echo "Web site started!"
 }

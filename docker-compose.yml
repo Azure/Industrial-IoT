@@ -1,5 +1,15 @@
 version: '3'
 services:
+  reverseproxy:
+    build: ./reverse-proxy
+    restart: always
+    ports:
+      - "10080:10080"
+    depends_on:
+      - registryservice
+      - onboardingservice
+      - gatewayservice
+      - twinservice
   registryservice:
     build: 
       context: .

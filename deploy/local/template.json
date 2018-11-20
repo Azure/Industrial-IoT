@@ -4,7 +4,7 @@
     "parameters": {
         "solutionName": {
             "type": "string",
-            "defaultValue": "opcuaservices",
+            "defaultValue": "iiotservices",
             "metadata": {
                 "description": "The name of the solution"
             }
@@ -56,7 +56,7 @@
             ],
             "defaultValue": "Strong",
             "metadata": {
-                "description": "The documentDB deault consistency level for this account."
+                "description": "The documentDB default consistency level for this account."
             }
         },
         "docDBMaxStalenessPrefix": {
@@ -151,7 +151,7 @@
             "type": "string",
             "defaultValue": "S1",
             "allowedValues": [
-                "F1", "S1", "S2", "S3"
+                "S1", "S2", "S3"
             ],
             "metadata": {
                 "description": "The Azure IoT Hub SKU"
@@ -172,6 +172,27 @@
             ],
             "metadata": {
                 "description": "The Azure IoT Hub tier"
+            }
+        },
+        "keyVaultName": {
+            "type": "string",
+            "defaultValue": "[concat('keyvault-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "metadata": {
+                "description": "The resource name of the KeyVault"
+            }
+        },
+        "keyVaultDisplayName": {
+            "type": "string",
+            "defaultValue": "[parameters('solutionName')]",
+            "metadata": {
+                "description": "The display name for the KeyVault"
+            }
+        },
+        "keyVaultSkuName": {
+            "type": "string",
+            "defaultValue": "Standard",
+            "metadata": {
+                "description": "The KeyVault SKU to use."
             }
         }
     },
@@ -194,7 +215,8 @@
         "deviceNotificationRouteName": "DeviceNotifications",
         "onboardingConsumerGroupName": "onboarding",
         "storageApiVersion": "2017-06-01",
-        "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts/',  parameters('storageName'))]"
+        "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts/',  parameters('storageName'))]",
+        "keyVaultVersion": "2015-06-01"
     },
     "resources": [
         {
@@ -373,6 +395,26 @@
                 "[variables('eventHubNamespaceResourceId')]",
                 "[variables('eventHubResourceId')]"
             ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[parameters('keyVaultName')]",
+            "apiVersion": "[variables('keyVaultVersion')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "[parameters('keyVaultDisplayName')]"
+            },
+            "properties": {
+                "enabledForDeployment": true,
+                "enabledForTemplateDeployment": false,
+                "enabledForVolumeEncryption": false,
+                "sku": {
+                    "name": "[parameters('keyVaultSkuName')]",
+                    "family": "A"
+                },
+                "tenantId": "[parameters('aadTenantId')]",
+                "accessPolicies": []
+            }
         }
     ],
     "outputs": {

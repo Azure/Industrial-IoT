@@ -4,7 +4,7 @@
     "parameters": {
         "solutionName": {
             "type": "string",
-            "defaultValue": "opcuaservices",
+            "defaultValue": "iiotservices",
             "metadata": {
                 "description": "The name of the solution"
             }
@@ -245,6 +245,27 @@
                 "description": "The name of the azure website that you want to create. It will be of format {azureWebsiteName}.azurewebsites.net"
             }
         },
+        "keyVaultName": {
+            "type": "string",
+            "defaultValue": "[concat('keyvault-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "metadata": {
+                "description": "The resource name of the KeyVault"
+            }
+        },
+        "keyVaultDisplayName": {
+            "type": "string",
+            "defaultValue": "[parameters('solutionName')]",
+            "metadata": {
+                "description": "The display name for the KeyVault"
+            }
+        },
+        "keyVaultSkuName": {
+            "type": "string",
+            "defaultValue": "Standard",
+            "metadata": {
+                "description": "The KeyVault SKU to use."
+            }
+        },
         "remoteEndpointSSLThumbprint": {
             "type": "securestring",
             "metadata": {
@@ -255,7 +276,7 @@
     },
     "variables": {
         "location": "[resourceGroup().location]",
-        "documentDBApiVersion": "2015-04-08",
+        "documentDBApiVersion": "2016-03-19",
         "documentDBResourceId": "[resourceId('Microsoft.DocumentDb/databaseAccounts', parameters('documentDBName'))]",
         "eventHubApiVersion": "2017-04-01",
         "eventHubKeyName": "RootManageSharedAccessKey",
@@ -284,6 +305,7 @@
         "mastersEndpointDNSNamePrefix": "[concat(parameters('solutionName'),'-mgmt')]",
         "orchestratorType": "Kubernetes",
         "sshRSAPublicKey": "[parameters('sshRSAPublicKey')]",
+        "keyVaultVersion": "2015-06-01",
         "proxyBranch": "master",
         "hostingPlanName": "[parameters('azureWebsiteName')]",
         "appServiceVersion": "2018-02-01",
@@ -470,6 +492,26 @@
             ]
         },
         {
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[parameters('keyVaultName')]",
+            "apiVersion": "[variables('keyVaultVersion')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "[parameters('keyVaultDisplayName')]"
+            },
+            "properties": {
+                "enabledForDeployment": true,
+                "enabledForTemplateDeployment": false,
+                "enabledForVolumeEncryption": false,
+                "sku": {
+                    "name": "[parameters('keyVaultSkuName')]",
+                    "family": "A"
+                },
+                "tenantId": "[parameters('aadTenantId')]",
+                "accessPolicies": []
+            }
+        },
+        {
             "comments": "AppService plan to host the Application Gateway Web App",
             "type": "Microsoft.Web/serverfarms",
             "sku": {
@@ -497,7 +539,7 @@
                     "appSettings": [
                         {
                             "name": "REMOTE_ENDPOINT",
-                            "value": "[concat('http://', reference(variables('publicIPName')).dnsSettings.fqdn)]"
+                            "value": "[concat('https://', reference(variables('publicIPName')).dnsSettings.fqdn)]"
                         },
                         {
                             "name": "REMOTE_ENDPOINT_SSL_THUMBPRINT",

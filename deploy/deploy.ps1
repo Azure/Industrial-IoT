@@ -1,9 +1,9 @@
 <#
  .SYNOPSIS
-    Deploys opc ua services to Azure
+    Deploys Industrial IoT services to Azure
 
  .DESCRIPTION
-    Deploys the opc ua services dependencies and optionally micro services and UI to Azure.
+    Deploys the Industrial IoT services dependencies and optionally micro services and UI to Azure.
 
  .PARAMETER type
     The type of deployment (vm, local)
@@ -519,8 +519,8 @@ Function CreateAppRole() {
 # Get configuration object for service and client applications
 #*******************************************************************************************************
 Function GetAzureADApplicationConfig() {
-    $serviceDisplayName = "opc-ua-services"
-    $clientDisplayName = "opc-ua-client"
+    $serviceDisplayName = "azure-iiot-services"
+    $clientDisplayName = "azure-iiot-clients"
     try {
         $creds = ConnectToAzureADTenant
         if (!$creds) {

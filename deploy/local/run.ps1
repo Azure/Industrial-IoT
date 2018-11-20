@@ -76,6 +76,8 @@ Function GetEnvironmentVariables() {
     if (!$aadConfig) {
     Write-Output `
         "PCS_AUTH_REQUIRED=false"
+    Write-Output `
+        "REACT_APP_PCS_AUTH_REQUIRED=false"
         return;
     }
 
@@ -96,6 +98,19 @@ Function GetEnvironmentVariables() {
         "PCS_WEBUI_AUTH_AAD_AUTHORITY=$AUTH_AAD_AUTHORITY"
     Write-Output `
         "PCS_WEBUI_AUTH_AAD_TENANT=$AUTH_AAD_TENANT"
+
+    Write-Output `
+        "REACT_APP_PCS_AUTH_REQUIRED=true"
+    Write-Output `
+        "REACT_APP_PCS_AUTH_AUDIENCE=$AUTH_AUDIENCE"
+    Write-Output `
+        "REACT_APP_PCS_AUTH_ISSUER=https://sts.windows.net/$AUTH_AAD_TENANT/"
+    Write-Output `
+        "REACT_APP_PCS_WEBUI_AUTH_AAD_APPID=$AUTH_AAD_APPID"
+    Write-Output `
+        "REACT_APP_PCS_WEBUI_AUTH_AAD_AUTHORITY=$AUTH_AAD_AUTHORITY"
+    Write-Output `
+        "REACT_APP_PCS_WEBUI_AUTH_AAD_TENANT=$AUTH_AAD_TENANT"
 }
 
 

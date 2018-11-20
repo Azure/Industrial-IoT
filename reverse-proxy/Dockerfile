@@ -14,6 +14,6 @@ COPY ./run.sh /app/run.sh
 WORKDIR /app
 VOLUME ["/app/certs"]
 USER app
-EXPOSE 8080
+EXPOSE 10080 10443
 ENTRYPOINT ["sh", "-c", "/app/run.sh"]
 
