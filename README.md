@@ -1,12 +1,12 @@
-# Azure Industrial IoT OPC UA Device Twin Module
+# Azure Industrial IoT OPC Device Twin Module
 
-The OPC UA Device Twin module runs on the edge and provides serveral edge services to the [OPC UA Device Twin and Registry Services](https://github.com/Azure/azure-iiot-opc-ua-services). 
+The OPC Device Twin module runs on the edge and provides serveral edge services to the [OPC Device Twin and Registry Services](https://github.com/Azure/azure-iiot-services). 
 
 Core of the module is the Supervisor identity.  The supervisor manages endpoint "twins", which correspond to OPC UA server endpoints that are activated using the corresponding OPC UA registry API.  These endpoint twins translate OPC UA JSON received from the Twin micro service running in the cloud into OPC UA binary messages which are sent over a stateful secure channel to the managed endpoint.  
 
-The supervisor also provides discovery services which send device discovery events to the [OPC UA Device Onboarding service](https://github.com/Azure/azure-iiot-opc-ua-services) for processing, where these events result in updates to the OPC UA registry.
+The supervisor also provides discovery services which send device discovery events to the [OPC UA Device Onboarding service](https://github.com/Azure/azure-iiot-services) for processing, where these events result in updates to the OPC UA registry.
 
-The OPC UA Device Twin module can be deployed in an [IoT Edge][iotedge-url] gateway.  For development and testing purposes it can also be run standalone following the instructions [below](#Build-and-Run).  This module is part of our [Azure Industrial IoT (IIoT) components](#Other-Azure-Industrial-IoT-components) suite.
+The OPC Device Twin module can be deployed in an [IoT Edge][iotedge-url] gateway.  For development and testing purposes it can also be run standalone following the instructions [below](#Build-and-Run).  This module is part of our [Azure Industrial IoT (IIoT) components](#Other-Azure-Industrial-IoT-components) suite.
 
 ## Getting started
 
@@ -20,7 +20,7 @@ The OPC UA Device Twin module can be deployed in an [IoT Edge][iotedge-url] gate
 
 ### Deploy Azure Services
 
-Follow the instructions [here](https://github.com/Azure/azure-iiot-opc-ua-services) to deploy all required services and retrieve the module configuration information, in particular the value for the `PCS_IOTHUB_CONNSTRING` environment variable, which will be needed later on.
+Follow the instructions [here](https://github.com/Azure/azure-iiot-services) to deploy all required services and retrieve the module configuration information, in particular the value for the `PCS_IOTHUB_CONNSTRING` environment variable, which will be needed later on.
 
 ## Build and Run
 
@@ -55,11 +55,14 @@ Follow the instructions [here](https://github.com/Azure/azure-iiot-opc-ua-servic
 
 ## Other Azure Industrial IoT components
 
-* [OPC UA micro services](https://github.com/Azure/azure-iiot-opc-ua-services)
-* OPC UA Certificate Management service (Coming soon)
-* [OPC UA API](https://github.com/Azure/azure-iiot-opc-ua-api)
-* [OPC UA Device Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-ua-twin-module)
-* [OPC Publisher IoT Edge module](https://github.com/Azure/iot-edge-opc-publisher)
+* [Azure Industrial IoT Micro Services](https://github.com/Azure/azure-iiot-services)
+  * OPC UA Certificate Management service (Coming soon)
+* [Azure Industrial IoT OPC UA components](https://github.com/Azure/azure-iiot-opc-ua)
+* [Azure Industrial IoT Service API](https://github.com/Azure/azure-iiot-services-api)
+* Other Azure Industrial IoT Edge Modules
+  * [OPC Publisher module](https://github.com/Azure/iot-edge-opc-publisher)
+  * [OPC Proxy module](https://github.com/Azure/iot-edge-opc-proxy)
+
 
 ## Contributing
 
@@ -67,7 +70,7 @@ Refer to our [contribution guidelines](CONTRIBUTING.md).
 
 ## Feedback
 
-Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-opc-ua/issues).
+Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-services/issues).
 
 ## License
 
