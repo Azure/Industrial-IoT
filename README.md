@@ -1,12 +1,12 @@
 # Azure Industrial IoT OPC UA Components
 
-This repo contains the core business logic for the OPC Twin Industrial IIoT services and modules and consists of the following packages:
+This repo contains the core business logic for the Azure Industrial IoT OPC UA services and modules and consists of the following packages:
 
 * [Microsoft.Azure.IIoT.OpcUa](src/Microsoft.Azure.IIoT.OpcUa/src) contains OPC UA stack and protocol as well as shared and common code among...
-  * [Microsoft.Azure.IIoT.OpcUa.Edge](src/Microsoft.Azure.IIoT.OpcUa.Edge/src) contains the services hosted by the [OPC UA Device Twin module](https://github.com/Azure/azure-iiot-opc-ua-twin-module).
-  * [Microsoft.Azure.IIoT.OpcUa.Twin](src/Microsoft.Azure.IIoT.OpcUa.Twin/src) contains services hosted by the [OPC UA Device Twin service](https://github.com/Azure/azure-iiot-opc-ua-services).
-  * [Microsoft.Azure.IIoT.OpcUa.Registry](src/Microsoft.Azure.IIoT.OpcUa.Registry/src) contains the [OPC UA Device Registry](https://github.com/Azure/azure-iiot-opc-ua-services) micro service business logic.
-  * [Microsoft.Azure.IIoT.OpcUa.Gateway](src/Microsoft.Azure.IIoT.OpcUa.Gateway/src) contains the business logic of the [OPC UA Device Twin Gateway](https://github.com/Azure/azure-iiot-opc-ua-services).
+  * [Microsoft.Azure.IIoT.OpcUa.Edge](src/Microsoft.Azure.IIoT.OpcUa.Edge/src) contains the services hosted by the [OPC Device Twin module](https://github.com/Azure/azure-iiot-opc-twin-module).
+  * [Microsoft.Azure.IIoT.OpcUa.Twin](src/Microsoft.Azure.IIoT.OpcUa.Twin/src) contains services hosted by the [OPC Device Twin service](https://github.com/Azure/azure-iiot-services).
+  * [Microsoft.Azure.IIoT.OpcUa.Registry](src/Microsoft.Azure.IIoT.OpcUa.Registry/src) contains the [OPC UA Device Registry](https://github.com/Azure/azure-iiot-services) micro service business logic.
+  * [Microsoft.Azure.IIoT.OpcUa.Gateway](src/Microsoft.Azure.IIoT.OpcUa.Gateway/src) contains the business logic of the [OPC Device Twin Gateway](https://github.com/Azure/azure-iiot-services).
 * [Microsoft.Azure.IIoT.OpcUa.Servers](src/Microsoft.Azure.IIoT.OpcUa.Servers/src) contains test servers.
 
 The consuming services are part of our [Azure Industrial IoT (IIoT) components](#Other-Azure-Industrial-IoT-components) suite.
@@ -30,11 +30,13 @@ The consuming services are part of our [Azure Industrial IoT (IIoT) components](
 
 ## Other Azure Industrial IoT components
 
-* [OPC UA micro services](https://github.com/Azure/azure-iiot-opc-ua-services)
-* OPC UA Certificate Management service (Coming soon)
-* [OPC UA API](https://github.com/Azure/azure-iiot-opc-ua-api)
-* [OPC UA Device Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-ua-twin-module)
-* [OPC Publisher IoT Edge module](https://github.com/Azure/iot-edge-opc-publisher)
+* [Azure Industrial IoT Micro Services](https://github.com/Azure/azure-iiot-services)
+  * OPC UA Certificate Management service (Coming soon)
+* [Azure Industrial IoT Service API](https://github.com/Azure/azure-iiot-services-api)
+* Azure Industrial IoT Edge Modules
+  * [OPC Publisher module](https://github.com/Azure/iot-edge-opc-publisher)
+  * [OPC Proxy module](https://github.com/Azure/iot-edge-opc-proxy)
+  * [OPC Device Twin module](https://github.com/Azure/azure-iiot-opc-twin-module)
 
 ## Contributing
 
@@ -42,7 +44,7 @@ Refer to our [contribution guidelines](CONTRIBUTING.md).
 
 ## Feedback
 
-Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-opc-ua/issues).
+Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-services/issues).
 
 ## License
 
