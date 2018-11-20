@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <Product>Azure Industrial IoT</Product>
+    <Product>Azure Industrial IoT Components</Product>
     <RepositoryUrl>https://github.com/Azure/azure-iiot-common</RepositoryUrl>
     <PackageTags>Industrial;Manufacturing;Azure;IoT;IIoT;.NET</PackageTags>
   </PropertyGroup>
