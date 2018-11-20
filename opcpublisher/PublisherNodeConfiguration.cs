@@ -7,13 +7,12 @@ using System.Threading.Tasks;
 
 namespace OpcPublisher
 {
-    using System.ComponentModel;
     using System.IO;
     using System.Linq;
     using System.Threading;
+    using static OpcApplicationConfiguration;
     using static OpcMonitoredItem;
     using static OpcSession;
-    using static OpcStackConfiguration;
     using static Program;
 
     public static class PublisherNodeConfiguration

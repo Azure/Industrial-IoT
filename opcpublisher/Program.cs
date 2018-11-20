@@ -21,21 +21,37 @@ namespace OpcPublisher
     using static IotEdgeHubCommunication;
     using static Opc.Ua.CertificateStoreType;
     using static OpcSession;
-    using static OpcStackConfiguration;
+    using static OpcApplicationConfiguration;
     using static PublisherNodeConfiguration;
     using static PublisherTelemetryConfiguration;
     using static System.Console;
 
     public class Program
     {
+        /// <summary>
+        /// IoTHub/EdgeHub communication objects.
+        /// </summary>
         public static IotHubCommunication IotHubCommunication;
         public static IotEdgeHubCommunication IotEdgeHubCommunication;
+
+        /// <summary>
+        /// Shutdown token source.
+        /// </summary>
         public static CancellationTokenSource ShutdownTokenSource;
 
+        /// <summary>
+        /// Used as delay in sec when shutting down the application.
+        /// </summary>
         public static uint PublisherShutdownWaitPeriod { get; } = 10;
 
+        /// <summary>
+        /// Stores startup time.
+        /// </summary>
         public static DateTime PublisherStartTime { get; set; } = DateTime.UtcNow;
 
+        /// <summary>
+        /// Logging object.
+        /// </summary>
         public static Serilog.Core.Logger Logger { get; set; } = null;
 
         /// <summary>
@@ -91,19 +107,6 @@ namespace OpcPublisher
                                 }
                             }
                          },
-                        { "sd|shopfloordomain=", $"same as site option, only there for backward compatibility\n" +
-                                "The value must follow the syntactical rules of a DNS hostname.\nDefault: not set", (string s) => {
-                                Regex siteNameRegex = new Regex("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
-                                if (siteNameRegex.IsMatch(s))
-                                {
-                                    PublisherSite = s;
-                                }
-                                else
-                                {
-                                    throw new OptionException("The shopfloor domain is not a valid DNS hostname.", "shopfloordomain");
-                                }
-                            }
-                         },
                         { "ic|iotcentral", $"publisher will send OPC UA data in IoTCentral compatible format (DisplayName of a node is used as key, this key is the Field name in IoTCentral). you need to ensure that all DisplayName's are unique. (Auto enables fetch display name)\nDefault: {IotCentralMode}", b => IotCentralMode = FetchOpcNodeDisplayName = b != null },
                         { "sw|sessionconnectwait=", $"specify the wait time in seconds publisher is trying to connect to disconnected endpoints and starts monitoring unmonitored items\nMin: 10\nDefault: {SessionConnectWaitSec}", (int i) => {
                                 if (i > 10)
@@ -128,8 +131,6 @@ namespace OpcPublisher
                             }
                         },
                         { "di|diagnosticsinterval=", $"shows publisher diagnostic info at the specified interval in seconds (need log level info). 0 disables diagnostic output.\nDefault: {DiagnosticsInterval}", (uint u) => DiagnosticsInterval = u },
-
-                        { "vc|verboseconsole=", $"ignored, only supported for backward comaptibility.", b => {}},
 
                         { "ns|noshutdown=", $"same as runforever.\nDefault: {_noShutdown}", (bool b) => _noShutdown = b },
                         { "rf|runforever", $"publisher can not be stopped by pressing a key on the console, but will run forever.\nDefault: {_noShutdown}", b => _noShutdown = b != null },
@@ -159,7 +160,7 @@ namespace OpcPublisher
                             }
                         },
                         // IoTHub specific options
-                        { "ih|iothubprotocol=", $"{(IsIotEdgeModule ? "not supported when running as IoTEdge module (Mqtt_Tcp_Only is enforced)\n" : $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}")}",
+                        { "ih|iothubprotocol=", $"{(IsIotEdgeModule ? "not supported when running as IoT Edge module\n" : $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}")}",
                             (Microsoft.Azure.Devices.Client.TransportType p) => {
                                 if (IsIotEdgeModule)
                                 {
@@ -205,8 +206,8 @@ namespace OpcPublisher
                         },
 
                         // opc server configuration options
-                        { "pn|portnum=", $"the server port of the publisher OPC server endpoint.\nDefault: {PublisherServerPort}", (ushort p) => PublisherServerPort = p },
-                        { "pa|path=", $"the enpoint URL path part of the publisher OPC server endpoint.\nDefault: '{PublisherServerPath}'", (string a) => PublisherServerPath = a },
+                        { "pn|portnum=", $"the server port of the publisher OPC server endpoint.\nDefault: {ServerPort}", (ushort p) => ServerPort = p },
+                        { "pa|path=", $"the enpoint URL path part of the publisher OPC server endpoint.\nDefault: '{ServerPath}'", (string a) => ServerPath = a },
                         { "lr|ldsreginterval=", $"the LDS(-ME) registration interval in ms. If 0, then the registration is disabled.\nDefault: {LdsRegistrationInterval}", (int i) => {
                                 if (i >= 0)
                                 {
@@ -299,10 +300,8 @@ namespace OpcPublisher
                                 }
                             }
                         },
-                        { "st|opcstacktracemask=", $"ignored, only supported for backward comaptibility.", i => {}},
 
-                        { "as|autotrustservercerts=", $"same as autoaccept, only supported for backward cmpatibility.\nDefault: {OpcPublisherAutoTrustServerCerts}", (bool b) => OpcPublisherAutoTrustServerCerts = b },
-                        { "aa|autoaccept", $"the publisher trusts all servers it is establishing a connection to.\nDefault: {OpcPublisherAutoTrustServerCerts}", b => OpcPublisherAutoTrustServerCerts = b != null },
+                        { "aa|autoaccept", $"the publisher trusts all servers it is establishing a connection to.\nDefault: {AutoAcceptCerts}", b => AutoAcceptCerts = b != null },
 
                         // trust own public cert option
                         { "tm|trustmyself=", $"same as trustowncert.\nDefault: {TrustMyself}", (bool b) => TrustMyself = b  },
@@ -311,7 +310,7 @@ namespace OpcPublisher
                         { "fd|fetchdisplayname=", $"same as fetchname.\nDefault: {FetchOpcNodeDisplayName}", (bool b) => FetchOpcNodeDisplayName = IotCentralMode ? true : b },
                         { "fn|fetchname", $"enable to read the display name of a published node from the server. this will increase the runtime.\nDefault: {FetchOpcNodeDisplayName}", b => FetchOpcNodeDisplayName = IotCentralMode ? true : b != null },
 
-                        // own cert store options
+                        // cert store options
                         { "at|appcertstoretype=", $"the own application cert store type. \n(allowed values: Directory, X509Store)\nDefault: '{OpcOwnCertStoreType}'", (string s) => {
                                 if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase))
                                 {
@@ -329,60 +328,100 @@ namespace OpcPublisher
                                 $"Directory: '{OpcOwnCertDirectoryStorePathDefault}'", (string s) => OpcOwnCertStorePath = s
                         },
 
-                        // trusted cert store options
-                        {
-                        "tt|trustedcertstoretype=", $"the trusted cert store type. \n(allowed values: Directory, X509Store)\nDefault: {OpcTrustedCertStoreType}", (string s) => {
-                                if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase))
+                        { "tp|trustedcertstorepath=", $"the path of the trusted cert store\nDefault: '{OpcTrustedCertDirectoryStorePathDefault}'", (string s) => OpcTrustedCertStorePath = s },
+
+                        { "rp|rejectedcertstorepath=", $"the path of the rejected cert store\nDefault '{OpcRejectedCertDirectoryStorePathDefault}'", (string s) => OpcRejectedCertStorePath = s },
+
+                        { "ip|issuercertstorepath=", $"the path of the trusted issuer cert store\nDefault '{OpcIssuerCertDirectoryStorePathDefault}'", (string s) => OpcIssuerCertStorePath = s },
+
+                        { "csr", $"show data to create a certificate signing request\nDefault '{ShowCreateSigningRequestInfo}'", c => ShowCreateSigningRequestInfo = c != null },
+
+                        { "ab|applicationcertbase64=", $"update/set this applications certificate with the certificate passed in as bas64 string", (string s) =>
+                            {
+                                NewCertificateBase64String = s;
+                            }
+                        },
+                        { "af|applicationcertfile=", $"update/set this applications certificate with the certificate file specified", (string s) =>
+                            {
+                                if (File.Exists(s))
                                 {
-                                    OpcTrustedCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : CertificateStoreType.Directory;
-                                    OpcTrustedCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? OpcTrustedCertX509StorePathDefault : OpcTrustedCertDirectoryStorePathDefault;
+                                    NewCertificateFileName = s;
                                 }
                                 else
                                 {
-                                    throw new OptionException();
+                                    throw new OptionException("The file '{s}' does not exist.", "applicationcertfile");
                                 }
                             }
-                        },
-                        { "tp|trustedcertstorepath=", $"the path of the trusted cert store\nDefault (depends on store type):\n" +
-                                $"X509Store: '{OpcTrustedCertX509StorePathDefault}'\n" +
-                                $"Directory: '{OpcTrustedCertDirectoryStorePathDefault}'", (string s) => OpcTrustedCertStorePath = s
                         },
 
-                        // rejected cert store options
-                        { "rt|rejectedcertstoretype=", $"the rejected cert store type. \n(allowed values: Directory, X509Store)\nDefault: {OpcRejectedCertStoreType}", (string s) => {
-                                if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase))
+                        { "pb|privatekeybase64=", $"initial provisioning of the application certificate (with a PEM or PFX fomat) requires a private key passed in as base64 string", (string s) =>
+                            {
+                                PrivateKeyBase64String = s;
+                            }
+                        },
+                        { "pk|privatekeyfile=", $"initial provisioning of the application certificate (with a PEM or PFX fomat) requires a private key passed in as file", (string s) =>
+                            {
+                                if (File.Exists(s))
                                 {
-                                    OpcRejectedCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : CertificateStoreType.Directory;
-                                    OpcRejectedCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? OpcRejectedCertX509StorePathDefault : OpcRejectedCertDirectoryStorePathDefault;
+                                    PrivateKeyFileName = s;
                                 }
                                 else
                                 {
-                                    throw new OptionException();
+                                    throw new OptionException("The file '{s}' does not exist.", "privatekeyfile");
                                 }
                             }
-                        },
-                        { "rp|rejectedcertstorepath=", $"the path of the rejected cert store\nDefault (depends on store type):\n" +
-                                $"X509Store: '{OpcRejectedCertX509StorePathDefault}'\n" +
-                                $"Directory: '{OpcRejectedCertDirectoryStorePathDefault}'", (string s) => OpcRejectedCertStorePath = s
                         },
 
-                        // issuer cert store options
-                        {
-                        "it|issuercertstoretype=", $"the trusted issuer cert store type. \n(allowed values: Directory, X509Store)\nDefault: {OpcIssuerCertStoreType}", (string s) => {
-                                if (s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) || s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase))
+                        { "cp|certpassword=", $"the optional password for the PEM or PFX or the installed application certificate", (string s) =>
+                            {
+                                CertificatePassword = s;
+                            }
+                        },
+
+                        { "tb|addtrustedcertbase64=", $"adds the certificate to the applications trusted cert store passed in as base64 string (multiple strings supported)", (string s) =>
+                            {
+                                TrustedCertificateBase64Strings = ParseListOfStrings(s);
+                            }
+                        },
+                        { "tf|addtrustedcertfile=", $"adds the certificate file(s) to the applications trusted cert store passed in as base64 string (multiple filenames supported)", (string s) =>
+                            {
+                                TrustedCertificateFileNames = ParseListOfFileNames(s, "addtrustedcertfile");
+                            }
+                        },
+
+                        { "ib|addissuercertbase64=", $"adds the specified issuer certificate to the applications trusted issuer cert store passed in as base64 string (multiple strings supported)", (string s) =>
+                            {
+                                IssuerCertificateBase64Strings = ParseListOfStrings(s);
+                            }
+                        },
+                        { "if|addissuercertfile=", $"adds the specified issuer certificate file(s) to the applications trusted issuer cert store (multiple filenames supported)", (string s) =>
+                            {
+                                IssuerCertificateFileNames = ParseListOfFileNames(s, "addissuercertfile");
+                            }
+                        },
+
+                        { "rb|updatecrlbase64=", $"update the CRL passed in as base64 string to the corresponding cert store (trusted or trusted issuer)", (string s) =>
+                            {
+                                CrlBase64String = s;
+                            }
+                        },
+                        { "uc|updatecrlfile=", $"update the CRL passed in as file to the corresponding cert store (trusted or trusted issuer)", (string s) =>
+                            {
+                                if (File.Exists(s))
                                 {
-                                    OpcIssuerCertStoreType = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? X509Store : CertificateStoreType.Directory;
-                                    OpcIssuerCertStorePath = s.Equals(X509Store, StringComparison.OrdinalIgnoreCase) ? OpcIssuerCertX509StorePathDefault : OpcIssuerCertDirectoryStorePathDefault;
+                                    CrlFileName = s;
                                 }
                                 else
                                 {
-                                    throw new OptionException();
+                                    throw new OptionException("The file '{s}' does not exist.", "updatecrlfile");
                                 }
                             }
                         },
-                        { "ip|issuercertstorepath=", $"the path of the trusted issuer cert store\nDefault (depends on store type):\n" +
-                                $"X509Store: '{OpcIssuerCertX509StorePathDefault}'\n" +
-                                $"Directory: '{OpcIssuerCertDirectoryStorePathDefault}'", (string s) => OpcIssuerCertStorePath = s
+
+                        { "rc|removecert=", $"remove cert(s) with the given thumbprint(s) (multiple thumbprints supported)", (string s) =>
+                            {
+                                ThumbprintsToRemove = ParseListOfStrings(s);
+                            }
                         },
 
                         // device connection string cert store options
@@ -406,6 +445,28 @@ namespace OpcPublisher
                         // misc
                         { "i|install", $"register OPC Publisher with IoTHub and then exits.\nDefault:  {_installOnly}", i => _installOnly = i != null },
                         { "h|help", "show this message and exit", h => shouldShowHelp = h != null },
+
+                        // all the following are only supported to not break existing command lines, but some of them are just ignored
+                        { "st|opcstacktracemask=", $"ignored, only supported for backward comaptibility.", i => {}},
+                        { "sd|shopfloordomain=", $"same as site option, only there for backward compatibility\n" +
+                                "The value must follow the syntactical rules of a DNS hostname.\nDefault: not set", (string s) => {
+                                Regex siteNameRegex = new Regex("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
+                                if (siteNameRegex.IsMatch(s))
+                                {
+                                    PublisherSite = s;
+                                }
+                                else
+                                {
+                                    throw new OptionException("The shopfloor domain is not a valid DNS hostname.", "shopfloordomain");
+                                }
+                            }
+                         },
+                        { "vc|verboseconsole=", $"ignored, only supported for backward comaptibility.", b => {}},
+                        { "as|autotrustservercerts=", $"same as autoaccept, only supported for backward cmpatibility.\nDefault: {AutoAcceptCerts}", (bool b) => AutoAcceptCerts = b },
+                        { "tt|trustedcertstoretype=", $"ignored, only supported for backward compatibility. the trusted cert store will always reside in a directory.", s => { }},
+                        { "rt|rejectedcertstoretype=", $"ignored, only supported for backward compatibility. the rejected cert store will always reside in a directory.", s => { }},
+                        { "it|issuercertstoretype=", $"ignored, only supported for backward compatibility. the trusted issuer cert store will always reside in a directory.", s => { }},
+
                     };
 
 
@@ -508,8 +569,8 @@ namespace OpcPublisher
                 }
 
                 // init OPC configuration and tracing
-                OpcStackConfiguration opcStackConfiguration = new OpcStackConfiguration();
-                await opcStackConfiguration.ConfigureAsync();
+                OpcApplicationConfiguration opcApplicationConfiguration = new OpcApplicationConfiguration();
+                await opcApplicationConfiguration.ConfigureAsync();
 
                 // log shopfloor site setting
                 if (string.IsNullOrEmpty(PublisherSite))
@@ -521,24 +582,12 @@ namespace OpcPublisher
                     Logger.Information($"Publisher is in site '{PublisherSite}'.");
                 }
 
-                // Set certificate validator.
-                if (OpcPublisherAutoTrustServerCerts)
-                {
-                    Logger.Information("Publisher configured to auto trust server certificates of the servers it is connecting to.");
-                    PublisherOpcApplicationConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_AutoTrustServerCerts);
-                }
-                else
-                {
-                    Logger.Information("Publisher configured to not auto trust server certificates. When connecting to servers, you need to manually copy the rejected server certs to the trusted store to trust them.");
-                    PublisherOpcApplicationConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_Default);
-                }
-
                 // start our server interface
                 try
                 {
-                    Logger.Information($"Starting server on endpoint {PublisherOpcApplicationConfiguration.ServerConfiguration.BaseAddresses[0].ToString()} ...");
+                    Logger.Information($"Starting server on endpoint {OpcApplicationConfiguration.ApplicationConfiguration.ServerConfiguration.BaseAddresses[0].ToString()} ...");
                     _publisherServer = new PublisherServer();
-                    _publisherServer.Start(PublisherOpcApplicationConfiguration);
+                    _publisherServer.Start(OpcApplicationConfiguration.ApplicationConfiguration);
                     Logger.Information("Server started.");
                 }
                 catch (Exception e)
@@ -759,34 +808,6 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Default certificate validation callback
-        /// </summary>
-        private static void CertificateValidator_Default(CertificateValidator validator, CertificateValidationEventArgs e)
-        {
-            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
-            {
-                Logger.Information($"OPC Publisher does not trust the server with the certificate subject '{e.Certificate.Subject}'.");
-                Logger.Information("If you want to trust this certificate, please copy it from the directory:");
-                Logger.Information($"{PublisherOpcApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore.StorePath}/certs");
-                Logger.Information("to the directory:");
-                Logger.Information($"{PublisherOpcApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath}/certs");
-            }
-        }
-
-        /// <summary>
-        /// Auto trust server certificate validation callback
-        /// </summary>
-        private static void CertificateValidator_AutoTrustServerCerts(CertificateValidator validator, CertificateValidationEventArgs e)
-        {
-            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
-            {
-                Logger.Information($"Certificate '{e.Certificate.Subject}' will be trusted, since the autotrustservercerts options was specified.");
-                e.Accept = true;
-                return;
-            }
-        }
-
-        /// <summary>
         /// Handler for server status changes.
         /// </summary>
         private static void ServerEventStatus(Session session, SessionEventReason reason)
@@ -869,6 +890,94 @@ namespace OpcPublisher
             Logger.Information($"Log file is: {_logFileName}");
             Logger.Information($"Log level is: {_logLevel}");
             return;
+        }
+
+        /// <summary>
+        /// Helper to build a list of byte arrays out of a comma separated list of base64 strings (optional in double quotes).
+        /// </summary>
+        private static List<string> ParseListOfStrings(string s)
+        {
+            List<string> strings = new List<string>();
+            if (s[0] == '"' && (s.Count(c => c.Equals('"')) % 2 == 0))
+            {
+                while (s.Contains('"'))
+                {
+                    int first = 0;
+                    int next = 0;
+                    first = s.IndexOf('"', next);
+                    next = s.IndexOf('"', ++first);
+                    strings.Add(s.Substring(first, next - first));
+                    s = s.Substring(++next);
+                }
+            }
+            else if (s.Contains(','))
+            {
+                strings = s.Split(',').ToList();
+                strings.ForEach(st => st.Trim());
+                strings = strings.Select(st => st.Trim()).ToList();
+            }
+            else
+            {
+                strings.Add(s);
+            }
+            return strings;
+        }
+
+        /// <summary>
+        /// Helper to build a list of filenames out of a comma separated list of filenames (optional in double quotes).
+        /// </summary>
+        private static List<string> ParseListOfFileNames(string s, string option)
+        {
+            List<string> fileNames = new List<string>();
+            if (s[0] == '"' && (s.Count(c => c.Equals('"')) % 2 == 0))
+            {
+                while (s.Contains('"'))
+                {
+                    int first = 0;
+                    int next = 0;
+                    first = s.IndexOf('"', next);
+                    next = s.IndexOf('"', ++first);
+                    var fileName = s.Substring(first, next - first);
+                    if (File.Exists(fileName))
+                    {
+                        fileNames.Add(fileName);
+                    }
+                    else
+                    {
+                        throw new OptionException($"The file '{fileName}' does not exist.", option);
+                    }
+                    s = s.Substring(++next);
+                }
+            }
+            else if (s.Contains(','))
+            {
+                List<string> parsedFileNames = s.Split(',').ToList();
+                parsedFileNames = parsedFileNames.Select(st => st.Trim()).ToList();
+                foreach (var fileName in parsedFileNames)
+                {
+                    if (File.Exists(fileName))
+                    {
+                        fileNames.Add(fileName);
+                    }
+                    else
+                    {
+                        throw new OptionException($"The file '{fileName}' does not exist.", option);
+                    }
+
+                }
+            }
+            else
+            {
+                if (File.Exists(s))
+                {
+                    fileNames.Add(s);
+                }
+                else
+                {
+                    throw new OptionException($"The file '{s}' does not exist.", option);
+                }
+            }
+            return fileNames;
         }
 
         private static PublisherServer _publisherServer;

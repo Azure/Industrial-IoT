@@ -15,10 +15,10 @@ namespace OpcPublisher
     using System.IO;
     using System.Linq;
     using System.Net;
+    using static OpcApplicationConfiguration;
     using static OpcPublisher.OpcMonitoredItem;
     using static OpcPublisher.PublisherNodeConfiguration;
     using static OpcPublisher.PublisherTelemetryConfiguration;
-    using static OpcStackConfiguration;
     using static Program;
 
     /// <summary>
