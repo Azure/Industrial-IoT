@@ -24,6 +24,9 @@ namespace OpcPublisher
         public string ExpandedNodeId;
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string DisplayName;
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? OpcSamplingInterval;
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -65,27 +68,30 @@ namespace OpcPublisher
         public NodeId NodeId;
         public ExpandedNodeId ExpandedNodeId;
         public string OriginalId;
+        public string DisplayName;
         public int OpcSamplingInterval;
         public int OpcPublishingInterval;
 
-        public NodePublishingConfigurationModel(ExpandedNodeId expandedNodeId, string originalId, Uri endpointUrl, bool? useSecurity, int opcSamplingInterval, int opcPublishingInterval)
+        public NodePublishingConfigurationModel(ExpandedNodeId expandedNodeId, string originalId, Uri endpointUrl, bool? useSecurity, int opcSamplingInterval, int opcPublishingInterval, string displayName)
         {
             NodeId = null;
             ExpandedNodeId = expandedNodeId;
             OriginalId = originalId;
             EndpointUrl = endpointUrl;
             UseSecurity = useSecurity ?? true;
+            DisplayName = displayName;
             OpcSamplingInterval = opcSamplingInterval;
             OpcPublishingInterval = opcPublishingInterval;
         }
 
-        public NodePublishingConfigurationModel(NodeId nodeId, string originalId, Uri endpointUrl, bool? useSecurity, int opcSamplingInterval, int opcPublishingInterval)
+        public NodePublishingConfigurationModel(NodeId nodeId, string originalId, Uri endpointUrl, bool? useSecurity, string displayName, int opcSamplingInterval, int opcPublishingInterval)
         {
             NodeId = nodeId;
             ExpandedNodeId = null;
             OriginalId = originalId;
             EndpointUrl = endpointUrl;
             UseSecurity = useSecurity ?? true;
+            DisplayName = displayName;
             OpcSamplingInterval = opcSamplingInterval;
             OpcPublishingInterval = opcPublishingInterval;
         }

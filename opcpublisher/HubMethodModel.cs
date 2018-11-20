@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Azure.Devices.Client;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace OpcPublisher
@@ -15,11 +17,12 @@ namespace OpcPublisher
 
     public class NodeModel
     {
-        public NodeModel(string id, int? opcPublishingInterval = null, int? opcSamplingInterval = null)
+        public NodeModel(string id, int? opcPublishingInterval = null, int? opcSamplingInterval = null, string displayName = null)
         {
             Id = id;
             OpcPublishingInterval = opcPublishingInterval;
             OpcSamplingInterval = opcSamplingInterval;
+            DisplayName = displayName;
         }
 
         public string Id { get; set; }
@@ -29,6 +32,76 @@ namespace OpcPublisher
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
         public int? OpcSamplingInterval { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public string DisplayName { get; set; }
+    }
+
+    public class DiagnosticInfoModel
+    {
+        public DiagnosticInfoModel()
+        {
+        }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public DateTime PublisherStartTime { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int NumberOfOpcSessions { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int NumberOfConnectedOpcSessions { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int NumberOfConnectedOpcSubscriptions { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int NumberOfMonitoredItems { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int MonitoredItemsQueueCapacity { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long MonitoredItemsQueueCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long EnqueueCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long EnqueueFailureCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long NumberOfEvents { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long SentMessages { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public DateTime SentLastTime { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long SentBytes { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long FailedMessages { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long TooLargeCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long MissedSendIntervalCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long WorkingSetMB { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int DefaultSendIntervalSeconds { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public uint HubMessageSize { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public TransportType HubProtocol { get; set; }
     }
 
     public class PublishNodesMethodRequestModel
@@ -76,7 +149,6 @@ namespace OpcPublisher
 
         public string EndpointUrl { get; set; }
     }
-
 
     public class GetConfiguredEndpointsMethodRequestModel
     {

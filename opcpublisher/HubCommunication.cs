@@ -15,6 +15,7 @@ namespace OpcPublisher
     using System.IO;
     using System.Linq;
     using System.Net;
+    using static Diagnostics;
     using static OpcApplicationConfiguration;
     using static OpcPublisher.OpcMonitoredItem;
     using static OpcPublisher.PublisherNodeConfiguration;
@@ -40,7 +41,7 @@ namespace OpcPublisher
 
         public static long MonitoredItemsQueueCount => _monitoredItemsDataQueue.Count;
 
-        public static long DequeueCount { get; private set; }
+        public static long NumberOfEvents { get; private set; }
 
         public static long MissedSendIntervalCount { get; private set; }
 
@@ -71,7 +72,6 @@ namespace OpcPublisher
         public static bool IsHttp1Transport() => (_transportType == TransportType.Http1);
 
         public static bool IotCentralMode { get; set; } = false;
-
 
         /// <summary>
         /// Ctor for the class.
@@ -292,13 +292,13 @@ namespace OpcPublisher
                         {
                             // add the node info to the subscription with the default publishing interval, execute syncronously
                             Logger.Debug($"{logPrefix} Request to monitor item with NodeId '{nodeId.ToString()}' (PublishingInterval: {publishingInterval}, SamplingInterval: {samplingInterval})");
-                            statusCode = await opcSession.AddNodeForMonitoringAsync(nodeId, null, publishingInterval, samplingInterval, ShutdownTokenSource.Token);
+                            statusCode = await opcSession.AddNodeForMonitoringAsync(nodeId, null, publishingInterval, samplingInterval, node.DisplayName, ShutdownTokenSource.Token);
                         }
                         else
                         {
                             // add the node info to the subscription with the default publishing interval, execute syncronously
                             Logger.Debug($"{logPrefix} Request to monitor item with ExpandedNodeId '{expandedNodeId.ToString()}' (PublishingInterval: {publishingInterval}, SamplingInterval: {samplingInterval})");
-                            statusCode = await opcSession.AddNodeForMonitoringAsync(null, expandedNodeId, publishingInterval, samplingInterval, ShutdownTokenSource.Token);
+                            statusCode = await opcSession.AddNodeForMonitoringAsync(null, expandedNodeId, publishingInterval, samplingInterval, node.DisplayName, ShutdownTokenSource.Token);
                         }
                     }
                     catch (Exception e)
@@ -329,7 +329,6 @@ namespace OpcPublisher
             }
             return (new MethodResponse((int)statusCode));
         }
-
 
         /// <summary>
         /// Handle unpublish node method call.
@@ -437,8 +436,6 @@ namespace OpcPublisher
             return (new MethodResponse((int)statusCode));
         }
 
-
-
         /// <summary>
         /// Handle unpublish all nodes method call.
         /// </summary>
@@ -497,9 +494,10 @@ namespace OpcPublisher
                     foreach (var subscription in subscriptionsToCleanup)
                     {
                         // loop through all monitored items
-                        var monitoredItemsToCleanup = subscription.OpcMonitoredItems;
-                        foreach (var monitoredItem in monitoredItemsToCleanup)
+                        var monitoredItemsToCleanup = subscription.OpcMonitoredItems.ToArray();
+                        for (var i = 0; i < monitoredItemsToCleanup.Length; i++)
                         {
+                            var monitoredItem = monitoredItemsToCleanup[i];
                             if (monitoredItem.ConfigType == OpcMonitoredItemConfigurationType.NodeId)
                             {
                                 await session.RequestMonitorItemRemovalAsync(monitoredItem.ConfigNodeId, null, ShutdownTokenSource.Token);
@@ -689,11 +687,38 @@ namespace OpcPublisher
             {
                 getConfiguredNodesOnEndpointMethodResponse.ContinuationToken = (ulong)nodeConfigVersion << 32 | actualNodeCount + startIndex;
             }
-            getConfiguredNodesOnEndpointMethodResponse.Nodes = opcNodes.GetRange((int)startIndex, (int)actualNodeCount).Select(n => new NodeModel(n.Id, n.OpcPublishingInterval, n.OpcSamplingInterval)).ToList();
+            getConfiguredNodesOnEndpointMethodResponse.Nodes = opcNodes.GetRange((int)startIndex, (int)actualNodeCount).Select(n => new NodeModel(n.Id, n.OpcPublishingInterval, n.OpcSamplingInterval, n.DisplayName)).ToList();
             string resultString = JsonConvert.SerializeObject(getConfiguredNodesOnEndpointMethodResponse);
             byte[] result = Encoding.UTF8.GetBytes(resultString);
             MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
             Logger.Information($"{logPrefix} Success returning {actualNodeCount} node(s) of {availableNodeCount} (start: {startIndex}) (node config version: {nodeConfigVersion:X8})!");
+            return methodResponse;
+        }
+
+        /// <summary>
+        /// Handle method call to get diagnostic information.
+        /// </summary>
+        static async Task<MethodResponse> HandleGetDiagnosticInfoMethodAsync(MethodRequest methodRequest, object userContext)
+        {
+            string logPrefix = "HandleGetDiagnosticInfoMethodAsync:";
+
+            // get the diagnostic info
+            DiagnosticInfoModel diagnosticInfo = new DiagnosticInfoModel();
+            try
+            {
+                diagnosticInfo = GetDiagnosticInfo();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, $"{logPrefix} Exception");
+                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+            }
+
+            // build response
+            string resultString = JsonConvert.SerializeObject(diagnosticInfo);
+            byte[] result = Encoding.UTF8.GetBytes(resultString);
+            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
+            Logger.Information($"{logPrefix} Success returning diagnostic info!");
             return methodResponse;
         }
 
@@ -994,7 +1019,7 @@ namespace OpcPublisher
                                 jsonMessage = await CreateJsonMessageAsync(messageData);
                             }
 
-                            DequeueCount++;
+                            NumberOfEvents++;
                             jsonMessageSize = Encoding.UTF8.GetByteCount(jsonMessage.ToString());
 
                             // sanity check that the user has set a large enough messages size

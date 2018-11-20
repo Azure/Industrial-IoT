@@ -44,6 +44,42 @@ namespace OpcPublisher
         }
 
         /// <summary>
+        /// Fetch diagnostic data.
+        /// </summary>
+        public static DiagnosticInfoModel GetDiagnosticInfo()
+        {
+            DiagnosticInfoModel diagnosticInfo = new DiagnosticInfoModel();
+
+            try
+            {
+                diagnosticInfo.PublisherStartTime = PublisherStartTime;
+                diagnosticInfo.NumberOfOpcSessions = NumberOfOpcSessions;
+                diagnosticInfo.NumberOfConnectedOpcSessions = NumberOfConnectedOpcSessions;
+                diagnosticInfo.NumberOfConnectedOpcSubscriptions = NumberOfConnectedOpcSubscriptions;
+                diagnosticInfo.NumberOfMonitoredItems = NumberOfMonitoredItems;
+                diagnosticInfo.MonitoredItemsQueueCapacity = MonitoredItemsQueueCapacity;
+                diagnosticInfo.MonitoredItemsQueueCount = MonitoredItemsQueueCount;
+                diagnosticInfo.EnqueueCount = EnqueueCount;
+                diagnosticInfo.EnqueueFailureCount = EnqueueFailureCount;
+                diagnosticInfo.NumberOfEvents = NumberOfEvents;
+                diagnosticInfo.SentMessages = SentMessages;
+                diagnosticInfo.SentLastTime = SentLastTime;
+                diagnosticInfo.SentBytes = SentBytes;
+                diagnosticInfo.FailedMessages = FailedMessages;
+                diagnosticInfo.TooLargeCount = TooLargeCount;
+                diagnosticInfo.MissedSendIntervalCount = MissedSendIntervalCount;
+                diagnosticInfo.WorkingSetMB = Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024);
+                diagnosticInfo.DefaultSendIntervalSeconds = DefaultSendIntervalSeconds;
+                diagnosticInfo.HubMessageSize = HubMessageSize;
+                diagnosticInfo.HubProtocol = HubProtocol;
+            }
+            catch
+            {
+            }
+            return diagnosticInfo;
+        }
+
+        /// <summary>
         /// Kicks of the task to show diagnostic information each 30 seconds.
         /// </summary>
         public static async Task ShowDiagnosticsInfoAsync(CancellationToken ct)
@@ -59,32 +95,33 @@ namespace OpcPublisher
                 {
                     await Task.Delay((int)DiagnosticsInterval * 1000, ct);
 
+                    DiagnosticInfoModel diagnosticInfo = GetDiagnosticInfo();
                     Logger.Information("==========================================================================");
-                    Logger.Information($"OpcPublisher status @ {System.DateTime.UtcNow} (started @ {PublisherStartTime})");
+                    Logger.Information($"OpcPublisher status @ {System.DateTime.UtcNow} (started @ {diagnosticInfo.PublisherStartTime})");
                     Logger.Information("---------------------------------");
-                    Logger.Information($"OPC sessions: {NumberOfOpcSessions}");
-                    Logger.Information($"connected OPC sessions: {NumberOfConnectedOpcSessions}");
-                    Logger.Information($"connected OPC subscriptions: {NumberOfConnectedOpcSubscriptions}");
-                    Logger.Information($"OPC monitored items: {NumberOfMonitoredItems}");
+                    Logger.Information($"OPC sessions: {diagnosticInfo.NumberOfOpcSessions}");
+                    Logger.Information($"connected OPC sessions: {diagnosticInfo.NumberOfConnectedOpcSessions}");
+                    Logger.Information($"connected OPC subscriptions: {diagnosticInfo.NumberOfConnectedOpcSubscriptions}");
+                    Logger.Information($"OPC monitored items: {diagnosticInfo.NumberOfMonitoredItems}");
                     Logger.Information("---------------------------------");
-                    Logger.Information($"monitored items queue bounded capacity: {MonitoredItemsQueueCapacity}");
-                    Logger.Information($"monitored items queue current items: {MonitoredItemsQueueCount}");
-                    Logger.Information($"monitored item notifications enqueued: {EnqueueCount}");
-                    Logger.Information($"monitored item notifications enqueue failure: {EnqueueFailureCount}");
-                    Logger.Information($"monitored item notifications dequeued: {DequeueCount}");
+                    Logger.Information($"monitored items queue bounded capacity: {diagnosticInfo.MonitoredItemsQueueCapacity}");
+                    Logger.Information($"monitored items queue current items: {diagnosticInfo.MonitoredItemsQueueCount}");
+                    Logger.Information($"monitored item notifications enqueued: {diagnosticInfo.EnqueueCount}");
+                    Logger.Information($"monitored item notifications enqueue failure: {diagnosticInfo.EnqueueFailureCount}");
                     Logger.Information("---------------------------------");
-                    Logger.Information($"messages sent to IoTHub: {SentMessages}");
-                    Logger.Information($"last successful msg sent @: {SentLastTime}");
-                    Logger.Information($"bytes sent to IoTHub: {SentBytes}");
-                    Logger.Information($"avg msg size: {SentBytes / (SentMessages == 0 ? 1 : SentMessages)}");
-                    Logger.Information($"msg send failures: {FailedMessages}");
-                    Logger.Information($"messages too large to sent to IoTHub: {TooLargeCount}");
-                    Logger.Information($"times we missed send interval: {MissedSendIntervalCount}");
+                    Logger.Information($"messages sent to IoTHub: {diagnosticInfo.SentMessages}");
+                    Logger.Information($"last successful msg sent @: {diagnosticInfo.SentLastTime}");
+                    Logger.Information($"bytes sent to IoTHub: {diagnosticInfo.SentBytes}");
+                    Logger.Information($"avg msg size: {diagnosticInfo.SentBytes / (diagnosticInfo.SentMessages == 0 ? 1 : diagnosticInfo.SentMessages)}");
+                    Logger.Information($"msg send failures: {diagnosticInfo.FailedMessages}");
+                    Logger.Information($"messages too large to sent to IoTHub: {diagnosticInfo.TooLargeCount}");
+                    Logger.Information($"times we missed send interval: {diagnosticInfo.MissedSendIntervalCount}");
+                    Logger.Information($"number of events: {diagnosticInfo.NumberOfEvents}");
                     Logger.Information("---------------------------------");
-                    Logger.Information($"current working set in MB: {Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024)}");
-                    Logger.Information($"--si setting: {DefaultSendIntervalSeconds}");
-                    Logger.Information($"--ms setting: {HubMessageSize}");
-                    Logger.Information($"--ih setting: {HubProtocol}");
+                    Logger.Information($"current working set in MB: {diagnosticInfo.WorkingSetMB}");
+                    Logger.Information($"--si setting: {diagnosticInfo.DefaultSendIntervalSeconds}");
+                    Logger.Information($"--ms setting: {diagnosticInfo.HubMessageSize}");
+                    Logger.Information($"--ih setting: {diagnosticInfo.HubProtocol}");
                     Logger.Information("==========================================================================");
                 }
                 catch
