@@ -344,6 +344,7 @@ namespace OpcPublisher
                                             opcNodeOnEndpoint.Id = monitoredItem.OriginalId;
                                             opcNodeOnEndpoint.OpcPublishingInterval = subscription.RequestedPublishingInterval == OpcPublishingInterval ? (int?)null : subscription.RequestedPublishingInterval;
                                             opcNodeOnEndpoint.OpcSamplingInterval = monitoredItem.RequestedSamplingInterval == OpcSamplingInterval ? (int?)null : monitoredItem.RequestedSamplingInterval;
+                                            opcNodeOnEndpoint.DisplayName = monitoredItem.DisplayName;
                                             publisherConfigurationFileEntry.OpcNodes.Add(opcNodeOnEndpoint);
                                         }
                                     }
