@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.Models {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models {
     using Newtonsoft.Json;
 
     /// <summary>

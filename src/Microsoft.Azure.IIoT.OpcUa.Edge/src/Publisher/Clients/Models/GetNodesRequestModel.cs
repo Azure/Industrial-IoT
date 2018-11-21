@@ -3,21 +3,20 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.Models {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models {
     using Newtonsoft.Json;
-    using System.Collections.Generic;
 
     /// <summary>
-    /// All published nodes on an endpoint response
+    /// Request to get all published nodes on an endpoint
     /// </summary>
-    public class GetNodesResponseModel {
+    public class GetNodesRequestModel {
 
         /// <summary>
-        /// Nodes that are published
+        /// Endpoint url
         /// </summary>
-        [JsonProperty(PropertyName = "Nodes",
+        [JsonProperty(PropertyName = "EndpointUrl",
             NullValueHandling = NullValueHandling.Include)]
-        public List<PublisherNodeModel> Nodes { get; set; }
+        public string EndpointUrl { get; set; }
 
         /// <summary>
         /// Continuation token

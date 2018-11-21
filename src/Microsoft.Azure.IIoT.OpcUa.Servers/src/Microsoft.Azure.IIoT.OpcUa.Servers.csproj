@@ -11,6 +11,6 @@
     <EmbeddedResource Include="Sample\External\Boiler\Boiler.PredefinedNodes.uanodes" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Protocol\src\Microsoft.Azure.IIoT.OpcUa.Protocol.csproj" />
   </ItemGroup>
 </Project>

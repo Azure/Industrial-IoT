@@ -4,25 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
+    using System.Collections.Generic;
 
     /// <summary>
-    /// A monitored and published node
+    /// List of published items
     /// </summary>
-    public class PublishedNodeModel {
+    public class PublishedItemListResultModel {
 
         /// <summary>
-        /// Node to monitor
+        /// Continuation or null if final
         /// </summary>
-        public string NodeId { get; set; }
+        public string ContinuationToken { get; set; }
 
         /// <summary>
-        /// Publishing interval to use
+        /// Monitored items
         /// </summary>
-        public int? PublishingInterval { get; set; }
-
-        /// <summary>
-        /// Sampling interval to use
-        /// </summary>
-        public int? SamplingInterval { get; set; }
+        public List<PublishedItemModel> Items { get; set; }
     }
 }

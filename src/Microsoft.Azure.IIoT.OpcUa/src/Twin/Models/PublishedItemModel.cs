@@ -4,27 +4,30 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using System.Collections.Generic;
 
     /// <summary>
-    /// Request node attribute read or update
+    /// A monitored and published item
     /// </summary>
-    public class BatchReadRequestModel {
+    public class PublishedItemModel {
 
         /// <summary>
-        /// Attributes to update or read
+        /// Variable node to monitor
         /// </summary>
-        public List<AttributeReadRequestModel> Attributes { get; set; }
+        public string NodeId { get; set; }
 
         /// <summary>
-        /// Optional User Elevation
+        /// Attribute to monitor
         /// </summary>
-        public CredentialModel Elevation { get; set; }
+        public NodeAttribute? NodeAttribute { get; set; }
 
         /// <summary>
-        /// Optional diagnostics configuration
+        /// Publishing interval to use
         /// </summary>
-        public DiagnosticsModel Diagnostics { get; set; }
+        public int? PublishingInterval { get; set; }
+
+        /// <summary>
+        /// Sampling interval to use
+        /// </summary>
+        public int? SamplingInterval { get; set; }
     }
 }

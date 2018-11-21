@@ -4,15 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
+    using System.Collections.Generic;
 
     /// <summary>
-    /// Request list of published nodes
+    /// Request service calls in batch
     /// </summary>
-    public class PublishedNodeListRequestModel {
-
-        /// <summary>
-        /// Continuation token or null to start
-        /// </summary>
-        public string ContinuationToken { get; set; }
+    public class BatchServiceCallRequestModel :
+        List<ServiceCallRequestModel> {
     }
 }

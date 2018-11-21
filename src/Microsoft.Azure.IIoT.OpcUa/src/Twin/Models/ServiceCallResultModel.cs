@@ -4,25 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Unpublish request
+    /// Service call result
     /// </summary>
-    public class PublishStopRequestModel {
+    public class ServiceCallResultModel {
 
         /// <summary>
-        /// Node of published item to unpublish
+        /// Service call result type
         /// </summary>
-        public string NodeId { get; set; }
+        public ServiceCallType Type { get; set; }
 
         /// <summary>
-        /// Attribute of published item
+        /// Result model
         /// </summary>
-        public NodeAttribute? NodeAttribute { get; set; }
-
-        /// <summary>
-        /// Optional diagnostics configuration
-        /// </summary>
-        public DiagnosticsModel Diagnostics { get; set; }
+        public JToken Result { get; set; }
     }
 }

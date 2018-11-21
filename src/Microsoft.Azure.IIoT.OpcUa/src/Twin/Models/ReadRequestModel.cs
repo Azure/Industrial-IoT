@@ -8,14 +8,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Request node attribute write
+    /// Request node attribute read or update
     /// </summary>
-    public class BatchWriteRequestModel {
+    public class ReadRequestModel {
 
         /// <summary>
-        /// Attributes to update
+        /// Attributes to update or read
         /// </summary>
-        public List<AttributeWriteRequestModel> Attributes { get; set; }
+        public List<AttributeReadRequestModel> Attributes { get; set; }
 
         /// <summary>
         /// Optional User Elevation

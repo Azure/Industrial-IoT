@@ -4,16 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using System.Collections.Generic;
 
     /// <summary>
-    /// Result of attribute write
+    /// Request list of published items
     /// </summary>
-    public class BatchWriteResultModel {
+    public class PublishedItemListRequestModel {
 
         /// <summary>
-        /// All results of attribute writes
+        /// Continuation token or null to start
         /// </summary>
-        public List<AttributeWriteResultModel> Results { set; get; }
+        public string ContinuationToken { get; set; }
     }
 }

@@ -3,43 +3,42 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.Models {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models {
     using Newtonsoft.Json;
-    using Opc.Ua;
-    using System;
-    using System.Collections.Generic;
 
     /// <summary>
-    /// Legacy configuration file entry
+    /// Class describing a node
     /// </summary>
-    public class PublisherConfigFileEntryModel {
+    public class PublisherNodeOnEndpointModel {
 
         /// <summary>
-        /// Endpoint url
+        /// Id can be:
+        /// a NodeId ("ns=")
+        /// an ExpandedNodeId ("nsu=")
         /// </summary>
-        [JsonProperty(PropertyName = "EndpointUrl",
+        [JsonProperty(PropertyName = "Id",
             NullValueHandling = NullValueHandling.Include)]
-        public Uri EndpointUrl { get; set; }
+        public string Id;
+
+        /// <summary>
+        /// Support legacy configuration file syntax
+        /// </summary>
+        [JsonProperty(PropertyName = "ExpandedNodeId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string ExpandedNodeId;
 
         /// <summary>
         /// Whether to use security
         /// </summary>
-        [JsonProperty(PropertyName = "UseSecurity",
+        [JsonProperty(PropertyName = "OpcSamplingInterval",
             NullValueHandling = NullValueHandling.Ignore)]
-        public bool? UseSecurity { get; set; } = true;
+        public int? OpcSamplingInterval;
 
         /// <summary>
-        /// NodeId ??
+        /// Whether to use security
         /// </summary>
-        [JsonProperty(PropertyName = "NodeId",
+        [JsonProperty(PropertyName = "OpcPublishingInterval",
             NullValueHandling = NullValueHandling.Ignore)]
-        public NodeId NodeId { get; set; }
-
-        /// <summary>
-        /// NodeId
-        /// </summary>
-        [JsonProperty(PropertyName = "OpcNodes",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public List<PublisherNodeOnEndpointModel> OpcNodes { get; set; }
+        public int? OpcPublishingInterval;
     }
 }

@@ -54,8 +54,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<BatchReadResultModel> NodeBatchReadAsync(T endpoint,
-            BatchReadRequestModel request);
+        Task<ReadResultModel> NodeReadAsync(T endpoint,
+            ReadRequestModel request);
 
         /// <summary>
         /// Write node attributes in batch
@@ -63,8 +63,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<BatchWriteResultModel> NodeBatchWriteAsync(T endpoint,
-            BatchWriteRequestModel request);
+        Task<WriteResultModel> NodeWriteAsync(T endpoint,
+            WriteRequestModel request);
 
         /// <summary>
         /// Read node history

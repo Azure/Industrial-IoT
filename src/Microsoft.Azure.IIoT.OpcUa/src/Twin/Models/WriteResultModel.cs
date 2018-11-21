@@ -7,18 +7,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// List of published nodes
+    /// Result of attribute write
     /// </summary>
-    public class PublishedNodeListResultModel {
+    public class WriteResultModel {
 
         /// <summary>
-        /// Continuation or null if final
+        /// All results of attribute writes
         /// </summary>
-        public string ContinuationToken { get; set; }
-
-        /// <summary>
-        /// Monitored items
-        /// </summary>
-        public List<PublishedNodeModel> Items { get; set; }
+        public List<AttributeWriteResultModel> Results { set; get; }
     }
 }

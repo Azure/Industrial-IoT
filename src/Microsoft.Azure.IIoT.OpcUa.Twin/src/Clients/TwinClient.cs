@@ -37,11 +37,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Node == null) {
-                throw new ArgumentNullException(nameof(request.Node));
+            if (request.Item == null) {
+                throw new ArgumentNullException(nameof(request.Item));
             }
-            if (string.IsNullOrEmpty(request.Node.NodeId)) {
-                throw new ArgumentNullException(nameof(request.Node.NodeId));
+            if (string.IsNullOrEmpty(request.Item.NodeId)) {
+                throw new ArgumentNullException(nameof(request.Item.NodeId));
             }
             var result = await CallServiceOnTwin<PublishStartRequestModel, PublishStartResultModel>(
                 "PublishStart_V1", endpointId, request);
@@ -63,9 +63,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedNodeListResultModel> NodePublishListAsync(
-            string endpointId, PublishedNodeListRequestModel request) {
-            var result = await CallServiceOnTwin<PublishedNodeListRequestModel, PublishedNodeListResultModel>(
+        public async Task<PublishedItemListResultModel> NodePublishListAsync(
+            string endpointId, PublishedItemListRequestModel request) {
+            var result = await CallServiceOnTwin<PublishedItemListRequestModel, PublishedItemListResultModel>(
                 "PublishList_V1", endpointId, request);
             return result;
         }
@@ -159,8 +159,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<BatchReadResultModel> NodeBatchReadAsync(
-            string endpointId, BatchReadRequestModel request) {
+        public async Task<ReadResultModel> NodeReadAsync(
+            string endpointId, ReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -170,13 +170,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request.Attributes.Any(r => string.IsNullOrEmpty(r.NodeId))) {
                 throw new ArgumentException(nameof(request.Attributes));
             }
-            return await CallServiceOnTwin<BatchReadRequestModel, BatchReadResultModel>(
-                "BatchRead_V1", endpointId, request);
+            return await CallServiceOnTwin<ReadRequestModel, ReadResultModel>(
+                "NodeRead_V1", endpointId, request);
         }
 
         /// <inheritdoc/>
-        public async Task<BatchWriteResultModel> NodeBatchWriteAsync(
-            string endpointId, BatchWriteRequestModel request) {
+        public async Task<WriteResultModel> NodeWriteAsync(
+            string endpointId, WriteRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -186,8 +186,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request.Attributes.Any(r => string.IsNullOrEmpty(r.NodeId))) {
                 throw new ArgumentException(nameof(request.Attributes));
             }
-            return await CallServiceOnTwin<BatchWriteRequestModel, BatchWriteResultModel>(
-                "BatchWrite_V1", endpointId, request);
+            return await CallServiceOnTwin<WriteRequestModel, WriteResultModel>(
+                "NodeWrite_V1", endpointId, request);
         }
 
         /// <inheritdoc/>

@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Default;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
@@ -157,7 +157,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
                 // ...
 
                 _logger.Info($"No publisher found - Publish services not supported.");
-                _publisher = new PublisherStub();
+                _publisher = new PublishServicesStub<EndpointModel>();
             }
             finally {
                 _lock.Release();
@@ -206,8 +206,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedNodeListResultModel> NodePublishListAsync(
-            EndpointModel endpoint, PublishedNodeListRequestModel request) {
+        public async Task<PublishedItemListResultModel> NodePublishListAsync(
+            EndpointModel endpoint, PublishedItemListRequestModel request) {
             if (_publisher == null) {
                 await StartAsync();
             }
@@ -223,7 +223,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
             try {
                 await publisher.NodePublishListAsync(new EndpointModel {
                     Url = "opc.tcp://test"
-                }, new PublishedNodeListRequestModel());
+                }, new PublishedItemListRequestModel());
                 return true;
             }
             catch {

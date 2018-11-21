@@ -4,20 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
+    using System.Collections.Generic;
 
     /// <summary>
-    /// Attribute to read
+    /// Result of attribute reads
     /// </summary>
-    public class AttributeReadRequestModel {
+    public class ReadResultModel {
 
         /// <summary>
-        /// Node to read from (mandatory)
+        /// All results of attribute reads
         /// </summary>
-        public string NodeId { get; set; }
-
-        /// <summary>
-        /// Attribute to read
-        /// </summary>
-        public NodeAttribute Attribute { get; set; }
+        public List<AttributeReadResultModel> Results { set; get; }
     }
 }

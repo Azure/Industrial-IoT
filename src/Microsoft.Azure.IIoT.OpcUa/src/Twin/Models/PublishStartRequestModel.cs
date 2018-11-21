@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// <summary>
         /// Node to publish
         /// </summary>
-        public PublishedNodeModel Node { get; set; }
+        public PublishedItemModel Item { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration

@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.Models;
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
@@ -63,11 +63,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Node == null) {
-                throw new ArgumentNullException(nameof(request.Node));
+            if (request.Item == null) {
+                throw new ArgumentNullException(nameof(request.Item));
             }
-            if (string.IsNullOrEmpty(request.Node.NodeId)) {
-                throw new ArgumentNullException(nameof(request.Node.NodeId));
+            if (string.IsNullOrEmpty(request.Item.NodeId)) {
+                throw new ArgumentNullException(nameof(request.Item.NodeId));
             }
             GetUserNamePassword(endpoint.User, out var user, out var password);
             await _client.CallMethodAsync(_deviceId, _moduleId,
@@ -79,11 +79,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                         UseSecurity = endpoint.SecurityMode != SecurityMode.None,
                         Nodes = new List<PublisherNodeModel> {
                             new PublisherNodeModel {
-                                Id = ToPublisherNodeId(request.Node.NodeId),
+                                Id = ToPublisherNodeId(request.Item.NodeId),
                                 OpcPublishingInterval =
-                                    request.Node.PublishingInterval,
+                                    request.Item.PublishingInterval,
                                 OpcSamplingInterval =
-                                    request.Node.SamplingInterval
+                                    request.Item.SamplingInterval
                             }
                         }
                     }));
@@ -114,8 +114,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedNodeListResultModel> NodePublishListAsync(
-            EndpointModel endpoint, PublishedNodeListRequestModel request) {
+        public async Task<PublishedItemListResultModel> NodePublishListAsync(
+            EndpointModel endpoint, PublishedItemListRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -128,11 +128,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                             BitConverter.ToUInt64(request.ContinuationToken.DecodeAsBase64(), 0)
                     }));
             var response = JsonConvertEx.DeserializeObject<GetNodesResponseModel>(result);
-            return new PublishedNodeListResultModel {
+            return new PublishedItemListResultModel {
                 ContinuationToken = response.ContinuationToken == null ? null :
                     BitConverter.GetBytes(response.ContinuationToken.Value).ToBase64String(),
                 Items = response.Nodes?
-                    .Select(s => new PublishedNodeModel {
+                    .Select(s => new PublishedItemModel {
                         NodeId = FromPublisherNodeId(s.Id),
                         PublishingInterval = s.OpcPublishingInterval,
                         SamplingInterval = s.OpcSamplingInterval

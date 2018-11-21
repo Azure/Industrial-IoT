@@ -37,11 +37,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Node == null) {
-                throw new ArgumentNullException(nameof(request.Node));
+            if (request.Item == null) {
+                throw new ArgumentNullException(nameof(request.Item));
             }
-            if (string.IsNullOrEmpty(request.Node.NodeId)) {
-                throw new ArgumentNullException(nameof(request.Node.NodeId));
+            if (string.IsNullOrEmpty(request.Item.NodeId)) {
+                throw new ArgumentNullException(nameof(request.Item.NodeId));
             }
             var result = await CallServiceOnSupervisor<PublishStartRequestModel, PublishStartResultModel>(
                 "PublishStart_V1", registration, request);
@@ -63,9 +63,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedNodeListResultModel> NodePublishListAsync(
-            EndpointRegistrationModel registration, PublishedNodeListRequestModel request) {
-            var result = await CallServiceOnSupervisor<PublishedNodeListRequestModel, PublishedNodeListResultModel>(
+        public async Task<PublishedItemListResultModel> NodePublishListAsync(
+            EndpointRegistrationModel registration, PublishedItemListRequestModel request) {
+            var result = await CallServiceOnSupervisor<PublishedItemListRequestModel, PublishedItemListResultModel>(
                 "PublishList_V1", registration, request);
             return result;
         }
@@ -159,8 +159,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<BatchReadResultModel> NodeBatchReadAsync(
-            EndpointRegistrationModel registration, BatchReadRequestModel request) {
+        public async Task<ReadResultModel> NodeReadAsync(
+            EndpointRegistrationModel registration, ReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -170,13 +170,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request.Attributes.Any(r => string.IsNullOrEmpty(r.NodeId))) {
                 throw new ArgumentException(nameof(request.Attributes));
             }
-            return await CallServiceOnSupervisor<BatchReadRequestModel, BatchReadResultModel>(
-                "BatchRead_V1", registration, request);
+            return await CallServiceOnSupervisor<ReadRequestModel, ReadResultModel>(
+                "NodeRead_V1", registration, request);
         }
 
         /// <inheritdoc/>
-        public async Task<BatchWriteResultModel> NodeBatchWriteAsync(
-            EndpointRegistrationModel registration, BatchWriteRequestModel request) {
+        public async Task<WriteResultModel> NodeWriteAsync(
+            EndpointRegistrationModel registration, WriteRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -186,8 +186,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request.Attributes.Any(r => string.IsNullOrEmpty(r.NodeId))) {
                 throw new ArgumentException(nameof(request.Attributes));
             }
-            return await CallServiceOnSupervisor<BatchWriteRequestModel, BatchWriteResultModel>(
-                "BatchWrite_V1", registration, request);
+            return await CallServiceOnSupervisor<WriteRequestModel, WriteResultModel>(
+                "NodeWrite_V1", registration, request);
         }
 
         /// <inheritdoc/>

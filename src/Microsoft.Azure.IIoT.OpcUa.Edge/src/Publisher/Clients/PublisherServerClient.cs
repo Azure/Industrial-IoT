@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.Models;
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
@@ -54,11 +54,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Node == null) {
-                throw new ArgumentNullException(nameof(request.Node));
+            if (request.Item == null) {
+                throw new ArgumentNullException(nameof(request.Item));
             }
-            if (string.IsNullOrEmpty(request.Node.NodeId)) {
-                throw new ArgumentNullException(nameof(request.Node.NodeId));
+            if (string.IsNullOrEmpty(request.Item.NodeId)) {
+                throw new ArgumentNullException(nameof(request.Item.NodeId));
             }
             return await _client.ExecuteServiceAsync(GetPublisherEndpoint(endpoint),
                 null, async session => {
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                         ObjectId = new NodeId("Methods", 2),
                         MethodId = new NodeId("PublishNode", 2),
                         InputArguments = new VariantCollection {
-                            new Variant(request.Node.NodeId
+                            new Variant(request.Item.NodeId
                                 .ToExpandedNodeId(session.MessageContext)),
                             new Variant(endpoint.Url)
                         }
@@ -122,8 +122,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedNodeListResultModel> NodePublishListAsync(
-            EndpointModel endpoint, PublishedNodeListRequestModel request) {
+        public async Task<PublishedItemListResultModel> NodePublishListAsync(
+            EndpointModel endpoint, PublishedItemListRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -146,16 +146,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                     response.Results.Select(r => r.StatusCode), response.DiagnosticInfos);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
                 if (!StatusCode.IsGood(response.Results[0].StatusCode)) {
-                    return new PublishedNodeListResultModel();
+                    return new PublishedItemListResultModel();
                 }
                 if (response.Results[0].OutputArguments?.Count == 1) {
                     var output = response.Results[0].OutputArguments[0].ToString();
                     var entries = JsonConvertEx.DeserializeObject<
                         List<PublisherConfigFileEntryModel>>(output);
-                    return new PublishedNodeListResultModel {
+                    return new PublishedItemListResultModel {
                         Items = entries?
                             .SelectMany(e => e.OpcNodes?
-                                .Select(s => new PublishedNodeModel {
+                                .Select(s => new PublishedItemModel {
                                     NodeId = ToNodeId(s.Id, session.MessageContext),
                                     PublishingInterval = s.OpcPublishingInterval,
                                     SamplingInterval = s.OpcSamplingInterval
@@ -166,7 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                 _logger.Error($"Result of GetPublishedNodes had unexpected " +
                     $"length {response.Results[0].OutputArguments?.Count}",
                         () => response.Results[0].OutputArguments);
-                return new PublishedNodeListResultModel();
+                return new PublishedItemListResultModel();
             });
         }
 

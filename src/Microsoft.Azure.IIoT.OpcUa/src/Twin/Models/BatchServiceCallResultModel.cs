@@ -7,13 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Result of attribute reads
+    /// Result of batch calls
     /// </summary>
-    public class BatchReadResultModel {
-
-        /// <summary>
-        /// All results of attribute reads
-        /// </summary>
-        public List<AttributeReadResultModel> Results { set; get; }
+    public class BatchServiceCallResultModel :
+        List<ServiceCallResultModel> {
     }
 }

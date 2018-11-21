@@ -3,33 +3,32 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+namespace Microsoft.Azure.IIoT.OpcUa.Twin.Default {
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using System;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Stubbed out publisher functionality
+    /// Stubbed out publishing functionality
     /// </summary>
-    public class PublisherStub : IPublishServices<EndpointModel> {
+    public class PublishServicesStub<T> : IPublishServices<T> {
 
         /// <inheritdoc/>
-        public Task<PublishedNodeListResultModel> NodePublishListAsync(
-            EndpointModel endpoint, PublishedNodeListRequestModel request) {
-            return Task.FromResult(new PublishedNodeListResultModel());
+        public Task<PublishedItemListResultModel> NodePublishListAsync(
+            T endpoint, PublishedItemListRequestModel request) {
+            return Task.FromResult(new PublishedItemListResultModel());
         }
 
         /// <inheritdoc/>
         public Task<PublishStartResultModel> NodePublishStartAsync(
-            EndpointModel endpoint, PublishStartRequestModel request) {
+            T endpoint, PublishStartRequestModel request) {
             throw new NotSupportedException("Publishing not supported");
         }
 
         /// <inheritdoc/>
         public Task<PublishStopResultModel> NodePublishStopAsync(
-            EndpointModel endpoint, PublishStopRequestModel request) {
+            T endpoint, PublishStopRequestModel request) {
             return Task.FromResult(new PublishStopResultModel());
         }
     }

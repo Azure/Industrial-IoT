@@ -488,8 +488,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         }
 
         /// <inheritdoc/>
-        public async Task<BatchReadResultModel> NodeBatchReadAsync(EndpointModel endpoint,
-            BatchReadRequestModel request) {
+        public async Task<ReadResultModel> NodeReadAsync(EndpointModel endpoint,
+            ReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -508,7 +508,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 var response = await session.ReadAsync(request.Diagnostics.ToStackModel(),
                     0, TimestampsToReturn.Both, requests);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos, requests);
-                return new BatchReadResultModel {
+                return new ReadResultModel {
                     Results = response.Results
                         .Select((value, index) => {
                             var diagnostics = response.DiagnosticInfos == null ||
@@ -518,7 +518,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                                 Value = _codec.Encode(value.WrappedValue, out var wellKnown,
                                     session.MessageContext),
                                 ErrorInfo = diagnostics.ToServiceModel(
-                                    value.StatusCode, "BatchRead", request.Diagnostics,
+                                    value.StatusCode, "NodeRead", request.Diagnostics,
                                     session.MessageContext)
                             };
                         }).ToList()
@@ -527,8 +527,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         }
 
         /// <inheritdoc/>
-        public async Task<BatchWriteResultModel> NodeBatchWriteAsync(EndpointModel endpoint,
-            BatchWriteRequestModel request) {
+        public async Task<WriteResultModel> NodeWriteAsync(EndpointModel endpoint,
+            WriteRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -550,7 +550,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 var response = await session.WriteAsync(request.Diagnostics.ToStackModel(),
                     requests);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos, requests);
-                return new BatchWriteResultModel {
+                return new WriteResultModel {
                     Results = response.Results
                         .Select((value, index) => {
                             var diagnostics = response.DiagnosticInfos == null ||
@@ -558,7 +558,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                                 response.DiagnosticInfos[index];
                             return new AttributeWriteResultModel {
                                 ErrorInfo = diagnostics.ToServiceModel(
-                                    value, "BatchWrite", request.Diagnostics,
+                                    value, "NodeWrite", request.Diagnostics,
                                     session.MessageContext)
                             };
                         }).ToList()

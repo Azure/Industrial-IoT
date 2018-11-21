@@ -1033,7 +1033,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
 
-            var batch = new BatchReadRequestModel {
+            var batch = new ReadRequestModel {
                 Diagnostics = diagnostics,
                 Attributes = new List<AttributeReadRequestModel>(),
                 Elevation = elevation
@@ -1094,7 +1094,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             else {
                 try {
                     // Do batch read
-                    var batchResponse = await _nodes.NodeBatchReadAsync(endpointId, batch);
+                    var batchResponse = await _nodes.NodeReadAsync(endpointId, batch);
                     if ((batchResponse.Results?.Count ?? 0) != batch.Attributes.Count) {
                         // Batch response is missing results
                         throw new IndexOutOfRangeException("Read response is missing results");
@@ -1145,7 +1145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
 
-            var batch = new BatchWriteRequestModel {
+            var batch = new WriteRequestModel {
                 Diagnostics = diagnostics,
                 Attributes = new List<AttributeWriteRequestModel>(),
                 Elevation = elevation
@@ -1204,7 +1204,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             else {
                 try {
                     // Do batch write
-                    var batchResponse = await _nodes.NodeBatchWriteAsync(endpointId, batch);
+                    var batchResponse = await _nodes.NodeWriteAsync(endpointId, batch);
                     if ((batchResponse.Results?.Count ?? 0) != batch.Attributes.Count) {
                         // Batch response is missing results
                         throw new IndexOutOfRangeException("Write response is missing results");
@@ -1880,8 +1880,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 // Test remote credential on server side by doing a simple batch read with
                 // the token.
                 //
-                var batchResponse = _nodes.NodeBatchReadAsync(ToEndpointId(session.Endpoint),
-                    new BatchReadRequestModel {
+                var batchResponse = _nodes.NodeReadAsync(ToEndpointId(session.Endpoint),
+                    new ReadRequestModel {
                         Attributes = new List<AttributeReadRequestModel> {
                         new AttributeReadRequestModel {
                             Attribute = NodeAttribute.NodeClass,

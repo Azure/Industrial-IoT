@@ -7,7 +7,7 @@
     <Description>Azure Industrial IoT OPC UA Module business logic</Description>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Protocol\src\Microsoft.Azure.IIoT.OpcUa.Protocol.csproj" />
   </ItemGroup>
   <Choose>
     <When Condition="Exists('..\..\..\..\common')">

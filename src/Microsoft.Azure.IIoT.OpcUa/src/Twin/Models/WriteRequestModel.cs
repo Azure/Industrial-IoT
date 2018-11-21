@@ -4,21 +4,23 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using System.Collections.Generic;
 
     /// <summary>
-    /// Unpublish request
+    /// Request node attribute write
     /// </summary>
-    public class PublishStopRequestModel {
+    public class WriteRequestModel {
 
         /// <summary>
-        /// Node of published item to unpublish
+        /// Attributes to update
         /// </summary>
-        public string NodeId { get; set; }
+        public List<AttributeWriteRequestModel> Attributes { get; set; }
 
         /// <summary>
-        /// Attribute of published item
+        /// Optional User Elevation
         /// </summary>
-        public NodeAttribute? NodeAttribute { get; set; }
+        public CredentialModel Elevation { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration

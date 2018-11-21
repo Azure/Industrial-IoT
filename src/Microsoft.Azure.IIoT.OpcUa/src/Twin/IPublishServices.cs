@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<PublishedNodeListResultModel> NodePublishListAsync(
-            T endpoint, PublishedNodeListRequestModel request);
+        Task<PublishedItemListResultModel> NodePublishListAsync(
+            T endpoint, PublishedItemListRequestModel request);
     }
 }
