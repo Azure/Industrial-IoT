@@ -19,15 +19,15 @@ namespace Microsoft.Extensions.Configuration {
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public static IConfigurationBuilder AddDotEnvFile(this IConfigurationBuilder builder) {
+        public static IConfigurationBuilder AddFromDotEnvFile(this IConfigurationBuilder builder) {
             try {
                 // Find .env file
-                var curDir = Environment.CurrentDirectory;
+                var curDir = Path.GetFullPath(Environment.CurrentDirectory);
                 while (!string.IsNullOrEmpty(curDir) && !File.Exists(Path.Combine(curDir, ".env"))) {
-                    curDir = Path.GetDirectoryName(Environment.CurrentDirectory);
+                    curDir = Path.GetDirectoryName(curDir);
                 }
                 if (!string.IsNullOrEmpty(curDir)) {
-                    builder.AddDotEnvFile(Path.Combine(curDir, ".env"));
+                    builder.AddFromDotEnvFile(Path.Combine(curDir, ".env"));
                 }
             }
             catch (IOException) { }
@@ -41,7 +41,7 @@ namespace Microsoft.Extensions.Configuration {
         /// <param name="builder"></param>
         /// <param name="filePath"></param>
         /// <returns></returns>
-        public static IConfigurationBuilder AddDotEnvFile(this IConfigurationBuilder builder,
+        public static IConfigurationBuilder AddFromDotEnvFile(this IConfigurationBuilder builder,
             string filePath) {
             if (!string.IsNullOrEmpty(filePath)) {
                 try {
