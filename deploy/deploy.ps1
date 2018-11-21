@@ -72,7 +72,8 @@ Function SelectEnvironment() {
             throw ("'{0}' is not a supported Azure Cloud environment" -f $script:environmentName)
         }
     }
-    return Get-AzureRmEnvironment $script:environmentName
+    $script:environment = Get-AzureRmEnvironment $script:environmentName
+    $script:environmentName = $script:environment.Name
 }
 
 #*******************************************************************************************************
@@ -138,7 +139,7 @@ Function SelectAccount() {
     if ([string]::IsNullOrEmpty($account.Id)) {
         throw ("There was no account selected. Please check and try again.")
     }
-    return $account.Id
+    $script:accountName = $account.Id
 }
 
 #*******************************************************************************************************
@@ -163,7 +164,7 @@ Function Login() {
     if (!$rmProfileLoaded) {
         # select account
         Write-Host "Logging in..."
-        $script:accountName = SelectAccount
+        SelectAccount
         try {
             Login-AzureRmAccount -EnvironmentName $script:environmentName -ErrorAction Stop | Out-Null
         }
@@ -192,7 +193,7 @@ Function SelectSubscription() {
     if (![string]::IsNullOrEmpty($subscriptionId)) {
         if (!$subscriptions.Id.Contains($subscriptionId)) {
             Write-Error ("Invalid subscription id {0}" -f $subscriptionId)
-            $subscriptionId = $null
+            $subscriptionId = ""
         }
     }
 
@@ -229,8 +230,8 @@ Function SelectSubscription() {
             }
         }
     }
+    $script:subscriptionId = $subscriptionId
     Write-Host "Azure subscriptionId '$subscriptionId' selected."
-    return $subscriptionId
 }
 
 #*******************************************************************************************************
@@ -277,7 +278,7 @@ Function SelectLocation() {
         $location = $script:locations[$script:optionIndex - 1]
     }
     Write-Verbose "Azure location '$location' selected."
-    return $location
+    $script:resourceGroupLocation = $location
 }
 
 #*******************************************************************************************************
@@ -681,7 +682,7 @@ Function GetOrCreateResourceGroup() {
     if(!$resourceGroup) {
         Write-Host "Resource group '$script:resourceGroupName' does not exist."
         if(!(ValidateLocation $script:resourceGroupLocation)) {
-            $script:resourceGroupLocation = SelectLocation
+            SelectLocation
         }
         New-AzureRmResourceGroup -Name $script:resourceGroupName `
             -Location $script:resourceGroupLocation | Out-Host
@@ -706,11 +707,11 @@ if(![System.IO.File]::Exists($deploymentScript)) {
 }
 
 $script:interactive = $($script:credential -eq $null)
+$script:subscriptionId = $null
 
-$script:environment = SelectEnvironment
-$script:environmentName = $script:environment.Name
+SelectEnvironment
 Login
-$script:subscriptionId = SelectSubscription
+SelectSubscription
 
 $aadConfig = GetAzureADApplicationConfig
 $deleteOnErrorPrompt = GetOrCreateResourceGroup
