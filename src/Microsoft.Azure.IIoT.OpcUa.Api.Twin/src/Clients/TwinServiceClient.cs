@@ -115,40 +115,101 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<PublishResponseApiModel> NodePublishAsync(string endpointId,
-            PublishRequestApiModel content) {
+        public async Task<PublishStartResponseApiModel> NodePublishStartAsync(string endpointId,
+            PublishStartRequestApiModel content) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (string.IsNullOrEmpty(content.NodeId)) {
-                throw new ArgumentNullException(nameof(content.NodeId));
+            if (content.Item == null) {
+                throw new ArgumentNullException(nameof(content.Item));
+            }
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/publish/{endpointId}/start",
+                _resourceId);
+            request.SetContent(content);
+            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
+            response.Validate();
+            return JsonConvertEx.DeserializeObject<PublishStartResponseApiModel>(
+                response.GetContentAsString());
+        }
+
+        /// <inheritdoc/>
+        public async Task<PublishedItemListResponseApiModel> NodePublishListAsync(
+            string endpointId, PublishedItemListRequestApiModel content) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v1/publish/{endpointId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<PublishResponseApiModel>(
+            return JsonConvertEx.DeserializeObject<PublishedItemListResponseApiModel>(
                 response.GetContentAsString());
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedNodeListApiModel> ListPublishedNodesAsync(
-            string continuation, string endpointId) {
+        public async Task<PublishStopResponseApiModel> NodePublishStopAsync(string endpointId,
+            PublishStopRequestApiModel content) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/publish/{endpointId}/state",
-                _resourceId);
-            if (continuation != null) {
-                request.AddHeader(kContinuationTokenHeaderKey, continuation);
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
             }
-            var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
+            if (content.NodeId == null) {
+                throw new ArgumentNullException(nameof(content.NodeId));
+            }
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/publish/{endpointId}/stop",
+                _resourceId);
+            request.SetContent(content);
+            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<PublishedNodeListApiModel>(
+            return JsonConvertEx.DeserializeObject<PublishStopResponseApiModel>(
+                response.GetContentAsString());
+        }
+
+        /// <inheritdoc/>
+        public async Task<ReadResponseApiModel> NodeReadAsync(string endpointId,
+            ReadRequestApiModel content) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            if (content.Attributes == null || content.Attributes.Count == 0) {
+                throw new ArgumentException(nameof(content.Attributes));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v1/read/{endpointId}/attributes", _resourceId);
+            request.SetContent(content);
+            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
+            response.Validate();
+            return JsonConvertEx.DeserializeObject<ReadResponseApiModel>(
+                response.GetContentAsString());
+        }
+
+        /// <inheritdoc/>
+        public async Task<WriteResponseApiModel> NodeWriteAsync(string endpointId,
+            WriteRequestApiModel content) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            if (content.Attributes == null || content.Attributes.Count == 0) {
+                throw new ArgumentException(nameof(content.Attributes));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v1/write/{endpointId}/attributes", _resourceId);
+            request.SetContent(content);
+            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
+            response.Validate();
+            return JsonConvertEx.DeserializeObject<WriteResponseApiModel>(
                 response.GetContentAsString());
         }
 
@@ -239,6 +300,71 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
                 response.GetContentAsString());
         }
 
+        /// <inheritdoc/>
+        public async Task<HistoryReadResponseApiModel> NodeHistoryReadAsync(
+            string endpointId, HistoryReadRequestApiModel content) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            if (content.Request == null) {
+                throw new ArgumentNullException(nameof(content.Request));
+            }
+            if (string.IsNullOrEmpty(content.NodeId)) {
+                throw new ArgumentNullException(nameof(content.NodeId));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v1/read/{endpointId}/history", _resourceId);
+            request.SetContent(content);
+            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
+            response.Validate();
+            return JsonConvertEx.DeserializeObject<HistoryReadResponseApiModel>(
+                response.GetContentAsString());
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadNextResponseApiModel> NodeHistoryReadNextAsync(
+            string endpointId, HistoryReadNextRequestApiModel content) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            if (string.IsNullOrEmpty(content.ContinuationToken)) {
+                throw new ArgumentNullException(nameof(content.ContinuationToken));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v1/read/{endpointId}/history/next", _resourceId);
+            request.SetContent(content);
+            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
+            response.Validate();
+            return JsonConvertEx.DeserializeObject<HistoryReadNextResponseApiModel>(
+                response.GetContentAsString());
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseApiModel> NodeHistoryUpdateAsync(
+            string endpointId, HistoryUpdateRequestApiModel content) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            if (content.Request == null) {
+                throw new ArgumentNullException(nameof(content.Request));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v1/write/{endpointId}/history", _resourceId);
+            request.SetContent(content);
+            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
+            response.Validate();
+            return JsonConvertEx.DeserializeObject<HistoryUpdateResponseApiModel>(
+                response.GetContentAsString());
+        }
 
         private const string kContinuationTokenHeaderKey = "x-ms-continuation";
         private const string kPageSizeHeaderKey = "x-ms-max-item-count";

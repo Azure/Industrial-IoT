@@ -8,14 +8,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Result of attribute reads
+    /// Result of attribute write
     /// </summary>
-    public class BatchReadResponseApiModel {
+    public class WriteResponseApiModel {
 
         /// <summary>
-        /// All results of attribute reads
+        /// All results of attribute writes
         /// </summary>
         [JsonProperty(PropertyName = "results")]
-        public List<AttributeReadResponseApiModel> Results { set; get; }
+        public List<AttributeWriteResponseApiModel> Results { set; get; }
     }
 }

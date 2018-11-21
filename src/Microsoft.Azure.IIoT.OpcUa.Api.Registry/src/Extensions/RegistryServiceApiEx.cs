@@ -109,14 +109,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// List all supervisors
         /// </summary>
         /// <param name="service"></param>
+        /// <param name="onlyServerState"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<SupervisorApiModel>> ListAllSupervisorsAsync(
-            this IRegistryServiceApi service) {
+            this IRegistryServiceApi service, bool? onlyServerState = null) {
             var registrations = new List<SupervisorApiModel>();
-            var result = await service.ListSupervisorsAsync(null, null);
+            var result = await service.ListSupervisorsAsync(null, onlyServerState, null);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
-                result = await service.ListSupervisorsAsync(result.ContinuationToken, null);
+                result = await service.ListSupervisorsAsync(result.ContinuationToken,
+                    onlyServerState, null);
                 registrations.AddRange(result.Items);
             }
             return registrations;
@@ -126,15 +128,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// Find supervisors
         /// </summary>
         /// <param name="service"></param>
+        /// <param name="onlyServerState"></param>
         /// <param name="query"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<SupervisorApiModel>> QueryAllSupervisorsAsync(
-            this IRegistryServiceApi service, SupervisorQueryApiModel query) {
+            this IRegistryServiceApi service, SupervisorQueryApiModel query, bool? onlyServerState = null) {
             var registrations = new List<SupervisorApiModel>();
-            var result = await service.QuerySupervisorsAsync(query, null);
+            var result = await service.QuerySupervisorsAsync(query, onlyServerState, null);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
-                result = await service.ListSupervisorsAsync(result.ContinuationToken, null);
+                result = await service.ListSupervisorsAsync(result.ContinuationToken,
+                    onlyServerState, null);
                 registrations.AddRange(result.Items);
             }
             return registrations;

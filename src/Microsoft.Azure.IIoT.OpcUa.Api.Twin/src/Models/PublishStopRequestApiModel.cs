@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,21 +7,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Node publis request webservice api model
+    /// Unpublish request
     /// </summary>
-    public class PublishRequestApiModel {
+    public class PublishStopRequestApiModel {
 
         /// <summary>
-        /// Node to publish or unpublish
+        /// Node of item to unpublish
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
         public string NodeId { get; set; }
 
         /// <summary>
-        /// Whether to enable or disable
+        /// Attribute of item to unpublish
         /// </summary>
-        [JsonProperty(PropertyName = "enabled",
+        [JsonProperty(PropertyName = "nodeAttribute",
             NullValueHandling = NullValueHandling.Ignore)]
-        public bool? Enabled { get; set; }
+        public NodeAttribute? NodeAttribute { get; set; }
+
+        /// <summary>
+        /// Optional diagnostics configuration
+        /// </summary>
+        [JsonProperty(PropertyName = "diagnostics",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public DiagnosticsApiModel Diagnostics { get; set; }
     }
 }

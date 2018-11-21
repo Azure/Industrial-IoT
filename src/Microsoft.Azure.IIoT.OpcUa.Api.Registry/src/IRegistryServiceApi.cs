@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <param name="pageSize"></param>
         /// <returns></returns>
         Task<ApplicationSiteListApiModel> ListSitesAsync(
-            string continuation, int? pageSize);
+            string continuation = null, int? pageSize = null);
 
         /// <summary>
         /// List all applications or continue a QueryApplications
@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <param name="pageSize"></param>
         /// <returns></returns>
         Task<ApplicationInfoListApiModel> ListApplicationsAsync(
-            string continuation, int? pageSize);
+            string continuation = null, int? pageSize = null);
 
         /// <summary>
         /// Find applications based on specified criteria. Pass
@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <param name="pageSize"></param>
         /// <returns></returns>
         Task<ApplicationInfoListApiModel> QueryApplicationsAsync(
-            ApplicationRegistrationQueryApiModel query, int? pageSize);
+            ApplicationRegistrationQueryApiModel query, int? pageSize = null);
 
         /// <summary>
         /// Unregister and delete application and all endpoints.
@@ -109,14 +109,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
         Task<EndpointInfoApiModel> GetEndpointAsync(
-            string endpointId, bool? onlyServerState);
+            string endpointId, bool? onlyServerState = null);
 
         /// <summary>
         /// Set endpoint activation state to activated
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task ActivateÉndpointAsync(string id);
+        Task ActivateEndpointAsync(string id);
 
         /// <summary>
         /// Update endpoint registration
@@ -141,7 +141,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <param name="pageSize"></param>
         /// <returns></returns>
         Task<EndpointInfoListApiModel> ListEndpointsAsync(
-            string continuation, bool? onlyServerState, int? pageSize);
+            string continuation = null, bool? onlyServerState = null,
+            int? pageSize = null);
 
         /// <summary>
         /// Find endpoint based on specified critiria. Pass continuation
@@ -153,16 +154,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <param name="pageSize"></param>
         /// <returns></returns>
         Task<EndpointInfoListApiModel> QueryEndpointsAsync(
-            EndpointRegistrationQueryApiModel query, bool? onlyServerState,
-            int? pageSize);
+            EndpointRegistrationQueryApiModel query,
+            bool? onlyServerState = null, int? pageSize = null);
 
         /// <summary>
         /// Get supervisor
         /// </summary>
         /// <param name="supervisorId"></param>
+        /// <param name="onlyServerState"></param>
         /// <returns></returns>
         Task<SupervisorApiModel> GetSupervisorAsync(
-            string supervisorId);
+            string supervisorId, bool? onlyServerState = null);
 
         /// <summary>
         /// Update supervisor including config updates.
@@ -175,10 +177,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// List all supervisors
         /// </summary>
         /// <param name="continuation"></param>
+        /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
         Task<SupervisorListApiModel> ListSupervisorsAsync(
-            string continuation, int? pageSize);
+            string continuation = null, bool? onlyServerState = null,
+            int? pageSize = null);
 
         /// <summary>
         /// Find supervisors based on specified criteria. Pass
@@ -186,9 +190,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// retrieve remaining items.
         /// </summary>
         /// <param name="query"></param>
+        /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
         Task<SupervisorListApiModel> QuerySupervisorsAsync(
-            SupervisorQueryApiModel query, int? pageSize);
+            SupervisorQueryApiModel query, bool? onlyServerState = null,
+            int? pageSize = null);
     }
 }

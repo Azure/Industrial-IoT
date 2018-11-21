@@ -5,26 +5,17 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
-    using System.Collections.Generic;
-    using System.Linq;
 
     /// <summary>
-    /// Request node attribute write
+    /// Publish request
     /// </summary>
-    public class BatchWriteRequestApiModel {
+    public class PublishStartRequestApiModel {
 
         /// <summary>
-        /// Attributes to update
+        /// Item to publish
         /// </summary>
-        [JsonProperty(PropertyName = "attributes")]
-        public List<AttributeWriteRequestApiModel> Attributes { get; set; }
-
-        /// <summary>
-        /// Optional User Elevation
-        /// </summary>
-        [JsonProperty(PropertyName = "elevation",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public CredentialApiModel Elevation { get; set; }
+        [JsonProperty(PropertyName = "item")]
+        public PublishedItemApiModel Item { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration

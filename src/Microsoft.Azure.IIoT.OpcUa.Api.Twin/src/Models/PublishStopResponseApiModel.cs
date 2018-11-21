@@ -5,17 +5,17 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
-    using System.Collections.Generic;
 
     /// <summary>
-    /// Result of attribute write
+    /// Result of publish stop request
     /// </summary>
-    public class BatchWriteResponseApiModel {
+    public class PublishStopResponseApiModel {
 
         /// <summary>
-        /// All results of attribute writes
+        /// Service result in case of error
         /// </summary>
-        [JsonProperty(PropertyName = "results")]
-        public List<AttributeWriteResponseApiModel> Results { set; get; }
+        [JsonProperty(PropertyName = "errorInfo",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

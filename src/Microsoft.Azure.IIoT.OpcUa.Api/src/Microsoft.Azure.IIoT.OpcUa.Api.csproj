@@ -9,4 +9,19 @@
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Registry\src\Microsoft.Azure.IIoT.OpcUa.Api.Registry.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Twin\src\Microsoft.Azure.IIoT.OpcUa.Api.Twin.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Twin\Extensions\" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="Exists('..\..\..\..\opc-ua')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\..\opc-ua\src\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa" Version="1.0.1" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
 </Project>

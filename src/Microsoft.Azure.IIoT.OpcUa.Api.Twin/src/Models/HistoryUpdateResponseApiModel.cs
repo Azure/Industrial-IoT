@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,21 +8,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// List of published nodes
+    /// History update results
     /// </summary>
-    public class PublishedNodeListApiModel {
+    public class HistoryUpdateResponseApiModel {
 
         /// <summary>
-        /// Continuation or null if final
+        /// List of results from the update operation
         /// </summary>
-        [JsonProperty(PropertyName = "continuationToken",
+        [JsonProperty(PropertyName = "results",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string ContinuationToken { get; set; }
+        public List<ServiceResultApiModel> Results { get; set; }
 
         /// <summary>
-        /// Endpoint information of the server to register
+        /// Service result in case of service call error
         /// </summary>
-        [JsonProperty(PropertyName = "items")]
-        public List<PublishedNodeApiModel> Items { get; set; }
+        [JsonProperty(PropertyName = "errorInfo",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

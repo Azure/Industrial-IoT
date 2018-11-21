@@ -57,9 +57,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<SupervisorListApiModel> ListSupervisorsAsync(string continuation,
-            int? pageSize) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/supervisors", _resourceId);
+        public async Task<SupervisorListApiModel> ListSupervisorsAsync(
+            string continuation, bool? onlyServerState, int? pageSize) {
+            var uri = new UriBuilder($"{_serviceUri}/v1/supervisors");
+            if (onlyServerState ?? false) {
+                uri.Query = "onlyServerState=true";
+            }
+            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             if (continuation != null) {
                 request.AddHeader(kContinuationTokenHeaderKey, continuation);
             }
@@ -74,9 +78,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
 
         /// <inheritdoc/>
         public async Task<SupervisorListApiModel> QuerySupervisorsAsync(
-            SupervisorQueryApiModel query, int? pageSize) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/supervisors/query",
-                _resourceId);
+            SupervisorQueryApiModel query, bool? onlyServerState, int? pageSize) {
+            var uri = new UriBuilder($"{_serviceUri}/v1/supervisors/query");
+            if (onlyServerState ?? false) {
+                uri.Query = "onlyServerState=true";
+            }
+            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             if (pageSize != null) {
                 request.AddHeader(kPageSizeHeaderKey, pageSize.ToString());
             }
@@ -89,12 +96,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
 
         /// <inheritdoc/>
         public async Task<SupervisorApiModel> GetSupervisorAsync(
-            string supervisorId) {
+            string supervisorId, bool? onlyServerState) {
             if (string.IsNullOrEmpty(supervisorId)) {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/supervisors/{supervisorId}",
-                _resourceId);
+            var uri = new UriBuilder($"{_serviceUri}/v1/supervisors/{supervisorId}");
+            if (onlyServerState ?? false) {
+                uri.Query = "onlyServerState=true";
+            }
+            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
             return JsonConvertEx.DeserializeObject<SupervisorApiModel>(
@@ -296,7 +306,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var uri = new UriBuilder($"{_serviceUri}/v1/endpoints/{endpointId}");
-
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
@@ -320,7 +329,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task ActivateÉndpointAsync(string endpointId) {
+        public async Task ActivateEndpointAsync(string endpointId) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }

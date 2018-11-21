@@ -5,21 +5,28 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
-    using System.Collections.Generic;
 
     /// <summary>
-    /// Request node attribute read or update
+    /// Request node history read continuation
     /// </summary>
-    public class BatchReadRequestApiModel {
+    public class HistoryReadNextRequestApiModel {
 
         /// <summary>
-        /// Attributes to update or read
+        /// Continuation token to continue reading more
+        /// results.
         /// </summary>
-        [JsonProperty(PropertyName = "attributes")]
-        public List<AttributeReadRequestApiModel> Attributes { get; set; }
+        [JsonProperty(PropertyName = "continuationToken")]
+        public string ContinuationToken { get; set; }
 
         /// <summary>
-        /// Optional User Elevation
+        /// Abort reading after this read
+        /// </summary>
+        [JsonProperty(PropertyName = "abort",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public bool? Abort { get; set; }
+
+        /// <summary>
+        /// Optional User elevation
         /// </summary>
         [JsonProperty(PropertyName = "elevation",
             NullValueHandling = NullValueHandling.Ignore)]

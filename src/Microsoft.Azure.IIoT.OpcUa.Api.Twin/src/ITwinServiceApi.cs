@@ -24,8 +24,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<BrowseResponseApiModel> NodeBrowseAsync(string endpointId,
-            BrowseRequestApiModel request);
+        Task<BrowseResponseApiModel> NodeBrowseAsync(
+            string endpointId, BrowseRequestApiModel request);
 
         /// <summary>
         /// Browse next references on endpoint
@@ -33,8 +33,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<BrowseNextResponseApiModel> NodeBrowseNextAsync(string endpointId,
-            BrowseNextRequestApiModel request);
+        Task<BrowseNextResponseApiModel> NodeBrowseNextAsync(
+            string endpointId, BrowseNextRequestApiModel request);
 
         /// <summary>
         /// Browse by path on endpoint
@@ -42,8 +42,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<BrowsePathResponseApiModel> NodeBrowsePathAsync(string endpointId,
-            BrowsePathRequestApiModel request);
+        Task<BrowsePathResponseApiModel> NodeBrowsePathAsync(
+            string endpointId, BrowsePathRequestApiModel request);
 
         /// <summary>
         /// Call method on endpoint
@@ -51,8 +51,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<MethodCallResponseApiModel> NodeMethodCallAsync(string endpointId,
-            MethodCallRequestApiModel request);
+        Task<MethodCallResponseApiModel> NodeMethodCallAsync(
+            string endpointId, MethodCallRequestApiModel request);
 
         /// <summary>
         /// Get meta data for method call on endpoint
@@ -64,31 +64,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
             string endpointId, MethodMetadataRequestApiModel request);
 
         /// <summary>
-        /// Publish or unpublish node on endpoint
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        Task<PublishResponseApiModel> NodePublishAsync(string endpointId,
-            PublishRequestApiModel request);
-
-        /// <summary>
-        /// Get list of published nodes on endpoint
-        /// </summary>
-        /// <param name="continuation"></param>
-        /// <param name="endpointId"></param>
-        /// <returns></returns>
-        Task<PublishedNodeListApiModel> ListPublishedNodesAsync(
-            string continuation, string endpointId);
-
-        /// <summary>
         /// Read node value on endpoint
         /// </summary>
         /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<ValueReadResponseApiModel> NodeValueReadAsync(string endpointId,
-            ValueReadRequestApiModel request);
+        Task<ValueReadResponseApiModel> NodeValueReadAsync(
+            string endpointId, ValueReadRequestApiModel request);
 
         /// <summary>
         /// Write node value on endpoint
@@ -96,7 +78,79 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<ValueWriteResponseApiModel> NodeValueWriteAsync(string endpointId,
-            ValueWriteRequestApiModel request);
+        Task<ValueWriteResponseApiModel> NodeValueWriteAsync(
+            string endpointId, ValueWriteRequestApiModel request);
+
+        /// <summary>
+        /// Read node attributes on endpoint
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<ReadResponseApiModel> NodeReadAsync(
+            string endpointId, ReadRequestApiModel request);
+
+        /// <summary>
+        /// Write node attributes on endpoint
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<WriteResponseApiModel> NodeWriteAsync(
+            string endpointId, WriteRequestApiModel request);
+
+        /// <summary>
+        /// Start publishing node values
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<PublishStartResponseApiModel> NodePublishStartAsync(
+            string endpointId, PublishStartRequestApiModel request);
+
+        /// <summary>
+        /// Start publishing node values
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<PublishStopResponseApiModel> NodePublishStopAsync(
+            string endpointId, PublishStopRequestApiModel request);
+
+        /// <summary>
+        /// Get all published nodes for endpoint.
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<PublishedItemListResponseApiModel> NodePublishListAsync(
+            string endpointId, PublishedItemListRequestApiModel request);
+
+        /// <summary>
+        /// Read node history
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<HistoryReadResponseApiModel> NodeHistoryReadAsync(
+            string endpointId, HistoryReadRequestApiModel request);
+
+        /// <summary>
+        /// Read node history continuation
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<HistoryReadNextResponseApiModel> NodeHistoryReadNextAsync(
+            string endpointId, HistoryReadNextRequestApiModel request);
+
+        /// <summary>
+        /// Update node history
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<HistoryUpdateResponseApiModel> NodeHistoryUpdateAsync(
+            string endpointId, HistoryUpdateRequestApiModel request);
     }
 }

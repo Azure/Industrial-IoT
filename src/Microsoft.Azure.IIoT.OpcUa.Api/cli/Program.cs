@@ -72,6 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             // Load hosting configuration
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
+                .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
                 .AddJsonFile("appsettings.json", true)
                 .Build();
@@ -238,6 +239,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                 case "publish":
                                     await PublishAsync(service, options);
                                     break;
+                                case "unpublish":
+                                    await UnpublishAsync(service, options);
+                                    break;
                                 case "nodes":
                                     await ListNodesAsync(service, options);
                                     break;
@@ -352,12 +356,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task PublishAsync(ITwinServiceApi service,
             CliOptions options) {
-            var result = await service.NodePublishAsync(
+            var result = await service.NodePublishStartAsync(
                 options.GetValue<string>("-i", "--id"),
-                new PublishRequestApiModel {
-                    NodeId = options.GetValue<string>("-n", "--nodeid"),
-                    Enabled = options.IsSet("-x", "--delete") ? (bool?)null :
-                        !options.IsSet("-d", "--disable")
+                new PublishStartRequestApiModel {
+                    Item = new PublishedItemApiModel {
+                        NodeId = options.GetValue<string>("-n", "--nodeid")
+                    }
+                });
+            PrintResult(options, result);
+        }
+
+        /// <summary>
+        /// Unpublish node
+        /// </summary>
+        private static async Task UnpublishAsync(ITwinServiceApi service,
+            CliOptions options) {
+            var result = await service.NodePublishStopAsync(
+                options.GetValue<string>("-i", "--id"),
+                new PublishStopRequestApiModel {
+                    NodeId = options.GetValue<string>("-n", "--nodeid")
                 });
             PrintResult(options, result);
         }
@@ -447,13 +464,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task ListNodesAsync(ITwinServiceApi service,
             CliOptions options) {
             if (options.IsSet("-A", "--all")) {
-                var result = await service.ListAllPublishedNodesAsync(
+                var result = await service.NodePublishListAllAsync(
                     options.GetValue<string>("-i", "--id"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await service.ListPublishedNodesAsync(
+                var result = await service.NodePublishListAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
                     options.GetValue<string>("-i", "--id"));
                 PrintResult(options, result);
@@ -466,13 +483,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task ListSupervisorsAsync(IRegistryServiceApi service,
             CliOptions options) {
             if (options.IsSet("-A", "--all")) {
-                var result = await service.ListAllSupervisorsAsync();
+                var result = await service.ListAllSupervisorsAsync(
+                    options.IsProvidedOrNull("-s", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
                 var result = await service.ListSupervisorsAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
+                    options.IsProvidedOrNull("-s", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -489,12 +508,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
             };
             if (options.IsSet("-A", "--all")) {
-                var result = await service.QueryAllSupervisorsAsync(query);
+                var result = await service.QueryAllSupervisorsAsync(query,
+                    options.IsProvidedOrNull("-s", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
                 var result = await service.QuerySupervisorsAsync(query,
+                    options.IsProvidedOrNull("-s", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -506,7 +527,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task GetSupervisorAsync(IRegistryServiceApi service,
             CliOptions options) {
             var result = await service.GetSupervisorAsync(
-                options.GetValue<string>("-i", "--id"));
+                options.GetValue<string>("-i", "--id"),
+                options.IsProvidedOrNull("-s", "--server"));
             PrintResult(options, result);
         }
 
@@ -773,7 +795,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
 
             var id = options.GetValueOrDefault<string>("-i", "--id", null);
             if (id != null) {
-                await service.ActivateÉndpointAsync(id);
+                await service.ActivateEndpointAsync(id);
                 return;
             }
 
@@ -783,7 +805,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 Activated = false
             });
             foreach (var item in result) {
-                await service.ActivateÉndpointAsync(item.Registration.Id);
+                await service.ActivateEndpointAsync(item.Registration.Id);
             }
         }
 
@@ -1120,21 +1142,6 @@ Commands and Options
                         Continuation from previous result.
         -F, --format    Json format for result
 
-     publish     Publish node values on endpoint
-        with ...
-        -i, --id        Id of endpoint to publish value from (mandatory)
-        -n, --nodeid    Node to browse (mandatory)
-        -d, --disable   Disable (Pause) publishing (default: false)
-        -x, --delete    Delete publish state (default: false)
-
-     list        List published nodes on endpoint
-        with ...
-        -i, --id        Id of endpoint with published nodes (mandatory)
-        -C, --continuation
-                        Continuation from previous result.
-        -A, --all       Return all endpoints (unpaged)
-        -F, --format    Json format for result
-
      read        Read node value on endpoint
         with ...
         -i, --id        Id of endpoint to read value from (mandatory)
@@ -1160,6 +1167,24 @@ Commands and Options
         -n, --nodeid    Method Node to call (mandatory)
         -o, --objectid  Object context for method
 
+     publish     Publish items from endpoint
+        with ...
+        -i, --id        Id of endpoint to publish value from (mandatory)
+        -n, --nodeid    Node to browse (mandatory)
+
+     list        List published items on endpoint
+        with ...
+        -i, --id        Id of endpoint with published nodes (mandatory)
+        -C, --continuation
+                        Continuation from previous result.
+        -A, --all       Return all items (unpaged)
+        -F, --format    Json format for result
+
+     unpublish   Unpublish items on endpoint
+        with ...
+        -i, --id        Id of endpoint to publish value from (mandatory)
+        -n, --nodeid    Node to browse (mandatory)
+
      help, -h, -? --help
                 Prints out this help.
 "
@@ -1178,6 +1203,7 @@ Commands and Options
 
      list        List supervisors
         with ...
+        -s, --server    Return only server state (default:false)
         -C, --continuation
                         Continuation from previous result.
         -P, --page-size Size of page
@@ -1185,6 +1211,7 @@ Commands and Options
         -F, --format    Json format for result
 
      query       Find supervisors
+        -s, --server    Return only server state (default:false)
         -c, --connected Only return connected or disconnected.
         -d, --discovery Discovery state.
         -s, --siteId    Site of the supervisors.
@@ -1194,6 +1221,7 @@ Commands and Options
 
      get         Get supervisor
         with ...
+        -s, --server    Return only server state (default:false)
         -i, --id        Id of supervisor to retrieve (mandatory)
         -F, --format    Json format for result
 
