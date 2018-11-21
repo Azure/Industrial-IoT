@@ -9,27 +9,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Result of attribute reads
+    /// Result of attribute write
     /// </summary>
-    public class BatchReadResponseApiModel {
+    public class WriteResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BatchReadResponseApiModel() { }
+        public WriteResponseApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public BatchReadResponseApiModel(BatchReadResultModel model) {
+        public WriteResponseApiModel(WriteResultModel model) {
             Results = model.Results?
-                .Select(a => new AttributeReadResponseApiModel(a)).ToList();
+                .Select(a => new AttributeWriteResponseApiModel(a)).ToList();
         }
 
         /// <summary>
-        /// All results of attribute reads
+        /// All results of attribute writes
         /// </summary>
-        public List<AttributeReadResponseApiModel> Results { set; get; }
+        public List<AttributeWriteResponseApiModel> Results { set; get; }
     }
 }

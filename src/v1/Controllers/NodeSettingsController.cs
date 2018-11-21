@@ -109,7 +109,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
             if (enabled ?? true) {
                 await _publisher.NodePublishStartAsync(_twin.Endpoint,
                     new PublishStartRequestModel {
-                        Node = new PublishedNodeModel {
+                        Item = new PublishedItemModel {
                             NodeId = nodeId
                         }
                     });

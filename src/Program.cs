@@ -39,6 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin {
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)
+                .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
                 .Build();

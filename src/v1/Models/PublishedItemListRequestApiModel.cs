@@ -7,28 +7,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
 
     /// <summary>
-    /// Request list of published nodes
+    /// Request list of published items
     /// </summary>
-    public class PublishedNodeListRequestApiModel {
+    public class PublishedItemListRequestApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public PublishedNodeListRequestApiModel() { }
+        public PublishedItemListRequestApiModel() { }
 
         /// <summary>
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public PublishedNodeListRequestApiModel(PublishedNodeListRequestModel model) {
+        public PublishedItemListRequestApiModel(PublishedItemListRequestModel model) {
             ContinuationToken = model.ContinuationToken;
         }
 
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public PublishedNodeListRequestModel ToServiceModel() {
-            return new PublishedNodeListRequestModel {
+        public PublishedItemListRequestModel ToServiceModel() {
+            return new PublishedItemListRequestModel {
                 ContinuationToken = ContinuationToken
              };
         }

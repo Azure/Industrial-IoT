@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <param name="model"></param>
         public PublishStopRequestApiModel(PublishStopRequestModel model) {
             NodeId = model.NodeId;
+            NodeAttribute = model.NodeAttribute;
             Diagnostics = model.Diagnostics == null ? null :
                 new DiagnosticsApiModel(model.Diagnostics);
         }
@@ -32,14 +33,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public PublishStopRequestModel ToServiceModel() {
             return new PublishStopRequestModel {
                 NodeId = NodeId,
+                NodeAttribute = NodeAttribute,
                 Diagnostics = Diagnostics?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Node to unpublish
+        /// Node of published item to unpublish
         /// </summary>
         public string NodeId { get; set; }
+
+        /// <summary>
+        /// Attribute of published item
+        /// </summary>
+        public NodeAttribute? NodeAttribute { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration

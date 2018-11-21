@@ -74,14 +74,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<PublishedNodeListResponseApiModel> PublishListAsync(
-            PublishedNodeListRequestApiModel request) {
+        public async Task<PublishedItemListResponseApiModel> PublishListAsync(
+            PublishedItemListRequestApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _publisher.NodePublishListAsync(
                 _twin.Endpoint, request.ToServiceModel());
-            return new PublishedNodeListResponseApiModel(result);
+            return new PublishedItemListResponseApiModel(result);
         }
 
         /// <summary>
@@ -201,14 +201,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<BatchReadResponseApiModel> BatchReadAsync(
-            BatchReadRequestApiModel request) {
+        public async Task<ReadResponseApiModel> NodeReadAsync(
+            ReadRequestApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.NodeBatchReadAsync(
+            var result = await _nodes.NodeReadAsync(
                 _twin.Endpoint, request.ToServiceModel());
-            return new BatchReadResponseApiModel(result);
+            return new ReadResponseApiModel(result);
         }
 
         /// <summary>
@@ -216,14 +216,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<BatchWriteResponseApiModel> BatchWriteAsync(
-            BatchWriteRequestApiModel request) {
+        public async Task<WriteResponseApiModel> NodeWriteAsync(
+            WriteRequestApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.NodeBatchWriteAsync(
+            var result = await _nodes.NodeWriteAsync(
                 _twin.Endpoint, request.ToServiceModel());
-            return new BatchWriteResponseApiModel(result);
+            return new WriteResponseApiModel(result);
         }
 
         /// <summary>

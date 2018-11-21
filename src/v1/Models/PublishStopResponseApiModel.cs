@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
 
     /// <summary>
-    /// Result of publish request
+    /// Result of unpublish request
     /// </summary>
     public class PublishStopResponseApiModel {
 

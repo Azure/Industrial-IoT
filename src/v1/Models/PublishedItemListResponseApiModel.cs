@@ -9,27 +9,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Result of attribute write
+    /// List of published items
     /// </summary>
-    public class BatchWriteResponseApiModel {
+    public class PublishedItemListResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BatchWriteResponseApiModel() { }
+        public PublishedItemListResponseApiModel() { }
 
         /// <summary>
-        /// Create from service model
+        /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public BatchWriteResponseApiModel(BatchWriteResultModel model) {
-            Results = model.Results?
-                .Select(a => new AttributeWriteResponseApiModel(a)).ToList();
+        public PublishedItemListResponseApiModel(PublishedItemListResultModel model) {
+            ContinuationToken = model?.ContinuationToken;
+            Items = model?.Items?
+                .Select(n => new PublishedItemApiModel(n))
+                .ToList();
         }
 
         /// <summary>
-        /// All results of attribute writes
+        /// Continuation or null if final
         /// </summary>
-        public List<AttributeWriteResponseApiModel> Results { set; get; }
+        public string ContinuationToken { get; set; }
+
+        /// <summary>
+        /// Monitored items
+        /// </summary>
+        public List<PublishedItemApiModel> Items { get; set; }
     }
 }

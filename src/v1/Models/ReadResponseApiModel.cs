@@ -9,34 +9,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// List of published nodes
+    /// Result of attribute reads
     /// </summary>
-    public class PublishedNodeListResponseApiModel {
+    public class ReadResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public PublishedNodeListResponseApiModel() { }
+        public ReadResponseApiModel() { }
 
         /// <summary>
-        /// Create api model from service model
+        /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public PublishedNodeListResponseApiModel(PublishedNodeListResultModel model) {
-            ContinuationToken = model?.ContinuationToken;
-            Items = model?.Items?
-                .Select(n => new PublishedNodeApiModel(n))
-                .ToList();
+        public ReadResponseApiModel(ReadResultModel model) {
+            Results = model.Results?
+                .Select(a => new AttributeReadResponseApiModel(a)).ToList();
         }
 
         /// <summary>
-        /// Continuation or null if final
+        /// All results of attribute reads
         /// </summary>
-        public string ContinuationToken { get; set; }
-
-        /// <summary>
-        /// Monitored items
-        /// </summary>
-        public List<PublishedNodeApiModel> Items { get; set; }
+        public List<AttributeReadResponseApiModel> Results { set; get; }
     }
 }

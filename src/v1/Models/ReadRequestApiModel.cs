@@ -9,20 +9,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Request node attribute read or update
+    /// Request node attribute read
     /// </summary>
-    public class BatchReadRequestApiModel {
+    public class ReadRequestApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BatchReadRequestApiModel() { }
+        public ReadRequestApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public BatchReadRequestApiModel(BatchReadRequestModel model) {
+        public ReadRequestApiModel(ReadRequestModel model) {
             Attributes = model.Attributes?
                 .Select(a => new AttributeReadRequestApiModel(a)).ToList();
             Elevation = model.Elevation == null ? null :
@@ -35,8 +35,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public BatchReadRequestModel ToServiceModel() {
-            return new BatchReadRequestModel {
+        public ReadRequestModel ToServiceModel() {
+            return new ReadRequestModel {
                 Attributes = Attributes?.Select(a => a.ToServiceModel()).ToList(),
                 Diagnostics = Diagnostics?.ToServiceModel(),
                 Elevation = Elevation?.ToServiceModel()
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         }
 
         /// <summary>
-        /// Attributes to update or read
+        /// Attributes to read
         /// </summary>
         public List<AttributeReadRequestApiModel> Attributes { get; set; }
 

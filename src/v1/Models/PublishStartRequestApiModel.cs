@@ -21,8 +21,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public PublishStartRequestApiModel(PublishStartRequestModel model) {
-            Node = model.Node == null ? null :
-                new PublishedNodeApiModel(model.Node);
+            Item = model.Item == null ? null :
+                new PublishedItemApiModel(model.Item);
             Diagnostics = model.Diagnostics == null ? null :
                 new DiagnosticsApiModel(model.Diagnostics);
         }
@@ -32,15 +32,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         public PublishStartRequestModel ToServiceModel() {
             return new PublishStartRequestModel {
-                Node = Node?.ToServiceModel(),
+                Item = Item?.ToServiceModel(),
                 Diagnostics = Diagnostics?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Node to publish
+        /// Item to publish
         /// </summary>
-        public PublishedNodeApiModel Node { get; set; }
+        public PublishedItemApiModel Item { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration

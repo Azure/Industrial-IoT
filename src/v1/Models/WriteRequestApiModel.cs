@@ -11,18 +11,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
     /// <summary>
     /// Request node attribute write
     /// </summary>
-    public class BatchWriteRequestApiModel {
+    public class WriteRequestApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BatchWriteRequestApiModel() { }
+        public WriteRequestApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public BatchWriteRequestApiModel(BatchWriteRequestModel model) {
+        public WriteRequestApiModel(WriteRequestModel model) {
             Attributes = model.Attributes?
                 .Select(a => new AttributeWriteRequestApiModel(a)).ToList();
             Elevation = model.Elevation == null ? null :
@@ -35,8 +35,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public BatchWriteRequestModel ToServiceModel() {
-            return new BatchWriteRequestModel {
+        public WriteRequestModel ToServiceModel() {
+            return new WriteRequestModel {
                 Attributes = Attributes?.Select(a => a.ToServiceModel()).ToList(),
                 Diagnostics = Diagnostics?.ToServiceModel(),
                 Elevation = Elevation?.ToServiceModel()
