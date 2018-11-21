@@ -9,21 +9,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// A monitored and published node
+    /// A monitored and published item
     /// </summary>
-    public class PublishedNodeApiModel {
+    public class PublishedItemApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public PublishedNodeApiModel() { }
+        public PublishedItemApiModel() { }
 
         /// <summary>
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public PublishedNodeApiModel(PublishedNodeModel model) {
+        public PublishedItemApiModel(PublishedItemModel model) {
             NodeId = model.NodeId;
+            NodeAttribute = model.NodeAttribute;
             SamplingInterval = model.SamplingInterval;
             PublishingInterval = model.PublishingInterval;
         }
@@ -31,9 +32,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public PublishedNodeModel ToServiceModel() {
-            return new PublishedNodeModel {
+        public PublishedItemModel ToServiceModel() {
+            return new PublishedItemModel {
                 NodeId = NodeId,
+                NodeAttribute = NodeAttribute,
                 SamplingInterval = SamplingInterval,
                 PublishingInterval = PublishingInterval
             };
@@ -45,6 +47,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         [JsonProperty(PropertyName = "nodeId")]
         [Required]
         public string NodeId { get; set; }
+
+        /// <summary>
+        /// Attribute to monitor
+        /// </summary>
+        [JsonProperty(PropertyName = "nodeAttribute",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public NodeAttribute? NodeAttribute { get; set; }
 
         /// <summary>
         /// Publishing interval to use

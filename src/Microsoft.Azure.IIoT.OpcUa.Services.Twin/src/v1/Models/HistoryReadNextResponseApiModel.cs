@@ -6,39 +6,47 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Request list of published nodes
+    /// History read continuation result
     /// </summary>
-    public class PublishedNodeListRequestApiModel {
+    public class HistoryReadNextResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public PublishedNodeListRequestApiModel() { }
+        public HistoryReadNextResponseApiModel() { }
 
         /// <summary>
-        /// Create api model from service model
+        /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public PublishedNodeListRequestApiModel(PublishedNodeListRequestModel model) {
+        public HistoryReadNextResponseApiModel(HistoryReadNextResultModel model) {
+            History = model.History;
             ContinuationToken = model.ContinuationToken;
+            ErrorInfo = model.ErrorInfo == null ? null :
+                new ServiceResultApiModel(model.ErrorInfo);
         }
 
         /// <summary>
-        /// Create service model from api model
+        /// History as json encoded extension object
         /// </summary>
-        public PublishedNodeListRequestModel ToServiceModel() {
-            return new PublishedNodeListRequestModel {
-                ContinuationToken = ContinuationToken
-             };
-        }
+        [JsonProperty(PropertyName = "history")]
+        public JToken History { get; set; }
 
         /// <summary>
-        /// Continuation token or null to start
+        /// Continuation token if more results pending.
         /// </summary>
         [JsonProperty(PropertyName = "continuationToken",
             NullValueHandling = NullValueHandling.Ignore)]
         public string ContinuationToken { get; set; }
+
+        /// <summary>
+        /// Service result in case of error
+        /// </summary>
+        [JsonProperty(PropertyName = "errorInfo",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

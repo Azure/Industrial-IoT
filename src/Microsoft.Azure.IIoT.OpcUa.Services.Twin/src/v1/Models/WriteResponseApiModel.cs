@@ -12,18 +12,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     /// <summary>
     /// Result of attribute write
     /// </summary>
-    public class BatchWriteResponseApiModel {
+    public class WriteResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BatchWriteResponseApiModel() { }
+        public WriteResponseApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public BatchWriteResponseApiModel(BatchWriteResultModel model) {
+        public WriteResponseApiModel(WriteResultModel model) {
             Results = model.Results?
                 .Select(a => new AttributeWriteResponseApiModel(a)).ToList();
         }

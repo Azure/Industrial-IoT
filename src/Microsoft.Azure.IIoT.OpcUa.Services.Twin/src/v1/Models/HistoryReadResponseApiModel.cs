@@ -6,25 +6,41 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Result of publish stop request
+    /// History read results
     /// </summary>
-    public class PublishStopResponseApiModel {
+    public class HistoryReadResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public PublishStopResponseApiModel() { }
+        public HistoryReadResponseApiModel() { }
 
         /// <summary>
-        /// Create api model from service model
+        /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public PublishStopResponseApiModel(PublishStopResultModel model) {
+        public HistoryReadResponseApiModel(HistoryReadResultModel model) {
+            History = model.History;
+            ContinuationToken = model.ContinuationToken;
             ErrorInfo = model.ErrorInfo == null ? null :
                 new ServiceResultApiModel(model.ErrorInfo);
         }
+
+        /// <summary>
+        /// History as json encoded extension object
+        /// </summary>
+        [JsonProperty(PropertyName = "history")]
+        public JToken History { get; set; }
+
+        /// <summary>
+        /// Continuation token if more results pending.
+        /// </summary>
+        [JsonProperty(PropertyName = "continuationToken",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string ContinuationToken { get; set; }
 
         /// <summary>
         /// Service result in case of error

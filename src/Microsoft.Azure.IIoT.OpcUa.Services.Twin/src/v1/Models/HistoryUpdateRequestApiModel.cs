@@ -6,54 +6,60 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// Unpublish request
+    /// Request node history update
     /// </summary>
-    public class PublishStopRequestApiModel {
+    public class HistoryUpdateRequestApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public PublishStopRequestApiModel() { }
+        public HistoryUpdateRequestApiModel() { }
 
         /// <summary>
-        /// Create api model from service model
+        /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public PublishStopRequestApiModel(PublishStopRequestModel model) {
-            NodeId = model.NodeId;
-            NodeAttribute = model.NodeAttribute;
+        public HistoryUpdateRequestApiModel(HistoryUpdateRequestModel model) {
+            Request = model.Request;
+            Elevation = model.Elevation == null ? null :
+                new CredentialApiModel(model.Elevation);
             Diagnostics = model.Diagnostics == null ? null :
                 new DiagnosticsApiModel(model.Diagnostics);
         }
 
         /// <summary>
-        /// Create service model from api model
+        /// Convert back to service model
         /// </summary>
-        public PublishStopRequestModel ToServiceModel() {
-            return new PublishStopRequestModel {
-                NodeId = NodeId,
-                NodeAttribute = NodeAttribute,
-                Diagnostics = Diagnostics?.ToServiceModel()
+        /// <returns></returns>
+        public HistoryUpdateRequestModel ToServiceModel() {
+            return new HistoryUpdateRequestModel {
+                Request = Request,
+                Diagnostics = Diagnostics?.ToServiceModel(),
+                Elevation = Elevation?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Node of item to unpublish
+        /// The HistoryUpdateDetailsType extension object
+        /// encoded in json and containing the tunneled
+        /// update request for the Historian server.
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [JsonProperty(PropertyName = "request")]
         [Required]
-        public string NodeId { get; set; }
+        public JToken Request { get; set; }
 
         /// <summary>
-        /// Attribute of item to unpublish
+        /// Optional User elevation
         /// </summary>
-        [JsonProperty(PropertyName = "nodeAttribute",
+        [JsonProperty(PropertyName = "elevation",
             NullValueHandling = NullValueHandling.Ignore)]
-        public NodeAttribute? NodeAttribute { get; set; }
+        [DefaultValue(null)]
+        public CredentialApiModel Elevation { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration

@@ -6,61 +6,64 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
-    using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
-    /// Unpublish request
+    /// Request node attribute write
     /// </summary>
-    public class PublishStopRequestApiModel {
+    public class WriteRequestApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public PublishStopRequestApiModel() { }
+        public WriteRequestApiModel() { }
 
         /// <summary>
-        /// Create api model from service model
+        /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public PublishStopRequestApiModel(PublishStopRequestModel model) {
-            NodeId = model.NodeId;
-            NodeAttribute = model.NodeAttribute;
+        public WriteRequestApiModel(WriteRequestModel model) {
+            Attributes = model.Attributes?
+                .Select(a => new AttributeWriteRequestApiModel(a)).ToList();
+            Elevation = model.Elevation == null ? null :
+                new CredentialApiModel(model.Elevation);
             Diagnostics = model.Diagnostics == null ? null :
                 new DiagnosticsApiModel(model.Diagnostics);
         }
 
         /// <summary>
-        /// Create service model from api model
+        /// Convert back to service model
         /// </summary>
-        public PublishStopRequestModel ToServiceModel() {
-            return new PublishStopRequestModel {
-                NodeId = NodeId,
-                NodeAttribute = NodeAttribute,
-                Diagnostics = Diagnostics?.ToServiceModel()
+        /// <returns></returns>
+        public WriteRequestModel ToServiceModel() {
+            return new WriteRequestModel {
+                Attributes = Attributes?.Select(a => a.ToServiceModel()).ToList(),
+                Diagnostics = Diagnostics?.ToServiceModel(),
+                Elevation = Elevation?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Node of item to unpublish
+        /// Attributes to update
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [JsonProperty(PropertyName = "attributes")]
         [Required]
-        public string NodeId { get; set; }
+        public List<AttributeWriteRequestApiModel> Attributes { get; set; }
 
         /// <summary>
-        /// Attribute of item to unpublish
+        /// Optional User Elevation
         /// </summary>
-        [JsonProperty(PropertyName = "nodeAttribute",
+        [JsonProperty(PropertyName = "elevation",
             NullValueHandling = NullValueHandling.Ignore)]
-        public NodeAttribute? NodeAttribute { get; set; }
+        public CredentialApiModel Elevation { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration
         /// </summary>
         [JsonProperty(PropertyName = "diagnostics",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
         public DiagnosticsApiModel Diagnostics { get; set; }
     }
 }

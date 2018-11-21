@@ -115,6 +115,7 @@ if ($cert) {
 
 # Start the deployment
 $templateFilePath = Join-Path $ScriptDir "template.json"
+Write-Host "Starting deployment..."
 $deployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName `
     -TemplateFile $templateFilePath -TemplateParameterObject $templateParameters
 

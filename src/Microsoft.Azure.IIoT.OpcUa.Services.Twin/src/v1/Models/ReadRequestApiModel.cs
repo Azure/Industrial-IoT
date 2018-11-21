@@ -11,22 +11,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Request node attribute write
+    /// Request node attribute read
     /// </summary>
-    public class BatchWriteRequestApiModel {
+    public class ReadRequestApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BatchWriteRequestApiModel() { }
+        public ReadRequestApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public BatchWriteRequestApiModel(BatchWriteRequestModel model) {
+        public ReadRequestApiModel(ReadRequestModel model) {
             Attributes = model.Attributes?
-                .Select(a => new AttributeWriteRequestApiModel(a)).ToList();
+                .Select(a => new AttributeReadRequestApiModel(a)).ToList();
             Elevation = model.Elevation == null ? null :
                 new CredentialApiModel(model.Elevation);
             Diagnostics = model.Diagnostics == null ? null :
@@ -37,8 +37,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public BatchWriteRequestModel ToServiceModel() {
-            return new BatchWriteRequestModel {
+        public ReadRequestModel ToServiceModel() {
+            return new ReadRequestModel {
                 Attributes = Attributes?.Select(a => a.ToServiceModel()).ToList(),
                 Diagnostics = Diagnostics?.ToServiceModel(),
                 Elevation = Elevation?.ToServiceModel()
@@ -46,11 +46,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         }
 
         /// <summary>
-        /// Attributes to update
+        /// Attributes to read
         /// </summary>
         [JsonProperty(PropertyName = "attributes")]
         [Required]
-        public List<AttributeWriteRequestApiModel> Attributes { get; set; }
+        public List<AttributeReadRequestApiModel> Attributes { get; set; }
 
         /// <summary>
         /// Optional User Elevation

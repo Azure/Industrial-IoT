@@ -38,6 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Onboarding {
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)
+                .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
                 .Build();

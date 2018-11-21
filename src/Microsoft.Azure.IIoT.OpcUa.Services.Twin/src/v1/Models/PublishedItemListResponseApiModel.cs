@@ -6,31 +6,41 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
-    /// Result of publish stop request
+    /// List of published nodes
     /// </summary>
-    public class PublishStopResponseApiModel {
+    public class PublishedItemListResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public PublishStopResponseApiModel() { }
+        public PublishedItemListResponseApiModel() { }
 
         /// <summary>
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public PublishStopResponseApiModel(PublishStopResultModel model) {
-            ErrorInfo = model.ErrorInfo == null ? null :
-                new ServiceResultApiModel(model.ErrorInfo);
+        public PublishedItemListResponseApiModel(PublishedItemListResultModel model) {
+            ContinuationToken = model?.ContinuationToken;
+            Items = model?.Items?
+                .Select(n => new PublishedItemApiModel(n))
+                .ToList();
         }
 
         /// <summary>
-        /// Service result in case of error
+        /// Monitored items
         /// </summary>
-        [JsonProperty(PropertyName = "errorInfo",
+        [JsonProperty(PropertyName = "items")]
+        public List<PublishedItemApiModel> Items { get; set; }
+
+        /// <summary>
+        /// Continuation or null if final
+        /// </summary>
+        [JsonProperty(PropertyName = "continuationToken",
             NullValueHandling = NullValueHandling.Ignore)]
-        public ServiceResultApiModel ErrorInfo { get; set; }
+        public string ContinuationToken { get; set; }
     }
 }

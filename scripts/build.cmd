@@ -100,7 +100,7 @@ if not exist %dockerfile% goto :eof
 set image-name=%2
 set postfix=%3
 echo Building %image-name%:latest%postfix% from %dockerfile%...
-cmd /c docker build -t %image-name%:latest%postfix% -f %dockerfile% . > "%TEMP%\_build.out"
+cmd /c docker build --no-cache -t %image-name%:latest%postfix% -f %dockerfile% . > "%TEMP%\_build.out"
 if not !ERRORLEVEL! == 0 type "%TEMP%\_build.out" && exit /b !ERRORLEVEL!
 if "%image-version%" == "" goto :eof
 cmd /c docker tag %image-name%:latest%postfix% %image-name%:%image-version%%postfix% > "%TEMP%\_build.out"

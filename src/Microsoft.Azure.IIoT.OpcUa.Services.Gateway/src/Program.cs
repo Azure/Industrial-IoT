@@ -32,6 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Gateway {
                     .AddCommandLine(args)
                     .Build())
                 .ConfigureAppConfiguration((_, b) => b
+                    .AddFromDotEnvFile()
                     .AddEnvironmentVariables()
                     .AddCommandLine(args))
                 .UseKestrel(o => o.AddServerHeader = false)

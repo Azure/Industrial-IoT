@@ -51,21 +51,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// Write any node attribute as batches. This allows updating attributes
-        /// of any node in batch fashion.
+        /// Write any node attribute.
         /// </summary>
         /// <param name="id">The identifier of the endpoint.</param>
         /// <param name="request">The batch write request</param>
         /// <returns>The batch write response</returns>
-        [HttpPost("{id}/batch")]
-        public async Task<BatchWriteResponseApiModel> WriteBatchAsync(string id,
-            [FromBody] BatchWriteRequestApiModel request) {
+        [HttpPost("{id}/attributes")]
+        public async Task<WriteResponseApiModel> WriteAttributesAsync(string id,
+            [FromBody] WriteRequestApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _nodes.NodeBatchWriteAsync(
+            var writeResult = await _nodes.NodeWriteAsync(
                 id, request.ToServiceModel());
-            return new BatchWriteResponseApiModel(writeResult);
+            return new WriteResponseApiModel(writeResult);
+        }
+
+        /// <summary>
+        /// Update node history through historic access.
+        /// </summary>
+        /// <param name="id">The identifier of the endpoint.</param>
+        /// <param name="request">The history read request</param>
+        /// <returns>The history read response</returns>
+        [HttpPost("{id}/history")]
+        public async Task<HistoryUpdateResponseApiModel> WriteHistoryAsync(
+            string id, [FromBody] HistoryUpdateRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var writeResult = await _nodes.NodeHistoryUpdateAsync(
+                id, request.ToServiceModel());
+            return new HistoryUpdateResponseApiModel(writeResult);
         }
 
         private readonly INodeServices<string> _nodes;

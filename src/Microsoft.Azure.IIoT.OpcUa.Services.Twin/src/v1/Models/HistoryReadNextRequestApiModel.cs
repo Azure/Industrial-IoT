@@ -6,27 +6,26 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
+    using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
-    using System.Collections.Generic;
-    using System.Linq;
 
     /// <summary>
-    /// Request node attribute read or update
+    /// Request node history read continuation
     /// </summary>
-    public class BatchReadRequestApiModel {
+    public class HistoryReadNextRequestApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BatchReadRequestApiModel() { }
+        public HistoryReadNextRequestApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public BatchReadRequestApiModel(BatchReadRequestModel model) {
-            Attributes = model.Attributes?
-                .Select(a => new AttributeReadRequestApiModel(a)).ToList();
+        public HistoryReadNextRequestApiModel(HistoryReadNextRequestModel model) {
+            ContinuationToken = model.ContinuationToken;
+            Abort = model.Abort;
             Elevation = model.Elevation == null ? null :
                 new CredentialApiModel(model.Elevation);
             Diagnostics = model.Diagnostics == null ? null :
@@ -37,26 +36,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public BatchReadRequestModel ToServiceModel() {
-            return new BatchReadRequestModel {
-                Attributes = Attributes?.Select(a => a.ToServiceModel()).ToList(),
+        public HistoryReadNextRequestModel ToServiceModel() {
+            return new HistoryReadNextRequestModel {
+                ContinuationToken = ContinuationToken,
+                Abort = Abort,
                 Diagnostics = Diagnostics?.ToServiceModel(),
                 Elevation = Elevation?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Attributes to update or read
+        /// Continuation token to continue reading more
+        /// results.
         /// </summary>
-        [JsonProperty(PropertyName = "attributes")]
+        [JsonProperty(PropertyName = "continuationToken")]
         [Required]
-        public List<AttributeReadRequestApiModel> Attributes { get; set; }
+        public string ContinuationToken { get; set; }
 
         /// <summary>
-        /// Optional User Elevation
+        /// Abort reading after this read
+        /// </summary>
+        [JsonProperty(PropertyName = "abort",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(false)]
+        public bool? Abort { get; set; }
+
+        /// <summary>
+        /// Optional User elevation
         /// </summary>
         [JsonProperty(PropertyName = "elevation",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public CredentialApiModel Elevation { get; set; }
 
         /// <summary>
@@ -64,6 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
         /// </summary>
         [JsonProperty(PropertyName = "diagnostics",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public DiagnosticsApiModel Diagnostics { get; set; }
     }
 }

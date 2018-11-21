@@ -51,21 +51,55 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// Read any node attribute as batches. This allows reading attributes
-        /// of any node in batch fashion.
+        /// Read any node attribute.
         /// </summary>
         /// <param name="id">The identifier of the endpoint.</param>
-        /// <param name="request">The batch read request</param>
-        /// <returns>The batch read response</returns>
-        [HttpPost("{id}/batch")]
-        public async Task<BatchReadResponseApiModel> ReadBatchAsync(string id,
-            [FromBody] BatchReadRequestApiModel request) {
+        /// <param name="request">The read request</param>
+        /// <returns>The read response</returns>
+        [HttpPost("{id}/attributes")]
+        public async Task<ReadResponseApiModel> ReadAttributesAsync(string id,
+            [FromBody] ReadRequestApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _nodes.NodeBatchReadAsync(
+            var readresult = await _nodes.NodeReadAsync(
                 id, request.ToServiceModel());
-            return new BatchReadResponseApiModel(readresult);
+            return new ReadResponseApiModel(readresult);
+        }
+
+        /// <summary>
+        /// Read node history through historic access.
+        /// </summary>
+        /// <param name="id">The identifier of the endpoint.</param>
+        /// <param name="request">The history read request</param>
+        /// <returns>The history read response</returns>
+        [HttpPost("{id}/history")]
+        public async Task<HistoryReadResponseApiModel> ReadHistoryAsync(string id,
+            [FromBody] HistoryReadRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var readresult = await _nodes.NodeHistoryReadAsync(
+                id, request.ToServiceModel());
+            return new HistoryReadResponseApiModel(readresult);
+        }
+
+        /// <summary>
+        /// Read next batch of history values as continuation from history
+        /// read.
+        /// </summary>
+        /// <param name="id">The identifier of the endpoint.</param>
+        /// <param name="request">The history read next request</param>
+        /// <returns>The history read response</returns>
+        [HttpPost("{id}/history/next")]
+        public async Task<HistoryReadNextResponseApiModel> ReadHistoryNextAsync(
+            string id, [FromBody] HistoryReadNextRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var readresult = await _nodes.NodeHistoryReadNextAsync(
+                id, request.ToServiceModel());
+            return new HistoryReadNextResponseApiModel(readresult);
         }
 
         /// <summary>

@@ -8,29 +8,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Result of publish stop request
+    /// Request list of published items
     /// </summary>
-    public class PublishStopResponseApiModel {
+    public class PublishedItemListRequestApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public PublishStopResponseApiModel() { }
+        public PublishedItemListRequestApiModel() { }
 
         /// <summary>
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public PublishStopResponseApiModel(PublishStopResultModel model) {
-            ErrorInfo = model.ErrorInfo == null ? null :
-                new ServiceResultApiModel(model.ErrorInfo);
+        public PublishedItemListRequestApiModel(PublishedItemListRequestModel model) {
+            ContinuationToken = model.ContinuationToken;
         }
 
         /// <summary>
-        /// Service result in case of error
+        /// Create service model from api model
         /// </summary>
-        [JsonProperty(PropertyName = "errorInfo",
+        public PublishedItemListRequestModel ToServiceModel() {
+            return new PublishedItemListRequestModel {
+                ContinuationToken = ContinuationToken
+             };
+        }
+
+        /// <summary>
+        /// Continuation token or null to start
+        /// </summary>
+        [JsonProperty(PropertyName = "continuationToken",
             NullValueHandling = NullValueHandling.Ignore)]
-        public ServiceResultApiModel ErrorInfo { get; set; }
+        public string ContinuationToken { get; set; }
     }
 }

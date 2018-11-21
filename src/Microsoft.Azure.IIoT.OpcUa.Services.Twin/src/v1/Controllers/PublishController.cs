@@ -70,19 +70,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Controllers {
         /// Returns currently published node ids.
         /// </summary>
         /// <param name="id">The identifier of the endpoint.</param>
+        /// <param name="request">The list request</param>
+        /// <returns>The list of published nodes</returns>
+        [HttpPost("{id}")]
+        public async Task<PublishedItemListResponseApiModel> ListAsync(
+            string id, [FromBody] PublishedItemListRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _publisher.NodePublishListAsync(
+                id, request.ToServiceModel());
+            return new PublishedItemListResponseApiModel(result);
+        }
+
+        /// <summary>
+        /// Returns currently published node ids.
+        /// </summary>
+        /// <param name="id">The identifier of the endpoint.</param>
         /// <returns>The list of published nodes</returns>
         [HttpGet("{id}")]
-        public async Task<PublishedNodeListResponseApiModel> ListAsync(
+        public async Task<PublishedItemListResponseApiModel> ListAsGetAsync(
             string id) {
             string continuationToken = null;
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
             }
             var result = await _publisher.NodePublishListAsync(id,
-                new PublishedNodeListRequestApiModel {
+                new PublishedItemListRequestApiModel {
                     ContinuationToken = continuationToken
                 }.ToServiceModel());
-            return new PublishedNodeListResponseApiModel(result);
+            return new PublishedItemListResponseApiModel(result);
         }
 
         private readonly IPublishServices<string> _publisher;

@@ -12,18 +12,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     /// <summary>
     /// Result of attribute reads
     /// </summary>
-    public class BatchReadResponseApiModel {
+    public class ReadResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BatchReadResponseApiModel() { }
+        public ReadResponseApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public BatchReadResponseApiModel(BatchReadResultModel model) {
+        public ReadResponseApiModel(ReadResultModel model) {
             Results = model.Results?
                 .Select(a => new AttributeReadResponseApiModel(a)).ToList();
         }

@@ -10,37 +10,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Twin.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// List of published nodes
+    /// History update results
     /// </summary>
-    public class PublishedNodeListResponseApiModel {
+    public class HistoryUpdateResponseApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public PublishedNodeListResponseApiModel() { }
+        public HistoryUpdateResponseApiModel() { }
 
         /// <summary>
-        /// Create api model from service model
+        /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public PublishedNodeListResponseApiModel(PublishedNodeListResultModel model) {
-            ContinuationToken = model?.ContinuationToken;
-            Items = model?.Items?
-                .Select(n => new PublishedNodeApiModel(n))
-                .ToList();
+        public HistoryUpdateResponseApiModel(HistoryUpdateResultModel model) {
+            Results = model.Results?
+                .Select(r => new ServiceResultApiModel(r)).ToList();
+            ErrorInfo = model.ErrorInfo == null ? null :
+                new ServiceResultApiModel(model.ErrorInfo);
         }
 
         /// <summary>
-        /// Monitored items
+        /// List of results from the update operation
         /// </summary>
-        [JsonProperty(PropertyName = "items")]
-        public List<PublishedNodeApiModel> Items { get; set; }
+        [JsonProperty(PropertyName = "results",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<ServiceResultApiModel> Results { get; set; }
 
         /// <summary>
-        /// Continuation or null if final
+        /// Service result in case of service call error
         /// </summary>
-        [JsonProperty(PropertyName = "continuationToken",
+        [JsonProperty(PropertyName = "errorInfo",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string ContinuationToken { get; set; }
+        public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }
