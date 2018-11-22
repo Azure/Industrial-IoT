@@ -26,8 +26,8 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Auth" Version="1.0.1" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Processor" Version="1.0.1" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Auth" Version="1.1.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Processor" Version="1.1.0" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -39,7 +39,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Registry" Version="1.0.1" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Registry" Version="1.1.0" />
       </ItemGroup>
     </Otherwise>
   </Choose>

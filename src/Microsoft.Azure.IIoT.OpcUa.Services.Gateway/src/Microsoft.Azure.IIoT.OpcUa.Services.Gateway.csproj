@@ -17,8 +17,8 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="1.0.1" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="1.0.1" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="1.1.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="1.1.0" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -32,9 +32,9 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Twin" Version="1.0.1" />
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Registry" Version="1.0.1" />
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Gateway" Version="1.0.1" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Twin" Version="1.1.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Registry" Version="1.1.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Gateway" Version="1.1.0" />
       </ItemGroup>
     </Otherwise>
   </Choose>
