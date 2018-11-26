@@ -15,6 +15,7 @@ namespace OpcPublisher
     using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Runtime.InteropServices;
     using static Diagnostics;
     using static OpcApplicationConfiguration;
     using static OpcPublisher.OpcMonitoredItem;
@@ -139,6 +140,10 @@ namespace OpcPublisher
                     await _edgeHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _edgeHubClient);
                     await _edgeHubClient.SetMethodHandlerAsync("GetConfiguredEndpoints", HandleGetConfiguredEndpointsMethodAsync, _edgeHubClient);
                     await _edgeHubClient.SetMethodHandlerAsync("GetConfiguredNodesOnEndpoint", HandleGetConfiguredNodesOnEndpointMethodAsync, _edgeHubClient);
+                    await _edgeHubClient.SetMethodHandlerAsync("GetDiagnosticInfo", HandleGetDiagnosticInfoMethodAsync, _edgeHubClient);
+                    await _edgeHubClient.SetMethodHandlerAsync("GetDiagnosticLog", HandleGetDiagnosticLogMethodAsync, _edgeHubClient);
+                    await _edgeHubClient.SetMethodHandlerAsync("ExitApplication", HandleExitApplicationMethodAsync, _edgeHubClient);
+                    await _edgeHubClient.SetMethodHandlerAsync("GetInfo", HandleGetInfoMethodAsync, _edgeHubClient);
                 }
                 else
                 {
@@ -165,6 +170,10 @@ namespace OpcPublisher
                         await _iotHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _iotHubClient);
                         await _iotHubClient.SetMethodHandlerAsync("GetConfiguredEndpoints", HandleGetConfiguredEndpointsMethodAsync, _iotHubClient);
                         await _iotHubClient.SetMethodHandlerAsync("GetConfiguredNodesOnEndpoint", HandleGetConfiguredNodesOnEndpointMethodAsync, _iotHubClient);
+                        await _iotHubClient.SetMethodHandlerAsync("GetDiagnosticInfo", HandleGetDiagnosticInfoMethodAsync, _iotHubClient);
+                        await _iotHubClient.SetMethodHandlerAsync("GetDiagnosticLog", HandleGetDiagnosticLogMethodAsync, _iotHubClient);
+                        await _iotHubClient.SetMethodHandlerAsync("ExitApplication", HandleExitApplicationMethodAsync, _iotHubClient);
+                        await _iotHubClient.SetMethodHandlerAsync("GetInfo", HandleGetInfoMethodAsync, _iotHubClient);
                     }
                 }
                 Logger.Debug($"Init D2C message processing");
@@ -703,7 +712,7 @@ namespace OpcPublisher
             string logPrefix = "HandleGetDiagnosticInfoMethodAsync:";
 
             // get the diagnostic info
-            DiagnosticInfoModel diagnosticInfo = new DiagnosticInfoModel();
+            DiagnosticInfoMethodResponseModel diagnosticInfo = new DiagnosticInfoMethodResponseModel();
             try
             {
                 diagnosticInfo = GetDiagnosticInfo();
@@ -721,6 +730,92 @@ namespace OpcPublisher
             Logger.Information($"{logPrefix} Success returning diagnostic info!");
             return methodResponse;
         }
+
+        /// <summary>
+        /// Handle method call to get log information.
+        /// </summary>
+        static async Task<MethodResponse> HandleGetDiagnosticLogMethodAsync(MethodRequest methodRequest, object userContext)
+        {
+            string logPrefix = "HandleGetDiagnosticLogMethodAsync:";
+
+            // get the diagnostic info
+            DiagnosticLogMethodResponseModel diagnosticLogMethodResponseModel = new DiagnosticLogMethodResponseModel();
+            try
+            {
+                diagnosticLogMethodResponseModel = await GetDiagnosticLogAsync();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, $"{logPrefix} Exception");
+                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+            }
+
+            // build response
+            string resultString = JsonConvert.SerializeObject(diagnosticLogMethodResponseModel);
+            byte[] result = Encoding.UTF8.GetBytes(resultString);
+            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
+            Logger.Information($"{logPrefix} Success returning diagnostic log!");
+            return methodResponse;
+        }
+
+        /// <summary>
+        /// Handle method call to get log information.
+        /// </summary>
+        static async Task<MethodResponse> HandleExitApplicationMethodAsync(MethodRequest methodRequest, object userContext)
+        {
+            string logPrefix = "HandleExitApplicationMethodAsync:";
+
+            ExitApplicationMethodRequestModel exitApplicationMethodRequest = null;
+            try
+            {
+                Logger.Debug($"{logPrefix} called");
+                exitApplicationMethodRequest = JsonConvert.DeserializeObject<ExitApplicationMethodRequestModel>(methodRequest.DataAsJson);
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, $"{logPrefix} Exception");
+                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+            }
+
+            // get the parameter
+            ExitApplicationMethodRequestModel exitApplication = new ExitApplicationMethodRequestModel();
+            try
+            {
+                Task.Run(async () => await ExitApplicationAsync(exitApplicationMethodRequest.SecondsTillExit));
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, $"{logPrefix} Exception");
+                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+            }
+            Logger.Information($"{logPrefix} Success returning exit application!");
+            return (new MethodResponse((int)HttpStatusCode.OK));
+        }
+
+        /// <summary>
+        /// Handle method call to get application information.
+        /// </summary>
+        static async Task<MethodResponse> HandleGetInfoMethodAsync(MethodRequest methodRequest, object userContext)
+        {
+            string logPrefix = "HandleGetInfoMethodAsync:";
+
+            // get the info
+            GetInfoMethodResponseModel getInfoMethodResponseModel = new GetInfoMethodResponseModel();
+            getInfoMethodResponseModel.VersionMajor = VersionMajor;
+            getInfoMethodResponseModel.VersionMinor = VersionMinor;
+            getInfoMethodResponseModel.VersionPatch = VersionPatch;
+            getInfoMethodResponseModel.OS = RuntimeInformation.OSDescription;
+            getInfoMethodResponseModel.OSArchitecture = RuntimeInformation.OSArchitecture;
+            getInfoMethodResponseModel.FrameworkDescription = RuntimeInformation.FrameworkDescription;
+
+            // build response
+            string resultString = JsonConvert.SerializeObject(getInfoMethodResponseModel);
+            byte[] result = Encoding.UTF8.GetBytes(resultString);
+            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
+            Logger.Information($"{logPrefix} Success returning application info!");
+            return methodResponse;
+        }
+
 
         /// <summary>
         /// Initializes internal message processing.
@@ -1155,6 +1250,32 @@ namespace OpcPublisher
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Exit the application.
+        /// </summary>
+        static async Task ExitApplicationAsync(int secondsTillExit)
+        {
+            string logPrefix = "ExitApplicationAsync:";
+
+            // sanity check parameter
+            if (secondsTillExit <= 0)
+            {
+                Logger.Information($"{logPrefix} Time to exit adjusted to {secondsTillExit} seconds...");
+                secondsTillExit = 5;
+            }
+
+            // wait and exit
+            while (secondsTillExit > 0)
+            {
+                Logger.Information($"{logPrefix} Exiting in {secondsTillExit} seconds...");
+                secondsTillExit--;
+                await Task.Delay(1000);
+            }
+
+            // exit
+            Environment.Exit(2);
         }
 
         private static int MAX_RESPONSE_PAYLOAD_LENGTH = (8 * 1024 - 256);

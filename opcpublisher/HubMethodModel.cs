@@ -1,7 +1,9 @@
-﻿using Microsoft.Azure.Devices.Client;
+﻿
+using Microsoft.Azure.Devices.Client;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace OpcPublisher
 {
@@ -15,6 +17,9 @@ namespace OpcPublisher
         public string SamplingInterval { get; set; }
     }
 
+    /// <summary>
+    /// Model for a node description.
+    /// </summary>
     public class NodeModel
     {
         public NodeModel(string id, int? opcPublishingInterval = null, int? opcSamplingInterval = null, string displayName = null)
@@ -37,9 +42,40 @@ namespace OpcPublisher
         public string DisplayName { get; set; }
     }
 
-    public class DiagnosticInfoModel
+    /// <summary>
+    /// Model for a get info response.
+    /// </summary>
+    public class GetInfoMethodResponseModel
     {
-        public DiagnosticInfoModel()
+        public GetInfoMethodResponseModel()
+        {
+        }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int VersionMajor { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int VersionMinor { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int VersionPatch { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public string OS { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public Architecture OSArchitecture { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public string FrameworkDescription { get; set; }
+    }
+
+    /// <summary>
+    /// Model for a diagnostic info response.
+    /// </summary>
+    public class DiagnosticInfoMethodResponseModel
+    {
+        public DiagnosticInfoMethodResponseModel()
         {
         }
 
@@ -104,6 +140,47 @@ namespace OpcPublisher
         public TransportType HubProtocol { get; set; }
     }
 
+    /// <summary>
+    /// Model for a diagnostic log response.
+    /// </summary>
+    public class DiagnosticLogMethodResponseModel
+    {
+        public DiagnosticLogMethodResponseModel()
+        {
+        }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int MissedMessageCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int LogMessageCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public string[] Log { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int StartupLogMessageCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public string[] StartupLog { get; set; }
+    }
+
+    /// <summary>
+    /// Model for an exit application request.
+    /// </summary>
+    public class ExitApplicationMethodRequestModel
+    {
+        public ExitApplicationMethodRequestModel()
+        {
+        }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int SecondsTillExit { get; set; }
+    }
+
+    /// <summary>
+    /// ´Model for a publish node request.
+    /// </summary>
     public class PublishNodesMethodRequestModel
     {
         public PublishNodesMethodRequestModel(string endpointUrl, bool useSecurity = true, string userName = null, string password = null)
@@ -128,6 +205,9 @@ namespace OpcPublisher
         public string Password { get; set; }
     }
 
+    /// <summary>
+    /// Model for an unpublish node request.
+    /// </summary>
     public class UnpublishNodesMethodRequestModel
     {
         public UnpublishNodesMethodRequestModel(string endpointUrl)
@@ -140,6 +220,9 @@ namespace OpcPublisher
         public List<NodeModel> Nodes { get; set; }
     }
 
+    /// <summary>
+    /// Model for an unpublish all nodes request.
+    /// </summary>
     public class UnpublishAllNodesMethodRequestModel
     {
         public UnpublishAllNodesMethodRequestModel(string endpointUrl = null)
@@ -150,6 +233,9 @@ namespace OpcPublisher
         public string EndpointUrl { get; set; }
     }
 
+    /// <summary>
+    /// Model for a get configured endpoints request.
+    /// </summary>
     public class GetConfiguredEndpointsMethodRequestModel
     {
         public GetConfiguredEndpointsMethodRequestModel(ulong? continuationToken = null)
@@ -161,7 +247,9 @@ namespace OpcPublisher
         public ulong? ContinuationToken { get; set; }
     }
 
-
+    /// <summary>
+    /// Model for a get configured endpoints response.
+    /// </summary>
     public class GetConfiguredEndpointsMethodResponseModel
     {
         public GetConfiguredEndpointsMethodResponseModel()
@@ -179,6 +267,9 @@ namespace OpcPublisher
         public ulong? ContinuationToken;
     }
 
+    /// <summary>
+    /// Model for a get configured nodes on endpoint request.
+    /// </summary>
     public class GetConfiguredNodesOnEndpointMethodRequestModel
     {
         public GetConfiguredNodesOnEndpointMethodRequestModel(string endpointUrl, ulong? continuationToken = null)
@@ -193,7 +284,9 @@ namespace OpcPublisher
         public ulong? ContinuationToken { get; set; }
     }
 
-
+    /// <summary>
+    /// Model class for a get configured nodes on endpoint response.
+    /// </summary>
     public class GetConfiguredNodesOnEndpointMethodResponseModel
     {
         public GetConfiguredNodesOnEndpointMethodResponseModel()
@@ -201,6 +294,7 @@ namespace OpcPublisher
             Nodes = new List<NodeModel>();
         }
 
+        /// <param name="nodes"></param>
         public GetConfiguredNodesOnEndpointMethodResponseModel(List<NodeModel> nodes)
         {
             Nodes = nodes;

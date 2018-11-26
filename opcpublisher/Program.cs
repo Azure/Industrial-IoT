@@ -29,6 +29,13 @@ namespace OpcPublisher
     public class Program
     {
         /// <summary>
+        /// Semantic version.
+        /// </summary>
+        public static int VersionMajor = 2;
+        public static int VersionMinor = 3;
+        public static int VersionPatch = 0;
+
+        /// <summary>
         /// IoTHub/EdgeHub communication objects.
         /// </summary>
         public static IotHubCommunication IotHubCommunication;
@@ -53,6 +60,11 @@ namespace OpcPublisher
         /// Logging object.
         /// </summary>
         public static Serilog.Core.Logger Logger { get; set; } = null;
+
+        /// <summary>
+        /// Signal for completed startup.
+        /// </summary>
+        public static bool StartupCompleted { get; set; } = false;
 
         /// <summary>
         /// Synchronous main method of the app.
@@ -130,7 +142,7 @@ namespace OpcPublisher
                                 }
                             }
                         },
-                        { "di|diagnosticsinterval=", $"shows publisher diagnostic info at the specified interval in seconds (need log level info). 0 disables diagnostic output.\nDefault: {DiagnosticsInterval}", (uint u) => DiagnosticsInterval = u },
+                        { "di|diagnosticsinterval=", $"shows publisher diagnostic info at the specified interval in seconds (need log level info).\n-1 disables remote diagnostic log and diagnostic output\n0 disables diagnostic output\nDefault: {DiagnosticsInterval}", (int i) => DiagnosticsInterval = i },
 
                         { "ns|noshutdown=", $"same as runforever.\nDefault: {_noShutdown}", (bool b) => _noShutdown = b },
                         { "rf|runforever", $"publisher can not be stopped by pressing a key on the console, but will run forever.\nDefault: {_noShutdown}", b => _noShutdown = b != null },
@@ -551,7 +563,7 @@ namespace OpcPublisher
                 }
 
                 // start operation
-                Logger.Information("Publisher is starting up...");
+                Logger.Information($"OPC Publisher V{VersionMajor}.{VersionMinor}.{VersionPatch} starting up...");
 
                 // allow canceling the application
                 var quitEvent = new ManualResetEvent(false);
@@ -646,6 +658,9 @@ namespace OpcPublisher
 
                 // initialize publisher diagnostics
                 Diagnostics.Init();
+
+                // startup completed
+                StartupCompleted = true;
 
                 // stop on user request
                 Logger.Information("");
@@ -871,6 +886,12 @@ namespace OpcPublisher
 
             // set logging sinks
             loggerConfiguration.WriteTo.Console();
+
+            // enable remote logging not in any case for perf reasons
+            if (DiagnosticsInterval >= 0)
+            {
+                loggerConfiguration.WriteTo.DiagnosticLogSink();
+            }
 
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_LOGP")))
             {
