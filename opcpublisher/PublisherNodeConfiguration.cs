@@ -176,7 +176,7 @@ namespace OpcPublisher
                                     if (opcNode.ExpandedNodeId != null)
                                     {
                                         ExpandedNodeId expandedNodeId = ExpandedNodeId.Parse(opcNode.ExpandedNodeId);
-                                        _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.ExpandedNodeId, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval, opcNode.DisplayName));
+                                        _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.ExpandedNodeId, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName));
                                     }
                                     else
                                     {
@@ -185,13 +185,13 @@ namespace OpcPublisher
                                         {
                                             // ExpandedNodeId format
                                             ExpandedNodeId expandedNodeId = ExpandedNodeId.Parse(opcNode.Id);
-                                            _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.Id, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval, opcNode.DisplayName));
+                                            _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.Id, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName));
                                         }
                                         else
                                         {
                                             // NodeId format
                                             NodeId nodeId = NodeId.Parse(opcNode.Id);
-                                            _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(nodeId, opcNode.Id, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.DisplayName, opcNode.OpcSamplingInterval ?? OpcSamplingInterval, opcNode.OpcPublishingInterval ?? OpcPublishingInterval));
+                                            _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(nodeId, opcNode.Id, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName));
                                         }
                                     }
                                 }
@@ -199,7 +199,7 @@ namespace OpcPublisher
                             else
                             {
                                 // NodeId (ns=) format node configuration syntax using default sampling and publishing interval.
-                                _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(publisherConfigFileEntryLegacy.NodeId, publisherConfigFileEntryLegacy.NodeId.ToString(), publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, null, OpcSamplingInterval, OpcPublishingInterval));
+                                _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(publisherConfigFileEntryLegacy.NodeId, publisherConfigFileEntryLegacy.NodeId.ToString(), publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, null, null, null));
                             }
                         }
                     }
@@ -256,22 +256,14 @@ namespace OpcPublisher
                             {
                                 // create a monitored item for the node, we do not have the namespace index without a connected session. 
                                 // so request a namespace update.
-                                OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.ExpandedNodeId, opcSession.EndpointUrl, nodeInfo.DisplayName)
-                                {
-                                    RequestedSamplingInterval = nodeInfo.OpcSamplingInterval,
-                                    SamplingInterval = nodeInfo.OpcSamplingInterval
-                                };
+                                OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.ExpandedNodeId, opcSession.EndpointUrl, nodeInfo.OpcSamplingInterval, nodeInfo.DisplayName);
                                 opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                                 Interlocked.Increment(ref NodeConfigVersion);
                             }
                             else if (nodeInfo.NodeId != null)
                             {
                                 // create a monitored item for the node with the configured or default sampling interval
-                                OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.NodeId, opcSession.EndpointUrl, nodeInfo.DisplayName)
-                                {
-                                    RequestedSamplingInterval = nodeInfo.OpcSamplingInterval,
-                                    SamplingInterval = nodeInfo.OpcSamplingInterval
-                                };
+                                OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.NodeId, opcSession.EndpointUrl, nodeInfo.OpcSamplingInterval, nodeInfo.DisplayName);
                                 opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                                 Interlocked.Increment(ref NodeConfigVersion);
                             }
@@ -340,11 +332,12 @@ namespace OpcPublisher
                                         // ignore items tagged to stop
                                         if (monitoredItem.State != OpcMonitoredItemState.RemovalRequested || getAll == true)
                                         {
-                                            OpcNodeOnEndpointModel opcNodeOnEndpoint = new OpcNodeOnEndpointModel();
-                                            opcNodeOnEndpoint.Id = monitoredItem.OriginalId;
-                                            opcNodeOnEndpoint.OpcPublishingInterval = subscription.RequestedPublishingInterval == OpcPublishingInterval ? (int?)null : subscription.RequestedPublishingInterval;
-                                            opcNodeOnEndpoint.OpcSamplingInterval = monitoredItem.RequestedSamplingInterval == OpcSamplingInterval ? (int?)null : monitoredItem.RequestedSamplingInterval;
-                                            opcNodeOnEndpoint.DisplayName = monitoredItem.DisplayName;
+                                            OpcNodeOnEndpointModel opcNodeOnEndpoint = new OpcNodeOnEndpointModel(monitoredItem.OriginalId)
+                                            {
+                                                OpcPublishingInterval = subscription.RequestedPublishingIntervalFromConfiguration ? subscription.RequestedPublishingInterval : (int?)null,
+                                                OpcSamplingInterval = monitoredItem.RequestedSamplingIntervalFromConfiguration ? monitoredItem.RequestedSamplingInterval : (int?)null,
+                                                DisplayName = monitoredItem.DisplayNameFromConfiguration ? monitoredItem.DisplayName : null
+                                            };
                                             publisherConfigurationFileEntry.OpcNodes.Add(opcNodeOnEndpoint);
                                         }
                                     }

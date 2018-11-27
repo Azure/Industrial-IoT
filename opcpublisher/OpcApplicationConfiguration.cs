@@ -91,7 +91,6 @@ namespace OpcPublisher
 
         public static int OpcSamplingInterval { get; set; } = OpcSamplingIntervalDefault;
 
-
         public const int OpcPublishingIntervalDefault = 0;
 
         public static int OpcPublishingInterval { get; set; } = OpcPublishingIntervalDefault;

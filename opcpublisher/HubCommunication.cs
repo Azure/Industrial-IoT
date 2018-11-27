@@ -295,19 +295,17 @@ namespace OpcPublisher
 
                     try
                     {
-                        int publishingInterval = node.OpcPublishingInterval ?? OpcPublishingInterval;
-                        int samplingInterval = node.OpcSamplingInterval ?? OpcSamplingInterval;
                         if (isNodeIdFormat)
                         {
                             // add the node info to the subscription with the default publishing interval, execute syncronously
-                            Logger.Debug($"{logPrefix} Request to monitor item with NodeId '{nodeId.ToString()}' (PublishingInterval: {publishingInterval}, SamplingInterval: {samplingInterval})");
-                            statusCode = await opcSession.AddNodeForMonitoringAsync(nodeId, null, publishingInterval, samplingInterval, node.DisplayName, ShutdownTokenSource.Token);
+                            Logger.Debug($"{logPrefix} Request to monitor item with NodeId '{nodeId.ToString()}' (PublishingInterval: {node.OpcPublishingInterval.ToString() ?? "--"}, SamplingInterval: {node.OpcSamplingInterval.ToString() ?? "--"})");
+                            statusCode = await opcSession.AddNodeForMonitoringAsync(nodeId, null, node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName, ShutdownTokenSource.Token);
                         }
                         else
                         {
                             // add the node info to the subscription with the default publishing interval, execute syncronously
-                            Logger.Debug($"{logPrefix} Request to monitor item with ExpandedNodeId '{expandedNodeId.ToString()}' (PublishingInterval: {publishingInterval}, SamplingInterval: {samplingInterval})");
-                            statusCode = await opcSession.AddNodeForMonitoringAsync(null, expandedNodeId, publishingInterval, samplingInterval, node.DisplayName, ShutdownTokenSource.Token);
+                            Logger.Debug($"{logPrefix} Request to monitor item with ExpandedNodeId '{expandedNodeId.ToString()}' (PublishingInterval: {node.OpcPublishingInterval.ToString() ?? "--"}, SamplingInterval: {node.OpcSamplingInterval.ToString() ?? "--"})");
+                            statusCode = await opcSession.AddNodeForMonitoringAsync(null, expandedNodeId, node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName, ShutdownTokenSource.Token);
                         }
                     }
                     catch (Exception e)
@@ -696,7 +694,12 @@ namespace OpcPublisher
             {
                 getConfiguredNodesOnEndpointMethodResponse.ContinuationToken = (ulong)nodeConfigVersion << 32 | actualNodeCount + startIndex;
             }
-            getConfiguredNodesOnEndpointMethodResponse.Nodes = opcNodes.GetRange((int)startIndex, (int)actualNodeCount).Select(n => new NodeModel(n.Id, n.OpcPublishingInterval, n.OpcSamplingInterval, n.DisplayName)).ToList();
+            getConfiguredNodesOnEndpointMethodResponse.Nodes = opcNodes.GetRange((int)startIndex, (int)actualNodeCount).Select(n => new OpcNodeOnEndpointModel(n.Id)
+            {
+                OpcPublishingInterval = n.OpcPublishingInterval,
+                OpcSamplingInterval = n.OpcSamplingInterval,
+                DisplayName = n.DisplayName
+            }).ToList();
             string resultString = JsonConvert.SerializeObject(getConfiguredNodesOnEndpointMethodResponse);
             byte[] result = Encoding.UTF8.GetBytes(resultString);
             MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);

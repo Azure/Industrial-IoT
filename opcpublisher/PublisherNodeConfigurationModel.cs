@@ -14,6 +14,15 @@ namespace OpcPublisher
     /// </summary>
     public class OpcNodeOnEndpointModel
     {
+        public OpcNodeOnEndpointModel(string id, string expandedNodeId = null, int? opcSamplingInterval = null, int? opcPublishingInterval = null, string displayName = null)
+        {
+            Id = id;
+            ExpandedNodeId = expandedNodeId;
+            OpcSamplingInterval = opcSamplingInterval;
+            OpcPublishingInterval = opcPublishingInterval;
+            DisplayName = displayName;
+        }
+
         // Id can be:
         // a NodeId ("ns=")
         // an ExpandedNodeId ("nsu=")
@@ -24,13 +33,13 @@ namespace OpcPublisher
         public string ExpandedNodeId;
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string DisplayName;
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? OpcSamplingInterval;
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? OpcPublishingInterval;
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string DisplayName;
     }
 
     /// <summary>
@@ -69,10 +78,10 @@ namespace OpcPublisher
         public ExpandedNodeId ExpandedNodeId;
         public string OriginalId;
         public string DisplayName;
-        public int OpcSamplingInterval;
-        public int OpcPublishingInterval;
+        public int? OpcSamplingInterval;
+        public int? OpcPublishingInterval;
 
-        public NodePublishingConfigurationModel(ExpandedNodeId expandedNodeId, string originalId, Uri endpointUrl, bool? useSecurity, int opcSamplingInterval, int opcPublishingInterval, string displayName)
+        public NodePublishingConfigurationModel(ExpandedNodeId expandedNodeId, string originalId, Uri endpointUrl, bool? useSecurity, int? opcPublishingInterval, int? opcSamplingInterval, string displayName)
         {
             NodeId = null;
             ExpandedNodeId = expandedNodeId;
@@ -84,7 +93,7 @@ namespace OpcPublisher
             OpcPublishingInterval = opcPublishingInterval;
         }
 
-        public NodePublishingConfigurationModel(NodeId nodeId, string originalId, Uri endpointUrl, bool? useSecurity, string displayName, int opcSamplingInterval, int opcPublishingInterval)
+        public NodePublishingConfigurationModel(NodeId nodeId, string originalId, Uri endpointUrl, bool? useSecurity, int? opcPublishingInterval, int? opcSamplingInterval, string displayName)
         {
             NodeId = nodeId;
             ExpandedNodeId = null;

@@ -84,6 +84,8 @@ When OPC Publisher gets notified about a value change in one of the configured p
 The content of this JSON formatted message can be configured via a configuration file. If no configuration file is specified via the `--tc` option a default configuration is used,
 which is compatible with the [Connected factory Preconfigured Solution](https://github.com/Azure/azure-iot-connected-factory).
 
+If OPC Publisher is configured to batch messages, then they are sent as a valid JSON array.
+
 The data which is ingested is taken from three sources:
 * the OPC Publisher node configuration for the node
 * the MonitoredItem object of the OPC UA stack for which OPC Publisher got a notification

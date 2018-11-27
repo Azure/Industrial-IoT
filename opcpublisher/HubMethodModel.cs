@@ -18,31 +18,6 @@ namespace OpcPublisher
     }
 
     /// <summary>
-    /// Model for a node description.
-    /// </summary>
-    public class NodeModel
-    {
-        public NodeModel(string id, int? opcPublishingInterval = null, int? opcSamplingInterval = null, string displayName = null)
-        {
-            Id = id;
-            OpcPublishingInterval = opcPublishingInterval;
-            OpcSamplingInterval = opcSamplingInterval;
-            DisplayName = displayName;
-        }
-
-        public string Id { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public int? OpcPublishingInterval { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public int? OpcSamplingInterval { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public string DisplayName { get; set; }
-    }
-
-    /// <summary>
     /// Model for a get info response.
     /// </summary>
     public class GetInfoMethodResponseModel
@@ -185,7 +160,7 @@ namespace OpcPublisher
     {
         public PublishNodesMethodRequestModel(string endpointUrl, bool useSecurity = true, string userName = null, string password = null)
         {
-            Nodes = new List<NodeModel>();
+            Nodes = new List<OpcNodeOnEndpointModel>();
             EndpointUrl = endpointUrl;
             UseSecurity = useSecurity;
             UserName = userName;
@@ -193,7 +168,7 @@ namespace OpcPublisher
         }
 
         public string EndpointUrl { get; set; }
-        public List<NodeModel> Nodes { get; set; }
+        public List<OpcNodeOnEndpointModel> Nodes { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool UseSecurity { get; set; }
@@ -212,12 +187,13 @@ namespace OpcPublisher
     {
         public UnpublishNodesMethodRequestModel(string endpointUrl)
         {
-            Nodes = new List<NodeModel>();
+            Nodes = new List<OpcNodeOnEndpointModel>();
             EndpointUrl = endpointUrl;
         }
 
         public string EndpointUrl { get; set; }
-        public List<NodeModel> Nodes { get; set; }
+
+        public List<OpcNodeOnEndpointModel> Nodes { get; set; }
     }
 
     /// <summary>
@@ -291,17 +267,17 @@ namespace OpcPublisher
     {
         public GetConfiguredNodesOnEndpointMethodResponseModel()
         {
-            Nodes = new List<NodeModel>();
+            Nodes = new List<OpcNodeOnEndpointModel>();
         }
 
         /// <param name="nodes"></param>
-        public GetConfiguredNodesOnEndpointMethodResponseModel(List<NodeModel> nodes)
+        public GetConfiguredNodesOnEndpointMethodResponseModel(List<OpcNodeOnEndpointModel> nodes)
         {
             Nodes = nodes;
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public List<NodeModel> Nodes { get; set; }
+        public List<OpcNodeOnEndpointModel> Nodes { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ulong? ContinuationToken { get; set; }

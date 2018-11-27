@@ -13,15 +13,21 @@ namespace OpcPublisher
     public class OpcSubscription
     {
         public List<OpcMonitoredItem> OpcMonitoredItems;
-        public int RequestedPublishingInterval;
-        public double PublishingInterval;
+
         public Subscription OpcUaClientSubscription;
+
+        public int RequestedPublishingInterval { get; set; }
+
+        public double PublishingInterval { get; set; }
+
+        public bool RequestedPublishingIntervalFromConfiguration { get; set; }
 
         public OpcSubscription(int? publishingInterval)
         {
-            RequestedPublishingInterval = publishingInterval ?? OpcPublishingInterval;
-            PublishingInterval = RequestedPublishingInterval;
             OpcMonitoredItems = new List<OpcMonitoredItem>();
+            RequestedPublishingInterval = publishingInterval == null ? OpcPublishingInterval : (int)publishingInterval;
+            RequestedPublishingIntervalFromConfiguration = publishingInterval != null ? true : false;
+            PublishingInterval = RequestedPublishingInterval;
         }
     }
 }

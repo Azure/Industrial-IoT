@@ -705,7 +705,7 @@ namespace OpcPublisher
         /// Adds a node to be monitored. If there is no subscription with the requested publishing interval,
         /// one is created.
         /// </summary>
-        public async Task<HttpStatusCode> AddNodeForMonitoringAsync(NodeId nodeId, ExpandedNodeId expandedNodeId, int opcPublishingInterval, int opcSamplingInterval, string displayName, CancellationToken ct)
+        public async Task<HttpStatusCode> AddNodeForMonitoringAsync(NodeId nodeId, ExpandedNodeId expandedNodeId, int? opcPublishingInterval, int? opcSamplingInterval, string displayName, CancellationToken ct)
         {
             string logPrefix = "AddNodeForMonitoringAsync:";
             bool sessionLocked = false;
@@ -725,14 +725,24 @@ namespace OpcPublisher
                 }
 
                 // check if there is already a subscription with the same publishing interval, which can be used to monitor the node
-                OpcSubscription opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == opcPublishingInterval);
+                int opcPublishingIntervalForNode = opcPublishingInterval == null ? OpcPublishingIntervalDefault : (int)opcPublishingInterval;
+                OpcSubscription opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == opcPublishingIntervalForNode);
                 
                 // if there was none found, create one
                 if (opcSubscription == null)
                 {
-                    opcSubscription = new OpcSubscription(opcPublishingInterval);
+                    if (opcPublishingInterval == null)
+                    {
+                        Logger.Information($"{logPrefix} No matching subscription with default publishing interval found.");
+                        Logger.Information($"Create a new subscription with a default publishing interval.");
+                    }
+                    else
+                    {
+                        Logger.Information($"{logPrefix} No matching subscription with publishing interval of {opcPublishingInterval} found.");
+                        Logger.Information($"Create a new subscription with a publishing interval of {opcPublishingInterval}.");
+                    }
+                    opcSubscription = new OpcSubscription(opcPublishingInterval); 
                     OpcSubscriptions.Add(opcSubscription);
-                    Logger.Information($"{logPrefix} No matching subscription with publishing interval of {opcPublishingInterval} found'. Requested to create a new one.");
                 }
 
                 // create objects for publish check
@@ -752,19 +762,19 @@ namespace OpcPublisher
                 }
 
                 // if it is already published, we do nothing, else we create a new monitored item
+                // todo check properties and update
                 if (!IsNodePublishedInSessionInternal(nodeIdCheck, expandedNodeIdCheck))
                 {
                     OpcMonitoredItem opcMonitoredItem = null;
                     // add a new item to monitor
                     if (expandedNodeId == null)
                     {
-                        opcMonitoredItem = new OpcMonitoredItem(nodeId, EndpointUrl, displayName);
+                        opcMonitoredItem = new OpcMonitoredItem(nodeId, EndpointUrl, opcSamplingInterval, displayName);
                     }
                     else
                     {
-                        opcMonitoredItem = new OpcMonitoredItem(expandedNodeId, EndpointUrl, displayName);
+                        opcMonitoredItem = new OpcMonitoredItem(expandedNodeId, EndpointUrl, opcSamplingInterval, displayName);
                     }
-                    opcMonitoredItem.RequestedSamplingInterval = opcSamplingInterval;
                     opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                     Interlocked.Increment(ref NodeConfigVersion);
                     Logger.Debug($"{logPrefix} Added item with nodeId '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' for monitoring.");

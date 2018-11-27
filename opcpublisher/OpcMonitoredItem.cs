@@ -31,47 +31,63 @@ namespace OpcPublisher
         }
 
         public string DisplayName { get; set; }
+
+        public bool DisplayNameFromConfiguration { get; set; }
+
         public OpcMonitoredItemState State { get; set; }
+
         public uint AttributeId { get; set; }
+
         public MonitoringMode MonitoringMode { get; set; }
+
         public int RequestedSamplingInterval { get; set; }
-        public int SamplingInterval { get; set; }
+
+        public double SamplingInterval { get; set; }
+
+        public bool RequestedSamplingIntervalFromConfiguration { get; set; }
+
         public uint QueueSize { get; set; }
+
         public bool DiscardOldest { get; set; }
+
         public MonitoredItemNotificationEventHandler Notification { get; set; }
+
         public Uri EndpointUrl { get; set; }
+
         public MonitoredItem OpcUaClientMonitoredItem { get; set; }
+
         public NodeId ConfigNodeId { get; set; }
+
         public ExpandedNodeId ConfigExpandedNodeId { get; set; }
+
         public string OriginalId { get; set; }
+
         public OpcMonitoredItemConfigurationType ConfigType { get; set; }
 
         /// <summary>
         /// Ctor using NodeId (ns syntax for namespace).
         /// </summary>
-        public OpcMonitoredItem(NodeId nodeId, Uri sessionEndpointUrl, string displayName)
+        public OpcMonitoredItem(NodeId nodeId, Uri sessionEndpointUrl, int? samplingInterval, string displayName)
         {
             ConfigNodeId = nodeId;
             ConfigExpandedNodeId = null;
             OriginalId = nodeId.ToString();
             ConfigType = OpcMonitoredItemConfigurationType.NodeId;
-            Init(sessionEndpointUrl);
+            Init(sessionEndpointUrl, samplingInterval, displayName);
             State = OpcMonitoredItemState.Unmonitored;
-            DisplayName = displayName;
         }
 
         /// <summary>
         /// Ctor using ExpandedNodeId (nsu syntax for namespace).
         /// </summary>
-        public OpcMonitoredItem(ExpandedNodeId expandedNodeId, Uri sessionEndpointUrl, string displayName)
+        public OpcMonitoredItem(ExpandedNodeId expandedNodeId, Uri sessionEndpointUrl, int? samplingInterval, string displayName)
         {
             ConfigNodeId = null;
             ConfigExpandedNodeId = expandedNodeId;
             OriginalId = expandedNodeId.ToString();
             ConfigType = OpcMonitoredItemConfigurationType.ExpandedNodeId;
-            Init(sessionEndpointUrl);
+            Init(sessionEndpointUrl, samplingInterval, displayName);
             State = OpcMonitoredItemState.UnmonitoredNamespaceUpdateRequested;
-            DisplayName = displayName;
         }
 
         /// <summary>
@@ -372,17 +388,20 @@ namespace OpcPublisher
         /// <summary>
         /// Init instance variables.
         /// </summary>
-        private void Init(Uri sessionEndpointUrl)
+        private void Init(Uri sessionEndpointUrl, int? samplingInterval, string displayName)
         {
             State = OpcMonitoredItemState.Unmonitored;
-            DisplayName = string.Empty;
             AttributeId = Attributes.Value;
             MonitoringMode = MonitoringMode.Reporting;
-            RequestedSamplingInterval = OpcSamplingInterval;
             QueueSize = 0;
             DiscardOldest = true;
             Notification = new MonitoredItemNotificationEventHandler(MonitoredItem_Notification);
             EndpointUrl = sessionEndpointUrl;
+            DisplayName = displayName;
+            DisplayNameFromConfiguration = string.IsNullOrEmpty(displayName) ? false : true;
+            RequestedSamplingInterval = samplingInterval == null ? OpcSamplingInterval : (int)samplingInterval;
+            RequestedSamplingIntervalFromConfiguration = samplingInterval != null ? true : false;
+            SamplingInterval = RequestedSamplingInterval;
         }
     }
 }
