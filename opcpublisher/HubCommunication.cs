@@ -972,13 +972,69 @@ namespace OpcPublisher
                         if (!string.IsNullOrEmpty(messageData.Value))
                         {
                             await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.Value.Name);
-                            if (messageData.PreserveValueQuotes)
+                            if (messageData.NodeId.EndsWith("CzasCyklu"))
                             {
-                                await _jsonWriter.WriteValueAsync(messageData.Value);
+                                double cycleTime = 0;
+                                var valueString = messageData.Value.ToLower();
+                                int ind = 0;
+                                int last = 0;
+                                char c;
+                                for (ind = 0, last = 0; ind < valueString.Length; ind++)
+                                {
+                                    c = valueString[ind];
+                                    if (char.IsDigit(c))
+                                    {
+                                        continue;
+                                    }
+                                    int val = 0;
+                                    bool parseResult = int.TryParse(valueString.Substring(last, ind - last), out val);
+                                    if (parseResult)
+                                    {
+                                        switch (c)
+                                        {
+                                            case 'd':
+                                                cycleTime += val * 24 * 60 * 60;
+                                                break;
+                                            case 'h':
+                                                cycleTime += val * 60 * 60;
+                                                break;
+                                            case 'm':
+                                                if ((ind + 1) == valueString.Length || (((ind + 1) < valueString.Length && char.IsDigit(valueString[ind + 1]))))
+                                                {
+                                                    cycleTime += val * 60;
+                                                }
+                                                else
+                                                {
+                                                    if ((ind + 1) < valueString.Length && valueString[ind + 1] == 's')
+                                                    {
+                                                        cycleTime += (val / 1000.0);
+                                                        ind++;
+                                                    }
+                                                    else
+                                                    {
+                                                        Logger.Error($"invalid m detected in {valueString}");
+                                                    }
+                                                }
+                                                break;
+                                            case 's':
+                                                cycleTime += val;
+                                                break;
+                                        }
+                                        last = ind + 1;
+                                    }
+                                }
+                                await _jsonWriter.WriteValueAsync(cycleTime);
                             }
                             else
                             {
-                                await _jsonWriter.WriteRawValueAsync(messageData.Value);
+                                if (messageData.PreserveValueQuotes)
+                                {
+                                    await _jsonWriter.WriteValueAsync(messageData.Value);
+                                }
+                                else
+                                {
+                                    await _jsonWriter.WriteRawValueAsync(messageData.Value);
+                                }
                             }
                         }
 
