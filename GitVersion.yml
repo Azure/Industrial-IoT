@@ -1,5 +1,10 @@
 assembly-versioning-scheme: MajorMinorPatch
 assembly-file-versioning-format: "{FullSemVer}"
-branches: {}
+increment: none
+branches: {
+    master: {
+        increment: none
+    }
+}
 ignore:
   sha: []
