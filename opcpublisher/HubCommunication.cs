@@ -15,6 +15,7 @@ namespace OpcPublisher
     using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Reflection;
     using System.Runtime.InteropServices;
     using static Diagnostics;
     using static OpcApplicationConfiguration;
@@ -804,9 +805,11 @@ namespace OpcPublisher
 
             // get the info
             GetInfoMethodResponseModel getInfoMethodResponseModel = new GetInfoMethodResponseModel();
-            getInfoMethodResponseModel.VersionMajor = VersionMajor;
-            getInfoMethodResponseModel.VersionMinor = VersionMinor;
-            getInfoMethodResponseModel.VersionPatch = VersionPatch;
+            getInfoMethodResponseModel.VersionMajor = Assembly.GetExecutingAssembly().GetName().Version.Major;
+            getInfoMethodResponseModel.VersionMinor = Assembly.GetExecutingAssembly().GetName().Version.Minor;
+            getInfoMethodResponseModel.VersionPatch = Assembly.GetExecutingAssembly().GetName().Version.Build;
+            getInfoMethodResponseModel.SemanticVersion = (Attribute.GetCustomAttribute(Assembly.GetEntryAssembly(), typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute).InformationalVersion;
+            getInfoMethodResponseModel.InformationalVersion = (Attribute.GetCustomAttribute(Assembly.GetEntryAssembly(), typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute).InformationalVersion;
             getInfoMethodResponseModel.OS = RuntimeInformation.OSDescription;
             getInfoMethodResponseModel.OSArchitecture = RuntimeInformation.OSArchitecture;
             getInfoMethodResponseModel.FrameworkDescription = RuntimeInformation.FrameworkDescription;

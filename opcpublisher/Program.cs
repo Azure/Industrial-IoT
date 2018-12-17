@@ -25,16 +25,10 @@ namespace OpcPublisher
     using static PublisherNodeConfiguration;
     using static PublisherTelemetryConfiguration;
     using static System.Console;
+    using System.Diagnostics;
 
     public class Program
     {
-        /// <summary>
-        /// Semantic version.
-        /// </summary>
-        public static int VersionMajor = 2;
-        public static int VersionMinor = 3;
-        public static int VersionPatch = 0;
-
         /// <summary>
         /// IoTHub/EdgeHub communication objects.
         /// </summary>
@@ -563,7 +557,8 @@ namespace OpcPublisher
                 }
 
                 // start operation
-                Logger.Information($"OPC Publisher V{VersionMajor}.{VersionMinor}.{VersionPatch} starting up...");
+                Logger.Information($"OPC Publisher V{FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion} starting up...");
+                Logger.Debug($"Informational version: V{(Attribute.GetCustomAttribute(Assembly.GetEntryAssembly(), typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute).InformationalVersion} starting up...");
 
                 // allow canceling the application
                 var quitEvent = new ManualResetEvent(false);

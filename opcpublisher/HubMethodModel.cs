@@ -36,6 +36,12 @@ namespace OpcPublisher
         public int VersionPatch { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public string SemanticVersion { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public string InformationalVersion { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
         public string OS { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]

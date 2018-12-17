@@ -36,6 +36,8 @@ The `-f` option for `docker build` is optional and the default is to use Dockerf
 
     docker build -t <your-container-name> https://github.com/Azure/iot-edge-opc-publisher
 
+Note: if you want to have correct version information, please install [gitversion](https://gitversion.readthedocs.io/en/latest/) and run it with the following command line in the root of the repository: `gitversion  . /updateassemblyinfo /ensureassemblyinfo updateassemblyinfofilename opcpublisher/AssemblyInfo.cs`
+
 ## Configuration of the OPC UA nodes to publish
 ### Configuration via configuration file
 The easiest way to configure the OPC UA nodes to publish is via configuration file. The configuration file format is documented in `publishednodes.json` in this repository.
