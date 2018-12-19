@@ -136,6 +136,7 @@ namespace OpcPublisher
                     await _edgeHubClient.SetDesiredPropertyUpdateCallbackAsync(DesiredPropertiesUpdate, null);
 
                     // register method handlers
+                    await _edgeHubClient.SetMethodHandlerAsync("ping", HandlePingMethodAsync, _edgeHubClient);
                     await _edgeHubClient.SetMethodHandlerAsync("PublishNodes", HandlePublishNodesMethodAsync, _edgeHubClient);
                     await _edgeHubClient.SetMethodHandlerAsync("UnpublishNodes", HandleUnpublishNodesMethodAsync, _edgeHubClient);
                     await _edgeHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _edgeHubClient);
@@ -166,6 +167,7 @@ namespace OpcPublisher
                         await _iotHubClient.SetDesiredPropertyUpdateCallbackAsync(DesiredPropertiesUpdate, null);
 
                         // register method handlers
+                        await _iotHubClient.SetMethodHandlerAsync("ping", HandlePingMethodAsync, _iotHubClient);
                         await _iotHubClient.SetMethodHandlerAsync("PublishNodes", HandlePublishNodesMethodAsync, _iotHubClient);
                         await _iotHubClient.SetMethodHandlerAsync("UnpublishNodes", HandleUnpublishNodesMethodAsync, _iotHubClient);
                         await _iotHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _iotHubClient);
@@ -216,6 +218,20 @@ namespace OpcPublisher
         static void ConnectionStatusChange(ConnectionStatus status, ConnectionStatusChangeReason reason)
         {
                 Logger.Information($"Connection status changed to '{status}', reason '{reason}'");
+        }
+        /// <summary>
+        /// Handle method call to ping the module.
+        /// </summary>
+        static async Task<MethodResponse> HandlePingMethodAsync(MethodRequest methodRequest, object userContext)
+        {
+            string logPrefix = "HandlePingMethodAsync:";
+
+            // build response
+            string resultString = $"{{'pingResult': 'ping was successful'}}";
+            byte[] result = Encoding.UTF8.GetBytes(resultString);
+            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
+            Logger.Information($"{logPrefix} Successfully pinged");
+            return methodResponse;
         }
 
         /// <summary>

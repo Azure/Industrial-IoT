@@ -68,6 +68,7 @@ This endpoint exposes four methods:
 
 ### Configuration via IoTHub direct function calls
 OPC Publisher implements the following IoTHub direct method calls, which can be called when OPC Publisher runs standalone or in IoT Edge:
+  - ping
   - PublishNodes
   - UnpublishNodes
   - UnpublishAllNodes

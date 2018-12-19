@@ -45,7 +45,7 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="gitversion $(SolutionDir)  /updateassemblyinfo /ensureassemblyinfo updateassemblyinfofilename $(ProjectDir)AssemblyInfo.cs &gt;nul 2&gt;nul&#xD;&#xA;set ERRORLEVEL=0" />
+    <Exec Command="gitversion $(SolutionDir)  /updateassemblyinfo /ensureassemblyinfo /updateassemblyinfofilename $(ProjectDir)AssemblyInfo.cs &gt;nul 2&gt;nul&#xD;&#xA;set ERRORLEVEL=0" />
   </Target>
 
 </Project>
