@@ -139,6 +139,7 @@ namespace OpcPublisher
                     await _edgeHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _edgeHubClient);
                     await _edgeHubClient.SetMethodHandlerAsync("GetConfiguredEndpoints", HandleGetConfiguredEndpointsMethodAsync, _edgeHubClient);
                     await _edgeHubClient.SetMethodHandlerAsync("GetConfiguredNodesOnEndpoint", HandleGetConfiguredNodesOnEndpointMethodAsync, _edgeHubClient);
+                    await _edgeHubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync, _edgeHubClient);
                 }
                 else
                 {
@@ -165,6 +166,7 @@ namespace OpcPublisher
                         await _iotHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _iotHubClient);
                         await _iotHubClient.SetMethodHandlerAsync("GetConfiguredEndpoints", HandleGetConfiguredEndpointsMethodAsync, _iotHubClient);
                         await _iotHubClient.SetMethodHandlerAsync("GetConfiguredNodesOnEndpoint", HandleGetConfiguredNodesOnEndpointMethodAsync, _iotHubClient);
+                        await _edgeHubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync, _iotHubClient);
                     }
                 }
                 Logger.Debug($"Init D2C message processing");
@@ -696,6 +698,24 @@ namespace OpcPublisher
             Logger.Information($"{logPrefix} Success returning {actualNodeCount} node(s) of {availableNodeCount} (start: {startIndex}) (node config version: {nodeConfigVersion:X8})!");
             return methodResponse;
         }
+
+        /// <summary>
+        /// Method that is called for any unimplemented call. Just returns that info to the caller
+        /// </summary>
+        /// <param name="methodRequest"></param>
+        /// <param name="userContext"></param>
+        /// <returns></returns>
+        private async Task<MethodResponse> DefaultMethodHandlerAsync(MethodRequest methodRequest, object userContext)
+        {
+            Logger.Information($"Received direct method call for {methodRequest.Name} which is not implemented");
+            string response = $"Method {methodRequest.Name} successfully received but this method is not implemented";
+
+            string resultString = JsonConvert.SerializeObject(response);
+            byte[] result = Encoding.UTF8.GetBytes(resultString);
+            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
+            return methodResponse;
+        }
+
 
         /// <summary>
         /// Initializes internal message processing.
