@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,17 +7,19 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
+    using System;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth;
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models;
     using Swashbuckle.AspNetCore.Annotations;
-    using System;
 
     /// <inheritdoc/>
     [Route(VersionInfo.PATH + "/[controller]"), TypeFilter(typeof(ExceptionsFilterAttribute))]
     [Produces("application/json")]
-
+    [Authorize(Policy = Policies.CanRead)]
     public sealed class StatusController : Controller
     {
         private readonly ILogger log;

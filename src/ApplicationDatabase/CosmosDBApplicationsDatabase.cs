@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -24,23 +24,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
     internal sealed class CosmosDBApplicationsDatabase : IApplicationsDatabase
     {
-        const int DefaultRecordsPerQuery = 10;
+        const int _defaultRecordsPerQuery = 10;
         private readonly ILogger _log;
-        private readonly string Endpoint;
-        private readonly SecureString AuthKeyOrResourceToken;
-        private readonly ILifetimeScope Scope = null;
+        private readonly string _endpoint;
+        private readonly SecureString _authKeyOrResourceToken;
+        private readonly ILifetimeScope _scope = null;
 
         public CosmosDBApplicationsDatabase(
             ILifetimeScope scope,
             IServicesConfig config,
             ILogger logger)
         {
-            this.Scope = scope;
-            this.Endpoint = config.CosmosDBEndpoint;
-            this.AuthKeyOrResourceToken = new SecureString();
+            _scope = scope;
+            _endpoint = config.CosmosDBEndpoint;
+            _authKeyOrResourceToken = new SecureString();
             foreach (char ch in config.CosmosDBToken)
             {
-                this.AuthKeyOrResourceToken.AppendChar(ch);
+                _authKeyOrResourceToken.AppendChar(ch);
             }
             _log = logger;
             _log.Debug("Creating new instance of `CosmosDBApplicationsDatabase` service " + config.CosmosDBEndpoint, () => { });
@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             application.ID = await GetMaxAppIDAsync();
             application.CreateTime = application.UpdateTime = DateTime.UtcNow;
             application.ApplicationId = Guid.NewGuid();
-            var result = await Applications.CreateAsync(application);
+            var result = await _applications.CreateAsync(application);
             applicationId = new Guid(result.Id);
 
             return applicationId.ToString();
@@ -93,7 +93,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 {
                     retryUpdate = false;
 
-                    var record = await Applications.GetAsync(applicationId);
+                    var record = await _applications.GetAsync(applicationId);
                     if (record == null)
                     {
                         throw new ArgumentException("A record with the specified application id does not exist.", nameof(id));
@@ -114,7 +114,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                     record.DiscoveryUrls = application.DiscoveryUrls;
                     try
                     {
-                        await Applications.UpdateAsync(applicationId, record, record.ETag);
+                        await _applications.UpdateAsync(applicationId, record, record.ETag);
                     }
                     catch (DocumentClientException dce)
                     {
@@ -139,13 +139,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
             List<byte[]> certificates = new List<byte[]>();
 
-            var application = await Applications.GetAsync(appId);
+            var application = await _applications.GetAsync(appId);
             if (application == null)
             {
                 throw new ResourceNotFoundException("A record with the specified application id does not exist.");
             }
 
-            ICertificateRequest certificateRequestsService = Scope.Resolve<ICertificateRequest>();
+            ICertificateRequest certificateRequestsService = _scope.Resolve<ICertificateRequest>();
             // mark all requests as deleted
             ReadRequestResultModel[] certificateRequests;
             string nextPageLink = null;
@@ -158,7 +158,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 }
             } while (nextPageLink != null);
 
-            await Applications.DeleteAsync(appId);
+            await _applications.DeleteAsync(appId);
         }
 
         public async Task<Application> GetApplicationAsync(string id)
@@ -169,7 +169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             }
 
             Guid appId = new Guid(id);
-            return await Applications.GetAsync(appId);
+            return await _applications.GetAsync(appId);
         }
 
         public async Task<Application[]> FindApplicationAsync(string applicationUri)
@@ -179,7 +179,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 throw new ArgumentException("The applicationUri must be provided", nameof(applicationUri));
             }
 
-            var results = await Applications.GetAsync(ii => ii.ApplicationUri == applicationUri);
+            var results = await _applications.GetAsync(ii => ii.ApplicationUri == applicationUri);
             return results.ToArray();
         }
 
@@ -217,10 +217,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             bool lastQuery = false;
             do
             {
-                uint queryRecords = complexQuery ? DefaultRecordsPerQuery : maxRecordsToReturn;
+                uint queryRecords = complexQuery ? _defaultRecordsPerQuery : maxRecordsToReturn;
                 string query = CreateServerQuery(startingRecordId, queryRecords);
                 nextRecordId = startingRecordId + 1;
-                var applications = await Applications.GetAsync(query);
+                var applications = await _applications.GetAsync(query);
                 lastQuery = queryRecords == 0 || applications.Count() < queryRecords || applications.Count() == 0;
 
                 foreach (var application in applications)
@@ -315,13 +315,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
             if (maxRecordsToReturn < 0)
             {
-                maxRecordsToReturn = DefaultRecordsPerQuery;
+                maxRecordsToReturn = _defaultRecordsPerQuery;
             }
             string query = CreateServerQuery(0, 0);
             do
             {
                 IEnumerable<Application> applications;
-                (nextPageLink, applications) = await Applications.GetPageAsync(query, nextPageLink, maxRecordsToReturn - records.Count);
+                (nextPageLink, applications) = await _applications.GetPageAsync(query, nextPageLink, maxRecordsToReturn - records.Count);
 
                 foreach (var application in applications)
                 {
@@ -389,8 +389,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         #region Private Members
         private void Initialize()
         {
-            db = new DocumentDBRepository(Endpoint, AuthKeyOrResourceToken);
-            Applications = new DocumentDBCollection<Application>(db);
+            _db = new DocumentDBRepository(_endpoint, _authKeyOrResourceToken);
+            _applications = new DocumentDBCollection<Application>(_db);
         }
 
         private string CreateServerQuery(uint startingRecordId, uint maxRecordsToQuery)
@@ -527,15 +527,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         private async Task<int> GetMaxAppIDAsync()
         {
             // find new ID for QueryServers
-            var maxAppIDEnum = await Applications.GetAsync("SELECT TOP 1 * FROM Applications a ORDER BY a.ID DESC");
+            var maxAppIDEnum = await _applications.GetAsync("SELECT TOP 1 * FROM Applications a ORDER BY a.ID DESC");
             var maxAppID = maxAppIDEnum.SingleOrDefault();
             return (maxAppID != null) ? maxAppID.ID + 1 : 1;
         }
         #endregion
         #region Private Fields
-        private DateTime queryCounterResetTime = DateTime.UtcNow;
-        private DocumentDBRepository db;
-        private IDocumentDBCollection<Application> Applications;
+        private DocumentDBRepository _db;
+        private IDocumentDBCollection<Application> _applications;
         #endregion
     }
 }

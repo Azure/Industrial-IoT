@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for
 // license information.
 //
@@ -21,18 +21,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
     public class DownloadController : Controller
     {
         protected IOpcVault opcVault;
-        private readonly OpcVaultApiOptions opcVaultOptions;
-        private readonly AzureADOptions azureADOptions;
-        private readonly ITokenCacheService tokenCacheService;
+        private readonly OpcVaultApiOptions _opcVaultOptions;
+        private readonly AzureADOptions _azureADOptions;
+        private readonly ITokenCacheService _tokenCacheService;
 
         public DownloadController(
             OpcVaultApiOptions opcVaultOptions,
             AzureADOptions azureADOptions,
             ITokenCacheService tokenCacheService)
         {
-            this.opcVaultOptions = opcVaultOptions;
-            this.azureADOptions = azureADOptions;
-            this.tokenCacheService = tokenCacheService;
+            _opcVaultOptions = opcVaultOptions;
+            _azureADOptions = azureADOptions;
+            _tokenCacheService = tokenCacheService;
         }
 
         [ActionName("Details")]
@@ -298,8 +298,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             if (opcVault == null)
             {
                 ServiceClientCredentials serviceClientCredentials =
-                    new OpcVaultLoginCredentials(opcVaultOptions, azureADOptions, tokenCacheService, User);
-                opcVault = new OpcVault(new Uri(opcVaultOptions.BaseAddress), serviceClientCredentials);
+                    new OpcVaultLoginCredentials(_opcVaultOptions, _azureADOptions, _tokenCacheService, User);
+                opcVault = new OpcVault(new Uri(_opcVaultOptions.BaseAddress), serviceClientCredentials);
             }
         }
 

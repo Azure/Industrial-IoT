@@ -21,12 +21,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
         /// <inheritdoc/>
         public DocumentCollection Collection { get; private set; }
         private readonly IDocumentDBRepository db;
-        private readonly string CollectionId = typeof(T).Name;
+        private readonly string CollectionId;
         private const int RequestLevelLowest = 400;
 
         /// <inheritdoc/>
-        public DocumentDBCollection(IDocumentDBRepository db)
+        public DocumentDBCollection(IDocumentDBRepository db) : this(db, typeof(T).Name)
         {
+        }
+
+        /// <inheritdoc/>
+        public DocumentDBCollection(IDocumentDBRepository db, string collectionId)
+        {
+            if (string.IsNullOrEmpty(collectionId))
+                throw new ArgumentNullException("collectionId must be set");
+            if (db == null)
+                throw new ArgumentNullException(nameof(db));
+
+            this.CollectionId = collectionId;
             this.db = db;
             CreateCollectionIfNotExistsAsync().Wait();
         }

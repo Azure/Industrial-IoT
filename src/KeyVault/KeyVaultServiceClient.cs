@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.IIoT.Diagnostics;
@@ -467,6 +468,113 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         }
 
         /// <summary>
+        /// Creates a new signed application certificate in group id.
+        /// </summary>
+        public async Task<X509Certificate2> CreateSignedKeyPairAsync(
+            string caCertId,
+            X509Certificate2 issuerCert,
+            string applicationUri,
+            string applicationName,
+            string subjectName,
+            string[] domainNames,
+            DateTime notBefore,
+            DateTime notAfter,
+            int keySize,
+            int hashSize,
+            KeyVaultSignatureGenerator generator,
+            CancellationToken ct = default)
+        {
+            CertificateOperation createResult = null;
+            var certName = KeyStoreName(caCertId, Guid.NewGuid().ToString());
+            try
+            {
+                // policy unknown issuer, new key, exportable
+                var policyUnknownNewExportable = CreateCertificatePolicy(subjectName, keySize, false, false, true);
+                var attributes = CreateCertificateAttributes(notBefore, notAfter);
+
+                // create the CSR
+                createResult = await _keyVaultClient.CreateCertificateAsync(
+                    _vaultBaseUrl,
+                    certName,
+                    policyUnknownNewExportable,
+                    attributes,
+                    null,
+                    ct)
+                    .ConfigureAwait(false);
+
+                if (createResult.Csr == null)
+                {
+                    throw new ServiceResultException(StatusCodes.BadInvalidArgument, "Failed to read CSR from CreateCertificate.");
+                }
+
+                // decode the CSR and verify consistency
+                var pkcs10CertificationRequest = new Org.BouncyCastle.Pkcs.Pkcs10CertificationRequest(createResult.Csr);
+                var info = pkcs10CertificationRequest.GetCertificationRequestInfo();
+                if (createResult.Csr == null ||
+                    pkcs10CertificationRequest == null ||
+                    !pkcs10CertificationRequest.Verify())
+                {
+                    throw new ServiceResultException(StatusCodes.BadInvalidArgument, "Invalid CSR.");
+                }
+
+                // create the self signed app cert
+                var publicKey = KeyVaultCertFactory.GetRSAPublicKey(info.SubjectPublicKeyInfo);
+                var signedcert = await KeyVaultCertFactory.CreateSignedCertificate(
+                    applicationUri,
+                    applicationName,
+                    subjectName,
+                    domainNames,
+                    (ushort)keySize,
+                    notBefore,
+                    notAfter,
+                    (ushort)hashSize,
+                    issuerCert,
+                    publicKey,
+                    generator,
+                    true);
+
+                // merge signed cert with keystore
+                var mergeResult = await _keyVaultClient.MergeCertificateAsync(
+                    _vaultBaseUrl,
+                    certName,
+                    new X509Certificate2Collection(signedcert)
+                    );
+
+                X509Certificate2 keyPair = null;
+                var secret = await _keyVaultClient.GetSecretAsync(mergeResult.SecretIdentifier.Identifier, ct);
+                if (secret.ContentType == CertificateContentType.Pfx)
+                {
+                    var certBlob = Convert.FromBase64String(secret.Value);
+                    keyPair = CertificateFactory.CreateCertificateFromPKCS12(certBlob, string.Empty);
+                }
+                else if (secret.ContentType == CertificateContentType.Pem)
+                {
+                    Encoding encoder = Encoding.UTF8;
+                    var privateKey = encoder.GetBytes(secret.Value.ToCharArray());
+                    keyPair = CertificateFactory.CreateCertificateWithPEMPrivateKey(signedcert, privateKey, string.Empty);
+                }
+
+                return keyPair;
+            }
+            catch
+            {
+                throw new ServiceResultException(StatusCodes.BadInternalError, "Failed to create new key pair certificate");
+            }
+            finally
+            {
+                try
+                {
+                    var deletedCertBundle = await _keyVaultClient.DeleteCertificateAsync(_vaultBaseUrl, certName, ct);
+                    await _keyVaultClient.PurgeDeletedCertificateAsync(_vaultBaseUrl, certName, ct);
+                }
+                catch
+                {
+                    // intentionally fall through, purge may fail
+                }
+            }
+        }
+
+        /// <summary>
         /// Imports a new CRL for group id.
         /// </summary>
         public async Task ImportCACrl(string id, X509Certificate2 certificate, Opc.Ua.X509CRL crl, CancellationToken ct = default(CancellationToken))
@@ -752,7 +860,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             string subject,
             int keySize,
             bool selfSigned,
-            bool reuseKey = false)
+            bool reuseKey = false,
+            bool exportable = false)
         {
 
             var policy = new CertificatePolicy
@@ -763,9 +872,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 },
                 KeyProperties = new KeyProperties
                 {
-                    Exportable = false,
+                    Exportable = exportable,
                     KeySize = keySize,
-                    KeyType = _keyStoreHSM ? "RSA-HSM" : "RSA",
+                    KeyType = (_keyStoreHSM && !exportable) ? "RSA-HSM" : "RSA",
                     ReuseKey = reuseKey
                 },
                 SecretProperties = new SecretProperties
@@ -780,9 +889,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             return policy;
         }
 
-        private string CrlSecretName(string name, X509Certificate2 certificate)
+        private string KeyStoreName(string id, string requestId)
         {
-            return name + "Crl" + certificate.Thumbprint;
+            return id + "Keys" + requestId;
+        }
+        private string CrlSecretName(string id, X509Certificate2 certificate)
+        {
+            return id + "Crl" + certificate.Thumbprint;
         }
 
         private async Task<X509CRL> LoadCrlSecret(string secretIdentifier, CancellationToken ct = default(CancellationToken))

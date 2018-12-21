@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
     public class KeyVaultCertFactory
     {
         const int SerialNumberLength = 20;
+        const int DefaultKeySize = 2048;
 
         /// <summary>
         /// Creates a KeyVault signed certificate.
@@ -130,7 +131,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                     notBefore = issuerCAKeyCert.NotBefore;
                 }
             }
-
 
             var issuerSubjectName = issuerCAKeyCert != null ? issuerCAKeyCert.SubjectName : subjectDN;
             X509Certificate2 signedCert = request.Create(
@@ -355,9 +355,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             ref ushort keySize)
         {
             // enforce recommended keysize unless lower value is enforced.
-            if (keySize < 1024)
+            if (keySize < 2048)
             {
-                keySize = CertificateFactory.defaultKeySize;
+                keySize = DefaultKeySize;
             }
 
             if (keySize % 1024 != 0)

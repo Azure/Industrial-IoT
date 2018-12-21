@@ -22,19 +22,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
     [Authorize]
     public class ApplicationController : Controller
     {
-        private IOpcVault opcVault;
-        private readonly OpcVaultApiOptions opcVaultOptions;
-        private readonly AzureADOptions azureADOptions;
-        private readonly ITokenCacheService tokenCacheService;
+        private IOpcVault _opcVault;
+        private readonly OpcVaultApiOptions _opcVaultOptions;
+        private readonly AzureADOptions _azureADOptions;
+        private readonly ITokenCacheService _tokenCacheService;
 
         public ApplicationController(
             OpcVaultApiOptions opcVaultOptions,
             AzureADOptions azureADOptions,
             ITokenCacheService tokenCacheService)
         {
-            this.opcVaultOptions = opcVaultOptions;
-            this.azureADOptions = azureADOptions;
-            this.tokenCacheService = tokenCacheService;
+            _opcVaultOptions = opcVaultOptions;
+            _azureADOptions = azureADOptions;
+            _tokenCacheService = tokenCacheService;
         }
 
 
@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             var applicationsTrimmed = new List<ApplicationRecordTrimmedApiModel>();
             do
             {
-                var applications = await opcVault.QueryApplicationsPageAsync(applicationQuery);
+                var applications = await _opcVault.QueryApplicationsPageAsync(applicationQuery);
                 foreach (var app in applications.Applications)
                 {
                     applicationsTrimmed.Add(new ApplicationRecordTrimmedApiModel(app));
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 return new BadRequestResult();
             }
             AuthorizeClient();
-            var application = await opcVault.GetApplicationAsync(id);
+            var application = await _opcVault.GetApplicationAsync(id);
             if (application == null)
             {
                 return new NotFoundResult();
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> UnregisterConfirmedAsync([Bind("Id")] string id)
         {
             AuthorizeClient();
-            await opcVault.UnregisterApplicationAsync(id);
+            await _opcVault.UnregisterApplicationAsync(id);
             return RedirectToAction("Index");
         }
 
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> DetailsAsync(string id)
         {
             AuthorizeClient();
-            var application = await opcVault.GetApplicationAsync(id);
+            var application = await _opcVault.GetApplicationAsync(id);
             if (application == null)
             {
                 return new NotFoundResult();
@@ -97,11 +97,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
 
         private void AuthorizeClient()
         {
-            if (opcVault == null)
+            if (_opcVault == null)
             {
                 ServiceClientCredentials serviceClientCredentials =
-                    new OpcVaultLoginCredentials(opcVaultOptions, azureADOptions, tokenCacheService, User);
-                opcVault = new OpcVault(new Uri(opcVaultOptions.BaseAddress), serviceClientCredentials);
+                    new OpcVaultLoginCredentials(_opcVaultOptions, _azureADOptions, _tokenCacheService, User);
+                _opcVault = new OpcVault(new Uri(_opcVaultOptions.BaseAddress), serviceClientCredentials);
             }
         }
 

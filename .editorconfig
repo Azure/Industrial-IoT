@@ -17,7 +17,7 @@ charset = utf-8
 indent_size = 2
 
 # project files
-[*.{sh]
+[*.{sh}]
 end_of_line = lf
 
 [*.{cs}]
@@ -32,7 +32,7 @@ trim_trailing_whitespace = false
 
 [*.{cs}]
 # Organize usings
-dotnet_sort_system_directives_first = false
+dotnet_sort_system_directives_first = true:warning
 
 # this. preferences
 dotnet_style_qualification_for_field = false:warning

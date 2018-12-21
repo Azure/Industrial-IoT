@@ -1,0 +1,131 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "webAppName": {
+            "type": "string",
+            "metadata": {
+                "description": "Base name of the resource such as web app name and app service plan "
+            },
+            "minLength": 2
+        }
+    },
+    "variables": {
+        "tenantId": "[subscription().tenantId]",
+        "randomSuffix": "[take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('webAppName')), 5)]",
+        "applocation": "[resourceGroup().location]",
+        "keyVaultName": "[concat('vault-', variables('randomSuffix'))]",
+        "vaultSku": "Premium",
+        "enabledForDeployment": true,
+        "enabledForTemplateDeployment": false,
+        "enableVaultForVolumeEncryption": false,
+        "webAppSku": "S1",
+        "webAppPortalName": "[concat(parameters('webAppName'), '-app')]",
+        "webAppServiceName": "[concat(parameters('webAppName'), '-service')]",
+        "appServicePlanName": "[concat('AppServicePlan-', parameters('webAppName'))]",
+        "documentDBName": "[concat('cosmosdb-', variables('randomSuffix'))]",
+        "documentDBApiVersion": "2016-03-19",
+        "documentDBResourceId": "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))]",
+        "apiType": "SQL",
+        "offerType": "Standard"
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-08-01",
+            "type": "Microsoft.Web/serverfarms",
+            "kind": "app",
+            "name": "[variables('appServicePlanName')]",
+            "location": "[variables('applocation')]",
+            "comments": "This app service plan is used for the web app and slots.",
+            "properties": {},
+            "dependsOn": [],
+            "sku": {
+                "name": "[variables('webAppSku')]"
+            }
+        },
+        {
+            "comments": "Azure CosmosDb",
+            "apiVersion": "[variables('documentDBApiVersion')]",
+            "type": "Microsoft.DocumentDb/databaseAccounts",
+            "kind": "GlobalDocumentDB",
+            "name": "[variables('documentDBName')]",
+            "location": "[variables('applocation')]",
+            "properties": {
+                "name": "[variables('documentDBName')]",
+                "databaseAccountOfferType": "standard",
+                "consistencyPolicy": {
+                    "defaultConsistencyLevel": "Session",
+                    "maxStalenessPrefix": 10,
+                    "maxIntervalInSeconds": 5
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[variables('keyVaultName')]",
+            "apiVersion": "2015-06-01",
+            "location": "[variables('applocation')]",
+            "tags": {
+                "displayName": "KeyVault"
+            },
+            "properties": {
+                "enabledForDeployment": "[variables('enabledForDeployment')]",
+                "enabledForTemplateDeployment": "[variables('enabledForTemplateDeployment')]",
+                "enabledForVolumeEncryption": "[variables('enableVaultForVolumeEncryption')]",
+                "tenantId": "[variables('tenantId')]",
+                "sku": {
+                    "name": "[variables('vaultSku')]",
+                    "family": "A"
+                },
+                "accessPolicies": []
+            }
+        },
+        {
+            "apiVersion": "2016-08-01",
+            "type": "Microsoft.Web/sites",
+            "kind": "app",
+            "name": "[variables('webAppPortalName')]",
+            "location": "[variables('applocation')]",
+            "comments": "This is the web app, also the default 'nameless' slot.",
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+            ]
+        },
+        {
+            "apiVersion": "2016-08-01",
+            "type": "Microsoft.Web/sites",
+            "kind": "app",
+            "name": "[variables('webAppServiceName')]",
+            "location": "[variables('applocation')]",
+            "comments": "This is the web app service, also the default 'nameless' slot.",
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+            ]
+        }
+    ],
+    "outputs": {
+        "webAppPortalUrl": {
+            "type": "string",
+            "value": "[concat('https://', reference(concat('Microsoft.Web/sites/', variables('webAppPortalName'))).hostNames[0])]"
+        },
+        "webAppServiceUrl": {
+            "type": "string",
+            "value": "[concat('https://', reference(concat('Microsoft.Web/sites/', variables('webAppServiceName'))).hostNames[0])]"
+        },
+        "resourceGroup": {
+            "type": "string",
+            "value": "[resourceGroup().name]"
+        },
+        "tenantId": {
+            "type": "string",
+            "value": "[variables('tenantId')]"
+        }
+    }
+}

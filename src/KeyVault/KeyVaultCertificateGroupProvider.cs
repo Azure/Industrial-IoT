@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -301,11 +301,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             }
             return null;
         }
+
         /// <summary>
         /// Revokes a certificate collection. 
         /// Finds for each the matching CA cert version and updates Crl.
         /// </summary>
-
         public async Task<X509Certificate2Collection> RevokeCertificatesAsync(
             X509Certificate2Collection certificates)
         {
@@ -354,10 +354,57 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             Crl = await _keyVaultServiceClient.LoadCACrl(Configuration.Id, Certificate);
             return remainingCertificates;
         }
+
         /// <summary>
         /// Creates a new key pair with certificate offline and signs it with KeyVault.
         /// </summary>
         public override async Task<X509Certificate2KeyPair> NewKeyPairRequestAsync(
+            ApplicationRecordDataType application,
+            string subjectName,
+            string[] domainNames,
+            string privateKeyFormat,
+            string privateKeyPassword)
+        {
+            await LoadPublicAssets().ConfigureAwait(false);
+
+            DateTime notBefore = TrimmedNotBeforeDate();
+            DateTime notAfter = notBefore.AddMonths(Configuration.DefaultCertificateLifetime);
+            // create new cert in HSM storage
+            using (var signedCertWithPrivateKey = await _keyVaultServiceClient.CreateSignedKeyPairAsync(
+                Configuration.Id,
+                Certificate,
+                application.ApplicationUri,
+                application.ApplicationNames.Count > 0 ? application.ApplicationNames[0].Text : "ApplicationName",
+                subjectName,
+                domainNames,
+                notBefore,
+                notAfter,
+                Configuration.DefaultCertificateKeySize,
+                Configuration.DefaultCertificateHashSize,
+                new KeyVaultSignatureGenerator(_keyVaultServiceClient, _caCertKeyIdentifier, Certificate)
+                ).ConfigureAwait(false))
+            {
+                byte[] privateKey;
+                if (privateKeyFormat == "PFX")
+                {
+                    privateKey = signedCertWithPrivateKey.Export(X509ContentType.Pfx, privateKeyPassword);
+                }
+                else if (privateKeyFormat == "PEM")
+                {
+                    privateKey = CertificateFactory.ExportPrivateKeyAsPEM(signedCertWithPrivateKey);
+                }
+                else
+                {
+                    throw new ServiceResultException(StatusCodes.BadInvalidArgument, "Invalid private key format");
+                }
+                return new X509Certificate2KeyPair(new X509Certificate2(signedCertWithPrivateKey.RawData), privateKeyFormat, privateKey);
+            }
+        }
+
+        /// <summary>
+        /// Creates a new key pair with certificate offline and signs it with KeyVault.
+        /// </summary>
+        public async Task<X509Certificate2KeyPair> NewKeyPairRequestOfflineAsync(
             ApplicationRecordDataType application,
             string subjectName,
             string[] domainNames,

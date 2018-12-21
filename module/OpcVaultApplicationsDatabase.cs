@@ -1,14 +1,14 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
-using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
-using Opc.Ua.Gds.Server.OpcVault;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
+using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
+using Opc.Ua.Gds.Server.OpcVault;
 
 namespace Opc.Ua.Gds.Server.Database.OpcVault
 {

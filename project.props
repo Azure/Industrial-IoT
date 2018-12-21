@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <Product>Azure Industrial IoT OPC Vault Services</Product>
+    <RepositoryUrl>https://github.com/Azure/azure-iiot-opc-vault-service</RepositoryUrl>
+    <PackageTags>Industrial;Manufacturing;OPC;OPCUA;Azure;IoT;IIoT;Certificate;OpcVault;KeyVault;.NET</PackageTags>
+  </PropertyGroup>
+</Project>
