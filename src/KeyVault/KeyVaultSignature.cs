@@ -224,6 +224,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             return new X509CRL(updatedCrl.GetEncoded());
         }
 
+        /// <summary>
+        /// Get RSA public key from a CSR.
+        /// </summary>
+        public static RSA GetRSAPublicKey(Org.BouncyCastle.Asn1.X509.SubjectPublicKeyInfo subjectPublicKeyInfo)
+        {
+            Org.BouncyCastle.Crypto.AsymmetricKeyParameter asymmetricKeyParameter = Org.BouncyCastle.Security.PublicKeyFactory.CreateKey(subjectPublicKeyInfo);
+            Org.BouncyCastle.Crypto.Parameters.RsaKeyParameters rsaKeyParameters = (Org.BouncyCastle.Crypto.Parameters.RsaKeyParameters)asymmetricKeyParameter;
+            RSAParameters rsaKeyInfo = new RSAParameters();
+            rsaKeyInfo.Modulus = rsaKeyParameters.Modulus.ToByteArrayUnsigned();
+            rsaKeyInfo.Exponent = rsaKeyParameters.Exponent.ToByteArrayUnsigned();
+            RSA rsa = RSA.Create(rsaKeyInfo);
+            return rsa;
+        }
+
         private static string GetRSAHashAlgorithm(uint hashSizeInBits)
         {
             if (hashSizeInBits <= 160)
@@ -329,7 +343,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             Array.Reverse(serialNumber);
             return new Org.BouncyCastle.Math.BigInteger(1, serialNumber);
         }
-
 
         /// <summary>
         /// Sets the parameters to suitable defaults.
@@ -723,131 +736,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         public int Collect(byte[] destination, int offset)
         {
             throw new NotImplementedException();
-        }
-    }
-
-    // TODO: replace with asnreader/writer
-    public class ASN1Decoder //: IDisposable
-    {
-        internal enum DerTag : byte
-        {
-            Boolean = 0x01,
-            Integer = 0x02,
-            BitString = 0x03,
-            OctetString = 0x04,
-            Null = 0x05,
-            ObjectIdentifier = 0x06,
-            UTF8String = 0x0C,
-            Sequence = 0x10,
-            Set = 0x11,
-            PrintableString = 0x13,
-            T61String = 0x14,
-            IA5String = 0x16,
-            UTCTime = 0x17,
-            GeneralizedTime = 0x18,
-            BMPString = 0x1E,
-        }
-
-        private BinaryReader _reader;
-
-        public ASN1Decoder(byte[] asn1Blob)
-        {
-            var stream = new MemoryStream(asn1Blob);
-            _reader = new BinaryReader(stream);
-        }
-
-        public ASN1Decoder(Stream asn1Stream)
-        {
-            _reader = new BinaryReader(asn1Stream);
-        }
-
-        public RSACryptoServiceProvider GetRSAPublicKey()
-        {
-            var oidRSAEncryption = Org.BouncyCastle.Asn1.Pkcs.PkcsObjectIdentifiers.RsaEncryption.GetDerEncoded().Skip(2);
-
-            int headerSize = ReadASN1HeaderLength();
-            int identifierSize = ReadASN1HeaderLength();
-
-            if (ReadByte() == (byte)DerTag.ObjectIdentifier)
-            {
-                int oidLength = ReadASN1HeaderLength(false);
-                byte[] oidBytes = new byte[oidLength];
-                _reader.Read(oidBytes, 0, oidBytes.Length);
-                if (!oidBytes.SequenceEqual(oidRSAEncryption))
-                {
-                    throw new CryptographicException("No RSA Encryption key.");
-                }
-                int remainingBytes = identifierSize - 2 - oidBytes.Length;
-                _reader.ReadBytes(remainingBytes);
-            }
-
-            if (ReadByte() == (byte)DerTag.BitString)
-            {
-                ReadASN1HeaderLength(false);
-                _reader.ReadByte();
-                ReadASN1HeaderLength();
-                if (_reader.ReadByte() == (byte)DerTag.Integer)
-                {
-                    int modulusSize = ReadASN1HeaderLength(false);
-                    byte modulus0 = ReadByte();
-                    if (modulus0 == 0)
-                    {
-                        modulusSize--;
-                    }
-                    byte[] modulus = new byte[modulusSize];
-                    if (modulus0 != 0)
-                    {
-                        modulus[0] = modulus0;
-                        _reader.Read(modulus, 1, modulus.Length - 1);
-                    }
-                    else
-                    {
-                        _reader.Read(modulus, 0, modulus.Length);
-                    }
-
-                    if (ReadByte() == (byte)DerTag.Integer)
-                    {
-                        int exponentSize = ReadASN1HeaderLength(false);
-                        byte[] exponent = new byte[exponentSize];
-                        _reader.Read(exponent, 0, exponent.Length);
-
-                        RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
-                        RSAParameters rsaKeyInfo = new RSAParameters();
-                        rsaKeyInfo.Modulus = modulus;
-                        rsaKeyInfo.Exponent = exponent;
-                        rsa.ImportParameters(rsaKeyInfo);
-                        return rsa;
-                    }
-                }
-            }
-            throw new CryptographicException("Invalid RSA key.");
-        }
-
-        private byte ReadByte()
-        {
-            return _reader.ReadByte();
-        }
-
-        private int ReadASN1HeaderLength(bool testHeader = true)
-        {
-            if (testHeader)
-            {
-                if (ReadByte() != 0x30)
-                {
-                    throw new CryptographicException("ASN.1 Header not found");
-                }
-            }
-            int length = ReadByte();
-            if ((length & 0x80) != 0)
-            {
-                const int maxBytes = 4;
-                int count = length & 0x0f;
-                byte[] lengthBytes = new byte[maxBytes];
-                _reader.Read(lengthBytes, maxBytes - count, count);
-                Array.Reverse(lengthBytes);
-                length = BitConverter.ToInt32(lengthBytes, 0);
-            }
-            return length;
         }
     }
 }

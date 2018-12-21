@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -12,13 +12,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.WebService
 {
     public class ServiceStatusTest
     {
-        private readonly ITestOutputHelper log;
-        private readonly IHttpClient httpClient;
+        private readonly ITestOutputHelper _log;
+        private readonly IHttpClient _httpClient;
 
         public ServiceStatusTest(ITestOutputHelper log)
         {
-            this.log = log;
-            this.httpClient = new HttpClient(this.log);
+            this._log = log;
+            this._httpClient = new HttpClient(this._log);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.WebService
             // Act
             var request = new HttpRequest(address + "/v1/status");
             request.AddHeader("X-Foo", "Bar");
-            var response = this.httpClient.GetAsync(request).Result;
+            var response = this._httpClient.GetAsync(request).Result;
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

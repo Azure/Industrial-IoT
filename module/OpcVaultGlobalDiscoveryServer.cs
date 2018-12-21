@@ -57,10 +57,10 @@ namespace Opc.Ua.Gds.Server
             bool autoApprove = true
             )
         {
-            m_database = database;
-            m_request = request;
-            m_certificateGroup = certificateGroup;
-            m_autoApprove = autoApprove;
+            _database = database;
+            _request = request;
+            _certificateGroup = certificateGroup;
+            _autoApprove = autoApprove;
         }
 
         #region Overridden Methods
@@ -108,7 +108,7 @@ namespace Opc.Ua.Gds.Server
             List<INodeManager> nodeManagers = new List<INodeManager>
             {
                 // create the custom node managers.
-                new ApplicationsNodeManager(server, configuration, m_database, m_request, m_certificateGroup, m_autoApprove)
+                new ApplicationsNodeManager(server, configuration, _database, _request, _certificateGroup, _autoApprove)
             };
 
             // create master node manager.
@@ -165,12 +165,11 @@ namespace Opc.Ua.Gds.Server
                 UserIdentityToken securityToken = context.UserIdentity.GetIdentityToken();
 
                 // check for a user name token.
-                UserNameIdentityToken userNameToken = securityToken as UserNameIdentityToken;
-                if (userNameToken != null)
+                if (securityToken is UserNameIdentityToken userNameToken)
                 {
-                    lock (m_lock)
+                    lock (_lock)
                     {
-                        m_contexts.Add(context.RequestId, new ImpersonationContext());
+                        _contexts.Add(context.RequestId, new ImpersonationContext());
                     }
                 }
             }
@@ -185,11 +184,11 @@ namespace Opc.Ua.Gds.Server
         {
             ImpersonationContext impersonationContext = null;
 
-            lock (m_lock)
+            lock (_lock)
             {
-                if (m_contexts.TryGetValue(context.RequestId, out impersonationContext))
+                if (_contexts.TryGetValue(context.RequestId, out impersonationContext))
                 {
-                    m_contexts.Remove(context.RequestId);
+                    _contexts.Remove(context.RequestId);
                 }
             }
 
@@ -220,7 +219,7 @@ namespace Opc.Ua.Gds.Server
                             configuration.SecurityConfiguration.RejectedCertificateStore);
 
                         // set custom validator for user certificates.
-                        m_userCertificateValidator = certificateValidator.GetChannelValidator();
+                        _userCertificateValidator = certificateValidator.GetChannelValidator();
                     }
                     break;
                 }
@@ -234,16 +233,14 @@ namespace Opc.Ua.Gds.Server
         protected virtual void SessionManager_ImpersonateUser(Session session, ImpersonateEventArgs args)
         {
             // check for a user name token
-            AnonymousIdentityToken anonymousToken = args.NewIdentity as AnonymousIdentityToken;
-            if (anonymousToken != null)
+            if (args.NewIdentity is AnonymousIdentityToken anonymousToken)
             {
                 args.Identity = new RoleBasedIdentity(new UserIdentity(), GdsRole.ApplicationUser);
                 return;
             }
 
             // check for a user name token
-            UserNameIdentityToken userNameToken = args.NewIdentity as UserNameIdentityToken;
-            if (userNameToken != null)
+            if (args.NewIdentity is UserNameIdentityToken userNameToken)
             {
 #if UNITTESTONLY
                 if (VerifyPassword(userNameToken))
@@ -279,8 +276,7 @@ namespace Opc.Ua.Gds.Server
             }
 
             // check for x509 user token.
-            X509IdentityToken x509Token = args.NewIdentity as X509IdentityToken;
-            if (x509Token != null)
+            if (args.NewIdentity is X509IdentityToken x509Token)
             {
                 GdsRole role = GdsRole.ApplicationAdmin;
                 VerifyUserTokenCertificate(x509Token.Certificate);
@@ -300,14 +296,13 @@ namespace Opc.Ua.Gds.Server
         {
             try
             {
-                m_userCertificateValidator.Validate(certificate);
+                _userCertificateValidator.Validate(certificate);
             }
             catch (Exception e)
             {
                 TranslationInfo info;
                 StatusCode result = StatusCodes.BadIdentityTokenRejected;
-                ServiceResultException se = e as ServiceResultException;
-                if (se != null && se.StatusCode == StatusCodes.BadCertificateUseNotAllowed)
+                if (e is ServiceResultException se && se.StatusCode == StatusCodes.BadCertificateUseNotAllowed)
                 {
                     info = new TranslationInfo(
                         "InvalidCertificate",
@@ -346,13 +341,13 @@ namespace Opc.Ua.Gds.Server
 #endregion
 
 #region Private Fields
-        private object m_lock = new object();
-        private Dictionary<uint, ImpersonationContext> m_contexts = new Dictionary<uint, ImpersonationContext>();
-        private IApplicationsDatabase m_database = null;
-        private ICertificateRequest m_request = null;
-        private ICertificateGroup m_certificateGroup = null;
-        private bool m_autoApprove;
-        private X509CertificateValidator m_userCertificateValidator;
+        private readonly object _lock = new object();
+        private Dictionary<uint, ImpersonationContext> _contexts = new Dictionary<uint, ImpersonationContext>();
+        private readonly IApplicationsDatabase _database = null;
+        private readonly ICertificateRequest _request = null;
+        private readonly ICertificateGroup _certificateGroup = null;
+        private readonly bool _autoApprove;
+        private X509CertificateValidator _userCertificateValidator;
 #endregion
     }
 }

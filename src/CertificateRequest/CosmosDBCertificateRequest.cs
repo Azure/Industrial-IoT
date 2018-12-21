@@ -28,9 +28,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
     internal sealed class CosmosDBCertificateRequest : Object, ICertificateRequest
     {
-        private ExpandedNodeId DefaultApplicationGroupId;
-        private ExpandedNodeId DefaultHttpsGroupId;
-        private ExpandedNodeId DefaultUserTokenGroupId;
+        public readonly ExpandedNodeId DefaultApplicationGroupId;
+        public readonly ExpandedNodeId DefaultHttpsGroupId;
+        public readonly ExpandedNodeId DefaultUserTokenGroupId;
 
         private readonly ILogger _log;
         internal IApplicationsDatabase ApplicationsDatabase;

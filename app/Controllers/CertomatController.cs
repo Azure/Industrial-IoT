@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for
 // license information.
 //
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
     [Authorize]
     public class CertomatController : DownloadController
     {
-        const int ApplicationTypeClient = 1;
+        const int _applicationTypeClient = 1;
 
         public CertomatController(
             OpcVaultApiOptions opcVaultOptions,
@@ -89,7 +89,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 AuthorizeClient();
                 try
                 {
-                    if (apiModel.ApplicationType == ApplicationTypeClient)
+                    if (apiModel.ApplicationType == _applicationTypeClient)
                     {
                         apiModel.ServerCapabilities = null;
                         apiModel.DiscoveryUrls = null;

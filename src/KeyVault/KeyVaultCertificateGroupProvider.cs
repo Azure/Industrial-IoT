@@ -459,8 +459,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 await LoadPublicAssets().ConfigureAwait(false);
                 var signingCert = Certificate;
                 {
-                    var asn1Decoder = new ASN1Decoder(info.SubjectPublicKeyInfo.GetDerEncoded());
-                    var publicKey = asn1Decoder.GetRSAPublicKey();
+                    var publicKey = KeyVaultCertFactory.GetRSAPublicKey(info.SubjectPublicKeyInfo);
                     return await KeyVaultCertFactory.CreateSignedCertificate(
                         application.ApplicationUri,
                         application.ApplicationNames.Count > 0 ? application.ApplicationNames[0].Text : "ApplicationName",
@@ -648,8 +647,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         {
             for (int ii = 0; ii < certificate.Extensions.Count; ii++)
             {
-                X509SubjectKeyIdentifierExtension extension = certificate.Extensions[ii] as X509SubjectKeyIdentifierExtension;
-                if (extension != null)
+                if (certificate.Extensions[ii] is X509SubjectKeyIdentifierExtension extension)
                 {
                     return extension;
                 }

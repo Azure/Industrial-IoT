@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         private readonly IClientConfig _clientConfig;
         private readonly KeyVaultServiceClient _keyVaultServiceClient;
         private readonly ILogger _log;
-        private const string kAuthority = "https://login.microsoftonline.com/";
+        private const string _kAuthority = "https://login.microsoftonline.com/";
 
         /// <inheritdoc/>
         public KeyVaultCertificateGroup(
@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 var serviceClientCredentials =
                     new KeyVaultCredentials(
                         token,
-                        (String.IsNullOrEmpty(_clientConfig.InstanceUrl) ? kAuthority : _clientConfig.InstanceUrl) + _clientConfig.TenantId,
+                        (String.IsNullOrEmpty(_clientConfig.InstanceUrl) ? _kAuthority : _clientConfig.InstanceUrl) + _clientConfig.TenantId,
                         _servicesConfig.KeyVaultResourceId,
                         _clientConfig.AppId,
                         _clientConfig.AppSecret);

@@ -429,8 +429,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 }
 
                 // create the self signed root CA cert
-                var asn1Decoder = new ASN1Decoder(info.SubjectPublicKeyInfo.GetDerEncoded());
-                var publicKey = asn1Decoder.GetRSAPublicKey();
+                var publicKey = KeyVaultCertFactory.GetRSAPublicKey(info.SubjectPublicKeyInfo);
                 var signedcert = await KeyVaultCertFactory.CreateSignedCertificate(
                     null,
                     null,
@@ -461,7 +460,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
                 return signedcert;
             }
-            catch
+            catch 
             {
                 throw new ServiceResultException(StatusCodes.BadInternalError, "Failed to create new Root CA certificate");
             }
