@@ -680,6 +680,15 @@ Here the same with less whitespaces:
 * This [reference (here the link to the V1.37 API)](https://docs.docker.com/engine/api/v1.37/#operation/ContainerCreate) explains which `Container Create Options` exist and what the meaning of it is.
 * You can adjust the command line parameters in the `Cmd` object of the IoT Edge module configuration to fit your needs. You can use all available OPC Publisher options as shown in the usage above.
 * Leave the other settings unchanged and select `Save`.
+* If you want to process the output of the OPC Publisher locally with another Edge module, go back to the `Set Modules` page, and go to the `Specify Routes` tab and add a new route looking like (Notice the usage of the output for the OPC publisher):
+
+        {
+          "routes": {
+            "processingModuleToIoTHub": "FROM /messages/modules/processingModule/outputs/* INTO $upstream",
+            "opcPublisherToProcessingModule": "FROM /messages/modules/publisher INTO BrokeredEndpoint(\"/modules/processingModule/inputs/input1\")"
+        }
+
+
 * Back in the `Set Modules` page, select `Next`, till you reach the last page of the configuration.
 * Select `Submit` to send your configuration down to IoT Edge
 * When you have started IoT Edge on your edge device and the docker container `publisher` is started, you can check out the log output of OPC Publisher either by

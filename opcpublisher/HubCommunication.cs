@@ -136,7 +136,6 @@ namespace OpcPublisher
                     await _edgeHubClient.SetDesiredPropertyUpdateCallbackAsync(DesiredPropertiesUpdate, null);
 
                     // register method handlers
-                    await _edgeHubClient.SetMethodHandlerAsync("ping", HandlePingMethodAsync, _edgeHubClient);
                     await _edgeHubClient.SetMethodHandlerAsync("PublishNodes", HandlePublishNodesMethodAsync, _edgeHubClient);
                     await _edgeHubClient.SetMethodHandlerAsync("UnpublishNodes", HandleUnpublishNodesMethodAsync, _edgeHubClient);
                     await _edgeHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _edgeHubClient);
@@ -146,6 +145,7 @@ namespace OpcPublisher
                     await _edgeHubClient.SetMethodHandlerAsync("GetDiagnosticLog", HandleGetDiagnosticLogMethodAsync, _edgeHubClient);
                     await _edgeHubClient.SetMethodHandlerAsync("ExitApplication", HandleExitApplicationMethodAsync, _edgeHubClient);
                     await _edgeHubClient.SetMethodHandlerAsync("GetInfo", HandleGetInfoMethodAsync, _edgeHubClient);
+                    await _edgeHubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync, _edgeHubClient);
                 }
                 else
                 {
@@ -167,7 +167,6 @@ namespace OpcPublisher
                         await _iotHubClient.SetDesiredPropertyUpdateCallbackAsync(DesiredPropertiesUpdate, null);
 
                         // register method handlers
-                        await _iotHubClient.SetMethodHandlerAsync("ping", HandlePingMethodAsync, _iotHubClient);
                         await _iotHubClient.SetMethodHandlerAsync("PublishNodes", HandlePublishNodesMethodAsync, _iotHubClient);
                         await _iotHubClient.SetMethodHandlerAsync("UnpublishNodes", HandleUnpublishNodesMethodAsync, _iotHubClient);
                         await _iotHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _iotHubClient);
@@ -177,6 +176,7 @@ namespace OpcPublisher
                         await _iotHubClient.SetMethodHandlerAsync("GetDiagnosticLog", HandleGetDiagnosticLogMethodAsync, _iotHubClient);
                         await _iotHubClient.SetMethodHandlerAsync("ExitApplication", HandleExitApplicationMethodAsync, _iotHubClient);
                         await _iotHubClient.SetMethodHandlerAsync("GetInfo", HandleGetInfoMethodAsync, _iotHubClient);
+                        await _iotHubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync, _iotHubClient);
                     }
                 }
                 Logger.Debug($"Init D2C message processing");
@@ -218,20 +218,6 @@ namespace OpcPublisher
         static void ConnectionStatusChange(ConnectionStatus status, ConnectionStatusChangeReason reason)
         {
                 Logger.Information($"Connection status changed to '{status}', reason '{reason}'");
-        }
-        /// <summary>
-        /// Handle method call to ping the module.
-        /// </summary>
-        static async Task<MethodResponse> HandlePingMethodAsync(MethodRequest methodRequest, object userContext)
-        {
-            string logPrefix = "HandlePingMethodAsync:";
-
-            // build response
-            string resultString = $"{{'pingResult': 'ping was successful'}}";
-            byte[] result = Encoding.UTF8.GetBytes(resultString);
-            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
-            Logger.Information($"{logPrefix} Successfully pinged");
-            return methodResponse;
         }
 
         /// <summary>
@@ -838,6 +824,19 @@ namespace OpcPublisher
             return methodResponse;
         }
 
+        /// </summary>
+        /// Method that is called for any unimplemented call. Just returns that info to the caller
+        /// </summary>
+        private async Task<MethodResponse> DefaultMethodHandlerAsync(MethodRequest methodRequest, object userContext)
+        {
+            Logger.Information($"Received direct method call for {methodRequest.Name}, which is not implemented");
+            string response = $"Method {methodRequest.Name} successfully received, but this method is not implemented";
+
+            string resultString = JsonConvert.SerializeObject(response);
+            byte[] result = Encoding.UTF8.GetBytes(resultString);
+            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
+            return methodResponse;
+        }
 
         /// <summary>
         /// Initializes internal message processing.
