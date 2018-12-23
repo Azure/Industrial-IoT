@@ -68,7 +68,6 @@ This endpoint exposes four methods:
 
 ### Configuration via IoTHub direct function calls
 OPC Publisher implements the following IoTHub direct method calls, which can be called when OPC Publisher runs standalone or in IoT Edge:
-  - ping
   - PublishNodes
   - UnpublishNodes
   - UnpublishAllNodes
@@ -80,6 +79,8 @@ OPC Publisher implements the following IoTHub direct method calls, which can be 
   - GetInfo
 
 The format of the JSON payload of the method request and responses are defined in the file `opcpublisher/HubMethodModels.cs`.
+
+If you call a unknown method on the module, it responds with a string, saying the method is not implemented. This can be used to ping the module.
 
 
 # Configuring the telemetry published to IoTHub
@@ -601,6 +602,8 @@ There is a prebuilt container available on DockerHub. To start it, just do:
 
     docker run mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
+Check the Docker Hub to see which operating systems and processor architectures are supported.
+
 ## Using it as a module in Azure IoT Edge
 OPC Publisher is ready to be used as a module to run in [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge) Microsoft's Intelligent Edge framework.
 We recommend to take a look on the information available on the beforementioned link and use then the information provided here.
@@ -946,7 +949,14 @@ Beyond this OPC Publisher implements a few IoTHub direct method calls, which all
 In addition to this is implements a direct method to exit the application.
 
 In the following github repos there are tools to [configure the nodes to publish](https://github.com/Azure-Samples/iot-edge-opc-publisher-nodeconfiguration) 
-and [read the diagnostic information](https://github.com/Azure-Samples/iot-edge-opc-publisher-diagnostics).
+and [read the diagnostic information](https://github.com/Azure-Samples/iot-edge-opc-publisher-diagnostics). Both tools are also available as containers in Docker Hub.
+
+# As OPC UA server to start
+
+If you do not have a real OPC UA server, you can use this [sample OPC UA PLC](https://github.com/Azure-Samples/iot-edge-opc-plc) to start. This sample PLC is also available on Docker Hub.
+
+It implements a couple of tags, which generate random data and tags with anomalies and can be extended easily if you need to simulate any tag values.
+
 
 
 
