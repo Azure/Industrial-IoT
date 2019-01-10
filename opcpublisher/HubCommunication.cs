@@ -272,7 +272,7 @@ namespace OpcPublisher
                 }
 
                 // process all nodes
-                foreach (var node in publishNodesMethodData.Nodes)
+                foreach (var node in publishNodesMethodData.OpcNodes)
                 {
                     NodeId nodeId = null;
                     ExpandedNodeId expandedNodeId = null;
@@ -397,7 +397,7 @@ namespace OpcPublisher
                 }
                 else
                 {
-                    foreach (var node in unpublishNodesMethodData.Nodes)
+                    foreach (var node in unpublishNodesMethodData.OpcNodes)
                     {
                         try
                         {
@@ -697,7 +697,7 @@ namespace OpcPublisher
             {
                 getConfiguredNodesOnEndpointMethodResponse.ContinuationToken = (ulong)nodeConfigVersion << 32 | actualNodeCount + startIndex;
             }
-            getConfiguredNodesOnEndpointMethodResponse.Nodes = opcNodes.GetRange((int)startIndex, (int)actualNodeCount).Select(n => new OpcNodeOnEndpointModel(n.Id)
+            getConfiguredNodesOnEndpointMethodResponse.OpcNodes = opcNodes.GetRange((int)startIndex, (int)actualNodeCount).Select(n => new OpcNodeOnEndpointModel(n.Id)
             {
                 OpcPublishingInterval = n.OpcPublishingInterval,
                 OpcSamplingInterval = n.OpcSamplingInterval,
