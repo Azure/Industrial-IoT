@@ -1,5 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿
+using Microsoft.Azure.Devices.Client;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace OpcPublisher
 {
@@ -13,29 +17,156 @@ namespace OpcPublisher
         public string SamplingInterval { get; set; }
     }
 
-    public class NodeModel
+    /// <summary>
+    /// Model for a get info response.
+    /// </summary>
+    public class GetInfoMethodResponseModel
     {
-        public NodeModel(string id, int? opcPublishingInterval = null, int? opcSamplingInterval = null)
+        public GetInfoMethodResponseModel()
         {
-            Id = id;
-            OpcPublishingInterval = opcPublishingInterval;
-            OpcSamplingInterval = opcSamplingInterval;
         }
 
-        public string Id { get; set; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int VersionMajor { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public int? OpcPublishingInterval { get; set; }
+        public int VersionMinor { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public int? OpcSamplingInterval { get; set; }
+        public int VersionPatch { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public string SemanticVersion { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public string InformationalVersion { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public string OS { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public Architecture OSArchitecture { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public string FrameworkDescription { get; set; }
     }
 
+    /// <summary>
+    /// Model for a diagnostic info response.
+    /// </summary>
+    public class DiagnosticInfoMethodResponseModel
+    {
+        public DiagnosticInfoMethodResponseModel()
+        {
+        }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public DateTime PublisherStartTime { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int NumberOfOpcSessions { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int NumberOfConnectedOpcSessions { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int NumberOfConnectedOpcSubscriptions { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int NumberOfMonitoredItems { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int MonitoredItemsQueueCapacity { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long MonitoredItemsQueueCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long EnqueueCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long EnqueueFailureCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long NumberOfEvents { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long SentMessages { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public DateTime SentLastTime { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long SentBytes { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long FailedMessages { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long TooLargeCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long MissedSendIntervalCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public long WorkingSetMB { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int DefaultSendIntervalSeconds { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public uint HubMessageSize { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public TransportType HubProtocol { get; set; }
+    }
+
+    /// <summary>
+    /// Model for a diagnostic log response.
+    /// </summary>
+    public class DiagnosticLogMethodResponseModel
+    {
+        public DiagnosticLogMethodResponseModel()
+        {
+        }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int MissedMessageCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int LogMessageCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public string[] Log { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int StartupLogMessageCount { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public string[] StartupLog { get; set; }
+    }
+
+    /// <summary>
+    /// Model for an exit application request.
+    /// </summary>
+    public class ExitApplicationMethodRequestModel
+    {
+        public ExitApplicationMethodRequestModel()
+        {
+        }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int SecondsTillExit { get; set; }
+    }
+
+    /// <summary>
+    /// ´Model for a publish node request.
+    /// </summary>
     public class PublishNodesMethodRequestModel
     {
         public PublishNodesMethodRequestModel(string endpointUrl, bool useSecurity = true, string userName = null, string password = null)
         {
-            Nodes = new List<NodeModel>();
+            Nodes = new List<OpcNodeOnEndpointModel>();
             EndpointUrl = endpointUrl;
             UseSecurity = useSecurity;
             UserName = userName;
@@ -43,7 +174,7 @@ namespace OpcPublisher
         }
 
         public string EndpointUrl { get; set; }
-        public List<NodeModel> Nodes { get; set; }
+        public List<OpcNodeOnEndpointModel> Nodes { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool UseSecurity { get; set; }
@@ -55,18 +186,25 @@ namespace OpcPublisher
         public string Password { get; set; }
     }
 
+    /// <summary>
+    /// Model for an unpublish node request.
+    /// </summary>
     public class UnpublishNodesMethodRequestModel
     {
         public UnpublishNodesMethodRequestModel(string endpointUrl)
         {
-            Nodes = new List<NodeModel>();
+            Nodes = new List<OpcNodeOnEndpointModel>();
             EndpointUrl = endpointUrl;
         }
 
         public string EndpointUrl { get; set; }
-        public List<NodeModel> Nodes { get; set; }
+
+        public List<OpcNodeOnEndpointModel> Nodes { get; set; }
     }
 
+    /// <summary>
+    /// Model for an unpublish all nodes request.
+    /// </summary>
     public class UnpublishAllNodesMethodRequestModel
     {
         public UnpublishAllNodesMethodRequestModel(string endpointUrl = null)
@@ -77,7 +215,9 @@ namespace OpcPublisher
         public string EndpointUrl { get; set; }
     }
 
-
+    /// <summary>
+    /// Model for a get configured endpoints request.
+    /// </summary>
     public class GetConfiguredEndpointsMethodRequestModel
     {
         public GetConfiguredEndpointsMethodRequestModel(ulong? continuationToken = null)
@@ -89,7 +229,9 @@ namespace OpcPublisher
         public ulong? ContinuationToken { get; set; }
     }
 
-
+    /// <summary>
+    /// Model for a get configured endpoints response.
+    /// </summary>
     public class GetConfiguredEndpointsMethodResponseModel
     {
         public GetConfiguredEndpointsMethodResponseModel()
@@ -107,6 +249,9 @@ namespace OpcPublisher
         public ulong? ContinuationToken;
     }
 
+    /// <summary>
+    /// Model for a get configured nodes on endpoint request.
+    /// </summary>
     public class GetConfiguredNodesOnEndpointMethodRequestModel
     {
         public GetConfiguredNodesOnEndpointMethodRequestModel(string endpointUrl, ulong? continuationToken = null)
@@ -121,21 +266,24 @@ namespace OpcPublisher
         public ulong? ContinuationToken { get; set; }
     }
 
-
+    /// <summary>
+    /// Model class for a get configured nodes on endpoint response.
+    /// </summary>
     public class GetConfiguredNodesOnEndpointMethodResponseModel
     {
         public GetConfiguredNodesOnEndpointMethodResponseModel()
         {
-            Nodes = new List<NodeModel>();
+            Nodes = new List<OpcNodeOnEndpointModel>();
         }
 
-        public GetConfiguredNodesOnEndpointMethodResponseModel(List<NodeModel> nodes)
+        /// <param name="nodes"></param>
+        public GetConfiguredNodesOnEndpointMethodResponseModel(List<OpcNodeOnEndpointModel> nodes)
         {
             Nodes = nodes;
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public List<NodeModel> Nodes { get; set; }
+        public List<OpcNodeOnEndpointModel> Nodes { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ulong? ContinuationToken { get; set; }
