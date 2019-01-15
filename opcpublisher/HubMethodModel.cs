@@ -8,16 +8,6 @@ using System.Runtime.InteropServices;
 namespace OpcPublisher
 {
     /// <summary>
-    /// Classes for method models
-    /// </summary>
-    public class GetConfiguredNodesMethodData
-    {
-        public string EndpointUrl { get; set; }
-        public string PublishInterval { get; set; }
-        public string SamplingInterval { get; set; }
-    }
-
-    /// <summary>
     /// Model for a get info response.
     /// </summary>
     public class GetInfoMethodResponseModel
@@ -64,16 +54,25 @@ namespace OpcPublisher
         public DateTime PublisherStartTime { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public int NumberOfOpcSessions { get; set; }
+        public int NumberOfOpcSessionsConfigured { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public int NumberOfConnectedOpcSessions { get; set; }
+        public int NumberOfOpcSessionsConnected { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public int NumberOfConnectedOpcSubscriptions { get; set; }
+        public int NumberOfOpcSubscriptionsConfigured { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public int NumberOfMonitoredItems { get; set; }
+        public int NumberOfOpcSubscriptionsConnected { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int NumberOfOpcMonitoredItemsConfigured { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int NumberOfOpcMonitoredItemsMonitored { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public int NumberOfOpcMonitoredItemsToRemove { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
         public int MonitoredItemsQueueCapacity { get; set; }
@@ -137,13 +136,7 @@ namespace OpcPublisher
         public int LogMessageCount { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public string[] Log { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public int StartupLogMessageCount { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public string[] StartupLog { get; set; }
+        public List<string> Log { get; } = new List<string>();
     }
 
     /// <summary>
@@ -174,7 +167,7 @@ namespace OpcPublisher
         }
 
         public string EndpointUrl { get; set; }
-        public List<OpcNodeOnEndpointModel> OpcNodes { get; set; }
+        public List<OpcNodeOnEndpointModel> OpcNodes { get; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool UseSecurity { get; set; }
@@ -199,7 +192,7 @@ namespace OpcPublisher
 
         public string EndpointUrl { get; set; }
 
-        public List<OpcNodeOnEndpointModel> OpcNodes { get; set; }
+        public List<OpcNodeOnEndpointModel> OpcNodes { get; }
     }
 
     /// <summary>
@@ -230,23 +223,36 @@ namespace OpcPublisher
     }
 
     /// <summary>
+    /// Model for configured endpoint response element.
+    /// </summary>
+    public class ConfiguredEndpointModel
+    {
+        public ConfiguredEndpointModel(string endpointUrl)
+        {
+            EndpointUrl = endpointUrl;
+        }
+
+        public string EndpointUrl { get; set; }
+    }
+
+    /// <summary>
     /// Model for a get configured endpoints response.
     /// </summary>
     public class GetConfiguredEndpointsMethodResponseModel
     {
         public GetConfiguredEndpointsMethodResponseModel()
         {
-            Endpoints = new List<string>();
+            Endpoints = new List<ConfiguredEndpointModel>();
         }
 
-        public GetConfiguredEndpointsMethodResponseModel(List<string> endpoints)
+        public GetConfiguredEndpointsMethodResponseModel(List<ConfiguredEndpointModel> endpoints)
         {
             Endpoints = endpoints;
         }
-        public List<string> Endpoints { get; set; }
+        public List<ConfiguredEndpointModel> Endpoints { get; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public ulong? ContinuationToken;
+        public ulong? ContinuationToken { get; set; }
     }
 
     /// <summary>
@@ -283,7 +289,10 @@ namespace OpcPublisher
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
-        public List<OpcNodeOnEndpointModel> OpcNodes { get; set; }
+        public string EndpointUrl { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        public List<OpcNodeOnEndpointModel> OpcNodes { get; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ulong? ContinuationToken { get; set; }

@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OpcPublisher
@@ -41,9 +42,9 @@ namespace OpcPublisher
                 // connect to EdgeHub
                 HubProtocol = TransportType.Mqtt_Tcp_Only;
                 Logger.Information($"Create IoTEdgeHub module client using '{HubProtocol}' for communication.");
-                ModuleClient hubClient = await ModuleClient.CreateFromEnvironmentAsync(HubProtocol);
+                ModuleClient hubClient = await ModuleClient.CreateFromEnvironmentAsync(HubProtocol).ConfigureAwait(false);
 
-                if (await InitHubCommunicationAsync(hubClient, HubProtocol))
+                if (await InitHubCommunicationAsync(hubClient, HubProtocol).ConfigureAwait(false))
                 {
                     return true;
                 }

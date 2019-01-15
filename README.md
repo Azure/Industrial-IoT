@@ -75,6 +75,7 @@ OPC Publisher implements the following IoTHub direct method calls, which can be 
   - GetConfiguredNodesOnEndpoint
   - GetDiagnosticInfo
   - GetDiagnosticLog
+  - GetDiagnosticStartupLog
   - ExitApplication
   - GetInfo
 

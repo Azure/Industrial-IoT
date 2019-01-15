@@ -437,12 +437,12 @@ namespace OpcPublisher
             HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
             NodeId nodeId = null;
             ExpandedNodeId expandedNodeId = null;
-            Uri endpointUrl = null;
+            Uri endpointUri = null;
             bool isNodeIdFormat = true;
             try
             {
                 string id = inputArguments[0] as string;
-                if (id.Contains("nsu="))
+                if (id.Contains("nsu=", StringComparison.InvariantCulture))
                 {
                     expandedNodeId = ExpandedNodeId.Parse(id);
                     isNodeIdFormat = false;
@@ -452,7 +452,7 @@ namespace OpcPublisher
                     nodeId = NodeId.Parse(id);
                     isNodeIdFormat = true;
                 }
-                endpointUrl = new Uri(inputArguments[1] as string);
+                endpointUri = new Uri(inputArguments[1] as string);
             }
             catch (UriFormatException)
             {
@@ -478,15 +478,15 @@ namespace OpcPublisher
 
                 // find the session we need to monitor the node
                 OpcSession opcSession = null;
-                opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUrl.AbsoluteUri.Equals(endpointUrl.AbsoluteUri, StringComparison.OrdinalIgnoreCase));
+                opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
 
                 // add a new session.
                 if (opcSession == null)
                 {
                     // create new session info.
-                    opcSession = new OpcSession(endpointUrl, true, OpcSessionCreationTimeout);
+                    opcSession = new OpcSession(endpointUri.OriginalString, true, OpcSessionCreationTimeout);
                     OpcSessions.Add(opcSession);
-                    Logger.Information($"OnPublishNodeCall: No matching session found for endpoint '{endpointUrl.OriginalString}'. Requested to create a new one.");
+                    Logger.Information($"OnPublishNodeCall: No matching session found for endpoint '{endpointUri.OriginalString}'. Requested to create a new one.");
                 }
 
                 if (isNodeIdFormat)
@@ -511,10 +511,7 @@ namespace OpcPublisher
             {
                 OpcSessionsListSemaphore.Release();
             }
-            if (statusCode == HttpStatusCode.NotAcceptable)
-            {
-                return ServiceResult.Create(StatusCodes.BadSessionNotActivated, "Can not start monitoring node, because session is in connecting state. Please retry later!");
-            }
+
             if (statusCode == HttpStatusCode.OK || statusCode == HttpStatusCode.Accepted)
             {
                 return ServiceResult.Good;
@@ -537,12 +534,12 @@ namespace OpcPublisher
             HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
             NodeId nodeId = null;
             ExpandedNodeId expandedNodeId = null;
-            Uri endpointUrl = null;
+            Uri endpointUri = null;
             bool isNodeIdFormat = true;
             try
             {
                 string id = inputArguments[0] as string;
-                if (id.Contains("nsu="))
+                if (id.Contains("nsu=", StringComparison.InvariantCulture))
                 {
                     expandedNodeId = ExpandedNodeId.Parse(id);
                     isNodeIdFormat = false;
@@ -552,7 +549,7 @@ namespace OpcPublisher
                     nodeId = NodeId.Parse(id);
                     isNodeIdFormat = true;
                 }
-                endpointUrl = new Uri(inputArguments[1] as string);
+                endpointUri = new Uri(inputArguments[1] as string);
             }
             catch (UriFormatException)
             {
@@ -578,7 +575,7 @@ namespace OpcPublisher
                 OpcSession opcSession = null;
                 try
                 {
-                    opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUrl.AbsoluteUri.Equals(endpointUrl.AbsoluteUri, StringComparison.OrdinalIgnoreCase));
+                    opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
                 }
                 catch
                 {
@@ -588,7 +585,7 @@ namespace OpcPublisher
                 if (opcSession == null)
                 {
                     // do nothing if there is no session for this endpoint.
-                    Logger.Error($"{logPrefix} Session for endpoint '{endpointUrl.OriginalString}' not found.");
+                    Logger.Error($"{logPrefix} Session for endpoint '{endpointUri.OriginalString}' not found.");
                     return ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session for endpoint of node to unpublished not found!");
                 }
                 else
@@ -628,7 +625,7 @@ namespace OpcPublisher
         private ServiceResult OnGetPublishedNodesLegacyCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
             string logPrefix = "OnGetPublishedNodesLegacyCall:";
-            Uri endpointUrl = null;
+            Uri endpointUri = null;
 
             if (string.IsNullOrEmpty(inputArguments[0] as string))
             {
@@ -638,7 +635,7 @@ namespace OpcPublisher
             {
                 try
                 {
-                    endpointUrl = new Uri(inputArguments[0] as string);
+                    endpointUri = new Uri(inputArguments[0] as string);
                 }
                 catch (UriFormatException)
                 {
@@ -648,7 +645,7 @@ namespace OpcPublisher
             }
 
             // get the list of published nodes in NodeId format
-            List<PublisherConfigurationFileEntryLegacyModel> configFileEntries = GetPublisherConfigurationFileEntriesAsNodeIdsAsync(endpointUrl).Result;
+            List<PublisherConfigurationFileEntryLegacyModel> configFileEntries = GetPublisherConfigurationFileEntriesAsNodeIdsAsync(endpointUri.OriginalString).Result;
             outputArguments[0] = JsonConvert.SerializeObject(configFileEntries);
             Logger.Information($"{logPrefix} Success (number of entries: {configFileEntries.Count})");
             return ServiceResult.Good;

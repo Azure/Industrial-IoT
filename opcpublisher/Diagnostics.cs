@@ -1,16 +1,16 @@
 ﻿
+using Serilog.Core;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Serilog.Core;
 
 namespace OpcPublisher
 {
     using Serilog;
     using Serilog.Configuration;
     using Serilog.Events;
-    using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using static HubCommunication;
     using static Program;
     using static PublisherNodeConfiguration;
@@ -31,7 +31,7 @@ namespace OpcPublisher
             // kick off the task to show diagnostic info
             if (DiagnosticsInterval > 0)
             {
-                _showDiagnosticsInfoTask = Task.Run(async () => await ShowDiagnosticsInfoAsync(_shutdownTokenSource.Token));
+                _showDiagnosticsInfoTask = Task.Run(async () => await ShowDiagnosticsInfoAsync(_shutdownTokenSource.Token).ConfigureAwait(false));
             }
 
 
@@ -42,7 +42,7 @@ namespace OpcPublisher
             if (_showDiagnosticsInfoTask != null)
             {
                 _shutdownTokenSource.Cancel();
-                await _showDiagnosticsInfoTask;
+                await _showDiagnosticsInfoTask.ConfigureAwait(false);
             }
 
             _shutdownTokenSource = null;
@@ -59,10 +59,13 @@ namespace OpcPublisher
             try
             {
                 diagnosticInfo.PublisherStartTime = PublisherStartTime;
-                diagnosticInfo.NumberOfOpcSessions = NumberOfOpcSessions;
-                diagnosticInfo.NumberOfConnectedOpcSessions = NumberOfConnectedOpcSessions;
-                diagnosticInfo.NumberOfConnectedOpcSubscriptions = NumberOfConnectedOpcSubscriptions;
-                diagnosticInfo.NumberOfMonitoredItems = NumberOfMonitoredItems;
+                diagnosticInfo.NumberOfOpcSessionsConfigured = NumberOfOpcSessionsConfigured;
+                diagnosticInfo.NumberOfOpcSessionsConnected = NumberOfOpcSessionsConnected;
+                diagnosticInfo.NumberOfOpcSubscriptionsConfigured = NumberOfOpcSubscriptionsConfigured;
+                diagnosticInfo.NumberOfOpcSubscriptionsConnected = NumberOfOpcSubscriptionsConnected;
+                diagnosticInfo.NumberOfOpcMonitoredItemsConfigured = NumberOfOpcMonitoredItemsConfigured;
+                diagnosticInfo.NumberOfOpcMonitoredItemsMonitored = NumberOfOpcMonitoredItemsMonitored;
+                diagnosticInfo.NumberOfOpcMonitoredItemsToRemove = NumberOfOpcMonitoredItemsToRemove;
                 diagnosticInfo.MonitoredItemsQueueCapacity = MonitoredItemsQueueCapacity;
                 diagnosticInfo.MonitoredItemsQueueCount = MonitoredItemsQueueCount;
                 diagnosticInfo.EnqueueCount = EnqueueCount;
@@ -93,15 +96,13 @@ namespace OpcPublisher
             DiagnosticLogMethodResponseModel diagnosticLogMethodResponseModel = new DiagnosticLogMethodResponseModel();
             diagnosticLogMethodResponseModel.MissedMessageCount = _missedMessageCount;
             diagnosticLogMethodResponseModel.LogMessageCount = _logMessageCount;
-            diagnosticLogMethodResponseModel.StartupLogMessageCount = _startupLog.Count;
 
-            if (StartupCompleted)
+            if (DiagnosticsInterval >= 0)
             {
-                List<string> log = new List<string>();
-
-                if (DiagnosticsInterval >= 0)
+                if (StartupCompleted)
                 {
-                    await _logQueueSemaphore.WaitAsync();
+                    List<string> log = new List<string>();
+                    await _logQueueSemaphore.WaitAsync().ConfigureAwait(false);
                     try
                     {
                         string message;
@@ -116,15 +117,46 @@ namespace OpcPublisher
                         _missedMessageCount = 0;
                         _logQueueSemaphore.Release();
                     }
+                    diagnosticLogMethodResponseModel.Log.AddRange(log);
                 }
                 else
                 {
-                    _startupLog.Add("Diagnostic log is disabled in OPC Publisher. Please use --di to enable it.");
-                    log.Add("Diagnostic log is disabled in OPC Publisher. Please use --di to enable it.");
+                    diagnosticLogMethodResponseModel.Log.Add("Startup is not yet completed. Please try later.");
                 }
-                diagnosticLogMethodResponseModel.StartupLog = _startupLog.ToArray();
-                diagnosticLogMethodResponseModel.Log = log.ToArray();
             }
+            else
+            {
+                diagnosticLogMethodResponseModel.Log.Add("Diagnostic log is disabled. Please use --di to enable it.");
+            }
+
+            return diagnosticLogMethodResponseModel;
+        }
+
+        /// <summary>
+        /// Fetch diagnostic startup log data.
+        /// </summary>
+        public static async Task<DiagnosticLogMethodResponseModel> GetDiagnosticStartupLogAsync()
+        {
+            DiagnosticLogMethodResponseModel diagnosticLogMethodResponseModel = new DiagnosticLogMethodResponseModel();
+            diagnosticLogMethodResponseModel.MissedMessageCount = 0;
+            diagnosticLogMethodResponseModel.LogMessageCount = _startupLog.Count;
+
+            if (DiagnosticsInterval >= 0)
+            {
+                if (StartupCompleted)
+                {
+                    diagnosticLogMethodResponseModel.Log.AddRange(_startupLog);
+                }
+                else
+                {
+                    diagnosticLogMethodResponseModel.Log.Add("Startup is not yet completed. Please try later.");
+                }
+            }
+            else
+            {
+                diagnosticLogMethodResponseModel.Log.Add("Diagnostic log is disabled. Please use --di to enable it.");
+            }
+
             return diagnosticLogMethodResponseModel;
         }
 
@@ -142,16 +174,15 @@ namespace OpcPublisher
 
                 try
                 {
-                    await Task.Delay((int)DiagnosticsInterval * 1000, ct);
+                    await Task.Delay(DiagnosticsInterval * 1000, ct).ConfigureAwait(false);
 
                     DiagnosticInfoMethodResponseModel diagnosticInfo = GetDiagnosticInfo();
                     Logger.Information("==========================================================================");
                     Logger.Information($"OpcPublisher status @ {System.DateTime.UtcNow} (started @ {diagnosticInfo.PublisherStartTime})");
                     Logger.Information("---------------------------------");
-                    Logger.Information($"OPC sessions: {diagnosticInfo.NumberOfOpcSessions}");
-                    Logger.Information($"connected OPC sessions: {diagnosticInfo.NumberOfConnectedOpcSessions}");
-                    Logger.Information($"connected OPC subscriptions: {diagnosticInfo.NumberOfConnectedOpcSubscriptions}");
-                    Logger.Information($"OPC monitored items: {diagnosticInfo.NumberOfMonitoredItems}");
+                    Logger.Information($"OPC sessions (configured/connected): {diagnosticInfo.NumberOfOpcSessionsConfigured}/{diagnosticInfo.NumberOfOpcSessionsConnected}");
+                    Logger.Information($"OPC subscriptions (configured/connected): {diagnosticInfo.NumberOfOpcSubscriptionsConfigured}/{diagnosticInfo.NumberOfOpcSubscriptionsConnected}");
+                    Logger.Information($"OPC monitored items (configured/monitored/to remove): {diagnosticInfo.NumberOfOpcMonitoredItemsConfigured}/{diagnosticInfo.NumberOfOpcMonitoredItemsMonitored}/{diagnosticInfo.NumberOfOpcMonitoredItemsToRemove}");
                     Logger.Information("---------------------------------");
                     Logger.Information($"monitored items queue bounded capacity: {diagnosticInfo.MonitoredItemsQueueCapacity}");
                     Logger.Information($"monitored items queue current items: {diagnosticInfo.MonitoredItemsQueueCount}");
@@ -261,7 +292,7 @@ namespace OpcPublisher
 
         private string FormatMessage(LogEvent logEvent)
         {
-            return $"[{logEvent.Timestamp:T} {logEvent.Level.ToString().Substring(0, 3).ToUpper()}] {logEvent.RenderMessage()}";
+            return $"[{logEvent.Timestamp:T} {logEvent.Level.ToString().Substring(0, 3).ToUpper(CultureInfo.InvariantCulture)}] {logEvent.RenderMessage()}";
         }
 
         private List<string> FormatException(LogEvent logEvent)
@@ -271,7 +302,7 @@ namespace OpcPublisher
             {
                 exceptionLog = new List<string>();
                 exceptionLog.Add(logEvent.Exception.Message);
-                exceptionLog.Add(logEvent.Exception.StackTrace.ToString());
+                exceptionLog.Add(logEvent.Exception.StackTrace.ToString(CultureInfo.InvariantCulture));
             }
             return exceptionLog;
         }

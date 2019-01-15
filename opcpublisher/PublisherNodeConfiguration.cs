@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace OpcPublisher
 {
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Threading;
@@ -19,12 +20,12 @@ namespace OpcPublisher
     {
         public static SemaphoreSlim PublisherNodeConfigurationSemaphore { get; set; }
         public static SemaphoreSlim PublisherNodeConfigurationFileSemaphore { get; set; }
-        public static List<OpcSession> OpcSessions { get; set; }
+        public static List<OpcSession> OpcSessions { get; } = new List<OpcSession>();
         public static SemaphoreSlim OpcSessionsListSemaphore { get; set; }
 
         public static string PublisherNodeConfigurationFilename { get; set; } = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
 
-        public static int NumberOfOpcSessions
+        public static int NumberOfOpcSessionsConfigured
         {
             get
             {
@@ -42,7 +43,7 @@ namespace OpcPublisher
             }
         }
 
-        public static int NumberOfConnectedOpcSessions
+        public static int NumberOfOpcSessionsConnected
         {
             get
             {
@@ -60,7 +61,28 @@ namespace OpcPublisher
             }
         }
 
-        public static int NumberOfConnectedOpcSubscriptions
+        public static int NumberOfOpcSubscriptionsConfigured
+        {
+            get
+            {
+                int result = 0;
+                try
+                {
+                    OpcSessionsListSemaphore.Wait();
+                    foreach (var opcSession in OpcSessions)
+                    {
+
+                        result += opcSession.GetNumberOfOpcSubscriptions();
+                    }
+                }
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
+                }
+                return result;
+            }
+        }
+        public static int NumberOfOpcSubscriptionsConnected
         {
             get
             {
@@ -82,7 +104,28 @@ namespace OpcPublisher
             }
         }
 
-        public static int NumberOfMonitoredItems
+        public static int NumberOfOpcMonitoredItemsConfigured
+        {
+            get
+            {
+                int result = 0;
+                try
+                {
+                    OpcSessionsListSemaphore.Wait();
+                    foreach (var opcSession in OpcSessions)
+                    {
+                        result += opcSession.GetNumberOfOpcMonitoredItemsConfigured();
+                    }
+                }
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
+                }
+                return result;
+            }
+        }
+
+        public static int NumberOfOpcMonitoredItemsMonitored
         {
             get
             {
@@ -93,7 +136,28 @@ namespace OpcPublisher
                     var opcSessions = OpcSessions.Where(s => s.State == OpcSession.SessionState.Connected);
                     foreach (var opcSession in opcSessions)
                     {
-                        result += opcSession.GetNumberOfOpcMonitoredItems();
+                        result += opcSession.GetNumberOfOpcMonitoredItemsMonitored();
+                    }
+                }
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
+                }
+                return result;
+            }
+        }
+
+        public static int NumberOfOpcMonitoredItemsToRemove
+        {
+            get
+            {
+                int result = 0;
+                try
+                {
+                    OpcSessionsListSemaphore.Wait();
+                    foreach (var opcSession in OpcSessions)
+                    {
+                        result += opcSession.GetNumberOfOpcMonitoredItemsToRemove();
                     }
                 }
                 finally
@@ -112,7 +176,7 @@ namespace OpcPublisher
             OpcSessionsListSemaphore = new SemaphoreSlim(1);
             PublisherNodeConfigurationSemaphore = new SemaphoreSlim(1);
             PublisherNodeConfigurationFileSemaphore = new SemaphoreSlim(1);
-            OpcSessions = new List<OpcSession>();
+            OpcSessions.Clear();
             _nodePublishingConfiguration = new List<NodePublishingConfigurationModel>();
             _configurationFileEntries = new List<PublisherConfigurationFileEntryLegacyModel>();
         }
@@ -122,7 +186,7 @@ namespace OpcPublisher
         /// </summary>
         public static void Deinit()
         {
-            OpcSessions = null;
+            OpcSessions.Clear();
             _nodePublishingConfiguration = null;
             OpcSessionsListSemaphore.Dispose();
             OpcSessionsListSemaphore = null;
@@ -141,7 +205,7 @@ namespace OpcPublisher
             // get information on the nodes to publish and validate the json by deserializing it.
             try
             {
-                await PublisherNodeConfigurationSemaphore.WaitAsync();
+                await PublisherNodeConfigurationSemaphore.WaitAsync().ConfigureAwait(false);
                 if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_PNFP")))
                 {
                     Logger.Information("Publishing node configuration file path read from environment.");
@@ -155,7 +219,7 @@ namespace OpcPublisher
                     Logger.Information($"Attemtping to load node configuration from: {PublisherNodeConfigurationFilename}");
                     try
                     {
-                        await PublisherNodeConfigurationFileSemaphore.WaitAsync();
+                        await PublisherNodeConfigurationFileSemaphore.WaitAsync().ConfigureAwait(false);
                         _configurationFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigurationFileEntryLegacyModel>>(File.ReadAllText(PublisherNodeConfigurationFilename));
                     }
                     finally
@@ -176,22 +240,22 @@ namespace OpcPublisher
                                     if (opcNode.ExpandedNodeId != null)
                                     {
                                         ExpandedNodeId expandedNodeId = ExpandedNodeId.Parse(opcNode.ExpandedNodeId);
-                                        _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.ExpandedNodeId, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName));
+                                        _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.ExpandedNodeId, publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName));
                                     }
                                     else
                                     {
                                         // check Id string to check which format we have
-                                        if (opcNode.Id.StartsWith("nsu="))
+                                        if (opcNode.Id.StartsWith("nsu=", StringComparison.InvariantCulture))
                                         {
                                             // ExpandedNodeId format
                                             ExpandedNodeId expandedNodeId = ExpandedNodeId.Parse(opcNode.Id);
-                                            _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.Id, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName));
+                                            _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.Id, publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName));
                                         }
                                         else
                                         {
                                             // NodeId format
                                             NodeId nodeId = NodeId.Parse(opcNode.Id);
-                                            _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(nodeId, opcNode.Id, publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName));
+                                            _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(nodeId, opcNode.Id, publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.UseSecurity, opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName));
                                         }
                                     }
                                 }
@@ -199,7 +263,7 @@ namespace OpcPublisher
                             else
                             {
                                 // NodeId (ns=) format node configuration syntax using default sampling and publishing interval.
-                                _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(publisherConfigFileEntryLegacy.NodeId, publisherConfigFileEntryLegacy.NodeId.ToString(), publisherConfigFileEntryLegacy.EndpointUrl, publisherConfigFileEntryLegacy.UseSecurity, null, null, null));
+                                _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(publisherConfigFileEntryLegacy.NodeId, publisherConfigFileEntryLegacy.NodeId.ToString(), publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.UseSecurity, null, null, null));
                             }
                         }
                     }
@@ -218,7 +282,7 @@ namespace OpcPublisher
             {
                 PublisherNodeConfigurationSemaphore.Release();
             }
-            Logger.Information($"There are {_nodePublishingConfiguration.Count.ToString()} nodes to publish.");
+            Logger.Information($"There are {_nodePublishingConfiguration.Count.ToString(CultureInfo.InvariantCulture)} nodes to publish.");
             return true;
         }
 
@@ -231,8 +295,8 @@ namespace OpcPublisher
             // create a list to manage sessions, subscriptions and monitored items.
             try
             {
-                await PublisherNodeConfigurationSemaphore.WaitAsync();
-                await OpcSessionsListSemaphore.WaitAsync();
+                await PublisherNodeConfigurationSemaphore.WaitAsync().ConfigureAwait(false);
+                await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
 
                 var uniqueEndpointUrls = _nodePublishingConfiguration.Select(n => n.EndpointUrl).Distinct();
                 foreach (var endpointUrl in uniqueEndpointUrls)
@@ -241,14 +305,14 @@ namespace OpcPublisher
                     OpcSession opcSession = new OpcSession(endpointUrl, _nodePublishingConfiguration.Where(n => n.EndpointUrl == endpointUrl).First().UseSecurity, OpcSessionCreationTimeout);
 
                     // create a subscription for each distinct publishing inverval
-                    var nodesDistinctPublishingInterval = _nodePublishingConfiguration.Where(n => n.EndpointUrl.AbsoluteUri.Equals(endpointUrl.AbsoluteUri, StringComparison.OrdinalIgnoreCase)).Select(c => c.OpcPublishingInterval).Distinct();
+                    var nodesDistinctPublishingInterval = _nodePublishingConfiguration.Where(n => n.EndpointUrl.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase)).Select(c => c.OpcPublishingInterval).Distinct();
                     foreach (var nodeDistinctPublishingInterval in nodesDistinctPublishingInterval)
                     {
                         // create a subscription for the publishing interval and add it to the session.
                         OpcSubscription opcSubscription = new OpcSubscription(nodeDistinctPublishingInterval);
 
                         // add all nodes with this OPC publishing interval to this subscription.
-                        var nodesWithSamePublishingInterval = _nodePublishingConfiguration.Where(n => n.EndpointUrl.AbsoluteUri.Equals(endpointUrl.AbsoluteUri, StringComparison.OrdinalIgnoreCase)).Where(n => n.OpcPublishingInterval == nodeDistinctPublishingInterval);
+                        var nodesWithSamePublishingInterval = _nodePublishingConfiguration.Where(n => n.EndpointUrl.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase)).Where(n => n.OpcPublishingInterval == nodeDistinctPublishingInterval);
                         foreach (var nodeInfo in nodesWithSamePublishingInterval)
                         {
                             // differentiate if NodeId or ExpandedNodeId format is used
@@ -298,7 +362,7 @@ namespace OpcPublisher
         /// Returns a list of all published nodes for a specific endpoint in config file format.
         /// </summary>
         /// <returns></returns>
-        public static List<PublisherConfigurationFileEntryModel> GetPublisherConfigurationFileEntries(Uri endpointUrl, bool getAll, out uint nodeConfigVersion)
+        public static List<PublisherConfigurationFileEntryModel> GetPublisherConfigurationFileEntries(string endpointUrl, bool getAll, out uint nodeConfigVersion)
         {
             List<PublisherConfigurationFileEntryModel> publisherConfigurationFileEntries = new List<PublisherConfigurationFileEntryModel>();
             nodeConfigVersion = (uint)NodeConfigVersion;
@@ -317,11 +381,11 @@ namespace OpcPublisher
                         try
                         {
                             sessionLocked = session.LockSessionAsync().Result;
-                            if (sessionLocked && (endpointUrl == null || session.EndpointUrl.AbsoluteUri.Equals(endpointUrl.AbsoluteUri, StringComparison.OrdinalIgnoreCase)))
+                            if (sessionLocked && (endpointUrl == null || session.EndpointUrl.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase)))
                             {
                                 PublisherConfigurationFileEntryModel publisherConfigurationFileEntry = new PublisherConfigurationFileEntryModel();
 
-                                publisherConfigurationFileEntry.EndpointUrl = session.EndpointUrl;
+                                publisherConfigurationFileEntry.EndpointUrl = new Uri(session.EndpointUrl);
                                 publisherConfigurationFileEntry.UseSecurity = session.UseSecurity;
                                 publisherConfigurationFileEntry.OpcNodes = new List<OpcNodeOnEndpointModel>();
 
@@ -362,7 +426,7 @@ namespace OpcPublisher
             }
             catch (Exception e)
             {
-                Logger.Error(e, "Creation of configuration file entries failed.");
+                Logger.Error(e, "Reading configuration file entries failed.");
                 publisherConfigurationFileEntries = null;
             }
             finally
@@ -376,16 +440,16 @@ namespace OpcPublisher
         /// Returns a list of all configured nodes in NodeId format.
         /// </summary>
         /// <returns></returns>
-        public static async Task<List<PublisherConfigurationFileEntryLegacyModel>> GetPublisherConfigurationFileEntriesAsNodeIdsAsync(Uri endpointUrl)
+        public static async Task<List<PublisherConfigurationFileEntryLegacyModel>> GetPublisherConfigurationFileEntriesAsNodeIdsAsync(string endpointUrl)
         {
             List<PublisherConfigurationFileEntryLegacyModel> publisherConfigurationFileEntriesLegacy = new List<PublisherConfigurationFileEntryLegacyModel>();
             try
             {
-                await PublisherNodeConfigurationSemaphore.WaitAsync();
+                await PublisherNodeConfigurationSemaphore.WaitAsync().ConfigureAwait(false);
 
                 try
                 {
-                    await OpcSessionsListSemaphore.WaitAsync();
+                    await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
 
                     // itereate through all sessions, subscriptions and monitored items and create config file entries
                     foreach (var session in OpcSessions)
@@ -393,8 +457,8 @@ namespace OpcPublisher
                         bool sessionLocked = false;
                         try
                         {
-                            sessionLocked = await session.LockSessionAsync();
-                            if (sessionLocked && (endpointUrl == null || session.EndpointUrl.AbsoluteUri.Equals(endpointUrl.AbsoluteUri, StringComparison.OrdinalIgnoreCase)))
+                            sessionLocked = await session.LockSessionAsync().ConfigureAwait(false);
+                            if (sessionLocked && (endpointUrl == null || session.EndpointUrl.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase)))
                             {
 
                                 foreach (var subscription in session.OpcSubscriptions)
@@ -405,7 +469,7 @@ namespace OpcPublisher
                                         if (monitoredItem.State != OpcMonitoredItemState.RemovalRequested)
                                         {
                                             PublisherConfigurationFileEntryLegacyModel publisherConfigurationFileEntryLegacy = new PublisherConfigurationFileEntryLegacyModel();
-                                            publisherConfigurationFileEntryLegacy.EndpointUrl = session.EndpointUrl;
+                                            publisherConfigurationFileEntryLegacy.EndpointUrl = new Uri(session.EndpointUrl);
                                             publisherConfigurationFileEntryLegacy.NodeId = null;
                                             publisherConfigurationFileEntryLegacy.OpcNodes = null;
 
@@ -413,7 +477,7 @@ namespace OpcPublisher
                                             {
                                                 // for certain scenarios we support returning the NodeId format even so the
                                                 // actual configuration of the node was in ExpandedNodeId format
-                                                publisherConfigurationFileEntryLegacy.EndpointUrl = session.EndpointUrl;
+                                                publisherConfigurationFileEntryLegacy.EndpointUrl = new Uri(session.EndpointUrl);
                                                 publisherConfigurationFileEntryLegacy.NodeId = new NodeId(monitoredItem.ConfigExpandedNodeId.Identifier, (ushort)session.GetNamespaceIndexUnlocked(monitoredItem.ConfigExpandedNodeId?.NamespaceUri));
                                                 publisherConfigurationFileEntriesLegacy.Add(publisherConfigurationFileEntryLegacy);
                                             }
@@ -423,7 +487,7 @@ namespace OpcPublisher
                                                 // compatibility with external configurations.
                                                 // the conversion would only be possible, if the session is connected, to have access to the
                                                 // server namespace array.
-                                                publisherConfigurationFileEntryLegacy.EndpointUrl = session.EndpointUrl;
+                                                publisherConfigurationFileEntryLegacy.EndpointUrl = new Uri(session.EndpointUrl);
                                                 publisherConfigurationFileEntryLegacy.NodeId = monitoredItem.ConfigNodeId;
                                                 publisherConfigurationFileEntriesLegacy.Add(publisherConfigurationFileEntryLegacy);
                                             }
@@ -472,8 +536,8 @@ namespace OpcPublisher
                 // update the config file
                 try
                 {
-                    await PublisherNodeConfigurationFileSemaphore.WaitAsync();
-                    await File.WriteAllTextAsync(PublisherNodeConfigurationFilename, JsonConvert.SerializeObject(publisherNodeConfiguration, Formatting.Indented));
+                    await PublisherNodeConfigurationFileSemaphore.WaitAsync().ConfigureAwait(false);
+                    await File.WriteAllTextAsync(PublisherNodeConfigurationFilename, JsonConvert.SerializeObject(publisherNodeConfiguration, Formatting.Indented)).ConfigureAwait(false);
                 }
                 finally
                 {

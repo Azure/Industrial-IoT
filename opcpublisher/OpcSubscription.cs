@@ -12,9 +12,9 @@ namespace OpcPublisher
     /// </summary>
     public class OpcSubscription
     {
-        public List<OpcMonitoredItem> OpcMonitoredItems;
+        public List<OpcMonitoredItem> OpcMonitoredItems { get; }
 
-        public Subscription OpcUaClientSubscription;
+        public Subscription OpcUaClientSubscription { get; set; }
 
         public int RequestedPublishingInterval { get; set; }
 

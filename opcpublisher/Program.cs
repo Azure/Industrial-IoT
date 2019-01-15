@@ -12,33 +12,34 @@ namespace OpcPublisher
     using Opc.Ua;
     using Opc.Ua.Server;
     using Serilog;
+    using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Text;
     using System.Text.RegularExpressions;
     using static Diagnostics;
     using static HubCommunication;
-    using static IotHubCommunication;
     using static IotEdgeHubCommunication;
+    using static IotHubCommunication;
     using static Opc.Ua.CertificateStoreType;
-    using static OpcSession;
     using static OpcApplicationConfiguration;
+    using static OpcSession;
     using static PublisherNodeConfiguration;
     using static PublisherTelemetryConfiguration;
     using static System.Console;
-    using System.Diagnostics;
 
-    public class Program
+    public sealed class Program
     {
         /// <summary>
         /// IoTHub/EdgeHub communication objects.
         /// </summary>
-        public static IotHubCommunication IotHubCommunication;
-        public static IotEdgeHubCommunication IotEdgeHubCommunication;
+        public static IotHubCommunication IotHubCommunication { get; set; }
+        public static IotEdgeHubCommunication IotEdgeHubCommunication { get; set; }
 
         /// <summary>
         /// Shutdown token source.
         /// </summary>
-        public static CancellationTokenSource ShutdownTokenSource;
+        public static CancellationTokenSource ShutdownTokenSource { get; set; }
 
         /// <summary>
         /// Used as delay in sec when shutting down the application.
@@ -155,10 +156,12 @@ namespace OpcPublisher
                         },
                         { "ll|loglevel=", $"the loglevel to use (allowed: fatal, error, warn, info, debug, verbose).\nDefault: info", (string l) => {
                                 List<string> logLevels = new List<string> {"fatal", "error", "warn", "info", "debug", "verbose"};
+#pragma warning disable CA1308 // Normalize strings to uppercase
                                 if (logLevels.Contains(l.ToLowerInvariant()))
                                 {
                                     _logLevel = l.ToLowerInvariant();
                                 }
+#pragma warning restore CA1308 // Normalize strings to uppercase
                                 else
                                 {
                                     throw new Mono.Options.OptionException("The loglevel must be one of: fatal, error, warn, info, debug, verbose", "loglevel");
@@ -386,23 +389,23 @@ namespace OpcPublisher
 
                         { "tb|addtrustedcertbase64=", $"adds the certificate to the applications trusted cert store passed in as base64 string (multiple strings supported)", (string s) =>
                             {
-                                TrustedCertificateBase64Strings = ParseListOfStrings(s);
+                                TrustedCertificateBase64Strings.AddRange(ParseListOfStrings(s));
                             }
                         },
                         { "tf|addtrustedcertfile=", $"adds the certificate file(s) to the applications trusted cert store passed in as base64 string (multiple filenames supported)", (string s) =>
                             {
-                                TrustedCertificateFileNames = ParseListOfFileNames(s, "addtrustedcertfile");
+                                TrustedCertificateFileNames.AddRange(ParseListOfFileNames(s, "addtrustedcertfile"));
                             }
                         },
 
                         { "ib|addissuercertbase64=", $"adds the specified issuer certificate to the applications trusted issuer cert store passed in as base64 string (multiple strings supported)", (string s) =>
                             {
-                                IssuerCertificateBase64Strings = ParseListOfStrings(s);
+                                IssuerCertificateBase64Strings.AddRange(ParseListOfStrings(s));
                             }
                         },
                         { "if|addissuercertfile=", $"adds the specified issuer certificate file(s) to the applications trusted issuer cert store (multiple filenames supported)", (string s) =>
                             {
-                                IssuerCertificateFileNames = ParseListOfFileNames(s, "addissuercertfile");
+                                IssuerCertificateFileNames.AddRange(ParseListOfFileNames(s, "addissuercertfile"));
                             }
                         },
 
@@ -426,7 +429,7 @@ namespace OpcPublisher
 
                         { "rc|removecert=", $"remove cert(s) with the given thumbprint(s) (multiple thumbprints supported)", (string s) =>
                             {
-                                ThumbprintsToRemove = ParseListOfStrings(s);
+                                ThumbprintsToRemove.AddRange(ParseListOfStrings(s));
                             }
                         },
 
@@ -548,7 +551,7 @@ namespace OpcPublisher
                 {
                     // initialize and start IoTHub communication
                     IotHubCommunication = new IotHubCommunication(ShutdownTokenSource.Token);
-                    if (!await IotHubCommunication.InitAsync())
+                    if (!await IotHubCommunication.InitAsync().ConfigureAwait(false))
                     {
                         return;
                     }
@@ -577,7 +580,7 @@ namespace OpcPublisher
 
                 // init OPC configuration and tracing
                 OpcApplicationConfiguration opcApplicationConfiguration = new OpcApplicationConfiguration();
-                await opcApplicationConfiguration.ConfigureAsync();
+                await opcApplicationConfiguration.ConfigureAsync().ConfigureAwait(false);
 
                 // log shopfloor site setting
                 if (string.IsNullOrEmpty(PublisherSite))
@@ -592,7 +595,7 @@ namespace OpcPublisher
                 // start our server interface
                 try
                 {
-                    Logger.Information($"Starting server on endpoint {OpcApplicationConfiguration.ApplicationConfiguration.ServerConfiguration.BaseAddresses[0].ToString()} ...");
+                    Logger.Information($"Starting server on endpoint {OpcApplicationConfiguration.ApplicationConfiguration.ServerConfiguration.BaseAddresses[0].ToString(CultureInfo.InvariantCulture)} ...");
                     _publisherServer = new PublisherServer();
                     _publisherServer.Start(OpcApplicationConfiguration.ApplicationConfiguration);
                     Logger.Information("Server started.");
@@ -606,14 +609,14 @@ namespace OpcPublisher
 
                 // read telemetry configuration file
                 PublisherTelemetryConfiguration.Init(ShutdownTokenSource.Token);
-                if (!await PublisherTelemetryConfiguration.ReadConfigAsync())
+                if (!await PublisherTelemetryConfiguration.ReadConfigAsync().ConfigureAwait(false))
                 {
                     return;
                 }
 
                 // read node configuration file
                 PublisherNodeConfiguration.Init();
-                if (!await PublisherNodeConfiguration.ReadConfigAsync())
+                if (!await PublisherNodeConfiguration.ReadConfigAsync().ConfigureAwait(false))
                 {
                     return;
                 }
@@ -623,7 +626,7 @@ namespace OpcPublisher
                 {
                     // initialize and start EdgeHub communication
                     IotEdgeHubCommunication = new IotEdgeHubCommunication(ShutdownTokenSource.Token);
-                    if (!await IotEdgeHubCommunication.InitAsync())
+                    if (!await IotEdgeHubCommunication.InitAsync().ConfigureAwait(false))
                     {
                         return;
                     }
@@ -632,19 +635,19 @@ namespace OpcPublisher
                 {
                     // initialize and start IoTHub communication
                     IotHubCommunication = new IotHubCommunication(ShutdownTokenSource.Token);
-                    if (!await IotHubCommunication.InitAsync())
+                    if (!await IotHubCommunication.InitAsync().ConfigureAwait(false))
                     {
                         return;
                     }
                 }
 
-                if (!await CreateOpcPublishingDataAsync())
+                if (!await CreateOpcPublishingDataAsync().ConfigureAwait(false))
                 {
                     return;
                 }
 
                 // kick off OPC session creation and node monitoring
-                await SessionStartAsync();
+                await SessionStartAsync().ConfigureAwait(false);
 
                 // Show notification on session events
                 _publisherServer.CurrentInstance.SessionManager.SessionActivated += ServerEventStatus;
@@ -664,7 +667,7 @@ namespace OpcPublisher
                 {
                     // wait forever if asked to do so
                     Logger.Information("Publisher is running infinite...");
-                    await Task.Delay(Timeout.Infinite);
+                    await Task.Delay(Timeout.Infinite).ConfigureAwait(false);
                 }
                 else
                 {
@@ -683,14 +686,14 @@ namespace OpcPublisher
                 _publisherServer.Stop();
 
                 // shutdown all OPC sessions
-                await SessionShutdownAsync();
+                await SessionShutdownAsync().ConfigureAwait(false);
 
                 // shutdown the IoTHub messaging
-                await IotHubCommunication.ShutdownAsync();
+                await IotHubCommunication.ShutdownAsync().ConfigureAwait(false);
                 IotHubCommunication = null;
 
                 // shutdown diagnostics
-                await ShutdownAsync();
+                await ShutdownAsync().ConfigureAwait(false);
 
                 // free resources
                 PublisherTelemetryConfiguration.Deinit();
@@ -717,7 +720,7 @@ namespace OpcPublisher
         {
             try
             {
-                await OpcSessionsListSemaphore.WaitAsync();
+                await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
                 OpcSessions.ForEach(s => s.ConnectAndMonitorSession.Set());
             }
             catch (Exception e)
@@ -742,7 +745,7 @@ namespace OpcPublisher
                     OpcSession opcSession = null;
                     try
                     {
-                        await OpcSessionsListSemaphore.WaitAsync();
+                        await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
                         opcSession = OpcSessions.ElementAt(0);
                         OpcSessions.RemoveAt(0);
                     }
@@ -750,7 +753,7 @@ namespace OpcPublisher
                     {
                         OpcSessionsListSemaphore.Release();
                     }
-                    await opcSession?.ShutdownAsync();
+                    await (opcSession?.ShutdownAsync()).ConfigureAwait(false);
                 }
             }
             catch (Exception e)
@@ -773,7 +776,7 @@ namespace OpcPublisher
                     return;
                 }
                 Logger.Information($"Publisher is shutting down. Wait {SessionConnectWaitSec} seconds, since there are stil {sessionCount} sessions alive...");
-                await Task.Delay(SessionConnectWaitSec * 1000);
+                await Task.Delay(SessionConnectWaitSec * 1000).ConfigureAwait(false);
             }
         }
 
@@ -835,12 +838,12 @@ namespace OpcPublisher
         {
             lock (session.DiagnosticsLock)
             {
-                string item = String.Format("{0,9}:{1,20}:", reason, session.SessionDiagnostics.SessionName);
+                string item = string.Format(CultureInfo.InvariantCulture, "{0,9}:{1,20}:", reason, session.SessionDiagnostics.SessionName);
                 if (session.Identity != null)
                 {
-                    item += String.Format(":{0,20}", session.Identity.DisplayName);
+                    item += string.Format(CultureInfo.InvariantCulture, ":{0,20}", session.Identity.DisplayName);
                 }
-                item += String.Format(":{0}", session.Id);
+                item += string.Format(CultureInfo.InvariantCulture, ":{0}", session.Id);
                 Logger.Information(item);
             }
         }
@@ -919,7 +922,7 @@ namespace OpcPublisher
             List<string> strings = new List<string>();
             if (s[0] == '"' && (s.Count(c => c.Equals('"')) % 2 == 0))
             {
-                while (s.Contains('"'))
+                while (s.Contains('"', StringComparison.InvariantCulture))
                 {
                     int first = 0;
                     int next = 0;
@@ -929,10 +932,9 @@ namespace OpcPublisher
                     s = s.Substring(++next);
                 }
             }
-            else if (s.Contains(','))
+            else if (s.Contains(',', StringComparison.InvariantCulture))
             {
                 strings = s.Split(',').ToList();
-                strings.ForEach(st => st.Trim());
                 strings = strings.Select(st => st.Trim()).ToList();
             }
             else
@@ -950,7 +952,7 @@ namespace OpcPublisher
             List<string> fileNames = new List<string>();
             if (s[0] == '"' && (s.Count(c => c.Equals('"')) % 2 == 0))
             {
-                while (s.Contains('"'))
+                while (s.Contains('"', StringComparison.InvariantCulture))
                 {
                     int first = 0;
                     int next = 0;
@@ -968,7 +970,7 @@ namespace OpcPublisher
                     s = s.Substring(++next);
                 }
             }
-            else if (s.Contains(','))
+            else if (s.Contains(',', StringComparison.InvariantCulture))
             {
                 List<string> parsedFileNames = s.Split(',').ToList();
                 parsedFileNames = parsedFileNames.Select(st => st.Trim()).ToList();
