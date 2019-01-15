@@ -26,20 +26,20 @@ namespace OpcPublisher
         // Id can be:
         // a NodeId ("ns=")
         // an ExpandedNodeId ("nsu=")
-        public string Id;
+        public string Id { get; set; }
 
         // support legacy configuration file syntax
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string ExpandedNodeId;
+        public string ExpandedNodeId { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public int? OpcSamplingInterval;
+        public int? OpcSamplingInterval { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public int? OpcPublishingInterval;
+        public int? OpcPublishingInterval { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string DisplayName;
+        public string DisplayName { get; set; }
     }
 
     /// <summary>
@@ -64,7 +64,9 @@ namespace OpcPublisher
         public bool? UseSecurity { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+#pragma warning disable CA2227 // Collection properties should be read only
         public List<OpcNodeOnEndpointModel> OpcNodes { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
     }
 
     /// <summary>
@@ -72,16 +74,16 @@ namespace OpcPublisher
     /// </summary>
     public class NodePublishingConfigurationModel
     {
-        public Uri EndpointUrl;
-        public bool UseSecurity;
-        public NodeId NodeId;
-        public ExpandedNodeId ExpandedNodeId;
-        public string OriginalId;
-        public string DisplayName;
-        public int? OpcSamplingInterval;
-        public int? OpcPublishingInterval;
+        public string EndpointUrl { get; set; }
+        public bool UseSecurity { get; set; }
+        public NodeId NodeId { get; set; }
+        public ExpandedNodeId ExpandedNodeId { get; set; }
+        public string OriginalId { get; set; }
+        public string DisplayName { get; set; }
+        public int? OpcSamplingInterval { get; set; }
+        public int? OpcPublishingInterval { get; set; }
 
-        public NodePublishingConfigurationModel(ExpandedNodeId expandedNodeId, string originalId, Uri endpointUrl, bool? useSecurity, int? opcPublishingInterval, int? opcSamplingInterval, string displayName)
+        public NodePublishingConfigurationModel(ExpandedNodeId expandedNodeId, string originalId, string endpointUrl, bool? useSecurity, int? opcPublishingInterval, int? opcSamplingInterval, string displayName)
         {
             NodeId = null;
             ExpandedNodeId = expandedNodeId;
@@ -93,7 +95,7 @@ namespace OpcPublisher
             OpcPublishingInterval = opcPublishingInterval;
         }
 
-        public NodePublishingConfigurationModel(NodeId nodeId, string originalId, Uri endpointUrl, bool? useSecurity, int? opcPublishingInterval, int? opcSamplingInterval, string displayName)
+        public NodePublishingConfigurationModel(NodeId nodeId, string originalId, string endpointUrl, bool? useSecurity, int? opcPublishingInterval, int? opcSamplingInterval, string displayName)
         {
             NodeId = nodeId;
             ExpandedNodeId = null;
@@ -133,7 +135,9 @@ namespace OpcPublisher
         public NodeId NodeId { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+#pragma warning disable CA2227 // Collection properties should be read only
         public List<OpcNodeOnEndpointModel> OpcNodes { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
     }
 
 

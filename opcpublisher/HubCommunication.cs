@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 namespace OpcPublisher
 {
     using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.Devices.Shared;
     using Newtonsoft.Json;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -90,7 +90,7 @@ namespace OpcPublisher
         {
             // init EdgeHub communication parameters
             _edgeHubClient = edgeHubClient;
-            return await InitHubCommunicationAsync(transportType);
+            return await InitHubCommunicationAsync(transportType).ConfigureAwait(false);
         }
 
 
@@ -101,7 +101,7 @@ namespace OpcPublisher
         {
             // init IoTHub communication parameters
             _iotHubClient = iotHubClient;
-            return await InitHubCommunicationAsync(transportType);
+            return await InitHubCommunicationAsync(transportType).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -127,25 +127,23 @@ namespace OpcPublisher
 
                     // open connection
                     Logger.Debug($"Open EdgeHub communication");
-                    await _edgeHubClient.OpenAsync();
+                    await _edgeHubClient.OpenAsync().ConfigureAwait(false);
 
                     // init twin properties and method callbacks
                     Logger.Debug($"Register desired properties and method callbacks");
 
-                    // register property update handler
-                    await _edgeHubClient.SetDesiredPropertyUpdateCallbackAsync(DesiredPropertiesUpdate, null);
-
                     // register method handlers
-                    await _edgeHubClient.SetMethodHandlerAsync("PublishNodes", HandlePublishNodesMethodAsync, _edgeHubClient);
-                    await _edgeHubClient.SetMethodHandlerAsync("UnpublishNodes", HandleUnpublishNodesMethodAsync, _edgeHubClient);
-                    await _edgeHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _edgeHubClient);
-                    await _edgeHubClient.SetMethodHandlerAsync("GetConfiguredEndpoints", HandleGetConfiguredEndpointsMethodAsync, _edgeHubClient);
-                    await _edgeHubClient.SetMethodHandlerAsync("GetConfiguredNodesOnEndpoint", HandleGetConfiguredNodesOnEndpointMethodAsync, _edgeHubClient);
-                    await _edgeHubClient.SetMethodHandlerAsync("GetDiagnosticInfo", HandleGetDiagnosticInfoMethodAsync, _edgeHubClient);
-                    await _edgeHubClient.SetMethodHandlerAsync("GetDiagnosticLog", HandleGetDiagnosticLogMethodAsync, _edgeHubClient);
-                    await _edgeHubClient.SetMethodHandlerAsync("ExitApplication", HandleExitApplicationMethodAsync, _edgeHubClient);
-                    await _edgeHubClient.SetMethodHandlerAsync("GetInfo", HandleGetInfoMethodAsync, _edgeHubClient);
-                    await _edgeHubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync, _edgeHubClient);
+                    await _edgeHubClient.SetMethodHandlerAsync("PublishNodes", HandlePublishNodesMethodAsync, _edgeHubClient).ConfigureAwait(false);
+                    await _edgeHubClient.SetMethodHandlerAsync("UnpublishNodes", HandleUnpublishNodesMethodAsync, _edgeHubClient).ConfigureAwait(false);
+                    await _edgeHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _edgeHubClient).ConfigureAwait(false);
+                    await _edgeHubClient.SetMethodHandlerAsync("GetConfiguredEndpoints", HandleGetConfiguredEndpointsMethodAsync, _edgeHubClient).ConfigureAwait(false);
+                    await _edgeHubClient.SetMethodHandlerAsync("GetConfiguredNodesOnEndpoint", HandleGetConfiguredNodesOnEndpointMethodAsync, _edgeHubClient).ConfigureAwait(false);
+                    await _edgeHubClient.SetMethodHandlerAsync("GetDiagnosticInfo", HandleGetDiagnosticInfoMethodAsync, _edgeHubClient).ConfigureAwait(false);
+                    await _edgeHubClient.SetMethodHandlerAsync("GetDiagnosticLog", HandleGetDiagnosticLogMethodAsync, _edgeHubClient).ConfigureAwait(false);
+                    await _edgeHubClient.SetMethodHandlerAsync("GetDiagnosticStartupLog", HandleGetDiagnosticStartupLogMethodAsync, _edgeHubClient).ConfigureAwait(false);
+                    await _edgeHubClient.SetMethodHandlerAsync("ExitApplication", HandleExitApplicationMethodAsync, _edgeHubClient).ConfigureAwait(false);
+                    await _edgeHubClient.SetMethodHandlerAsync("GetInfo", HandleGetInfoMethodAsync, _edgeHubClient).ConfigureAwait(false);
+                    await _edgeHubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync, _edgeHubClient).ConfigureAwait(false);
                 }
                 else
                 {
@@ -156,31 +154,29 @@ namespace OpcPublisher
 
                     // open connection
                     Logger.Debug($"Open IoTHub communication");
-                    await _iotHubClient.OpenAsync();
+                    await _iotHubClient.OpenAsync().ConfigureAwait(false);
 
                     // init twin properties and method callbacks (not supported for HTTP)
                     if (!IsHttp1Transport())
                     {
                         Logger.Debug($"Register desired properties and method callbacks");
 
-                        // register property update handler
-                        await _iotHubClient.SetDesiredPropertyUpdateCallbackAsync(DesiredPropertiesUpdate, null);
-
                         // register method handlers
-                        await _iotHubClient.SetMethodHandlerAsync("PublishNodes", HandlePublishNodesMethodAsync, _iotHubClient);
-                        await _iotHubClient.SetMethodHandlerAsync("UnpublishNodes", HandleUnpublishNodesMethodAsync, _iotHubClient);
-                        await _iotHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _iotHubClient);
-                        await _iotHubClient.SetMethodHandlerAsync("GetConfiguredEndpoints", HandleGetConfiguredEndpointsMethodAsync, _iotHubClient);
-                        await _iotHubClient.SetMethodHandlerAsync("GetConfiguredNodesOnEndpoint", HandleGetConfiguredNodesOnEndpointMethodAsync, _iotHubClient);
-                        await _iotHubClient.SetMethodHandlerAsync("GetDiagnosticInfo", HandleGetDiagnosticInfoMethodAsync, _iotHubClient);
-                        await _iotHubClient.SetMethodHandlerAsync("GetDiagnosticLog", HandleGetDiagnosticLogMethodAsync, _iotHubClient);
-                        await _iotHubClient.SetMethodHandlerAsync("ExitApplication", HandleExitApplicationMethodAsync, _iotHubClient);
-                        await _iotHubClient.SetMethodHandlerAsync("GetInfo", HandleGetInfoMethodAsync, _iotHubClient);
-                        await _iotHubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync, _iotHubClient);
+                        await _iotHubClient.SetMethodHandlerAsync("PublishNodes", HandlePublishNodesMethodAsync, _iotHubClient).ConfigureAwait(false);
+                        await _iotHubClient.SetMethodHandlerAsync("UnpublishNodes", HandleUnpublishNodesMethodAsync, _iotHubClient).ConfigureAwait(false);
+                        await _iotHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _iotHubClient).ConfigureAwait(false);
+                        await _iotHubClient.SetMethodHandlerAsync("GetConfiguredEndpoints", HandleGetConfiguredEndpointsMethodAsync, _iotHubClient).ConfigureAwait(false);
+                        await _iotHubClient.SetMethodHandlerAsync("GetConfiguredNodesOnEndpoint", HandleGetConfiguredNodesOnEndpointMethodAsync, _iotHubClient).ConfigureAwait(false);
+                        await _iotHubClient.SetMethodHandlerAsync("GetDiagnosticInfo", HandleGetDiagnosticInfoMethodAsync, _iotHubClient).ConfigureAwait(false);
+                        await _iotHubClient.SetMethodHandlerAsync("GetDiagnosticLog", HandleGetDiagnosticLogMethodAsync, _iotHubClient).ConfigureAwait(false);
+                        await _iotHubClient.SetMethodHandlerAsync("GetDiagnosticStartupLog", HandleGetDiagnosticStartupLogMethodAsync, _iotHubClient).ConfigureAwait(false);
+                        await _iotHubClient.SetMethodHandlerAsync("ExitApplication", HandleExitApplicationMethodAsync, _iotHubClient).ConfigureAwait(false);
+                        await _iotHubClient.SetMethodHandlerAsync("GetInfo", HandleGetInfoMethodAsync, _iotHubClient).ConfigureAwait(false);
+                        await _iotHubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync, _iotHubClient).ConfigureAwait(false);
                     }
                 }
                 Logger.Debug($"Init D2C message processing");
-                return await InitMessageProcessingAsync();
+                return await InitMessageProcessingAsync().ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -189,35 +185,19 @@ namespace OpcPublisher
             }
         }
 
-        private Task DesiredPropertiesUpdate(TwinCollection desiredProperties, object userContext)
-        {
-            try
-            {
-                Logger.Debug("Desired property update:");
-                Logger.Debug(JsonConvert.SerializeObject(desiredProperties));
-
-                // todo - add handling if we use properties
-            }
-            catch (AggregateException e)
-            {
-                foreach (Exception ex in e.InnerExceptions)
-                {
-                    Logger.Error(ex, "Error in desired property update.");
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e, "Error in desired property update.");
-            }
-            return Task.CompletedTask;
-        }
-
         /// <summary>
         /// Handle connection status change notifications.
         /// </summary>
         static void ConnectionStatusChange(ConnectionStatus status, ConnectionStatusChangeReason reason)
         {
+            if (reason == ConnectionStatusChangeReason.Connection_Ok || ShutdownTokenSource.IsCancellationRequested)
+            {
                 Logger.Information($"Connection status changed to '{status}', reason '{reason}'");
+            }
+            else
+            {
+                Logger.Error($"Connection status changed to '{status}', reason '{reason}'");
+            }
         }
 
         /// <summary>
@@ -226,118 +206,190 @@ namespace OpcPublisher
         static async Task<MethodResponse> HandlePublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandlePublishNodesMethodAsync:";
-            Uri endpointUrl = null;
+            Uri endpointUri = null;
             PublishNodesMethodRequestModel publishNodesMethodData = null;
-            HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
+            HttpStatusCode nodeStatusCode = HttpStatusCode.InternalServerError;
+            List<string> statusResponse = new List<string>();
+            string statusMessage = string.Empty;
             try
             {
                 Logger.Debug($"{logPrefix} called");
                 publishNodesMethodData = JsonConvert.DeserializeObject<PublishNodesMethodRequestModel>(methodRequest.DataAsJson);
-                endpointUrl = new Uri(publishNodesMethodData.EndpointUrl);
+                endpointUri = new Uri(publishNodesMethodData.EndpointUrl);
             }
-            catch (UriFormatException)
+            catch (UriFormatException e)
             {
-                Logger.Error($"{logPrefix} The EndpointUrl has an invalid format '{publishNodesMethodData.EndpointUrl}'!");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                statusMessage = $"Exception ({e.Message}) while parsing EndpointUrl '{publishNodesMethodData.EndpointUrl}'";
+                Logger.Error(e, $"{logPrefix} {statusMessage}");
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.NotAcceptable;
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"{logPrefix} Exception");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                statusMessage = $"Exception ({e.Message}) while deserializing message payload";
+                Logger.Error(e, $"{logPrefix} {statusMessage}");
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.InternalServerError;
             }
 
-            // find/create a session to the endpoint URL and start monitoring the node.
-            try
+            if (statusCode == HttpStatusCode.OK)
             {
-                // lock the publishing configuration till we are done
-                await OpcSessionsListSemaphore.WaitAsync();
-
-                if (ShutdownTokenSource.IsCancellationRequested)
+                // find/create a session to the endpoint URL and start monitoring the node.
+                try
                 {
-                    Logger.Warning($"{logPrefix} Publisher shutdown detected. Aborting...");
-                    return (new MethodResponse((int)HttpStatusCode.Gone));
+                    // lock the publishing configuration till we are done
+                    await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
+
+                    if (ShutdownTokenSource.IsCancellationRequested)
+                    {
+                        statusMessage = $"Publisher is in shutdown";
+                        Logger.Warning($"{logPrefix} {statusMessage}");
+                        statusResponse.Add(statusMessage);
+                        statusCode = HttpStatusCode.Gone;
+                    }
+                    else
+                    {
+                        // find the session we need to monitor the node
+                        OpcSession opcSession = null;
+                        opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
+
+                        // add a new session.
+                        if (opcSession == null)
+                        {
+                            // create new session info.
+                            opcSession = new OpcSession(endpointUri.OriginalString, true, OpcSessionCreationTimeout);
+                            OpcSessions.Add(opcSession);
+                            Logger.Information($"{logPrefix} No matching session found for endpoint '{endpointUri.OriginalString}'. Requested to create a new one.");
+                        }
+
+                        // process all nodes
+                        foreach (var node in publishNodesMethodData.OpcNodes)
+                        {
+                            // support legacy format
+                            if (string.IsNullOrEmpty(node.Id) && !string.IsNullOrEmpty(node.ExpandedNodeId))
+                            {
+                                    node.Id = node.ExpandedNodeId;
+                            }
+
+                            NodeId nodeId = null;
+                            ExpandedNodeId expandedNodeId = null;
+                            bool isNodeIdFormat = true;
+                            try
+                            {
+                                if (node.Id.Contains("nsu=", StringComparison.InvariantCulture))
+                                {
+                                    expandedNodeId = ExpandedNodeId.Parse(node.Id);
+                                    isNodeIdFormat = false;
+                                }
+                                else
+                                {
+                                    nodeId = NodeId.Parse(node.Id);
+                                    isNodeIdFormat = true;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                statusMessage = $"Exception ({e.Message}) while formatting node '{node.Id}'!";
+                                Logger.Error(e, $"{logPrefix} {statusMessage}");
+                                statusResponse.Add(statusMessage);
+                                statusCode = HttpStatusCode.NotAcceptable;
+                                continue;
+                            }
+
+                            try
+                            {
+                                if (isNodeIdFormat)
+                                {
+                                    // add the node info to the subscription with the default publishing interval, execute syncronously
+                                    Logger.Debug($"{logPrefix} Request to monitor item with NodeId '{node.Id}' (PublishingInterval: {node.OpcPublishingInterval.ToString() ?? "--"}, SamplingInterval: {node.OpcSamplingInterval.ToString() ?? "--"})");
+                                    nodeStatusCode = await opcSession.AddNodeForMonitoringAsync(nodeId, null, node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName, ShutdownTokenSource.Token).ConfigureAwait(false);
+                                }
+                                else
+                                {
+                                    // add the node info to the subscription with the default publishing interval, execute syncronously
+                                    Logger.Debug($"{logPrefix} Request to monitor item with ExpandedNodeId '{node.Id}' (PublishingInterval: {node.OpcPublishingInterval.ToString() ?? "--"}, SamplingInterval: {node.OpcSamplingInterval.ToString() ?? "--"})");
+                                    nodeStatusCode = await opcSession.AddNodeForMonitoringAsync(null, expandedNodeId, node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName, ShutdownTokenSource.Token).ConfigureAwait(false);
+                                }
+
+                                // check and store a result message in case of an error
+                                switch (nodeStatusCode)
+                                {
+                                    case HttpStatusCode.OK:
+                                        statusMessage = $"'{node.Id}': already monitored";
+                                        Logger.Debug($"{logPrefix} {statusMessage}");
+                                        statusResponse.Add(statusMessage);
+                                        break;
+
+                                    case HttpStatusCode.Accepted:
+                                        statusMessage = $"'{node.Id}': added";
+                                        Logger.Debug($"{logPrefix} {statusMessage}");
+                                        statusResponse.Add(statusMessage);
+                                        break;
+
+                                    case HttpStatusCode.Gone:
+                                        statusMessage = $"'{node.Id}': session to endpoint does not exist anymore";
+                                        Logger.Debug($"{logPrefix} {statusMessage}");
+                                        statusResponse.Add(statusMessage);
+                                        statusCode = HttpStatusCode.Gone;
+                                        break;
+
+                                    case HttpStatusCode.InternalServerError:
+                                        statusMessage = $"'{node.Id}': error while trying to configure";
+                                        Logger.Debug($"{logPrefix} {statusMessage}");
+                                        statusResponse.Add(statusMessage);
+                                        statusCode = HttpStatusCode.InternalServerError;
+                                        break;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                statusMessage = $"Exception ({e.Message}) while trying to configure publishing node '{node.Id}'";
+                                Logger.Error(e, $"{logPrefix} {statusMessage}");
+                                statusResponse.Add(statusMessage);
+                                statusCode = HttpStatusCode.InternalServerError;
+                            }
+                        }
+                    }
                 }
-
-                // find the session we need to monitor the node
-                OpcSession opcSession = null;
-                opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUrl.AbsoluteUri.Equals(endpointUrl.AbsoluteUri, StringComparison.OrdinalIgnoreCase));
-
-                // add a new session.
-                if (opcSession == null)
+                catch (AggregateException e)
                 {
-                    // create new session info.
-                    opcSession = new OpcSession(endpointUrl, true, OpcSessionCreationTimeout);
-                    OpcSessions.Add(opcSession);
-                    Logger.Information($"{logPrefix} No matching session found for endpoint '{endpointUrl.OriginalString}'. Requested to create a new one.");
+                    foreach (Exception ex in e.InnerExceptions)
+                    {
+                        Logger.Error(ex, $"{logPrefix} Exception");
+                    }
+                    statusMessage = $"EndpointUrl: '{publishNodesMethodData.EndpointUrl}': exception ({e.Message}) while trying to publish";
+                    Logger.Error(e, $"{logPrefix} {statusMessage}");
+                    statusResponse.Add(statusMessage);
+                    statusCode = HttpStatusCode.InternalServerError;
                 }
-
-                // process all nodes
-                foreach (var node in publishNodesMethodData.OpcNodes)
+                catch (Exception e)
                 {
-                    NodeId nodeId = null;
-                    ExpandedNodeId expandedNodeId = null;
-                    bool isNodeIdFormat = true;
-                    try
-                    {
-                        if (node.Id.Contains("nsu="))
-                        {
-                            expandedNodeId = ExpandedNodeId.Parse(node.Id);
-                            isNodeIdFormat = false;
-                        }
-                        else
-                        {
-                            nodeId = NodeId.Parse(node.Id);
-                            isNodeIdFormat = true;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Error(e, $"{logPrefix} The NodeId has an invalid format '{node.Id}'!");
-                        continue;
-                    }
-
-                    try
-                    {
-                        if (isNodeIdFormat)
-                        {
-                            // add the node info to the subscription with the default publishing interval, execute syncronously
-                            Logger.Debug($"{logPrefix} Request to monitor item with NodeId '{nodeId.ToString()}' (PublishingInterval: {node.OpcPublishingInterval.ToString() ?? "--"}, SamplingInterval: {node.OpcSamplingInterval.ToString() ?? "--"})");
-                            statusCode = await opcSession.AddNodeForMonitoringAsync(nodeId, null, node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName, ShutdownTokenSource.Token);
-                        }
-                        else
-                        {
-                            // add the node info to the subscription with the default publishing interval, execute syncronously
-                            Logger.Debug($"{logPrefix} Request to monitor item with ExpandedNodeId '{expandedNodeId.ToString()}' (PublishingInterval: {node.OpcPublishingInterval.ToString() ?? "--"}, SamplingInterval: {node.OpcSamplingInterval.ToString() ?? "--"})");
-                            statusCode = await opcSession.AddNodeForMonitoringAsync(null, expandedNodeId, node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName, ShutdownTokenSource.Token);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Error(e, $"{logPrefix} Exception while trying to configure publishing node '{(isNodeIdFormat ? nodeId.ToString() : expandedNodeId.ToString())}'");
-                        return (new MethodResponse((int)HttpStatusCode.InternalServerError));
-                    }
-
-                    // stop when we encounter a problem
-                    if (statusCode != HttpStatusCode.OK && statusCode != HttpStatusCode.Accepted)
-                    {
-                        break;
-                    }
+                    statusMessage = $"EndpointUrl: '{publishNodesMethodData.EndpointUrl}': exception ({e.Message}) while trying to publish";
+                    Logger.Error(e, $"{logPrefix} {statusMessage}");
+                    statusResponse.Add(statusMessage);
+                    statusCode = HttpStatusCode.InternalServerError;
+                }
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
                 }
             }
-            catch (AggregateException e)
+
+            // adjust response size
+            AdjustResponse(ref statusResponse);
+
+            // build response
+            string resultString = JsonConvert.SerializeObject(statusResponse);
+            byte[] result = Encoding.UTF8.GetBytes(resultString);
+            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
             {
-                foreach (Exception ex in e.InnerExceptions)
-                {
-                    Logger.Error(ex, $"{logPrefix} Exception");
-                }
-                // Indicate that the message treatment is not completed
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                Logger.Error($"{logPrefix} Response size is too long");
+                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
             }
-            finally
-            {
-                OpcSessionsListSemaphore.Release();
-            }
-            return (new MethodResponse((int)statusCode));
+            MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
+            Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
+            return methodResponse;
         }
 
         /// <summary>
@@ -348,102 +400,195 @@ namespace OpcPublisher
             string logPrefix = "HandleUnpublishNodesMethodAsync:";
             NodeId nodeId = null;
             ExpandedNodeId expandedNodeId = null;
-            Uri endpointUrl = null;
+            Uri endpointUri = null;
             bool isNodeIdFormat = true;
             UnpublishNodesMethodRequestModel unpublishNodesMethodData = null;
             HttpStatusCode statusCode = HttpStatusCode.OK;
+            HttpStatusCode nodeStatusCode = HttpStatusCode.InternalServerError;
+            List<string> statusResponse = new List<string>();
+            string statusMessage = string.Empty;
             try
             {
                 Logger.Debug($"{logPrefix} called");
                 unpublishNodesMethodData = JsonConvert.DeserializeObject<UnpublishNodesMethodRequestModel>(methodRequest.DataAsJson);
-                endpointUrl = new Uri(unpublishNodesMethodData.EndpointUrl);
+                endpointUri = new Uri(unpublishNodesMethodData.EndpointUrl);
             }
-            catch (UriFormatException)
+            catch (UriFormatException e)
             {
-                Logger.Error($"{logPrefix} The EndpointUrl has an invalid format '{unpublishNodesMethodData.EndpointUrl}'!");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                statusMessage = $"Exception ({e.Message}) while parsing EndpointUrl '{unpublishNodesMethodData.EndpointUrl}'";
+                Logger.Error(e, $"{logPrefix} {statusMessage}");
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.InternalServerError;
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"{logPrefix} Exception");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                statusMessage = $"Exception ({e.Message}) while deserializing message payload";
+                Logger.Error(e, $"{logPrefix} {statusMessage}");
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.InternalServerError;
             }
 
-            // find the session and stop monitoring the node.
-            try
+            if (statusCode == HttpStatusCode.OK)
             {
-                await OpcSessionsListSemaphore.WaitAsync();
-                if (ShutdownTokenSource.IsCancellationRequested)
-                {
-                    return (new MethodResponse((int)HttpStatusCode.Gone));
-                }
-
-                // find the session we need to monitor the node
-                OpcSession opcSession = null;
                 try
                 {
-                    opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUrl.AbsoluteUri.Equals(endpointUrl.AbsoluteUri, StringComparison.OrdinalIgnoreCase));
-                }
-                catch
-                {
-                    opcSession = null;
-                }
-
-                if (opcSession == null)
-                {
-                    // do nothing if there is no session for this endpoint.
-                    Logger.Error($"{logPrefix} Session for endpoint '{endpointUrl.OriginalString}' not found.");
-                    return (new MethodResponse((int)HttpStatusCode.Gone));
-                }
-                else
-                {
-                    foreach (var node in unpublishNodesMethodData.OpcNodes)
+                    await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
+                    if (ShutdownTokenSource.IsCancellationRequested)
                     {
+                        statusMessage = $"Publisher is in shutdown";
+                        Logger.Error($"{logPrefix} {statusMessage}");
+                        statusResponse.Add(statusMessage);
+                        statusCode = HttpStatusCode.Gone;
+                    }
+                    else
+                    {
+                        // find the session we need to monitor the node
+                        OpcSession opcSession = null;
                         try
                         {
-                            if (node.Id.Contains("nsu="))
-                            {
-                                expandedNodeId = ExpandedNodeId.Parse(node.Id);
-                                isNodeIdFormat = false;
-                            }
-                            else
-                            {
-                                nodeId = NodeId.Parse(node.Id);
-                                isNodeIdFormat = true;
-                            }
-
+                            opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
                         }
-                        catch (Exception e)
+                        catch
                         {
-                            Logger.Error(e, $"{logPrefix} The NodeId has an invalid format '{node.Id}'!");
-                            return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                            opcSession = null;
                         }
 
-                        if (isNodeIdFormat)
+                        if (opcSession == null)
                         {
-                            // stop monitoring the node, execute synchronously
-                            Logger.Information($"{logPrefix} Request to stop monitoring item with NodeId '{nodeId.ToString()}')");
-                            statusCode = await opcSession.RequestMonitorItemRemovalAsync(nodeId, null, ShutdownTokenSource.Token);
+                            // do nothing if there is no session for this endpoint.
+                            statusMessage = $"Session for endpoint '{endpointUri.OriginalString}' not found.";
+                            Logger.Error($"{logPrefix} {statusMessage}");
+                            statusResponse.Add(statusMessage);
+                            statusCode = HttpStatusCode.Gone;
                         }
                         else
                         {
-                            // stop monitoring the node, execute synchronously
-                            Logger.Information($"{logPrefix} Request to stop monitoring item with ExpandedNodeId '{expandedNodeId.ToString()}')");
-                            statusCode = await opcSession.RequestMonitorItemRemovalAsync(null, expandedNodeId, ShutdownTokenSource.Token);
+                            foreach (var node in unpublishNodesMethodData.OpcNodes)
+                            {
+                                // support legacy format
+                                if (string.IsNullOrEmpty(node.Id) && !string.IsNullOrEmpty(node.ExpandedNodeId))
+                                {
+                                    node.Id = node.ExpandedNodeId;
+                                }
+
+                                try
+                                {
+                                    if (node.Id.Contains("nsu=", StringComparison.InvariantCulture))
+                                    {
+                                        expandedNodeId = ExpandedNodeId.Parse(node.Id);
+                                        isNodeIdFormat = false;
+                                    }
+                                    else
+                                    {
+                                        nodeId = NodeId.Parse(node.Id);
+                                        isNodeIdFormat = true;
+                                    }
+
+                                }
+                                catch (Exception e)
+                                {
+                                    statusMessage = $"Exception ({e.Message}) while formatting node '{node.Id}'!";
+                                    Logger.Error(e, $"{logPrefix} {statusMessage}");
+                                    statusResponse.Add(statusMessage);
+                                    statusCode = HttpStatusCode.NotAcceptable;
+                                    continue;
+                                }
+
+                                try
+                                {
+                                    if (isNodeIdFormat)
+                                    {
+                                        // stop monitoring the node, execute synchronously
+                                        Logger.Information($"{logPrefix} Request to stop monitoring item with NodeId '{nodeId.ToString()}')");
+                                        nodeStatusCode = await opcSession.RequestMonitorItemRemovalAsync(nodeId, null, ShutdownTokenSource.Token).ConfigureAwait(false);
+                                    }
+                                    else
+                                    {
+                                        // stop monitoring the node, execute synchronously
+                                        Logger.Information($"{logPrefix} Request to stop monitoring item with ExpandedNodeId '{expandedNodeId.ToString()}')");
+                                        nodeStatusCode = await opcSession.RequestMonitorItemRemovalAsync(null, expandedNodeId, ShutdownTokenSource.Token).ConfigureAwait(false);
+                                    }
+
+                                    // check and store a result message in case of an error
+                                    switch (nodeStatusCode)
+                                    {
+                                        case HttpStatusCode.OK:
+                                            statusMessage = $"Id '{node.Id}': was not configured";
+                                            Logger.Debug($"{logPrefix} {statusMessage}");
+                                            statusResponse.Add(statusMessage);
+                                            break;
+
+                                        case HttpStatusCode.Accepted:
+                                            statusMessage = $"Id '{node.Id}': tagged for removal";
+                                            Logger.Debug($"{logPrefix} {statusMessage}");
+                                            statusResponse.Add(statusMessage);
+                                            break;
+
+                                        case HttpStatusCode.Gone:
+                                            statusMessage = $"Id '{node.Id}': session to endpoint does not exist anymore";
+                                            Logger.Debug($"{logPrefix} {statusMessage}");
+                                            statusResponse.Add(statusMessage);
+                                            statusCode = HttpStatusCode.Gone;
+                                            break;
+
+                                        case HttpStatusCode.InternalServerError:
+                                            statusMessage = $"Id '{node.Id}': error while trying to remove";
+                                            Logger.Debug($"{logPrefix} {statusMessage}");
+                                            statusResponse.Add(statusMessage);
+                                            statusCode = HttpStatusCode.InternalServerError;
+                                            break;
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    statusMessage = $"Exception ({e.Message}) while trying to tag node '{node.Id}' for removal";
+                                    Logger.Error(e, $"{logPrefix} {statusMessage}");
+                                    statusResponse.Add(statusMessage);
+                                    statusCode = HttpStatusCode.InternalServerError;
+                                }
+                            }
                         }
                     }
+
+                }
+                catch (AggregateException e)
+                {
+                    foreach (Exception ex in e.InnerExceptions)
+                    {
+                        Logger.Error(ex, $"{logPrefix} Exception");
+                    }
+                    statusMessage = $"EndpointUrl: '{unpublishNodesMethodData.EndpointUrl}': exception while trying to unpublish";
+                    Logger.Error(e, $"{logPrefix} {statusMessage}");
+                    statusResponse.Add(statusMessage);
+                    statusCode = HttpStatusCode.InternalServerError;
+                }
+                catch (Exception e)
+                {
+                    statusMessage = $"EndpointUrl: '{unpublishNodesMethodData.EndpointUrl}': exception ({e.Message}) while trying to unpublish";
+                    Logger.Error($"e, {logPrefix} {statusMessage}");
+                    statusResponse.Add(statusMessage);
+                    statusCode = HttpStatusCode.InternalServerError;
+                }
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
                 }
             }
-            catch (Exception e)
+
+            // adjust response size
+            AdjustResponse(ref statusResponse);
+
+            // build response
+            string resultString = JsonConvert.SerializeObject(statusResponse);
+            byte[] result = Encoding.UTF8.GetBytes(resultString);
+            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
             {
-                Logger.Error(e, $"{logPrefix} Exception while trying to configure publishing node '{nodeId.ToString()}'");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                Logger.Error($"{logPrefix} Response size is too long");
+                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
             }
-            finally
-            {
-                OpcSessionsListSemaphore.Release();
-            }
-            return (new MethodResponse((int)statusCode));
+            MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
+            Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
+            return methodResponse;
         }
 
         /// <summary>
@@ -452,8 +597,11 @@ namespace OpcPublisher
         static async Task<MethodResponse> HandleUnpublishAllNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleUnpublishAllNodesMethodAsync:";
-            Uri endpointUrl = null;
+            Uri endpointUri = null;
             UnpublishAllNodesMethodRequestModel unpublishAllNodesMethodData = null;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
+            List<string> statusResponse = new List<string>();
+            string statusMessage = string.Empty;
 
             try
             {
@@ -461,77 +609,136 @@ namespace OpcPublisher
                 unpublishAllNodesMethodData = JsonConvert.DeserializeObject<UnpublishAllNodesMethodRequestModel>(methodRequest.DataAsJson);
                 if (unpublishAllNodesMethodData != null && unpublishAllNodesMethodData.EndpointUrl != null)
                 {
-                    endpointUrl = new Uri(unpublishAllNodesMethodData.EndpointUrl);
+                    endpointUri = new Uri(unpublishAllNodesMethodData.EndpointUrl);
                 }
             }
-            catch (UriFormatException)
+            catch (UriFormatException e)
             {
-                Logger.Error($"{logPrefix}  The EndpointUrl has an invalid format '{unpublishAllNodesMethodData.EndpointUrl}'!");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                statusMessage = $"Exception ({e.Message}) while parsing EndpointUrl '{unpublishAllNodesMethodData.EndpointUrl}'";
+                Logger.Error(e, $"{logPrefix} {statusMessage}");
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.InternalServerError;
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"{logPrefix} Exception");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                statusMessage = $"Exception ({e.Message}) while deserializing message payload";
+                Logger.Error(e, $"{logPrefix} {statusMessage}");
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.InternalServerError;
             }
 
-            // schedule to remove all nodes on all sessions
-            try
+            if (statusCode == HttpStatusCode.OK)
             {
-                await OpcSessionsListSemaphore.WaitAsync();
-                if (ShutdownTokenSource.IsCancellationRequested)
+                // schedule to remove all nodes on all sessions
+                try
                 {
-                    return (new MethodResponse((int)HttpStatusCode.Gone));
-                }
+                    await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
+                    if (ShutdownTokenSource.IsCancellationRequested)
+                    {
+                        statusMessage = $"Publisher is in shutdown";
+                        Logger.Error($"{logPrefix} {statusMessage}");
+                        statusResponse.Add(statusMessage);
+                        statusCode = HttpStatusCode.Gone;
+                    }
+                    else
+                    {
+                        // loop through all sessions
+                        foreach (var session in OpcSessions)
+                        {
+                            bool sessionLocked = false;
+                            try
+                            {
+                                // is an endpoint was given, limit unpublish to this endpoint
+                                if (endpointUri != null && !endpointUri.OriginalString.Equals(session.EndpointUrl, StringComparison.InvariantCulture))
+                                {
+                                    continue;
+                                }
 
-                // loop through all sessions
-                var sessionsToCleanup = OpcSessions.Where(s => (endpointUrl == null ? true : s.EndpointUrl == endpointUrl));
-                foreach (var session in sessionsToCleanup)
+                                sessionLocked = await session.LockSessionAsync().ConfigureAwait(false);
+                                if (!sessionLocked || ShutdownTokenSource.IsCancellationRequested)
+                                {
+                                    break;
+                                }
+
+                                // loop through all subscriptions of a connected session
+                                foreach (var subscription in session.OpcSubscriptions)
+                                {
+                                    // loop through all monitored items
+                                    foreach (var monitoredItem in subscription.OpcMonitoredItems)
+                                    {
+                                        if (monitoredItem.ConfigType == OpcMonitoredItemConfigurationType.NodeId)
+                                        {
+                                            await session.RequestMonitorItemRemovalAsync(monitoredItem.ConfigNodeId, null, ShutdownTokenSource.Token, false).ConfigureAwait(false);
+                                        }
+                                        else
+                                        {
+                                            await session.RequestMonitorItemRemovalAsync(null, monitoredItem.ConfigExpandedNodeId, ShutdownTokenSource.Token, false).ConfigureAwait(false);
+                                        }
+                                    }
+                                }
+                            }
+                            finally
+                            {
+                                if (sessionLocked)
+                                {
+                                    session.ReleaseSession();
+                                }
+                            }
+                        }
+                        // build response
+                        statusMessage = $"All monitored items in all subscriptions{(endpointUri != null ? $" on endpoint '{endpointUri.OriginalString}'" : " ")} tagged for removal";
+                        statusResponse.Add(statusMessage);
+                        Logger.Information($"{logPrefix} {statusMessage}");
+                    }
+                }
+                catch (Exception e)
                 {
-                    // cleanup a disconnected session
-                    if (session.State == OpcSession.SessionState.Disconnected)
-                    {
-                        foreach (var subscription in session.OpcSubscriptions)
-                        {
-                            subscription.OpcMonitoredItems.RemoveAll(i => true);
-                        }
-                        session.OpcSubscriptions.RemoveAll(s => true);
-                        continue;
-                    }
-
-                    // loop through all subscriptions of a connected session
-                    var subscriptionsToCleanup = session.OpcSubscriptions;
-                    foreach (var subscription in subscriptionsToCleanup)
-                    {
-                        // loop through all monitored items
-                        var monitoredItemsToCleanup = subscription.OpcMonitoredItems.ToArray();
-                        for (var i = 0; i < monitoredItemsToCleanup.Length; i++)
-                        {
-                            var monitoredItem = monitoredItemsToCleanup[i];
-                            if (monitoredItem.ConfigType == OpcMonitoredItemConfigurationType.NodeId)
-                            {
-                                await session.RequestMonitorItemRemovalAsync(monitoredItem.ConfigNodeId, null, ShutdownTokenSource.Token);
-                            }
-                            else
-                            {
-                                await session.RequestMonitorItemRemovalAsync(null, monitoredItem.ConfigExpandedNodeId, ShutdownTokenSource.Token);
-                            }
-                        }
-                    }
+                    statusMessage = $"EndpointUrl: '{unpublishAllNodesMethodData.EndpointUrl}': exception ({e.Message}) while trying to unpublish";
+                    Logger.Error(e, $"{logPrefix} {statusMessage}");
+                    statusResponse.Add(statusMessage);
+                    statusCode = HttpStatusCode.InternalServerError;
                 }
-                // remove disconnected sessions data structures
-                OpcSessions.RemoveAll(s => s.OpcSubscriptions.Count == 0);
+                finally
+                {
+                    OpcSessionsListSemaphore.Release();
+                }
             }
-            catch (Exception e)
+
+            // adjust response size to available package size and keep proper json syntax
+            byte[] result;
+            int maxIndex = statusResponse.Count();
+            string resultString = string.Empty;
+            while (true)
             {
-                Logger.Error(e, $"{logPrefix} Exception");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
-            }
-            finally
+                resultString = JsonConvert.SerializeObject(statusResponse.GetRange(0, maxIndex));
+                result = Encoding.UTF8.GetBytes(resultString);
+                if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+                {
+                    maxIndex /= 2;
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            };
+            if (maxIndex != statusResponse.Count())
             {
-                OpcSessionsListSemaphore.Release();
+                statusResponse.RemoveRange(maxIndex, statusResponse.Count() - maxIndex);
+                statusResponse.Add("Results have been cropped due to package size limitations.");
             }
-            return (new MethodResponse((int)HttpStatusCode.OK));
+
+            // build response
+            resultString = JsonConvert.SerializeObject(statusResponse);
+            result = Encoding.UTF8.GetBytes(resultString);
+            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            {
+                Logger.Error($"{logPrefix} Response size is too long");
+                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+            }
+            MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
+            Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
+            return methodResponse;
         }
 
         /// <summary>
@@ -541,6 +748,16 @@ namespace OpcPublisher
         {
             string logPrefix = "HandleGetConfiguredEndpointsMethodAsync:";
             GetConfiguredEndpointsMethodRequestModel getConfiguredEndpointsMethodRequest = null;
+            GetConfiguredEndpointsMethodResponseModel getConfiguredEndpointsMethodResponse = new GetConfiguredEndpointsMethodResponseModel();
+            uint actualEndpointsCount = 0;
+            uint availableEndpointCount = 0;
+            uint nodeConfigVersion = 0;
+            uint startIndex = 0;
+            List<string> endpointUrls = new List<string>();
+            HttpStatusCode statusCode = HttpStatusCode.OK;
+            List<string> statusResponse = new List<string>();
+            string statusMessage = string.Empty;
+
             try
             {
                 Logger.Debug($"{logPrefix} called");
@@ -548,63 +765,87 @@ namespace OpcPublisher
             }
             catch (Exception e)
             {
+                statusMessage = $"Exception ({e.Message}) while deserializing message payload";
                 Logger.Error(e, $"{logPrefix} Exception");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.InternalServerError;
             }
 
-            // get the list of all endpoints
-            uint nodeConfigVersion = 0;
-            List<Uri> endpoints = GetPublisherConfigurationFileEntries(null, false, out nodeConfigVersion).Select( e => e.EndpointUrl).ToList();
-            uint endpointsCount = (uint)endpoints.Count;
-
-            // validate version
-            uint startIndex = 0;
-            if (getConfiguredEndpointsMethodRequest.ContinuationToken != null)
+            if (statusCode == HttpStatusCode.OK)
             {
-                uint requestedNodeConfigVersion = (uint)(getConfiguredEndpointsMethodRequest.ContinuationToken >> 32);
-                if (nodeConfigVersion != requestedNodeConfigVersion)
+                // get the list of all endpoints
+                endpointUrls = GetPublisherConfigurationFileEntries(null, false, out nodeConfigVersion).Select(e => e.EndpointUrl.OriginalString).ToList();
+                uint endpointsCount = (uint)endpointUrls.Count;
+
+                // validate version
+                if (getConfiguredEndpointsMethodRequest?.ContinuationToken != null)
                 {
-                    Logger.Error($"{logPrefix} The node configuration has changed. Requested version: {requestedNodeConfigVersion:X8}, Current version '{nodeConfigVersion:X8}'!");
-                    return (new MethodResponse((int)HttpStatusCode.Gone));
+                    uint requestedNodeConfigVersion = (uint)(getConfiguredEndpointsMethodRequest.ContinuationToken >> 32);
+                    if (nodeConfigVersion != requestedNodeConfigVersion)
+                    {
+                        statusMessage = $"The node configuration has changed between calls. Requested version: {requestedNodeConfigVersion:X8}, Current version '{nodeConfigVersion:X8}'";
+                        Logger.Information($"{logPrefix} {statusMessage}");
+                        statusResponse.Add(statusMessage);
+                        statusCode = HttpStatusCode.Gone;
+                    }
+                    startIndex = (uint)(getConfiguredEndpointsMethodRequest.ContinuationToken & 0x0FFFFFFFFL);
                 }
-                startIndex = (uint)(getConfiguredEndpointsMethodRequest.ContinuationToken & 0x0FFFFFFFFL);
+
+                if (statusCode == HttpStatusCode.OK)
+                {
+                    // set count
+                    uint requestedEndpointsCount = endpointsCount - startIndex;
+                    availableEndpointCount = endpointsCount - startIndex;
+                    actualEndpointsCount = Math.Min(requestedEndpointsCount, availableEndpointCount);
+
+                    // generate response
+                    string endpointsString;
+                    byte[] endpointsByteArray;
+                    while (true)
+                    {
+                        endpointsString = JsonConvert.SerializeObject(endpointUrls.GetRange((int)startIndex, (int)actualEndpointsCount));
+                        endpointsByteArray = Encoding.UTF8.GetBytes(endpointsString);
+                        if (endpointsByteArray.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+                        {
+                            actualEndpointsCount /= 2;
+                            continue;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    };
+                }
             }
-
-            // set count
-            uint requestedEndpointsCount = endpointsCount - startIndex;
-            uint availableEndpointCount = endpointsCount - startIndex;
-            uint actualEndpointsCount = Math.Min(requestedEndpointsCount, availableEndpointCount);
-
-            // generate response
-            GetConfiguredEndpointsMethodResponseModel getConfiguredEndpointsMethodResponse = new GetConfiguredEndpointsMethodResponseModel();
-            string endpointsString;
-            byte[] endpointsByteArray;
-            while (true)
-            {
-                endpointsString = JsonConvert.SerializeObject(endpoints.GetRange((int)startIndex, (int)actualEndpointsCount));
-                endpointsByteArray = Encoding.UTF8.GetBytes(endpointsString);
-                if (endpointsByteArray.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
-                {
-                    actualEndpointsCount /= 2;
-                    continue;
-                }
-                else
-                {
-                    break;
-                }
-            };
 
             // build response
-            getConfiguredEndpointsMethodResponse.ContinuationToken = null;
-            if (actualEndpointsCount < availableEndpointCount)
+            byte[] result = null;
+            string resultString = null;
+            if (statusCode == HttpStatusCode.OK)
             {
-                getConfiguredEndpointsMethodResponse.ContinuationToken = ((ulong)nodeConfigVersion << 32) | actualEndpointsCount + startIndex;
+                getConfiguredEndpointsMethodResponse.ContinuationToken = null;
+                if (actualEndpointsCount < availableEndpointCount)
+                {
+                    getConfiguredEndpointsMethodResponse.ContinuationToken = ((ulong)nodeConfigVersion << 32) | actualEndpointsCount + startIndex;
+                }
+                getConfiguredEndpointsMethodResponse.Endpoints.AddRange(endpointUrls.GetRange((int)startIndex, (int)actualEndpointsCount).Select(e => new ConfiguredEndpointModel(e)).ToList());
+                resultString = JsonConvert.SerializeObject(getConfiguredEndpointsMethodResponse);
+                result = Encoding.UTF8.GetBytes(resultString);
+                Logger.Information($"{logPrefix} returning {actualEndpointsCount} endpoint(s) (node config version: {nodeConfigVersion:X8})!");
             }
-            getConfiguredEndpointsMethodResponse.Endpoints = endpoints.GetRange((int)startIndex, (int)actualEndpointsCount).Select( e => e.AbsoluteUri).ToList();
-            string resultString = JsonConvert.SerializeObject(getConfiguredEndpointsMethodResponse);
-            byte[] result = Encoding.UTF8.GetBytes(resultString);
-            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
-            Logger.Information($"{logPrefix} Success returning {actualEndpointsCount} endpoint(s) (node config version: {nodeConfigVersion:X8})!");
+            else
+            {
+                resultString = JsonConvert.SerializeObject(statusResponse);
+            }
+
+            result = Encoding.UTF8.GetBytes(resultString);
+            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            {
+                Logger.Error($"{logPrefix} Response size is too long");
+                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+            }
+            MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
+            Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
             return methodResponse;
         }
 
@@ -614,99 +855,136 @@ namespace OpcPublisher
         static async Task<MethodResponse> HandleGetConfiguredNodesOnEndpointMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetConfiguredNodesOnEndpointMethodAsync:";
-            Uri endpointUrl = null;
+            Uri endpointUri = null;
             GetConfiguredNodesOnEndpointMethodRequestModel getConfiguredNodesOnEndpointMethodRequest = null;
+            uint nodeConfigVersion = 0;
+            GetConfiguredNodesOnEndpointMethodResponseModel getConfiguredNodesOnEndpointMethodResponse = new GetConfiguredNodesOnEndpointMethodResponseModel();
+            uint actualNodeCount = 0;
+            uint availableNodeCount = 0;
+            uint requestedNodeCount = 0;
+            List<OpcNodeOnEndpointModel> opcNodes = new List<OpcNodeOnEndpointModel>();
+            uint startIndex = 0;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
+            List<string> statusResponse = new List<string>();
+            string statusMessage = string.Empty;
+
             try
             {
                 Logger.Debug($"{logPrefix} called");
                 getConfiguredNodesOnEndpointMethodRequest = JsonConvert.DeserializeObject<GetConfiguredNodesOnEndpointMethodRequestModel>(methodRequest.DataAsJson);
-                endpointUrl = new Uri(getConfiguredNodesOnEndpointMethodRequest.EndpointUrl);
+                endpointUri = new Uri(getConfiguredNodesOnEndpointMethodRequest.EndpointUrl);
             }
-            catch (UriFormatException)
+            catch (UriFormatException e)
             {
-                Logger.Error($"{logPrefix} The EndpointUrl has an invalid format '{getConfiguredNodesOnEndpointMethodRequest.EndpointUrl}'!");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                statusMessage = $"Exception ({e.Message}) while parsing EndpointUrl '{getConfiguredNodesOnEndpointMethodRequest.EndpointUrl}'";
+                Logger.Error(e, $"{logPrefix} {statusMessage}");
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.InternalServerError;
             }
             catch (Exception e)
             {
+                statusMessage = $"Exception ({e.Message}) while deserializing message payload";
                 Logger.Error(e, $"{logPrefix} Exception");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.InternalServerError;
             }
 
-            // get the list of published nodes for the endpoint
-            uint nodeConfigVersion = 0;
-            List<PublisherConfigurationFileEntryModel> configFileEntries = GetPublisherConfigurationFileEntries(endpointUrl, false, out nodeConfigVersion);
-
-            // return if there are no nodes configured for this endpoint
-            if (configFileEntries.Count == 0)
+            if (statusCode == HttpStatusCode.OK)
             {
-                Logger.Information($"{logPrefix} There are no nodes configured for endpoint '{endpointUrl}'");
-                return (new MethodResponse((int)HttpStatusCode.OK));
-            }
+                // get the list of published nodes for the endpoint
+                List<PublisherConfigurationFileEntryModel> configFileEntries = GetPublisherConfigurationFileEntries(endpointUri.OriginalString, false, out nodeConfigVersion);
 
-            // there should be only one config file entry per endpoint
-            if (configFileEntries.Count != 1)
-            {
-                Logger.Error($"{logPrefix} here are more configuration entries for endpoint '{endpointUrl}'. Aborting...");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
-            }
-
-            List<OpcNodeOnEndpointModel> opcNodes = configFileEntries.First().OpcNodes;
-            uint configuredNodesOnEndpointCount = (uint)opcNodes.Count();
-
-            // validate version
-            uint startIndex = 0;
-            if (getConfiguredNodesOnEndpointMethodRequest.ContinuationToken != null)
-            {
-                uint requestedNodeConfigVersion = (uint)(getConfiguredNodesOnEndpointMethodRequest.ContinuationToken >> 32);
-                if (nodeConfigVersion != requestedNodeConfigVersion)
+                // return if there are no nodes configured for this endpoint
+                if (configFileEntries.Count == 0)
                 {
-                    Logger.Error($"{logPrefix} The node configuration has changed. Requested version: {requestedNodeConfigVersion:X8}, Current version '{nodeConfigVersion:X8}'!");
-                    return (new MethodResponse((int)HttpStatusCode.Gone));
-                }
-                startIndex = (uint)(getConfiguredNodesOnEndpointMethodRequest.ContinuationToken & 0x0FFFFFFFFL);
-            }
-
-            // set count
-            uint requestedNodeCount = configuredNodesOnEndpointCount - startIndex;
-            uint availableNodeCount = configuredNodesOnEndpointCount - startIndex;
-            uint actualNodeCount = Math.Min(requestedNodeCount, availableNodeCount);
-
-            // generate response
-            GetConfiguredNodesOnEndpointMethodResponseModel getConfiguredNodesOnEndpointMethodResponse = new GetConfiguredNodesOnEndpointMethodResponseModel();
-            string publishedNodesString;
-            byte[] publishedNodesByteArray;
-            while (true)
-            {
-                publishedNodesString = JsonConvert.SerializeObject(opcNodes.GetRange((int)startIndex, (int)actualNodeCount));
-                publishedNodesByteArray = Encoding.UTF8.GetBytes(publishedNodesString);
-                if (publishedNodesByteArray.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
-                {
-                    actualNodeCount /= 2;
-                    continue;
+                    statusMessage = $"There are no nodes configured for endpoint '{endpointUri.OriginalString}'";
+                    Logger.Information($"{logPrefix} {statusMessage}");
+                    statusResponse.Add(statusMessage);
+                    statusCode = HttpStatusCode.OK;
                 }
                 else
                 {
-                    break;
+                    foreach (var configFileEntry in configFileEntries)
+                    {
+                        opcNodes.AddRange(configFileEntry.OpcNodes);
+                    }
+                    uint configuredNodesOnEndpointCount = (uint)opcNodes.Count();
+
+                    // validate version
+                    startIndex = 0;
+                    if (getConfiguredNodesOnEndpointMethodRequest.ContinuationToken != null)
+                    {
+                        uint requestedNodeConfigVersion = (uint)(getConfiguredNodesOnEndpointMethodRequest.ContinuationToken >> 32);
+                        if (nodeConfigVersion != requestedNodeConfigVersion)
+                        {
+                            statusMessage = $"The node configuration has changed between calls. Requested version: {requestedNodeConfigVersion:X8}, Current version '{nodeConfigVersion:X8}'!";
+                            Logger.Information($"{logPrefix} {statusMessage}");
+                            statusResponse.Add(statusMessage);
+                            statusCode = HttpStatusCode.Gone;
+                        }
+                        startIndex = (uint)(getConfiguredNodesOnEndpointMethodRequest.ContinuationToken & 0x0FFFFFFFFL);
+                    }
+
+                    if (statusCode == HttpStatusCode.OK)
+                    {
+                        // set count
+                        requestedNodeCount = configuredNodesOnEndpointCount - startIndex;
+                        availableNodeCount = configuredNodesOnEndpointCount - startIndex;
+                        actualNodeCount = Math.Min(requestedNodeCount, availableNodeCount);
+
+                        // generate response
+                        string publishedNodesString;
+                        byte[] publishedNodesByteArray;
+                        while (true)
+                        {
+                            publishedNodesString = JsonConvert.SerializeObject(opcNodes.GetRange((int)startIndex, (int)actualNodeCount));
+                            publishedNodesByteArray = Encoding.UTF8.GetBytes(publishedNodesString);
+                            if (publishedNodesByteArray.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+                            {
+                                actualNodeCount /= 2;
+                                continue;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        };
+                    }
                 }
-            };
+            }
 
             // build response
-            getConfiguredNodesOnEndpointMethodResponse.ContinuationToken = null;
-            if (actualNodeCount < availableNodeCount)
+            byte[] result = null;
+            string resultString = null;
+            if (statusCode == HttpStatusCode.OK)
             {
-                getConfiguredNodesOnEndpointMethodResponse.ContinuationToken = (ulong)nodeConfigVersion << 32 | actualNodeCount + startIndex;
+                getConfiguredNodesOnEndpointMethodResponse.ContinuationToken = null;
+                if (actualNodeCount < availableNodeCount)
+                {
+                    getConfiguredNodesOnEndpointMethodResponse.ContinuationToken = (ulong)nodeConfigVersion << 32 | actualNodeCount + startIndex;
+                }
+                getConfiguredNodesOnEndpointMethodResponse.OpcNodes.AddRange(opcNodes.GetRange((int)startIndex, (int)actualNodeCount).Select(n => new OpcNodeOnEndpointModel(n.Id)
+                {
+                    OpcPublishingInterval = n.OpcPublishingInterval,
+                    OpcSamplingInterval = n.OpcSamplingInterval,
+                    DisplayName = n.DisplayName
+                }).ToList());
+                getConfiguredNodesOnEndpointMethodResponse.EndpointUrl = endpointUri.OriginalString;
+                resultString = JsonConvert.SerializeObject(getConfiguredNodesOnEndpointMethodResponse);
+                Logger.Information($"{logPrefix} Success returning {actualNodeCount} node(s) of {availableNodeCount} (start: {startIndex}) (node config version: {nodeConfigVersion:X8})!");
             }
-            getConfiguredNodesOnEndpointMethodResponse.OpcNodes = opcNodes.GetRange((int)startIndex, (int)actualNodeCount).Select(n => new OpcNodeOnEndpointModel(n.Id)
+            else
             {
-                OpcPublishingInterval = n.OpcPublishingInterval,
-                OpcSamplingInterval = n.OpcSamplingInterval,
-                DisplayName = n.DisplayName
-            }).ToList();
-            string resultString = JsonConvert.SerializeObject(getConfiguredNodesOnEndpointMethodResponse);
-            byte[] result = Encoding.UTF8.GetBytes(resultString);
-            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
-            Logger.Information($"{logPrefix} Success returning {actualNodeCount} node(s) of {availableNodeCount} (start: {startIndex}) (node config version: {nodeConfigVersion:X8})!");
+                resultString = JsonConvert.SerializeObject(statusResponse);
+            }
+            result = Encoding.UTF8.GetBytes(resultString);
+            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            {
+                Logger.Error($"{logPrefix} Response size is too long");
+                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+            }
+            MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
+            Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
             return methodResponse;
         }
 
@@ -716,6 +994,9 @@ namespace OpcPublisher
         static async Task<MethodResponse> HandleGetDiagnosticInfoMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticInfoMethodAsync:";
+            HttpStatusCode statusCode = HttpStatusCode.OK;
+            List<string> statusResponse = new List<string>();
+            string statusMessage = string.Empty;
 
             // get the diagnostic info
             DiagnosticInfoMethodResponseModel diagnosticInfo = new DiagnosticInfoMethodResponseModel();
@@ -725,15 +1006,31 @@ namespace OpcPublisher
             }
             catch (Exception e)
             {
+                statusMessage = $"Exception ({e.Message}) while reading diagnostic info";
                 Logger.Error(e, $"{logPrefix} Exception");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.InternalServerError;
             }
 
             // build response
-            string resultString = JsonConvert.SerializeObject(diagnosticInfo);
-            byte[] result = Encoding.UTF8.GetBytes(resultString);
-            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
-            Logger.Information($"{logPrefix} Success returning diagnostic info!");
+            byte[] result = null;
+            string resultString = null;
+            if (statusCode == HttpStatusCode.OK)
+            {
+                resultString = JsonConvert.SerializeObject(diagnosticInfo);
+            }
+            else
+            {
+                resultString = JsonConvert.SerializeObject(statusResponse);
+            }
+            result = Encoding.UTF8.GetBytes(resultString);
+            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            {
+                Logger.Error($"{logPrefix} Response size is too long");
+                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+            }
+            MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
+            Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
             return methodResponse;
         }
 
@@ -743,24 +1040,89 @@ namespace OpcPublisher
         static async Task<MethodResponse> HandleGetDiagnosticLogMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticLogMethodAsync:";
+            HttpStatusCode statusCode = HttpStatusCode.OK;
+            List<string> statusResponse = new List<string>();
+            string statusMessage = string.Empty;
 
             // get the diagnostic info
             DiagnosticLogMethodResponseModel diagnosticLogMethodResponseModel = new DiagnosticLogMethodResponseModel();
             try
             {
-                diagnosticLogMethodResponseModel = await GetDiagnosticLogAsync();
+                diagnosticLogMethodResponseModel = await GetDiagnosticLogAsync().ConfigureAwait(false);
             }
             catch (Exception e)
             {
+                statusMessage = $"Exception ({e.Message}) while reading diagnostic log";
                 Logger.Error(e, $"{logPrefix} Exception");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.InternalServerError;
             }
 
             // build response
-            string resultString = JsonConvert.SerializeObject(diagnosticLogMethodResponseModel);
-            byte[] result = Encoding.UTF8.GetBytes(resultString);
-            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
-            Logger.Information($"{logPrefix} Success returning diagnostic log!");
+            byte[] result = null;
+            string resultString = null;
+            if (statusCode == HttpStatusCode.OK)
+            {
+                resultString = JsonConvert.SerializeObject(diagnosticLogMethodResponseModel);
+            }
+            else
+            {
+                resultString = JsonConvert.SerializeObject(statusResponse);
+            }
+            result = Encoding.UTF8.GetBytes(resultString);
+            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            {
+                Logger.Error($"{logPrefix} Response size is too long");
+                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+            }
+            MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
+            Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
+            return methodResponse;
+        }
+
+        /// <summary>
+        /// Handle method call to get log information.
+        /// </summary>
+        static async Task<MethodResponse> HandleGetDiagnosticStartupLogMethodAsync(MethodRequest methodRequest, object userContext)
+        {
+            string logPrefix = "HandleGetDiagnosticStartupLogMethodAsync:";
+            HttpStatusCode statusCode = HttpStatusCode.OK;
+            List<string> statusResponse = new List<string>();
+            string statusMessage = string.Empty;
+
+            // get the diagnostic info
+            DiagnosticLogMethodResponseModel diagnosticLogMethodResponseModel = new DiagnosticLogMethodResponseModel();
+            try
+            {
+                diagnosticLogMethodResponseModel = await GetDiagnosticStartupLogAsync().ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                statusMessage = $"Exception ({e.Message}) while reading diagnostic startup log";
+                Logger.Error(e, $"{logPrefix} Exception");
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.InternalServerError;
+            }
+
+            // build response
+            byte[] result = null;
+            string resultString = null;
+            if (statusCode == HttpStatusCode.OK)
+            {
+                resultString = JsonConvert.SerializeObject(diagnosticLogMethodResponseModel);
+            }
+            else
+            {
+                resultString = JsonConvert.SerializeObject(statusResponse);
+            }
+            result = Encoding.UTF8.GetBytes(resultString);
+            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            {
+                Logger.Error($"{logPrefix} Response size is too long");
+                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+            }
+            MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
+            Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
             return methodResponse;
         }
 
@@ -770,32 +1132,58 @@ namespace OpcPublisher
         static async Task<MethodResponse> HandleExitApplicationMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleExitApplicationMethodAsync:";
+            HttpStatusCode statusCode = HttpStatusCode.OK;
+            List<string> statusResponse = new List<string>();
+            string statusMessage = string.Empty;
 
             ExitApplicationMethodRequestModel exitApplicationMethodRequest = null;
             try
             {
-                Logger.Debug($"{logPrefix} called");
                 exitApplicationMethodRequest = JsonConvert.DeserializeObject<ExitApplicationMethodRequestModel>(methodRequest.DataAsJson);
             }
             catch (Exception e)
             {
+                statusMessage = $"Exception ({e.Message}) while deserializing message payload";
                 Logger.Error(e, $"{logPrefix} Exception");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.InternalServerError;
             }
 
-            // get the parameter
-            ExitApplicationMethodRequestModel exitApplication = new ExitApplicationMethodRequestModel();
-            try
+            if (statusCode == HttpStatusCode.OK)
             {
-                Task.Run(async () => await ExitApplicationAsync(exitApplicationMethodRequest.SecondsTillExit));
+                // get the parameter
+                ExitApplicationMethodRequestModel exitApplication = new ExitApplicationMethodRequestModel();
+                try
+                {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                    Task.Run(async () => await ExitApplicationAsync(exitApplicationMethodRequest.SecondsTillExit).ConfigureAwait(false));
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                    statusMessage = $"Module will exit in {exitApplicationMethodRequest.SecondsTillExit} seconds";
+                    Logger.Information($"{logPrefix} {statusMessage}");
+                    statusResponse.Add(statusMessage);
+                }
+                catch (Exception e)
+                {
+                    statusMessage = $"Exception ({e.Message}) while scheduling application exit";
+                    Logger.Error(e, $"{logPrefix} Exception");
+                    statusResponse.Add(statusMessage);
+                    statusCode = HttpStatusCode.InternalServerError;
+                }
             }
-            catch (Exception e)
+
+            // build response
+            byte[] result = null;
+            string resultString = null;
+            resultString = JsonConvert.SerializeObject(statusResponse);
+            result = Encoding.UTF8.GetBytes(resultString);
+            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
             {
-                Logger.Error(e, $"{logPrefix} Exception");
-                return (new MethodResponse((int)HttpStatusCode.InternalServerError));
+                Logger.Error($"{logPrefix} Response size is too long");
+                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
             }
-            Logger.Information($"{logPrefix} Success returning exit application!");
-            return (new MethodResponse((int)HttpStatusCode.OK));
+            MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
+            Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
+            return methodResponse;
         }
 
         /// <summary>
@@ -804,23 +1192,50 @@ namespace OpcPublisher
         static async Task<MethodResponse> HandleGetInfoMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetInfoMethodAsync:";
-
-            // get the info
             GetInfoMethodResponseModel getInfoMethodResponseModel = new GetInfoMethodResponseModel();
-            getInfoMethodResponseModel.VersionMajor = Assembly.GetExecutingAssembly().GetName().Version.Major;
-            getInfoMethodResponseModel.VersionMinor = Assembly.GetExecutingAssembly().GetName().Version.Minor;
-            getInfoMethodResponseModel.VersionPatch = Assembly.GetExecutingAssembly().GetName().Version.Build;
-            getInfoMethodResponseModel.SemanticVersion = (Attribute.GetCustomAttribute(Assembly.GetEntryAssembly(), typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute).InformationalVersion;
-            getInfoMethodResponseModel.InformationalVersion = (Attribute.GetCustomAttribute(Assembly.GetEntryAssembly(), typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute).InformationalVersion;
-            getInfoMethodResponseModel.OS = RuntimeInformation.OSDescription;
-            getInfoMethodResponseModel.OSArchitecture = RuntimeInformation.OSArchitecture;
-            getInfoMethodResponseModel.FrameworkDescription = RuntimeInformation.FrameworkDescription;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
+            List<string> statusResponse = new List<string>();
+            string statusMessage = string.Empty;
+
+            try
+            {
+                // get the info
+                getInfoMethodResponseModel.VersionMajor = Assembly.GetExecutingAssembly().GetName().Version.Major;
+                getInfoMethodResponseModel.VersionMinor = Assembly.GetExecutingAssembly().GetName().Version.Minor;
+                getInfoMethodResponseModel.VersionPatch = Assembly.GetExecutingAssembly().GetName().Version.Build;
+                getInfoMethodResponseModel.SemanticVersion = (Attribute.GetCustomAttribute(Assembly.GetEntryAssembly(), typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute).InformationalVersion;
+                getInfoMethodResponseModel.InformationalVersion = (Attribute.GetCustomAttribute(Assembly.GetEntryAssembly(), typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute).InformationalVersion;
+                getInfoMethodResponseModel.OS = RuntimeInformation.OSDescription;
+                getInfoMethodResponseModel.OSArchitecture = RuntimeInformation.OSArchitecture;
+                getInfoMethodResponseModel.FrameworkDescription = RuntimeInformation.FrameworkDescription;
+            }
+            catch (Exception e)
+            {
+                statusMessage = $"Exception ({e.Message}) while retrieving info";
+                Logger.Error(e, $"{logPrefix} Exception");
+                statusResponse.Add(statusMessage);
+                statusCode = HttpStatusCode.InternalServerError;
+            }
 
             // build response
-            string resultString = JsonConvert.SerializeObject(getInfoMethodResponseModel);
-            byte[] result = Encoding.UTF8.GetBytes(resultString);
-            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
-            Logger.Information($"{logPrefix} Success returning application info!");
+            byte[] result = null;
+            string resultString = null;
+            if (statusCode == HttpStatusCode.OK)
+            {
+                resultString = JsonConvert.SerializeObject(getInfoMethodResponseModel);
+            }
+            else
+            {
+                resultString = JsonConvert.SerializeObject(statusResponse);
+            }
+            result = Encoding.UTF8.GetBytes(resultString);
+            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            {
+                Logger.Error($"{logPrefix} Response size is too long");
+                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+            }
+            MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
+            Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
             return methodResponse;
         }
 
@@ -855,7 +1270,7 @@ namespace OpcPublisher
                 _monitoredItemsProcessorTask = null;
 
                 Logger.Information("Creating task process and batch monitored item data updates...");
-                _monitoredItemsProcessorTask = Task.Run(async () => await MonitoredItemsProcessorAsync(_shutdownToken), _shutdownToken);
+                _monitoredItemsProcessorTask = Task.Run(async () => await MonitoredItemsProcessorAsync(_shutdownToken).ConfigureAwait(false), _shutdownToken);
                 return true;
             }
             catch (Exception e)
@@ -873,16 +1288,16 @@ namespace OpcPublisher
             // send cancellation token and wait for last IoT Hub message to be sent.
             try
             {
-                await _monitoredItemsProcessorTask;
+                await _monitoredItemsProcessorTask.ConfigureAwait(false);
 
                 if (_iotHubClient != null)
                 {
-                    await _iotHubClient.CloseAsync();
+                    await _iotHubClient.CloseAsync().ConfigureAwait(false);
                     _iotHubClient = null;
                 }
                 if (_edgeHubClient != null)
                 {
-                    await _edgeHubClient.CloseAsync();
+                    await _edgeHubClient.CloseAsync().ConfigureAwait(false);
                     _edgeHubClient = null;
                 }
                 _monitoredItemsDataQueue = null;
@@ -897,7 +1312,7 @@ namespace OpcPublisher
         /// <summary>
         /// Enqueue a message for sending to IoTHub.
         /// </summary>
-        public static void Enqueue(MessageData json)
+        internal static void Enqueue(MessageData json)
         {
             // Try to add the message.
             Interlocked.Increment(ref _enqueueCount);
@@ -921,7 +1336,7 @@ namespace OpcPublisher
                 // get telemetry configration
                 EndpointTelemetryConfiguration telemetryConfiguration = GetEndpointTelemetryConfiguration(messageData.EndpointUrl);
 
-                // currently the pattern processing is done in MonitoredItem_Notification of OpcSession.cs. in case of perf issues
+                // currently the pattern processing is done in MonitoredItemNotificationHandler of OpcSession.cs. in case of perf issues
                 // it can be also done here, the risk is then to lose messages in the communication queue. if you enable it here, disable it in OpcSession.cs
                 // messageData.ApplyPatterns(telemetryConfiguration);
 
@@ -930,21 +1345,21 @@ namespace OpcPublisher
                 StringWriter _jsonStringWriter = new StringWriter(_jsonStringBuilder);
                 using (JsonWriter _jsonWriter = new JsonTextWriter(_jsonStringWriter))
                 {
-                    await _jsonWriter.WriteStartObjectAsync();
+                    await _jsonWriter.WriteStartObjectAsync().ConfigureAwait(false);
                     string telemetryValue = string.Empty;
 
                     // process EndpointUrl
                     if ((bool)telemetryConfiguration.EndpointUrl.Publish)
                     {
-                        await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.EndpointUrl.Name);
-                        await _jsonWriter.WriteValueAsync(messageData.EndpointUrl);
+                        await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.EndpointUrl.Name).ConfigureAwait(false);
+                        await _jsonWriter.WriteValueAsync(messageData.EndpointUrl).ConfigureAwait(false);
                     }
 
                     // process NodeId
                     if (!string.IsNullOrEmpty(messageData.NodeId))
                     {
-                        await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.NodeId.Name);
-                        await _jsonWriter.WriteValueAsync(messageData.NodeId);
+                        await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.NodeId.Name).ConfigureAwait(false);
+                        await _jsonWriter.WriteValueAsync(messageData.NodeId).ConfigureAwait(false);
                     }
 
                     // process MonitoredItem object properties
@@ -952,27 +1367,27 @@ namespace OpcPublisher
                     {
                         if (!(bool)telemetryConfiguration.MonitoredItem.Flat)
                         {
-                            await _jsonWriter.WritePropertyNameAsync("MonitoredItem");
-                            await _jsonWriter.WriteStartObjectAsync();
+                            await _jsonWriter.WritePropertyNameAsync("MonitoredItem").ConfigureAwait(false);
+                            await _jsonWriter.WriteStartObjectAsync().ConfigureAwait(false);
                         }
 
                         // process ApplicationUri
                         if (!string.IsNullOrEmpty(messageData.ApplicationUri))
                         {
-                            await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.MonitoredItem.ApplicationUri.Name);
-                            await _jsonWriter.WriteValueAsync(messageData.ApplicationUri);
+                            await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.MonitoredItem.ApplicationUri.Name).ConfigureAwait(false);
+                            await _jsonWriter.WriteValueAsync(messageData.ApplicationUri).ConfigureAwait(false);
                         }
 
                         // process DisplayName
                         if (!string.IsNullOrEmpty(messageData.DisplayName))
                         {
-                            await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.MonitoredItem.DisplayName.Name);
-                            await _jsonWriter.WriteValueAsync(messageData.DisplayName);
+                            await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.MonitoredItem.DisplayName.Name).ConfigureAwait(false);
+                            await _jsonWriter.WriteValueAsync(messageData.DisplayName).ConfigureAwait(false);
                         }
 
                         if (!(bool)telemetryConfiguration.MonitoredItem.Flat)
                         {
-                            await _jsonWriter.WriteEndObjectAsync();
+                            await _jsonWriter.WriteEndObjectAsync().ConfigureAwait(false);
                         }
                     }
 
@@ -982,52 +1397,52 @@ namespace OpcPublisher
                     {
                         if (!(bool)telemetryConfiguration.Value.Flat)
                         {
-                            await _jsonWriter.WritePropertyNameAsync("Value");
-                            await _jsonWriter.WriteStartObjectAsync();
+                            await _jsonWriter.WritePropertyNameAsync("Value").ConfigureAwait(false);
+                            await _jsonWriter.WriteStartObjectAsync().ConfigureAwait(false);
                         }
 
                         // process Value
                         if (!string.IsNullOrEmpty(messageData.Value))
                         {
-                            await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.Value.Name);
+                            await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.Value.Name).ConfigureAwait(false);
                             if (messageData.PreserveValueQuotes)
                             {
-                                await _jsonWriter.WriteValueAsync(messageData.Value);
+                                await _jsonWriter.WriteValueAsync(messageData.Value).ConfigureAwait(false);
                             }
                             else
                             {
-                                await _jsonWriter.WriteRawValueAsync(messageData.Value);
+                                await _jsonWriter.WriteRawValueAsync(messageData.Value).ConfigureAwait(false);
                             }
                         }
 
                         // process SourceTimestamp
                         if (!string.IsNullOrEmpty(messageData.SourceTimestamp))
                         {
-                            await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.SourceTimestamp.Name);
-                            await _jsonWriter.WriteValueAsync(messageData.SourceTimestamp);
+                            await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.SourceTimestamp.Name).ConfigureAwait(false);
+                            await _jsonWriter.WriteValueAsync(messageData.SourceTimestamp).ConfigureAwait(false);
                         }
 
                         // process StatusCode
                         if (messageData.StatusCode != null)
                         {
-                            await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.StatusCode.Name);
-                            await _jsonWriter.WriteValueAsync(messageData.StatusCode);
+                            await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.StatusCode.Name).ConfigureAwait(false);
+                            await _jsonWriter.WriteValueAsync(messageData.StatusCode).ConfigureAwait(false);
                         }
 
                         // process Status
                         if (!string.IsNullOrEmpty(messageData.Status))
                         {
-                            await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.Status.Name);
-                            await _jsonWriter.WriteValueAsync(messageData.Status);
+                            await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.Status.Name).ConfigureAwait(false);
+                            await _jsonWriter.WriteValueAsync(messageData.Status).ConfigureAwait(false);
                         }
 
                         if (!(bool)telemetryConfiguration.Value.Flat)
                         {
-                            await _jsonWriter.WriteEndObjectAsync();
+                            await _jsonWriter.WriteEndObjectAsync().ConfigureAwait(false);
                         }
                     }
-                    await _jsonWriter.WriteEndObjectAsync();
-                    await _jsonWriter.FlushAsync();
+                    await _jsonWriter.WriteEndObjectAsync().ConfigureAwait(false);
+                    await _jsonWriter.FlushAsync().ConfigureAwait(false);
                 }
                 return _jsonStringBuilder.ToString();
             }
@@ -1050,11 +1465,11 @@ namespace OpcPublisher
                 StringWriter _jsonStringWriter = new StringWriter(_jsonStringBuilder);
                 using (JsonWriter _jsonWriter = new JsonTextWriter(_jsonStringWriter))
                 {
-                    await _jsonWriter.WriteStartObjectAsync();
-                    await _jsonWriter.WritePropertyNameAsync(messageData.DisplayName);
-                    await _jsonWriter.WriteValueAsync(messageData.Value);
-                    await _jsonWriter.WriteEndObjectAsync();
-                    await _jsonWriter.FlushAsync();
+                    await _jsonWriter.WriteStartObjectAsync().ConfigureAwait(false);
+                    await _jsonWriter.WritePropertyNameAsync(messageData.DisplayName).ConfigureAwait(false);
+                    await _jsonWriter.WriteValueAsync(messageData.Value).ConfigureAwait(false);
+                    await _jsonWriter.WriteEndObjectAsync().ConfigureAwait(false);
+                    await _jsonWriter.FlushAsync().ConfigureAwait(false);
                 }
                 return _jsonStringBuilder.ToString();
             }
@@ -1073,7 +1488,7 @@ namespace OpcPublisher
             uint jsonSquareBracketLength = 2;
             Message tempMsg = new Message();
             // the system properties are MessageId (max 128 byte), Sequence number (ulong), ExpiryTime (DateTime) and more. ideally we get that from the client.
-            int systemPropertyLength = 128 + sizeof(ulong) + tempMsg.ExpiryTimeUtc.ToString().Length;
+            int systemPropertyLength = 128 + sizeof(ulong) + tempMsg.ExpiryTimeUtc.ToString(CultureInfo.InvariantCulture).Length;
             int applicationPropertyLength = Encoding.UTF8.GetByteCount($"iothub-content-type={CONTENT_TYPE_OPCUAJSON}") + Encoding.UTF8.GetByteCount($"iothub-content-encoding={CONTENT_ENCODING_UTF8}");
             // if batching is requested the buffer will have the requested size, otherwise we reserve the max size
             uint hubMessageBufferSize = (HubMessageSize > 0 ? HubMessageSize : HubMessageSizeMax) - (uint)systemPropertyLength - jsonSquareBracketLength - (uint)applicationPropertyLength;
@@ -1127,16 +1542,16 @@ namespace OpcPublisher
                             if (IotCentralMode)
                             {
                                 // for IoTCentral we send simple key/value pairs. key is the DisplayName, value the value.
-                                jsonMessage = await CreateIotCentralJsonMessageAsync(messageData);
+                                jsonMessage = await CreateIotCentralJsonMessageAsync(messageData).ConfigureAwait(false);
                             }
                             else
                             {
                                 // create a JSON message from the messageData object
-                                jsonMessage = await CreateJsonMessageAsync(messageData);
+                                jsonMessage = await CreateJsonMessageAsync(messageData).ConfigureAwait(false);
                             }
 
                             NumberOfEvents++;
-                            jsonMessageSize = Encoding.UTF8.GetByteCount(jsonMessage.ToString());
+                            jsonMessageSize = Encoding.UTF8.GetByteCount(jsonMessage.ToString(CultureInfo.InvariantCulture));
 
                             // sanity check that the user has set a large enough messages size
                             if ((HubMessageSize > 0 && jsonMessageSize > HubMessageSize ) || (HubMessageSize == 0 && jsonMessageSize > hubMessageBufferSize))
@@ -1155,7 +1570,7 @@ namespace OpcPublisher
                                 if (hubMessage.Position + jsonMessageSize + 1 <= hubMessage.Capacity)
                                 {
                                     // add the message and a comma to the buffer
-                                    hubMessage.Write(Encoding.UTF8.GetBytes(jsonMessage.ToString()), 0, jsonMessageSize);
+                                    hubMessage.Write(Encoding.UTF8.GetBytes(jsonMessage.ToString(CultureInfo.InvariantCulture)), 0, jsonMessageSize);
                                     hubMessage.Write(Encoding.UTF8.GetBytes(","), 0, 1);
                                     Logger.Debug($"Added new message with size {jsonMessageSize} to hub message (size is now {(hubMessage.Position - 1)}).");
                                     continue;
@@ -1200,7 +1615,7 @@ namespace OpcPublisher
                             if (singleMessageSend)
                             {
                                 // create the message without brackets
-                                encodedhubMessage = new Message(Encoding.UTF8.GetBytes(jsonMessage.ToString()));
+                                encodedhubMessage = new Message(Encoding.UTF8.GetBytes(jsonMessage.ToString(CultureInfo.InvariantCulture)));
                             }
                             else
                             {
@@ -1220,11 +1635,11 @@ namespace OpcPublisher
                                     SentBytes += encodedhubMessage.GetBytes().Length;
                                     if (_iotHubClient != null)
                                     {
-                                        await _iotHubClient.SendEventAsync(encodedhubMessage);
+                                        await _iotHubClient.SendEventAsync(encodedhubMessage).ConfigureAwait(false);
                                     }
                                     else
                                     {
-                                        await _edgeHubClient.SendEventAsync(encodedhubMessage);
+                                        await _edgeHubClient.SendEventAsync(encodedhubMessage).ConfigureAwait(false);
                                     }
                                     SentMessages++;
                                     SentLastTime = DateTime.UtcNow;
@@ -1247,7 +1662,7 @@ namespace OpcPublisher
                                 if (needToBufferMessage)
                                 {
                                     // add the message and a comma to the buffer
-                                    hubMessage.Write(Encoding.UTF8.GetBytes(jsonMessage.ToString()), 0, jsonMessageSize);
+                                    hubMessage.Write(Encoding.UTF8.GetBytes(jsonMessage.ToString(CultureInfo.InvariantCulture)), 0, jsonMessageSize);
                                     hubMessage.Write(Encoding.UTF8.GetBytes(","), 0, 1);
                                 }
                             }
@@ -1292,18 +1707,46 @@ namespace OpcPublisher
             {
                 Logger.Information($"{logPrefix} Exiting in {secondsTillExit} seconds...");
                 secondsTillExit--;
-                await Task.Delay(1000);
+                await Task.Delay(1000).ConfigureAwait(false);
             }
 
             // exit
             Environment.Exit(2);
         }
 
-        private static int MAX_RESPONSE_PAYLOAD_LENGTH = (8 * 1024 - 256);
+        /// <summary>
+        /// Adjust the method response to the max payload size.
+        /// </summary>
+        private static void AdjustResponse(ref List<string> statusResponse)
+        {
+            byte[] result;
+            int maxIndex = statusResponse.Count();
+            string resultString = string.Empty;
+            while (true)
+            {
+                resultString = JsonConvert.SerializeObject(statusResponse.GetRange(0, maxIndex));
+                result = Encoding.UTF8.GetBytes(resultString);
+                if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+                {
+                    maxIndex /= 2;
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            };
+            if (maxIndex != statusResponse.Count())
+            {
+                statusResponse.RemoveRange(maxIndex, statusResponse.Count() - maxIndex);
+                statusResponse.Add("Results have been cropped due to package size limitations.");
+            }
+        }
+
+        private static int MAX_RESPONSE_PAYLOAD_LENGTH = (128 * 1024 - 256);
         private static string CONTENT_TYPE_OPCUAJSON = "application/opcua+uajson";
         private static string CONTENT_ENCODING_UTF8 = "UTF-8";
 
-        private static string _hubConnectionString = string.Empty;
         private static long _enqueueCount;
         private static long _enqueueFailureCount;
         private static BlockingCollection<MessageData> _monitoredItemsDataQueue;

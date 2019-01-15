@@ -73,19 +73,19 @@ namespace OpcPublisher
                         RegistryManager manager = RegistryManager.CreateFromConnectionString(IotHubOwnerConnectionString);
 
                         // remove any existing device
-                        Device existingDevice = await manager.GetDeviceAsync(ApplicationName);
+                        Device existingDevice = await manager.GetDeviceAsync(ApplicationName).ConfigureAwait(false);
                         if (existingDevice != null)
                         {
                             Logger.Information($"Device '{ApplicationName}' found in IoTHub registry. Remove it.");
-                            await manager.RemoveDeviceAsync(ApplicationName);
+                            await manager.RemoveDeviceAsync(ApplicationName).ConfigureAwait(false);
                         }
 
                         Logger.Information($"Adding device '{ApplicationName}' to IoTHub registry.");
-                        Device newDevice = await manager.AddDeviceAsync(new Device(ApplicationName));
+                        Device newDevice = await manager.AddDeviceAsync(new Device(ApplicationName)).ConfigureAwait(false);
                         if (newDevice != null)
                         {
                             Logger.Information($"Generate device connection string.");
-                            string hostname = IotHubOwnerConnectionString.Substring(0, IotHubOwnerConnectionString.IndexOf(";"));
+                            string hostname = IotHubOwnerConnectionString.Substring(0, IotHubOwnerConnectionString.IndexOf(";", StringComparison.InvariantCulture));
                             DeviceConnectionString = hostname + ";DeviceId=" + ApplicationName + ";SharedAccessKey=" + newDevice.Authentication.SymmetricKey.PrimaryKey;
                         }
                         else
@@ -104,12 +104,12 @@ namespace OpcPublisher
                 if (!string.IsNullOrEmpty(DeviceConnectionString))
                 {
                     Logger.Information($"Adding device connectionstring to secure store.");
-                    await SecureIoTHubToken.WriteAsync(ApplicationName, DeviceConnectionString, IotDeviceCertStoreType, IotDeviceCertStorePath);
+                    await SecureIoTHubToken.WriteAsync(ApplicationName, DeviceConnectionString, IotDeviceCertStoreType, IotDeviceCertStorePath).ConfigureAwait(false);
                 }
 
                 // try to read connection string from secure store and open IoTHub client
                 Logger.Information($"Attempting to read device connection string from cert store using subject name: {ApplicationName}");
-                DeviceConnectionString = await SecureIoTHubToken.ReadAsync(ApplicationName, IotDeviceCertStoreType, IotDeviceCertStorePath);
+                DeviceConnectionString = await SecureIoTHubToken.ReadAsync(ApplicationName, IotDeviceCertStoreType, IotDeviceCertStorePath).ConfigureAwait(false);
 
                 if (string.IsNullOrEmpty(DeviceConnectionString))
                 {
@@ -119,7 +119,7 @@ namespace OpcPublisher
 
                 // connect to IoTHub
                 DeviceClient hubClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, IotHubProtocol);
-                if (await InitHubCommunicationAsync(hubClient, IotHubProtocol))
+                if (await InitHubCommunicationAsync(hubClient, IotHubProtocol).ConfigureAwait(false))
                 {
                     return true;
                 }

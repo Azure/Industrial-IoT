@@ -12,7 +12,310 @@ namespace OpcPublisher
     using System.Threading;
     using static Program;
 
-    public class PublisherTelemetryConfiguration
+    /// <summary>
+    /// Class to control the telemetry publish, name and pattern properties.
+    /// </summary>
+    public class TelemetrySettings
+    {
+        public bool? Publish
+        {
+            get => _publish;
+            set
+            {
+                if (value != null)
+                {
+                    _publish = value;
+                }
+            }
+        }
+
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _name = value;
+                }
+            }
+        }
+
+        public string Pattern
+        {
+            get => _pattern;
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    // validate pattern
+                    try
+                    {
+                        _patternRegex = new Regex(value);
+                        _pattern = value;
+                    }
+                    catch
+                    {
+                        Logger.Fatal($"The regular expression '{value}' used for the property 'Pattern' is not a valid regular expression. Please change.");
+                        throw new Exception($"The regular expression '{value}' used for the property 'Pattern' is not a valid regular expression. Please change.");
+                    }
+                }
+            }
+        }
+
+        public TelemetrySettings()
+        {
+            _publish = null;
+            _name = null;
+            _pattern = null;
+            _patternRegex = null;
+        }
+
+        /// <summary>
+        /// Method to apply the regex to the given value if one is defined, otherwise we return the string passed in.
+        /// </summary>
+        /// <param name="stringToParse"></param>
+        /// <returns></returns>
+        public string PatternMatch(string stringToParse)
+        {
+            // no pattern set, return full string
+            if (_patternRegex == null)
+            {
+                return stringToParse;
+            }
+
+            // build the result string based on the pattern
+            string result = string.Empty;
+            Match match = _patternRegex.Match(stringToParse);
+            if (match.Groups[0].Success)
+            {
+                foreach (var group in match.Groups.Skip(1))
+                {
+                    result += group.Value;
+                }
+            }
+            return result;
+        }
+
+        private bool? _publish;
+        private string _name;
+        private string _pattern;
+        private Regex _patternRegex;
+    }
+
+
+    /// <summary>
+    /// Class to define the MonitoredItem related telemetry configuration.
+    /// </summary>
+    public class MonitoredItemTelemetryConfiguration
+    {
+        public MonitoredItemTelemetryConfiguration()
+        {
+            _flat = null;
+            _applicationUri = new TelemetrySettings();
+            _displayName = new TelemetrySettings();
+        }
+
+        public bool? Flat
+        {
+            get => _flat;
+            set
+            {
+                if (value != null)
+                {
+                    _flat = value;
+                }
+            }
+        }
+
+        public TelemetrySettings ApplicationUri
+        {
+            get => _applicationUri;
+            set
+            {
+                _applicationUri.Publish = value.Publish;
+                _applicationUri.Name = value.Name;
+                _applicationUri.Pattern = value.Pattern;
+            }
+        }
+
+
+        public TelemetrySettings DisplayName
+        {
+            get => _displayName;
+            set
+            {
+                _displayName.Publish = value.Publish;
+                _displayName.Name = value.Name;
+                _displayName.Pattern = value.Pattern;
+            }
+        }
+
+        private bool? _flat;
+        private TelemetrySettings _applicationUri;
+        private TelemetrySettings _displayName;
+    }
+
+    /// <summary>
+    /// Class to define the Value related telemetry configuration.
+    /// </summary>
+    public class ValueTelemetryConfiguration
+    {
+        public ValueTelemetryConfiguration()
+        {
+            _flat = null;
+            _value = new TelemetrySettings();
+            _sourceTimestamp = new TelemetrySettings();
+            _statusCode = new TelemetrySettings();
+            _status = new TelemetrySettings();
+        }
+
+        public bool? Flat
+        {
+            get => _flat;
+            set
+            {
+                if (value != null)
+                {
+                    _flat = value;
+                }
+            }
+        }
+
+        public TelemetrySettings Value
+        {
+            get => _value;
+            set
+            {
+                _value.Publish = value.Publish;
+                _value.Name = value.Name;
+                _value.Pattern = value.Pattern;
+            }
+        }
+
+        public TelemetrySettings SourceTimestamp
+        {
+            get => _sourceTimestamp;
+            set
+            {
+                _sourceTimestamp.Publish = value.Publish;
+                _sourceTimestamp.Name = value.Name;
+                _sourceTimestamp.Pattern = value.Pattern;
+            }
+        }
+
+        public TelemetrySettings StatusCode
+        {
+            get => _statusCode;
+            set
+            {
+                _statusCode.Publish = value.Publish;
+                _statusCode.Name = value.Name;
+                _statusCode.Pattern = value.Pattern;
+            }
+        }
+
+        public TelemetrySettings Status
+        {
+            get => _status;
+            set
+            {
+                _status.Publish = value.Publish;
+                _status.Name = value.Name;
+                _status.Pattern = value.Pattern;
+            }
+        }
+
+        private bool? _flat;
+        private TelemetrySettings _value;
+        private TelemetrySettings _sourceTimestamp;
+        private TelemetrySettings _statusCode;
+        private TelemetrySettings _status;
+    }
+
+    /// <summary>
+    /// Class to define the publisher configuration related telemetry configuration.
+    /// </summary>
+    public class EndpointTelemetryConfiguration
+    {
+        public EndpointTelemetryConfiguration()
+        {
+            ForEndpointUrl = null;
+            _endpointUrl = new TelemetrySettings();
+            _nodeId = new TelemetrySettings();
+            _monitoredItem = new MonitoredItemTelemetryConfiguration();
+            _value = new ValueTelemetryConfiguration();
+        }
+
+        public string ForEndpointUrl { get; set; }
+
+        public TelemetrySettings EndpointUrl
+        {
+            get => _endpointUrl;
+            set
+            {
+                _endpointUrl.Publish = value.Publish;
+                _endpointUrl.Name = value.Name;
+                _endpointUrl.Pattern = value.Pattern;
+            }
+        }
+
+        public TelemetrySettings NodeId
+        {
+            get => _nodeId;
+            set
+            {
+                _nodeId.Publish = value.Publish;
+                _nodeId.Name = value.Name;
+                _nodeId.Pattern = value.Pattern;
+            }
+        }
+
+        public MonitoredItemTelemetryConfiguration MonitoredItem
+        {
+            get => _monitoredItem;
+            set
+            {
+                _monitoredItem.Flat = value.Flat;
+                _monitoredItem.ApplicationUri = value.ApplicationUri;
+                _monitoredItem.DisplayName = value.DisplayName;
+            }
+        }
+
+        public ValueTelemetryConfiguration Value
+        {
+            get => _value;
+            set
+            {
+                _value.Flat = value.Flat;
+                _value.Value = value.Value;
+                _value.SourceTimestamp = value.SourceTimestamp;
+                _value.StatusCode = value.StatusCode;
+                _value.Status = value.Status;
+            }
+        }
+
+        private TelemetrySettings _endpointUrl;
+        private MonitoredItemTelemetryConfiguration _monitoredItem;
+        private ValueTelemetryConfiguration _value;
+        private TelemetrySettings _nodeId;
+    }
+
+    /// <summary>
+    /// Class to define the telemetryconfiguration.json configuration file layout.
+    /// </summary>
+    public class TelemetryConfiguration
+    {
+        public EndpointTelemetryConfiguration Defaults { get; set; }
+        public List<EndpointTelemetryConfiguration> EndpointSpecific { get; }
+
+        public TelemetryConfiguration()
+        {
+            EndpointSpecific = new List<EndpointTelemetryConfiguration>();
+        }
+    }
+
+    public sealed class PublisherTelemetryConfiguration
     {
         public const string EndpointUrlNameDefault = "EndpointUrl";
         public const string NodeIdNameDefault = "NodeId";
@@ -22,309 +325,6 @@ namespace OpcPublisher
         public const string SourceTimestampNameDefault = "SourceTimestamp";
         public const string StatusNameDefault = "Status";
         public const string StatusCodeNameDefault = "StatusCode";
-
-        /// <summary>
-        /// Class to control the telemetry publish, name and pattern properties.
-        /// </summary>
-        public class Settings
-        {
-            public bool? Publish
-            {
-                get => _publish;
-                set
-                {
-                    if (value != null)
-                    {
-                        _publish = value;
-                    }
-                }
-            }
-
-            public string Name
-            {
-                get => _name;
-                set
-                {
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        _name = value;
-                    }
-                }
-            }
-
-            public string Pattern
-            {
-                get => _pattern;
-                set
-                {
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        // validate pattern
-                        try
-                        {
-                            _patternRegex = new Regex(value);
-                            _pattern = value;
-                        }
-                        catch
-                        {
-                            Logger.Fatal($"The regular expression '{value}' used for the property 'Pattern' is not a valid regular expression. Please change.");
-                            throw new Exception($"The regular expression '{value}' used for the property 'Pattern' is not a valid regular expression. Please change.");
-                        }
-                    }
-                }
-            }
-
-            public Settings()
-            {
-                _publish = null;
-                _name = null;
-                _pattern = null;
-                _patternRegex = null;
-            }
-
-            /// <summary>
-            /// Method to apply the regex to the given value if one is defined, otherwise we return the string passed in.
-            /// </summary>
-            /// <param name="stringToParse"></param>
-            /// <returns></returns>
-            public string PatternMatch(string stringToParse)
-            {
-                // no pattern set, return full string
-                if (_patternRegex == null)
-                {
-                    return stringToParse;
-                }
-
-                // build the result string based on the pattern
-                string result = string.Empty;
-                Match match = _patternRegex.Match(stringToParse);
-                if (match.Groups[0].Success)
-                {
-                    foreach (var group in match.Groups.Skip(1))
-                    {
-                        result += group.Value;
-                    }
-                }
-                return result;
-            }
-
-            private bool? _publish;
-            private string _name;
-            private string _pattern;
-            private Regex _patternRegex;
-
-        }
-
-        /// <summary>
-        /// Class to define the MonitoredItem related telemetry configuration.
-        /// </summary>
-        public class MonitoredItemTelemetryConfiguration
-        {
-            public MonitoredItemTelemetryConfiguration()
-            {
-                _flat = null;
-                _applicationUri = new Settings();
-                _displayName = new Settings();
-            }
-
-            public bool? Flat
-            {
-                get => _flat;
-                set
-                {
-                    if (value != null)
-                    {
-                        _flat = value;
-                    }
-                }
-            }
-
-            public Settings ApplicationUri
-            {
-                get => _applicationUri;
-                set
-                {
-                    _applicationUri.Publish = value.Publish;
-                    _applicationUri.Name = value.Name;
-                    _applicationUri.Pattern = value.Pattern;
-                }
-            }
-
-
-            public Settings DisplayName
-            {
-                get => _displayName;
-                set
-                {
-                    _displayName.Publish = value.Publish;
-                    _displayName.Name = value.Name;
-                    _displayName.Pattern = value.Pattern;
-                }
-            }
-
-            private bool? _flat;
-            private Settings _applicationUri;
-            private Settings _displayName;
-        }
-
-        /// <summary>
-        /// Class to define the Value related telemetry configuration.
-        /// </summary>
-        public class ValueTelemetryConfiguration
-        {
-            public ValueTelemetryConfiguration()
-            {
-                _flat = null;
-                _value = new Settings();
-                _sourceTimestamp = new Settings();
-                _statusCode = new Settings();
-                _status = new Settings();
-            }
-
-            public bool? Flat
-            {
-                get => _flat;
-                set
-                {
-                    if (value != null)
-                    {
-                        _flat = value;
-                    }
-                }
-            }
-
-            public Settings Value
-            {
-                get => _value;
-                set
-                {
-                    _value.Publish = value.Publish;
-                    _value.Name = value.Name;
-                    _value.Pattern = value.Pattern;
-                }
-            }
-
-            public Settings SourceTimestamp
-            {
-                get => _sourceTimestamp;
-                set
-                {
-                    _sourceTimestamp.Publish = value.Publish;
-                    _sourceTimestamp.Name = value.Name;
-                    _sourceTimestamp.Pattern = value.Pattern;
-                }
-            }
-
-            public Settings StatusCode
-            {
-                get => _statusCode;
-                set
-                {
-                    _statusCode.Publish = value.Publish;
-                    _statusCode.Name = value.Name;
-                    _statusCode.Pattern = value.Pattern;
-                }
-            }
-
-            public Settings Status
-            {
-                get => _status;
-                set
-                {
-                    _status.Publish = value.Publish;
-                    _status.Name = value.Name;
-                    _status.Pattern = value.Pattern;
-                }
-            }
-
-            private bool? _flat;
-            private Settings _value;
-            private Settings _sourceTimestamp;
-            private Settings _statusCode;
-            private Settings _status;
-        }
-
-        /// <summary>
-        /// Class to define the publisher configuration related telemetry configuration.
-        /// </summary>
-        public class EndpointTelemetryConfiguration
-        {
-            public EndpointTelemetryConfiguration()
-            {
-                ForEndpointUrl = null;
-                _endpointUrl = new Settings();
-                _nodeId = new Settings();
-                _monitoredItem = new MonitoredItemTelemetryConfiguration();
-                _value = new ValueTelemetryConfiguration();
-            }
-
-            public string ForEndpointUrl { get; set; }
-
-            public Settings EndpointUrl
-            {
-                get => _endpointUrl;
-                set
-                {
-                    _endpointUrl.Publish = value.Publish;
-                    _endpointUrl.Name = value.Name;
-                    _endpointUrl.Pattern = value.Pattern;
-                }
-            }
-
-            public Settings NodeId
-            {
-                get => _nodeId;
-                set
-                {
-                    _nodeId.Publish = value.Publish;
-                    _nodeId.Name = value.Name;
-                    _nodeId.Pattern = value.Pattern;
-                }
-            }
-
-            public MonitoredItemTelemetryConfiguration MonitoredItem
-            {
-                get => _monitoredItem;
-                set
-                {
-                    _monitoredItem.Flat = value.Flat;
-                    _monitoredItem.ApplicationUri = value.ApplicationUri;
-                    _monitoredItem.DisplayName = value.DisplayName;
-                }
-            }
-
-            public ValueTelemetryConfiguration Value
-            {
-                get => _value;
-                set
-                {
-                    _value.Flat = value.Flat;
-                    _value.Value = value.Value;
-                    _value.SourceTimestamp = value.SourceTimestamp;
-                    _value.StatusCode = value.StatusCode;
-                    _value.Status = value.Status;
-                }
-            }
-
-            private Settings _endpointUrl;
-            private MonitoredItemTelemetryConfiguration _monitoredItem;
-            private ValueTelemetryConfiguration _value;
-            private Settings _nodeId;
-        }
-
-        /// <summary>
-        /// Class to define the telemetryconfiguration.json configuration file layout.
-        /// </summary>
-        public class TelemetryConfiguration
-        {
-            public EndpointTelemetryConfiguration Defaults;
-            public List<EndpointTelemetryConfiguration> EndpointSpecific;
-
-            public TelemetryConfiguration()
-            {
-                EndpointSpecific = new List<EndpointTelemetryConfiguration>();
-            }
-        }
 
         public static string PublisherTelemetryConfigurationFilename { get; set; } = null;
 
@@ -518,7 +518,7 @@ namespace OpcPublisher
             try
             {
                 Logger.Information($"Attempting to load telemetry configuration file from: {PublisherTelemetryConfigurationFilename}");
-                _telemetryConfiguration = JsonConvert.DeserializeObject<TelemetryConfiguration>(await File.ReadAllTextAsync(PublisherTelemetryConfigurationFilename));
+                _telemetryConfiguration = JsonConvert.DeserializeObject<TelemetryConfiguration>(await File.ReadAllTextAsync(PublisherTelemetryConfigurationFilename).ConfigureAwait(false));
 
                 // update the default configuration with the 'Defaults' settings from the configuration file
                 if (UpdateDefaultEndpointTelemetryConfiguration() == false)

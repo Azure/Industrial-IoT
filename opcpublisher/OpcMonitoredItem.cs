@@ -6,6 +6,7 @@ using System.Linq;
 namespace OpcPublisher
 {
     using Opc.Ua;
+    using System.Globalization;
     using static HubCommunication;
     using static OpcApplicationConfiguration;
     using static OpcPublisher.PublisherTelemetryConfiguration;
@@ -52,7 +53,7 @@ namespace OpcPublisher
 
         public MonitoredItemNotificationEventHandler Notification { get; set; }
 
-        public Uri EndpointUrl { get; set; }
+        public string EndpointUrl { get; set; }
 
         public MonitoredItem OpcUaClientMonitoredItem { get; set; }
 
@@ -67,7 +68,7 @@ namespace OpcPublisher
         /// <summary>
         /// Ctor using NodeId (ns syntax for namespace).
         /// </summary>
-        public OpcMonitoredItem(NodeId nodeId, Uri sessionEndpointUrl, int? samplingInterval, string displayName)
+        public OpcMonitoredItem(NodeId nodeId, string sessionEndpointUrl, int? samplingInterval, string displayName)
         {
             ConfigNodeId = nodeId;
             ConfigExpandedNodeId = null;
@@ -80,7 +81,7 @@ namespace OpcPublisher
         /// <summary>
         /// Ctor using ExpandedNodeId (nsu syntax for namespace).
         /// </summary>
-        public OpcMonitoredItem(ExpandedNodeId expandedNodeId, Uri sessionEndpointUrl, int? samplingInterval, string displayName)
+        public OpcMonitoredItem(ExpandedNodeId expandedNodeId, string sessionEndpointUrl, int? samplingInterval, string displayName)
         {
             ConfigNodeId = null;
             ConfigExpandedNodeId = expandedNodeId;
@@ -149,17 +150,17 @@ namespace OpcPublisher
         /// <summary>
         /// Class used to pass data from the MonitoredItem notification to the hub message processing.
         /// </summary>
-        public class MessageData
+        internal class MessageData
         {
-            public string EndpointUrl;
-            public string NodeId;
-            public string ApplicationUri;
-            public string DisplayName;
-            public string Value;
-            public string SourceTimestamp;
-            public uint? StatusCode;
-            public string Status;
-            public bool PreserveValueQuotes;
+            public string EndpointUrl { get; set; }
+            public string NodeId { get; set; }
+            public string ApplicationUri { get; set; }
+            public string DisplayName { get; set; }
+            public string Value { get; set; }
+            public string SourceTimestamp { get; set; }
+            public uint? StatusCode { get; set; }
+            public string Status { get; set; }
+            public bool PreserveValueQuotes { get; set; }
 
             public MessageData()
             {
@@ -218,16 +219,16 @@ namespace OpcPublisher
         /// <summary>
         /// The notification that the data for a monitored item has changed on an OPC UA server.
         /// </summary>
-        public void MonitoredItem_Notification(MonitoredItem monitoredItem, MonitoredItemNotificationEventArgs args)
+        public void MonitoredItemNotificationEventHandler(MonitoredItem monitoredItem, MonitoredItemNotificationEventArgs e)
         {
             try
             {
-                if (args == null || args.NotificationValue == null || monitoredItem == null || monitoredItem.Subscription == null || monitoredItem.Subscription.Session == null)
+                if (e == null || e.NotificationValue == null || monitoredItem == null || monitoredItem.Subscription == null || monitoredItem.Subscription.Session == null)
                 {
                     return;
                 }
 
-                MonitoredItemNotification notification = args.NotificationValue as MonitoredItemNotification;
+                MonitoredItemNotification notification = e.NotificationValue as MonitoredItemNotification;
                 if (notification == null)
                 {
                     return;
@@ -260,14 +261,14 @@ namespace OpcPublisher
                         // we only want the value string, search for everything till the real value starts
                         // and get it
                         string marker = "{\"Value\":{\"Value\":";
-                        int markerStart = valueString.IndexOf(marker);
+                        int markerStart = valueString.IndexOf(marker, StringComparison.InvariantCulture);
                         messageData.PreserveValueQuotes = true;
                         if (markerStart >= 0)
                         {
                             // we either have a value in quotes or just a value
                             int valueLength;
                             int valueStart = marker.Length;
-                            if (valueString.IndexOf("\"", valueStart) >= 0)
+                            if (valueString.IndexOf("\"", valueStart, StringComparison.InvariantCulture) >= 0)
                             {
                                 // value is in quotes and two closing curly brackets at the end
                                 valueStart++;
@@ -288,10 +289,10 @@ namespace OpcPublisher
                 else
                 {
                     // update the required message data to pass only the required data to HubCommunication
-                    EndpointTelemetryConfiguration telemetryConfiguration = GetEndpointTelemetryConfiguration(EndpointUrl.AbsoluteUri);
+                    EndpointTelemetryConfiguration telemetryConfiguration = GetEndpointTelemetryConfiguration(EndpointUrl);
 
                     // the endpoint URL is required to allow HubCommunication lookup the telemetry configuration
-                    messageData.EndpointUrl = EndpointUrl.AbsoluteUri;
+                    messageData.EndpointUrl = EndpointUrl;
                     if (telemetryConfiguration.NodeId.Publish == true)
                     {
                         messageData.NodeId = OriginalId;
@@ -308,7 +309,7 @@ namespace OpcPublisher
                     if (telemetryConfiguration.Value.SourceTimestamp.Publish == true && value.SourceTimestamp != null)
                     {
                         // use the SourceTimestamp as reported in the notification event argument in ISO8601 format
-                        messageData.SourceTimestamp = value.SourceTimestamp.ToString("o");
+                        messageData.SourceTimestamp = value.SourceTimestamp.ToString("o", CultureInfo.InvariantCulture);
                     }
                     if (telemetryConfiguration.Value.StatusCode.Publish == true && value.StatusCode != null)
                     {
@@ -332,14 +333,14 @@ namespace OpcPublisher
                         // we only want the value string, search for everything till the real value starts
                         // and get it
                         string marker = "{\"Value\":{\"Value\":";
-                        int markerStart = valueString.IndexOf(marker);
+                        int markerStart = valueString.IndexOf(marker, StringComparison.InvariantCulture);
                         messageData.PreserveValueQuotes = true;
                         if (markerStart >= 0)
                         {
                             // we either have a value in quotes or just a value
                             int valueLength;
                             int valueStart = marker.Length;
-                            if (valueString.IndexOf("\"", valueStart) >= 0)
+                            if (valueString.IndexOf("\"", valueStart, StringComparison.InvariantCulture) >= 0)
                             {
                                 // value is in quotes and two closing curly brackets at the end
                                 valueStart++;
@@ -374,28 +375,28 @@ namespace OpcPublisher
                 }
                 else
                 {
-                    Logger.Debug($"Enqueue a new message from subscription {(monitoredItem.Subscription == null ? "removed" : monitoredItem.Subscription.Id.ToString())}");
+                    Logger.Debug($"Enqueue a new message from subscription {(monitoredItem.Subscription == null ? "removed" : monitoredItem.Subscription.Id.ToString(CultureInfo.InvariantCulture))}");
                     Logger.Debug($" with publishing interval: {monitoredItem.Subscription.PublishingInterval} and sampling interval: {monitoredItem.SamplingInterval}):");
                 }
                 HubCommunication.Enqueue(messageData);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.Error(e, "Error processing monitored item notification");
+                Logger.Error(ex, "Error processing monitored item notification");
             }
         }
 
         /// <summary>
         /// Init instance variables.
         /// </summary>
-        private void Init(Uri sessionEndpointUrl, int? samplingInterval, string displayName)
+        private void Init(string sessionEndpointUrl, int? samplingInterval, string displayName)
         {
             State = OpcMonitoredItemState.Unmonitored;
             AttributeId = Attributes.Value;
             MonitoringMode = MonitoringMode.Reporting;
             QueueSize = 0;
             DiscardOldest = true;
-            Notification = new MonitoredItemNotificationEventHandler(MonitoredItem_Notification);
+            Notification = new MonitoredItemNotificationEventHandler(MonitoredItemNotificationEventHandler);
             EndpointUrl = sessionEndpointUrl;
             DisplayName = displayName;
             DisplayNameFromConfiguration = string.IsNullOrEmpty(displayName) ? false : true;

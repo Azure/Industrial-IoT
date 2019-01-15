@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace OpcPublisher
 {
-    public class SecureIoTHubToken
+    public sealed class SecureIoTHubToken
     {
         /// <summary>
         /// Returns the token from the cert in the given cert store.
@@ -38,7 +38,7 @@ namespace OpcPublisher
                         using (DirectoryCertificateStore store = new DirectoryCertificateStore())
                         {
                             store.Open(storePath);
-                            X509CertificateCollection certificates = await store.Enumerate();
+                            X509CertificateCollection certificates = await store.Enumerate().ConfigureAwait(false);
 
                             foreach (X509Certificate2 cert in certificates)
                             {
@@ -163,19 +163,19 @@ namespace OpcPublisher
                             using (DirectoryCertificateStore store = new DirectoryCertificateStore())
                             {
                                 store.Open(storePath);
-                                X509CertificateCollection certificates = await store.Enumerate();
+                                X509CertificateCollection certificates = await store.Enumerate().ConfigureAwait(false);
 
                                 // remove any existing cert with our name from the store
                                 foreach (X509Certificate2 cert in certificates)
                                 {
                                     if (cert.SubjectName.Decode(X500DistinguishedNameFlags.None | X500DistinguishedNameFlags.DoNotUseQuotes).Equals("CN=" + name, StringComparison.OrdinalIgnoreCase))
                                     {
-                                        await store.Delete(cert.Thumbprint);
+                                        await store.Delete(cert.Thumbprint).ConfigureAwait(false);
                                     }
                                 }
 
                                 // add new one
-                                await store.Add(certificate);
+                                await store.Add(certificate).ConfigureAwait(false);
                             }
                             break;
                         }
