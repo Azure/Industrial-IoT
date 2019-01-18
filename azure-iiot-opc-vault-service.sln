@@ -18,7 +18,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		src\Dockerfile.Windows = src\Dockerfile.Windows
 		LICENSE = LICENSE
 		project.props = project.props
-		README.md = README.md
 		version.props = version.props
 	EndProjectSection
 EndProject
@@ -31,6 +30,20 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Modules.Vault", "module\Microsoft.Azure.IIoT.OpcUa.Modules.Vault.csproj", "{427DAC72-EA9A-4E69-B08E-57D7F3D62201}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Api.Vault", "api-csharp\Microsoft.Azure.IIoT.OpcUa.Api.Vault.csproj", "{A887CAA1-2C60-4E3A-91F8-DB60BBE4CC26}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E9C6A792-1D70-4DE9-B5FB-8D8BCAA223EE}"
+	ProjectSection(SolutionItems) = preProject
+		docs\howto-deploy-services.md = docs\howto-deploy-services.md
+		docs\howto-run-services-locally.md = docs\howto-run-services-locally.md
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deploy", "deploy", "{A3FF1EEF-11DA-470B-9C98-B043B3CB4DE7}"
+	ProjectSection(SolutionItems) = preProject
+		deploy\.gitignore = deploy\.gitignore
+		deploy\deploy.ps1 = deploy\deploy.ps1
+		deploy\KeyVault.Secret.Groups.json = deploy\KeyVault.Secret.Groups.json
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

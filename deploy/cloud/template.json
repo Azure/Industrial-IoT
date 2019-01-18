@@ -2,32 +2,150 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "aadTenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "The AAD tenant identifier (GUID)"
+            }
+        },
+        "aadInstance": {
+            "type": "string",
+            "defaultValue": "https://login.microsoftonline.com/",
+            "metadata": {
+                "description": "Url of the AAD login page (example: https://login.microsoftonline.com/)"
+            }
+        },
+        "aadServiceId": {
+            "type": "string",
+            "metadata": {
+                "description": "AAD service application identifier (GUID)"
+            }
+        },
+        "aadServicePrincipalId": {
+            "type": "string",
+            "metadata": {
+                "description": "AAD service application principal id (GUID)"
+            }
+        },
+        "aadServiceSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "AAD service application secret."
+            }
+        },
+        "aadClientId": {
+            "type": "string",
+            "metadata": {
+                "description": "AAD client application identifier (GUID)"
+            }
+        },
+        "aadClientSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "AAD client application secret."
+            }
+        },
+        "aadModuleId": {
+            "type": "string",
+            "metadata": {
+                "description": "AAD module application identifier (GUID)"
+            }
+        },
+        "aadModuleSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "AAD module application secret."
+            }
+        },
+        "aadAudience": {
+            "type": "string",
+            "defaultValue": "[parameters('aadServiceId')]",
+            "metadata": {
+                "description": "Audience to validate token audience against."
+            }
+        },
+        "aadTrustedIssuer": {
+            "type": "string",
+            "defaultValue": "[concat('https://sts.windows.net/', parameters('aadTenantId'))]",
+            "metadata": {
+                "description": "Audience to validate token audience against."
+            }
+        },
+        "aadUserPrincipalId": {
+            "type": "string",
+            "metadata": {
+                "description": "The user principal id managing the vault. (GUID)"
+            }
+        },
         "webAppName": {
             "type": "string",
             "metadata": {
-                "description": "Base name of the resource such as web app name and app service plan "
+                "description": "Web app base name."
             },
             "minLength": 2
+        },
+        "webServiceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Web service base name."
+            },
+            "minLength": 2
+        },
+        "groupsConfig": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Default certificate group configuration. (JSON)"
+            }
+        },
+        "autoApprove": {
+            "type": "string",
+            "defaultValue": "false",
+            "metadata": {
+                "description": "Preset service for certificate auto approval."
+            }
+        },
+        "environment": {
+            "type": "string",
+            "defaultValue": "Production",
+            "metadata": {
+                "description": "Preset web app environment."
+            }
         }
+
     },
     "variables": {
         "tenantId": "[subscription().tenantId]",
-        "randomSuffix": "[take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('webAppName')), 5)]",
+        "groupPrefix": "[take(resourceGroup().name, 8)]",
+        "randomSuffix": "[take(uniqueString(subscription().subscriptionId, resourceGroup().id, resourceGroup().name), 5)]",
         "applocation": "[resourceGroup().location]",
-        "keyVaultName": "[concat('vault-', variables('randomSuffix'))]",
+        "keyVaultName": "[concat(variables('groupPrefix'), '-', variables('randomSuffix'))]",
         "vaultSku": "Premium",
         "enabledForDeployment": true,
         "enabledForTemplateDeployment": false,
         "enableVaultForVolumeEncryption": false,
         "webAppSku": "S1",
-        "webAppPortalName": "[concat(parameters('webAppName'), '-app')]",
-        "webAppServiceName": "[concat(parameters('webAppName'), '-service')]",
-        "appServicePlanName": "[concat('AppServicePlan-', parameters('webAppName'))]",
-        "documentDBName": "[concat('cosmosdb-', variables('randomSuffix'))]",
+        "webAppPortalName": "[parameters('webAppName')]",
+        "webAppServiceName": "[parameters('webServiceName')]",
+        "appInsightsName": "[concat(variables('groupPrefix'), '-', variables('randomSuffix'))]",
+        "appServicePlanName": "[concat('AppServicePlan-', resourceGroup().name)]",
+        "documentDBName": "[concat(variables('groupPrefix'), '-', variables('randomSuffix'))]",
         "documentDBApiVersion": "2016-03-19",
         "documentDBResourceId": "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))]",
         "apiType": "SQL",
-        "offerType": "Standard"
+        "offerType": "Standard",
+        "readPermissions": [ "Get", "List" ],
+        "writePermissions": [ "Get", "List", "Set" ],
+        "signPermissions": [ "Get", "List", "Sign" ],
+        "createPermissions": [ "Get", "List", "Update", "Create", "Import", "Delete"],
+        "groupsObject": {
+            "secrets": [
+                {
+                    "secretName": "groups",
+                    "secretValue": "[parameters('groupsConfig')]"
+                }
+            ]
+        }
     },
     "resources": [
         {
@@ -64,7 +182,7 @@
         {
             "type": "Microsoft.KeyVault/vaults",
             "name": "[variables('keyVaultName')]",
-            "apiVersion": "2015-06-01",
+            "apiVersion": "2018-02-14",
             "location": "[variables('applocation')]",
             "tags": {
                 "displayName": "KeyVault"
@@ -79,7 +197,66 @@
                     "family": "A"
                 },
                 "accessPolicies": []
+            },
+            "resources": [
+                {
+                    "type": "accessPolicies",
+                    "name": "add",
+                    "apiVersion": "2018-02-14",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+                    ],
+                    "properties": {
+                        "accessPolicies": [
+                            {
+                                "tenantId": "[parameters('aadTenantId')]",
+                                "objectId": "[parameters('aadServicePrincipalId')]",
+                                "permissions": {
+                                    "secrets": "[variables('readPermissions')]",
+                                    "certificates": "[variables('readPermissions')]"
+                                }
+                            },
+                            {
+                                "tenantId": "[parameters('aadTenantId')]",
+                                "objectId": "[parameters('aadUserPrincipalId')]",
+                                "permissions": {
+                                    "keys": "[variables('signPermissions')]",
+                                    "secrets": "[variables('writePermissions')]",
+                                    "certificates": "[variables('createPermissions')]"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "condition": "[not(empty(parameters('groupsConfig')))]",
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('keyVaultName'), '/', variables('groupsObject').secrets[copyIndex()].secretName)]",
+            "apiVersion": "2018-02-14",
+            "properties": {
+                "value": "[variables('groupsObject').secrets[copyIndex()].secretValue]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+            ],
+            "copy": {
+                "name": "secretsCopy",
+                "count": "[length(variables('groupsObject').secrets)]"
             }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('keyVaultName'), '/', 'Service-OpcVault--CosmosDBToken')]",
+            "apiVersion": "2018-02-14",
+            "properties": {
+                "value": "[listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName')), variables('documentDBApiVersion')).primaryMasterKey]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))]",
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+            ]
         },
         {
             "apiVersion": "2016-08-01",
@@ -89,10 +266,50 @@
             "location": "[variables('applocation')]",
             "comments": "This is the web app, also the default 'nameless' slot.",
             "properties": {
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+                "name": "[variables('webAppPortalName')]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+                "httpsOnly": true
             },
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+            ],
+            "resources": [
+                {
+                    "name": "appsettings",
+                    "type": "config",
+                    "apiVersion": "2015-08-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('webAppPortalName'))]",
+                        "[resourceId('Microsoft.Web/sites', variables('webAppServiceName'))]",
+                        "Microsoft.ApplicationInsights.AzureWebSites"
+                    ],
+                    "tags": {
+                        "displayName": "WebAppServiceSettings"
+                    },
+                    "properties": {
+                        "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]",
+                        "ASPNETCORE_ENVIRONMENT": "[parameters('environment')]",
+                        "AZUREAD__CLIENTID": "[parameters('aadClientId')]",
+                        "AZUREAD__CLIENTSECRET": "[parameters('aadClientSecret')]",
+                        "AZUREAD__INSTANCE": "[parameters('aadInstance')]",
+                        "AZUREAD__TENANTID": "[parameters('aadTenantId')]",
+                        "OPCVAULT__BASEADDRESS": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppServiceName'))).hostNames[0])]",
+                        "OPCVAULT__RESOURCEID": "[parameters('aadServiceId')]",
+                        "OPCVAULT__AUTOAPPROVE": "[parameters('autoApprove')]",
+                        "WEBSITE_RUN_FROM_PACKAGE": "1"
+                    }
+                },
+                {
+                    "apiVersion": "2015-08-01",
+                    "name": "Microsoft.ApplicationInsights.AzureWebSites",
+                    "type": "siteextensions",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('webAppPortalName'))]"
+                    ],
+                    "properties": {
+                    }
+                }
+
             ]
         },
         {
@@ -103,12 +320,68 @@
             "location": "[variables('applocation')]",
             "comments": "This is the web app service, also the default 'nameless' slot.",
             "properties": {
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+                "name": "[variables('webAppServiceName')]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+                "httpsOnly": true
             },
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+            ],
+            "resources": [
+                {
+                    "name": "appsettings",
+                    "type": "config",
+                    "apiVersion": "2015-08-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))]",
+                        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+                        "[resourceId('Microsoft.Web/sites', variables('webAppServiceName'))]",
+                        "Microsoft.ApplicationInsights.AzureWebSites"
+                    ],
+                    "tags": {
+                        "displayName": "WebAppServiceSettings"
+                    },
+                    "properties": {
+                        "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]",
+                        "ASPNETCORE_ENVIRONMENT": "[parameters('environment')]",
+                        "KEYVAULT": "[reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))).vaultUri]",
+                        "OPCVAULT__KEYVAULTBASEURL": "[reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))).vaultUri]",
+                        "OPCVAULT__COSMOSDBENDPOINT": "[reference(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))).documentEndpoint]",
+                        //"OPCVAULT__COSMOSDBTOKEN": "[listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName')), variables('documentDBApiVersion')).primaryMasterKey]",
+                        "OPCVAULT__AUTOAPPROVE": "[parameters('autoApprove')]",
+                        "AUTH__APPID": "[parameters('aadServiceId')]",
+                        "AUTH__APPSECRET": "[parameters('aadServiceSecret')]",
+                        "AUTH__AUDIENCE": "[parameters('aadAudience')]",
+                        "AUTH__TENANTID": "[parameters('aadTenantId')]",
+                        "AUTH__TRUSTEDISSUER": "[parameters('aadTrustedIssuer')]",
+                        "SWAGGER__ENABLED": "true",
+                        "SWAGGER__APPID": "[parameters('aadClientId')]",
+                        "SWAGGER__APPSECRET": "[parameters('aadClientSecret')]",
+                        "WEBSITE_RUN_FROM_PACKAGE": "1"
+                    }
+                },
+                {
+                    "apiVersion": "2015-08-01",
+                    "name": "Microsoft.ApplicationInsights.AzureWebSites",
+                    "type": "siteextensions",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('webAppServiceName'))]"
+                    ],
+                    "properties": {
+                    }
+                }
             ]
+        },
+        {
+            "apiVersion": "2014-04-01",
+            "name": "[variables('appInsightsName')]",
+            "type": "Microsoft.Insights/components",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "applicationId": "[variables('appInsightsName')]"
+            }
         }
+
     ],
     "outputs": {
         "webAppPortalUrl": {
@@ -119,6 +392,14 @@
             "type": "string",
             "value": "[concat('https://', reference(concat('Microsoft.Web/sites/', variables('webAppServiceName'))).hostNames[0])]"
         },
+        "webAppPortalName": {
+            "type": "string",
+            "value": "[variables('webAppPortalName')]"
+        },
+        "webAppServiceName": {
+            "type": "string",
+            "value": "[variables('webAppServiceName')]"
+        },
         "resourceGroup": {
             "type": "string",
             "value": "[resourceGroup().name]"
@@ -126,6 +407,14 @@
         "tenantId": {
             "type": "string",
             "value": "[variables('tenantId')]"
+        },
+        "KeyVaultBaseUrl": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))).vaultUri]"
+        },
+        "CosmosDBEndpoint": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))).documentEndpoint]"
         }
     }
 }

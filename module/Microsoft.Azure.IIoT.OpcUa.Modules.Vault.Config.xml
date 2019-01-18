@@ -1,10 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <ApplicationConfiguration
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:ua="http://opcfoundation.org/UA/2008/02/Types.xsd"
   xmlns="http://opcfoundation.org/UA/SDK/Configuration.xsd"
 >
-  <ApplicationName>Azure Industrial IoT OPC UA Global Discovery Server</ApplicationName>
+  <ApplicationName>Azure IoT OPC UA Global Discovery Server</ApplicationName>
   <ApplicationUri>urn:localhost:azure.microsoft.com:iiot:GlobalDiscoveryServer</ApplicationUri>
   <ProductUri>http://azure.microsoft.com/iiot/UA/GlobalDiscoveryServer</ProductUri>
   <ApplicationType>Server_0</ApplicationType>
@@ -13,7 +13,7 @@
     <ApplicationCertificate>
       <StoreType>X509Store</StoreType>
       <StorePath>CurrentUser\My</StorePath>
-      <SubjectName>CN=OPC UA Global Discovery Server, O=Microsoft Corp., OU=Azure Industrial IoT</SubjectName>
+      <SubjectName>CN=OPC UA Global Discovery Server, O=Microsoft Corp., OU=Azure IoT</SubjectName>
       <!-- <Thumbprint></Thumbprint> -->
     </ApplicationCertificate>
 

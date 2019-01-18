@@ -110,10 +110,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             {
                 var accessToken = request.Headers["Authorization"];
                 var token = accessToken.First().Remove(0, "Bearer ".Length);
+                var authority = String.IsNullOrEmpty(_clientConfig.InstanceUrl) ? _kAuthority : _clientConfig.InstanceUrl;
+                if (!authority.EndsWith("/"))
+                {
+                    authority += "/";
+                }
+                authority += _clientConfig.TenantId;
                 var serviceClientCredentials =
                     new KeyVaultCredentials(
                         token,
-                        (String.IsNullOrEmpty(_clientConfig.InstanceUrl) ? _kAuthority : _clientConfig.InstanceUrl) + _clientConfig.TenantId,
+                        authority,
                         _servicesConfig.KeyVaultResourceId,
                         _clientConfig.AppId,
                         _clientConfig.AppSecret);

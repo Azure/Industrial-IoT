@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -86,8 +86,8 @@ namespace Opc.Ua.Gds.Server
                 { "r|resource=", "OpcVault Resource Id", r => opcVaultOptions.ResourceId = r },
                 { "c|clientid=", "AD Client Id", c => azureADOptions.ClientId = c },
                 { "s|secret=", "AD Client Secret", s => azureADOptions.ClientSecret = s },
-                { "a|authority", "Authority", a => azureADOptions.Authority = a },
-                { "t|tenantid", "Tenant Id", t => azureADOptions.TenantId = t },
+                { "a|authority=", "Authority", a => azureADOptions.Authority = a },
+                { "t|tenantid=", "Tenant Id", t => azureADOptions.TenantId = t },
                 { "h|help", "show this message and exit", h => showHelp = h != null },
             };
 

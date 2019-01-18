@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for
 // license information.
 //
@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseApplicationInsights()
                 .ConfigureAppConfiguration((context, config) =>
                 {
                     var builtConfig = config.Build();
@@ -28,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App
                             $"{builtConfig["KeyVault"]}",
                             builtConfig["AzureAD:ClientId"],
                             builtConfig["AzureAD:ClientSecret"],
-                            new PrefixKeyVaultSecretManager("OpcVault.App")
+                            new PrefixKeyVaultSecretManager("App")
                             );
                     }
                 })

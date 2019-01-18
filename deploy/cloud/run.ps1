@@ -6,18 +6,39 @@
     Deploys an Azure Resource Manager template of choice
 
  .PARAMETER resourceGroupName
-    The resource group where the template will be deployed. 
+    The resource group where the template will be deployed.
+
+ .PARAMETER webAppName
+    The host name prefix of the web application. 
+
+ .PARAMETER webServiceName
+    The host name prefix of the web application. 
 
  .PARAMETER aadConfig
     The AAD configuration the template will be configured with.
 
+ .PARAMETER groupsConfig
+    The certificate groups configuration.
+
+ .PARAMETER autoApprove
+    Set the web app auto approval configuration.
+
+ .PARAMETER environment
+    Set the web app environment configuration. (Production,Development)
+
  .PARAMETER interactive
     Whether to run in interactive mode
+
 #>
 
 param(
     [Parameter(Mandatory=$True)] [string] $resourceGroupName,
+    [string] $webAppName = $null,
+    [string] $webServiceName = $null,
     $aadConfig = $null,
+    [string] $groupsConfig = $null,
+    [string] $autoApprove = "false",
+    [string] $environment = "Production",
     $interactive = $true
 )
 
@@ -53,19 +74,14 @@ $ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 
 # Register RPs
 Register-AzureRmResourceProvider -ProviderNamespace "microsoft.web" | Out-Null
-#Register-AzureRmResourceProvider -ProviderNamespace "microsoft.compute" | Out-Null
 
-# Set admin password
-$adminPassword = CreateRandomPassword
-$templateParameters = @{ 
-    # adminPassword = $adminPassword
-}
+$templateParameters = @{ }
 
 try {
     # Try set branch name as current branch
     $output = cmd /c "git rev-parse --abbrev-ref HEAD" 2`>`&1
     $branchName = ("{0}" -f $output);
-    Write-Host "VM deployment will use configuration from '$branchName' branch."
+    Write-Host "Deployment will use configuration from '$branchName' branch."
     # $templateParameters.Add("branchName", $branchName)
 }
 catch {
@@ -75,26 +91,71 @@ catch {
 # Configure auth
 if ($aadConfig) {
     if (![string]::IsNullOrEmpty($aadConfig.Audience)) { 
-        # $templateParameters.Add("authAudience", $aadConfig.Audience)
+        $templateParameters.Add("aadAudience", $aadConfig.Audience)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.ServiceId)) { 
+        $templateParameters.Add("aadServiceId", $aadConfig.ServiceId)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.ServiceObjectId)) { 
+        $templateParameters.Add("aadServicePrincipalId", $aadConfig.ServicePrincipalId)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.ServiceSecret)) { 
+        $templateParameters.Add("aadServiceSecret", $aadConfig.ServiceSecret)
     }
     if (![string]::IsNullOrEmpty($aadConfig.ClientId)) { 
-        # $templateParameters.Add("aadClientId", $aadConfig.ClientId)
+        $templateParameters.Add("aadClientId", $aadConfig.ClientId)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.ClientSecret)) { 
+        $templateParameters.Add("aadClientSecret", $aadConfig.ClientSecret)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.ModuleId)) { 
+        $templateParameters.Add("aadModuleId", $aadConfig.ModuleId)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.ModuleSecret)) { 
+        $templateParameters.Add("aadModuleSecret", $aadConfig.ModuleSecret)
     }
     if (![string]::IsNullOrEmpty($aadConfig.TenantId)) { 
-        # $templateParameters.Add("aadTenantId", $aadConfig.TenantId)
+        $templateParameters.Add("aadTenantId", $aadConfig.TenantId)
     }
     if (![string]::IsNullOrEmpty($aadConfig.Instance)) { 
-        # $templateParameters.Add("aadInstance", $aadConfig.Instance)
+        $templateParameters.Add("aadInstance", $aadConfig.Instance)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.UserPrincipalId)) { 
+        $templateParameters.Add("aadUserPrincipalId", $aadConfig.UserPrincipalId)
     }
 }
 
+# Configure groups
+if (![string]::IsNullOrEmpty($groupsConfig)) { 
+    $templateParameters.Add("groupsConfig", $groupsConfig)
+}
 
-# Set website name
-if ($interactive) {
-    $webAppName = Read-Host "Please specify a website name"
-    if (![string]::IsNullOrEmpty($webAppName)) { 
-        $templateParameters.Add("webAppName", $webAppName)
-    }
+# Set web app site name
+if ($interactive -and [string]::IsNullOrEmpty($webAppName)) {
+    $webAppName = Read-Host "Please specify a web applications site name"
+}
+
+if (![string]::IsNullOrEmpty($webAppName)) { 
+    $templateParameters.Add("webAppName", $webAppName)
+}
+
+# Set web service site name
+if ($interactive -and [string]::IsNullOrEmpty($webServiceName)) {
+    $webServiceName = Read-Host "Please specify a web service site name"
+}
+
+if (![string]::IsNullOrEmpty($webServiceName)) { 
+    $templateParameters.Add("webServiceName", $webServiceName)
+}
+
+# Configure web app auto approve
+if (![string]::IsNullOrEmpty($autoApprove)) { 
+    $templateParameters.Add("autoApprove", $autoApprove)
+}
+
+# Configure web app environment
+if (![string]::IsNullOrEmpty($environment)) { 
+    $templateParameters.Add("environment", $environment)
 }
 
 # Start the deployment
@@ -105,30 +166,27 @@ $deployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGro
 
 $webAppPortalUrl = $deployment.Outputs["webAppPortalUrl"].Value
 $webAppServiceUrl = $deployment.Outputs["webAppServiceUrl"].Value
-#$adminUser = $deployment.Outputs["adminUsername"].Value
+$webAppPortalName = $deployment.Outputs["webAppPortalName"].Value
+$webAppServiceName = $deployment.Outputs["webAppServiceName"].Value
 
 if ($aadConfig -and $aadConfig.ClientObjectId) {
     # 
-    # Update client application to add reply urls required permissions.
+    # Update client application to add reply urls to required permissions.
     #
+    $adClient = Get-AzureADApplication -ObjectId $aadConfig.ClientObjectId 
     Write-Host "Adding ReplyUrls:"
-    $replyUrls = New-Object System.Collections.Generic.List[System.String]
-    $replyUrls.Add($webAppPortalUrl)
-    $replyUrls.Add($webAppPortalUrl + "/oauth2-redirect.html")
-    Write-Host $webAppPortalUrl + "/oauth2-redirect.html"
-    # still connected
-    Set-AzureADApplication -ObjectId $aadConfig.ClientObjectId -ReplyUrls $replyUrls
+    $replyUrls = $adClient.ReplyUrls
+    # web app
+    $replyUrls.Add($webAppPortalUrl + "/signin-oidc")
+    # swagger
+    $replyUrls.Add($webAppServiceUrl + "/oauth2-redirect.html")
+    Write-Host $webAppPortalUrl"/signin-oidc"
+    Write-Host $webAppServiceUrl"/oauth2-redirect.html"
+    Set-AzureADApplication -ObjectId $aadConfig.ClientObjectId -ReplyUrls $replyUrls -HomePage $webAppPortalUrl
 }
 
-Write-Host
-Write-Host "To access the web portal go to:"
-Write-Host $webAppPortalUrl
-Write-Host
-Write-Host "To access the web service go to:"
-Write-Host $webAppServiceUrl
-Write-Host
-#Write-Host "Use the following User and Password to log onto your VM:"
-#Write-Host 
-#Write-Host $adminUser
-#Write-Host $adminPassword
-#Write-Host 
+if ($aadConfig -and $aadConfig.ClientObjectId) {
+    Set-AzureADApplication -ObjectId $aadConfig.ServiceObjectId -HomePage $webServicePortalUrl
+}
+
+Return $webAppPortalUrl, $webAppServiceUrl

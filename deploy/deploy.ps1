@@ -1,12 +1,12 @@
 <#
  .SYNOPSIS
-    Deploys Industrial IoT services to Azure
+    Deploys the OpcVault service to Azure
 
  .DESCRIPTION
-    Deploys the Industrial IoT services dependencies and optionally micro services and UI to Azure.
+    Deploys the OpcVault services and UI to Azure.
 
  .PARAMETER type
-    The type of deployment (cloud, vm, local)
+    The type of deployment (cloud) - defaults to cloud
 
  .PARAMETER resourceGroupName
     Can be the name of an existing or a new resource group.
@@ -20,14 +20,12 @@
  .PARAMETER resourceGroupLocation
     Optional, a resource group location. If specified, will try to create a new resource group in this location.
 
- .PARAMETER withAuthentication
-    Whether to enable authentication - defaults to $true.
+ .PARAMETER withAutoApprove
+    Whether to enable auto approval - defaults to $false.
 
  .PARAMETER tenantId
     AD tenant to use. 
 
- .PARAMETER credentials
-    To support non interactive usage of script. (TODO)
 #>
 
 param(
@@ -36,13 +34,12 @@ param(
     [string] $resourceGroupLocation,
     [string] $subscriptionName,
     [string] $subscriptionId,
-    [string] $accountName,
-    $credentials,
     [string] $tenantId,
-    [bool] $withAuthentication = $true,
+    [bool] $withAutoApprove = $false,
     [ValidateSet("AzureCloud")] [string] $environmentName = "AzureCloud"
 )
 
+$script:credentials = $null
 $script:optionIndex = 0
 
 #*******************************************************************************************************
@@ -66,7 +63,9 @@ Function SelectEnvironment() {
                     -ResourceManagerUrl https://management.azure.com/ `
                     -ManagementPortalUrl http://go.microsoft.com/fwlink/?LinkId=254433
             }
-            $script:locations = @("West US", "North Europe", "West Europe")
+            # locations currently limited by Application Insights
+            # TODO: test "Canada Central", "Central India", "Southeast Asia")
+            $script:locations = @("East US", "West US 2", "North Europe", "West Europe")
         }
         default {
             throw ("'{0}' is not a supported Azure Cloud environment" -f $script:environmentName)
@@ -74,6 +73,43 @@ Function SelectEnvironment() {
     }
     $script:environment = Get-AzureRmEnvironment $script:environmentName
     $script:environmentName = $script:environment.Name
+}
+
+#*******************************************************************************************************
+# Deploy a zip to web app
+#*******************************************************************************************************
+Function ZipDeploy()
+{
+    Param (
+        [string] $resourceGroupName,
+        [string] $webAppName,
+        [string] $folderPath,
+        $slotParameters
+    ) 
+
+    $filePath = $folderPath + ".zip"
+    if(Test-path $filePath) {Remove-item $filePath}
+    Add-Type -assembly "system.io.compression.filesystem"
+    [io.compression.zipfile]::CreateFromDirectory($folderPath, $filePath)
+    if(Test-path $publishFolder) {Remove-Item -Recurse -Force $publishFolder}
+
+    $profileClient = Get-AzureRmWebAppSlotPublishingProfile `
+        -Format WebDeploy `
+        -ResourceGroupName $resourceGroupName `
+        -Name $webAppName `
+        @slotParameters
+    $publishProfilePath = Join-Path -Path ".\" -ChildPath "$($webAppName).$($slotParameters.Slot).publishsettings"
+    Write-Output $profileClient | Out-File -FilePath $publishProfilePath 
+    $profileClientXml = [xml]$profileClient
+    $profileClient = $profileClientXml.publishData.publishProfile[0]
+
+    $username = $profileClient.UserName
+    $password = $profileClient.userPWD
+    $apiUrl = "https://" +  $profileClient.publishUrl + "/api/zipdeploy"
+    $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username, $password)))
+    $userAgent = "powershell/1.0"
+    Invoke-RestMethod -Uri $apiUrl -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} -UserAgent $userAgent -Method POST -InFile $filePath -ContentType "multipart/form-data"
+
 }
 
 #*******************************************************************************************************
@@ -159,6 +195,7 @@ Function Login() {
         }
         if ($rmProfileLoaded) {
             $script:accountName = $rmProfile.Context.Account.Id
+            $script:profileFile = $profileFile;
         }
     }
     if (!$rmProfileLoaded) {
@@ -174,6 +211,7 @@ Function Login() {
         $reply = Read-Host -Prompt "Save user profile in $profileFile? [y/n]"
         if ($reply -match "[yY]") { 
             Save-AzureRmContext -Path "$profileFile"
+            $script:profileFile = $profileFile;
         }
     }
 }
@@ -184,7 +222,8 @@ Function Login() {
 Function SelectSubscription() {
     $subscriptions = Get-AzureRMSubscription
     if ($script:subscriptionName -ne $null -and $script:subscriptionName -ne "") {
-        $subscriptionId = Get-AzureRmSubscription -SubscriptionName $script:subscriptionName
+        $subscription = Get-AzureRmSubscription -SubscriptionName $script:subscriptionName
+        $subscriptionId = $subscription.Id
     }
     else {
         $subscriptionId = $script:subscriptionId
@@ -192,8 +231,8 @@ Function SelectSubscription() {
 
     if (![string]::IsNullOrEmpty($subscriptionId)) {
         if (!$subscriptions.Id.Contains($subscriptionId)) {
-            Write-Error ("Invalid subscription id {0}" -f $subscriptionId)
-            $subscriptionId = ""
+            Write-Error ("Invalid subscription id {0} {1}" -f $subscriptionId.Id, $script:subscriptionName)
+            $subscriptionId = $null
         }
     }
 
@@ -389,12 +428,6 @@ Function ConnectToAzureADTenant() {
     if ($script:interactive) {
         # Interactive
         if (!$script:tenantId) {
-            if (!$script:withAuthentication) {
-                $reply = Read-Host -Prompt "Enable authentication? [y/n]"
-                if ( $reply -notmatch "[yY]" ) { 
-                    return $null
-                }
-            }
             $script:tenantId = SelectAzureADTenantId
         }
     }
@@ -459,24 +492,31 @@ Function AddResourcePermission() {
 #*******************************************************************************************************
 Function GetRequiredPermissions() {
     Param(
-        [string] $applicationDisplayName,
         [string] $requiredDelegatedPermissions, 
-        [string] $requiredApplicationPermissions, 
+        [string] $requiredApplicationPermissions,
+        [string] $appId,
+        [string] $servicePrincipalName,
         $servicePrincipal
     )
 
-    # If we are passed the service principal we use it directly, otherwise we find it from 
-    # the display name (which might not be unique)
     if ($servicePrincipal) {
         $sp = $servicePrincipal
     }
-    else {
-        $sp = Get-AzureADServicePrincipal -Filter "DisplayName eq '$applicationDisplayName'"
+    else
+    {
+        if ($servicePrincipalName)
+        {
+            $sp = Get-AzureADServicePrincipal -Filter "ServicePrincipalNames eq '$servicePrincipalName'"
+        }
+        if ($appId)
+        {
+            $sp = Get-AzureADServicePrincipal -Filter "AppId eq '$appId'"
+        }
     }
+    $appId = $sp.AppId
 
-    $appid = $sp.AppId
     $requiredAccess = New-Object Microsoft.Open.AzureAD.Model.RequiredResourceAccess
-    $requiredAccess.ResourceAppId = $appid 
+    $requiredAccess.ResourceAppId = $appId 
     $requiredAccess.ResourceAccess =  
         New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.ResourceAccess]
 
@@ -488,6 +528,7 @@ Function GetRequiredPermissions() {
         AddResourcePermission $requiredAccess -exposedPermissions $sp.AppRoles `
             -requiredAccesses $requiredApplicationPermissions -permissionType "Role"
     }
+
     return $requiredAccess
 }
 
@@ -540,9 +581,9 @@ Function GetAzureADApplicationConfig() {
             -Filter "identifierUris/any(uri:uri eq 'https://$tenantName/$serviceDisplayName')"  
         if (!$serviceAadApplication) {
             $serviceAadApplication = New-AzureADApplication -DisplayName $serviceDisplayName `
-                -PublicClient $False -HomePage "https://localhost" `
+                -PublicClient $False -HomePage "https://$serviceDisplayName.azurewebsites.net" `
                 -IdentifierUris "https://$tenantName/$serviceDisplayName"
-            Write-Host "Created new AAD service application."+$serviceDisplayName
+            Write-Host "Created new AAD service application '$($serviceDisplayName)'."
         }
         $serviceServicePrincipal=Get-AzureADServicePrincipal `
              -Filter "AppId eq '$($serviceAadApplication.AppId)'"
@@ -556,16 +597,18 @@ Function GetAzureADApplicationConfig() {
             -Filter "DisplayName eq '$clientDisplayName'"
         if (!$clientAadApplication) {
             $clientAadApplication = New-AzureADApplication -DisplayName $clientDisplayName `
-                -PublicClient $True
-            Write-Host "Created new AAD client application."+$clientDisplayName
+                -PublicClient $False -HomePage "https://$clientDisplayName.azurewebsites.net" `
+                -IdentifierUris "https://$tenantName/$clientDisplayName"
+            Write-Host "Created new AAD client application '$($clientDisplayName)'."
         }
 
         $moduleAadApplication=Get-AzureADApplication `
             -Filter "DisplayName eq '$moduleDisplayName'"
         if (!$moduleAadApplication) {
             $moduleAadApplication = New-AzureADApplication -DisplayName $moduleDisplayName `
-                -PublicClient $True
-            Write-Host "Created new AAD Module application. "+$moduleDisplayName
+                -PublicClient $False -HomePage "http://localhost" `
+                -IdentifierUris "https://$tenantName/$moduleDisplayName"
+            Write-Host "Created new AAD Module application '$($moduleDisplayName)'."
         }
 
         # Find client principal
@@ -582,8 +625,6 @@ Function GetAzureADApplicationConfig() {
         #
         try {
             $user = Get-AzureADUser -ObjectId $creds.Account.Id -ErrorAction Stop
-            # TODO: Check whether already owner...
-
             Add-AzureADApplicationOwner -ObjectId $serviceAadApplication.ObjectId `
                 -RefObjectId $user.ObjectId
             Add-AzureADApplicationOwner -ObjectId $clientAadApplication.ObjectId `
@@ -612,34 +653,65 @@ Function GetAzureADApplicationConfig() {
         $appRoles.Add($adminRole)
         $knownApplications = New-Object System.Collections.Generic.List[System.String]
         $knownApplications.Add($clientAadApplication.AppId)
+        $knownApplications.Add($moduleAadApplication.AppId)
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
-        $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Azure Key Vault" `
-            -requiredDelegatedPermissions "user_impersonation" 
+        $requiredPermissions = GetRequiredPermissions -appId "cfa8b339-82a2-471a-a3c9-0fc0be7a4093" `
+            -requiredDelegatedPermissions "user_impersonation"
         $requiredResourcesAccess.Add($requiredPermissions)
-        $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Microsoft Graph" `
-            -requiredDelegatedPermissions "User.Read" 
+        $requiredPermissions = GetRequiredPermissions -appId "00000002-0000-0000-c000-000000000000" `
+            -requiredDelegatedPermissions "User.Read"
         $requiredResourcesAccess.Add($requiredPermissions)
         Set-AzureADApplication -ObjectId $serviceAadApplication.ObjectId `
-            -RequiredResourceAccess $requiredResourcesAccess `
-            -KnownClientApplications $knownApplications -AppRoles $appRoles
+            -KnownClientApplications $knownApplications -AppRoles $appRoles `
+            -RequiredResourceAccess $requiredResourcesAccess
+        Write-Host "'$($serviceDisplayName)' updated with required resource access, app roles and known applications."  
+
+        # read updated app roles for service principal
+        $serviceServicePrincipal=Get-AzureADServicePrincipal `
+             -Filter "AppId eq '$($serviceAadApplication.AppId)'"
+
+        #
+        # Add current user as Writer, Approver and Administrator
+        #
+        try {
+            $app_role_name = "Writer"
+            $app_role = $serviceServicePrincipal.AppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
+            New-AzureADUserAppRoleAssignment -ObjectId $user.ObjectId -PrincipalId $user.ObjectId -ResourceId $serviceServicePrincipal.ObjectId -Id $app_role.Id
+
+            $app_role_name = "Approver"
+            $app_role = $serviceServicePrincipal.AppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
+            New-AzureADUserAppRoleAssignment -ObjectId $user.ObjectId -PrincipalId $user.ObjectId -ResourceId $serviceServicePrincipal.ObjectId -Id $app_role.Id
+
+            $app_role_name = "Administrator"
+            $app_role = $serviceServicePrincipal.AppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
+            New-AzureADUserAppRoleAssignment -ObjectId $user.ObjectId -PrincipalId $user.ObjectId -ResourceId $serviceServicePrincipal.ObjectId -Id $app_role.Id
+        }
+        catch
+        {
+            Write-Host "User has already app roles assigned."
+        }
 
         # 
         # Update client application to add reply urls required permissions.
         #
         $replyUrls = New-Object System.Collections.Generic.List[System.String]
-        $replyUrls.Add("urn:ietf:wg:oauth:2.0:oob")
+        $replyUrls.Add("https://localhost:44342/signin-oidc")
+        $replyUrls.Add("http://localhost:44342/signin-oidc")
+        $replyUrls.Add("https://localhost:58801/oauth2-redirect.html")
+        $replyUrls.Add("http://localhost:58801/oauth2-redirect.html")
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
-        $requiredPermissions = GetRequiredPermissions -applicationDisplayName $serviceDisplayName `
+        $requiredPermissions = GetRequiredPermissions -servicePrincipal $serviceServicePrincipal `
             -requiredDelegatedPermissions "user_impersonation" # "Directory.Read.All|User.Read"
         $requiredResourcesAccess.Add($requiredPermissions)
-        $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Microsoft Graph" `
-            -requiredDelegatedPermissions "User.Read" 
+        $requiredPermissions = GetRequiredPermissions -appId "00000002-0000-0000-c000-000000000000" `
+            -requiredDelegatedPermissions "User.Read"
         $requiredResourcesAccess.Add($requiredPermissions)
         Set-AzureADApplication -ObjectId $clientAadApplication.ObjectId `
             -RequiredResourceAccess $requiredResourcesAccess -ReplyUrls $replyUrls `
             -Oauth2AllowImplicitFlow $True -Oauth2AllowUrlPathMatching $True
+        Write-Host "'$($clientDisplayName)' updated with required resource access, reply url and implicit flow."  
 
         # 
         # Update module application to add reply urls required permissions.
@@ -648,26 +720,42 @@ Function GetAzureADApplicationConfig() {
         $replyUrls.Add("urn:ietf:wg:oauth:2.0:oob")
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
-        $requiredPermissions = GetRequiredPermissions -applicationDisplayName $serviceDisplayName `
+        $requiredPermissions = GetRequiredPermissions -servicePrincipal $serviceServicePrincipal `
             -requiredDelegatedPermissions "user_impersonation" # "Directory.Read.All|User.Read"
         $requiredResourcesAccess.Add($requiredPermissions)
-        $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Microsoft Graph" `
-            -requiredDelegatedPermissions "User.Read" 
+        $requiredPermissions = GetRequiredPermissions -appId "00000002-0000-0000-c000-000000000000" `
+            -requiredDelegatedPermissions "User.Read"
         $requiredResourcesAccess.Add($requiredPermissions)
         Set-AzureADApplication -ObjectId $moduleAadApplication.ObjectId `
             -RequiredResourceAccess $requiredResourcesAccess -ReplyUrls $replyUrls `
-            -Oauth2AllowImplicitFlow $True -Oauth2AllowUrlPathMatching $True
+            -Oauth2AllowImplicitFlow $False -Oauth2AllowUrlPathMatching $False
+        Write-Host "'$($moduleDisplayName)' updated with required resource access, reply url and implicit flow."  
 
-        return [pscustomobject] @{ 
+        $serviceSecret = New-AzureADApplicationPasswordCredential -ObjectId $serviceAadApplication.ObjectId `
+            -CustomKeyIdentifier "Service Key" -EndDate (get-date).AddYears(2)
+        $clientSecret = New-AzureADApplicationPasswordCredential -ObjectId $clientAadApplication.ObjectId `
+            -CustomKeyIdentifier "Client Key" -EndDate (get-date).AddYears(2)
+        $moduleSecret = New-AzureADApplicationPasswordCredential -ObjectId $moduleAadApplication.ObjectId `
+            -CustomKeyIdentifier "Module Key" -EndDate (get-date).AddYears(2)
+
+        return [pscustomobject] @{
             TenantId = $tenantId
             Instance = $script:environment.ActiveDirectoryAuthority
-            Audience = $serviceAadApplication.IdentifierUris[0].ToString()
-            AppId = $serviceAadApplication.AppId
-            AppObjectId = $serviceAadApplication.ObjectId
+            Audience = $serviceAadApplication.AppId
+            ServiceId = $serviceAadApplication.AppId
+            ServiceSecret = $serviceSecret.Value
+            ServiceObjectId = $serviceAadApplication.ObjectId
+            ServicePrincipalId = $serviceServicePrincipal.ObjectId
+            ServiceDisplayName = $serviceDisplayName
             ClientId = $clientAadApplication.AppId
+            ClientSecret = $clientSecret.Value
             ClientObjectId = $clientAadApplication.ObjectId
+            ClientDisplayName = $clientDisplayName
             ModuleId = $moduleAadApplication.AppId
+            ModuleSecret = $moduleSecret.Value
             ModuleObjectId = $moduleAadApplication.ObjectId
+            ModuleDisplayName = $moduleDisplayName
+            UserPrincipalId = $user.ObjectId
         }
     }
     catch {
@@ -681,10 +769,6 @@ Function GetAzureADApplicationConfig() {
         Write-Host "2) in the PowerShell window, type: Install-Module AzureAD" 
         Write-Host
 
-        $reply = Read-Host -Prompt "Continue without authentication? [y/n]"
-        if ($reply -match "[yY]") { 
-            return $null
-        }
         throw $ex
     }
 }
@@ -697,8 +781,11 @@ Function GetOrCreateResourceGroup() {
     # Registering default resource providers
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.devices" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.documentdb" | Out-Null
-    Register-AzureRmResourceProvider -ProviderNamespace "microsoft.eventhub" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.storage" | Out-Null
+    Register-AzureRmResourceProvider -ProviderNamespace "microsoft.keyvault" | Out-Null
+    Register-AzureRmResourceProvider -ProviderNamespace "microsoft.authorization" | Out-Null
+    Register-AzureRmResourceProvider -ProviderNamespace "microsoft.insights" | Out-Null
+    Register-AzureRmResourceProvider -ProviderNamespace "microsoft.web" | Out-Null
 
     while ([string]::IsNullOrEmpty($script:resourceGroupName)) {
         Write-Host
@@ -706,7 +793,25 @@ Function GetOrCreateResourceGroup() {
     }
 
     # Create or check for existing resource group
-    Select-AzureRmSubscription -SubscriptionId $script:subscriptionId -Force | Out-Host
+    Write-Host "Select Subscription '$script:subscriptionId'"
+    if ((Get-AzureRmContext).Subscription.Id -ne $script:subscriptionId)
+    {
+        Enable-AzureRmContextAutosave
+        Add-AzureRmAccount -SubscriptionId $script:subscriptionId 
+        Set-AzureRmContext -SubscriptionId $script:subscriptionId -Force | Out-Host
+        # context change required a new logon and the saved context should be updated
+        if ($script:profileFile)
+        {
+            $reply = Read-Host -Prompt "Save user profile in $script:profileFile? [y/n]"
+            if ($reply -match "[yY]") { 
+                Save-AzureRmContext -Path "$script:profileFile"
+            }
+        }
+    }
+    else
+    {
+        Select-AzureRmSubscription -SubscriptionId $script:subscriptionId -Force | Out-Host
+    }
     $resourceGroup = Get-AzureRmResourceGroup -Name $script:resourceGroupName `
         -ErrorAction SilentlyContinue
     if(!$resourceGroup) {
@@ -737,29 +842,53 @@ if(![System.IO.File]::Exists($deploymentScript)) {
 }
 
 $script:interactive = $($script:credential -eq $null)
-$script:subscriptionId = $null
 
 SelectEnvironment
 Login
 SelectSubscription
 
 $deleteOnErrorPrompt = GetOrCreateResourceGroup
-$aadConfig = GetAzureADApplicationConfig
+$aadConfig = GetAzureADApplicationConfig 
+$webAppName = $script:resourceGroupName + "-app"
+$webServiceName = $script:resourceGroupName + "-service"
 
+# the initial group configuration is only set once
+if ($deleteOnErrorPrompt)
+{
+    $groupsConfig = Get-Content .\KeyVault.Secret.Groups.json -Raw
+}
+
+# start the ARM deployment script
 try {
-    Write-Host "Almost done..."
-    & ($deploymentScript) -resourceGroupName $script:resourceGroupName `
-        -interactive $script:interactive -aadConfig $aadConfig
+    Write-Host "Start deployment..."
+    $serviceUrls = & ($deploymentScript) -resourceGroupName $script:resourceGroupName `
+        -interactive $script:interactive -aadConfig $aadConfig `
+        -webAppName $webAppName -webServiceName $webServiceName `
+        -groupsConfig $groupsConfig -autoApprove $withAutoApprove `
+        -environment "Development"
     Write-Host "Deployment succeeded."
 }
 catch {
-    Write-Host "Deployment failed."
     $ex = $_.Exception
+    Write-Host $_.Exception.Message
+    Write-Host "Deployment failed."
     if ($deleteOnErrorPrompt) {
         $reply = Read-Host -Prompt "Delete resource group? [y/n]"
         if ($reply -match "[yY]") { 
             try {
+                Write-Host "Remove resource group "$script:resourceGroupName
                 Remove-AzureRmResourceGroup -Name $script:resourceGroupName -Force
+            }
+            catch {
+                Write-Host $_.Exception.Message
+            }
+            try {
+                Write-Host "Delete AD App "$aadConfig.ServiceDisplayName
+                Remove-AzureADApplication -ObjectId $aadConfig.ServiceObjectId
+                Write-Host "Delete AD App "$aadConfig.ClientDisplayName
+                Remove-AzureADApplication -ObjectId $aadConfig.ClientObjectId
+                Write-Host "Delete AD App "$aadConfig.ModuleDisplayName
+                Remove-AzureADApplication -ObjectId $aadConfig.ModuleObjectId
             }
             catch {
                 Write-Host $_.Exception.Message
@@ -768,3 +897,74 @@ catch {
     }
     throw $ex
 }
+
+# publishing slot
+$slotParameters = @{ Slot = "Production" }
+$deploydir = pwd
+
+# build and publish the service webapp
+Write-Host 'Publish service'
+$publishFolder = Join-Path -Path $deploydir -ChildPath "\service"
+if(Test-path $publishFolder) {Remove-Item -Recurse -Force $publishFolder}
+dotnet publish -c Debug -o $publishFolder ..\src\Microsoft.Azure.IIoT.OpcUa.Services.Vault.csproj
+ZipDeploy $resourceGroupName $webServiceName $publishFolder $slotParameters
+
+# build and publish the client webapp
+Write-Host 'Publish application'
+$publishFolder = Join-Path -Path $deploydir -ChildPath "\app"
+if(Test-path $publishFolder) {Remove-Item -Recurse -Force $publishFolder}
+dotnet publish -c Debug -o $publishFolder ..\app\Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.csproj
+ZipDeploy $resourceGroupName $webAppName $publishFolder $slotParameters
+
+# build configuration options for module
+$moduleConfiguration = '--vault="'+$serviceUrls[1]+'"'
+$moduleConfiguration += ' --resource="'+$($aadConfig.ServiceId)+'"'
+$moduleConfiguration += ' --clientid="'+$($aadConfig.ModuleId)+'"'
+$moduleConfiguration += ' --secret="'+$($aadConfig.ModuleSecret)+'"'
+$moduleConfiguration += ' --tenantid="'+$($aadConfig.TenantId)+'"'
+
+# save config for user, e.g. for VS debugging of the module
+$moduleConfigPath = Join-Path -Path $deploydir -ChildPath "$($resourceGroupName).module.config"
+Write-Output $moduleConfiguration | Out-File -FilePath $moduleConfigPath -Encoding ascii
+
+# output information
+Write-Host "GDS module configuration:"
+Write-Host "--vault="$serviceUrls[1]
+Write-Host "--resource="$aadConfig.ServiceId
+Write-Host "--clientid="$aadConfig.ModuleId
+Write-Host "--secret="$aadConfig.ModuleSecret
+Write-Host "--tenantid="$aadConfig.TenantId
+
+# prepare the GDS module docker image
+cd ..\module\docker\linux
+.\dockerbuild.bat
+cd $deploydir
+
+# create batch file for user to start GDS docker container
+$dockerrun = 'docker run -it -p 58850-58852:58850-58852 -e 58850-58852 -h %COMPUTERNAME% -v "/c/GDS:/root/.local/share/Microsoft/GDS" edgeopcvault:latest '
+$dockerrun += $moduleConfiguration
+$dockerrunfilename = ".\"+$resourceGroupName+"-dockergds.cmd"
+Write-Output $dockerrun | Out-File -FilePath $dockerrunfilename -Encoding ascii
+
+# create batch file for user to start GDS as dotnet app
+$apprun = "cd ..\module `r`n"
+$apprun += 'dotnet run --project ..\module\Microsoft.Azure.IIoT.OpcUa.Modules.Vault.csproj '
+$apprun += $moduleConfiguration
+$apprunfilename = ".\"+$resourceGroupName+"-gds.cmd"
+Write-Output $apprun | Out-File -FilePath $apprunfilename -Encoding ascii
+
+# deployment info
+Write-Host
+Write-Host "To access the web client go to:"
+Write-Host $serviceUrls[0]
+Write-Host
+Write-Host "To access the web service go to:"
+Write-Host $serviceUrls[1]
+Write-Host
+Write-Host "To start the local docker GDS server:"
+Write-Host $dockerrunfilename
+Write-Host 
+Write-Host "To start the local dotnet GDS server:"
+Write-Host $apprunfilename
+Write-Host 
+

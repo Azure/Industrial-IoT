@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
+    using System;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Microsoft.AspNetCore.Builder;
@@ -21,7 +22,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
     using Swashbuckle.AspNetCore.Swagger;
-    using System;
     using CorsSetup = IIoT.Services.Cors.CorsSetup;
     using ILogger = Microsoft.Azure.IIoT.Diagnostics.ILogger;
 
@@ -54,13 +54,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         {
             Environment = env;
 
-            IConfigurationRoot config = new ConfigurationBuilder()
+            var configBuilder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
-                .AddEnvironmentVariables()
-                .Build();
+                .AddEnvironmentVariables();
 
+            IConfigurationRoot config;
+            try
+            {
+                var builtConfig = configBuilder.Build();
+                var keyVault = builtConfig["KeyVault"];
+                if (!String.IsNullOrWhiteSpace(keyVault))
+                {
+                    configBuilder.AddAzureKeyVault(
+                        keyVault,
+                        builtConfig["Auth:AppId"],
+                        builtConfig["Auth:AppSecret"],
+                        new PrefixKeyVaultSecretManager("Service")
+                        );
+                }
+            }
+            catch
+            {
+            }
+            config = configBuilder.Build();
             Config = new Config(config);
         }
 
@@ -99,6 +117,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                         Environment.IsDevelopment()));
                     options.SerializerSettings.MaxDepth = 10;
                 });
+
+            services.AddApplicationInsightsTelemetry();
 
             services.AddSwagger(Config, new Info
             {

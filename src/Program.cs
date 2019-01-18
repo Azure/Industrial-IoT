@@ -41,6 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             Console.WriteLine($"[{Uptime.ProcessId}] Starting web service, process ID: " + Uptime.ProcessId);
 
             var host = new WebHostBuilder()
+                .UseApplicationInsights()
                 .UseConfiguration(configRoot)
                 .UseKestrel(options => { options.AddServerHeader = false; })
                 .UseIISIntegration()

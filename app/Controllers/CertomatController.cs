@@ -255,7 +255,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 string message = null;
                 try
                 {
-                    await opcVault.ApproveCertificateRequestAsync(id, false);
+                    // TODO: call depending on auto approve setup
+                    //await opcVault.ApproveCertificateRequestAsync(id, false);
                 }
                 catch (Exception ex)
                 {
@@ -350,7 +351,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 string message = null;
                 try
                 {
-                    await opcVault.ApproveCertificateRequestAsync(id, false);
+                    // TODO: call depending on auto approve setup
+                    //await opcVault.ApproveCertificateRequestAsync(id, false);
                 }
                 catch (Exception ex)
                 {
