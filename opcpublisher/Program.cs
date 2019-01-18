@@ -17,7 +17,7 @@ namespace OpcPublisher
     using System.IO;
     using System.Text;
     using System.Text.RegularExpressions;
-    using static Diagnostics;
+    using static PublisherDiagnostics;
     using static HubCommunication;
     using static IotEdgeHubCommunication;
     using static IotHubCommunication;
@@ -655,7 +655,7 @@ namespace OpcPublisher
                 _publisherServer.CurrentInstance.SessionManager.SessionCreated += ServerEventStatus;
 
                 // initialize publisher diagnostics
-                Diagnostics.Init();
+                PublisherDiagnostics.Init();
 
                 // startup completed
                 StartupCompleted = true;
@@ -693,7 +693,7 @@ namespace OpcPublisher
                 IotHubCommunication = null;
 
                 // shutdown diagnostics
-                await ShutdownAsync().ConfigureAwait(false);
+                await PublisherDiagnostics.ShutdownAsync().ConfigureAwait(false);
 
                 // free resources
                 PublisherTelemetryConfiguration.Deinit();

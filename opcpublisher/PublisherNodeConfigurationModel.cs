@@ -51,7 +51,7 @@ namespace OpcPublisher
         {
         }
 
-        public PublisherConfigurationFileEntryModel(string nodeId, string endpointUrl)
+        public PublisherConfigurationFileEntryModel(string endpointUrl)
         {
             EndpointUrl = new Uri(endpointUrl);
             OpcNodes = new List<OpcNodeOnEndpointModel>();
