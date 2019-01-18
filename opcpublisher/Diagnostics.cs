@@ -18,7 +18,7 @@ namespace OpcPublisher
     /// <summary>
     /// Class to enable output to the console.
     /// </summary>
-    public static class Diagnostics
+    public static class PublisherDiagnostics
     {
         public static int DiagnosticsInterval { get; set; } = 0;
 
@@ -132,10 +132,12 @@ namespace OpcPublisher
             return diagnosticLogMethodResponseModel;
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Fetch diagnostic startup log data.
         /// </summary>
         public static async Task<DiagnosticLogMethodResponseModel> GetDiagnosticStartupLogAsync()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             DiagnosticLogMethodResponseModel diagnosticLogMethodResponseModel = new DiagnosticLogMethodResponseModel();
             diagnosticLogMethodResponseModel.MissedMessageCount = 0;
@@ -273,7 +275,7 @@ namespace OpcPublisher
         public void Emit(LogEvent logEvent)
         {
             string message = FormatMessage(logEvent);
-            Diagnostics.WriteLog(message);
+            PublisherDiagnostics.WriteLog(message);
             // enable below for testing
             //Console.ForegroundColor = ConsoleColor.Red;
             //Console.WriteLine(message);
@@ -285,17 +287,17 @@ namespace OpcPublisher
                 List<string> exceptionLog = FormatException(logEvent);
                 foreach (var log in exceptionLog)
                 {
-                    Diagnostics.WriteLog(log);
+                    PublisherDiagnostics.WriteLog(log);
                 }
             }
         }
 
-        private string FormatMessage(LogEvent logEvent)
+        private static string FormatMessage(LogEvent logEvent)
         {
             return $"[{logEvent.Timestamp:T} {logEvent.Level.ToString().Substring(0, 3).ToUpper(CultureInfo.InvariantCulture)}] {logEvent.RenderMessage()}";
         }
 
-        private List<string> FormatException(LogEvent logEvent)
+        private static List<string> FormatException(LogEvent logEvent)
         {
             List<string> exceptionLog = null;
             if (logEvent.Exception != null)

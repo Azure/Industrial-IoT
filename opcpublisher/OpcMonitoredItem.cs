@@ -228,14 +228,12 @@ namespace OpcPublisher
                     return;
                 }
 
-                MonitoredItemNotification notification = e.NotificationValue as MonitoredItemNotification;
-                if (notification == null)
+                if (!(e.NotificationValue is MonitoredItemNotification notification))
                 {
                     return;
                 }
 
-                DataValue value = notification.Value as DataValue;
-                if (value == null)
+                if (!(notification.Value is DataValue value))
                 {
                     return;
                 }

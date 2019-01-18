@@ -17,7 +17,7 @@ namespace OpcPublisher
     using System.Net;
     using System.Reflection;
     using System.Runtime.InteropServices;
-    using static Diagnostics;
+    using static PublisherDiagnostics;
     using static OpcApplicationConfiguration;
     using static OpcPublisher.OpcMonitoredItem;
     using static OpcPublisher.PublisherNodeConfiguration;
@@ -29,18 +29,6 @@ namespace OpcPublisher
     /// </summary>
     public class HubCommunication
     {
-        private class IotCentralMessage
-        {
-            public string Key { get; set; }
-            public string Value { get; set; }
-
-            public IotCentralMessage()
-            {
-                Key = null;
-                Value = null;
-            }
-        }
-
         public static long MonitoredItemsQueueCount => _monitoredItemsDataQueue.Count;
 
         public static long NumberOfEvents { get; private set; }
@@ -741,10 +729,12 @@ namespace OpcPublisher
             return methodResponse;
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Handle method call to get all endpoints which published nodes.
         /// </summary>
         static async Task<MethodResponse> HandleGetConfiguredEndpointsMethodAsync(MethodRequest methodRequest, object userContext)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             string logPrefix = "HandleGetConfiguredEndpointsMethodAsync:";
             GetConfiguredEndpointsMethodRequestModel getConfiguredEndpointsMethodRequest = null;
@@ -849,10 +839,12 @@ namespace OpcPublisher
             return methodResponse;
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Handle method call to get list of configured nodes on a specific endpoint.
         /// </summary>
         static async Task<MethodResponse> HandleGetConfiguredNodesOnEndpointMethodAsync(MethodRequest methodRequest, object userContext)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             string logPrefix = "HandleGetConfiguredNodesOnEndpointMethodAsync:";
             Uri endpointUri = null;
@@ -988,10 +980,12 @@ namespace OpcPublisher
             return methodResponse;
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Handle method call to get diagnostic information.
         /// </summary>
         static async Task<MethodResponse> HandleGetDiagnosticInfoMethodAsync(MethodRequest methodRequest, object userContext)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             string logPrefix = "HandleGetDiagnosticInfoMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1126,10 +1120,12 @@ namespace OpcPublisher
             return methodResponse;
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Handle method call to get log information.
         /// </summary>
         static async Task<MethodResponse> HandleExitApplicationMethodAsync(MethodRequest methodRequest, object userContext)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             string logPrefix = "HandleExitApplicationMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1186,10 +1182,12 @@ namespace OpcPublisher
             return methodResponse;
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Handle method call to get application information.
         /// </summary>
         static async Task<MethodResponse> HandleGetInfoMethodAsync(MethodRequest methodRequest, object userContext)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             string logPrefix = "HandleGetInfoMethodAsync:";
             GetInfoMethodResponseModel getInfoMethodResponseModel = new GetInfoMethodResponseModel();
@@ -1239,10 +1237,12 @@ namespace OpcPublisher
             return methodResponse;
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// </summary>
         /// Method that is called for any unimplemented call. Just returns that info to the caller
         /// </summary>
         private async Task<MethodResponse> DefaultMethodHandlerAsync(MethodRequest methodRequest, object userContext)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             Logger.Information($"Received direct method call for {methodRequest.Name}, which is not implemented");
             string response = $"Method {methodRequest.Name} successfully received, but this method is not implemented";
@@ -1253,10 +1253,12 @@ namespace OpcPublisher
             return methodResponse;
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Initializes internal message processing.
         /// </summary>
-        public async Task<bool> InitMessageProcessingAsync()
+        public static async Task<bool> InitMessageProcessingAsync()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             try
             {
@@ -1283,7 +1285,7 @@ namespace OpcPublisher
         /// <summary>
         /// Shuts down the IoTHub communication.
         /// </summary>
-        public async Task ShutdownAsync()
+        public static async Task ShutdownAsync()
         {
             // send cancellation token and wait for last IoT Hub message to be sent.
             try
@@ -1329,7 +1331,7 @@ namespace OpcPublisher
         /// <summary>
         /// Creates a JSON message to be sent to IoTHub, based on the telemetry configuration for the endpoint.
         /// </summary>
-        private async Task<string> CreateJsonMessageAsync(MessageData messageData)
+        private static async Task<string> CreateJsonMessageAsync(MessageData messageData)
         {
             try
             {
@@ -1456,7 +1458,7 @@ namespace OpcPublisher
         /// <summary>
         /// Creates a JSON message to be sent to IoTCentral.
         /// </summary>
-        private async Task<string> CreateIotCentralJsonMessageAsync(MessageData messageData)
+        private static async Task<string> CreateIotCentralJsonMessageAsync(MessageData messageData)
         {
             try
             {
@@ -1483,7 +1485,7 @@ namespace OpcPublisher
         /// <summary>
         /// Dequeue monitored item notification messages, batch them for send (if needed) and send them to IoTHub.
         /// </summary>
-        protected async Task MonitoredItemsProcessorAsync(CancellationToken ct)
+        protected static async Task MonitoredItemsProcessorAsync(CancellationToken ct)
         {
             uint jsonSquareBracketLength = 2;
             Message tempMsg = new Message();
@@ -1743,9 +1745,9 @@ namespace OpcPublisher
             }
         }
 
-        private static int MAX_RESPONSE_PAYLOAD_LENGTH = (128 * 1024 - 256);
-        private static string CONTENT_TYPE_OPCUAJSON = "application/opcua+uajson";
-        private static string CONTENT_ENCODING_UTF8 = "UTF-8";
+        private const int MAX_RESPONSE_PAYLOAD_LENGTH = (128 * 1024 - 256);
+        private const string CONTENT_TYPE_OPCUAJSON = "application/opcua+uajson";
+        private const string CONTENT_ENCODING_UTF8 = "UTF-8";
 
         private static long _enqueueCount;
         private static long _enqueueFailureCount;

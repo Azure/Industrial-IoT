@@ -86,7 +86,7 @@ namespace OpcPublisher
         /// <summary>
         /// Configures OPC stack certificates.
         /// </summary>
-        public async Task InitApplicationSecurityAsync()
+        public static async Task InitApplicationSecurityAsync()
         {
             // security configuration
             ApplicationConfiguration.SecurityConfiguration = new SecurityConfiguration();
@@ -434,7 +434,7 @@ namespace OpcPublisher
         /// <summary>
         /// Delete certificates with the given thumbprints from the trusted peer and issuer certifiate store.
         /// </summary>
-        private async Task<bool> RemoveCertificatesAsync(List<string> thumbprintsToRemove)
+        private static async Task<bool> RemoveCertificatesAsync(List<string> thumbprintsToRemove)
         {
             bool result = true;
 
@@ -506,7 +506,7 @@ namespace OpcPublisher
         /// <summary>
         /// Validate and add certificates to the trusted issuer or trusted peer store.
         /// </summary>
-        private async Task<bool> AddCertificatesAsync(
+        private static async Task<bool> AddCertificatesAsync(
             List<string> certificateBase64Strings,
             List<string> certificateFileNames,
             bool issuerCertificate = true)
@@ -617,7 +617,7 @@ namespace OpcPublisher
         /// <summary>
         /// Update the CRL in the corresponding store.
         /// </summary>
-        private async Task<bool> UpdateCrlAsync(string newCrlBase64String, string newCrlFileName)
+        private static async Task<bool> UpdateCrlAsync(string newCrlBase64String, string newCrlFileName)
         {
             bool result = true;
 
@@ -770,7 +770,7 @@ namespace OpcPublisher
         /// <summary>
         /// Validate and update the application.
         /// </summary>
-        private async Task<bool> UpdateApplicationCertificateAsync(
+        private static async Task<bool> UpdateApplicationCertificateAsync(
             string newCertificateBase64String,
             string newCertificateFileName,
             string certificatePassword,
