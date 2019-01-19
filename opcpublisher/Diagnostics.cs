@@ -132,12 +132,10 @@ namespace OpcPublisher
             return diagnosticLogMethodResponseModel;
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Fetch diagnostic startup log data.
         /// </summary>
-        public static async Task<DiagnosticLogMethodResponseModel> GetDiagnosticStartupLogAsync()
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        public static Task<DiagnosticLogMethodResponseModel> GetDiagnosticStartupLogAsync()
         {
             DiagnosticLogMethodResponseModel diagnosticLogMethodResponseModel = new DiagnosticLogMethodResponseModel();
             diagnosticLogMethodResponseModel.MissedMessageCount = 0;
@@ -159,7 +157,7 @@ namespace OpcPublisher
                 diagnosticLogMethodResponseModel.Log.Add("Diagnostic log is disabled. Please use --di to enable it.");
             }
 
-            return diagnosticLogMethodResponseModel;
+            return Task.FromResult(diagnosticLogMethodResponseModel);
         }
 
         /// <summary>

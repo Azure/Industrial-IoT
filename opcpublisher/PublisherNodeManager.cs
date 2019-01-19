@@ -9,6 +9,7 @@ namespace OpcPublisher
     using Newtonsoft.Json;
     using System.Linq;
     using System.Net;
+    using System.Text;
     using static OpcApplicationConfiguration;
     using static OpcPublisher.Program;
     using static PublisherNodeConfiguration;
@@ -113,6 +114,12 @@ namespace OpcPublisher
 
                     MethodState getPublishedNodesLegacyMethod = CreateMethod(methodsFolder, "GetPublishedNodes", "GetPublishedNodes");
                     SetGetPublishedNodesLegacyMethodProperties(ref getPublishedNodesLegacyMethod);
+                    
+                    MethodState getConfiguredNodesOnEndpointMethod = CreateMethod(methodsFolder, "GetConfiguredNodesOnEndpoint", "GetConfiguredNodesOnEndpoint");
+                    SetGetConfiguredNodesOnEndpointMethodProperties(ref getConfiguredNodesOnEndpointMethod);
+
+                    MethodState getGetConfiguredEndpointsMethod = CreateMethod(methodsFolder, "GetConfiguredEndpoints", "GetConfiguredEndpoints");
+                    SetGetConfiguredEndpointsMethodProperties(ref getGetConfiguredEndpointsMethod);
                 }
                 catch (Exception e)
                 {
@@ -150,7 +157,7 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Sets properies of the UnpublishNode method.
+        /// Sets properties of the UnpublishNode method.
         /// </summary>
         private void SetUnpublishNodeMethodProperties(ref MethodState method)
         {
@@ -176,7 +183,7 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Sets properies of the GetPublishedNodes method, which is only there for backward compatibility.
+        /// Sets properties of the GetPublishedNodes method, which is only there for backward compatibility.
         /// This method is acutally returning the configured nodes in NodeId syntax.
         /// </summary>
         private void SetGetPublishedNodesLegacyMethodProperties(ref MethodState method)
@@ -215,6 +222,89 @@ namespace OpcPublisher
                         new Argument() { Name = "Published nodes", Description = "List of the nodes configured to publish in OPC Publisher in NodeId format",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
             };
             method.OnCallMethod = new GenericMethodCalledEventHandler(OnGetPublishedNodesLegacyCall);
+        }
+
+        /// <summary>
+        /// Sets properties of the GetConfiguredNodesOnEndpoint method
+        /// </summary>
+        private void SetGetConfiguredNodesOnEndpointMethodProperties(ref MethodState method) 
+        {
+            // define input arguments
+            method.InputArguments = new PropertyState<Argument[]>(method)
+            {
+                NodeId = new NodeId(method.BrowseName.Name + "InArgs", NamespaceIndex),
+                BrowseName = BrowseNames.InputArguments
+            };
+            method.InputArguments.DisplayName = method.InputArguments.BrowseName.Name;
+            method.InputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
+            method.InputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
+            method.InputArguments.DataType = DataTypeIds.Argument;
+            method.InputArguments.ValueRank = ValueRanks.OneDimension;
+
+            method.InputArguments.Value = new Argument[]
+            {
+                new Argument() { Name = "RequestJson", Description = "Request model as json string.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+            };
+
+            // set output arguments
+            method.OutputArguments = new PropertyState<Argument[]>(method) 
+            {
+                NodeId = new NodeId(method.BrowseName.Name + "OutArgs", NamespaceIndex),
+                BrowseName = BrowseNames.OutputArguments
+            };
+            method.OutputArguments.DisplayName = method.OutputArguments.BrowseName.Name;
+            method.OutputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
+            method.OutputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
+            method.OutputArguments.DataType = DataTypeIds.Argument;
+            method.OutputArguments.ValueRank = ValueRanks.OneDimension;
+
+            method.OutputArguments.Value = new Argument[]
+            {
+                new Argument() { Name = "ResponseJson", Description = "Response model as json string.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+            };
+            method.OnCallMethod = new GenericMethodCalledEventHandler(OnGetConfiguredNodesOnEndpointCall);
+        }
+
+
+        /// <summary>
+        /// Sets properties of the GetConfiguredEndpoints method
+        /// </summary>
+        private void SetGetConfiguredEndpointsMethodProperties(ref MethodState method) 
+        {
+            // define input arguments
+            method.InputArguments = new PropertyState<Argument[]>(method)
+            {
+                NodeId = new NodeId(method.BrowseName.Name + "InArgs", NamespaceIndex),
+                BrowseName = BrowseNames.InputArguments
+            };
+            method.InputArguments.DisplayName = method.InputArguments.BrowseName.Name;
+            method.InputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
+            method.InputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
+            method.InputArguments.DataType = DataTypeIds.Argument;
+            method.InputArguments.ValueRank = ValueRanks.OneDimension;
+
+            method.InputArguments.Value = new Argument[]
+            {
+                new Argument() { Name = "RequestJson", Description = "Request model as json string.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+            };
+
+            // set output arguments
+            method.OutputArguments = new PropertyState<Argument[]>(method) 
+            {
+                NodeId = new NodeId(method.BrowseName.Name + "OutArgs", NamespaceIndex),
+                BrowseName = BrowseNames.OutputArguments
+            };
+            method.OutputArguments.DisplayName = method.OutputArguments.BrowseName.Name;
+            method.OutputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
+            method.OutputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
+            method.OutputArguments.DataType = DataTypeIds.Argument;
+            method.OutputArguments.ValueRank = ValueRanks.OneDimension;
+
+            method.OutputArguments.Value = new Argument[]
+            {
+                new Argument() { Name = "ResponseJson", Description = "Response model as json string.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+            };
+            method.OnCallMethod = new GenericMethodCalledEventHandler(OnGetConfiguredEndpointsCall);
         }
 
         /// <summary>
@@ -648,6 +738,42 @@ namespace OpcPublisher
             List<PublisherConfigurationFileEntryLegacyModel> configFileEntries = GetPublisherConfigurationFileEntriesAsNodeIdsAsync(endpointUri.OriginalString).Result;
             outputArguments[0] = JsonConvert.SerializeObject(configFileEntries);
             Logger.Information($"{logPrefix} Success (number of entries: {configFileEntries.Count})");
+            return ServiceResult.Good;
+        }
+
+        /// <summary>
+        /// Handle method call to get list of configured nodes on a specific endpoint.
+        /// </summary>
+        private ServiceResult OnGetConfiguredNodesOnEndpointCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments) {
+            string logPrefix = "GetConfiguredNodesOnEndpointCall:";
+            try 
+            {
+                var methodResult = HubCommunication.HandleGetConfiguredNodesOnEndpointMethodAsync(new Microsoft.Azure.Devices.Client.MethodRequest("GetConfiguredNodesOnEndpointMethod", Encoding.UTF8.GetBytes(inputArguments[0] as string)), null).Result;
+                outputArguments[0] = methodResult.ResultAsJson;
+            }
+            catch (Exception ex) 
+            {
+                Logger.Error($"{logPrefix} The request is invalid!");
+                return ServiceResult.Create(ex, null, StatusCodes.Bad);
+            }
+            return ServiceResult.Good;
+        }
+
+        /// <summary>
+        /// Handle method call to get configured endpoints
+        /// </summary>
+        private ServiceResult OnGetConfiguredEndpointsCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments) {
+            string logPrefix = "GetConfiguredEndpointsCall:";
+            try 
+            {
+                var methodResult = HubCommunication.HandleGetConfiguredEndpointsMethodAsync(new Microsoft.Azure.Devices.Client.MethodRequest("GetConfiguredEndpointsMethod", Encoding.UTF8.GetBytes(inputArguments[0] as string)), null).Result;
+                outputArguments[0] = methodResult.ResultAsJson;
+            }
+            catch (Exception ex) 
+            {
+                Logger.Error($"{logPrefix} The request is invalid!");
+                return ServiceResult.Create(ex, null, StatusCodes.Bad);
+            }
             return ServiceResult.Good;
         }
     }

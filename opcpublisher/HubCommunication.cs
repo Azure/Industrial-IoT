@@ -191,7 +191,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle publish node method call.
         /// </summary>
-        static async Task<MethodResponse> HandlePublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
+        static internal async Task<MethodResponse> HandlePublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandlePublishNodesMethodAsync:";
             Uri endpointUri = null;
@@ -383,7 +383,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle unpublish node method call.
         /// </summary>
-        static async Task<MethodResponse> HandleUnpublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
+        static internal async Task<MethodResponse> HandleUnpublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleUnpublishNodesMethodAsync:";
             NodeId nodeId = null;
@@ -582,7 +582,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle unpublish all nodes method call.
         /// </summary>
-        static async Task<MethodResponse> HandleUnpublishAllNodesMethodAsync(MethodRequest methodRequest, object userContext)
+        static internal async Task<MethodResponse> HandleUnpublishAllNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleUnpublishAllNodesMethodAsync:";
             Uri endpointUri = null;
@@ -709,7 +709,7 @@ namespace OpcPublisher
                 {
                     break;
                 }
-            };
+            }
             if (maxIndex != statusResponse.Count())
             {
                 statusResponse.RemoveRange(maxIndex, statusResponse.Count() - maxIndex);
@@ -729,12 +729,10 @@ namespace OpcPublisher
             return methodResponse;
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Handle method call to get all endpoints which published nodes.
         /// </summary>
-        static async Task<MethodResponse> HandleGetConfiguredEndpointsMethodAsync(MethodRequest methodRequest, object userContext)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        static internal Task<MethodResponse> HandleGetConfiguredEndpointsMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetConfiguredEndpointsMethodAsync:";
             GetConfiguredEndpointsMethodRequestModel getConfiguredEndpointsMethodRequest = null;
@@ -804,7 +802,7 @@ namespace OpcPublisher
                         {
                             break;
                         }
-                    };
+                    }
                 }
             }
 
@@ -836,15 +834,13 @@ namespace OpcPublisher
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
-            return methodResponse;
+            return Task.FromResult(methodResponse);
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Handle method call to get list of configured nodes on a specific endpoint.
         /// </summary>
-        static async Task<MethodResponse> HandleGetConfiguredNodesOnEndpointMethodAsync(MethodRequest methodRequest, object userContext)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        static internal Task<MethodResponse> HandleGetConfiguredNodesOnEndpointMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetConfiguredNodesOnEndpointMethodAsync:";
             Uri endpointUri = null;
@@ -940,7 +936,7 @@ namespace OpcPublisher
                             {
                                 break;
                             }
-                        };
+                        }
                     }
                 }
             }
@@ -977,15 +973,13 @@ namespace OpcPublisher
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
-            return methodResponse;
+            return Task.FromResult(methodResponse);
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Handle method call to get diagnostic information.
         /// </summary>
-        static async Task<MethodResponse> HandleGetDiagnosticInfoMethodAsync(MethodRequest methodRequest, object userContext)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        static internal Task<MethodResponse> HandleGetDiagnosticInfoMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticInfoMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1025,13 +1019,13 @@ namespace OpcPublisher
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
-            return methodResponse;
+            return Task.FromResult(methodResponse);
         }
 
         /// <summary>
         /// Handle method call to get log information.
         /// </summary>
-        static async Task<MethodResponse> HandleGetDiagnosticLogMethodAsync(MethodRequest methodRequest, object userContext)
+        static internal async Task<MethodResponse> HandleGetDiagnosticLogMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticLogMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1077,7 +1071,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get log information.
         /// </summary>
-        static async Task<MethodResponse> HandleGetDiagnosticStartupLogMethodAsync(MethodRequest methodRequest, object userContext)
+        static internal async Task<MethodResponse> HandleGetDiagnosticStartupLogMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticStartupLogMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1120,12 +1114,10 @@ namespace OpcPublisher
             return methodResponse;
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Handle method call to get log information.
         /// </summary>
-        static async Task<MethodResponse> HandleExitApplicationMethodAsync(MethodRequest methodRequest, object userContext)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        static internal Task<MethodResponse> HandleExitApplicationMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleExitApplicationMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1152,7 +1144,7 @@ namespace OpcPublisher
                 try
                 {
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                    Task.Run(async () => await ExitApplicationAsync(exitApplicationMethodRequest.SecondsTillExit).ConfigureAwait(false));
+                    Task.Run(async () => await ExitApplicationAsync(exitApplicationMethodRequest.SecondsTillExit));
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                     statusMessage = $"Module will exit in {exitApplicationMethodRequest.SecondsTillExit} seconds";
                     Logger.Information($"{logPrefix} {statusMessage}");
@@ -1179,15 +1171,13 @@ namespace OpcPublisher
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
-            return methodResponse;
+            return Task.FromResult(methodResponse);
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Handle method call to get application information.
         /// </summary>
-        static async Task<MethodResponse> HandleGetInfoMethodAsync(MethodRequest methodRequest, object userContext)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        static internal Task<MethodResponse> HandleGetInfoMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetInfoMethodAsync:";
             GetInfoMethodResponseModel getInfoMethodResponseModel = new GetInfoMethodResponseModel();
@@ -1234,15 +1224,13 @@ namespace OpcPublisher
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
-            return methodResponse;
+            return Task.FromResult(methodResponse);
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        /// </summary>
+        /// <summary>
         /// Method that is called for any unimplemented call. Just returns that info to the caller
         /// </summary>
-        private async Task<MethodResponse> DefaultMethodHandlerAsync(MethodRequest methodRequest, object userContext)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        private Task<MethodResponse> DefaultMethodHandlerAsync(MethodRequest methodRequest, object userContext)
         {
             Logger.Information($"Received direct method call for {methodRequest.Name}, which is not implemented");
             string response = $"Method {methodRequest.Name} successfully received, but this method is not implemented";
@@ -1250,15 +1238,13 @@ namespace OpcPublisher
             string resultString = JsonConvert.SerializeObject(response);
             byte[] result = Encoding.UTF8.GetBytes(resultString);
             MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
-            return methodResponse;
+            return Task.FromResult(methodResponse);
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Initializes internal message processing.
         /// </summary>
-        public static async Task<bool> InitMessageProcessingAsync()
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        public static Task<bool> InitMessageProcessingAsync()
         {
             try
             {
@@ -1273,12 +1259,12 @@ namespace OpcPublisher
 
                 Logger.Information("Creating task process and batch monitored item data updates...");
                 _monitoredItemsProcessorTask = Task.Run(async () => await MonitoredItemsProcessorAsync(_shutdownToken).ConfigureAwait(false), _shutdownToken);
-                return true;
+                return Task.FromResult(true);
             }
             catch (Exception e)
             {
                 Logger.Error(e, "Failure initializing message processing.");
-                return false;
+                return Task.FromResult(false);
             }
         }
 
@@ -1737,7 +1723,7 @@ namespace OpcPublisher
                 {
                     break;
                 }
-            };
+            }
             if (maxIndex != statusResponse.Count())
             {
                 statusResponse.RemoveRange(maxIndex, statusResponse.Count() - maxIndex);

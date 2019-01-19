@@ -61,10 +61,12 @@ An example for the format of the configuration file is:
 
 ### Configuration via OPC UA method calls
 OPC Publisher has an OPC UA Server integrated, which can be accessed on port 62222. If the hostname is `publisher`, then the URI of the endpoint is: `opc.tcp://publisher:62222/UA/Publisher`
-This endpoint exposes four methods:
+This endpoint exposes five methods:
   - PublishNode
   - UnpublishNode
   - GetPublishedNodes
+  - GetConfiguredEndpoints (see below)
+  - GetConfiguredNodesOnEndpoint (see below)
 
 ### Configuration via IoTHub direct function calls
 OPC Publisher implements the following IoTHub direct method calls, which can be called when OPC Publisher runs standalone or in IoT Edge:
