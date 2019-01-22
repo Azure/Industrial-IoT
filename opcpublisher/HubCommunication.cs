@@ -291,13 +291,19 @@ namespace OpcPublisher
                                 {
                                     // add the node info to the subscription with the default publishing interval, execute syncronously
                                     Logger.Debug($"{logPrefix} Request to monitor item with NodeId '{node.Id}' (PublishingInterval: {node.OpcPublishingInterval.ToString() ?? "--"}, SamplingInterval: {node.OpcSamplingInterval.ToString() ?? "--"})");
-                                    nodeStatusCode = await opcSession.AddNodeForMonitoringAsync(nodeId, null, node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName, ShutdownTokenSource.Token).ConfigureAwait(false);
+                                    nodeStatusCode = await opcSession.AddNodeForMonitoringAsync(nodeId, null,
+                                        node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName,
+                                        node.HeartbeatInterval, node.SkipFirst,
+                                        ShutdownTokenSource.Token).ConfigureAwait(false);
                                 }
                                 else
                                 {
                                     // add the node info to the subscription with the default publishing interval, execute syncronously
                                     Logger.Debug($"{logPrefix} Request to monitor item with ExpandedNodeId '{node.Id}' (PublishingInterval: {node.OpcPublishingInterval.ToString() ?? "--"}, SamplingInterval: {node.OpcSamplingInterval.ToString() ?? "--"})");
-                                    nodeStatusCode = await opcSession.AddNodeForMonitoringAsync(null, expandedNodeId, node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName, ShutdownTokenSource.Token).ConfigureAwait(false);
+                                    nodeStatusCode = await opcSession.AddNodeForMonitoringAsync(null, expandedNodeId,
+                                        node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName,
+                                        node.HeartbeatInterval, node.SkipFirst,
+                                        ShutdownTokenSource.Token).ConfigureAwait(false);
                                 }
 
                                 // check and store a result message in case of an error
@@ -1144,7 +1150,7 @@ namespace OpcPublisher
                 try
                 {
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                    Task.Run(async () => await ExitApplicationAsync(exitApplicationMethodRequest.SecondsTillExit));
+                    Task.Run(async () => await ExitApplicationAsync(exitApplicationMethodRequest.SecondsTillExit).ConfigureAwait(false));
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                     statusMessage = $"Module will exit in {exitApplicationMethodRequest.SecondsTillExit} seconds";
                     Logger.Information($"{logPrefix} {statusMessage}");
