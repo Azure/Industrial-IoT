@@ -1,0 +1,22 @@
+FROM microsoft/dotnet:2.2-runtime AS base
+WORKDIR /module
+EXPOSE 58850-58852
+
+FROM microsoft/dotnet:2.2-sdk AS build
+WORKDIR /src
+COPY module/Microsoft.Azure.IIoT.OpcUa.Modules.Vault.csproj module/
+COPY api-csharp/Microsoft.Azure.IIoT.OpcUa.Api.Vault.csproj api-csharp/
+RUN dotnet restore module/Microsoft.Azure.IIoT.OpcUa.Modules.Vault.csproj
+COPY module module/
+COPY api-csharp api-csharp/
+WORKDIR /src/module
+RUN dotnet build Microsoft.Azure.IIoT.OpcUa.Modules.Vault.csproj -c Release -o /module
+
+FROM build AS publish
+RUN dotnet publish Microsoft.Azure.IIoT.OpcUa.Modules.Vault.csproj -c Release -o /module
+
+FROM base AS final
+WORKDIR /module
+COPY --from=publish /module .
+
+ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.OpcUa.Modules.Vault.dll"]

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -33,9 +33,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
         public DocumentDBCollection(IDocumentDBRepository db, string collectionId)
         {
             if (string.IsNullOrEmpty(collectionId))
+            {
                 throw new ArgumentNullException("collectionId must be set");
+            }
             if (db == null)
+            {
                 throw new ArgumentNullException(nameof(db));
+            }
 
             this.CollectionId = collectionId;
             this.db = db;

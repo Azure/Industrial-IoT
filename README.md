@@ -1,5 +1,7 @@
 ## Azure Industrial IoT Services
 
+[![Build status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/ci-azure-iiot-opc-vault-service)](https://msazure.visualstudio.com/One/_build/latest?definitionId=44197)
+
 ### OPC Unified Architecture (OPC UA) Certificate Management Service
 
 The certificate management service for OPC UA facilitates a CA certificate cloud service for OPC UA devices

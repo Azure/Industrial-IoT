@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -42,11 +42,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             );
         Task<Opc.Ua.Gds.Server.X509Certificate2KeyPair> NewKeyPairRequestAsync(
             string id,
+            string requestId,
             string applicationUri,
             string subjectName,
             string[] domainNames,
             string privateKeyFormat,
             string privateKeyPassword
             );
+
+        Task<byte[]> LoadPrivateKeyAsync(string id, string requestId, string privateKeyFormat);
+        Task AcceptPrivateKeyAsync(string id, string requestId);
+        Task DeletePrivateKeyAsync(string id, string requestId);
     }
 }

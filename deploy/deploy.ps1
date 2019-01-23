@@ -703,7 +703,7 @@ Function GetAzureADApplicationConfig() {
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
         $requiredPermissions = GetRequiredPermissions -servicePrincipal $serviceServicePrincipal `
-            -requiredDelegatedPermissions "user_impersonation" # "Directory.Read.All|User.Read"
+            -requiredDelegatedPermissions "user_impersonation"
         $requiredResourcesAccess.Add($requiredPermissions)
         $requiredPermissions = GetRequiredPermissions -appId "00000002-0000-0000-c000-000000000000" `
             -requiredDelegatedPermissions "User.Read"
@@ -721,7 +721,7 @@ Function GetAzureADApplicationConfig() {
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
         $requiredPermissions = GetRequiredPermissions -servicePrincipal $serviceServicePrincipal `
-            -requiredDelegatedPermissions "user_impersonation" # "Directory.Read.All|User.Read"
+            -requiredDelegatedPermissions "user_impersonation"
         $requiredResourcesAccess.Add($requiredPermissions)
         $requiredPermissions = GetRequiredPermissions -appId "00000002-0000-0000-c000-000000000000" `
             -requiredDelegatedPermissions "User.Read"
@@ -936,8 +936,8 @@ Write-Host "--secret="$aadConfig.ModuleSecret
 Write-Host "--tenantid="$aadConfig.TenantId
 
 # prepare the GDS module docker image
-cd ..\module\docker\linux
-.\dockerbuild.bat
+cd ..
+docker build --file .\Dockerfile.module -t edgeopcvault .
 cd $deploydir
 
 # create batch file for user to start GDS docker container

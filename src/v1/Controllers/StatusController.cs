@@ -22,9 +22,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
     [Authorize(Policy = Policies.CanRead)]
     public sealed class StatusController : Controller
     {
-        private readonly ILogger log;
-        private readonly ICertificateGroup certificateGroups;
-        private readonly IApplicationsDatabase applicationDatabase;
+        private readonly ILogger _log;
+        private readonly ICertificateGroup _certificateGroups;
+        private readonly IApplicationsDatabase _applicationDatabase;
 
         /// <inheritdoc/>
         public StatusController(
@@ -33,9 +33,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
             ILogger logger
             )
         {
-            this.applicationDatabase = applicationDatabase;
-            this.certificateGroups = certificateGroups;
-            this.log = logger;
+            this._applicationDatabase = applicationDatabase;
+            this._certificateGroups = certificateGroups;
+            this._log = logger;
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
             string applicationMessage = "Alive and well";
             try
             {
-                var apps = await applicationDatabase.QueryApplicationsAsync(0, 1, null, null, 0, null, null);
+                var apps = await _applicationDatabase.QueryApplicationsAsync(0, 1, null, null, 0, null, null);
                 applicationOk = apps != null;
             }
             catch (Exception ex)
@@ -59,13 +59,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
                 applicationOk = false;
                 applicationMessage = ex.Message;
             }
-            this.log.Info("Service status application database", () => new { Healthy = applicationOk, Message = applicationMessage });
+            this._log.Info("Service status application database", () => new { Healthy = applicationOk, Message = applicationMessage });
 
             bool kvOk;
             string kvMessage = "Alive and well";
             try
             {
-                var groups = await certificateGroups.GetCertificateGroupIds();
+                var groups = await _certificateGroups.GetCertificateGroupIds();
                 kvOk = groups.Length > 0;
                 kvMessage = String.Join(",", groups);
             }
@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
                 kvOk = false;
                 kvMessage = ex.Message;
             }
-            this.log.Info("Service status KeyVault", () => new { Healthy = kvOk, Message = kvMessage });
+            this._log.Info("Service status KeyVault", () => new { Healthy = kvOk, Message = kvMessage });
 
             return new StatusApiModel(applicationOk, applicationMessage, kvOk, kvMessage);
         }

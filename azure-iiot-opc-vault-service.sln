@@ -5,18 +5,13 @@ VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8289AFAE-0933-40EF-9D19-6FFA2DB04837}"
 	ProjectSection(SolutionItems) = preProject
-		.dockerignore = .dockerignore
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
-		.travis.yml = .travis.yml
 		common.props = common.props
-		CONTRIBUTING.md = CONTRIBUTING.md
-		DEVELOPMENT.md = DEVELOPMENT.md
-		src\Dockerfile = src\Dockerfile
-		app\Dockerfile = app\Dockerfile
-		src\Dockerfile.Windows = src\Dockerfile.Windows
-		LICENSE = LICENSE
+		Directory.Build.props = Directory.Build.props
+		license.txt = license.txt
+		NuGet.Config = NuGet.Config
 		project.props = project.props
 		version.props = version.props
 	EndProjectSection
@@ -33,6 +28,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E9C6A792-1D70-4DE9-B5FB-8D8BCAA223EE}"
 	ProjectSection(SolutionItems) = preProject
+		CONTRIBUTING.md = CONTRIBUTING.md
+		DEVELOPMENT.md = DEVELOPMENT.md
 		docs\howto-deploy-services.md = docs\howto-deploy-services.md
 		docs\howto-run-services-locally.md = docs\howto-run-services-locally.md
 		README.md = README.md
@@ -43,6 +40,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deploy", "deploy", "{A3FF1E
 		deploy\.gitignore = deploy\.gitignore
 		deploy\deploy.ps1 = deploy\deploy.ps1
 		deploy\KeyVault.Secret.Groups.json = deploy\KeyVault.Secret.Groups.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cloud", "cloud", "{ECDA661E-A357-4472-B98F-3E0D807965A9}"
+	ProjectSection(SolutionItems) = preProject
+		deploy\cloud\run.ps1 = deploy\cloud\run.ps1
+		deploy\cloud\template.json = deploy\cloud\template.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{1724C572-75C3-4A4C-A710-3D8C3A3223BF}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		Dockerfile = Dockerfile
+		Dockerfile.app = Dockerfile.app
+		Dockerfile.module = Dockerfile.module
+		Dockerfile.Windows = Dockerfile.Windows
+		Dockerfile.Windows-Server2016 = Dockerfile.Windows-Server2016
 	EndProjectSection
 EndProject
 Global
@@ -74,6 +87,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{ECDA661E-A357-4472-B98F-3E0D807965A9} = {A3FF1EEF-11DA-470B-9C98-B043B3CB4DE7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F947AAE7-2D6B-43C0-B5E6-824B8E4D7992}

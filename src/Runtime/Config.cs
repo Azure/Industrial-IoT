@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -22,8 +22,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         ICorsConfig, IClientConfig, ISwaggerConfig
     {
         // services config
-        private const string OpcVaultKey = "OpcVault";
-        private const string SwaggerKey = "Swagger";
+        private const string _opcVaultKey = "OpcVault";
+        private const string _swaggerKey = "Swagger";
 
         /// <summary>
         /// Configuration constructor
@@ -44,9 +44,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
             IConfigurationRoot configuration) :
             base(processId, configuration) {
             ServicesConfig = new ServicesConfig();
-            configuration.Bind(OpcVaultKey, ServicesConfig);
+            configuration.Bind(_opcVaultKey, ServicesConfig);
             SwaggerConfig = new SwaggerConfig();
-            configuration.Bind(SwaggerKey, SwaggerConfig);
+            configuration.Bind(_swaggerKey, SwaggerConfig);
             _auth = new AuthConfig(configuration, serviceId);
             _cors = new CorsConfig(configuration);
         }

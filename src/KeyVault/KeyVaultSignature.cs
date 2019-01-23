@@ -38,7 +38,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             X509Certificate2 issuerCAKeyCert,
             RSA publicKey,
             X509SignatureGenerator generator,
-            bool caCert = false
+            bool caCert = false,
+            string crlDistributionPoint = null
             )
         {
             if (publicKey == null)
@@ -68,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
             // Basic constraints
             request.CertificateExtensions.Add(
-                new X509BasicConstraintsExtension(caCert, false, 0, true));
+                new X509BasicConstraintsExtension(caCert, caCert, 0, true));
 
             // Subject Key Identifier
             var ski = new X509SubjectKeyIdentifierExtension(
@@ -93,6 +94,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                     new X509KeyUsageExtension(
                         X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
                         true));
+
+                if (crlDistributionPoint != null)
+                {
+                    string serial = BitConverter.ToString(serialNumber).Replace("-","").ToLower();
+                    // add CRL endpoint, if available
+                    request.CertificateExtensions.Add(
+                        BuildX509CRLDistributionPoints(crlDistributionPoint.Replace("%serial%", serial))
+                        );
+                }
             }
             else
             {
@@ -505,6 +515,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             // force exception if SKI is not present
             var ski = issuer.Extensions.OfType<X509SubjectKeyIdentifierExtension>().Single();
             return BuildAuthorityKeyIdentifier(issuer.SubjectName, issuer.GetSerialNumber(), ski);
+        }
+
+        private static X509Extension BuildX509CRLDistributionPoints(
+            string distributionPoint
+            )
+        {
+            var context0 = new Asn1Tag(TagClass.ContextSpecific, 0, true);
+            Asn1Tag distributionPointChoice = context0;
+            Asn1Tag fullNameChoice = context0;
+            Asn1Tag generalNameUriChoice = new Asn1Tag(TagClass.ContextSpecific, 6);
+
+            using (AsnWriter writer = new AsnWriter(AsnEncodingRules.DER))
+            {
+                writer.PushSequence();
+                writer.PushSequence();
+                writer.PushSequence(distributionPointChoice);
+                writer.PushSequence(fullNameChoice);
+                writer.WriteCharacterString(
+                    generalNameUriChoice,
+                    UniversalTagNumber.IA5String,
+                    distributionPoint);
+                writer.PopSequence(fullNameChoice);
+                writer.PopSequence(distributionPointChoice);
+                writer.PopSequence();
+                writer.PopSequence();
+                return new X509Extension("2.5.29.31", writer.Encode(), false);
+            }
         }
 
         private static X509Extension BuildAuthorityKeyIdentifier(

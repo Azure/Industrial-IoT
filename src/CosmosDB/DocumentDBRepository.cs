@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -15,16 +15,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
     public class DocumentDBRepository : IDocumentDBRepository
     {
         public DocumentClient Client { get; }
-        public string DatabaseId { get { return "OpcVault"; } }
+        public string DatabaseId { get; }
 
-        public DocumentDBRepository(string endpoint, string authKeyOrResourceToken)
+        public DocumentDBRepository(string endpoint, string dataBaseId, string authKeyOrResourceToken)
         {
+            this.DatabaseId = dataBaseId;
             this.Client = new DocumentClient(new Uri(endpoint), authKeyOrResourceToken);
             CreateDatabaseIfNotExistsAsync().Wait();
         }
 
-        public DocumentDBRepository(string endpoint, SecureString authKeyOrResourceToken)
+        public DocumentDBRepository(string endpoint, string dataBaseId, SecureString authKeyOrResourceToken)
         {
+            this.DatabaseId = dataBaseId;
             this.Client = new DocumentClient(new Uri(endpoint), authKeyOrResourceToken);
             CreateDatabaseIfNotExistsAsync().Wait();
         }

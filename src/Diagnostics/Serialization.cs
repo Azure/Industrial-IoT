@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Diagnostics
     public class Serialization
     {
         // Save memory avoiding serializations that go too deep
-        private static readonly JsonSerializerSettings serializationSettings =
+        private static readonly JsonSerializerSettings _serializationSettings =
             new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Diagnostics
                 }
             }
 
-            return JsonConvert.SerializeObject(logdata, serializationSettings);
+            return JsonConvert.SerializeObject(logdata, _serializationSettings);
         }
 
         private static object SerializeException(Exception e, int depth = 3)
@@ -52,8 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Diagnostics
             if (e == null) return null;
             if (depth == 0) return "-max serialization depth reached-";
 
-            var exception = e as AggregateException;
-            if (exception != null)
+            if (e is AggregateException exception)
             {
                 var innerExceptions = exception.InnerExceptions
                     .Select(ie => SerializeException(ie, depth - 1)).ToList();

@@ -21,7 +21,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 {
     public sealed class KeyVaultCertificateGroupProvider : Opc.Ua.Gds.Server.CertificateGroup
     {
-        public TimeSpan CrlUpdateTime = TimeSpan.FromDays(30);
         public X509CRL Crl;
         public X509SignatureGenerator x509SignatureGenerator;
 
@@ -140,7 +139,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         #region ICertificateGroupProvider
         public override async Task Init()
         {
-            await semaphoreSlim.WaitAsync();
+            await _semaphoreSlim.WaitAsync();
             try
             {
                 Opc.Ua.Utils.Trace(Opc.Ua.Utils.TraceMasks.Information, "InitializeCertificateGroup: {0}", m_subjectName);
@@ -167,7 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             }
             finally
             {
-                semaphoreSlim.Release();
+                _semaphoreSlim.Release();
             }
         }
 
@@ -177,7 +176,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         /// </summary>
         public async Task<bool> CreateImportedCACertificateAsync()
         {
-            await semaphoreSlim.WaitAsync();
+            await _semaphoreSlim.WaitAsync();
             try
             {
 
@@ -217,7 +216,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             }
             finally
             {
-                semaphoreSlim.Release();
+                _semaphoreSlim.Release();
             }
         }
 
@@ -226,7 +225,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         /// </summary>
         public async Task<bool> CreateCACertificateAsync()
         {
-            await semaphoreSlim.WaitAsync();
+            await _semaphoreSlim.WaitAsync();
             try
             {
                 DateTime notBefore = TrimmedNotBeforeDate();
@@ -254,7 +253,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
                 // create default revocation list, sign with KeyVault
                 Crl = RevokeCertificate(Certificate, null, null,
-                    notBefore, notBefore + CrlUpdateTime,
+                    notBefore, DateTime.MinValue,
                     new KeyVaultSignatureGenerator(_keyVaultServiceClient, _caCertKeyIdentifier, Certificate),
                     this.Configuration.CACertificateHashSize);
 
@@ -265,7 +264,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             }
             finally
             {
-                semaphoreSlim.Release();
+                _semaphoreSlim.Release();
             }
         }
 
@@ -291,7 +290,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                     var crl = await _keyVaultServiceClient.LoadCACrl(Configuration.Id, caCertKeyInfo.Certificate);
                     var crls = new List<X509CRL>() { crl };
                     var newCrl = RevokeCertificate(caCertKeyInfo.Certificate, crls, certificates,
-                        now, now + CrlUpdateTime,
+                        now, DateTime.MinValue,
                         new KeyVaultSignatureGenerator(_keyVaultServiceClient, caCertKeyInfo.KeyIdentifier, caCertKeyInfo.Certificate),
                         this.Configuration.CACertificateHashSize);
                     await _keyVaultServiceClient.ImportCACrl(Configuration.Id, caCertKeyInfo.Certificate, newCrl).ConfigureAwait(false);
@@ -341,7 +340,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 var crl = await _keyVaultServiceClient.LoadCACrl(Configuration.Id, caCertKeyInfo.Certificate);
                 var crls = new List<X509CRL>() { crl };
                 var newCrl = RevokeCertificate(caCertKeyInfo.Certificate, crls, caRevokeCollection,
-                    now, now + CrlUpdateTime,
+                    now, DateTime.MinValue,
                     new KeyVaultSignatureGenerator(_keyVaultServiceClient, caCertKeyInfo.KeyIdentifier, caCertKeyInfo.Certificate),
                     this.Configuration.CACertificateHashSize);
                 await _keyVaultServiceClient.ImportCACrl(Configuration.Id, caCertKeyInfo.Certificate, newCrl).ConfigureAwait(false);
@@ -356,9 +355,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         }
 
         /// <summary>
-        /// Creates a new key pair with certificate offline and signs it with KeyVault.
+        /// Creates a new key pair with KeyVault and signs it with KeyVault.
         /// </summary>
-        public override async Task<X509Certificate2KeyPair> NewKeyPairRequestAsync(
+        public async Task<X509Certificate2KeyPair> NewKeyPairRequestKeyVaultAsync(
             ApplicationRecordDataType application,
             string subjectName,
             string[] domainNames,
@@ -369,7 +368,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
             DateTime notBefore = TrimmedNotBeforeDate();
             DateTime notAfter = notBefore.AddMonths(Configuration.DefaultCertificateLifetime);
-            // create new cert in HSM storage
+            // create new cert with KeyVault
             using (var signedCertWithPrivateKey = await _keyVaultServiceClient.CreateSignedKeyPairAsync(
                 Configuration.Id,
                 Certificate,
@@ -404,7 +403,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         /// <summary>
         /// Creates a new key pair with certificate offline and signs it with KeyVault.
         /// </summary>
-        public async Task<X509Certificate2KeyPair> NewKeyPairRequestOfflineAsync(
+        public override async Task<X509Certificate2KeyPair> NewKeyPairRequestAsync(
             ApplicationRecordDataType application,
             string subjectName,
             string[] domainNames,
@@ -458,9 +457,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                     {
                         throw new ServiceResultException(StatusCodes.BadInvalidArgument, "Invalid private key format");
                     }
+
                     return new X509Certificate2KeyPair(new X509Certificate2(signedCertWithPrivateKey.RawData), privateKeyFormat, privateKey);
                 }
             }
+        }
+
+        /// <summary>
+        /// Stores the private key of a cert request in a Key Vault secret.
+        /// </summary>
+        public async Task ImportCertKeySecret(string id, string requestId, byte[] privateKey, string privateKeyFormat, CancellationToken ct = default)
+        {
+            await _keyVaultServiceClient.ImportCertKey(id, requestId, privateKey, privateKeyFormat, ct);
+        }
+
+        /// <summary>
+        /// Load the private key of a cert request from Key Vault secret.
+        /// </summary>
+        public async Task<byte[]> LoadCertKeySecret(string id, string requestId, string privateKeyFormat, CancellationToken ct = default)
+        {
+            return await _keyVaultServiceClient.LoadCertKey(id, requestId, privateKeyFormat, ct);
+        }
+
+        /// <summary>
+        /// Accept the private key of a cert request from Key Vault secret.
+        /// </summary>
+        public async Task AcceptCertKeySecret(string id, string requestId, CancellationToken ct = default)
+        {
+            await _keyVaultServiceClient.AcceptCertKey(id, requestId, ct);
+        }
+
+        /// <summary>
+        /// Delete the private key of a cert request from Key Vault secret.
+        /// </summary>
+        public async Task DeleteCertKeySecret(string id, string requestId, CancellationToken ct = default)
+        {
+            await _keyVaultServiceClient.DeleteCertKey(id, requestId, ct);
         }
 
         /// <summary>
@@ -661,13 +693,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
         private static Dictionary<NodeId, string> CertTypeMap()
         {
-            var certTypeMap = new Dictionary<NodeId, string>();
-            // FUTURE: support more cert types
-            //CertTypeMap.Add(Opc.Ua.ObjectTypeIds.HttpsCertificateType, "HttpsCertificateType");
-            //CertTypeMap.Add(Opc.Ua.ObjectTypeIds.UserCredentialCertificateType, "UserCredentialCertificateType");
-            certTypeMap.Add(Opc.Ua.ObjectTypeIds.ApplicationCertificateType, "ApplicationCertificateType");
-            //CertTypeMap.Add(Opc.Ua.ObjectTypeIds.RsaMinApplicationCertificateType, "RsaMinApplicationCertificateType");
-            certTypeMap.Add(Opc.Ua.ObjectTypeIds.RsaSha256ApplicationCertificateType, "RsaSha256ApplicationCertificateType");
+            var certTypeMap = new Dictionary<NodeId, string>
+            {
+                // FUTURE: support more cert types
+                //{ Opc.Ua.ObjectTypeIds.HttpsCertificateType, "HttpsCertificateType" },
+                //{ Opc.Ua.ObjectTypeIds.UserCredentialCertificateType, "UserCredentialCertificateType" },
+                { Opc.Ua.ObjectTypeIds.ApplicationCertificateType, "ApplicationCertificateType" },
+                //{ Opc.Ua.ObjectTypeIds.RsaMinApplicationCertificateType, "RsaMinApplicationCertificateType" },
+                { Opc.Ua.ObjectTypeIds.RsaSha256ApplicationCertificateType, "RsaSha256ApplicationCertificateType" }
+            };
             return certTypeMap;
         }
 
@@ -712,6 +746,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         private string _caCertSecretIdentifier;
         private string _caCertKeyIdentifier;
         private DateTime _lastUpdate;
-        private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
+        private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
     }
 }
