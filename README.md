@@ -65,8 +65,7 @@ This endpoint exposes five methods:
   - PublishNode
   - UnpublishNode
   - GetPublishedNodes
-  - GetConfiguredEndpoints (see below)
-  - GetConfiguredNodesOnEndpoint (see below)
+  - IoTHubDirectMethod (see below)
 
 ### Configuration via IoTHub direct function calls
 OPC Publisher implements the following IoTHub direct method calls, which can be called when OPC Publisher runs standalone or in IoT Edge:
