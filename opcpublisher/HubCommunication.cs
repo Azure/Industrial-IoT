@@ -63,12 +63,26 @@ namespace OpcPublisher
 
         public static bool IotCentralMode { get; set; } = false;
 
+        public static int MaxResponsePayloadLength { get; } = 128 * 1024 - 256;
+
+        public static Dictionary<string, MethodCallback> IotHubDirectMethods { get; } = new Dictionary<string, MethodCallback>();
+
         /// <summary>
         /// Ctor for the class.
         /// </summary>
         public HubCommunication(CancellationToken ct)
         {
             _shutdownToken = ct;
+            IotHubDirectMethods.Add("PublishNodes", HandlePublishNodesMethodAsync);
+            IotHubDirectMethods.Add("UnpublishNodes", HandleUnpublishNodesMethodAsync);
+            IotHubDirectMethods.Add("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync);
+            IotHubDirectMethods.Add("GetConfiguredEndpoints", HandleGetConfiguredEndpointsMethodAsync);
+            IotHubDirectMethods.Add("GetConfiguredNodesOnEndpoint", HandleGetConfiguredNodesOnEndpointMethodAsync);
+            IotHubDirectMethods.Add("GetDiagnosticInfo", HandleGetDiagnosticInfoMethodAsync);
+            IotHubDirectMethods.Add("GetDiagnosticLog", HandleGetDiagnosticLogMethodAsync);
+            IotHubDirectMethods.Add("GetDiagnosticStartupLog", HandleGetDiagnosticStartupLogMethodAsync);
+            IotHubDirectMethods.Add("ExitApplication", HandleExitApplicationMethodAsync);
+            IotHubDirectMethods.Add("GetInfo", HandleGetInfoMethodAsync);
         }
 
         /// <summary>
@@ -121,16 +135,10 @@ namespace OpcPublisher
                     Logger.Debug($"Register desired properties and method callbacks");
 
                     // register method handlers
-                    await _edgeHubClient.SetMethodHandlerAsync("PublishNodes", HandlePublishNodesMethodAsync, _edgeHubClient).ConfigureAwait(false);
-                    await _edgeHubClient.SetMethodHandlerAsync("UnpublishNodes", HandleUnpublishNodesMethodAsync, _edgeHubClient).ConfigureAwait(false);
-                    await _edgeHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _edgeHubClient).ConfigureAwait(false);
-                    await _edgeHubClient.SetMethodHandlerAsync("GetConfiguredEndpoints", HandleGetConfiguredEndpointsMethodAsync, _edgeHubClient).ConfigureAwait(false);
-                    await _edgeHubClient.SetMethodHandlerAsync("GetConfiguredNodesOnEndpoint", HandleGetConfiguredNodesOnEndpointMethodAsync, _edgeHubClient).ConfigureAwait(false);
-                    await _edgeHubClient.SetMethodHandlerAsync("GetDiagnosticInfo", HandleGetDiagnosticInfoMethodAsync, _edgeHubClient).ConfigureAwait(false);
-                    await _edgeHubClient.SetMethodHandlerAsync("GetDiagnosticLog", HandleGetDiagnosticLogMethodAsync, _edgeHubClient).ConfigureAwait(false);
-                    await _edgeHubClient.SetMethodHandlerAsync("GetDiagnosticStartupLog", HandleGetDiagnosticStartupLogMethodAsync, _edgeHubClient).ConfigureAwait(false);
-                    await _edgeHubClient.SetMethodHandlerAsync("ExitApplication", HandleExitApplicationMethodAsync, _edgeHubClient).ConfigureAwait(false);
-                    await _edgeHubClient.SetMethodHandlerAsync("GetInfo", HandleGetInfoMethodAsync, _edgeHubClient).ConfigureAwait(false);
+                    foreach (var iotHubMethod in IotHubDirectMethods)
+                    {
+                        await _edgeHubClient.SetMethodHandlerAsync(iotHubMethod.Key, iotHubMethod.Value, _edgeHubClient).ConfigureAwait(false);
+                    }
                     await _edgeHubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync, _edgeHubClient).ConfigureAwait(false);
                 }
                 else
@@ -150,16 +158,10 @@ namespace OpcPublisher
                         Logger.Debug($"Register desired properties and method callbacks");
 
                         // register method handlers
-                        await _iotHubClient.SetMethodHandlerAsync("PublishNodes", HandlePublishNodesMethodAsync, _iotHubClient).ConfigureAwait(false);
-                        await _iotHubClient.SetMethodHandlerAsync("UnpublishNodes", HandleUnpublishNodesMethodAsync, _iotHubClient).ConfigureAwait(false);
-                        await _iotHubClient.SetMethodHandlerAsync("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync, _iotHubClient).ConfigureAwait(false);
-                        await _iotHubClient.SetMethodHandlerAsync("GetConfiguredEndpoints", HandleGetConfiguredEndpointsMethodAsync, _iotHubClient).ConfigureAwait(false);
-                        await _iotHubClient.SetMethodHandlerAsync("GetConfiguredNodesOnEndpoint", HandleGetConfiguredNodesOnEndpointMethodAsync, _iotHubClient).ConfigureAwait(false);
-                        await _iotHubClient.SetMethodHandlerAsync("GetDiagnosticInfo", HandleGetDiagnosticInfoMethodAsync, _iotHubClient).ConfigureAwait(false);
-                        await _iotHubClient.SetMethodHandlerAsync("GetDiagnosticLog", HandleGetDiagnosticLogMethodAsync, _iotHubClient).ConfigureAwait(false);
-                        await _iotHubClient.SetMethodHandlerAsync("GetDiagnosticStartupLog", HandleGetDiagnosticStartupLogMethodAsync, _iotHubClient).ConfigureAwait(false);
-                        await _iotHubClient.SetMethodHandlerAsync("ExitApplication", HandleExitApplicationMethodAsync, _iotHubClient).ConfigureAwait(false);
-                        await _iotHubClient.SetMethodHandlerAsync("GetInfo", HandleGetInfoMethodAsync, _iotHubClient).ConfigureAwait(false);
+                        foreach (var iotHubMethod in IotHubDirectMethods)
+                        {
+                            await _iotHubClient.SetMethodHandlerAsync(iotHubMethod.Key, iotHubMethod.Value, _iotHubClient).ConfigureAwait(false);
+                        }
                         await _iotHubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync, _iotHubClient).ConfigureAwait(false);
                     }
                 }
@@ -370,10 +372,10 @@ namespace OpcPublisher
             // build response
             string resultString = JsonConvert.SerializeObject(statusResponse);
             byte[] result = Encoding.UTF8.GetBytes(resultString);
-            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            if (result.Length > MaxResponsePayloadLength)
             {
                 Logger.Error($"{logPrefix} Response size is too long");
-                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+                Array.Resize(ref result, result.Length > MaxResponsePayloadLength ? MaxResponsePayloadLength : result.Length);
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
@@ -451,88 +453,115 @@ namespace OpcPublisher
                         }
                         else
                         {
-                            foreach (var node in unpublishNodesMethodData.OpcNodes)
+                            // unpublish all nodes on one endpoint or nodes requested
+                            if (unpublishNodesMethodData?.OpcNodes == null || unpublishNodesMethodData.OpcNodes.Count == 0)
                             {
-                                // support legacy format
-                                if (string.IsNullOrEmpty(node.Id) && !string.IsNullOrEmpty(node.ExpandedNodeId))
+                                // loop through all subscriptions of the session
+                                foreach (var subscription in opcSession.OpcSubscriptions)
                                 {
-                                    node.Id = node.ExpandedNodeId;
-                                }
-
-                                try
-                                {
-                                    if (node.Id.Contains("nsu=", StringComparison.InvariantCulture))
+                                    // loop through all monitored items
+                                    foreach (var monitoredItem in subscription.OpcMonitoredItems)
                                     {
-                                        expandedNodeId = ExpandedNodeId.Parse(node.Id);
-                                        isNodeIdFormat = false;
-                                    }
-                                    else
-                                    {
-                                        nodeId = NodeId.Parse(node.Id);
-                                        isNodeIdFormat = true;
-                                    }
-
-                                }
-                                catch (Exception e)
-                                {
-                                    statusMessage = $"Exception ({e.Message}) while formatting node '{node.Id}'!";
-                                    Logger.Error(e, $"{logPrefix} {statusMessage}");
-                                    statusResponse.Add(statusMessage);
-                                    statusCode = HttpStatusCode.NotAcceptable;
-                                    continue;
-                                }
-
-                                try
-                                {
-                                    if (isNodeIdFormat)
-                                    {
-                                        // stop monitoring the node, execute synchronously
-                                        Logger.Information($"{logPrefix} Request to stop monitoring item with NodeId '{nodeId.ToString()}')");
-                                        nodeStatusCode = await opcSession.RequestMonitorItemRemovalAsync(nodeId, null, ShutdownTokenSource.Token).ConfigureAwait(false);
-                                    }
-                                    else
-                                    {
-                                        // stop monitoring the node, execute synchronously
-                                        Logger.Information($"{logPrefix} Request to stop monitoring item with ExpandedNodeId '{expandedNodeId.ToString()}')");
-                                        nodeStatusCode = await opcSession.RequestMonitorItemRemovalAsync(null, expandedNodeId, ShutdownTokenSource.Token).ConfigureAwait(false);
-                                    }
-
-                                    // check and store a result message in case of an error
-                                    switch (nodeStatusCode)
-                                    {
-                                        case HttpStatusCode.OK:
-                                            statusMessage = $"Id '{node.Id}': was not configured";
-                                            Logger.Debug($"{logPrefix} {statusMessage}");
-                                            statusResponse.Add(statusMessage);
-                                            break;
-
-                                        case HttpStatusCode.Accepted:
-                                            statusMessage = $"Id '{node.Id}': tagged for removal";
-                                            Logger.Debug($"{logPrefix} {statusMessage}");
-                                            statusResponse.Add(statusMessage);
-                                            break;
-
-                                        case HttpStatusCode.Gone:
-                                            statusMessage = $"Id '{node.Id}': session to endpoint does not exist anymore";
-                                            Logger.Debug($"{logPrefix} {statusMessage}");
-                                            statusResponse.Add(statusMessage);
-                                            statusCode = HttpStatusCode.Gone;
-                                            break;
-
-                                        case HttpStatusCode.InternalServerError:
-                                            statusMessage = $"Id '{node.Id}': error while trying to remove";
-                                            Logger.Debug($"{logPrefix} {statusMessage}");
-                                            statusResponse.Add(statusMessage);
-                                            statusCode = HttpStatusCode.InternalServerError;
-                                            break;
+                                        if (monitoredItem.ConfigType == OpcMonitoredItemConfigurationType.NodeId)
+                                        {
+                                            await opcSession.RequestMonitorItemRemovalAsync(monitoredItem.ConfigNodeId, null, ShutdownTokenSource.Token, false).ConfigureAwait(false);
+                                        }
+                                        else
+                                        {
+                                            await opcSession.RequestMonitorItemRemovalAsync(null, monitoredItem.ConfigExpandedNodeId, ShutdownTokenSource.Token, false).ConfigureAwait(false);
+                                        }
                                     }
                                 }
-                                catch (Exception e)
+                                // build response
+                                statusMessage = $"All monitored items{(endpointUri != null ? $" on endpoint '{endpointUri.OriginalString}'" : " ")} tagged for removal";
+                                statusResponse.Add(statusMessage);
+                                Logger.Information($"{logPrefix} {statusMessage}");
+                            }
+                            else
+                            {
+                                foreach (var node in unpublishNodesMethodData.OpcNodes)
                                 {
-                                    statusMessage = $"Exception ({e.Message}) while trying to tag node '{node.Id}' for removal";
-                                    Logger.Error(e, $"{logPrefix} {statusMessage}");
-                                    statusResponse.Add(statusMessage);
-                                    statusCode = HttpStatusCode.InternalServerError;
+                                    // support legacy format
+                                    if (string.IsNullOrEmpty(node.Id) && !string.IsNullOrEmpty(node.ExpandedNodeId))
+                                    {
+                                        node.Id = node.ExpandedNodeId;
+                                    }
+
+                                    try
+                                    {
+                                        if (node.Id.Contains("nsu=", StringComparison.InvariantCulture))
+                                        {
+                                            expandedNodeId = ExpandedNodeId.Parse(node.Id);
+                                            isNodeIdFormat = false;
+                                        }
+                                        else
+                                        {
+                                            nodeId = NodeId.Parse(node.Id);
+                                            isNodeIdFormat = true;
+                                        }
+
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        statusMessage = $"Exception ({e.Message}) while formatting node '{node.Id}'!";
+                                        Logger.Error(e, $"{logPrefix} {statusMessage}");
+                                        statusResponse.Add(statusMessage);
+                                        statusCode = HttpStatusCode.NotAcceptable;
+                                        continue;
+                                    }
+
+                                    try
+                                    {
+                                        if (isNodeIdFormat)
+                                        {
+                                            // stop monitoring the node, execute synchronously
+                                            Logger.Information($"{logPrefix} Request to stop monitoring item with NodeId '{nodeId.ToString()}')");
+                                            nodeStatusCode = await opcSession.RequestMonitorItemRemovalAsync(nodeId, null, ShutdownTokenSource.Token).ConfigureAwait(false);
+                                        }
+                                        else
+                                        {
+                                            // stop monitoring the node, execute synchronously
+                                            Logger.Information($"{logPrefix} Request to stop monitoring item with ExpandedNodeId '{expandedNodeId.ToString()}')");
+                                            nodeStatusCode = await opcSession.RequestMonitorItemRemovalAsync(null, expandedNodeId, ShutdownTokenSource.Token).ConfigureAwait(false);
+                                        }
+
+                                        // check and store a result message in case of an error
+                                        switch (nodeStatusCode)
+                                        {
+                                            case HttpStatusCode.OK:
+                                                statusMessage = $"Id '{node.Id}': was not configured";
+                                                Logger.Debug($"{logPrefix} {statusMessage}");
+                                                statusResponse.Add(statusMessage);
+                                                break;
+
+                                            case HttpStatusCode.Accepted:
+                                                statusMessage = $"Id '{node.Id}': tagged for removal";
+                                                Logger.Debug($"{logPrefix} {statusMessage}");
+                                                statusResponse.Add(statusMessage);
+                                                break;
+
+                                            case HttpStatusCode.Gone:
+                                                statusMessage = $"Id '{node.Id}': session to endpoint does not exist anymore";
+                                                Logger.Debug($"{logPrefix} {statusMessage}");
+                                                statusResponse.Add(statusMessage);
+                                                statusCode = HttpStatusCode.Gone;
+                                                break;
+
+                                            case HttpStatusCode.InternalServerError:
+                                                statusMessage = $"Id '{node.Id}': error while trying to remove";
+                                                Logger.Debug($"{logPrefix} {statusMessage}");
+                                                statusResponse.Add(statusMessage);
+                                                statusCode = HttpStatusCode.InternalServerError;
+                                                break;
+                                        }
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        statusMessage = $"Exception ({e.Message}) while trying to tag node '{node.Id}' for removal";
+                                        Logger.Error(e, $"{logPrefix} {statusMessage}");
+                                        statusResponse.Add(statusMessage);
+                                        statusCode = HttpStatusCode.InternalServerError;
+                                    }
                                 }
                             }
                         }
@@ -569,10 +598,10 @@ namespace OpcPublisher
             // build response
             string resultString = JsonConvert.SerializeObject(statusResponse);
             byte[] result = Encoding.UTF8.GetBytes(resultString);
-            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            if (result.Length > MaxResponsePayloadLength)
             {
                 Logger.Error($"{logPrefix} Response size is too long");
-                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+                Array.Resize(ref result, result.Length > MaxResponsePayloadLength ? MaxResponsePayloadLength : result.Length);
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
@@ -594,8 +623,11 @@ namespace OpcPublisher
             try
             {
                 Logger.Debug($"{logPrefix} called");
-                unpublishAllNodesMethodData = JsonConvert.DeserializeObject<UnpublishAllNodesMethodRequestModel>(methodRequest.DataAsJson);
-                if (unpublishAllNodesMethodData != null && unpublishAllNodesMethodData.EndpointUrl != null)
+                if (!string.IsNullOrEmpty(methodRequest.DataAsJson))
+                {
+                    unpublishAllNodesMethodData = JsonConvert.DeserializeObject<UnpublishAllNodesMethodRequestModel>(methodRequest.DataAsJson);
+                }
+                if (unpublishAllNodesMethodData != null && unpublishAllNodesMethodData?.EndpointUrl != null)
                 {
                     endpointUri = new Uri(unpublishAllNodesMethodData.EndpointUrl);
                 }
@@ -681,7 +713,7 @@ namespace OpcPublisher
                 }
                 catch (Exception e)
                 {
-                    statusMessage = $"EndpointUrl: '{unpublishAllNodesMethodData.EndpointUrl}': exception ({e.Message}) while trying to unpublish";
+                    statusMessage = $"EndpointUrl: '{unpublishAllNodesMethodData?.EndpointUrl}': exception ({e.Message}) while trying to unpublish";
                     Logger.Error(e, $"{logPrefix} {statusMessage}");
                     statusResponse.Add(statusMessage);
                     statusCode = HttpStatusCode.InternalServerError;
@@ -700,7 +732,7 @@ namespace OpcPublisher
             {
                 resultString = JsonConvert.SerializeObject(statusResponse.GetRange(0, maxIndex));
                 result = Encoding.UTF8.GetBytes(resultString);
-                if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+                if (result.Length > MaxResponsePayloadLength)
                 {
                     maxIndex /= 2;
                     continue;
@@ -719,10 +751,10 @@ namespace OpcPublisher
             // build response
             resultString = JsonConvert.SerializeObject(statusResponse);
             result = Encoding.UTF8.GetBytes(resultString);
-            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            if (result.Length > MaxResponsePayloadLength)
             {
                 Logger.Error($"{logPrefix} Response size is too long");
-                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+                Array.Resize(ref result, result.Length > MaxResponsePayloadLength ? MaxResponsePayloadLength : result.Length);
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
@@ -749,7 +781,10 @@ namespace OpcPublisher
             try
             {
                 Logger.Debug($"{logPrefix} called");
-                getConfiguredEndpointsMethodRequest = JsonConvert.DeserializeObject<GetConfiguredEndpointsMethodRequestModel>(methodRequest.DataAsJson);
+                if (!string.IsNullOrEmpty(methodRequest.DataAsJson))
+                {
+                    getConfiguredEndpointsMethodRequest = JsonConvert.DeserializeObject<GetConfiguredEndpointsMethodRequestModel>(methodRequest.DataAsJson);
+                }
             }
             catch (Exception e)
             {
@@ -793,7 +828,7 @@ namespace OpcPublisher
                     {
                         endpointsString = JsonConvert.SerializeObject(endpointUrls.GetRange((int)startIndex, (int)actualEndpointsCount));
                         endpointsByteArray = Encoding.UTF8.GetBytes(endpointsString);
-                        if (endpointsByteArray.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+                        if (endpointsByteArray.Length > MaxResponsePayloadLength)
                         {
                             actualEndpointsCount /= 2;
                             continue;
@@ -827,10 +862,10 @@ namespace OpcPublisher
             }
 
             result = Encoding.UTF8.GetBytes(resultString);
-            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            if (result.Length > MaxResponsePayloadLength)
             {
                 Logger.Error($"{logPrefix} Response size is too long");
-                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+                Array.Resize(ref result, result.Length > MaxResponsePayloadLength ? MaxResponsePayloadLength : result.Length);
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
@@ -900,7 +935,7 @@ namespace OpcPublisher
 
                     // validate version
                     startIndex = 0;
-                    if (getConfiguredNodesOnEndpointMethodRequest.ContinuationToken != null)
+                    if (getConfiguredNodesOnEndpointMethodRequest?.ContinuationToken != null)
                     {
                         uint requestedNodeConfigVersion = (uint)(getConfiguredNodesOnEndpointMethodRequest.ContinuationToken >> 32);
                         if (nodeConfigVersion != requestedNodeConfigVersion)
@@ -927,7 +962,7 @@ namespace OpcPublisher
                         {
                             publishedNodesString = JsonConvert.SerializeObject(opcNodes.GetRange((int)startIndex, (int)actualNodeCount));
                             publishedNodesByteArray = Encoding.UTF8.GetBytes(publishedNodesString);
-                            if (publishedNodesByteArray.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+                            if (publishedNodesByteArray.Length > MaxResponsePayloadLength)
                             {
                                 actualNodeCount /= 2;
                                 continue;
@@ -966,10 +1001,10 @@ namespace OpcPublisher
                 resultString = JsonConvert.SerializeObject(statusResponse);
             }
             result = Encoding.UTF8.GetBytes(resultString);
-            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            if (result.Length > MaxResponsePayloadLength)
             {
                 Logger.Error($"{logPrefix} Response size is too long");
-                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+                Array.Resize(ref result, result.Length > MaxResponsePayloadLength ? MaxResponsePayloadLength : result.Length);
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
@@ -1012,10 +1047,10 @@ namespace OpcPublisher
                 resultString = JsonConvert.SerializeObject(statusResponse);
             }
             result = Encoding.UTF8.GetBytes(resultString);
-            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            if (result.Length > MaxResponsePayloadLength)
             {
                 Logger.Error($"{logPrefix} Response size is too long");
-                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+                Array.Resize(ref result, result.Length > MaxResponsePayloadLength ? MaxResponsePayloadLength : result.Length);
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
@@ -1058,10 +1093,10 @@ namespace OpcPublisher
                 resultString = JsonConvert.SerializeObject(statusResponse);
             }
             result = Encoding.UTF8.GetBytes(resultString);
-            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            if (result.Length > MaxResponsePayloadLength)
             {
                 Logger.Error($"{logPrefix} Response size is too long");
-                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+                Array.Resize(ref result, result.Length > MaxResponsePayloadLength ? MaxResponsePayloadLength : result.Length);
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
@@ -1104,10 +1139,10 @@ namespace OpcPublisher
                 resultString = JsonConvert.SerializeObject(statusResponse);
             }
             result = Encoding.UTF8.GetBytes(resultString);
-            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            if (result.Length > MaxResponsePayloadLength)
             {
                 Logger.Error($"{logPrefix} Response size is too long");
-                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+                Array.Resize(ref result, result.Length > MaxResponsePayloadLength ? MaxResponsePayloadLength : result.Length);
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
@@ -1127,7 +1162,10 @@ namespace OpcPublisher
             ExitApplicationMethodRequestModel exitApplicationMethodRequest = null;
             try
             {
-                exitApplicationMethodRequest = JsonConvert.DeserializeObject<ExitApplicationMethodRequestModel>(methodRequest.DataAsJson);
+                if (!string.IsNullOrEmpty(methodRequest.DataAsJson))
+                {
+                    exitApplicationMethodRequest = JsonConvert.DeserializeObject<ExitApplicationMethodRequestModel>(methodRequest.DataAsJson);
+                }
             }
             catch (Exception e)
             {
@@ -1143,10 +1181,12 @@ namespace OpcPublisher
                 ExitApplicationMethodRequestModel exitApplication = new ExitApplicationMethodRequestModel();
                 try
                 {
+                    int secondsTillExit = exitApplicationMethodRequest != null ? exitApplicationMethodRequest.SecondsTillExit : 5;
+                    secondsTillExit = secondsTillExit < 5 ? 5 : secondsTillExit;
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                    Task.Run(async () => await ExitApplicationAsync(exitApplicationMethodRequest.SecondsTillExit));
+                    Task.Run(async () => await ExitApplicationAsync(secondsTillExit).ConfigureAwait(false));
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                    statusMessage = $"Module will exit in {exitApplicationMethodRequest.SecondsTillExit} seconds";
+                    statusMessage = $"Module will exit now...";
                     Logger.Information($"{logPrefix} {statusMessage}");
                     statusResponse.Add(statusMessage);
                 }
@@ -1164,10 +1204,10 @@ namespace OpcPublisher
             string resultString = null;
             resultString = JsonConvert.SerializeObject(statusResponse);
             result = Encoding.UTF8.GetBytes(resultString);
-            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            if (result.Length > MaxResponsePayloadLength)
             {
                 Logger.Error($"{logPrefix} Response size is too long");
-                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+                Array.Resize(ref result, result.Length > MaxResponsePayloadLength ? MaxResponsePayloadLength : result.Length);
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
@@ -1217,10 +1257,10 @@ namespace OpcPublisher
                 resultString = JsonConvert.SerializeObject(statusResponse);
             }
             result = Encoding.UTF8.GetBytes(resultString);
-            if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+            if (result.Length > MaxResponsePayloadLength)
             {
                 Logger.Error($"{logPrefix} Response size is too long");
-                Array.Resize(ref result, result.Length > MAX_RESPONSE_PAYLOAD_LENGTH ? MAX_RESPONSE_PAYLOAD_LENGTH : result.Length);
+                Array.Resize(ref result, result.Length > MaxResponsePayloadLength ? MaxResponsePayloadLength : result.Length);
             }
             MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
             Logger.Information($"{logPrefix} completed with result {statusCode.ToString()}");
@@ -1230,12 +1270,13 @@ namespace OpcPublisher
         /// <summary>
         /// Method that is called for any unimplemented call. Just returns that info to the caller
         /// </summary>
-        private Task<MethodResponse> DefaultMethodHandlerAsync(MethodRequest methodRequest, object userContext)
+        static internal Task<MethodResponse> DefaultMethodHandlerAsync(MethodRequest methodRequest, object userContext)
         {
-            Logger.Information($"Received direct method call for {methodRequest.Name}, which is not implemented");
-            string response = $"Method {methodRequest.Name} successfully received, but this method is not implemented";
+            string logPrefix = "DefaultMethodHandlerAsync:";
+            string errorMessage = $"Method '{methodRequest.Name}' successfully received, but this method is not implemented";
+            Logger.Information($"{logPrefix} errorMessage");
 
-            string resultString = JsonConvert.SerializeObject(response);
+            string resultString = JsonConvert.SerializeObject(errorMessage);
             byte[] result = Encoding.UTF8.GetBytes(resultString);
             MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
             return Task.FromResult(methodResponse);
@@ -1714,7 +1755,7 @@ namespace OpcPublisher
             {
                 resultString = JsonConvert.SerializeObject(statusResponse.GetRange(0, maxIndex));
                 result = Encoding.UTF8.GetBytes(resultString);
-                if (result.Length > MAX_RESPONSE_PAYLOAD_LENGTH)
+                if (result.Length > MaxResponsePayloadLength)
                 {
                     maxIndex /= 2;
                     continue;
@@ -1731,7 +1772,6 @@ namespace OpcPublisher
             }
         }
 
-        private const int MAX_RESPONSE_PAYLOAD_LENGTH = (128 * 1024 - 256);
         private const string CONTENT_TYPE_OPCUAJSON = "application/opcua+uajson";
         private const string CONTENT_ENCODING_UTF8 = "UTF-8";
 
