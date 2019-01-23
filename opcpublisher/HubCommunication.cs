@@ -1274,7 +1274,7 @@ namespace OpcPublisher
         {
             string logPrefix = "DefaultMethodHandlerAsync:";
             string errorMessage = $"Method '{methodRequest.Name}' successfully received, but this method is not implemented";
-            Logger.Information($"{logPrefix} errorMessage");
+            Logger.Information($"{logPrefix} {errorMessage}");
 
             string resultString = JsonConvert.SerializeObject(errorMessage);
             byte[] result = Encoding.UTF8.GetBytes(resultString);
