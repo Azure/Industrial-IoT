@@ -732,6 +732,7 @@ namespace OpcPublisher
                     var methodCallback = IotHubDirectMethods.GetValueOrDefault(methodName);
                     var methodResponse = DefaultMethodHandlerAsync(new MethodRequest(methodName, Encoding.UTF8.GetBytes(methodRequest)), null).Result;
                     outputArguments[0] = methodResponse.ResultAsJson;
+                    return ServiceResult.Create(StatusCodes.BadNotImplemented, "The IoTHub direct method is not implemented");
                 }
             }
             catch (Exception ex)
