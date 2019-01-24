@@ -49,8 +49,7 @@ namespace OpcPublisher
         /// <summary>
         /// Set the max string length the OPC stack supports.
         /// </summary>
-        //public static int OpcMaxStringLength { get; set; } = 4 * 1024 * 1024;
-        public static int OpcMaxStringLength { get; set; } = 128 * 1024;
+        public static int OpcMaxStringLength { get; set; } = HubCommunication.MaxResponsePayloadLength;
 
         /// <summary>
         /// <summary>

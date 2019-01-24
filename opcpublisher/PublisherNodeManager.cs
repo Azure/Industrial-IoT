@@ -6,10 +6,12 @@ using System.Collections.Generic;
 
 namespace OpcPublisher
 {
+    using Microsoft.Azure.Devices.Client;
     using Newtonsoft.Json;
     using System.Linq;
     using System.Net;
     using System.Text;
+    using static HubCommunication;
     using static OpcApplicationConfiguration;
     using static OpcPublisher.Program;
     using static PublisherNodeConfiguration;
@@ -115,11 +117,8 @@ namespace OpcPublisher
                     MethodState getPublishedNodesLegacyMethod = CreateMethod(methodsFolder, "GetPublishedNodes", "GetPublishedNodes");
                     SetGetPublishedNodesLegacyMethodProperties(ref getPublishedNodesLegacyMethod);
                     
-                    MethodState getConfiguredNodesOnEndpointMethod = CreateMethod(methodsFolder, "GetConfiguredNodesOnEndpoint", "GetConfiguredNodesOnEndpoint");
-                    SetGetConfiguredNodesOnEndpointMethodProperties(ref getConfiguredNodesOnEndpointMethod);
-
-                    MethodState getGetConfiguredEndpointsMethod = CreateMethod(methodsFolder, "GetConfiguredEndpoints", "GetConfiguredEndpoints");
-                    SetGetConfiguredEndpointsMethodProperties(ref getGetConfiguredEndpointsMethod);
+                    MethodState iotHubDirectMethodMethod = CreateMethod(methodsFolder, "IoTHubDirectMethod", "IoTHubDirectMethod");
+                    SetGetIoTHubDirectMethodMethodProperties(ref iotHubDirectMethodMethod);
                 }
                 catch (Exception e)
                 {
@@ -149,8 +148,8 @@ namespace OpcPublisher
 
             method.InputArguments.Value = new Argument[]
             {
-                            new Argument() { Name = "NodeId", Description = "NodeId of the node to publish in NodeId format.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar },
-                            new Argument() { Name = "EndpointUrl", Description = "Endpoint URI of the OPC UA server owning the node.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                new Argument() { Name = "NodeId", Description = "NodeId of the node to publish in NodeId format.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar },
+                new Argument() { Name = "EndpointUrl", Description = "Endpoint URI of the OPC UA server owning the node.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
             };
 
             method.OnCallMethod = new GenericMethodCalledEventHandler(OnPublishNodeCall);
@@ -175,8 +174,8 @@ namespace OpcPublisher
 
             method.InputArguments.Value = new Argument[]
             {
-                            new Argument() { Name = "NodeId", Description = "NodeId of the node to publish in NodeId format.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar },
-                            new Argument() { Name = "EndpointUrl", Description = "Endpoint URI of the OPC UA server owning the node.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar },
+                new Argument() { Name = "NodeId", Description = "NodeId of the node to publish in NodeId format.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar },
+                new Argument() { Name = "EndpointUrl", Description = "Endpoint URI of the OPC UA server owning the node.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar },
             };
 
             method.OnCallMethod = new GenericMethodCalledEventHandler(OnUnpublishNodeCall);
@@ -202,7 +201,7 @@ namespace OpcPublisher
 
             method.InputArguments.Value = new Argument[]
             {
-                            new Argument() { Name = "EndpointUrl", Description = "Endpoint URI of the OPC UA server to return the published nodes for.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                new Argument() { Name = "EndpointUrl", Description = "Endpoint URI of the OPC UA server to return the published nodes for.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
             };
 
             // set output arguments
@@ -225,9 +224,9 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Sets properties of the GetConfiguredNodesOnEndpoint method
+        /// Sets properties of the IoTHubDirectMethod method
         /// </summary>
-        private void SetGetConfiguredNodesOnEndpointMethodProperties(ref MethodState method) 
+        private void SetGetIoTHubDirectMethodMethodProperties(ref MethodState method)
         {
             // define input arguments
             method.InputArguments = new PropertyState<Argument[]>(method)
@@ -243,11 +242,12 @@ namespace OpcPublisher
 
             method.InputArguments.Value = new Argument[]
             {
+                new Argument() { Name = "MethodName", Description = "Name of the IoTHub direct method.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar },
                 new Argument() { Name = "RequestJson", Description = "Request model as json string.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
             };
 
             // set output arguments
-            method.OutputArguments = new PropertyState<Argument[]>(method) 
+            method.OutputArguments = new PropertyState<Argument[]>(method)
             {
                 NodeId = new NodeId(method.BrowseName.Name + "OutArgs", NamespaceIndex),
                 BrowseName = BrowseNames.OutputArguments
@@ -262,49 +262,7 @@ namespace OpcPublisher
             {
                 new Argument() { Name = "ResponseJson", Description = "Response model as json string.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
             };
-            method.OnCallMethod = new GenericMethodCalledEventHandler(OnGetConfiguredNodesOnEndpointCall);
-        }
-
-
-        /// <summary>
-        /// Sets properties of the GetConfiguredEndpoints method
-        /// </summary>
-        private void SetGetConfiguredEndpointsMethodProperties(ref MethodState method) 
-        {
-            // define input arguments
-            method.InputArguments = new PropertyState<Argument[]>(method)
-            {
-                NodeId = new NodeId(method.BrowseName.Name + "InArgs", NamespaceIndex),
-                BrowseName = BrowseNames.InputArguments
-            };
-            method.InputArguments.DisplayName = method.InputArguments.BrowseName.Name;
-            method.InputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
-            method.InputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
-            method.InputArguments.DataType = DataTypeIds.Argument;
-            method.InputArguments.ValueRank = ValueRanks.OneDimension;
-
-            method.InputArguments.Value = new Argument[]
-            {
-                new Argument() { Name = "RequestJson", Description = "Request model as json string.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
-            };
-
-            // set output arguments
-            method.OutputArguments = new PropertyState<Argument[]>(method) 
-            {
-                NodeId = new NodeId(method.BrowseName.Name + "OutArgs", NamespaceIndex),
-                BrowseName = BrowseNames.OutputArguments
-            };
-            method.OutputArguments.DisplayName = method.OutputArguments.BrowseName.Name;
-            method.OutputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
-            method.OutputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
-            method.OutputArguments.DataType = DataTypeIds.Argument;
-            method.OutputArguments.ValueRank = ValueRanks.OneDimension;
-
-            method.OutputArguments.Value = new Argument[]
-            {
-                new Argument() { Name = "ResponseJson", Description = "Response model as json string.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
-            };
-            method.OnCallMethod = new GenericMethodCalledEventHandler(OnGetConfiguredEndpointsCall);
+            method.OnCallMethod = new GenericMethodCalledEventHandler(OnIoTHubDirectMethodCall);
         }
 
         /// <summary>
@@ -742,34 +700,42 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Handle method call to get list of configured nodes on a specific endpoint.
+        /// Handle method call to call direct IoTHub methods
         /// </summary>
-        private ServiceResult OnGetConfiguredNodesOnEndpointCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments) {
-            string logPrefix = "GetConfiguredNodesOnEndpointCall:";
-            try 
+        private ServiceResult OnIoTHubDirectMethodCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
+        {
+            string logPrefix = "OnIoTHubDirectMethodCall:";
+            try
             {
-                var methodResult = HubCommunication.HandleGetConfiguredNodesOnEndpointMethodAsync(new Microsoft.Azure.Devices.Client.MethodRequest("GetConfiguredNodesOnEndpointMethod", Encoding.UTF8.GetBytes(inputArguments[0] as string)), null).Result;
-                outputArguments[0] = methodResult.ResultAsJson;
-            }
-            catch (Exception ex) 
-            {
-                Logger.Error($"{logPrefix} The request is invalid!");
-                return ServiceResult.Create(ex, null, StatusCodes.Bad);
-            }
-            return ServiceResult.Good;
-        }
+                if (string.IsNullOrEmpty(inputArguments[0] as string))
+                {
+                    string errorMessage = "There is no direct method name specified.";
+                    Logger.Error($"{logPrefix} {errorMessage}");
+                    return ServiceResult.Create(StatusCodes.BadArgumentsMissing, errorMessage);
+                }
 
-        /// <summary>
-        /// Handle method call to get configured endpoints
-        /// </summary>
-        private ServiceResult OnGetConfiguredEndpointsCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments) {
-            string logPrefix = "GetConfiguredEndpointsCall:";
-            try 
-            {
-                var methodResult = HubCommunication.HandleGetConfiguredEndpointsMethodAsync(new Microsoft.Azure.Devices.Client.MethodRequest("GetConfiguredEndpointsMethod", Encoding.UTF8.GetBytes(inputArguments[0] as string)), null).Result;
-                outputArguments[0] = methodResult.ResultAsJson;
+                string methodRequest = string.Empty;
+                if ((inputArguments[1] as string) != null)
+                {
+                    methodRequest = inputArguments[1] as string;
+                }
+
+                string methodName = inputArguments[0] as string;
+                if (IotHubDirectMethods.ContainsKey(inputArguments[0] as string))
+                {
+                    var methodCallback = IotHubDirectMethods.GetValueOrDefault(methodName);
+                    var methodResponse = methodCallback(new MethodRequest(methodName, Encoding.UTF8.GetBytes(methodRequest)), null).Result;
+                    outputArguments[0] = methodResponse.ResultAsJson;
+                }
+                else
+                {
+                    var methodCallback = IotHubDirectMethods.GetValueOrDefault(methodName);
+                    var methodResponse = DefaultMethodHandlerAsync(new MethodRequest(methodName, Encoding.UTF8.GetBytes(methodRequest)), null).Result;
+                    outputArguments[0] = methodResponse.ResultAsJson;
+                    return ServiceResult.Create(StatusCodes.BadNotImplemented, "The IoTHub direct method is not implemented");
+                }
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 Logger.Error($"{logPrefix} The request is invalid!");
                 return ServiceResult.Create(ex, null, StatusCodes.Bad);
