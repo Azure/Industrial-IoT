@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
 {
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
     using Microsoft.Azure.IIoT.Auth.Server;
+    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 
     /// <summary>
     /// AuthorizationOptions extension
@@ -27,25 +27,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth
 
             options.AddPolicy(Policies.CanRead, policy =>
                 policy.RequireAuthenticatedUser());
-            if (servicesConfig.AutoApprove)
-            {
-                // for simplified deployment,
-                // any authenticated user can Write and Sign
-                // without Approver workflow
-                options.AddPolicy(Policies.CanWrite, policy =>
-                    policy.RequireAuthenticatedUser());
-                options.AddPolicy(Policies.CanSign, policy =>
-                    policy.RequireAuthenticatedUser());
-            }
-            else
-            {
-                options.AddPolicy(Policies.CanWrite, policy =>
-                    policy.RequireAuthenticatedUser()
-                    .Require(WriterRights));
-                options.AddPolicy(Policies.CanSign, policy =>
-                    policy.RequireAuthenticatedUser()
-                    .Require(ApproverRights));
-            }
+            options.AddPolicy(Policies.CanWrite, policy =>
+                policy.RequireAuthenticatedUser()
+                .Require(WriterRights));
+            options.AddPolicy(Policies.CanSign, policy =>
+                policy.RequireAuthenticatedUser()
+                .Require(ApproverRights));
             options.AddPolicy(Policies.CanManage, policy =>
                 policy.RequireAuthenticatedUser()
                 .Require(AdminRights));

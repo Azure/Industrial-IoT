@@ -137,7 +137,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         [HttpPost("{groupId}/create")]
         [SwaggerOperation(OperationId = "CreateCACertificate")]
         [Authorize(Policy = Policies.CanManage)]
-
         public async Task<X509Certificate2ApiModel> PostCreateAsync(string groupId)
         {
             var onBehalfOfCertificateGroups = await this._certificateGroups.OnBehalfOfRequest(Request);
@@ -145,50 +144,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
                 await onBehalfOfCertificateGroups.CreateCACertificateAsync(groupId));
         }
 
-#if CERTSIGNER
-        /// <summary>Revoke Certificate</summary>
-        [HttpPost("{groupId}/revoke")]
-        [SwaggerOperation(OperationId = "RevokeCertificate")]
-        [Authorize(Policy = Policies.CanManage)]
-        public async Task<X509CrlApiModel> PostRevokeAsync(string groupId, [FromBody] X509Certificate2ApiModel cert)
-        {
-            var onBehalfOfCertificateGroups = await this.certificateGroups.OnBehalfOfRequest(Request);
-            return new X509CrlApiModel(
-                await onBehalfOfCertificateGroups.RevokeCertificateAsync(
-                    groupId,
-                    cert.ToServiceModel()));
-        }
-
-        /// <summary>Signing Request</summary>
-        [HttpPost("{groupId}/sign")]
-        [SwaggerOperation(OperationId = "SigningRequest")]
-        [Authorize(Policy = Policies.CanManage)]
-        public async Task<X509Certificate2ApiModel> PostSignAsync(string groupId, [FromBody] SigningRequestApiModel sr)
-        {
-            var onBehalfOfCertificateGroups = await this.certificateGroups.OnBehalfOfRequest(Request);
-            return new X509Certificate2ApiModel(
-                await onBehalfOfCertificateGroups.SigningRequestAsync(
-                    groupId,
-                    sr.ApplicationURI,
-                    sr.ToServiceModel()));
-        }
-
-        /// <summary>New Key Pair</summary>
-        [HttpPost("{groupId}/newkey")]
-        [SwaggerOperation(OperationId = "NewKeyPairRequest")]
-        [Authorize(Policy = Policies.CanManage)]
-        public async Task<CertificateKeyPairApiModel> PostNewKeyAsync(string groupId, [FromBody] NewKeyPairRequestApiModel nkpr)
-        {
-            var onBehalfOfCertificateGroups = await this.certificateGroups.OnBehalfOfRequest(Request);
-            return new CertificateKeyPairApiModel(
-                await onBehalfOfCertificateGroups.NewKeyPairRequestAsync(
-                    groupId,
-                    nkpr.ApplicationURI,
-                    nkpr.SubjectName,
-                    nkpr.DomainNames,
-                    nkpr.PrivateKeyFormat,
-                    nkpr.PrivateKeyPassword));
-        }
-#endif
     }
 }

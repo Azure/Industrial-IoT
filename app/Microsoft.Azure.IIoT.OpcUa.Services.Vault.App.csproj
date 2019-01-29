@@ -16,7 +16,7 @@
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.3.1" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.2" />
+    <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.1.1" />
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.354.23" />
   </ItemGroup>
@@ -46,6 +46,9 @@
     </Content>
     <Content Update="Views\Certomat\StartSigning.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="web.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>

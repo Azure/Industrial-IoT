@@ -17,6 +17,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters;
     using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.IIoT.Services.Auth;
+    using Microsoft.Azure.KeyVault;
+    using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -67,12 +69,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 var keyVault = builtConfig["KeyVault"];
                 if (!String.IsNullOrWhiteSpace(keyVault))
                 {
-                    configBuilder.AddAzureKeyVault(
-                        keyVault,
-                        builtConfig["Auth:AppId"],
-                        builtConfig["Auth:AppSecret"],
-                        new PrefixKeyVaultSecretManager("Service")
-                        );
+                    var appSecret = builtConfig["Auth:AppSecret"];
+                    if (String.IsNullOrWhiteSpace(appSecret))
+                    {
+                        // try managed service identity
+                        var azureServiceTokenProvider = new AzureServiceTokenProvider();
+                        var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+                        configBuilder.AddAzureKeyVault(
+                            keyVault,
+                            keyVaultClient,
+                            new PrefixKeyVaultSecretManager("Service")
+                            );
+                    }
+                    else
+                    {
+                        // use AzureAD token
+                        configBuilder.AddAzureKeyVault(
+                            keyVault,
+                            builtConfig["Auth:AppId"],
+                            appSecret,
+                            new PrefixKeyVaultSecretManager("Service")
+                            );
+                    }
                 }
             }
             catch
@@ -118,7 +136,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                     options.SerializerSettings.MaxDepth = 10;
                 });
 
-            services.AddApplicationInsightsTelemetry();
+            services.AddApplicationInsightsTelemetry(Config.Configuration);
 
             services.AddSwagger(Config, new Info
             {

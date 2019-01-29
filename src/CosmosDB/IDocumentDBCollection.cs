@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -24,9 +24,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
             string continuationToken,
             int? maxItemCount
             );
-        Task<IEnumerable<T>> GetAsync(string predicate);
+        Task<IEnumerable<T>> GetAsync(SqlQuerySpec sqlQuerySpec);
         Task<(string, IEnumerable<T>)> GetPageAsync(
-            string predicate,
+            SqlQuerySpec sqlQuerySpec,
             string continuationToken,
             int? maxItemCount
             );

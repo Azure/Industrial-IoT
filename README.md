@@ -15,11 +15,15 @@ A web management application front end and a local OPC UA GDS server allow for e
 
 ### This repository contains the following:
 
-* **ASP.Net Core Certificate Management Service** to manage certificates with Azure Key Vault and CosmosDB.
+This repo contains all components required to run a CA in the Azure cloud for your OPC UA environment:
+
+* **ASP.Net Core Certificate Management Microservice** to manage certificates with Azure Key Vault and CosmosDB.
 * **ASP.Net Core Sample Application** as user interface for the Certificate Management Service.
 * **OPC UA .Net Standard GDS Server** for local OPC UA device connectivity to the cloud Certificate Management Service.
 
-### Microservice Features
+A Powershell deployment script automatically builds and deploys the services to your subscription. By default, security is configured for a production system. 
+
+### Certificate Management Microservice Features
 1. Production ready certificate microservice based on C# with ASP.Net Core 2.1.
 2. Uses Azure Key Vault as CA certificate store, key pair generator and certificate signer backed by FIPS 140-2 Level 2 validated HSMs.
 3. Uses Cosmos DB as application and certificate request database. Open database interface to integrate with other database services.
@@ -36,7 +40,7 @@ A web management application front end and a local OPC UA GDS server allow for e
 13. Uses Azure Key Vault versioning and auditing to track CA certificate access and CRL history.
 
 ### Web Certificate Management Sample Features
-5. Sample code is based on the certificate management microservice Rest API using C# with ASP.Net Core 2.1.
+1. Sample code is based on the certificate management microservice Rest API using C# with ASP.Net Core 2.1.
 8. Workflow to secure a OPC UA application with a CA signed certificate: Register an OPC UA application, request a certificate or key pair, generate the signed certificate and download it.
 7. Secure workflow to unregister and revoke a OPC UA application including CRL updates.
 5. Forms to manage OPC UA applications and certificate requests.
@@ -49,7 +53,7 @@ A web management application front end and a local OPC UA GDS server allow for e
 11. Accesses the microservice on behalf of the user to be able to execute protected functions in Azure Key Vault (e.g. signing rights for Approver).
 
 ### On premise Global Discovery Server (GDS) with cloud integration
-5. Based on the GDS server common library of the OPC UA .NetStandard SDK.
+1. Based on the GDS server common library of the OPC UA .NetStandard SDK.
 6. Implements OPC UA Discovery and Certificate management services by connecting to the microservice.
 7. Executes in a docker container or as a .Net Core 2.0 application on Windows or Linux.
 8. Implements namespace of OPC UA GDS Discovery and Certificate Management Services V1.04, Part 12.
@@ -61,13 +65,18 @@ but this configuration shall not be used in production deployments.
 ## [Build and Deploy](docs/howto-deploy-services.md) the service to Azure
 
 The documentation how to build and deploy the service is [here](docs/howto-deploy-services.md).
+
+## [Manage certificates](docs/howto-use-cert-services.md) with the Web Sample Application
+
+The documentation how to manage certificates with the Web sample application is [here](docs/howto-use-cert-services.md).
+
 <!---
 ## [Build and Run](docs/howto-run-services-locally.md) the services locally
 
 The documentation how to build and run the service is [here](docs/howto-run-services-locally.md).
 -->
 
-# Contributing
+# [Contributing](CONTRIBUTING.md)
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
@@ -94,11 +103,10 @@ If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft
 ## License
 
 Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the [MIT](LICENSE) License.  
+Licensed under the [MIT](license.txt) License.  
 
 [azure-free]:https://azure.microsoft.com/en-us/free/
 [powershell-install]:https://azure.microsoft.com/en-us/downloads/#PowerShell
-
 [run-with-docker-url]: https://docs.microsoft.com/azure/iot-suite/iot-suite-remote-monitoring-deploy-local#run-the-microservices-in-docker
 [rm-arch-url]: https://docs.microsoft.com/azure/iot-suite/iot-suite-remote-monitoring-sample-walkthrough
 [postman-url]: https://www.getpostman.com

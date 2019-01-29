@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -175,104 +175,6 @@ namespace Opc.Ua.Gds.Server.OpcVault
             }
         }
 
-#if CERTSIGNER
-        public override async Task<X509Certificate2KeyPair> NewKeyPairRequestAsync(
-            ApplicationRecordDataType application,
-            string subjectName,
-            string[] domainNames,
-            string privateKeyFormat,
-            string privateKeyPassword)
-        {
-            try
-            {
-                X509Certificate2KeyPair signedKeyPair = await _opcVaultHandler.NewKeyPairRequestAsync(
-                    Configuration.Id,
-                    application,
-                    subjectName,
-                    domainNames,
-                    privateKeyFormat,
-                    privateKeyPassword
-                    ).ConfigureAwait(false);
-
-                await UpdateIssuerCertificateAsync(signedKeyPair.Certificate);
-
-                return signedKeyPair;
-            }
-            catch (Exception ex)
-            {
-                if (ex is ServiceResultException)
-                {
-                    throw ex as ServiceResultException;
-                }
-                throw new ServiceResultException(StatusCodes.BadInvalidArgument, ex.Message);
-            }
-        }
-
-        public override async Task<X509Certificate2> SigningRequestAsync(
-            ApplicationRecordDataType application,
-            string[] domainNames,
-            byte[] certificateRequest)
-        {
-            try
-            {
-                var pkcs10CertificationRequest = new Org.BouncyCastle.Pkcs.Pkcs10CertificationRequest(certificateRequest);
-                if (!pkcs10CertificationRequest.Verify())
-                {
-                    throw new ServiceResultException(StatusCodes.BadInvalidArgument, "CSR signature invalid.");
-                }
-
-                var info = pkcs10CertificationRequest.GetCertificationRequestInfo();
-                var altNameExtension = GetAltNameExtensionFromCSRInfo(info);
-                if (altNameExtension != null)
-                {
-                    if (altNameExtension.Uris.Count > 0)
-                    {
-                        if (!altNameExtension.Uris.Contains(application.ApplicationUri))
-                        {
-                            throw new ServiceResultException(StatusCodes.BadCertificateUriInvalid,
-                                "CSR AltNameExtension does not match " + application.ApplicationUri);
-                        }
-                    }
-                }
-
-                var signedCertificate = await _opcVaultHandler.SigningRequestAsync(
-                    Configuration.Id,
-                    application,
-                    certificateRequest).ConfigureAwait(false);
-
-                await UpdateIssuerCertificateAsync(signedCertificate).ConfigureAwait(false);
-
-                return signedCertificate;
-            }
-            catch (Exception ex)
-            {
-                if (ex is ServiceResultException)
-                {
-                    throw ex as ServiceResultException;
-                }
-                throw new ServiceResultException(StatusCodes.BadInvalidArgument, ex.Message);
-            }
-
-        }
-
-        public override async Task<Opc.Ua.X509CRL> RevokeCertificateAsync(X509Certificate2 certificate)
-        {
-            try
-            {
-                return await _opcVaultHandler.RevokeCertificateAsync(
-                    Configuration.Id,
-                    certificate).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                if (ex is ServiceResultException)
-                {
-                    throw ex as ServiceResultException;
-                }
-                throw new ServiceResultException(StatusCodes.BadInvalidArgument, ex.Message);
-            }
-        }
-#endif
         public override Task<X509Certificate2> CreateCACertificateAsync(
             string subjectName
             )

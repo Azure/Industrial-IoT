@@ -20,9 +20,6 @@
  .PARAMETER groupsConfig
     The certificate groups configuration.
 
- .PARAMETER autoApprove
-    Set the web app auto approval configuration.
-
  .PARAMETER environment
     Set the web app environment configuration. (Production,Development)
 
@@ -37,7 +34,6 @@ param(
     [string] $webServiceName = $null,
     $aadConfig = $null,
     [string] $groupsConfig = $null,
-    [string] $autoApprove = "false",
     [string] $environment = "Production",
     $interactive = $true
 )
@@ -148,11 +144,6 @@ if (![string]::IsNullOrEmpty($webServiceName)) {
     $templateParameters.Add("webServiceName", $webServiceName)
 }
 
-# Configure web app auto approve
-if (![string]::IsNullOrEmpty($autoApprove)) { 
-    $templateParameters.Add("autoApprove", $autoApprove)
-}
-
 # Configure web app environment
 if (![string]::IsNullOrEmpty($environment)) { 
     $templateParameters.Add("environment", $environment)
@@ -168,13 +159,16 @@ $webAppPortalUrl = $deployment.Outputs["webAppPortalUrl"].Value
 $webAppServiceUrl = $deployment.Outputs["webAppServiceUrl"].Value
 $webAppPortalName = $deployment.Outputs["webAppPortalName"].Value
 $webAppServiceName = $deployment.Outputs["webAppServiceName"].Value
+$keyVaultBaseUrl = $deployment.Outputs["keyVaultBaseUrl"].Value
+$opcVaultBaseUrl = $deployment.Outputs["opcVaultBaseUrl"].Value
+$cosmosDBEndpoint = $deployment.Outputs["cosmosDBEndpoint"].Value
 
 if ($aadConfig -and $aadConfig.ClientObjectId) {
     # 
     # Update client application to add reply urls to required permissions.
     #
     $adClient = Get-AzureADApplication -ObjectId $aadConfig.ClientObjectId 
-    Write-Host "Adding ReplyUrls:"
+    Write-Host "Adding ReplyUrls to client AD:"
     $replyUrls = $adClient.ReplyUrls
     # web app
     $replyUrls.Add($webAppPortalUrl + "/signin-oidc")
@@ -185,8 +179,17 @@ if ($aadConfig -and $aadConfig.ClientObjectId) {
     Set-AzureADApplication -ObjectId $aadConfig.ClientObjectId -ReplyUrls $replyUrls -HomePage $webAppPortalUrl
 }
 
-if ($aadConfig -and $aadConfig.ClientObjectId) {
-    Set-AzureADApplication -ObjectId $aadConfig.ServiceObjectId -HomePage $webServicePortalUrl
+if ($aadConfig -and $aadConfig.ServiceObjectId) {
+    # 
+    # Update client application to add reply urls to required permissions.
+    #
+    $adService = Get-AzureADApplication -ObjectId $aadConfig.ServiceObjectId 
+    Write-Host "Adding ReplyUrls to service AD:"
+    $replyUrls = $adService.ReplyUrls
+    # service
+    $replyUrls.Add($webAppServiceUrl + "/signin-oidc")
+    Write-Host $webAppServiceUrl"/signin-oidc"
+    Set-AzureADApplication -ObjectId $aadConfig.ServiceObjectId -ReplyUrls $replyUrls -HomePage $webServicePortalUrl
 }
 
 Return $webAppPortalUrl, $webAppServiceUrl

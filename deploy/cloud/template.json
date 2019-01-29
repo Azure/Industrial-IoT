@@ -91,6 +91,27 @@
             },
             "minLength": 2
         },
+        "webAppSku": {
+            "type": "string",
+            "defaultValue": "S1",
+            "allowedValues": [
+                "F1",
+                "D1",
+                "B1",
+                "B2",
+                "B3",
+                "S1",
+                "S2",
+                "S3",
+                "P1",
+                "P2",
+                "P3",
+                "P4"
+            ],
+            "metadata": {
+                "description": "Describes plan's pricing tier and instance size. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
+            }
+        },
         "groupsConfig": {
             "type": "string",
             "defaultValue": "",
@@ -98,16 +119,13 @@
                 "description": "Default certificate group configuration. (JSON)"
             }
         },
-        "autoApprove": {
-            "type": "string",
-            "defaultValue": "false",
-            "metadata": {
-                "description": "Preset service for certificate auto approval."
-            }
-        },
         "environment": {
             "type": "string",
             "defaultValue": "Production",
+            "allowedValues": [
+                "Production",
+                "Development"
+            ],
             "metadata": {
                 "description": "Preset web app environment."
             }
@@ -119,16 +137,20 @@
         "groupPrefix": "[take(resourceGroup().name, 8)]",
         "randomSuffix": "[take(uniqueString(subscription().subscriptionId, resourceGroup().id, resourceGroup().name), 5)]",
         "applocation": "[resourceGroup().location]",
-        "keyVaultName": "[concat(variables('groupPrefix'), '-', variables('randomSuffix'))]",
-        "vaultSku": "Premium",
-        "enabledForDeployment": true,
+        "opcVaultName": "[concat(variables('groupPrefix'), '-', variables('randomSuffix'))]",
+        "opcVaultSku": "Premium",
+        "keyVaultName": "[concat(variables('groupPrefix'), '-', variables('randomSuffix'), '-svc')]",
+        "keyVaultSku": "Standard",
+        "keyVaultApiVersion": "2018-02-14",
+        "enabledForDeployment": false,
         "enabledForTemplateDeployment": false,
         "enableVaultForVolumeEncryption": false,
-        "webAppSku": "S1",
+        "webAppApiVersion": "2018-02-01",
         "webAppPortalName": "[parameters('webAppName')]",
         "webAppServiceName": "[parameters('webServiceName')]",
         "appInsightsName": "[concat(variables('groupPrefix'), '-', variables('randomSuffix'))]",
-        "appServicePlanName": "[concat('AppServicePlan-', resourceGroup().name)]",
+        "appServicePlanName": "[concat(variables('groupPrefix'), '-', variables('randomSuffix'))]",
+        "servicePlanApiVersion": "2017-08-01",
         "documentDBName": "[concat(variables('groupPrefix'), '-', variables('randomSuffix'))]",
         "documentDBApiVersion": "2016-03-19",
         "documentDBResourceId": "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))]",
@@ -137,7 +159,7 @@
         "readPermissions": [ "Get", "List" ],
         "writePermissions": [ "Get", "List", "Set" ],
         "signPermissions": [ "Get", "List", "Sign" ],
-        "createPermissions": [ "Get", "List", "Update", "Create", "Import", "Delete"],
+        "createPermissions": [ "Get", "List", "Update", "Create", "Import", "Delete" ],
         "groupsObject": {
             "secrets": [
                 {
@@ -145,24 +167,27 @@
                     "secretValue": "[parameters('groupsConfig')]"
                 }
             ]
-        }
+        },
+        "identityApiVersion": "2018-11-30",
+        "serviceIdentityResourceId": "[concat(resourceId('Microsoft.Web/sites', variables('webAppServiceName')),'/providers/Microsoft.ManagedIdentity/Identities/default')]",
+        "appIdentityResourceId": "[concat(resourceId('Microsoft.Web/sites', variables('webAppPortalName')),'/providers/Microsoft.ManagedIdentity/Identities/default')]"
     },
     "resources": [
         {
-            "apiVersion": "2017-08-01",
+            "comments": "This service plan is used for the app, the service and the slots.",
+            "apiVersion": "[variables('servicePlanApiVersion')]",
             "type": "Microsoft.Web/serverfarms",
             "kind": "app",
             "name": "[variables('appServicePlanName')]",
             "location": "[variables('applocation')]",
-            "comments": "This app service plan is used for the web app and slots.",
             "properties": {},
             "dependsOn": [],
             "sku": {
-                "name": "[variables('webAppSku')]"
+                "name": "[parameters('webAppSku')]"
             }
         },
         {
-            "comments": "Azure CosmosDb",
+            "comments": "This is the CosmosDb OpcVault database.",
             "apiVersion": "[variables('documentDBApiVersion')]",
             "type": "Microsoft.DocumentDb/databaseAccounts",
             "kind": "GlobalDocumentDB",
@@ -180,12 +205,112 @@
             "dependsOn": []
         },
         {
+            "comments": "This is the KeyVault for the service and the app.",
             "type": "Microsoft.KeyVault/vaults",
             "name": "[variables('keyVaultName')]",
-            "apiVersion": "2018-02-14",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
             "location": "[variables('applocation')]",
             "tags": {
                 "displayName": "KeyVault"
+            },
+            "properties": {
+                "sku": {
+                    "name": "[variables('keyVaultSku')]",
+                    "family": "A"
+                },
+                "dependsOn": [
+                    "[resourceId('Microsoft.Web/sites', variables('webAppServiceName'))]",
+                    "[resourceId('Microsoft.Web/sites', variables('webAppPortalName'))]"
+                ],
+                "enabledForDeployment": "[variables('enabledForDeployment')]",
+                "enabledForTemplateDeployment": "[variables('enabledForTemplateDeployment')]",
+                "enabledForVolumeEncryption": "[variables('enableVaultForVolumeEncryption')]",
+                "tenantId": "[reference(variables('serviceIdentityResourceId'), variables('identityApiVersion')).tenantId]",
+                "accessPolicies": [
+                    {
+                        "tenantId": "[reference(variables('serviceIdentityResourceId'), variables('identityApiVersion')).tenantId]",
+                        "objectId": "[reference(variables('serviceIdentityResourceId'), variables('identityApiVersion')).principalId]",
+                        "permissions": {
+                            "secrets": "[variables('readPermissions')]"
+                        }
+                    },
+                    {
+                        "tenantId": "[reference(variables('appIdentityResourceId'), variables('identityApiVersion')).tenantId]",
+                        "objectId": "[reference(variables('appIdentityResourceId'), variables('identityApiVersion')).principalId]",
+                        "permissions": {
+                            "secrets": "[variables('readPermissions')]"
+                        }
+                    },
+                    {
+                        "tenantId": "[parameters('aadTenantId')]",
+                        "objectId": "[parameters('aadServicePrincipalId')]",
+                        "permissions": {
+                            "secrets": "[variables('readPermissions')]"
+                        }
+                    },
+                    {
+                        "tenantId": "[parameters('aadTenantId')]",
+                        "objectId": "[parameters('aadUserPrincipalId')]",
+                        "permissions": {
+                            "secrets": "[variables('readPermissions')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('keyVaultName'), '/', 'Service-Auth--AppSecret')]",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "properties": {
+                "value": "[parameters('aadServiceSecret')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('keyVaultName'), '/', 'Service-OpcVault--CosmosDBToken')]",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "properties": {
+                "value": "[listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName')), variables('documentDBApiVersion')).primaryMasterKey]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))]",
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('keyVaultName'), '/', 'App-AzureAd--ClientSecret')]",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "properties": {
+                "value": "[parameters('aadClientSecret')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('keyVaultName'), '/', 'Service-Swagger--AppSecret')]",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "properties": {
+                "value": "[parameters('aadClientSecret')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+            ]
+        },
+        {
+            "comments": "This is the dedicated KeyVault Premium Sku for the OPCVault HSM cert store.",
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[variables('opcVaultName')]",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "location": "[variables('applocation')]",
+            "tags": {
+                "displayName": "OpcVault"
             },
             "properties": {
                 "enabledForDeployment": "[variables('enabledForDeployment')]",
@@ -193,7 +318,7 @@
                 "enabledForVolumeEncryption": "[variables('enableVaultForVolumeEncryption')]",
                 "tenantId": "[variables('tenantId')]",
                 "sku": {
-                    "name": "[variables('vaultSku')]",
+                    "name": "[variables('opcVaultSku')]",
                     "family": "A"
                 },
                 "accessPolicies": []
@@ -202,9 +327,10 @@
                 {
                     "type": "accessPolicies",
                     "name": "add",
-                    "apiVersion": "2018-02-14",
+                    "apiVersion": "[variables('keyVaultApiVersion')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+                        "[resourceId('Microsoft.KeyVault/vaults', variables('opcVaultName'))]",
+                        "[resourceId('Microsoft.Web/sites', variables('webAppServiceName'))]"
                     ],
                     "properties": {
                         "accessPolicies": [
@@ -231,15 +357,16 @@
             ]
         },
         {
+            "comments": "This secret contains the OpcVault certificate group configuration.",
             "condition": "[not(empty(parameters('groupsConfig')))]",
             "type": "Microsoft.KeyVault/vaults/secrets",
-            "name": "[concat(variables('keyVaultName'), '/', variables('groupsObject').secrets[copyIndex()].secretName)]",
-            "apiVersion": "2018-02-14",
+            "name": "[concat(variables('opcVaultName'), '/', variables('groupsObject').secrets[copyIndex()].secretName)]",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
             "properties": {
                 "value": "[variables('groupsObject').secrets[copyIndex()].secretValue]"
             },
             "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+                "[resourceId('Microsoft.KeyVault/vaults', variables('opcVaultName'))]"
             ],
             "copy": {
                 "name": "secretsCopy",
@@ -247,24 +374,15 @@
             }
         },
         {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "name": "[concat(variables('keyVaultName'), '/', 'Service-OpcVault--CosmosDBToken')]",
-            "apiVersion": "2018-02-14",
-            "properties": {
-                "value": "[listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName')), variables('documentDBApiVersion')).primaryMasterKey]"
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))]",
-                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
-            ]
-        },
-        {
-            "apiVersion": "2016-08-01",
+            "comments": "This is the web application, also the default 'nameless' slot.",
+            "apiVersion": "[variables('webAppApiVersion')]",
             "type": "Microsoft.Web/sites",
             "kind": "app",
             "name": "[variables('webAppPortalName')]",
             "location": "[variables('applocation')]",
-            "comments": "This is the web app, also the default 'nameless' slot.",
+            "identity": {
+                "type": "SystemAssigned"
+            },
             "properties": {
                 "name": "[variables('webAppPortalName')]",
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
@@ -277,10 +395,11 @@
                 {
                     "name": "appsettings",
                     "type": "config",
-                    "apiVersion": "2015-08-01",
+                    "apiVersion": "[variables('webAppApiVersion')]",
                     "dependsOn": [
                         "[resourceId('Microsoft.Web/sites', variables('webAppPortalName'))]",
                         "[resourceId('Microsoft.Web/sites', variables('webAppServiceName'))]",
+                        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
                         "Microsoft.ApplicationInsights.AzureWebSites"
                     ],
                     "tags": {
@@ -290,13 +409,13 @@
                         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]",
                         "ASPNETCORE_ENVIRONMENT": "[parameters('environment')]",
                         "AZUREAD__CLIENTID": "[parameters('aadClientId')]",
-                        "AZUREAD__CLIENTSECRET": "[parameters('aadClientSecret')]",
+                        //"AZUREAD__CLIENTSECRET": "[parameters('aadClientSecret')]",
                         "AZUREAD__INSTANCE": "[parameters('aadInstance')]",
                         "AZUREAD__TENANTID": "[parameters('aadTenantId')]",
                         "OPCVAULT__BASEADDRESS": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppServiceName'))).hostNames[0])]",
                         "OPCVAULT__RESOURCEID": "[parameters('aadServiceId')]",
-                        "OPCVAULT__AUTOAPPROVE": "[parameters('autoApprove')]",
-                        "WEBSITE_RUN_FROM_PACKAGE": "1"
+                        "KEYVAULT": "[reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))).vaultUri]",
+                        "WEBSITE_RUN_FROM_PACKAGE": "[if (equals(parameters('environment'),'Development'),'0','1')]"
                     }
                 },
                 {
@@ -313,12 +432,15 @@
             ]
         },
         {
-            "apiVersion": "2016-08-01",
+            "comments": "This is the web service, also the default 'nameless' slot.",
+            "apiVersion": "[variables('webAppApiVersion')]",
             "type": "Microsoft.Web/sites",
             "kind": "app",
             "name": "[variables('webAppServiceName')]",
             "location": "[variables('applocation')]",
-            "comments": "This is the web app service, also the default 'nameless' slot.",
+            "identity": {
+                "type": "SystemAssigned"
+            },
             "properties": {
                 "name": "[variables('webAppServiceName')]",
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
@@ -331,9 +453,10 @@
                 {
                     "name": "appsettings",
                     "type": "config",
-                    "apiVersion": "2015-08-01",
+                    "apiVersion": "[variables('webAppApiVersion')]",
                     "dependsOn": [
                         "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))]",
+                        "[resourceId('Microsoft.KeyVault/vaults', variables('opcVaultName'))]",
                         "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
                         "[resourceId('Microsoft.Web/sites', variables('webAppServiceName'))]",
                         "Microsoft.ApplicationInsights.AzureWebSites"
@@ -345,19 +468,18 @@
                         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]",
                         "ASPNETCORE_ENVIRONMENT": "[parameters('environment')]",
                         "KEYVAULT": "[reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))).vaultUri]",
-                        "OPCVAULT__KEYVAULTBASEURL": "[reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))).vaultUri]",
+                        "OPCVAULT__KEYVAULTBASEURL": "[reference(resourceId('Microsoft.KeyVault/vaults', variables('opcVaultName'))).vaultUri]",
                         "OPCVAULT__COSMOSDBENDPOINT": "[reference(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))).documentEndpoint]",
                         //"OPCVAULT__COSMOSDBTOKEN": "[listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName')), variables('documentDBApiVersion')).primaryMasterKey]",
-                        "OPCVAULT__AUTOAPPROVE": "[parameters('autoApprove')]",
                         "AUTH__APPID": "[parameters('aadServiceId')]",
-                        "AUTH__APPSECRET": "[parameters('aadServiceSecret')]",
+                        //"AUTH__APPSECRET": "[parameters('aadServiceSecret')]",
                         "AUTH__AUDIENCE": "[parameters('aadAudience')]",
                         "AUTH__TENANTID": "[parameters('aadTenantId')]",
                         "AUTH__TRUSTEDISSUER": "[parameters('aadTrustedIssuer')]",
-                        "SWAGGER__ENABLED": "true",
+                        "SWAGGER__ENABLED": "[if (equals(parameters('environment'),'Development'),'True','False')]",
                         "SWAGGER__APPID": "[parameters('aadClientId')]",
-                        "SWAGGER__APPSECRET": "[parameters('aadClientSecret')]",
-                        "WEBSITE_RUN_FROM_PACKAGE": "1"
+                        //"SWAGGER__APPSECRET": "[parameters('aadClientSecret')]",
+                        "WEBSITE_RUN_FROM_PACKAGE": "[if (equals(parameters('environment'),'Development'),'0','1')]"
                     }
                 },
                 {
@@ -373,7 +495,7 @@
             ]
         },
         {
-            "apiVersion": "2014-04-01",
+            "apiVersion": "2015-05-01",
             "name": "[variables('appInsightsName')]",
             "type": "Microsoft.Insights/components",
             "location": "[resourceGroup().location]",
@@ -381,7 +503,6 @@
                 "applicationId": "[variables('appInsightsName')]"
             }
         }
-
     ],
     "outputs": {
         "webAppPortalUrl": {
@@ -408,11 +529,15 @@
             "type": "string",
             "value": "[variables('tenantId')]"
         },
-        "KeyVaultBaseUrl": {
+        "keyVaultBaseUrl": {
             "type": "string",
             "value": "[reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))).vaultUri]"
         },
-        "CosmosDBEndpoint": {
+        "opcVaultBaseUrl": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.KeyVault/vaults', variables('opcVaultName'))).vaultUri]"
+        },
+        "cosmosDBEndpoint": {
             "type": "string",
             "value": "[reference(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))).documentEndpoint]"
         }

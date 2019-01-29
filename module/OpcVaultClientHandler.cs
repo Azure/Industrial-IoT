@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -148,60 +148,6 @@ namespace Opc.Ua.Gds.Server.OpcVault
             }
             return result;
         }
-
-
-#if CERTSIGNER
-        public async Task<X509Certificate2> SigningRequestAsync(
-            string id,
-            ApplicationRecordDataType application,
-            byte[] certificateRequest)
-        {
-            var sr = new SigningRequestApiModel()
-            {
-                ApplicationURI = application.ApplicationUri,
-                Csr = Convert.ToBase64String(certificateRequest)
-            };
-            var certModel = await _gdsServiceClient.SigningRequestAsync(id, sr).ConfigureAwait(false);
-            return new X509Certificate2(Convert.FromBase64String(certModel.Certificate));
-        }
-
-        public async Task<Opc.Ua.X509CRL> RevokeCertificateAsync(
-            string id,
-            X509Certificate2 certificate)
-        {
-            var certModel = new X509Certificate2ApiModel()
-            {
-                Certificate = Convert.ToBase64String(certificate.RawData),
-                Subject = certificate.Subject,
-                Thumbprint = certificate.Thumbprint
-            };
-            var crlModel = await _gdsServiceClient.RevokeCertificateAsync(id, certModel).ConfigureAwait(false);
-            return new Opc.Ua.X509CRL(Convert.FromBase64String(crlModel.Crl));
-        }
-
-        public async Task<X509Certificate2KeyPair> NewKeyPairRequestAsync(
-            string id,
-            ApplicationRecordDataType application,
-            string subjectName,
-            string[] domainNames,
-            string privateKeyFormat,
-            string privateKeyPassword)
-        {
-            var certModel = new NewKeyPairRequestApiModel()
-            {
-                ApplicationURI = application.ApplicationUri,
-                SubjectName = subjectName,
-                DomainNames = domainNames,
-                PrivateKeyFormat = privateKeyFormat,
-                PrivateKeyPassword = privateKeyPassword
-            };
-            var nkpModel = await _gdsServiceClient.NewKeyPairRequestAsync(id, certModel).ConfigureAwait(false);
-            return new X509Certificate2KeyPair(
-                new X509Certificate2(Convert.FromBase64String(nkpModel.Certificate)),
-                nkpModel.PrivateKeyFormat,
-                Convert.FromBase64String(nkpModel.PrivateKey));
-        }
-#endif
     }
 }
 

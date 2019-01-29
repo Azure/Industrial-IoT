@@ -222,9 +222,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             do
             {
                 uint queryRecords = complexQuery ? _defaultRecordsPerQuery : maxRecordsToReturn;
-                string query = CreateServerQuery(startingRecordId, queryRecords);
+                SqlQuerySpec sqlQuerySpec= CreateServerQuery(startingRecordId, queryRecords);
                 nextRecordId = startingRecordId + 1;
-                var applications = await _applications.GetAsync(query);
+                var applications = await _applications.GetAsync(sqlQuerySpec);
                 lastQuery = queryRecords == 0 || applications.Count() < queryRecords || applications.Count() == 0;
 
                 foreach (var application in applications)
@@ -321,11 +321,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             {
                 maxRecordsToReturn = _defaultRecordsPerQuery;
             }
-            string query = CreateServerQuery(0, 0);
+            SqlQuerySpec sqlQuerySpec = CreateServerQuery(0, 0);
             do
             {
                 IEnumerable<Application> applications;
-                (nextPageLink, applications) = await _applications.GetPageAsync(query, nextPageLink, maxRecordsToReturn - records.Count);
+                (nextPageLink, applications) = await _applications.GetPageAsync(sqlQuerySpec, nextPageLink, maxRecordsToReturn - records.Count);
 
                 foreach (var application in applications)
                 {
@@ -397,19 +397,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             _applications = new DocumentDBCollection<Application>(_db, _collectionId);
         }
 
-        private string CreateServerQuery(uint startingRecordId, uint maxRecordsToQuery)
+        private SqlQuerySpec CreateServerQuery(uint startingRecordId, uint maxRecordsToQuery)
         {
             string query;
+            var queryParameters = new SqlParameterCollection();
             if (maxRecordsToQuery != 0)
             {
-                query = String.Format("SELECT TOP {0}", maxRecordsToQuery);
+                query = "SELECT TOP @maxRecordsToQuery";
+                queryParameters.Add(new SqlParameter("@maxRecordsToQuery", maxRecordsToQuery));
             }
             else
             {
                 query = String.Format("SELECT");
             }
-            query += String.Format(" * FROM Applications a WHERE a.ID >= {0} ORDER BY a.ID", startingRecordId);
-            return query;
+            query += " * FROM Applications a WHERE a.ID >= @startingRecord ORDER BY a.ID";
+            queryParameters.Add(new SqlParameter( "@startingRecord", startingRecordId));
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec {
+                QueryText = query,
+                Parameters = queryParameters
+            };
+            return sqlQuerySpec;
         }
         private Guid VerifyRegisterApplication(Application application)
         {
@@ -531,7 +538,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         private async Task<int> GetMaxAppIDAsync()
         {
             // find new ID for QueryServers
-            var maxAppIDEnum = await _applications.GetAsync("SELECT TOP 1 * FROM Applications a ORDER BY a.ID DESC");
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = "SELECT TOP 1 * FROM Applications a ORDER BY a.ID DESC"
+            };
+            var maxAppIDEnum = await _applications.GetAsync(sqlQuerySpec);
             var maxAppID = maxAppIDEnum.SingleOrDefault();
             return (maxAppID != null) ? maxAppID.ID + 1 : 1;
         }

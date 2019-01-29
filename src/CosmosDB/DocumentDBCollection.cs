@@ -87,12 +87,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<T>> GetAsync(string predicate)
+        public async Task<IEnumerable<T>> GetAsync(SqlQuerySpec sqlQuerySpec)
         {
             FeedOptions feedOptions = new FeedOptions { MaxItemCount = -1 };
             IDocumentQuery<T> query = db.Client.CreateDocumentQuery<T>(
                 UriFactory.CreateDocumentCollectionUri(db.DatabaseId, CollectionId),
-                predicate,
+                sqlQuerySpec,
                 feedOptions)
             .AsDocumentQuery();
 
@@ -141,7 +141,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
 
         /// <inheritdoc/>
         public async Task<(string, IEnumerable<T>)> GetPageAsync(
-            string predicate,
+            SqlQuerySpec sqlQuerySpec,
             string continuationToken,
             int? maxItemCount
             )
@@ -153,7 +153,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
             };
             IDocumentQuery<T> query = db.Client.CreateDocumentQuery<T>(
                 UriFactory.CreateDocumentCollectionUri(db.DatabaseId, CollectionId),
-                predicate,
+                sqlQuerySpec,
                 feedOptions)
             .AsDocumentQuery();
 

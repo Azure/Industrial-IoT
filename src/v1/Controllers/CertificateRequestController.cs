@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -92,15 +92,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         public async Task ApproveCertificateRequestAsync(string requestId, bool rejected)
         {
             // for auto approve the service app id must have signing rights in keyvault
-            if (_servicesConfig.AutoApprove)
-            {
-                await _certificateRequest.ApproveAsync(requestId, rejected);
-            }
-            else
-            {
-                var onBehalfOfCertificateRequest = await this._certificateRequest.OnBehalfOfRequest(Request);
-                await onBehalfOfCertificateRequest.ApproveAsync(requestId, rejected);
-            }
+            var onBehalfOfCertificateRequest = await this._certificateRequest.OnBehalfOfRequest(Request);
+            await onBehalfOfCertificateRequest.ApproveAsync(requestId, rejected);
         }
 
         /// <summary>
@@ -133,6 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         [Authorize(Policy = Policies.CanManage)]
         public async Task PurgeCertificateRequestAsync(string requestId)
         {
+            // may require elevated rights to delete pk
             await _certificateRequest.PurgeAsync(requestId);
         }
 
