@@ -7,10 +7,78 @@ namespace OpcPublisher
 {
     using Opc.Ua;
     using System.Globalization;
-    using static HubCommunication;
+    using static HubCommunicationBase;
     using static OpcApplicationConfiguration;
     using static OpcPublisher.PublisherTelemetryConfiguration;
     using static Program;
+
+    /// <summary>
+    /// Class used to pass data from the MonitoredItem notification to the hub message processing.
+    /// </summary>
+    public class MessageData
+    {
+        public string EndpointUrl { get; set; }
+        public string NodeId { get; set; }
+        public string ApplicationUri { get; set; }
+        public string DisplayName { get; set; }
+        public string Value { get; set; }
+        public string SourceTimestamp { get; set; }
+        public uint? StatusCode { get; set; }
+        public string Status { get; set; }
+        public bool PreserveValueQuotes { get; set; }
+
+        public MessageData()
+        {
+            EndpointUrl = null;
+            NodeId = null;
+            ApplicationUri = null;
+            DisplayName = null;
+            Value = null;
+            StatusCode = null;
+            SourceTimestamp = null;
+            Status = null;
+            PreserveValueQuotes = false;
+        }
+
+        public void ApplyPatterns(EndpointTelemetryConfiguration telemetryConfiguration)
+        {
+            if (telemetryConfiguration.EndpointUrl.Publish == true)
+            {
+                EndpointUrl = telemetryConfiguration.EndpointUrl.PatternMatch(EndpointUrl);
+            }
+            if (telemetryConfiguration.NodeId.Publish == true)
+            {
+                NodeId = telemetryConfiguration.NodeId.PatternMatch(NodeId);
+            }
+            if (telemetryConfiguration.MonitoredItem.ApplicationUri.Publish == true)
+            {
+                ApplicationUri = telemetryConfiguration.MonitoredItem.ApplicationUri.PatternMatch(ApplicationUri);
+            }
+            if (telemetryConfiguration.MonitoredItem.DisplayName.Publish == true)
+            {
+                DisplayName = telemetryConfiguration.MonitoredItem.DisplayName.PatternMatch(DisplayName);
+            }
+            if (telemetryConfiguration.Value.Value.Publish == true)
+            {
+                Value = telemetryConfiguration.Value.Value.PatternMatch(Value);
+            }
+            if (telemetryConfiguration.Value.SourceTimestamp.Publish == true)
+            {
+                SourceTimestamp = telemetryConfiguration.Value.SourceTimestamp.PatternMatch(SourceTimestamp);
+            }
+            if (telemetryConfiguration.Value.StatusCode.Publish == true && StatusCode != null)
+            {
+                if (!string.IsNullOrEmpty(telemetryConfiguration.Value.StatusCode.Pattern))
+                {
+                    Logger.Information($"'Pattern' settngs for StatusCode are ignored.");
+                }
+            }
+            if (telemetryConfiguration.Value.Status.Publish == true)
+            {
+                Status = telemetryConfiguration.Value.Status.PatternMatch(Status);
+            }
+        }
+    }
 
     /// <summary>
     /// Class to manage the OPC monitored items, which are the nodes we need to publish.
@@ -146,75 +214,6 @@ namespace OpcPublisher
             }
             return false;
         }
-
-        /// <summary>
-        /// Class used to pass data from the MonitoredItem notification to the hub message processing.
-        /// </summary>
-        internal class MessageData
-        {
-            public string EndpointUrl { get; set; }
-            public string NodeId { get; set; }
-            public string ApplicationUri { get; set; }
-            public string DisplayName { get; set; }
-            public string Value { get; set; }
-            public string SourceTimestamp { get; set; }
-            public uint? StatusCode { get; set; }
-            public string Status { get; set; }
-            public bool PreserveValueQuotes { get; set; }
-
-            public MessageData()
-            {
-                EndpointUrl = null;
-                NodeId = null;
-                ApplicationUri = null;
-                DisplayName = null;
-                Value = null;
-                StatusCode = null;
-                SourceTimestamp = null;
-                Status = null;
-                PreserveValueQuotes = false;
-            }
-
-            public void ApplyPatterns(EndpointTelemetryConfiguration telemetryConfiguration)
-            {
-                if (telemetryConfiguration.EndpointUrl.Publish == true)
-                {
-                    EndpointUrl = telemetryConfiguration.EndpointUrl.PatternMatch(EndpointUrl);
-                }
-                if (telemetryConfiguration.NodeId.Publish == true)
-                {
-                    NodeId = telemetryConfiguration.NodeId.PatternMatch(NodeId);
-                }
-                if (telemetryConfiguration.MonitoredItem.ApplicationUri.Publish == true)
-                {
-                    ApplicationUri = telemetryConfiguration.MonitoredItem.ApplicationUri.PatternMatch(ApplicationUri);
-                }
-                if (telemetryConfiguration.MonitoredItem.DisplayName.Publish == true)
-                {
-                    DisplayName = telemetryConfiguration.MonitoredItem.DisplayName.PatternMatch(DisplayName);
-                }
-                if (telemetryConfiguration.Value.Value.Publish == true)
-                {
-                    Value = telemetryConfiguration.Value.Value.PatternMatch(Value);
-                }
-                if (telemetryConfiguration.Value.SourceTimestamp.Publish == true)
-                {
-                    SourceTimestamp = telemetryConfiguration.Value.SourceTimestamp.PatternMatch(SourceTimestamp);
-                }
-                if (telemetryConfiguration.Value.StatusCode.Publish == true && StatusCode != null)
-                {
-                    if (!string.IsNullOrEmpty(telemetryConfiguration.Value.StatusCode.Pattern))
-                    {
-                        Logger.Information($"'Pattern' settngs for StatusCode are ignored.");
-                    }
-                }
-                if (telemetryConfiguration.Value.Status.Publish == true)
-                {
-                    Status = telemetryConfiguration.Value.Status.PatternMatch(Status);
-                }
-            }
-        }
-
 
         /// <summary>
         /// The notification that the data for a monitored item has changed on an OPC UA server.
@@ -376,7 +375,7 @@ namespace OpcPublisher
                     Logger.Debug($"Enqueue a new message from subscription {(monitoredItem.Subscription == null ? "removed" : monitoredItem.Subscription.Id.ToString(CultureInfo.InvariantCulture))}");
                     Logger.Debug($" with publishing interval: {monitoredItem.Subscription.PublishingInterval} and sampling interval: {monitoredItem.SamplingInterval}):");
                 }
-                HubCommunication.Enqueue(messageData);
+                Hub.Enqueue(messageData);
             }
             catch (Exception ex)
             {

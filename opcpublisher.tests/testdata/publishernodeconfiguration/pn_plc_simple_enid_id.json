@@ -1,0 +1,24 @@
+[
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
+            {
+                "ExpandedNodeId": "nsu=http://opcfoundation.org/UA/;i=2258"
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
+            {
+                "Id": "i=2262"
+            },
+            {
+                "Id": "ns=2;s=AlternatingBoolean"
+            },
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"
+            }
+        ]
+    }
+]

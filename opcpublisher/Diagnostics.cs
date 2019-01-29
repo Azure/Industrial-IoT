@@ -11,7 +11,7 @@ namespace OpcPublisher
     using Serilog.Events;
     using System.Collections.Generic;
     using System.Globalization;
-    using static HubCommunication;
+    using static HubCommunicationBase;
     using static Program;
     using static PublisherNodeConfiguration;
 
@@ -80,7 +80,7 @@ namespace OpcPublisher
                 diagnosticInfo.WorkingSetMB = Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024);
                 diagnosticInfo.DefaultSendIntervalSeconds = DefaultSendIntervalSeconds;
                 diagnosticInfo.HubMessageSize = HubMessageSize;
-                diagnosticInfo.HubProtocol = HubProtocol;
+                diagnosticInfo.HubProtocol = Hub.HubProtocol;
             }
             catch
             {

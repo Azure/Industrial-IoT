@@ -17,62 +17,120 @@ namespace OpcPublisher
     using System.Net;
     using System.Reflection;
     using System.Runtime.InteropServices;
-    using static PublisherDiagnostics;
     using static OpcApplicationConfiguration;
     using static OpcPublisher.OpcMonitoredItem;
     using static OpcPublisher.PublisherNodeConfiguration;
     using static OpcPublisher.PublisherTelemetryConfiguration;
     using static Program;
+    using static PublisherDiagnostics;
 
     /// <summary>
     /// Class to handle all IoTHub/EdgeHub communication.
     /// </summary>
-    public class HubCommunication
+    public class HubCommunicationBase : IHubCommunication, IDisposable
     {
-        public static long MonitoredItemsQueueCount => _monitoredItemsDataQueue.Count;
-
-        public static long NumberOfEvents { get; private set; }
-
-        public static long MissedSendIntervalCount { get; private set; }
-
-        public static long TooLargeCount { get; private set; }
-
-        public static long SentBytes { get; private set; }
-
-        public static long SentMessages { get; private set; }
-
-        public static DateTime SentLastTime { get; private set; }
-
-        public static long FailedMessages { get; private set; }
-
-        public const uint HubMessageSizeMax = (256 * 1024);
-
-        public static uint HubMessageSize { get; set; } = 262144;
-
-        public static TransportType HubProtocol { get; set; } = TransportType.Mqtt_WebSocket_Only;
-
-        public static int DefaultSendIntervalSeconds { get; set; } = 10;
-
+        /// <summary>
+        /// Specifies the queue capacity for monitored item events.
+        /// </summary>
         public static int MonitoredItemsQueueCapacity { get; set; } = 8192;
 
+        /// <summary>
+        /// Number of events in the monitored items queue.
+        /// </summary>
+        public static long MonitoredItemsQueueCount => _monitoredItemsDataQueue.Count;
+
+        /// <summary>
+        /// Number of events we enqueued.
+        /// </summary>
         public static long EnqueueCount => _enqueueCount;
 
+        /// <summary>
+        /// Number of times enqueueing of events failed.
+        /// </summary>
         public static long EnqueueFailureCount => _enqueueFailureCount;
 
-        public static bool IsHttp1Transport() => (_transportType == TransportType.Http1);
+        /// <summary>
+        /// Specifies max message size in byte for hub communication allowed.
+        /// </summary>
+        public const uint HubMessageSizeMax = 256 * 1024;
 
+        /// <summary>
+        /// Specifies the message size in bytes used for hub communication.
+        /// </summary>
+        public static uint HubMessageSize { get; set; } = HubMessageSizeMax;
+
+        /// <summary>
+        /// Specifies the send interval in seconds after which a message is sent to the hub.
+        /// </summary>
+        public static int DefaultSendIntervalSeconds { get; set; } = 10;
+
+        /// <summary>
+        /// Number of events sent to the cloud.
+        /// </summary>
+        public static long NumberOfEvents { get; set; }
+
+        /// <summary>
+        /// Number of times we were not able to make the send interval, because too high load.
+        /// </summary>
+        public static long MissedSendIntervalCount { get; set; }
+
+        /// <summary>
+        /// Number of times the isze fo the event payload was too large for a telemetry message.
+        /// </summary>
+        public static long TooLargeCount { get; set; }
+
+        /// <summary>
+        /// Number of payload bytes we sent to the cloud.
+        /// </summary>
+        public static long SentBytes { get; set; }
+
+        /// <summary>
+        /// Number of messages we sent to the cloud.
+        /// </summary>
+        public static long SentMessages { get; set; }
+
+        /// <summary>
+        /// Time when we sent the last telemetry message.
+        /// </summary>
+        public static DateTime SentLastTime { get; set; }
+
+        /// <summary>
+        /// Number of times we were not able to sent the telemetry message to the cloud.
+        /// </summary>
+        public static long FailedMessages { get; set; }
+
+        /// <summary>
+        /// Allow to ingest data into IoT Central.
+        /// </summary>
         public static bool IotCentralMode { get; set; } = false;
 
+        /// <summary>
+        /// Max allowed payload of an IoTHub direct method call response.
+        /// </summary>
         public static int MaxResponsePayloadLength { get; } = 128 * 1024 - 256;
 
-        public static Dictionary<string, MethodCallback> IotHubDirectMethods { get; } = new Dictionary<string, MethodCallback>();
+        /// <summary>
+        /// The protocol to use for hub communication.
+        /// </summary>
+        virtual public TransportType HubProtocol { get; set; } = TransportType.Mqtt_Tcp_Only;
+        
+        /// <summary>
+        /// Dictionary of available IoTHub direct methods.
+        /// </summary>
+        public Dictionary<string, MethodCallback> IotHubDirectMethods { get; } = new Dictionary<string, MethodCallback>();
+
+        /// <summary>
+        /// Check if transport type to use is HTTP.
+        /// </summary>
+        bool IsHttp1Transport() => (_transportType == TransportType.Http1);
 
         /// <summary>
         /// Ctor for the class.
         /// </summary>
-        public HubCommunication(CancellationToken ct)
+        public HubCommunicationBase()
         {
-            _shutdownToken = ct;
+            _hubCommunicationCts = new CancellationTokenSource();
+            _shutdownToken = _hubCommunicationCts.Token;
             IotHubDirectMethods.Add("PublishNodes", HandlePublishNodesMethodAsync);
             IotHubDirectMethods.Add("UnpublishNodes", HandleUnpublishNodesMethodAsync);
             IotHubDirectMethods.Add("UnpublishAllNodes", HandleUnpublishAllNodesMethodAsync);
@@ -86,24 +144,78 @@ namespace OpcPublisher
         }
 
         /// <summary>
+        /// Implement IDisposable.
+        /// </summary>
+        virtual protected void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // send cancellation token and wait for last IoT Hub message to be sent.
+                _hubCommunicationCts.Cancel();
+                try
+                {
+                    _monitoredItemsProcessorTask.Wait();
+
+                    if (_iotHubClient != null)
+                    {
+                        _iotHubClient.CloseAsync().Wait();
+                        _iotHubClient = null;
+                    }
+                    if (_edgeHubClient != null)
+                    {
+                        _edgeHubClient.CloseAsync().Wait();
+                        _edgeHubClient = null;
+                    }
+                    _monitoredItemsDataQueue = null;
+                    _monitoredItemsProcessorTask = null;
+                }
+                catch (Exception e)
+                {
+                    Logger.Error(e, "Failure while shutting down hub messaging.");
+                    throw;
+                }
+                _hubCommunicationCts.Dispose();
+                _hubCommunicationCts = null;
+            }
+        }
+
+        /// <summary>
+        /// Implement IDisposable.
+        /// </summary>
+        virtual public void Dispose()
+        {
+            // do cleanup
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Initializes message broker communication.
+        /// </summary>
+        virtual public Task<bool> InitAsync()
+        {
+            throw new Exception("HubCommunication::InitAsync should not be called");
+        }
+
+        /// <summary>
         /// Initializes edge message broker communication.
         /// </summary>
-        public async Task<bool> InitHubCommunicationAsync(ModuleClient edgeHubClient, TransportType transportType)
+        public async Task<bool> InitHubCommunicationAsync(ModuleClient edgeHubClient)
         {
             // init EdgeHub communication parameters
             _edgeHubClient = edgeHubClient;
-            return await InitHubCommunicationAsync(transportType).ConfigureAwait(false);
+            return await InitHubCommunicationAsync(HubProtocol).ConfigureAwait(false);
         }
 
 
         /// <summary>
         /// Initializes message broker communication.
         /// </summary>
-        public async Task<bool> InitHubCommunicationAsync(DeviceClient iotHubClient, TransportType transportType)
+        public async Task<bool> InitHubCommunicationAsync(DeviceClient iotHubClient)
         {
             // init IoTHub communication parameters
             _iotHubClient = iotHubClient;
-            return await InitHubCommunicationAsync(transportType).ConfigureAwait(false);
+            return await InitHubCommunicationAsync(HubProtocol).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -178,7 +290,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle connection status change notifications.
         /// </summary>
-        static void ConnectionStatusChange(ConnectionStatus status, ConnectionStatusChangeReason reason)
+        public void ConnectionStatusChange(ConnectionStatus status, ConnectionStatusChangeReason reason)
         {
             if (reason == ConnectionStatusChangeReason.Connection_Ok || ShutdownTokenSource.IsCancellationRequested)
             {
@@ -193,7 +305,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle publish node method call.
         /// </summary>
-        static internal async Task<MethodResponse> HandlePublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
+        virtual public async Task<MethodResponse> HandlePublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandlePublishNodesMethodAsync:";
             Uri endpointUri = null;
@@ -385,7 +497,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle unpublish node method call.
         /// </summary>
-        static internal async Task<MethodResponse> HandleUnpublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
+        virtual public async Task<MethodResponse> HandleUnpublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleUnpublishNodesMethodAsync:";
             NodeId nodeId = null;
@@ -611,7 +723,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle unpublish all nodes method call.
         /// </summary>
-        static internal async Task<MethodResponse> HandleUnpublishAllNodesMethodAsync(MethodRequest methodRequest, object userContext)
+        virtual public async Task<MethodResponse> HandleUnpublishAllNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleUnpublishAllNodesMethodAsync:";
             Uri endpointUri = null;
@@ -764,7 +876,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get all endpoints which published nodes.
         /// </summary>
-        static internal Task<MethodResponse> HandleGetConfiguredEndpointsMethodAsync(MethodRequest methodRequest, object userContext)
+        virtual public Task<MethodResponse> HandleGetConfiguredEndpointsMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetConfiguredEndpointsMethodAsync:";
             GetConfiguredEndpointsMethodRequestModel getConfiguredEndpointsMethodRequest = null;
@@ -875,7 +987,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get list of configured nodes on a specific endpoint.
         /// </summary>
-        static internal Task<MethodResponse> HandleGetConfiguredNodesOnEndpointMethodAsync(MethodRequest methodRequest, object userContext)
+        virtual public Task<MethodResponse> HandleGetConfiguredNodesOnEndpointMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetConfiguredNodesOnEndpointMethodAsync:";
             Uri endpointUri = null;
@@ -1014,7 +1126,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get diagnostic information.
         /// </summary>
-        static internal Task<MethodResponse> HandleGetDiagnosticInfoMethodAsync(MethodRequest methodRequest, object userContext)
+        virtual public Task<MethodResponse> HandleGetDiagnosticInfoMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticInfoMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1060,7 +1172,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get log information.
         /// </summary>
-        static internal async Task<MethodResponse> HandleGetDiagnosticLogMethodAsync(MethodRequest methodRequest, object userContext)
+        virtual public async Task<MethodResponse> HandleGetDiagnosticLogMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticLogMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1106,7 +1218,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get log information.
         /// </summary>
-        static internal async Task<MethodResponse> HandleGetDiagnosticStartupLogMethodAsync(MethodRequest methodRequest, object userContext)
+        virtual public async Task<MethodResponse> HandleGetDiagnosticStartupLogMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticStartupLogMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1152,7 +1264,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get log information.
         /// </summary>
-        static internal Task<MethodResponse> HandleExitApplicationMethodAsync(MethodRequest methodRequest, object userContext)
+        virtual public Task<MethodResponse> HandleExitApplicationMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleExitApplicationMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1217,7 +1329,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get application information.
         /// </summary>
-        static internal Task<MethodResponse> HandleGetInfoMethodAsync(MethodRequest methodRequest, object userContext)
+        virtual public Task<MethodResponse> HandleGetInfoMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetInfoMethodAsync:";
             GetInfoMethodResponseModel getInfoMethodResponseModel = new GetInfoMethodResponseModel();
@@ -1270,7 +1382,7 @@ namespace OpcPublisher
         /// <summary>
         /// Method that is called for any unimplemented call. Just returns that info to the caller
         /// </summary>
-        static internal Task<MethodResponse> DefaultMethodHandlerAsync(MethodRequest methodRequest, object userContext)
+        virtual public Task<MethodResponse> DefaultMethodHandlerAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "DefaultMethodHandlerAsync:";
             string errorMessage = $"Method '{methodRequest.Name}' successfully received, but this method is not implemented";
@@ -1285,7 +1397,7 @@ namespace OpcPublisher
         /// <summary>
         /// Initializes internal message processing.
         /// </summary>
-        public static Task<bool> InitMessageProcessingAsync()
+        private Task<bool> InitMessageProcessingAsync()
         {
             try
             {
@@ -1310,38 +1422,9 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Shuts down the IoTHub communication.
-        /// </summary>
-        public static async Task ShutdownAsync()
-        {
-            // send cancellation token and wait for last IoT Hub message to be sent.
-            try
-            {
-                await _monitoredItemsProcessorTask.ConfigureAwait(false);
-
-                if (_iotHubClient != null)
-                {
-                    await _iotHubClient.CloseAsync().ConfigureAwait(false);
-                    _iotHubClient = null;
-                }
-                if (_edgeHubClient != null)
-                {
-                    await _edgeHubClient.CloseAsync().ConfigureAwait(false);
-                    _edgeHubClient = null;
-                }
-                _monitoredItemsDataQueue = null;
-                _monitoredItemsProcessorTask = null;
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e, "Failure while shutting down hub messaging.");
-            }
-        }
-
-        /// <summary>
         /// Enqueue a message for sending to IoTHub.
         /// </summary>
-        internal static void Enqueue(MessageData json)
+        virtual public void Enqueue(MessageData json)
         {
             // Try to add the message.
             Interlocked.Increment(ref _enqueueCount);
@@ -1358,7 +1441,7 @@ namespace OpcPublisher
         /// <summary>
         /// Creates a JSON message to be sent to IoTHub, based on the telemetry configuration for the endpoint.
         /// </summary>
-        private static async Task<string> CreateJsonMessageAsync(MessageData messageData)
+        private async Task<string> CreateJsonMessageAsync(MessageData messageData)
         {
             try
             {
@@ -1485,7 +1568,7 @@ namespace OpcPublisher
         /// <summary>
         /// Creates a JSON message to be sent to IoTCentral.
         /// </summary>
-        private static async Task<string> CreateIotCentralJsonMessageAsync(MessageData messageData)
+        private async Task<string> CreateIotCentralJsonMessageAsync(MessageData messageData)
         {
             try
             {
@@ -1512,7 +1595,7 @@ namespace OpcPublisher
         /// <summary>
         /// Dequeue monitored item notification messages, batch them for send (if needed) and send them to IoTHub.
         /// </summary>
-        protected static async Task MonitoredItemsProcessorAsync(CancellationToken ct)
+        virtual public async Task MonitoredItemsProcessorAsync(CancellationToken ct)
         {
             uint jsonSquareBracketLength = 2;
             Message tempMsg = new Message();
@@ -1720,7 +1803,7 @@ namespace OpcPublisher
         /// <summary>
         /// Exit the application.
         /// </summary>
-        static async Task ExitApplicationAsync(int secondsTillExit)
+        virtual public async Task ExitApplicationAsync(int secondsTillExit)
         {
             string logPrefix = "ExitApplicationAsync:";
 
@@ -1781,7 +1864,9 @@ namespace OpcPublisher
         private static Task _monitoredItemsProcessorTask;
         private static DeviceClient _iotHubClient;
         private static ModuleClient _edgeHubClient;
-        private static TransportType _transportType;
-        private static CancellationToken _shutdownToken;
+        private CancellationTokenSource _hubCommunicationCts;
+        private CancellationToken _shutdownToken;
+
+        private TransportType _transportType;
     }
 }

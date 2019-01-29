@@ -11,7 +11,6 @@ namespace OpcPublisher
     using System.Linq;
     using System.Net;
     using System.Text;
-    using static HubCommunication;
     using static OpcApplicationConfiguration;
     using static OpcPublisher.Program;
     using static PublisherNodeConfiguration;
@@ -721,16 +720,16 @@ namespace OpcPublisher
                 }
 
                 string methodName = inputArguments[0] as string;
-                if (IotHubDirectMethods.ContainsKey(inputArguments[0] as string))
+                if (Hub.IotHubDirectMethods.ContainsKey(inputArguments[0] as string))
                 {
-                    var methodCallback = IotHubDirectMethods.GetValueOrDefault(methodName);
+                    var methodCallback = Hub.IotHubDirectMethods.GetValueOrDefault(methodName);
                     var methodResponse = methodCallback(new MethodRequest(methodName, Encoding.UTF8.GetBytes(methodRequest)), null).Result;
                     outputArguments[0] = methodResponse.ResultAsJson;
                 }
                 else
                 {
-                    var methodCallback = IotHubDirectMethods.GetValueOrDefault(methodName);
-                    var methodResponse = DefaultMethodHandlerAsync(new MethodRequest(methodName, Encoding.UTF8.GetBytes(methodRequest)), null).Result;
+                    var methodCallback = Hub.IotHubDirectMethods.GetValueOrDefault(methodName);
+                    var methodResponse = Hub.DefaultMethodHandlerAsync(new MethodRequest(methodName, Encoding.UTF8.GetBytes(methodRequest)), null).Result;
                     outputArguments[0] = methodResponse.ResultAsJson;
                     return ServiceResult.Create(StatusCodes.BadNotImplemented, "The IoTHub direct method is not implemented");
                 }

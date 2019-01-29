@@ -181,7 +181,7 @@ namespace OpcPublisher
         /// <summary>
         /// Implement IDisposable.
         /// </summary>
-        protected virtual void Dispose(bool disposing)
+        virtual protected void Dispose(bool disposing)
         {
             if (disposing)
             {

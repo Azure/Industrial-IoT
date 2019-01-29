@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace OpcPublisher
 {
+    using Microsoft.Azure.Devices.Client;
     using Opc.Ua;
     using Opc.Ua.Server;
     using Serilog;
@@ -17,13 +18,13 @@ namespace OpcPublisher
     using System.IO;
     using System.Text;
     using System.Text.RegularExpressions;
-    using static PublisherDiagnostics;
-    using static HubCommunication;
+    using static HubCommunicationBase;
     using static IotEdgeHubCommunication;
     using static IotHubCommunication;
     using static Opc.Ua.CertificateStoreType;
     using static OpcApplicationConfiguration;
     using static OpcSession;
+    using static PublisherDiagnostics;
     using static PublisherNodeConfiguration;
     using static PublisherTelemetryConfiguration;
     using static System.Console;
@@ -31,15 +32,19 @@ namespace OpcPublisher
     public sealed class Program
     {
         /// <summary>
-        /// IoTHub/EdgeHub communication objects.
+        /// IoTHub/EdgeHub communication object.
         /// </summary>
-        public static IotHubCommunication IotHubCommunication { get; set; }
-        public static IotEdgeHubCommunication IotEdgeHubCommunication { get; set; }
+        public static IHubCommunication Hub { get; set; }
+
+        /// <summary>
+        /// Telemetry configuration object.
+        /// </summary>
+        public static PublisherTelemetryConfiguration TelemetryConfiguration { get; set; }
 
         /// <summary>
         /// Shutdown token source.
         /// </summary>
-        public static CancellationTokenSource ShutdownTokenSource { get; set; }
+        public static CancellationTokenSource ShutdownTokenSource { get; set; } = new CancellationTokenSource();
 
         /// <summary>
         /// Used as delay in sec when shutting down the application.
@@ -85,9 +90,6 @@ namespace OpcPublisher
             try
             {
                 var shouldShowHelp = false;
-
-                // Shutdown token sources.
-                ShutdownTokenSource = new CancellationTokenSource();
 
                 // detect the runtime environment. either we run standalone (native or containerized) or as IoT Edge module (containerized)
                 // check if we have an environment variable containing an IoT Edge connectionstring, we run as IoT Edge module
@@ -169,14 +171,14 @@ namespace OpcPublisher
                             }
                         },
                         // IoTHub specific options
-                        { "ih|iothubprotocol=", $"{(IsIotEdgeModule ? "not supported when running as IoT Edge module\n" : $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}")}",
-                            (Microsoft.Azure.Devices.Client.TransportType p) => {
+                        { "ih|iothubprotocol=", $"{(IsIotEdgeModule ? "not supported when running as IoT Edge module\n" : $"the protocol to use for communication with Azure IoTHub (allowed values: {_hubProtocols}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}")}",
+                            (TransportType p) => {
                                 if (IsIotEdgeModule)
                                 {
-                                    if (p != Microsoft.Azure.Devices.Client.TransportType.Mqtt_Tcp_Only)
+                                    if (p != TransportType.Mqtt_Tcp_Only)
                                     {
                                         WriteLine("When running as IoTEdge module Mqtt_Tcp_Only is enforced.");
-                                        IotHubProtocol = Microsoft.Azure.Devices.Client.TransportType.Mqtt_Tcp_Only;
+                                        IotEdgeHubProtocol = TransportType.Mqtt_Tcp_Only;
                                     }
                                 }
                                 else
@@ -550,11 +552,7 @@ namespace OpcPublisher
                 if (_installOnly)
                 {
                     // initialize and start IoTHub communication
-                    IotHubCommunication = new IotHubCommunication(ShutdownTokenSource.Token);
-                    if (!await IotHubCommunication.InitAsync().ConfigureAwait(false))
-                    {
-                        return;
-                    }
+                    Hub = IotHubCommunication.Instance;
                     Logger.Information("Installation completed. Exiting...");
                     return;
                 }
@@ -608,7 +606,7 @@ namespace OpcPublisher
                 }
 
                 // read telemetry configuration file
-                PublisherTelemetryConfiguration.Init(ShutdownTokenSource.Token);
+                PublisherTelemetryConfiguration.Init();
                 if (!await PublisherTelemetryConfiguration.ReadConfigAsync().ConfigureAwait(false))
                 {
                     return;
@@ -625,20 +623,12 @@ namespace OpcPublisher
                 if (IsIotEdgeModule)
                 {
                     // initialize and start EdgeHub communication
-                    IotEdgeHubCommunication = new IotEdgeHubCommunication(ShutdownTokenSource.Token);
-                    if (!await IotEdgeHubCommunication.InitAsync().ConfigureAwait(false))
-                    {
-                        return;
-                    }
+                    Hub = IotEdgeHubCommunication.Instance;
                 }
                 else
                 {
                     // initialize and start IoTHub communication
-                    IotHubCommunication = new IotHubCommunication(ShutdownTokenSource.Token);
-                    if (!await IotHubCommunication.InitAsync().ConfigureAwait(false))
-                    {
-                        return;
-                    }
+                    Hub = IotHubCommunication.Instance;
                 }
 
                 if (!await CreateOpcPublishingDataAsync().ConfigureAwait(false))
@@ -689,8 +679,8 @@ namespace OpcPublisher
                 await SessionShutdownAsync().ConfigureAwait(false);
 
                 // shutdown the IoTHub messaging
-                await IotHubCommunication.ShutdownAsync().ConfigureAwait(false);
-                IotHubCommunication = null;
+                Hub.Dispose();
+                Hub = null;
 
                 // shutdown diagnostics
                 await PublisherDiagnostics.ShutdownAsync().ConfigureAwait(false);
@@ -851,7 +841,7 @@ namespace OpcPublisher
         /// <summary>
         /// Initialize logging.
         /// </summary>
-        private static void InitLogging()
+        public static void InitLogging()
         {
             LoggerConfiguration loggerConfiguration = new LoggerConfiguration();
 
@@ -917,7 +907,7 @@ namespace OpcPublisher
         /// <summary>
         /// Helper to build a list of byte arrays out of a comma separated list of base64 strings (optional in double quotes).
         /// </summary>
-        private static List<string> ParseListOfStrings(string s)
+        public static List<string> ParseListOfStrings(string s)
         {
             List<string> strings = new List<string>();
             if (s[0] == '"' && (s.Count(c => c.Equals('"')) % 2 == 0))
@@ -1007,5 +997,6 @@ namespace OpcPublisher
         private static string _logFileName = $"{Utils.GetHostName()}-publisher.log";
         private static string _logLevel = "info";
         private static TimeSpan _logFileFlushTimeSpanSec = TimeSpan.FromSeconds(30);
+        private static string _hubProtocols = string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()));
     }
 }

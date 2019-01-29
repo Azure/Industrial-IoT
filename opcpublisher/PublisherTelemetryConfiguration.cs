@@ -9,7 +9,6 @@ namespace OpcPublisher
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
-    using System.Threading;
     using static Program;
 
     /// <summary>
@@ -331,13 +330,12 @@ namespace OpcPublisher
         /// <summary>
         /// Initialize resources for the telemetry configuration.
         /// </summary>
-        public static void Init(CancellationToken shutdownToken)
+        public static void Init()
         {
             _telemetryConfiguration = null;
             _endpointTelemetryConfigurations = new List<EndpointTelemetryConfiguration>();
             _defaultEndpointTelemetryConfiguration = null;
             _endpointTelemetryConfigurationCache = new Dictionary<string, EndpointTelemetryConfiguration>();
-            _shutdownToken = shutdownToken;
         }
 
         /// <summary>
@@ -554,6 +552,5 @@ namespace OpcPublisher
         private static List<EndpointTelemetryConfiguration> _endpointTelemetryConfigurations;
         private static EndpointTelemetryConfiguration _defaultEndpointTelemetryConfiguration;
         private static Dictionary<string, EndpointTelemetryConfiguration> _endpointTelemetryConfigurationCache;
-        private static CancellationToken _shutdownToken;
     }
 }
