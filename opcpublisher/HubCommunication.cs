@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -95,7 +94,6 @@ namespace OpcPublisher
             return await InitHubCommunicationAsync(transportType).ConfigureAwait(false);
         }
 
-
         /// <summary>
         /// Initializes message broker communication.
         /// </summary>
@@ -178,7 +176,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle connection status change notifications.
         /// </summary>
-        static void ConnectionStatusChange(ConnectionStatus status, ConnectionStatusChangeReason reason)
+        private static void ConnectionStatusChange(ConnectionStatus status, ConnectionStatusChangeReason reason)
         {
             if (reason == ConnectionStatusChangeReason.Connection_Ok || ShutdownTokenSource.IsCancellationRequested)
             {
@@ -196,6 +194,7 @@ namespace OpcPublisher
         static internal async Task<MethodResponse> HandlePublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandlePublishNodesMethodAsync:";
+            bool useSecurity = true;
             Uri endpointUri = null;
             PublishNodesMethodRequestModel publishNodesMethodData = null;
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -207,6 +206,7 @@ namespace OpcPublisher
                 Logger.Debug($"{logPrefix} called");
                 publishNodesMethodData = JsonConvert.DeserializeObject<PublishNodesMethodRequestModel>(methodRequest.DataAsJson);
                 endpointUri = new Uri(publishNodesMethodData.EndpointUrl);
+                useSecurity = publishNodesMethodData.UseSecurity;
             }
             catch (UriFormatException e)
             {
@@ -248,7 +248,7 @@ namespace OpcPublisher
                         if (opcSession == null)
                         {
                             // create new session info.
-                            opcSession = new OpcSession(endpointUri.OriginalString, true, OpcSessionCreationTimeout);
+                            opcSession = new OpcSession(endpointUri.OriginalString, useSecurity, OpcSessionCreationTimeout);
                             OpcSessions.Add(opcSession);
                             Logger.Information($"{logPrefix} No matching session found for endpoint '{endpointUri.OriginalString}'. Requested to create a new one.");
                         }
@@ -259,7 +259,7 @@ namespace OpcPublisher
                             // support legacy format
                             if (string.IsNullOrEmpty(node.Id) && !string.IsNullOrEmpty(node.ExpandedNodeId))
                             {
-                                    node.Id = node.ExpandedNodeId;
+                                node.Id = node.ExpandedNodeId;
                             }
 
                             NodeId nodeId = null;
@@ -499,7 +499,6 @@ namespace OpcPublisher
                                             nodeId = NodeId.Parse(node.Id);
                                             isNodeIdFormat = true;
                                         }
-
                                     }
                                     catch (Exception e)
                                     {
@@ -566,7 +565,6 @@ namespace OpcPublisher
                             }
                         }
                     }
-
                 }
                 catch (AggregateException e)
                 {
@@ -1583,7 +1581,7 @@ namespace OpcPublisher
                             jsonMessageSize = Encoding.UTF8.GetByteCount(jsonMessage.ToString(CultureInfo.InvariantCulture));
 
                             // sanity check that the user has set a large enough messages size
-                            if ((HubMessageSize > 0 && jsonMessageSize > HubMessageSize ) || (HubMessageSize == 0 && jsonMessageSize > hubMessageBufferSize))
+                            if ((HubMessageSize > 0 && jsonMessageSize > HubMessageSize) || (HubMessageSize == 0 && jsonMessageSize > hubMessageBufferSize))
                             {
                                 Logger.Error($"There is a telemetry message (size: {jsonMessageSize}), which will not fit into an hub message (max size: {hubMessageBufferSize}].");
                                 Logger.Error($"Please check your hub message size settings. The telemetry message will be discarded silently. Sorry:(");
@@ -1710,7 +1708,6 @@ namespace OpcPublisher
                 {
                     if (!(e is OperationCanceledException))
                     {
-
                         Logger.Error(e, "Error while processing monitored item messages.");
                     }
                 }
@@ -1720,7 +1717,7 @@ namespace OpcPublisher
         /// <summary>
         /// Exit the application.
         /// </summary>
-        static async Task ExitApplicationAsync(int secondsTillExit)
+        private static async Task ExitApplicationAsync(int secondsTillExit)
         {
             string logPrefix = "ExitApplicationAsync:";
 
