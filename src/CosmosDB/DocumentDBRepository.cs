@@ -6,32 +6,39 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
 {
-    using Microsoft.Azure.Documents;
-    using Microsoft.Azure.Documents.Client;
     using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Security;
     using System.Threading.Tasks;
+    using Microsoft.Azure.Documents;
+    using Microsoft.Azure.Documents.Client;
+    using Newtonsoft.Json;
 
     public class DocumentDBRepository : IDocumentDBRepository
     {
+        /// <inheritdoc/>
+        public UniqueKeyPolicy UniqueKeyPolicy { get; }
+        /// <inheritdoc/>
         public DocumentClient Client { get; }
+        /// <inheritdoc/>
         public string DatabaseId { get; }
 
         public DocumentDBRepository(string endpoint, string dataBaseId, string authKeyOrResourceToken)
         {
             this.DatabaseId = dataBaseId;
-            this.Client = new DocumentClient(new Uri(endpoint), authKeyOrResourceToken);
-            CreateDatabaseIfNotExistsAsync().Wait();
+            this.UniqueKeyPolicy = new UniqueKeyPolicy { UniqueKeys = new Collection<UniqueKey>() };
+            this.Client = new DocumentClient(new Uri(endpoint), authKeyOrResourceToken, serializerSettings: SerializerSettings());
         }
 
         public DocumentDBRepository(string endpoint, string dataBaseId, SecureString authKeyOrResourceToken)
         {
             this.DatabaseId = dataBaseId;
-            this.Client = new DocumentClient(new Uri(endpoint), authKeyOrResourceToken);
-            CreateDatabaseIfNotExistsAsync().Wait();
+            this.UniqueKeyPolicy = new UniqueKeyPolicy { UniqueKeys = new Collection<UniqueKey>() };
+            this.Client = new DocumentClient(new Uri(endpoint), authKeyOrResourceToken, serializerSettings: SerializerSettings());
         }
 
-        private async Task CreateDatabaseIfNotExistsAsync()
+        public async Task CreateRepositoryIfNotExistsAsync()
         {
             try
             {
@@ -48,6 +55,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
                     throw;
                 }
             }
+        }
+
+        private JsonSerializerSettings SerializerSettings()
+        {
+            return new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.None,
+                DateFormatHandling = DateFormatHandling.IsoDateFormat,
+                Converters = new List<JsonConverter>
+                {
+                    new Newtonsoft.Json.Converters.StringEnumConverter()
+                    {
+                        CamelCaseText = false,
+                        AllowIntegerValues = true
+                    }
+                }
+            };
         }
     }
 }

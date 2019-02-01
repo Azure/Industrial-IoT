@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -11,10 +11,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
     public sealed class ApplicationNameApiModel
     {
-        [JsonProperty(PropertyName = "Locale", Order = 10)]
+        [JsonProperty(PropertyName = "locale", NullValueHandling = NullValueHandling.Ignore)]
         public string Locale { get; set; }
 
-        [JsonProperty(PropertyName = "Text", Order = 20)]
+        [JsonProperty(PropertyName = "text")]
         public string Text { get; set; }
 
         public ApplicationNameApiModel()

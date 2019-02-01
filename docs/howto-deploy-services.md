@@ -34,6 +34,7 @@ A Powershell script provides an easy way to deploy the OPC UA Vault service and 
 5. Start the deployment with `.\deploy.ps1` for interactive installation<br>
 or enter a full command line:  
 `.\deploy.ps1  -subscriptionName "MySubscriptionName" -resourceGroupLocation "East US" -tenantId "myTenantId" -resourceGroupName "myResourceGroup"`
+7. If you plan to develop with this deployment, add `-development 1` to enable the Swagger UI and to deploy debug builds.
 6. Follow the instructions in the script to login to your subscription and to provide additional information
 9. After a successful build and deploy operation you should see the following message:
 
@@ -122,11 +123,16 @@ Optional, a resource group location. If specified, will try to create a new reso
 AAD tenant to use. 
 
 ```
--development
+-development 0|1
 ```
 
-
 Optional, to deploy for development. Use debug build and set the ASP.Net Environment to Development. Create .publishsettings for import in Visual Studio 2017 to allow to deploy the app and the service directly.
+
+```
+-onlyBuild
+```
+
+Optional, to rebuild and to redeploy only the web apps and to rebuild the docker containers.
 
 [azure-free]:https://azure.microsoft.com/en-us/free/
 [powershell-install]:https://azure.microsoft.com/en-us/downloads/#PowerShell

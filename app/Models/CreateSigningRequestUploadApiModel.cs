@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
     using Newtonsoft.Json;
     using Opc.Ua;
 
-    [StartSigningRequestUploadApiModel]
-    public partial class StartSigningRequestUploadApiModel
+    [CreateSigningRequestUploadApiModel]
+    public partial class CreateSigningRequestUploadApiModel
     {
         /// <summary>
         /// Initializes a new instance of the StartSigningRequestUploadModel
         /// class.
         /// </summary>
-        public StartSigningRequestUploadApiModel()
+        public CreateSigningRequestUploadApiModel()
         {
             CustomInit();
         }
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
         /// Initializes a new instance of the StartSigningRequestUploadModel
         /// class.
         /// </summary>
-        public StartSigningRequestUploadApiModel(StartSigningRequestApiModel apiModel)
+        public CreateSigningRequestUploadApiModel(CreateSigningRequestApiModel apiModel)
         {
             ApiModel = apiModel;
             CustomInit();
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
         partial void CustomInit();
 
         [JsonProperty(PropertyName = "ApiModel")]
-        public StartSigningRequestApiModel ApiModel { get; set; }
+        public CreateSigningRequestApiModel ApiModel { get; set; }
 
         [JsonProperty(PropertyName = "ApplicationUri")]
         public string ApplicationUri { get; set; }
@@ -60,9 +60,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
     /// <summary>
     /// helper for model validation in signing request form
     /// </summary>
-    public class StartSigningRequestUploadApiModelAttribute : ValidationAttribute, IClientModelValidator
+    public class CreateSigningRequestUploadApiModelAttribute : ValidationAttribute, IClientModelValidator
     {
-        public StartSigningRequestUploadApiModelAttribute()
+        public CreateSigningRequestUploadApiModelAttribute()
         {
         }
 
@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
 
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
-            StartSigningRequestUploadApiModel request = (StartSigningRequestUploadApiModel)validationContext.ObjectInstance;
+            CreateSigningRequestUploadApiModel request = (CreateSigningRequestUploadApiModel)validationContext.ObjectInstance;
             var errorList = new List<string>();
 
             if (request.CertificateRequestFile == null &&

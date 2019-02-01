@@ -48,13 +48,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// Gets or sets the Issuer name of the revocation list.
         /// </summary>
-        [JsonProperty(PropertyName = "Issuer")]
+        [JsonProperty(PropertyName = "issuer")]
         public string Issuer { get; set; }
 
         /// <summary>
         /// Gets or sets the base64 encoded X509 certificate revocation list.
         /// </summary>
-        [JsonProperty(PropertyName = "Crl")]
+        [JsonProperty(PropertyName = "crl")]
         public string Crl { get; set; }
 
     }

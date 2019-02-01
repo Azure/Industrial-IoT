@@ -19,8 +19,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 {
     public class KeyVaultCertFactory
     {
-        const int SerialNumberLength = 20;
-        const int DefaultKeySize = 2048;
+        public const int SerialNumberLength = 20;
+        public const int DefaultKeySize = 2048;
 
         /// <summary>
         /// Creates a KeyVault signed certificate.
@@ -97,7 +97,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
                 if (crlDistributionPoint != null)
                 {
-                    string serial = BitConverter.ToString(serialNumber).Replace("-","").ToLower();
+                    string serial = BitConverter.ToString(serialNumber).Replace("-", "").ToLower();
                     // add CRL endpoint, if available
                     request.CertificateExtensions.Add(
                         BuildX509CRLDistributionPoints(crlDistributionPoint.Replace("%serial%", serial))
@@ -241,9 +241,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         {
             Org.BouncyCastle.Crypto.AsymmetricKeyParameter asymmetricKeyParameter = Org.BouncyCastle.Security.PublicKeyFactory.CreateKey(subjectPublicKeyInfo);
             Org.BouncyCastle.Crypto.Parameters.RsaKeyParameters rsaKeyParameters = (Org.BouncyCastle.Crypto.Parameters.RsaKeyParameters)asymmetricKeyParameter;
-            RSAParameters rsaKeyInfo = new RSAParameters();
-            rsaKeyInfo.Modulus = rsaKeyParameters.Modulus.ToByteArrayUnsigned();
-            rsaKeyInfo.Exponent = rsaKeyParameters.Exponent.ToByteArrayUnsigned();
+            RSAParameters rsaKeyInfo = new RSAParameters
+            {
+                Modulus = rsaKeyParameters.Modulus.ToByteArrayUnsigned(),
+                Exponent = rsaKeyParameters.Exponent.ToByteArrayUnsigned()
+            };
             RSA rsa = RSA.Create(rsaKeyInfo);
             return rsa;
         }
@@ -427,8 +429,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             // ensure at least one host name.
             if (domainNames == null || domainNames.Count == 0)
             {
-                domainNames = new List<string>();
-                domainNames.Add(Opc.Ua.Utils.GetHostName());
+                domainNames = new List<string>
+                {
+                    Opc.Ua.Utils.GetHostName()
+                };
             }
 
             // create the application uri.
@@ -484,6 +488,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             foreach (string domainName in domainNames)
             {
                 IPAddress ipAddr;
+                if (String.IsNullOrWhiteSpace(domainName))
+                {
+                    continue;
+                }
                 if (IPAddress.TryParse(domainName, out ipAddr))
                 {
                     sanBuilder.AddIpAddress(ipAddr);
@@ -580,11 +588,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             }
         }
 
+        /// <summary>
+        /// The X509 signature generator to sign a digest with a KeyVault key.
+        /// </summary>
         public class KeyVaultSignatureGenerator : X509SignatureGenerator
         {
-            X509Certificate2 _issuerCert;
-            KeyVaultServiceClient _keyVaultServiceClient;
-            string _signingKey;
+            private X509Certificate2 _issuerCert;
+            private KeyVaultServiceClient _keyVaultServiceClient;
+            private readonly string _signingKey;
 
             public KeyVaultSignatureGenerator(
                 KeyVaultServiceClient keyVaultServiceClient,
@@ -686,17 +697,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         }
     }
 
+    /// <summary>
+    /// The signature factory for Bouncy Castle to sign a digest with a KeyVault key.
+    /// </summary>
     public class KeyVaultSignatureFactory : Org.BouncyCastle.Crypto.ISignatureFactory
     {
-        private readonly Org.BouncyCastle.Asn1.X509.AlgorithmIdentifier algID;
-        private readonly HashAlgorithmName hashAlgorithm;
-        private X509SignatureGenerator generator;
+        private readonly Org.BouncyCastle.Asn1.X509.AlgorithmIdentifier _algID;
+        private readonly HashAlgorithmName _hashAlgorithm;
+        private readonly X509SignatureGenerator _generator;
 
         /// <summary>
         /// Constructor which also specifies a source of randomness to be used if one is required.
         /// </summary>
         /// <param name="hashAlgorithm">The name of the signature algorithm to use.</param>
-        /// <param name="generator"></param>
+        /// <param name="generator">The signature generator.</param>
         public KeyVaultSignatureFactory(HashAlgorithmName hashAlgorithm, X509SignatureGenerator generator)
         {
             Org.BouncyCastle.Asn1.DerObjectIdentifier sigOid;
@@ -716,58 +730,75 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             {
                 throw new ArgumentOutOfRangeException(nameof(hashAlgorithm));
             }
-            this.hashAlgorithm = hashAlgorithm;
-            this.generator = generator;
-            this.algID = new Org.BouncyCastle.Asn1.X509.AlgorithmIdentifier(sigOid);
+            _hashAlgorithm = hashAlgorithm;
+            _generator = generator;
+            _algID = new Org.BouncyCastle.Asn1.X509.AlgorithmIdentifier(sigOid);
         }
 
         /// <inheritdoc/>
-        public Object AlgorithmDetails => this.algID;
+        public Object AlgorithmDetails => _algID;
 
+        /// <inheritdoc/>
         public Org.BouncyCastle.Crypto.IStreamCalculator CreateCalculator()
         {
-            return new KeyVaultStreamCalculator(generator, hashAlgorithm);
+            return new KeyVaultStreamCalculator(_generator, _hashAlgorithm);
         }
     }
 
+    /// <summary>
+    /// Signs a Bouncy Castle digest stream with the .Net X509SignatureGenerator.
+    /// </summary>
     public class KeyVaultStreamCalculator : Org.BouncyCastle.Crypto.IStreamCalculator
     {
-        private X509SignatureGenerator generator;
-        private HashAlgorithmName hashAlgorithm;
+        private X509SignatureGenerator _generator;
+        private readonly HashAlgorithmName _hashAlgorithm;
 
+        /// <summary>
+        /// Ctor for the stream calculator. 
+        /// </summary>
+        /// <param name="generator">The X509SignatureGenerator to sign the digest.</param>
+        /// <param name="hashAlgorithm">The hash algorithm to use for the signature.</param>
         public KeyVaultStreamCalculator(
             X509SignatureGenerator generator,
             HashAlgorithmName hashAlgorithm)
         {
             Stream = new MemoryStream();
-            this.generator = generator;
-            this.hashAlgorithm = hashAlgorithm;
+            _generator = generator;
+            _hashAlgorithm = hashAlgorithm;
         }
 
+        /// <summary>
+        /// The digest stream (MemoryStream).
+        /// </summary>
         public Stream Stream { get; }
 
+        /// <summary>
+        /// Callback signs the digest with X509SignatureGenerator.
+        /// </summary>
         public object GetResult()
         {
             var memStream = Stream as MemoryStream;
             var digest = memStream.ToArray();
-            var signature = generator.SignData(digest, hashAlgorithm);
+            var signature = _generator.SignData(digest, _hashAlgorithm);
             return new MemoryBlockResult(signature);
         }
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Helper for Bouncy Castle signing operation to store the result in a memory block.
+    /// </summary>
     public class MemoryBlockResult : Org.BouncyCastle.Crypto.IBlockResult
     {
-        private byte[] data;
+        private readonly byte[] _data;
         /// <inheritdoc/>
         public MemoryBlockResult(byte[] data)
         {
-            this.data = data;
+            _data = data;
         }
         /// <inheritdoc/>
         public byte[] Collect()
         {
-            return data;
+            return _data;
         }
         /// <inheritdoc/>
         public int Collect(byte[] destination, int offset)

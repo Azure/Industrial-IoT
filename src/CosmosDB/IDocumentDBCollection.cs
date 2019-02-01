@@ -4,17 +4,18 @@
 // ------------------------------------------------------------
 
 
-using Microsoft.Azure.Documents;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Microsoft.Azure.Documents;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
 {
     public interface IDocumentDBCollection<T> where T : class
     {
         DocumentCollection Collection { get; }
+        Task CreateCollectionIfNotExistsAsync();
         Task<Document> CreateAsync(T item);
         Task DeleteAsync(Guid id);
         Task<T> GetAsync(Guid id);

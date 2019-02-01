@@ -57,12 +57,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters
                     context.Result = GetResponse(HttpStatusCode.Unauthorized,
                         context.Exception);
                     break;
+                case ResourceInvalidStateException ri:
                 case KeyVaultErrorException ke:
                     context.Result = GetResponse(HttpStatusCode.Forbidden,
                         context.Exception);
                     break;
                 case JsonReaderException jre:
                 case BadRequestException br:
+                case ArgumentNullException ane:
                 case ArgumentException are:
                     context.Result = GetResponse(HttpStatusCode.BadRequest,
                         context.Exception);

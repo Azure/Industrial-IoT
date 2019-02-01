@@ -3,7 +3,6 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,11 +93,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                     }
                 }
 
-                _log.Error("Create new root CA certificate for group. ", () => new { certificateGroup });
+                _log.Error("Create new issuer CA certificate for group. ", () => new { certificateGroup });
 
-                if (!await certificateGroup.CreateCACertificateAsync().ConfigureAwait(false))
+                if (!await certificateGroup.CreateIssuerCACertificateAsync().ConfigureAwait(false))
                 {
-                    _log.Error("Failed to create CA certificate. ", () => new { certificateGroup });
+                    _log.Error("Failed to create issuer CA certificate. ", () => new { certificateGroup });
                 }
             }
         }
@@ -147,28 +146,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         }
 
         /// <inheritdoc/>
-        public async Task<Opc.Ua.Gds.Server.CertificateGroupConfiguration> GetCertificateGroupConfiguration(string id)
+        public async Task<CertificateGroupConfigurationModel> GetCertificateGroupConfiguration(string id)
         {
             return await KeyVaultCertificateGroupProvider.GetCertificateGroupConfiguration(_keyVaultServiceClient, id).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<Opc.Ua.Gds.Server.CertificateGroupConfiguration> UpdateCertificateGroupConfiguration(string id, Opc.Ua.Gds.Server.CertificateGroupConfiguration config)
+        public async Task<CertificateGroupConfigurationModel> UpdateCertificateGroupConfiguration(string id, CertificateGroupConfigurationModel config)
         {
             return await KeyVaultCertificateGroupProvider.UpdateCertificateGroupConfiguration(_keyVaultServiceClient, id, config).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<Opc.Ua.Gds.Server.CertificateGroupConfiguration> CreateCertificateGroupConfiguration(string id, string subject, string certType)
+        public async Task<CertificateGroupConfigurationModel> CreateCertificateGroupConfiguration(string id, string subject, string certType)
         {
             return await KeyVaultCertificateGroupProvider.CreateCertificateGroupConfiguration(_keyVaultServiceClient, id, subject, certType).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<Opc.Ua.Gds.Server.CertificateGroupConfigurationCollection> GetCertificateGroupConfigurationCollection()
+        public async Task<IList<CertificateGroupConfigurationModel>> GetCertificateGroupConfigurationCollection()
         {
             string json = await _keyVaultServiceClient.GetCertificateConfigurationGroupsAsync().ConfigureAwait(false);
-            return JsonConvert.DeserializeObject<Opc.Ua.Gds.Server.CertificateGroupConfigurationCollection>(json);
+            return JsonConvert.DeserializeObject<IList<CertificateGroupConfigurationModel>>(json);
         }
 
         /// <inheritdoc/>
@@ -187,10 +186,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         }
 
         /// <inheritdoc/>
-        public async Task<X509Certificate2> CreateCACertificateAsync(string id)
+        public async Task<X509Certificate2> CreateIssuerCACertificateAsync(string id)
         {
             var certificateGroup = await KeyVaultCertificateGroupProvider.Create(_keyVaultServiceClient, id).ConfigureAwait(false);
-            if (await certificateGroup.CreateCACertificateAsync().ConfigureAwait(false))
+            if (await certificateGroup.CreateIssuerCACertificateAsync().ConfigureAwait(false))
             {
                 return certificateGroup.Certificate;
             }
@@ -236,21 +235,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         }
 
         /// <inheritdoc/>
-        public async Task<X509Certificate2Collection> GetCACertificateChainAsync(string id)
+        public async Task<X509Certificate2Collection> GetIssuerCACertificateChainAsync(string id)
         {
             var certificateGroup = await KeyVaultCertificateGroupProvider.Create(_keyVaultServiceClient, id).ConfigureAwait(false);
             // TODO: return CA chain
-            return new X509Certificate2Collection(await certificateGroup.GetCACertificateAsync(id).ConfigureAwait(false));
+            return new X509Certificate2Collection(await certificateGroup.GetIssuerCACertificateAsync(id).ConfigureAwait(false));
         }
 
         /// <inheritdoc/>
-        public async Task<IList<Opc.Ua.X509CRL>> GetCACrlChainAsync(string id)
+        public async Task<IList<Opc.Ua.X509CRL>> GetIssuerCACrlChainAsync(string id)
         {
             var certificateGroup = await KeyVaultCertificateGroupProvider.Create(_keyVaultServiceClient, id).ConfigureAwait(false);
             var crlList = new List<Opc.Ua.X509CRL>
             {
                 // TODO: return CA CRL chain
-                await certificateGroup.GetCACrlAsync(id).ConfigureAwait(false)
+                await certificateGroup.GetIssuerCACrlAsync(id).ConfigureAwait(false)
             };
             return crlList;
         }

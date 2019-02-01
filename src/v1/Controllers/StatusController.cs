@@ -14,9 +14,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth;
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models;
-    using Swashbuckle.AspNetCore.Annotations;
 
     /// <inheritdoc/>
+    [ApiController]
     [Route(VersionInfo.PATH + "/[controller]"), TypeFilter(typeof(ExceptionsFilterAttribute))]
     [Produces("application/json")]
     [Authorize(Policy = Policies.CanRead)]
@@ -43,15 +43,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [SwaggerOperation(OperationId = "GetStatus")]
-        public async System.Threading.Tasks.Task<StatusApiModel> GetAsync()
+        public async System.Threading.Tasks.Task<StatusApiModel> GetStatusAsync()
         {
-            // TODO: calculate the actual service status
             bool applicationOk;
             string applicationMessage = "Alive and well";
             try
             {
-                var apps = await _applicationDatabase.QueryApplicationsAsync(0, 1, null, null, 0, null, null);
+                var apps = await _applicationDatabase.QueryApplicationsAsync(0, 1, null, null, 0, null, null, true);
                 applicationOk = apps != null;
             }
             catch (Exception ex)
@@ -74,7 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
                 kvOk = false;
                 kvMessage = ex.Message;
             }
-            this._log.Info("Service status KeyVault", () => new { Healthy = kvOk, Message = kvMessage });
+            this._log.Info("Service status OpcVault", () => new { Healthy = kvOk, Message = kvMessage });
 
             return new StatusApiModel(applicationOk, applicationMessage, kvOk, kvMessage);
         }

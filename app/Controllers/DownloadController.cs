@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> DetailsAsync(string id, string message)
         {
             AuthorizeClient();
-            var request = await opcVault.ReadCertificateRequestAsync(id);
+            var request = await opcVault.GetCertificateRequestAsync(id);
             ViewData["Message"] = message;
 
             var application = await opcVault.GetApplicationAsync(request.ApplicationId);
@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> DownloadCertificateAsync(string requestId, string applicationId)
         {
             AuthorizeClient();
-            var result = await opcVault.FinishRequestAsync(requestId, applicationId);
+            var result = await opcVault.FetchCertificateRequestResultAsync(requestId, applicationId);
             if (String.Compare(result.State, "Approved", StringComparison.OrdinalIgnoreCase) == 0 &&
                 result.SignedCertificate != null)
             {
@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> DownloadCertificateBase64Async(string requestId, string applicationId)
         {
             AuthorizeClient();
-            var result = await opcVault.FinishRequestAsync(requestId, applicationId);
+            var result = await opcVault.FetchCertificateRequestResultAsync(requestId, applicationId);
             if (String.Compare(result.State, "Approved", StringComparison.OrdinalIgnoreCase) == 0 &&
                 result.SignedCertificate != null)
             {
@@ -125,10 +125,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> DownloadIssuerAsync(string requestId)
         {
             AuthorizeClient();
-            var request = await opcVault.ReadCertificateRequestAsync(requestId);
+            var request = await opcVault.GetCertificateRequestAsync(requestId);
             if (request != null)
             {
-                var issuer = await opcVault.GetCACertificateChainAsync(request.CertificateGroupId);
+                var issuer = await opcVault.GetCertificateGroupIssuerCAChainAsync(request.CertificateGroupId);
                 var byteArray = Convert.FromBase64String(issuer.Chain[0].Certificate);
                 return new FileContentResult(byteArray, ContentType.Cert)
                 {
@@ -142,11 +142,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> DownloadIssuerCrlAsync(string requestId)
         {
             AuthorizeClient();
-            var request = await opcVault.ReadCertificateRequestAsync(requestId);
+            var request = await opcVault.GetCertificateRequestAsync(requestId);
             if (request != null)
             {
-                var issuer = await opcVault.GetCACertificateChainAsync(request.CertificateGroupId);
-                var crl = await opcVault.GetCACrlChainAsync(request.CertificateGroupId);
+                var issuer = await opcVault.GetCertificateGroupIssuerCAChainAsync(request.CertificateGroupId);
+                var crl = await opcVault.GetCertificateGroupIssuerCACrlChainAsync(request.CertificateGroupId);
                 var byteArray = Convert.FromBase64String(crl.Chain[0].Crl);
                 return new FileContentResult(byteArray, ContentType.Crl)
                 {
@@ -162,7 +162,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             AuthorizeClient();
             if (groupId == null)
             {
-                var request = await opcVault.ReadCertificateRequestAsync(requestId);
+                var request = await opcVault.GetCertificateRequestAsync(requestId);
                 if (request != null)
                 {
                     groupId = request.CertificateGroupId;
@@ -171,7 +171,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
 
             if (groupId != null)
             {
-                var issuer = await opcVault.GetCACertificateChainAsync(groupId);
+                var issuer = await opcVault.GetCertificateGroupIssuerCAChainAsync(groupId);
                 return RedirectToAction("DownloadCertBase64", new { cert = issuer.Chain[0].Certificate });
             }
 
@@ -184,7 +184,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             AuthorizeClient();
             if (groupId == null)
             {
-                var request = await opcVault.ReadCertificateRequestAsync(requestId);
+                var request = await opcVault.GetCertificateRequestAsync(requestId);
                 if (request != null)
                 {
                     groupId = request.CertificateGroupId;
@@ -193,7 +193,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
 
             if (groupId != null)
             {
-                var crl = await opcVault.GetCACrlChainAsync(groupId);
+                var crl = await opcVault.GetCertificateGroupIssuerCACrlChainAsync(groupId);
                 return RedirectToAction("DownloadCrlBase64", new { crl = crl.Chain[0].Crl });
             }
 
@@ -204,7 +204,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> DownloadPrivateKeyAsync(string requestId, string applicationId)
         {
             AuthorizeClient();
-            var result = await opcVault.FinishRequestAsync(requestId, applicationId);
+            var result = await opcVault.FetchCertificateRequestResultAsync(requestId, applicationId);
             if (String.Compare(result.State, "Approved", StringComparison.OrdinalIgnoreCase) == 0 &&
                 result.PrivateKey != null)
             {
@@ -232,7 +232,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> DownloadPrivateKeyBase64Async(string requestId, string applicationId)
         {
             AuthorizeClient();
-            var result = await opcVault.FinishRequestAsync(requestId, applicationId);
+            var result = await opcVault.FetchCertificateRequestResultAsync(requestId, applicationId);
             if (String.Compare(result.State, "Approved", StringComparison.OrdinalIgnoreCase) == 0 &&
                 result.PrivateKey != null)
             {

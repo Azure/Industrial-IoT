@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -12,13 +12,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
     public sealed class X509Certificate2ApiModel
     {
-        [JsonProperty(PropertyName = "Subject", Order = 10)]
+        [JsonProperty(PropertyName = "subject", Order = 10)]
         public string Subject { get; set; }
 
-        [JsonProperty(PropertyName = "Thumbprint", Order = 20)]
+        [JsonProperty(PropertyName = "thumbprint", Order = 20)]
         public string Thumbprint { get; set; }
 
-        [JsonProperty(PropertyName = "Certificate", Order = 20)]
+        [JsonProperty(PropertyName = "certificate", Order = 30)]
         public string Certificate { get; set; }
 
         public X509Certificate2ApiModel(X509Certificate2 certificate)

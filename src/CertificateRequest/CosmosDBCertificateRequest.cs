@@ -5,74 +5,67 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
-using System.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.IIoT.Diagnostics;
+using Microsoft.Azure.IIoT.Exceptions;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
-using Opc.Ua;
-using Opc.Ua.Gds.Server;
 using CertificateRequest = Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models.CertificateRequest;
 using CertificateRequestState = Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models.CertificateRequestState;
-using StatusCodes = Opc.Ua.StatusCodes;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
+    public static class CosmosDBCertificateRequestFactory
+    {
+        public static ICertificateRequest Create(
+            IApplicationsDatabase database,
+            ICertificateGroup certificateGroup,
+            IServicesConfig config,
+            IDocumentDBRepository db,
+            ILogger logger
+            )
+        {
+            return new CosmosDBCertificateRequest(database, certificateGroup, config, db, logger);
+        }
+    }
+
     internal sealed class CosmosDBCertificateRequest : Object, ICertificateRequest
     {
-        public readonly ExpandedNodeId DefaultApplicationGroupId;
-        public readonly ExpandedNodeId DefaultHttpsGroupId;
-        public readonly ExpandedNodeId DefaultUserTokenGroupId;
-
         internal IApplicationsDatabase _applicationsDatabase;
         internal ICertificateGroup _certificateGroup;
-        private readonly string _endpoint;
-        private readonly string _dataBaseId;
-        private readonly string _collectionId;
         private readonly ILogger _log;
-        private SecureString _authKeyOrResourceToken;
+        private int _certRequestIdCounter = 1;
 
         public CosmosDBCertificateRequest(
             IApplicationsDatabase database,
             ICertificateGroup certificateGroup,
             IServicesConfig config,
+            IDocumentDBRepository db,
             ILogger logger)
         {
             _applicationsDatabase = database;
             _certificateGroup = certificateGroup;
-            _dataBaseId = config.CosmosDBDatabase;
-            _endpoint = config.CosmosDBEndpoint;
-            _collectionId = config.CosmosDBCollection;
-            _authKeyOrResourceToken = new SecureString();
-            foreach (char ch in config.CosmosDBToken)
-            {
-                _authKeyOrResourceToken.AppendChar(ch);
-            }
             _log = logger;
-            _log.Debug("Creating new instance of `CosmosDBApplicationsDatabase` service " + config.CosmosDBEndpoint, () => { });
-            Initialize();
-
-            // well known groups
-            DefaultApplicationGroupId = Opc.Ua.Gds.ObjectIds.Directory_CertificateGroups_DefaultApplicationGroup;
-            DefaultHttpsGroupId = Opc.Ua.Gds.ObjectIds.Directory_CertificateGroups_DefaultHttpsGroup;
-            DefaultUserTokenGroupId = Opc.Ua.Gds.ObjectIds.Directory_CertificateGroups_DefaultUserTokenGroup;
-
+            _certificateRequests = new DocumentDBCollection<CosmosDB.Models.CertificateRequest>(db, config.CosmosDBCollection);
+            // set unique key in CosmosDB for Certificate ID ()
+            // db.UniqueKeyPolicy.UniqueKeys.Add(new UniqueKey { Paths = new Collection<string> { "/" + nameof(CertificateRequest.ClassType), "/" + nameof(CertificateRequest.ID) } });
+            _log.Debug("Created new instance of `CosmosDBApplicationsDatabase` service " + config.CosmosDBCollection, () => { });
         }
 
         #region ICertificateRequest
-        public Task Initialize()
+        public async Task Initialize()
         {
-            var db = new DocumentDBRepository(_endpoint, _dataBaseId, _authKeyOrResourceToken);
-            _certificateRequests = new DocumentDBCollection<CosmosDB.Models.CertificateRequest>(db, _collectionId);
-            return Task.CompletedTask;
+            await _certificateRequests.CreateCollectionIfNotExistsAsync();
+            _certRequestIdCounter = await GetMaxCertIDAsync();
         }
 
         public async Task<ICertificateRequest> OnBehalfOfRequest(HttpRequest request)
@@ -100,10 +93,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             string authorityId)
         {
             Application application = await _applicationsDatabase.GetApplicationAsync(applicationId);
-            if (application == null)
-            {
-                throw new ServiceResultException(StatusCodes.BadNotFound, "The ApplicationId does not refer to a valid application.");
-            }
 
             if (string.IsNullOrEmpty(certificateGroupId))
             {
@@ -121,10 +110,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             if (request == null)
             {
                 request = new CertificateRequest() { RequestId = Guid.NewGuid(), AuthorityId = authorityId };
+                request.ID = _certRequestIdCounter++;
                 isNew = true;
             }
 
-            request.State = (int)CertificateRequestState.New;
+            request.CertificateRequestState = (int)CertificateRequestState.New;
             request.CertificateGroupId = certificateGroupId;
             request.CertificateTypeId = certificateTypeId;
             request.SubjectName = null;
@@ -137,7 +127,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
             if (isNew)
             {
-                await _certificateRequests.CreateAsync(request);
+                bool retry;
+                do
+                {
+                    retry = false;
+                    try
+                    {
+                        var result = await _certificateRequests.CreateAsync(request);
+                    }
+                    catch (DocumentClientException dce)
+                    {
+                        if (dce.StatusCode == System.Net.HttpStatusCode.Conflict)
+                        {
+                            // retry with new guid and id
+                            request.RequestId = Guid.NewGuid();
+                            _certRequestIdCounter = await GetMaxCertIDAsync();
+                            request.ID = _certRequestIdCounter++;
+                            retry = true;
+                        }
+                    }
+                } while (retry);
             }
 
             return request.RequestId.ToString();
@@ -148,16 +157,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             string certificateGroupId,
             string certificateTypeId,
             string subjectName,
-            string[] domainNames,
+            IList<string> domainNames,
             string privateKeyFormat,
             string privateKeyPassword,
             string authorityId)
         {
             Application application = await _applicationsDatabase.GetApplicationAsync(applicationId);
-            if (application == null)
-            {
-                throw new ServiceResultException(StatusCodes.BadNodeIdUnknown);
-            }
 
             if (string.IsNullOrEmpty(certificateGroupId))
             {
@@ -230,7 +235,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 }
             }
 
-            request.State = (int)CertificateRequestState.New;
+            request.ID = _certRequestIdCounter++;
+            request.CertificateRequestState = (int)CertificateRequestState.New;
             request.CertificateGroupId = certificateGroupId;
             request.CertificateTypeId = certificateTypeId;
             request.SubjectName = subjectName;
@@ -243,7 +249,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
             if (isNew)
             {
-                await _certificateRequests.CreateAsync(request);
+                bool retry;
+                do
+                {
+                    retry = false;
+                    try
+                    {
+                        var result = await _certificateRequests.CreateAsync(request);
+                    }
+                    catch (DocumentClientException dce)
+                    {
+                        if (dce.StatusCode == System.Net.HttpStatusCode.Conflict)
+                        {
+                            // retry with new guid and id
+                            request.RequestId = Guid.NewGuid();
+                            _certRequestIdCounter = await GetMaxCertIDAsync();
+                            request.ID = _certRequestIdCounter++;
+                            retry = true;
+                        }
+                    }
+                } while (retry);
             }
 
             return request.RequestId.ToString();
@@ -262,25 +287,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 retryUpdate = false;
                 CertificateRequest request = await _certificateRequests.GetAsync(reqId);
 
-                if (request == null)
+                if (request.CertificateRequestState != CertificateRequestState.New)
                 {
-                    throw new ServiceResultException(StatusCodes.BadNodeIdUnknown, "Unknown request id");
-                }
-
-                if (request.State != CertificateRequestState.New)
-                {
-                    throw new ServiceResultException(StatusCodes.BadInvalidState);
+                    throw new ResourceInvalidStateException("The record is not in a valid state for this operation.");
                 }
 
                 Application application = await _applicationsDatabase.GetApplicationAsync(request.ApplicationId);
-                if (application == null)
-                {
-                    throw new ServiceResultException(StatusCodes.BadNodeIdUnknown, "Unknown application id");
-                }
 
                 if (isRejected)
                 {
-                    request.State = CertificateRequestState.Rejected;
+                    request.CertificateRequestState = CertificateRequestState.Rejected;
                     // erase information which is not required anymore
                     request.PrivateKeyFormat = null;
                     request.SigningRequest = null;
@@ -288,7 +304,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 }
                 else
                 {
-                    request.State = CertificateRequestState.Approved;
+                    request.CertificateRequestState = CertificateRequestState.Approved;
 
                     X509Certificate2 certificate;
                     if (request.SigningRequest != null)
@@ -300,24 +316,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                                 application.ApplicationUri,
                                 request.SigningRequest
                                 );
-
                             request.Certificate = certificate.RawData;
                         }
                         catch (Exception e)
                         {
                             StringBuilder error = new StringBuilder();
-
                             error.Append("Error Generating Certificate=" + e.Message);
                             error.Append("\r\nApplicationId=" + application.ApplicationId);
                             error.Append("\r\nApplicationUri=" + application.ApplicationUri);
                             error.Append("\r\nApplicationName=" + application.ApplicationNames[0].Text);
-
-                            throw new ServiceResultException(StatusCodes.BadConfigurationError, error.ToString());
+                            throw new ResourceInvalidStateException(error.ToString());
                         }
                     }
                     else
                     {
-                        X509Certificate2KeyPair newKeyPair = null;
+                        Opc.Ua.Gds.Server.X509Certificate2KeyPair newKeyPair = null;
                         try
                         {
                             newKeyPair = await _certificateGroup.NewKeyPairRequestAsync(
@@ -332,12 +345,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                         catch (Exception e)
                         {
                             StringBuilder error = new StringBuilder();
-
                             error.Append("Error Generating New Key Pair Certificate=" + e.Message);
                             error.Append("\r\nApplicationId=" + application.ApplicationId);
                             error.Append("\r\nApplicationUri=" + application.ApplicationUri);
-
-                            throw new ServiceResultException(StatusCodes.BadConfigurationError, error.ToString());
+                            throw new ResourceInvalidStateException(error.ToString());
                         }
 
                         request.Certificate = newKeyPair.Certificate.RawData;
@@ -366,24 +377,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         {
             Guid reqId = GetIdFromString(requestId);
             bool retryUpdate;
+            bool first = true;
             do
             {
                 retryUpdate = false;
 
                 CertificateRequest request = await _certificateRequests.GetAsync(reqId);
-                if (request == null)
+
+                if (request.CertificateRequestState != CertificateRequestState.Approved)
                 {
-                    throw new ServiceResultException(StatusCodes.BadNodeIdUnknown);
+                    throw new ResourceInvalidStateException("The record is not in a valid state for this operation.");
                 }
 
-                if (request.State != CertificateRequestState.Approved)
+                if (request.PrivateKeyFormat != null && first)
                 {
-                    throw new ServiceResultException(StatusCodes.BadInvalidState);
+                    try
+                    {
+                        await _certificateGroup.DeletePrivateKeyAsync(request.CertificateGroupId, requestId);
+                    }
+                    catch 
+                    {
+                        // TODO: error handling here
+                    }
                 }
 
-                await _certificateGroup.AcceptPrivateKeyAsync(request.CertificateGroupId, requestId);
-
-                request.State = CertificateRequestState.Accepted;
+                first = false;
+                request.CertificateRequestState = CertificateRequestState.Accepted;
 
                 // erase information which is not required anymore
                 request.SigningRequest = null;
@@ -410,19 +429,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             Guid reqId = GetIdFromString(requestId);
 
             bool retryUpdate;
+            bool first = true;
             do
             {
                 retryUpdate = false;
 
                 CertificateRequest request = await _certificateRequests.GetAsync(reqId);
-                if (request == null)
+
+                if (request.CertificateRequestState != CertificateRequestState.Approved &&
+                    request.CertificateRequestState != CertificateRequestState.Accepted)
                 {
-                    throw new ServiceResultException(StatusCodes.BadNodeIdUnknown);
+                    throw new ResourceInvalidStateException("The record is not in a valid state for this operation.");
                 }
 
-                request.State = CertificateRequestState.Deleted;
+                request.CertificateRequestState = CertificateRequestState.Deleted;
 
-                await _certificateGroup.DeletePrivateKeyAsync(request.CertificateGroupId, requestId);
+                if (request.PrivateKeyFormat != null && first)
+                {
+                    try
+                    {
+                        await _certificateGroup.DeletePrivateKeyAsync(request.CertificateGroupId, requestId);
+                    }
+                    catch (Exception ex)
+                    {
+                        var s = ex.Message;
+                    }
+                }
+                first = false;
 
                 // erase information which is not required anymore
                 request.SigningRequest = null;
@@ -454,22 +487,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 retryUpdate = false;
                 CertificateRequest request = await _certificateRequests.GetAsync(reqId);
 
-                if (request == null)
+                if (request.Certificate == null ||
+                    request.CertificateRequestState != CertificateRequestState.Deleted)
                 {
-                    throw new ServiceResultException(StatusCodes.BadNodeIdUnknown, "Unknown request id");
+                    throw new ResourceInvalidStateException("The record is not in a valid state for this operation.");
                 }
 
-                if (request.State != CertificateRequestState.Deleted)
-                {
-                    throw new ServiceResultException(StatusCodes.BadInvalidState);
-                }
-
-                if (request.Certificate == null)
-                {
-                    throw new ServiceResultException(StatusCodes.BadInvalidState);
-                }
-
-                request.State = CertificateRequestState.Revoked;
+                request.CertificateRequestState = CertificateRequestState.Revoked;
                 // erase information which is not required anymore
                 request.PrivateKeyFormat = null;
                 request.SigningRequest = null;
@@ -483,10 +507,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 catch (Exception e)
                 {
                     StringBuilder error = new StringBuilder();
-
                     error.Append("Error Revoking Certificate=" + e.Message);
                     error.Append("\r\nGroupId=" + request.CertificateGroupId);
-                    throw new ServiceResultException(StatusCodes.BadConfigurationError, error.ToString());
+                    throw new ResourceInvalidStateException(error.ToString());
                 }
 
                 request.RevokeTime = DateTime.UtcNow;
@@ -510,15 +533,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             Guid reqId = GetIdFromString(requestId);
 
             CertificateRequest request = await _certificateRequests.GetAsync(reqId);
-            if (request == null)
+
+            if (request.CertificateRequestState != CertificateRequestState.Revoked &&
+                request.CertificateRequestState != CertificateRequestState.Rejected &&
+                request.CertificateRequestState != CertificateRequestState.New)
             {
-                throw new ServiceResultException(StatusCodes.BadNodeIdUnknown);
-            }
-            if (request.State != CertificateRequestState.Revoked &&
-                request.State != CertificateRequestState.Rejected &&
-                request.State != CertificateRequestState.New)
-            {
-                throw new ServiceResultException(StatusCodes.BadInvalidState);
+                throw new ResourceInvalidStateException("The record is not in a valid state for this operation.");
             }
 
             await _certificateRequests.DeleteAsync(request.RequestId);
@@ -527,7 +547,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         public async Task RevokeGroupAsync(string groupId, bool? allVersions)
         {
             // TODO: implement all versions to renew all CSR for all CA versions
-            var deletedRequests = await _certificateRequests.GetAsync(x => x.State == CertificateRequestState.Deleted);
+            var queryParameters = new SqlParameterCollection();
+            string query = "SELECT * FROM CertificateRequest r WHERE ";
+            query += " r.CertificateRequestState = @state";
+            queryParameters.Add(new SqlParameter("@state", CertificateRequestState.Deleted.ToString()));
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = query,
+                Parameters = queryParameters
+            };
+            var deletedRequests = await _certificateRequests.GetAsync(sqlQuerySpec);
             if (deletedRequests == null ||
                 deletedRequests.Count() == 0)
             {
@@ -538,19 +567,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             var certCollection = new X509Certificate2Collection();
             foreach (var request in deletedRequests)
             {
-                if (String.Compare(request.CertificateGroupId, groupId, StringComparison.OrdinalIgnoreCase) == 0)
+                if (request.Certificate != null)
                 {
-                    try
+                    if (String.Compare(request.CertificateGroupId, groupId, StringComparison.OrdinalIgnoreCase) == 0)
                     {
-                        var cert = new X509Certificate2(request.Certificate);
-                        certCollection.Add(cert);
-                        revokedId.Add(request.RequestId);
+                        try
+                        {
+                            var cert = new X509Certificate2(request.Certificate);
+                            certCollection.Add(cert);
+                            revokedId.Add(request.RequestId);
+                        }
+                        catch
+                        {
+                            // skip 
+                        }
                     }
-                    catch
-                    {
-                        // skip 
-                    }
-
                 }
             }
 
@@ -564,22 +595,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                     retryUpdate = false;
                     CertificateRequest request = await _certificateRequests.GetAsync(reqId.RequestId);
 
-                    if (request == null)
+                    if (request.CertificateRequestState != CertificateRequestState.Deleted)
                     {
-                        throw new ServiceResultException(StatusCodes.BadNodeIdUnknown, "Unknown request id");
+                        throw new ResourceInvalidStateException("The record is not in a valid state for this operation.");
                     }
 
-                    if (request.State != CertificateRequestState.Deleted)
-                    {
-                        throw new ServiceResultException(StatusCodes.BadInvalidState);
-                    }
-
-                    if (request.Certificate == null)
-                    {
-                        throw new ServiceResultException(StatusCodes.BadInvalidState);
-                    }
-
-                    request.State = CertificateRequestState.Revoked;
+                    request.CertificateRequestState = CertificateRequestState.Revoked;
                     request.RevokeTime = DateTime.UtcNow;
                     // erase information which is not required anymore
                     request.Certificate = null;
@@ -602,47 +623,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             }
         }
 
-
-        public async Task<FinishRequestResultModel> FinishRequestAsync(
+        public async Task<FetchRequestResultModel> FetchRequestAsync(
             string requestId,
             string applicationId)
         {
             Guid reqId = GetIdFromString(requestId);
 
             Application application = await _applicationsDatabase.GetApplicationAsync(applicationId);
-            if (application == null)
-            {
-                throw new ServiceResultException(StatusCodes.BadNodeIdUnknown);
-            }
 
             CertificateRequest request = await _certificateRequests.GetAsync(reqId);
-            if (request == null)
-            {
-                throw new ServiceResultException(StatusCodes.BadNodeIdUnknown);
-            }
-
-            switch (request.State)
-            {
-                case CertificateRequestState.New:
-                case CertificateRequestState.Rejected:
-                case CertificateRequestState.Accepted:
-                    return new FinishRequestResultModel(request.State);
-                case CertificateRequestState.Approved:
-                    break;
-                default:
-                    throw new ServiceResultException(StatusCodes.BadInvalidArgument);
-            }
 
             if (request.ApplicationId != application.ApplicationId.ToString())
             {
-                throw new ServiceResultException(StatusCodes.BadNodeIdUnknown);
+                throw new ArgumentException("The recordId does not match the applicationId.");
+            }
+
+            switch (request.CertificateRequestState)
+            {
+                case CertificateRequestState.New:
+                case CertificateRequestState.Rejected:
+                case CertificateRequestState.Revoked:
+                case CertificateRequestState.Deleted:
+                    return new FetchRequestResultModel(request.CertificateRequestState)
+                    {
+                        ApplicationId = applicationId,
+                        RequestId = requestId
+                    };
+                case CertificateRequestState.Accepted:
+                case CertificateRequestState.Approved:
+                    break;
+                default:
+                    throw new ResourceInvalidStateException("The record is not in a valid state for this operation.");
             }
 
             // get private key
-            byte[] privateKey = await _certificateGroup.LoadPrivateKeyAsync(request.CertificateGroupId, requestId, request.PrivateKeyFormat);
+            byte[] privateKey = null;
+            if (request.CertificateRequestState == CertificateRequestState.Approved &&
+                request.PrivateKeyFormat != null)
+            {
+                try
+                {
+                    privateKey = await _certificateGroup.LoadPrivateKeyAsync(request.CertificateGroupId, requestId, request.PrivateKeyFormat);
+                }
+                catch
+                {
+                    // intentionally ignore error when reading private key
+                    // it may have been disabled by keyvault due to inactivity...
+                    request.PrivateKeyFormat = null;
+                    privateKey = null;
+                }
+            }
 
-            return new FinishRequestResultModel(
-                request.State,
+            return new FetchRequestResultModel(
+                request.CertificateRequestState,
                 applicationId,
                 requestId,
                 request.CertificateGroupId,
@@ -660,12 +693,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             Guid reqId = GetIdFromString(requestId);
 
             CertificateRequest request = await _certificateRequests.GetAsync(reqId);
-            if (request == null)
-            {
-                throw new ServiceResultException(StatusCodes.BadNodeIdUnknown);
-            }
 
-            switch (request.State)
+            switch (request.CertificateRequestState)
             {
                 case CertificateRequestState.New:
                 case CertificateRequestState.Rejected:
@@ -675,13 +704,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 case CertificateRequestState.Revoked:
                     break;
                 default:
-                    throw new ServiceResultException(StatusCodes.BadInvalidArgument);
+                    throw new ResourceInvalidStateException("The record is not in a valid state for this operation.");
             }
 
             return new ReadRequestResultModel(
                 requestId,
                 request.ApplicationId,
-                request.State,
+                request.CertificateRequestState,
                 request.CertificateGroupId,
                 request.CertificateTypeId,
                 request.SigningRequest,
@@ -698,22 +727,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             int? maxResults)
         {
             IEnumerable<CertificateRequest> requests;
+            var queryParameters = new SqlParameterCollection();
+            string query = "SELECT * FROM CertificateRequest r WHERE ";
             if (appId == null && state == null)
             {
-                (nextPageLink, requests) = await _certificateRequests.GetPageAsync(x => x.State < CertificateRequestState.Deleted, nextPageLink, maxResults);
+                query += " r.CertificateRequestState != @state";
+                queryParameters.Add(new SqlParameter("@state", CertificateRequestState.Deleted.ToString()));
             }
             else if (appId != null && state != null)
             {
-                (nextPageLink, requests) = await _certificateRequests.GetPageAsync(x => x.ApplicationId == appId && x.State == state, nextPageLink, maxResults);
+                query += " r.ApplicationId = @appId AND r.CertificateRequestState = @state ";
+                queryParameters.Add(new SqlParameter("@appId", appId));
+                queryParameters.Add(new SqlParameter("@state", state.ToString()));
             }
             else if (appId != null)
             {
-                (nextPageLink, requests) = await _certificateRequests.GetPageAsync(x => x.ApplicationId == appId, nextPageLink, maxResults);
+                query += " r.ApplicationId = @appId";
+                queryParameters.Add(new SqlParameter("@appId", appId));
             }
             else
             {
-                (nextPageLink, requests) = await _certificateRequests.GetPageAsync(x => x.State == state, nextPageLink, maxResults);
+                query += " r.CertificateRequestState = @state ";
+                queryParameters.Add(new SqlParameter("@appId", appId));
+                queryParameters.Add(new SqlParameter("@state", state.ToString()));
             }
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = query,
+                Parameters = queryParameters
+            };
+            (nextPageLink, requests) = await _certificateRequests.GetPageAsync(sqlQuerySpec, nextPageLink, maxResults);
             List<ReadRequestResultModel> result = new List<ReadRequestResultModel>();
             foreach (CertificateRequest request in requests)
             {
@@ -724,158 +767,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         #endregion
 
         #region Private Members
-        private string CreateServerQuery(uint startingRecordId, uint maxRecordsToQuery)
+        private async Task<int> GetMaxCertIDAsync()
         {
-            string query;
-            if (maxRecordsToQuery != 0)
+            try
             {
-                query = string.Format("SELECT TOP {0}", maxRecordsToQuery);
+                // find new ID for QueryServers
+                SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+                {
+                    QueryText = "SELECT TOP 1 * FROM Applications a WHERE a.ClassType = @classType ORDER BY a.ID DESC",
+                    Parameters = new SqlParameterCollection { new SqlParameter("@classType", CertificateRequest.ClassTypeName) }
+                };
+                var maxIDEnum = await _certificateRequests.GetAsync(sqlQuerySpec);
+                var maxID = maxIDEnum.SingleOrDefault();
+                return (maxID != null) ? maxID.ID + 1 : 1;
             }
-            else
+            catch
             {
-                query = string.Format("SELECT");
+                return 1;
             }
-            query += string.Format(" * FROM Applications a WHERE a.ID >= {0} ORDER BY a.ID", startingRecordId);
-            return query;
         }
 
-        private Guid VerifyRegisterApplication(Application application)
+        private Guid GetIdFromString(string requestId)
         {
-            if (application == null)
+            try
             {
-                throw new ArgumentNullException(nameof(application));
-            }
-
-            if (application.ApplicationUri == null)
-            {
-                throw new ArgumentNullException("ApplicationUri");
-            }
-
-            if (!Uri.IsWellFormedUriString(application.ApplicationUri, UriKind.Absolute))
-            {
-                throw new ArgumentException(application.ApplicationUri + " is not a valid URI.", "ApplicationUri");
-            }
-
-            if (application.ApplicationType < (int)Opc.Ua.ApplicationType.Server ||
-                application.ApplicationType > (int)Opc.Ua.ApplicationType.DiscoveryServer)
-            {
-                throw new ArgumentException(application.ApplicationType.ToString() + " is not a valid ApplicationType.", "ApplicationType");
-            }
-
-            if (application.ApplicationNames == null || application.ApplicationNames.Length == 0 || string.IsNullOrEmpty(application.ApplicationNames[0].Text))
-            {
-                throw new ArgumentException("At least one ApplicationName must be provided.", "ApplicationNames");
-            }
-
-            if (string.IsNullOrEmpty(application.ProductUri))
-            {
-                throw new ArgumentException("A ProductUri must be provided.", "ProductUri");
-            }
-
-            if (!Uri.IsWellFormedUriString(application.ProductUri, UriKind.Absolute))
-            {
-                throw new ArgumentException(application.ProductUri + " is not a valid URI.", "ProductUri");
-            }
-
-            if (application.DiscoveryUrls != null)
-            {
-                foreach (string discoveryUrl in application.DiscoveryUrls)
+                if (String.IsNullOrEmpty(requestId))
                 {
-                    if (string.IsNullOrEmpty(discoveryUrl))
-                    {
-                        continue;
-                    }
-
-                    if (!Uri.IsWellFormedUriString(discoveryUrl, UriKind.Absolute))
-                    {
-                        throw new ArgumentException(discoveryUrl + " is not a valid URL.", "DiscoveryUrls");
-                    }
+                    throw new ArgumentNullException(nameof(requestId), "The request id must be provided");
                 }
-            }
-
-            if (application.ApplicationType != (int)Opc.Ua.ApplicationType.Client)
-            {
-                if (application.DiscoveryUrls == null || application.DiscoveryUrls.Length == 0)
+                Guid guidId = new Guid(requestId);
+                if (guidId == null || guidId == Guid.Empty)
                 {
-                    throw new ArgumentException("At least one DiscoveryUrl must be provided.", "DiscoveryUrls");
+                    throw new ArgumentException("The id must be provided.", nameof(requestId));
                 }
-
-                if (application.ServerCapabilities == null || application.ServerCapabilities.Length == 0)
-                {
-                    throw new ArgumentException("At least one Server Capability must be provided.", "ServerCapabilities");
-                }
+                return guidId;
             }
-            else
+            catch (FormatException)
             {
-                if (application.DiscoveryUrls != null && application.DiscoveryUrls.Length > 0)
-                {
-                    throw new ArgumentException("DiscoveryUrls must not be specified for clients.", "DiscoveryUrls");
-                }
+                throw new ArgumentException("The requestId is invalid.");
             }
-
-            // TODO check type
-            //if (application.ApplicationId == Guid.Empty)
-            //{
-            //    throw new ArgumentException("The ApplicationId has invalid type {0}", application.ApplicationId.ToString());
-            //}
-
-            return application.ApplicationId;
-        }
-
-        private static string ServerCapabilities(Application application)
-        {
-            if (application.ApplicationType != (int)Opc.Ua.ApplicationType.Client)
-            {
-                if (application.ServerCapabilities == null || application.ServerCapabilities.Length == 0)
-                {
-                    throw new ArgumentException("At least one Server Capability must be provided.", "ServerCapabilities");
-                }
-            }
-
-            StringBuilder capabilities = new StringBuilder();
-            if (application.ServerCapabilities != null)
-            {
-                System.Collections.Generic.List<string> sortedCaps = application.ServerCapabilities.Split(",").ToList();
-                sortedCaps.Sort();
-                foreach (string capability in sortedCaps)
-                {
-                    if (string.IsNullOrEmpty(capability))
-                    {
-                        continue;
-                    }
-
-                    if (capabilities.Length > 0)
-                    {
-                        capabilities.Append(',');
-                    }
-
-                    capabilities.Append(capability);
-                }
-            }
-
-            return capabilities.ToString();
-        }
-
-        private Guid GetIdFromString(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
-
-            Guid guidId = new Guid(id);
-
-            if (guidId == null || guidId == Guid.Empty)
-            {
-                throw new ArgumentException("The id must be provided.", nameof(id));
-            }
-
-            if (id == null)
-            {
-                throw new ServiceResultException(StatusCodes.BadNodeIdUnknown);
-            }
-
-            return guidId;
         }
         #endregion
 

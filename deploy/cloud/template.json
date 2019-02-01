@@ -157,7 +157,7 @@
         "apiType": "SQL",
         "offerType": "Standard",
         "readPermissions": [ "Get", "List" ],
-        "writePermissions": [ "Get", "List", "Set" ],
+        "writeDeletePermissions": [ "Get", "List", "Set", "Delete" ],
         "signPermissions": [ "Get", "List", "Sign" ],
         "createPermissions": [ "Get", "List", "Update", "Create", "Import", "Delete" ],
         "groupsObject": {
@@ -347,7 +347,7 @@
                                 "objectId": "[parameters('aadUserPrincipalId')]",
                                 "permissions": {
                                     "keys": "[variables('signPermissions')]",
-                                    "secrets": "[variables('writePermissions')]",
+                                    "secrets": "[variables('writeDeletePermissions')]",
                                     "certificates": "[variables('createPermissions')]"
                                 }
                             }

@@ -16,12 +16,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
     /// <summary>
     /// helper for model validation in new keypair request form
     /// </summary>
-    public class StartNewKeyPairRequestFormApiModelAttribute : ValidationAttribute, IClientModelValidator
+    public class CreateNewKeyPairRequestFormApiModelAttribute : ValidationAttribute, IClientModelValidator
     {
         ServerCapabilities _serverCaps = new ServerCapabilities();
         const int ApplicationTypeClient = 1;
 
-        public StartNewKeyPairRequestFormApiModelAttribute()
+        public CreateNewKeyPairRequestFormApiModelAttribute()
         {
         }
 
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
 
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
-            StartNewKeyPairRequestApiModel request = (StartNewKeyPairRequestApiModel)validationContext.ObjectInstance;
+            CreateNewKeyPairRequestApiModel request = (CreateNewKeyPairRequestApiModel)validationContext.ObjectInstance;
             var errorList = new List<string>();
 
             if (String.IsNullOrWhiteSpace(request.SubjectName)) { errorList.Add(nameof(request.SubjectName)); }
@@ -70,13 +70,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
     }
 
 
-    [StartNewKeyPairRequestFormApiModel]
-    public class StartNewKeyPairRequestFormApiModel : StartNewKeyPairRequestApiModel
+    [CreateNewKeyPairRequestFormApiModel]
+    public class CreateNewKeyPairRequestFormApiModel : CreateNewKeyPairRequestApiModel
     {
-        public StartNewKeyPairRequestFormApiModel() : base()
+        public CreateNewKeyPairRequestFormApiModel() : base()
         { }
 
-        public StartNewKeyPairRequestFormApiModel(StartNewKeyPairRequestApiModel apiModel) :
+        public CreateNewKeyPairRequestFormApiModel(CreateNewKeyPairRequestApiModel apiModel) :
             base()
         {
             ApplicationId = apiModel.ApplicationId;

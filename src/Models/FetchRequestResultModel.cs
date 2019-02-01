@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -9,7 +9,7 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
 {
-    public sealed class FinishRequestResultModel
+    public sealed class FetchRequestResultModel
     {
         public CertificateRequestState State { get; set; }
 
@@ -29,14 +29,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
 
         public string AuthorityId { get; set; }
 
-        public FinishRequestResultModel(
+        public FetchRequestResultModel(
             CertificateRequestState state
             )
         {
             this.State = state;
         }
 
-        public FinishRequestResultModel(
+        public FetchRequestResultModel(
             CertificateRequestState state,
             string applicationId,
             string requestId,
@@ -49,6 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
         {
             this.State = state;
             this.ApplicationId = applicationId;
+            this.RequestId = requestId;
             this.CertificateGroupId = certificateGroupId;
             this.CertificateTypeId = certificateTypeId;
             this.SignedCertificate = signedCertificate;

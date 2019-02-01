@@ -44,32 +44,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Id")]
+        [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "IssuerCertificates")]
+        [JsonProperty(PropertyName = "issuerCertificates")]
         public X509Certificate2CollectionApiModel IssuerCertificates { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "IssuerCrls")]
+        [JsonProperty(PropertyName = "issuerCrls")]
         public X509CrlCollectionApiModel IssuerCrls { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "TrustedCertificates")]
+        [JsonProperty(PropertyName = "trustedCertificates")]
         public X509Certificate2CollectionApiModel TrustedCertificates { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "TrustedCrls")]
+        [JsonProperty(PropertyName = "trustedCrls")]
         public X509CrlCollectionApiModel TrustedCrls { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "NextPageLink")]
+        [JsonProperty(PropertyName = "nextPageLink")]
         public string NextPageLink { get; set; }
 
     }

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -10,36 +10,36 @@ using System;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
-    public sealed class FinishRequestApiModel
+    public sealed class FetchRequestResultApiModel
     {
-        [JsonProperty(PropertyName = "RequestId", Order = 5)]
+        [JsonProperty(PropertyName = "requestId", Order = 5)]
         public string RequestId { get; set; }
 
-        [JsonProperty(PropertyName = "ApplicationId", Order = 10)]
+        [JsonProperty(PropertyName = "applicationId", Order = 10)]
         public string ApplicationId { get; set; }
 
-        [JsonProperty(PropertyName = "State", Order = 15)]
+        [JsonProperty(PropertyName = "state", Order = 15)]
         public string State { get; set; }
 
-        [JsonProperty(PropertyName = "CertificateGroupId", Order = 20)]
+        [JsonProperty(PropertyName = "certificateGroupId", Order = 20)]
         public string CertificateGroupId { get; set; }
 
-        [JsonProperty(PropertyName = "CertificateTypeId", Order = 30)]
+        [JsonProperty(PropertyName = "certificateTypeId", Order = 30)]
         public string CertificateTypeId { get; set; }
 
-        [JsonProperty(PropertyName = "SignedCertificate", Order = 40)]
+        [JsonProperty(PropertyName = "signedCertificate", Order = 40)]
         public string SignedCertificate { get; set; }
 
-        [JsonProperty(PropertyName = "PrivateKeyFormat", Order = 50)]
+        [JsonProperty(PropertyName = "privateKeyFormat", Order = 50)]
         public string PrivateKeyFormat { get; set; }
 
-        [JsonProperty(PropertyName = "PrivateKey", Order = 60)]
+        [JsonProperty(PropertyName = "privateKey", Order = 60)]
         public string PrivateKey { get; set; }
 
-        [JsonProperty(PropertyName = "AuthorityId", Order = 70)]
+        [JsonProperty(PropertyName = "authorityId", Order = 70)]
         public string AuthorityId { get; set; }
 
-        public FinishRequestApiModel(
+        public FetchRequestResultApiModel(
             string requestId,
             string applicationId,
             CertificateRequestState state,

@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
         {
             this.RequestId = request.RequestId.ToString();
             this.ApplicationId = request.ApplicationId;
-            this.State = request.State;
+            this.State = request.CertificateRequestState;
             this.CertificateGroupId = request.CertificateGroupId;
             this.CertificateTypeId = request.CertificateTypeId;
             this.SigningRequest = request.SigningRequest != null;

@@ -335,7 +335,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<string>> RegisterApplicationWithHttpMessagesAsync(ApplicationRecordApiModel application = default(ApplicationRecordApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<ApplicationRecordApiModel>> RegisterApplicationWithHttpMessagesAsync(ApplicationRecordApiModel application = default(ApplicationRecordApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -350,7 +350,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/app").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/app/register").ToString();
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
@@ -399,7 +399,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -422,7 +422,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<string>();
+            var _result = new HttpOperationResponse<ApplicationRecordApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -431,7 +431,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<string>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<ApplicationRecordApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -451,7 +451,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         }
 
         /// <summary>
-        /// Get application
+        /// Get application.
         /// </summary>
         /// <param name='applicationId'>
         /// </param>
@@ -539,7 +539,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -618,7 +618,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<string>> UpdateApplicationWithHttpMessagesAsync(string applicationId, ApplicationRecordApiModel application = default(ApplicationRecordApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<ApplicationRecordApiModel>> UpdateApplicationWithHttpMessagesAsync(string applicationId, ApplicationRecordApiModel application = default(ApplicationRecordApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (applicationId == null)
             {
@@ -631,8 +631,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("applicationId", applicationId);
                 tracingParameters.Add("application", application);
+                tracingParameters.Add("applicationId", applicationId);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "UpdateApplication", tracingParameters);
             }
@@ -688,7 +688,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -711,7 +711,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<string>();
+            var _result = new HttpOperationResponse<ApplicationRecordApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -720,7 +720,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<string>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<ApplicationRecordApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -740,9 +740,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         }
 
         /// <summary>
-        /// Unregister application
+        /// Delete application.
         /// </summary>
         /// <param name='applicationId'>
+        /// </param>
+        /// <param name='force'>
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -762,7 +764,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse> UnregisterApplicationWithHttpMessagesAsync(string applicationId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse> DeleteApplicationWithHttpMessagesAsync(string applicationId, bool? force = default(bool?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (applicationId == null)
             {
@@ -776,13 +778,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("applicationId", applicationId);
+                tracingParameters.Add("force", force);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "UnregisterApplication", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "DeleteApplication", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
             var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/app/{applicationId}").ToString();
             _url = _url.Replace("{applicationId}", System.Uri.EscapeDataString(applicationId));
+            List<string> _queryParameters = new List<string>();
+            if (force != null)
+            {
+                _queryParameters.Add(string.Format("force={0}", System.Uri.EscapeDataString(SafeJsonConvert.SerializeObject(force, SerializationSettings).Trim('"'))));
+            }
+            if (_queryParameters.Count > 0)
+            {
+                _url += "?" + string.Join("&", _queryParameters);
+            }
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
@@ -825,7 +837,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -859,6 +871,302 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         }
 
         /// <summary>
+        /// Approve or reject new application.
+        /// </summary>
+        /// <param name='applicationId'>
+        /// </param>
+        /// <param name='approved'>
+        /// </param>
+        /// <param name='force'>
+        /// </param>
+        /// <param name='customHeaders'>
+        /// Headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        /// <exception cref="HttpOperationException">
+        /// Thrown when the operation returned an invalid status code
+        /// </exception>
+        /// <exception cref="SerializationException">
+        /// Thrown when unable to deserialize the response
+        /// </exception>
+        /// <exception cref="ValidationException">
+        /// Thrown when a required parameter is null
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// Thrown when a required parameter is null
+        /// </exception>
+        /// <return>
+        /// A response object containing the response body and response headers.
+        /// </return>
+        public async Task<HttpOperationResponse<ApplicationRecordApiModel>> ApproveApplicationWithHttpMessagesAsync(string applicationId, bool approved, bool? force = default(bool?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (applicationId == null)
+            {
+                throw new ValidationException(ValidationRules.CannotBeNull, "applicationId");
+            }
+            // Tracing
+            bool _shouldTrace = ServiceClientTracing.IsEnabled;
+            string _invocationId = null;
+            if (_shouldTrace)
+            {
+                _invocationId = ServiceClientTracing.NextInvocationId.ToString();
+                Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
+                tracingParameters.Add("applicationId", applicationId);
+                tracingParameters.Add("approved", approved);
+                tracingParameters.Add("force", force);
+                tracingParameters.Add("cancellationToken", cancellationToken);
+                ServiceClientTracing.Enter(_invocationId, this, "ApproveApplication", tracingParameters);
+            }
+            // Construct URL
+            var _baseUrl = BaseUri.AbsoluteUri;
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/app/{applicationId}/{approved}/approve").ToString();
+            _url = _url.Replace("{applicationId}", System.Uri.EscapeDataString(applicationId));
+            _url = _url.Replace("{approved}", System.Uri.EscapeDataString(SafeJsonConvert.SerializeObject(approved, SerializationSettings).Trim('"')));
+            List<string> _queryParameters = new List<string>();
+            if (force != null)
+            {
+                _queryParameters.Add(string.Format("force={0}", System.Uri.EscapeDataString(SafeJsonConvert.SerializeObject(force, SerializationSettings).Trim('"'))));
+            }
+            if (_queryParameters.Count > 0)
+            {
+                _url += "?" + string.Join("&", _queryParameters);
+            }
+            // Create HTTP transport objects
+            var _httpRequest = new HttpRequestMessage();
+            HttpResponseMessage _httpResponse = null;
+            _httpRequest.Method = new HttpMethod("POST");
+            _httpRequest.RequestUri = new System.Uri(_url);
+            // Set Headers
+
+
+            if (customHeaders != null)
+            {
+                foreach(var _header in customHeaders)
+                {
+                    if (_httpRequest.Headers.Contains(_header.Key))
+                    {
+                        _httpRequest.Headers.Remove(_header.Key);
+                    }
+                    _httpRequest.Headers.TryAddWithoutValidation(_header.Key, _header.Value);
+                }
+            }
+
+            // Serialize Request
+            string _requestContent = null;
+            // Set Credentials
+            if (Credentials != null)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await Credentials.ProcessHttpRequestAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
+            }
+            // Send Request
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.SendRequest(_invocationId, _httpRequest);
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            _httpResponse = await HttpClient.SendAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.ReceiveResponse(_invocationId, _httpResponse);
+            }
+            HttpStatusCode _statusCode = _httpResponse.StatusCode;
+            cancellationToken.ThrowIfCancellationRequested();
+            string _responseContent = null;
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            {
+                var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
+                if (_httpResponse.Content != null) {
+                    _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                }
+                else {
+                    _responseContent = string.Empty;
+                }
+                ex.Request = new HttpRequestMessageWrapper(_httpRequest, _requestContent);
+                ex.Response = new HttpResponseMessageWrapper(_httpResponse, _responseContent);
+                if (_shouldTrace)
+                {
+                    ServiceClientTracing.Error(_invocationId, ex);
+                }
+                _httpRequest.Dispose();
+                if (_httpResponse != null)
+                {
+                    _httpResponse.Dispose();
+                }
+                throw ex;
+            }
+            // Create Result
+            var _result = new HttpOperationResponse<ApplicationRecordApiModel>();
+            _result.Request = _httpRequest;
+            _result.Response = _httpResponse;
+            // Deserialize Response
+            if ((int)_statusCode == 200)
+            {
+                _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                try
+                {
+                    _result.Body = SafeJsonConvert.DeserializeObject<ApplicationRecordApiModel>(_responseContent, DeserializationSettings);
+                }
+                catch (JsonException ex)
+                {
+                    _httpRequest.Dispose();
+                    if (_httpResponse != null)
+                    {
+                        _httpResponse.Dispose();
+                    }
+                    throw new SerializationException("Unable to deserialize the response.", _responseContent, ex);
+                }
+            }
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.Exit(_invocationId, _result);
+            }
+            return _result;
+        }
+
+        /// <summary>
+        /// Unregister application.
+        /// </summary>
+        /// <param name='applicationId'>
+        /// </param>
+        /// <param name='customHeaders'>
+        /// Headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        /// <exception cref="HttpOperationException">
+        /// Thrown when the operation returned an invalid status code
+        /// </exception>
+        /// <exception cref="SerializationException">
+        /// Thrown when unable to deserialize the response
+        /// </exception>
+        /// <exception cref="ValidationException">
+        /// Thrown when a required parameter is null
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// Thrown when a required parameter is null
+        /// </exception>
+        /// <return>
+        /// A response object containing the response body and response headers.
+        /// </return>
+        public async Task<HttpOperationResponse<ApplicationRecordApiModel>> UnregisterApplicationWithHttpMessagesAsync(string applicationId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (applicationId == null)
+            {
+                throw new ValidationException(ValidationRules.CannotBeNull, "applicationId");
+            }
+            // Tracing
+            bool _shouldTrace = ServiceClientTracing.IsEnabled;
+            string _invocationId = null;
+            if (_shouldTrace)
+            {
+                _invocationId = ServiceClientTracing.NextInvocationId.ToString();
+                Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
+                tracingParameters.Add("applicationId", applicationId);
+                tracingParameters.Add("cancellationToken", cancellationToken);
+                ServiceClientTracing.Enter(_invocationId, this, "UnregisterApplication", tracingParameters);
+            }
+            // Construct URL
+            var _baseUrl = BaseUri.AbsoluteUri;
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/app/{applicationId}/unregister").ToString();
+            _url = _url.Replace("{applicationId}", System.Uri.EscapeDataString(applicationId));
+            // Create HTTP transport objects
+            var _httpRequest = new HttpRequestMessage();
+            HttpResponseMessage _httpResponse = null;
+            _httpRequest.Method = new HttpMethod("POST");
+            _httpRequest.RequestUri = new System.Uri(_url);
+            // Set Headers
+
+
+            if (customHeaders != null)
+            {
+                foreach(var _header in customHeaders)
+                {
+                    if (_httpRequest.Headers.Contains(_header.Key))
+                    {
+                        _httpRequest.Headers.Remove(_header.Key);
+                    }
+                    _httpRequest.Headers.TryAddWithoutValidation(_header.Key, _header.Value);
+                }
+            }
+
+            // Serialize Request
+            string _requestContent = null;
+            // Set Credentials
+            if (Credentials != null)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await Credentials.ProcessHttpRequestAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
+            }
+            // Send Request
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.SendRequest(_invocationId, _httpRequest);
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            _httpResponse = await HttpClient.SendAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.ReceiveResponse(_invocationId, _httpResponse);
+            }
+            HttpStatusCode _statusCode = _httpResponse.StatusCode;
+            cancellationToken.ThrowIfCancellationRequested();
+            string _responseContent = null;
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            {
+                var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
+                if (_httpResponse.Content != null) {
+                    _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                }
+                else {
+                    _responseContent = string.Empty;
+                }
+                ex.Request = new HttpRequestMessageWrapper(_httpRequest, _requestContent);
+                ex.Response = new HttpResponseMessageWrapper(_httpResponse, _responseContent);
+                if (_shouldTrace)
+                {
+                    ServiceClientTracing.Error(_invocationId, ex);
+                }
+                _httpRequest.Dispose();
+                if (_httpResponse != null)
+                {
+                    _httpResponse.Dispose();
+                }
+                throw ex;
+            }
+            // Create Result
+            var _result = new HttpOperationResponse<ApplicationRecordApiModel>();
+            _result.Request = _httpRequest;
+            _result.Response = _httpResponse;
+            // Deserialize Response
+            if ((int)_statusCode == 200)
+            {
+                _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                try
+                {
+                    _result.Body = SafeJsonConvert.DeserializeObject<ApplicationRecordApiModel>(_responseContent, DeserializationSettings);
+                }
+                catch (JsonException ex)
+                {
+                    _httpRequest.Dispose();
+                    if (_httpResponse != null)
+                    {
+                        _httpResponse.Dispose();
+                    }
+                    throw new SerializationException("Unable to deserialize the response.", _responseContent, ex);
+                }
+            }
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.Exit(_invocationId, _result);
+            }
+            return _result;
+        }
+
+        /// <summary>
         /// Find applications
         /// </summary>
         /// <param name='uri'>
@@ -884,7 +1192,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<IList<ApplicationRecordApiModel>>> FindApplicationWithHttpMessagesAsync(string uri, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<IList<ApplicationRecordApiModel>>> ListApplicationsWithHttpMessagesAsync(string uri, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (uri == null)
             {
@@ -899,7 +1207,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("uri", uri);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "FindApplication", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "ListApplications", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
@@ -947,7 +1255,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1003,6 +1311,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// </summary>
         /// <param name='query'>
         /// </param>
+        /// <param name='anyState'>
+        /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
         /// </param>
@@ -1018,7 +1328,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<QueryApplicationsResponseApiModel>> QueryApplicationsWithHttpMessagesAsync(QueryApplicationsApiModel query = default(QueryApplicationsApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<QueryApplicationsResponseApiModel>> QueryApplicationsWithHttpMessagesAsync(QueryApplicationsApiModel query = default(QueryApplicationsApiModel), bool? anyState = default(bool?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1028,12 +1338,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("query", query);
+                tracingParameters.Add("anyState", anyState);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "QueryApplications", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
             var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/app/query").ToString();
+            List<string> _queryParameters = new List<string>();
+            if (anyState != null)
+            {
+                _queryParameters.Add(string.Format("anyState={0}", System.Uri.EscapeDataString(SafeJsonConvert.SerializeObject(anyState, SerializationSettings).Trim('"'))));
+            }
+            if (_queryParameters.Count > 0)
+            {
+                _url += "?" + string.Join("&", _queryParameters);
+            }
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
@@ -1082,7 +1402,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1138,6 +1458,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// </summary>
         /// <param name='query'>
         /// </param>
+        /// <param name='anyState'>
+        /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
         /// </param>
@@ -1153,7 +1475,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<QueryApplicationsPageResponseApiModel>> QueryApplicationsPageWithHttpMessagesAsync(QueryApplicationsPageApiModel query = default(QueryApplicationsPageApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<QueryApplicationsPageResponseApiModel>> QueryApplicationsPageWithHttpMessagesAsync(QueryApplicationsPageApiModel query = default(QueryApplicationsPageApiModel), bool? anyState = default(bool?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1163,12 +1485,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("query", query);
+                tracingParameters.Add("anyState", anyState);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "QueryApplicationsPage", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/app/querypage").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/app/query/page").ToString();
+            List<string> _queryParameters = new List<string>();
+            if (anyState != null)
+            {
+                _queryParameters.Add(string.Format("anyState={0}", System.Uri.EscapeDataString(SafeJsonConvert.SerializeObject(anyState, SerializationSettings).Trim('"'))));
+            }
+            if (_queryParameters.Count > 0)
+            {
+                _url += "?" + string.Join("&", _queryParameters);
+            }
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
@@ -1217,7 +1549,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1283,7 +1615,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<CertificateGroupListApiModel>> GetCertificateGroupIdsWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<CertificateGroupListApiModel>> GetCertificateGroupsWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1293,11 +1625,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "GetCertificateGroupIds", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "GetCertificateGroups", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/groups").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/group").ToString();
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
@@ -1340,7 +1672,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1394,7 +1726,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <summary>
         /// Get group configuration
         /// </summary>
-        /// <param name='groupId'>
+        /// <param name='group'>
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -1417,11 +1749,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<CertificateGroupConfigurationApiModel>> GetCertificateGroupConfigurationWithHttpMessagesAsync(string groupId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<CertificateGroupConfigurationApiModel>> GetCertificateGroupConfigurationWithHttpMessagesAsync(string group, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (groupId == null)
+            if (group == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "groupId");
+                throw new ValidationException(ValidationRules.CannotBeNull, "group");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1430,14 +1762,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("groupId", groupId);
+                tracingParameters.Add("group", group);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "GetCertificateGroupConfiguration", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/groups/{groupId}").ToString();
-            _url = _url.Replace("{groupId}", System.Uri.EscapeDataString(groupId));
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/group/{group}").ToString();
+            _url = _url.Replace("{group}", System.Uri.EscapeDataString(group));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
@@ -1480,7 +1812,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1534,7 +1866,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <summary>
         /// Update group configuration
         /// </summary>
-        /// <param name='groupId'>
+        /// <param name='group'>
         /// </param>
         /// <param name='config'>
         /// </param>
@@ -1559,11 +1891,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<CertificateGroupConfigurationApiModel>> UpdateCertificateGroupConfigurationWithHttpMessagesAsync(string groupId, CertificateGroupConfigurationApiModel config = default(CertificateGroupConfigurationApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<CertificateGroupConfigurationApiModel>> UpdateCertificateGroupConfigurationWithHttpMessagesAsync(string group, CertificateGroupConfigurationApiModel config = default(CertificateGroupConfigurationApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (groupId == null)
+            if (group == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "groupId");
+                throw new ValidationException(ValidationRules.CannotBeNull, "group");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1572,15 +1904,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("groupId", groupId);
+                tracingParameters.Add("group", group);
                 tracingParameters.Add("config", config);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "UpdateCertificateGroupConfiguration", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/groups/{groupId}").ToString();
-            _url = _url.Replace("{groupId}", System.Uri.EscapeDataString(groupId));
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/group/{group}").ToString();
+            _url = _url.Replace("{group}", System.Uri.EscapeDataString(group));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
@@ -1629,7 +1961,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1681,9 +2013,128 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         }
 
         /// <summary>
+        /// Delete group configuration
+        /// </summary>
+        /// <param name='group'>
+        /// </param>
+        /// <param name='customHeaders'>
+        /// Headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        /// <exception cref="HttpOperationException">
+        /// Thrown when the operation returned an invalid status code
+        /// </exception>
+        /// <exception cref="ValidationException">
+        /// Thrown when a required parameter is null
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// Thrown when a required parameter is null
+        /// </exception>
+        /// <return>
+        /// A response object containing the response body and response headers.
+        /// </return>
+        public async Task<HttpOperationResponse> DeleteCertificateGroupWithHttpMessagesAsync(string group, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (group == null)
+            {
+                throw new ValidationException(ValidationRules.CannotBeNull, "group");
+            }
+            // Tracing
+            bool _shouldTrace = ServiceClientTracing.IsEnabled;
+            string _invocationId = null;
+            if (_shouldTrace)
+            {
+                _invocationId = ServiceClientTracing.NextInvocationId.ToString();
+                Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
+                tracingParameters.Add("group", group);
+                tracingParameters.Add("cancellationToken", cancellationToken);
+                ServiceClientTracing.Enter(_invocationId, this, "DeleteCertificateGroup", tracingParameters);
+            }
+            // Construct URL
+            var _baseUrl = BaseUri.AbsoluteUri;
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/group/{group}").ToString();
+            _url = _url.Replace("{group}", System.Uri.EscapeDataString(group));
+            // Create HTTP transport objects
+            var _httpRequest = new HttpRequestMessage();
+            HttpResponseMessage _httpResponse = null;
+            _httpRequest.Method = new HttpMethod("DELETE");
+            _httpRequest.RequestUri = new System.Uri(_url);
+            // Set Headers
+
+
+            if (customHeaders != null)
+            {
+                foreach(var _header in customHeaders)
+                {
+                    if (_httpRequest.Headers.Contains(_header.Key))
+                    {
+                        _httpRequest.Headers.Remove(_header.Key);
+                    }
+                    _httpRequest.Headers.TryAddWithoutValidation(_header.Key, _header.Value);
+                }
+            }
+
+            // Serialize Request
+            string _requestContent = null;
+            // Set Credentials
+            if (Credentials != null)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await Credentials.ProcessHttpRequestAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
+            }
+            // Send Request
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.SendRequest(_invocationId, _httpRequest);
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            _httpResponse = await HttpClient.SendAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.ReceiveResponse(_invocationId, _httpResponse);
+            }
+            HttpStatusCode _statusCode = _httpResponse.StatusCode;
+            cancellationToken.ThrowIfCancellationRequested();
+            string _responseContent = null;
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            {
+                var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
+                if (_httpResponse.Content != null) {
+                    _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                }
+                else {
+                    _responseContent = string.Empty;
+                }
+                ex.Request = new HttpRequestMessageWrapper(_httpRequest, _requestContent);
+                ex.Response = new HttpResponseMessageWrapper(_httpResponse, _responseContent);
+                if (_shouldTrace)
+                {
+                    ServiceClientTracing.Error(_invocationId, ex);
+                }
+                _httpRequest.Dispose();
+                if (_httpResponse != null)
+                {
+                    _httpResponse.Dispose();
+                }
+                throw ex;
+            }
+            // Create Result
+            var _result = new HttpOperationResponse();
+            _result.Request = _httpRequest;
+            _result.Response = _httpResponse;
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.Exit(_invocationId, _result);
+            }
+            return _result;
+        }
+
+        /// <summary>
         /// Create new group configuration
         /// </summary>
-        /// <param name='groupId'>
+        /// <param name='group'>
         /// </param>
         /// <param name='subject'>
         /// </param>
@@ -1710,11 +2161,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<CertificateGroupConfigurationApiModel>> CreateCertificateGroupConfigurationWithHttpMessagesAsync(string groupId, string subject, string certType, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<CertificateGroupConfigurationApiModel>> CreateCertificateGroupWithHttpMessagesAsync(string group, string subject, string certType, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (groupId == null)
+            if (group == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "groupId");
+                throw new ValidationException(ValidationRules.CannotBeNull, "group");
             }
             if (subject == null)
             {
@@ -1731,16 +2182,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("groupId", groupId);
+                tracingParameters.Add("group", group);
                 tracingParameters.Add("subject", subject);
                 tracingParameters.Add("certType", certType);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "CreateCertificateGroupConfiguration", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "CreateCertificateGroup", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/groups/{groupId}/{subject}/{certType}").ToString();
-            _url = _url.Replace("{groupId}", System.Uri.EscapeDataString(groupId));
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/group/{group}/{subject}/{certType}/create").ToString();
+            _url = _url.Replace("{group}", System.Uri.EscapeDataString(group));
             _url = _url.Replace("{subject}", System.Uri.EscapeDataString(subject));
             _url = _url.Replace("{certType}", System.Uri.EscapeDataString(certType));
             // Create HTTP transport objects
@@ -1785,7 +2236,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1854,7 +2305,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<CertificateGroupConfigurationCollectionApiModel>> GetCertificateGroupConfigurationCollectionWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<CertificateGroupConfigurationCollectionApiModel>> GetCertificateGroupsConfigurationWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1864,11 +2315,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "GetCertificateGroupConfigurationCollection", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "GetCertificateGroupsConfiguration", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/groups/config").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/group/groupsconfig").ToString();
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
@@ -1911,7 +2362,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1963,9 +2414,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         }
 
         /// <summary>
-        /// Get CA Certificate chain
+        /// Get Issuer CA Certificate chain
         /// </summary>
-        /// <param name='groupId'>
+        /// <param name='group'>
         /// </param>
         /// <param name='maxResults'>
         /// </param>
@@ -1990,11 +2441,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<X509Certificate2CollectionApiModel>> GetCACertificateChainWithHttpMessagesAsync(string groupId, int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<X509Certificate2CollectionApiModel>> GetCertificateGroupIssuerCAChainWithHttpMessagesAsync(string group, int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (groupId == null)
+            if (group == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "groupId");
+                throw new ValidationException(ValidationRules.CannotBeNull, "group");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2003,15 +2454,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("groupId", groupId);
+                tracingParameters.Add("group", group);
                 tracingParameters.Add("maxResults", maxResults);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "GetCACertificateChain", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "GetCertificateGroupIssuerCAChain", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/groups/{groupId}/cacert").ToString();
-            _url = _url.Replace("{groupId}", System.Uri.EscapeDataString(groupId));
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/group/{group}/issuerca").ToString();
+            _url = _url.Replace("{group}", System.Uri.EscapeDataString(group));
             List<string> _queryParameters = new List<string>();
             if (maxResults != null)
             {
@@ -2063,7 +2514,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -2115,9 +2566,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         }
 
         /// <summary>
-        /// Get CA Certificate chain
+        /// Get Issuer CA Certificate chain
         /// </summary>
-        /// <param name='groupId'>
+        /// <param name='group'>
         /// </param>
         /// <param name='nextPageLink'>
         /// </param>
@@ -2144,11 +2595,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<X509Certificate2CollectionApiModel>> GetCACertificateChainNextWithHttpMessagesAsync(string groupId, string nextPageLink = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<X509Certificate2CollectionApiModel>> GetCertificateGroupIssuerCAChainNextWithHttpMessagesAsync(string group, string nextPageLink = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (groupId == null)
+            if (group == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "groupId");
+                throw new ValidationException(ValidationRules.CannotBeNull, "group");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2157,16 +2608,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("groupId", groupId);
+                tracingParameters.Add("group", group);
                 tracingParameters.Add("nextPageLink", nextPageLink);
                 tracingParameters.Add("maxResults", maxResults);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "GetCACertificateChainNext", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "GetCertificateGroupIssuerCAChainNext", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/groups/{groupId}/cacertnext").ToString();
-            _url = _url.Replace("{groupId}", System.Uri.EscapeDataString(groupId));
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/group/{group}/issuerca/next").ToString();
+            _url = _url.Replace("{group}", System.Uri.EscapeDataString(group));
             List<string> _queryParameters = new List<string>();
             if (maxResults != null)
             {
@@ -2224,7 +2675,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -2276,9 +2727,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         }
 
         /// <summary>
-        /// Get CA CRL chain
+        /// Get Issuer CA CRL chain
         /// </summary>
-        /// <param name='groupId'>
+        /// <param name='group'>
         /// </param>
         /// <param name='maxResults'>
         /// </param>
@@ -2303,11 +2754,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<X509CrlCollectionApiModel>> GetCACrlChainWithHttpMessagesAsync(string groupId, int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<X509CrlCollectionApiModel>> GetCertificateGroupIssuerCACrlChainWithHttpMessagesAsync(string group, int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (groupId == null)
+            if (group == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "groupId");
+                throw new ValidationException(ValidationRules.CannotBeNull, "group");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2316,15 +2767,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("groupId", groupId);
+                tracingParameters.Add("group", group);
                 tracingParameters.Add("maxResults", maxResults);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "GetCACrlChain", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "GetCertificateGroupIssuerCACrlChain", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/groups/{groupId}/cacrl").ToString();
-            _url = _url.Replace("{groupId}", System.Uri.EscapeDataString(groupId));
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/group/{group}/issuercacrl").ToString();
+            _url = _url.Replace("{group}", System.Uri.EscapeDataString(group));
             List<string> _queryParameters = new List<string>();
             if (maxResults != null)
             {
@@ -2376,7 +2827,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -2428,9 +2879,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         }
 
         /// <summary>
-        /// Get CA CRL chain
+        /// Get Issuer CA CRL chain
         /// </summary>
-        /// <param name='groupId'>
+        /// <param name='group'>
         /// </param>
         /// <param name='nextPageLink'>
         /// </param>
@@ -2457,11 +2908,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<X509CrlCollectionApiModel>> GetCACrlChainNextWithHttpMessagesAsync(string groupId, string nextPageLink = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<X509CrlCollectionApiModel>> GetCertificateGroupIssuerCACrlChainNextWithHttpMessagesAsync(string group, string nextPageLink = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (groupId == null)
+            if (group == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "groupId");
+                throw new ValidationException(ValidationRules.CannotBeNull, "group");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2470,16 +2921,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("groupId", groupId);
+                tracingParameters.Add("group", group);
                 tracingParameters.Add("nextPageLink", nextPageLink);
                 tracingParameters.Add("maxResults", maxResults);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "GetCACrlChainNext", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "GetCertificateGroupIssuerCACrlChainNext", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/groups/{groupId}/cacrlnext").ToString();
-            _url = _url.Replace("{groupId}", System.Uri.EscapeDataString(groupId));
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/group/{group}/issuercacrl/next").ToString();
+            _url = _url.Replace("{group}", System.Uri.EscapeDataString(group));
             List<string> _queryParameters = new List<string>();
             if (maxResults != null)
             {
@@ -2537,7 +2988,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -2591,7 +3042,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <summary>
         /// Get trust list
         /// </summary>
-        /// <param name='groupId'>
+        /// <param name='group'>
         /// </param>
         /// <param name='maxResults'>
         /// </param>
@@ -2616,11 +3067,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<TrustListApiModel>> GetTrustListWithHttpMessagesAsync(string groupId, int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<TrustListApiModel>> GetCertificateGroupTrustListWithHttpMessagesAsync(string group, int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (groupId == null)
+            if (group == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "groupId");
+                throw new ValidationException(ValidationRules.CannotBeNull, "group");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2629,15 +3080,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("groupId", groupId);
+                tracingParameters.Add("group", group);
                 tracingParameters.Add("maxResults", maxResults);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "GetTrustList", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "GetCertificateGroupTrustList", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/groups/{groupId}/trustlist").ToString();
-            _url = _url.Replace("{groupId}", System.Uri.EscapeDataString(groupId));
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/group/{group}/trustlist").ToString();
+            _url = _url.Replace("{group}", System.Uri.EscapeDataString(group));
             List<string> _queryParameters = new List<string>();
             if (maxResults != null)
             {
@@ -2689,7 +3140,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -2743,7 +3194,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <summary>
         /// Get trust list
         /// </summary>
-        /// <param name='groupId'>
+        /// <param name='group'>
         /// </param>
         /// <param name='nextPageLink'>
         /// </param>
@@ -2770,11 +3221,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<TrustListApiModel>> GetTrustListNextWithHttpMessagesAsync(string groupId, string nextPageLink = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<TrustListApiModel>> GetCertificateGroupTrustListNextWithHttpMessagesAsync(string group, string nextPageLink = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (groupId == null)
+            if (group == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "groupId");
+                throw new ValidationException(ValidationRules.CannotBeNull, "group");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2783,16 +3234,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("groupId", groupId);
+                tracingParameters.Add("group", group);
                 tracingParameters.Add("nextPageLink", nextPageLink);
                 tracingParameters.Add("maxResults", maxResults);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "GetTrustListNext", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "GetCertificateGroupTrustListNext", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/groups/{groupId}/trustlistnext").ToString();
-            _url = _url.Replace("{groupId}", System.Uri.EscapeDataString(groupId));
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/group/{group}/trustlist/next").ToString();
+            _url = _url.Replace("{group}", System.Uri.EscapeDataString(group));
             List<string> _queryParameters = new List<string>();
             if (maxResults != null)
             {
@@ -2850,7 +3301,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -2904,7 +3355,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <summary>
         /// Create new CA Certificate
         /// </summary>
-        /// <param name='groupId'>
+        /// <param name='group'>
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -2927,11 +3378,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<X509Certificate2ApiModel>> CreateCACertificateWithHttpMessagesAsync(string groupId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<X509Certificate2ApiModel>> CreateCertificateGroupIssuerCACertWithHttpMessagesAsync(string group, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (groupId == null)
+            if (group == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "groupId");
+                throw new ValidationException(ValidationRules.CannotBeNull, "group");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2940,14 +3391,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("groupId", groupId);
+                tracingParameters.Add("group", group);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "CreateCACertificate", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "CreateCertificateGroupIssuerCACert", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/groups/{groupId}/create").ToString();
-            _url = _url.Replace("{groupId}", System.Uri.EscapeDataString(groupId));
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/group/{group}/issuerca/create").ToString();
+            _url = _url.Replace("{group}", System.Uri.EscapeDataString(group));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
@@ -2990,7 +3441,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -3061,7 +3512,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<string>> StartSigningRequestWithHttpMessagesAsync(StartSigningRequestApiModel signingRequest = default(StartSigningRequestApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<string>> CreateSigningRequestWithHttpMessagesAsync(CreateSigningRequestApiModel signingRequest = default(CreateSigningRequestApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -3072,7 +3523,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("signingRequest", signingRequest);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "StartSigningRequest", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "CreateSigningRequest", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
@@ -3125,7 +3576,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -3196,7 +3647,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<string>> StartNewKeyPairRequestWithHttpMessagesAsync(StartNewKeyPairRequestApiModel newKeyPairRequest = default(StartNewKeyPairRequestApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<string>> CreateNewKeyPairRequestWithHttpMessagesAsync(CreateNewKeyPairRequestApiModel newKeyPairRequest = default(CreateNewKeyPairRequestApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -3207,11 +3658,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("newKeyPairRequest", newKeyPairRequest);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "StartNewKeyPairRequest", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "CreateNewKeyPairRequest", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/request/newkeypair").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/request/keypair").ToString();
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
@@ -3260,7 +3711,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -3356,7 +3807,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/request/{requestId}/approve/{rejected}").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/request/{requestId}/{rejected}/approve").ToString();
             _url = _url.Replace("{requestId}", System.Uri.EscapeDataString(requestId));
             _url = _url.Replace("{rejected}", System.Uri.EscapeDataString(SafeJsonConvert.SerializeObject(rejected, SerializationSettings).Trim('"')));
             // Create HTTP transport objects
@@ -3401,7 +3852,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -3520,7 +3971,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -3579,7 +4030,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<CertificateRequestRecordApiModel>> ReadCertificateRequestWithHttpMessagesAsync(string requestId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<CertificateRequestRecordApiModel>> GetCertificateRequestWithHttpMessagesAsync(string requestId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (requestId == null)
             {
@@ -3594,7 +4045,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("requestId", requestId);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "ReadCertificateRequest", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "GetCertificateRequest", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
@@ -3642,7 +4093,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -3779,7 +4230,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -3859,7 +4310,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
-            _httpRequest.Method = new HttpMethod("POST");
+            _httpRequest.Method = new HttpMethod("DELETE");
             _httpRequest.RequestUri = new System.Uri(_url);
             // Set Headers
 
@@ -3898,7 +4349,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -4017,7 +4468,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -4053,7 +4504,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <summary>
         /// Revoke all deleted requests.
         /// </summary>
-        /// <param name='groupId'>
+        /// <param name='group'>
         /// </param>
         /// <param name='allVersions'>
         /// </param>
@@ -4075,11 +4526,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse> RevokeGroupWithHttpMessagesAsync(string groupId, bool? allVersions = default(bool?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse> RevokeGroupWithHttpMessagesAsync(string group, bool? allVersions = default(bool?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (groupId == null)
+            if (group == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "groupId");
+                throw new ValidationException(ValidationRules.CannotBeNull, "group");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -4088,15 +4539,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("groupId", groupId);
+                tracingParameters.Add("group", group);
                 tracingParameters.Add("allVersions", allVersions);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "RevokeGroup", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/request/revoke/{groupId}").ToString();
-            _url = _url.Replace("{groupId}", System.Uri.EscapeDataString(groupId));
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/request/{group}/revokegroup").ToString();
+            _url = _url.Replace("{group}", System.Uri.EscapeDataString(group));
             List<string> _queryParameters = new List<string>();
             if (allVersions != null)
             {
@@ -4148,7 +4599,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -4205,7 +4656,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>> QueryRequestsWithHttpMessagesAsync(string appId = default(string), string requestState = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>> QueryCertificateRequestsWithHttpMessagesAsync(string appId = default(string), string requestState = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -4218,7 +4669,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 tracingParameters.Add("requestState", requestState);
                 tracingParameters.Add("maxResults", maxResults);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "QueryRequests", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "QueryCertificateRequests", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
@@ -4282,7 +4733,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -4359,7 +4810,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>> QueryRequestsNextWithHttpMessagesAsync(string nextPageLink = default(string), string appId = default(string), string requestState = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<CertificateRequestRecordQueryResponseApiModel>> QueryCertificateRequestsNextWithHttpMessagesAsync(string nextPageLink = default(string), string appId = default(string), string requestState = default(string), int? maxResults = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -4373,11 +4824,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 tracingParameters.Add("requestState", requestState);
                 tracingParameters.Add("maxResults", maxResults);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "QueryRequestsNext", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "QueryCertificateRequestsNext", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/request/querynext").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/request/query/next").ToString();
             List<string> _queryParameters = new List<string>();
             if (appId != null)
             {
@@ -4443,7 +4894,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -4495,7 +4946,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         }
 
         /// <summary>
-        /// Complete certificate request
+        /// Fetch certificate request results
         /// </summary>
         /// <param name='requestId'>
         /// </param>
@@ -4522,7 +4973,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<FinishRequestApiModel>> FinishRequestWithHttpMessagesAsync(string requestId, string applicationId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<FetchRequestResultApiModel>> FetchCertificateRequestResultWithHttpMessagesAsync(string requestId, string applicationId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (requestId == null)
             {
@@ -4542,17 +4993,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 tracingParameters.Add("requestId", requestId);
                 tracingParameters.Add("applicationId", applicationId);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "FinishRequest", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "FetchCertificateRequestResult", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/request/{requestId}/{applicationId}/finish").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/request/{requestId}/{applicationId}/fetch").ToString();
             _url = _url.Replace("{requestId}", System.Uri.EscapeDataString(requestId));
             _url = _url.Replace("{applicationId}", System.Uri.EscapeDataString(applicationId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
-            _httpRequest.Method = new HttpMethod("POST");
+            _httpRequest.Method = new HttpMethod("GET");
             _httpRequest.RequestUri = new System.Uri(_url);
             // Set Headers
 
@@ -4591,7 +5042,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -4614,7 +5065,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<FinishRequestApiModel>();
+            var _result = new HttpOperationResponse<FetchRequestResultApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -4623,7 +5074,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<FinishRequestApiModel>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<FetchRequestResultApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -4717,7 +5168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200)
+            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {

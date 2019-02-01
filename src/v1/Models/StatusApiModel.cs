@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -18,19 +18,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         private string appMessage;
         private string kvMessage;
 
-        [JsonProperty(PropertyName = "Name", Order = 10)]
+        [JsonProperty(PropertyName = "name", Order = 10)]
         public string Name => "OpcVault";
 
-        [JsonProperty(PropertyName = "Status", Order = 20)]
+        [JsonProperty(PropertyName = "status", Order = 20)]
         public string Status { get; set; }
 
-        [JsonProperty(PropertyName = "CurrentTime", Order = 30)]
+        [JsonProperty(PropertyName = "currentTime", Order = 30)]
         public string CurrentTime => DateTimeOffset.UtcNow.ToString(DateFormat);
 
-        [JsonProperty(PropertyName = "StartTime", Order = 40)]
+        [JsonProperty(PropertyName = "startTime", Order = 40)]
         public string StartTime => Uptime.Start.ToString(DateFormat);
 
-        [JsonProperty(PropertyName = "UpTime", Order = 50)]
+        [JsonProperty(PropertyName = "upTime", Order = 50)]
         public long UpTime => Convert.ToInt64(Uptime.Duration.TotalSeconds);
 
         /// <summary>
@@ -38,11 +38,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         /// used to correlate logs coming from the same instance. The value
         /// changes every time the service starts.
         /// </summary>
-        [JsonProperty(PropertyName = "UID", Order = 60)]
+        [JsonProperty(PropertyName = "uid", Order = 60)]
         public string UID => Uptime.ProcessId;
 
         /// <summary>A property bag with details about the service</summary>
-        [JsonProperty(PropertyName = "Properties", Order = 70)]
+        [JsonProperty(PropertyName = "properties", Order = 70)]
         public Dictionary<string, string> Properties => new Dictionary<string, string>
         {
             { "Culture", Thread.CurrentThread.CurrentCulture.Name },
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         };
 
         /// <summary>A property bag with details about the internal dependencies</summary>
-        [JsonProperty(PropertyName = "Dependencies", Order = 80)]
+        [JsonProperty(PropertyName = "dependencies", Order = 80)]
         public Dictionary<string, string> Dependencies => new Dictionary<string, string>
         {
             { "ApplicationDatabase", appMessage },

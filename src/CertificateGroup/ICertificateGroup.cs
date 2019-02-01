@@ -16,12 +16,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
     {
         Task <ICertificateGroup> OnBehalfOfRequest(HttpRequest request);
         Task<string[]> GetCertificateGroupIds();
-        Task<Opc.Ua.Gds.Server.CertificateGroupConfiguration> GetCertificateGroupConfiguration(string id);
-        Task<Opc.Ua.Gds.Server.CertificateGroupConfiguration> UpdateCertificateGroupConfiguration(string id, Opc.Ua.Gds.Server.CertificateGroupConfiguration config);
-        Task<Opc.Ua.Gds.Server.CertificateGroupConfiguration> CreateCertificateGroupConfiguration(string id, string subject, string certType);
-        Task<Opc.Ua.Gds.Server.CertificateGroupConfigurationCollection> GetCertificateGroupConfigurationCollection();
-        Task<X509Certificate2Collection> GetCACertificateChainAsync(string id);
-        Task<IList<Opc.Ua.X509CRL>> GetCACrlChainAsync(string id);
+        Task<CertificateGroupConfigurationModel> GetCertificateGroupConfiguration(string id);
+        Task<CertificateGroupConfigurationModel> UpdateCertificateGroupConfiguration(string id, CertificateGroupConfigurationModel config);
+        Task<CertificateGroupConfigurationModel> CreateCertificateGroupConfiguration(string id, string subject, string certType);
+        Task<IList<CertificateGroupConfigurationModel>> GetCertificateGroupConfigurationCollection();
+        Task<X509Certificate2Collection> GetIssuerCACertificateChainAsync(string id);
+        Task<IList<Opc.Ua.X509CRL>> GetIssuerCACrlChainAsync(string id);
         Task<KeyVaultTrustListModel> GetTrustListAsync(string id, int? maxResults, string nextPageLink);
 
         Task<X509Certificate2> SigningRequestAsync(
@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             string id,
             X509Certificate2Collection certificates);
 
-        Task<X509Certificate2> CreateCACertificateAsync(
+        Task<X509Certificate2> CreateIssuerCACertificateAsync(
             string id
             );
         Task<Opc.Ua.Gds.Server.X509Certificate2KeyPair> NewKeyPairRequestAsync(

@@ -40,12 +40,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Locale")]
+        [JsonProperty(PropertyName = "locale")]
         public string Locale { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Text")]
+        [JsonProperty(PropertyName = "text")]
         public string Text { get; set; }
 
     }

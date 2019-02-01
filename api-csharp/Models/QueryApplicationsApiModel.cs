@@ -47,37 +47,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "StartingRecordId")]
+        [JsonProperty(PropertyName = "startingRecordId")]
         public int? StartingRecordId { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "MaxRecordsToReturn")]
+        [JsonProperty(PropertyName = "maxRecordsToReturn")]
         public int? MaxRecordsToReturn { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ApplicationName")]
+        [JsonProperty(PropertyName = "applicationName")]
         public string ApplicationName { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ApplicationUri")]
+        [JsonProperty(PropertyName = "applicationUri")]
         public string ApplicationUri { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ApplicationType")]
+        [JsonProperty(PropertyName = "applicationType")]
         public int? ApplicationType { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ProductUri")]
+        [JsonProperty(PropertyName = "productUri")]
         public string ProductUri { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ServerCapabilities")]
+        [JsonProperty(PropertyName = "serverCapabilities")]
         public IList<string> ServerCapabilities { get; set; }
 
     }

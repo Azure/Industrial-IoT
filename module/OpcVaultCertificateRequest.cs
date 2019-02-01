@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -50,14 +50,14 @@ namespace Opc.Ua.Gds.Server.OpcVault
 
             try
             {
-                var model = new StartSigningRequestApiModel(
+                var model = new CreateSigningRequestApiModel(
                     appId,
                     certificateGroupId,
                     certificateTypeId,
                     Convert.ToBase64String(certificateRequest)
                     );
 
-                string requestId = _opcVaultServiceClient.StartSigningRequest(model);
+                string requestId = _opcVaultServiceClient.CreateSigningRequest(model);
                 return OpcVaultClientHelper.GetNodeIdFromServiceId(requestId, NamespaceIndex);
             }
             catch (HttpOperationException httpEx)
@@ -100,7 +100,7 @@ namespace Opc.Ua.Gds.Server.OpcVault
 
             try
             {
-                var model = new StartNewKeyPairRequestApiModel(
+                var model = new CreateNewKeyPairRequestApiModel(
                     appId,
                     certificateGroupId,
                     certificateTypeId,
@@ -110,7 +110,7 @@ namespace Opc.Ua.Gds.Server.OpcVault
                     privateKeyPassword
                     );
 
-                string requestId = _opcVaultServiceClient.StartNewKeyPairRequest(model);
+                string requestId = _opcVaultServiceClient.CreateNewKeyPairRequest(model);
 
                 return OpcVaultClientHelper.GetNodeIdFromServiceId(requestId, NamespaceIndex);
             }
@@ -182,7 +182,7 @@ namespace Opc.Ua.Gds.Server.OpcVault
             privateKey = null;
             try
             {
-                var request = _opcVaultServiceClient.FinishRequest(reqId, appId);
+                var request = _opcVaultServiceClient.FetchCertificateRequestResult(reqId, appId);
 
                 var state = (CertificateRequestState)Enum.Parse(typeof(CertificateRequestState), request.State);
 

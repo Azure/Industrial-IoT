@@ -41,17 +41,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Subject")]
+        [JsonProperty(PropertyName = "subject")]
         public string Subject { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Thumbprint")]
+        [JsonProperty(PropertyName = "thumbprint")]
         public string Thumbprint { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Certificate")]
+        [JsonProperty(PropertyName = "certificate")]
         public string Certificate { get; set; }
 
     }

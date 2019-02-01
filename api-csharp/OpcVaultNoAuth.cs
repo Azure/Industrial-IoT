@@ -73,5 +73,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             this.Credentials = credentials;
             this.Credentials.InitializeServiceClient(this);
         }
+
+        /// <summary>
+        /// Use CustomInitialize to override serializer settings.
+        /// </summary>
+        partial void CustomInitialize()
+        {
+            SerializationSettings.Converters.Add(
+                new Newtonsoft.Json.Converters.StringEnumConverter()
+                    {
+                        CamelCaseText = true,
+                        AllowIntegerValues = true
+                    }
+                );
+            DeserializationSettings.Converters.Add(
+                new Newtonsoft.Json.Converters.StringEnumConverter()
+                    {
+                        CamelCaseText = true,
+                        AllowIntegerValues = true
+                    }
+                );
+        }
     }
 }

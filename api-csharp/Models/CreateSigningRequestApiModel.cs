@@ -13,22 +13,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
     using Newtonsoft.Json;
     using System.Linq;
 
-    public partial class StartSigningRequestApiModel
+    public partial class CreateSigningRequestApiModel
     {
         /// <summary>
-        /// Initializes a new instance of the StartSigningRequestApiModel
+        /// Initializes a new instance of the CreateSigningRequestApiModel
         /// class.
         /// </summary>
-        public StartSigningRequestApiModel()
+        public CreateSigningRequestApiModel()
         {
             CustomInit();
         }
 
         /// <summary>
-        /// Initializes a new instance of the StartSigningRequestApiModel
+        /// Initializes a new instance of the CreateSigningRequestApiModel
         /// class.
         /// </summary>
-        public StartSigningRequestApiModel(string applicationId = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), string certificateRequest = default(string))
+        public CreateSigningRequestApiModel(string applicationId = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), string certificateRequest = default(string))
         {
             ApplicationId = applicationId;
             CertificateGroupId = certificateGroupId;
@@ -44,22 +44,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ApplicationId")]
+        [JsonProperty(PropertyName = "applicationId")]
         public string ApplicationId { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "CertificateGroupId")]
+        [JsonProperty(PropertyName = "certificateGroupId")]
         public string CertificateGroupId { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "CertificateTypeId")]
+        [JsonProperty(PropertyName = "certificateTypeId")]
         public string CertificateTypeId { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "CertificateRequest")]
+        [JsonProperty(PropertyName = "certificateRequest")]
         public string CertificateRequest { get; set; }
 
     }

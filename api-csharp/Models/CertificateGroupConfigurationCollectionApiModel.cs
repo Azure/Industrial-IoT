@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Groups")]
+        [JsonProperty(PropertyName = "groups")]
         public IList<CertificateGroupConfigurationApiModel> Groups { get; set; }
 
     }

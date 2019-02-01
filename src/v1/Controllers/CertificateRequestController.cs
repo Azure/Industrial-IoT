@@ -14,15 +14,14 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models;
-using Swashbuckle.AspNetCore.Annotations;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
     /// <inheritdoc/>
+    [ApiController]
     [Route(VersionInfo.PATH + "/request"), TypeFilter(typeof(ExceptionsFilterAttribute))]
     [Produces("application/json")]
     [Authorize(Policy = Policies.CanRead)]
-
     public sealed class CertificateRequestController : Controller
     {
         private readonly ICertificateRequest _certificateRequest;
@@ -41,9 +40,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// Start a new signing request.
         /// </summary>
         [HttpPost("sign")]
-        [SwaggerOperation(OperationId = "StartSigningRequest")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task<string> StartSigningRequestAsync([FromBody] StartSigningRequestApiModel signingRequest)
+        public async Task<string> CreateSigningRequestAsync([FromBody] CreateSigningRequestApiModel signingRequest)
         {
             if (signingRequest == null)
             {
@@ -61,10 +59,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// <summary>
         /// Start a new key pair request.
         /// </summary>
-        [HttpPost("newkeypair")]
-        [SwaggerOperation(OperationId = "StartNewKeyPairRequest")]
+        [HttpPost("keypair")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task<string> StartNewKeyPairRequestAsync([FromBody] StartNewKeyPairRequestApiModel newKeyPairRequest)
+        public async Task<string> CreateNewKeyPairRequestAsync([FromBody] CreateNewKeyPairRequestApiModel newKeyPairRequest)
         {
             if (newKeyPairRequest == null)
             {
@@ -85,10 +82,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// <summary>
         /// Approve request.
         /// </summary>
-        [HttpPost("{requestId}/approve/{rejected}")]
-        [SwaggerOperation(OperationId = "ApproveCertificateRequest")]
+        [HttpPost("{requestId}/{rejected}/approve")]
         [Authorize(Policy = Policies.CanSign)]
-
         public async Task ApproveCertificateRequestAsync(string requestId, bool rejected)
         {
             // for auto approve the service app id must have signing rights in keyvault
@@ -100,7 +95,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// Accept request.
         /// </summary>
         [HttpPost("{requestId}/accept")]
-        [SwaggerOperation(OperationId = "AcceptCertificateRequest")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task AcceptCertificateRequestAsync(string requestId)
         {
@@ -111,7 +105,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// Delete request.
         /// </summary>
         [HttpDelete("{requestId}")]
-        [SwaggerOperation(OperationId = "DeleteCertificateRequest")]
         [Authorize(Policy = Policies.CanManage)]
         public async Task DeleteCertificateRequestAsync(string requestId)
         {
@@ -121,8 +114,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// <summary>
         /// Purge request.
         /// </summary>
-        [HttpPost("{requestId}/purge")]
-        [SwaggerOperation(OperationId = "PurgeCertificateRequest")]
+        [HttpDelete("{requestId}/purge")]
         [Authorize(Policy = Policies.CanManage)]
         public async Task PurgeCertificateRequestAsync(string requestId)
         {
@@ -134,7 +126,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// Revoke request.
         /// </summary>
         [HttpPost("{requestId}/revoke")]
-        [SwaggerOperation(OperationId = "RevokeCertificateRequest")]
         [Authorize(Policy = Policies.CanSign)]
         public async Task RevokeCertificateRequestAsync(string requestId)
         {
@@ -143,20 +134,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         }
 
         /// <summary>Revoke all deleted requests.</summary>
-        [HttpPost("revoke/{groupId}")]
-        [SwaggerOperation(OperationId = "RevokeGroup")]
+        [HttpPost("{group}/revokegroup")]
         [Authorize(Policy = Policies.CanSign)]
-
-        public async Task PostRevokeGroupAsync(string groupId, bool? allVersions)
+        public async Task RevokeGroupAsync(string group, bool? allVersions)
         {
             var onBehalfOfCertificateRequest = await this._certificateRequest.OnBehalfOfRequest(Request);
-            await onBehalfOfCertificateRequest.RevokeGroupAsync(groupId, allVersions);
+            await onBehalfOfCertificateRequest.RevokeGroupAsync(group, allVersions);
         }
 
         /// <summary>Query certificate requests</summary>
         [HttpGet("query")]
-        [SwaggerOperation(OperationId = "QueryRequests")]
-        public async Task<CertificateRequestRecordQueryResponseApiModel> QueryRequestsPageAsync(string appId, string requestState, int? maxResults)
+        public async Task<CertificateRequestRecordQueryResponseApiModel> QueryCertificateRequestsAsync(string appId, string requestState, int? maxResults)
         {
             CertificateRequestState? parsedState = null;
             if (requestState != null)
@@ -170,9 +158,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         }
 
         /// <summary>Query certificate requests</summary>
-        [HttpPost("querynext")]
-        [SwaggerOperation(OperationId = "QueryRequestsNext")]
-        public async Task<CertificateRequestRecordQueryResponseApiModel> QueryRequestsNextAsync([FromBody] string nextPageLink, string appId, string requestState, int? maxResults)
+        [HttpPost("query/next")]
+        public async Task<CertificateRequestRecordQueryResponseApiModel> QueryCertificateRequestsNextAsync([FromBody] string nextPageLink, string appId, string requestState, int? maxResults)
         {
             CertificateRequestState? parsedState = null;
             if (requestState != null)
@@ -186,8 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 
         /// <summary>Read certificate request</summary>
         [HttpGet("{requestId}")]
-        [SwaggerOperation(OperationId = "ReadCertificateRequest")]
-        public async Task<CertificateRequestRecordApiModel> ReadCertificateRequestAsync(string requestId)
+        public async Task<CertificateRequestRecordApiModel> GetCertificateRequestAsync(string requestId)
         {
             var result = await _certificateRequest.ReadAsync(requestId);
             return new CertificateRequestRecordApiModel(
@@ -202,17 +188,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
                 result.PrivateKeyFormat);
         }
 
-        /// <summary>Complete certificate request</summary>
-        [HttpPost("{requestId}/{applicationId}/finish")]
-        [SwaggerOperation(OperationId = "FinishRequest")]
+        /// <summary>Fetch certificate request results</summary>
+        [HttpGet("{requestId}/{applicationId}/fetch")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task<FinishRequestApiModel> FinishRequestAsync(string requestId, string applicationId)
+        public async Task<FetchRequestResultApiModel> FetchCertificateRequestResultAsync(string requestId, string applicationId)
         {
-            var result = await _certificateRequest.FinishRequestAsync(
+            var result = await _certificateRequest.FetchRequestAsync(
                 requestId,
                 applicationId
                 );
-            return new FinishRequestApiModel(
+            return new FetchRequestResultApiModel(
                 requestId,
                 applicationId,
                 result.State,
@@ -224,6 +209,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
                 result.AuthorityId
                 );
         }
-
     }
 }

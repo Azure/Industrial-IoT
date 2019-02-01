@@ -45,17 +45,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Applications")]
+        [JsonProperty(PropertyName = "applications")]
         public IList<ApplicationRecordApiModel> Applications { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "LastCounterResetTime")]
+        [JsonProperty(PropertyName = "lastCounterResetTime")]
         public System.DateTime LastCounterResetTime { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "NextRecordId")]
+        [JsonProperty(PropertyName = "nextRecordId")]
         public int NextRecordId { get; set; }
 
         /// <summary>

@@ -44,12 +44,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Applications")]
+        [JsonProperty(PropertyName = "applications")]
         public IList<ApplicationRecordApiModel> Applications { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "NextPageLink")]
+        [JsonProperty(PropertyName = "nextPageLink")]
         public string NextPageLink { get; set; }
 
     }

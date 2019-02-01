@@ -81,7 +81,7 @@ namespace Opc.Ua.Gds.Server.OpcVault
         public async Task<X509Certificate2Collection> GetCACertificateChainAsync(string id)
         {
             var result = new X509Certificate2Collection();
-            var chainApiModel = await _opcServiceClient.GetCACertificateChainAsync(id).ConfigureAwait(false);
+            var chainApiModel = await _opcServiceClient.GetCertificateGroupIssuerCAChainAsync(id).ConfigureAwait(false);
             foreach (var certApiModel in chainApiModel.Chain)
             {
                 var cert = new X509Certificate2(Convert.FromBase64String(certApiModel.Certificate));
@@ -93,7 +93,7 @@ namespace Opc.Ua.Gds.Server.OpcVault
         public async Task<IList<Opc.Ua.X509CRL>> GetCACrlChainAsync(string id)
         {
             var result = new List<Opc.Ua.X509CRL>();
-            var chainApiModel = await _opcServiceClient.GetCACrlChainAsync(id).ConfigureAwait(false);
+            var chainApiModel = await _opcServiceClient.GetCertificateGroupIssuerCACrlChainAsync(id).ConfigureAwait(false);
             foreach (var certApiModel in chainApiModel.Chain)
             {
                 var crl = new Opc.Ua.X509CRL(Convert.FromBase64String(certApiModel.Crl));
@@ -104,7 +104,7 @@ namespace Opc.Ua.Gds.Server.OpcVault
 
         public async Task<CertificateGroupConfigurationCollection> GetCertificateConfigurationGroupsAsync(string baseStorePath)
         {
-            var groups = await _opcServiceClient.GetCertificateGroupConfigurationCollectionAsync().ConfigureAwait(false);
+            var groups = await _opcServiceClient.GetCertificateGroupsConfigurationAsync().ConfigureAwait(false);
             var groupCollection = new CertificateGroupConfigurationCollection();
             foreach (var group in groups.Groups)
             {
@@ -117,9 +117,9 @@ namespace Opc.Ua.Gds.Server.OpcVault
                     DefaultCertificateHashSize = (ushort)group.DefaultCertificateHashSize,
                     DefaultCertificateKeySize = (ushort)group.DefaultCertificateKeySize,
                     DefaultCertificateLifetime = (ushort)group.DefaultCertificateLifetime,
-                    CACertificateHashSize = (ushort)group.CACertificateHashSize,
-                    CACertificateKeySize = (ushort)group.CACertificateKeySize,
-                    CACertificateLifetime = (ushort)group.CACertificateLifetime
+                    CACertificateHashSize = (ushort)group.IssuerCACertificateHashSize,
+                    CACertificateKeySize = (ushort)group.IssuerCACertificateKeySize,
+                    CACertificateLifetime = (ushort)group.IssuerCACertificateLifetime
                 };
                 groupCollection.Add(newGroup);
             }
@@ -130,7 +130,7 @@ namespace Opc.Ua.Gds.Server.OpcVault
         {
             const int MaxResults = 3;
             var result = new X509TrustList();
-            var trustList = await _opcServiceClient.GetTrustListAsync(id, MaxResults).ConfigureAwait(false);
+            var trustList = await _opcServiceClient.GetCertificateGroupTrustListAsync(id, MaxResults).ConfigureAwait(false);
             while (trustList != null)
             {
                 result.AddIssuerCertificates(trustList.IssuerCertificates);
@@ -139,7 +139,7 @@ namespace Opc.Ua.Gds.Server.OpcVault
                 result.AddTrustedCrls(trustList.TrustedCrls);
                 if (!String.IsNullOrEmpty(trustList.NextPageLink))
                 {
-                    trustList = await _opcServiceClient.GetTrustListNextAsync(id, trustList.NextPageLink, MaxResults).ConfigureAwait(false);
+                    trustList = await _opcServiceClient.GetCertificateGroupTrustListNextAsync(id, trustList.NextPageLink, MaxResults).ConfigureAwait(false);
                 }
                 else
                 {

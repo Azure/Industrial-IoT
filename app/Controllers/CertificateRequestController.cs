@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             AuthorizeClient();
             string nextPageLink = null;
             var indexRequests = new List<CertificateRequestIndexApiModel>();
-            var requests = await opcVault.QueryRequestsAsync();
+            var requests = await opcVault.QueryCertificateRequestsAsync();
             while (requests != null)
             {
                 foreach (var request in requests.Requests)
@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                     break;
                 }
                 nextPageLink = requests.NextPageLink;
-                requests = await opcVault.QueryRequestsNextAsync(nextPageLink);
+                requests = await opcVault.QueryCertificateRequestsNextAsync(nextPageLink);
             }
 
             return View(indexRequests);

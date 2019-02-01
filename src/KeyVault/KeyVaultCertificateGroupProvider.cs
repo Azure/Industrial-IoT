@@ -11,10 +11,10 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.IIoT.Exceptions;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using Newtonsoft.Json;
 using Opc.Ua;
 using Opc.Ua.Gds;
-using Opc.Ua.Gds.Server;
 using static Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault.KeyVaultCertFactory;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
@@ -26,10 +26,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
         private KeyVaultCertificateGroupProvider(
             KeyVaultServiceClient keyVaultServiceClient,
-            CertificateGroupConfiguration certificateGroupConfiguration
+            CertificateGroupConfigurationModel certificateGroupConfiguration
             )
             :
-            base(null, certificateGroupConfiguration)
+            base(null, certificateGroupConfiguration.ToGdsServerModel())
         {
             _keyVaultServiceClient = keyVaultServiceClient;
             Certificate = null;
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
         public static KeyVaultCertificateGroupProvider Create(
                 KeyVaultServiceClient keyVaultServiceClient,
-                CertificateGroupConfiguration certificateGroupConfiguration)
+                CertificateGroupConfigurationModel certificateGroupConfiguration)
         {
             return new KeyVaultCertificateGroupProvider(keyVaultServiceClient, certificateGroupConfiguration);
         }
@@ -55,31 +55,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             KeyVaultServiceClient keyVaultServiceClient)
         {
             string json = await keyVaultServiceClient.GetCertificateConfigurationGroupsAsync().ConfigureAwait(false);
-            List<Opc.Ua.Gds.Server.CertificateGroupConfiguration> certificateGroupCollection = JsonConvert.DeserializeObject<List<Opc.Ua.Gds.Server.CertificateGroupConfiguration>>(json);
+            List<CertificateGroupConfigurationModel> certificateGroupCollection = JsonConvert.DeserializeObject<List<CertificateGroupConfigurationModel>>(json);
             List<string> groups = certificateGroupCollection.Select(cg => cg.Id).ToList();
             return groups.ToArray();
         }
 
-        public static async Task<CertificateGroupConfiguration> GetCertificateGroupConfiguration(
+        public static async Task<CertificateGroupConfigurationModel> GetCertificateGroupConfiguration(
             KeyVaultServiceClient keyVaultServiceClient,
             string id)
         {
             string json = await keyVaultServiceClient.GetCertificateConfigurationGroupsAsync().ConfigureAwait(false);
-            List<Opc.Ua.Gds.Server.CertificateGroupConfiguration> certificateGroupCollection = JsonConvert.DeserializeObject<List<Opc.Ua.Gds.Server.CertificateGroupConfiguration>>(json);
+            List<CertificateGroupConfigurationModel> certificateGroupCollection = JsonConvert.DeserializeObject<List<CertificateGroupConfigurationModel>>(json);
             return certificateGroupCollection.SingleOrDefault(cg => String.Equals(cg.Id, id, StringComparison.OrdinalIgnoreCase));
         }
 
-        public static async Task<CertificateGroupConfiguration> UpdateCertificateGroupConfiguration(
+        public static async Task<CertificateGroupConfigurationModel> UpdateCertificateGroupConfiguration(
             KeyVaultServiceClient keyVaultServiceClient,
             string id,
-            CertificateGroupConfiguration config)
+            CertificateGroupConfigurationModel config)
         {
             if (id.ToLower() != config.Id.ToLower())
             {
                 throw new ArgumentException("groupid doesn't match config id");
             }
             string json = await keyVaultServiceClient.GetCertificateConfigurationGroupsAsync().ConfigureAwait(false);
-            List<Opc.Ua.Gds.Server.CertificateGroupConfiguration> certificateGroupCollection = JsonConvert.DeserializeObject<List<Opc.Ua.Gds.Server.CertificateGroupConfiguration>>(json);
+            List<CertificateGroupConfigurationModel> certificateGroupCollection = JsonConvert.DeserializeObject<List<CertificateGroupConfigurationModel>>(json);
 
             var original = certificateGroupCollection.SingleOrDefault(cg => String.Equals(cg.Id, id, StringComparison.OrdinalIgnoreCase));
             if (original == null)
@@ -98,11 +98,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             json = await keyVaultServiceClient.PutCertificateConfigurationGroupsAsync(json).ConfigureAwait(false);
 
             // read it back to verify
-            certificateGroupCollection = JsonConvert.DeserializeObject<List<Opc.Ua.Gds.Server.CertificateGroupConfiguration>>(json);
+            certificateGroupCollection = JsonConvert.DeserializeObject<List<CertificateGroupConfigurationModel>>(json);
             return certificateGroupCollection.SingleOrDefault(cg => String.Equals(cg.Id, id, StringComparison.OrdinalIgnoreCase));
         }
 
-        public static async Task<CertificateGroupConfiguration> CreateCertificateGroupConfiguration(
+        public static async Task<CertificateGroupConfigurationModel> CreateCertificateGroupConfiguration(
             KeyVaultServiceClient keyVaultServiceClient,
             string id,
             string subject,
@@ -114,7 +114,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 throw new ArgumentException("groupid doesn't match config id");
             }
             string json = await keyVaultServiceClient.GetCertificateConfigurationGroupsAsync().ConfigureAwait(false);
-            List<Opc.Ua.Gds.Server.CertificateGroupConfiguration> certificateGroupCollection = JsonConvert.DeserializeObject<List<Opc.Ua.Gds.Server.CertificateGroupConfiguration>>(json);
+            List<CertificateGroupConfigurationModel> certificateGroupCollection = JsonConvert.DeserializeObject<List<CertificateGroupConfigurationModel>>(json);
 
             var original = certificateGroupCollection.SingleOrDefault(cg => String.Equals(cg.Id, id, StringComparison.OrdinalIgnoreCase));
             if (original != null)
@@ -132,7 +132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             json = await keyVaultServiceClient.PutCertificateConfigurationGroupsAsync(json).ConfigureAwait(false);
 
             // read it back to verify
-            certificateGroupCollection = JsonConvert.DeserializeObject<List<Opc.Ua.Gds.Server.CertificateGroupConfiguration>>(json);
+            certificateGroupCollection = JsonConvert.DeserializeObject<List<CertificateGroupConfigurationModel>>(json);
             return certificateGroupCollection.SingleOrDefault(cg => String.Equals(cg.Id, id, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -149,11 +149,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 {
                     _caCertSecretIdentifier = result.SecretIdentifier.Identifier;
                     _caCertKeyIdentifier = result.KeyIdentifier.Identifier;
-                    Crl = await _keyVaultServiceClient.LoadCACrl(Configuration.Id, Certificate);
+                    Crl = await _keyVaultServiceClient.LoadIssuerCACrl(Configuration.Id, Certificate);
                 }
                 else
                 {
-                    throw new InvalidConfigurationException("Key Vault certificate subject(" + Certificate.Subject + ") does not match cert group subject " + Configuration.SubjectName);
+                    throw new ResourceInvalidStateException("Key Vault certificate subject(" + Certificate.Subject + ") does not match cert group subject " + Configuration.SubjectName);
                 }
             }
             catch (Exception e)
@@ -171,10 +171,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         }
 
         /// <summary>
-        /// Create CA cert and default Crl offline, then import in KeyVault.
+        /// Create issuer CA cert and default Crl offline, then import in KeyVault.
         /// Note: Do not use in production, private key handling is unsecure!
         /// </summary>
-        public async Task<bool> CreateImportedCACertificateAsync()
+        public async Task<bool> CreateImportedIssuerCACertificateAsync()
         {
             await _semaphoreSlim.WaitAsync();
             try
@@ -209,8 +209,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                     }
 
                     // upload ca cert with private key
-                    await _keyVaultServiceClient.ImportCACertificate(Configuration.Id, new X509Certificate2Collection(caCert), true).ConfigureAwait(false);
-                    await _keyVaultServiceClient.ImportCACrl(Configuration.Id, Certificate, Crl).ConfigureAwait(false);
+                    await _keyVaultServiceClient.ImportIssuerCACertificate(Configuration.Id, new X509Certificate2Collection(caCert), true).ConfigureAwait(false);
+                    await _keyVaultServiceClient.ImportIssuerCACrl(Configuration.Id, Certificate, Crl).ConfigureAwait(false);
                 }
                 return true;
             }
@@ -223,7 +223,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         /// <summary>
         /// Create CA certificate and Crl with new private key in KeyVault HSM.
         /// </summary>
-        public async Task<bool> CreateCACertificateAsync()
+        public async Task<bool> CreateIssuerCACertificateAsync()
         {
             await _semaphoreSlim.WaitAsync();
             try
@@ -258,7 +258,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                     this.Configuration.CACertificateHashSize);
 
                 // upload crl
-                await _keyVaultServiceClient.ImportCACrl(Configuration.Id, Certificate, Crl).ConfigureAwait(false);
+                await _keyVaultServiceClient.ImportIssuerCACrl(Configuration.Id, Certificate, Crl).ConfigureAwait(false);
 
                 return true;
             }
@@ -287,14 +287,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                     String.Equals(authorityKeyIdentifier.KeyId, subjectKeyId.SubjectKeyIdentifier, StringComparison.OrdinalIgnoreCase)
                     )
                 {
-                    var crl = await _keyVaultServiceClient.LoadCACrl(Configuration.Id, caCertKeyInfo.Certificate);
+                    var crl = await _keyVaultServiceClient.LoadIssuerCACrl(Configuration.Id, caCertKeyInfo.Certificate);
                     var crls = new List<X509CRL>() { crl };
                     var newCrl = RevokeCertificate(caCertKeyInfo.Certificate, crls, certificates,
                         now, DateTime.MinValue,
                         new KeyVaultSignatureGenerator(_keyVaultServiceClient, caCertKeyInfo.KeyIdentifier, caCertKeyInfo.Certificate),
                         this.Configuration.CACertificateHashSize);
-                    await _keyVaultServiceClient.ImportCACrl(Configuration.Id, caCertKeyInfo.Certificate, newCrl).ConfigureAwait(false);
-                    Crl = await _keyVaultServiceClient.LoadCACrl(Configuration.Id, Certificate);
+                    await _keyVaultServiceClient.ImportIssuerCACrl(Configuration.Id, caCertKeyInfo.Certificate, newCrl).ConfigureAwait(false);
+                    Crl = await _keyVaultServiceClient.LoadIssuerCACrl(Configuration.Id, Certificate);
                     return newCrl;
                 }
             }
@@ -337,27 +337,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                     continue;
                 }
 
-                var crl = await _keyVaultServiceClient.LoadCACrl(Configuration.Id, caCertKeyInfo.Certificate);
+                var crl = await _keyVaultServiceClient.LoadIssuerCACrl(Configuration.Id, caCertKeyInfo.Certificate);
                 var crls = new List<X509CRL>() { crl };
                 var newCrl = RevokeCertificate(caCertKeyInfo.Certificate, crls, caRevokeCollection,
                     now, DateTime.MinValue,
                     new KeyVaultSignatureGenerator(_keyVaultServiceClient, caCertKeyInfo.KeyIdentifier, caCertKeyInfo.Certificate),
                     this.Configuration.CACertificateHashSize);
-                await _keyVaultServiceClient.ImportCACrl(Configuration.Id, caCertKeyInfo.Certificate, newCrl).ConfigureAwait(false);
+                await _keyVaultServiceClient.ImportIssuerCACrl(Configuration.Id, caCertKeyInfo.Certificate, newCrl).ConfigureAwait(false);
 
                 foreach (var cert in caRevokeCollection)
                 {
                     remainingCertificates.Remove(cert);
                 }
             }
-            Crl = await _keyVaultServiceClient.LoadCACrl(Configuration.Id, Certificate);
+            Crl = await _keyVaultServiceClient.LoadIssuerCACrl(Configuration.Id, Certificate);
             return remainingCertificates;
         }
 
         /// <summary>
         /// Creates a new key pair with KeyVault and signs it with KeyVault.
         /// </summary>
-        public async Task<X509Certificate2KeyPair> NewKeyPairRequestKeyVaultAsync(
+        public async Task<Opc.Ua.Gds.Server.X509Certificate2KeyPair> NewKeyPairRequestKeyVaultAsync(
             ApplicationRecordDataType application,
             string subjectName,
             string[] domainNames,
@@ -396,14 +396,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 {
                     throw new ServiceResultException(StatusCodes.BadInvalidArgument, "Invalid private key format");
                 }
-                return new X509Certificate2KeyPair(new X509Certificate2(signedCertWithPrivateKey.RawData), privateKeyFormat, privateKey);
+                return new Opc.Ua.Gds.Server.X509Certificate2KeyPair(new X509Certificate2(signedCertWithPrivateKey.RawData), privateKeyFormat, privateKey);
             }
         }
 
         /// <summary>
         /// Creates a new key pair with certificate offline and signs it with KeyVault.
         /// </summary>
-        public override async Task<X509Certificate2KeyPair> NewKeyPairRequestAsync(
+        public override async Task<Opc.Ua.Gds.Server.X509Certificate2KeyPair> NewKeyPairRequestAsync(
             ApplicationRecordDataType application,
             string subjectName,
             string[] domainNames,
@@ -458,7 +458,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                         throw new ServiceResultException(StatusCodes.BadInvalidArgument, "Invalid private key format");
                     }
 
-                    return new X509Certificate2KeyPair(new X509Certificate2(signedCertWithPrivateKey.RawData), privateKeyFormat, privateKey);
+                    return new Opc.Ua.Gds.Server.X509Certificate2KeyPair(new X509Certificate2(signedCertWithPrivateKey.RawData), privateKeyFormat, privateKey);
                 }
             }
         }
@@ -563,13 +563,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             }
         }
 
-        public async Task<X509Certificate2> GetCACertificateAsync(string id)
+        public async Task<X509Certificate2> GetIssuerCACertificateAsync(string id)
         {
             await LoadPublicAssets().ConfigureAwait(false);
             return Certificate;
         }
 
-        public async Task<X509CRL> GetCACrlAsync(string id)
+        public async Task<X509CRL> GetIssuerCACrlAsync(string id)
         {
             await LoadPublicAssets().ConfigureAwait(false);
             return Crl;
@@ -601,9 +601,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             }
         }
 
-        private static Opc.Ua.Gds.Server.CertificateGroupConfiguration DefaultConfiguration(string id, string subject, string certType)
+        private static CertificateGroupConfigurationModel DefaultConfiguration(string id, string subject, string certType)
         {
-            var config = new Opc.Ua.Gds.Server.CertificateGroupConfiguration()
+            var config = new CertificateGroupConfigurationModel()
             {
                 Id = id,
                 SubjectName = subject,
@@ -611,9 +611,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 DefaultCertificateLifetime = 12,
                 DefaultCertificateHashSize = 256,
                 DefaultCertificateKeySize = 2048,
-                CACertificateLifetime = 60,
-                CACertificateHashSize = 256,
-                CACertificateKeySize = 2048
+                IssuerCACertificateLifetime = 60,
+                IssuerCACertificateHashSize = 256,
+                IssuerCACertificateKeySize = 2048
             };
             if (certType != null)
             {
@@ -624,7 +624,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             return config;
         }
 
-        private static void ValidateConfiguration(Opc.Ua.Gds.Server.CertificateGroupConfiguration update)
+        private static void ValidateConfiguration(CertificateGroupConfigurationModel update)
         {
             if (!update.Id.All(char.IsLetterOrDigit))
             {
@@ -652,10 +652,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 
             // specify ranges for lifetime (months)
             if (update.DefaultCertificateLifetime < 1 ||
-                    update.CACertificateLifetime < 1 ||
-                    update.DefaultCertificateLifetime * 2 > update.CACertificateLifetime ||
-                    update.DefaultCertificateLifetime > 60 ||
-                    update.CACertificateLifetime > 1200)
+                update.IssuerCACertificateLifetime < 1 ||
+                update.DefaultCertificateLifetime * 2 > update.IssuerCACertificateLifetime ||
+                update.DefaultCertificateLifetime > 60 ||
+                update.IssuerCACertificateLifetime > 1200)
             {
                 throw new ArgumentException("Invalid lifetime");
             }
@@ -667,9 +667,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 throw new ArgumentException("Invalid key size");
             }
 
-            if (update.CACertificateKeySize < 2048 ||
-                update.CACertificateKeySize % 1024 != 0 ||
-                update.CACertificateKeySize > 4096)
+            if (update.IssuerCACertificateKeySize < 2048 ||
+                update.IssuerCACertificateKeySize % 1024 != 0 ||
+                update.IssuerCACertificateKeySize > 4096)
             {
                 throw new ArgumentException("Invalid key size");
             }
@@ -681,14 +681,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 throw new ArgumentException("Invalid hash size");
             }
 
-            if (update.CACertificateHashSize < 256 ||
-                update.CACertificateHashSize % 128 != 0 ||
-                update.CACertificateHashSize > 512)
+            if (update.IssuerCACertificateHashSize < 256 ||
+                update.IssuerCACertificateHashSize % 128 != 0 ||
+                update.IssuerCACertificateHashSize > 512)
             {
                 throw new ArgumentException("Invalid hash size");
             }
-
-            update.BaseStorePath = "/" + update.Id.ToLower();
         }
 
         private static Dictionary<NodeId, string> CertTypeMap()

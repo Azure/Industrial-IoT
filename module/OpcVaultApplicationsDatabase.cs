@@ -75,11 +75,12 @@ namespace Opc.Ua.Gds.Server.Database.OpcVault
 
             if (isUpdate)
             {
-                string nodeId = _opcVaultServiceClient.UpdateApplication(applicationId, applicationModel);
+                applicationModel = _opcVaultServiceClient.UpdateApplication(applicationId, applicationModel);
             }
             else
             {
-                applicationId = _opcVaultServiceClient.RegisterApplication(applicationModel);
+                applicationModel = _opcVaultServiceClient.RegisterApplication(applicationModel);
+                applicationId = applicationModel.ApplicationId;
             }
 
             return OpcVaultClientHelper.GetNodeIdFromServiceId(applicationId, NamespaceIndex);
@@ -164,7 +165,7 @@ namespace Opc.Ua.Gds.Server.Database.OpcVault
             base.FindApplications(applicationUri);
             IList<ApplicationRecordApiModel> results;
 
-            results = _opcVaultServiceClient.FindApplication(applicationUri);
+            results = _opcVaultServiceClient.ListApplications(applicationUri);
 
             List<ApplicationRecordDataType> records = new List<ApplicationRecordDataType>();
 
@@ -245,7 +246,7 @@ namespace Opc.Ua.Gds.Server.Database.OpcVault
                     {
                         records.Add(new ServerOnNetwork()
                         {
-                            RecordId = (uint)application.ID,
+                            RecordId = (uint)application.Id,
                             ServerName = application.ApplicationName,
                             DiscoveryUrl = discoveryUrl,
                             ServerCapabilities = application.ServerCapabilities?.Split(",")

@@ -7,15 +7,16 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.IIoT.Exceptions;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models;
-using Swashbuckle.AspNetCore.Annotations;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
     /// <inheritdoc/>
-    [Route(VersionInfo.PATH + "/groups"), TypeFilter(typeof(ExceptionsFilterAttribute))]
+    [ApiController]
+    [Route(VersionInfo.PATH + "/group"), TypeFilter(typeof(ExceptionsFilterAttribute))]
     [Produces("application/json")]
     [Authorize(Policy = Policies.CanRead)]
     public sealed class CertificateGroupController : Controller
@@ -31,117 +32,114 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 
         /// <returns>List of certificate groups</returns>
         [HttpGet]
-        [SwaggerOperation(OperationId = "GetCertificateGroupIds")]
-        public async Task<CertificateGroupListApiModel> GetAsync()
+        public async Task<CertificateGroupListApiModel> GetCertificateGroupsAsync()
         {
             return new CertificateGroupListApiModel(await this._certificateGroups.GetCertificateGroupIds());
         }
 
         /// <summary>Get group configuration</summary>
-        [HttpGet("{groupId}")]
-        [SwaggerOperation(OperationId = "GetCertificateGroupConfiguration")]
-        public async Task<CertificateGroupConfigurationApiModel> GetAsync(string groupId)
+        [HttpGet("{group}")]
+        public async Task<CertificateGroupConfigurationApiModel> GetCertificateGroupConfigurationAsync(string group)
         {
             return new CertificateGroupConfigurationApiModel(
-                groupId,
-                await this._certificateGroups.GetCertificateGroupConfiguration(groupId));
+                group,
+                await this._certificateGroups.GetCertificateGroupConfiguration(group));
         }
 
         /// <summary>Update group configuration</summary>
-        [HttpPut("{groupId}")]
-        [SwaggerOperation(OperationId = "UpdateCertificateGroupConfiguration")]
+        [HttpPut("{group}")]
         [Authorize(Policy = Policies.CanManage)]
-        public async Task<CertificateGroupConfigurationApiModel> PutAsync(string groupId, [FromBody] CertificateGroupConfigurationApiModel config)
+        public async Task<CertificateGroupConfigurationApiModel> UpdateCertificateGroupConfigurationAsync(string group, [FromBody] CertificateGroupConfigurationApiModel config)
         {
             var onBehalfOfCertificateGroups = await this._certificateGroups.OnBehalfOfRequest(Request);
             return new CertificateGroupConfigurationApiModel(
-                groupId,
-                await onBehalfOfCertificateGroups.UpdateCertificateGroupConfiguration(groupId, config.ToServiceModel()));
+                group,
+                await onBehalfOfCertificateGroups.UpdateCertificateGroupConfiguration(group, config.ToServiceModel()));
         }
 
         /// <summary>Create new group configuration</summary>
-        [HttpPost("{groupId}/{subject}/{certType}")]
-        [SwaggerOperation(OperationId = "CreateCertificateGroupConfiguration")]
+        [HttpPost("{group}/{subject}/{certType}/create")]
         [Authorize(Policy = Policies.CanManage)]
-
-        public async Task<CertificateGroupConfigurationApiModel> PostAsync(string groupId, string subject, string certType)
+        public async Task<CertificateGroupConfigurationApiModel> CreateCertificateGroupAsync(string group, string subject, string certType)
         {
             var onBehalfOfCertificateGroups = await this._certificateGroups.OnBehalfOfRequest(Request);
             return new CertificateGroupConfigurationApiModel(
-                groupId,
-                await onBehalfOfCertificateGroups.CreateCertificateGroupConfiguration(groupId, subject, certType));
+                group,
+                await onBehalfOfCertificateGroups.CreateCertificateGroupConfiguration(group, subject, certType));
+        }
+
+        /// <summary>Delete group configuration</summary>
+        [HttpDelete("{group}")]
+        [Authorize(Policy = Policies.CanManage)]
+        public async Task DeleteCertificateGroupAsync(string group)
+        {
+            await Task.Delay(1000);
+            // intentionally not implemented yet
+            throw new ResourceNotFoundException();
         }
 
         /// <summary>Get group configuration</summary>
-        [HttpGet("config")]
-        [SwaggerOperation(OperationId = "GetCertificateGroupConfigurationCollection")]
-        public async Task<CertificateGroupConfigurationCollectionApiModel> GetConfigAsync()
+        [HttpGet("groupsconfig")]
+        public async Task<CertificateGroupConfigurationCollectionApiModel> GetCertificateGroupsConfigurationAsync()
         {
             return new CertificateGroupConfigurationCollectionApiModel(
                 await this._certificateGroups.GetCertificateGroupConfigurationCollection());
         }
 
-        /// <summary>Get CA Certificate chain</summary>
-        [HttpGet("{groupId}/cacert")]
-        [SwaggerOperation(OperationId = "GetCACertificateChain")]
-        public async Task<X509Certificate2CollectionApiModel> GetCACertificateChainAsync(string groupId, int? maxResults)
+        /// <summary>Get Issuer CA Certificate chain</summary>
+        [HttpGet("{group}/issuerca")]
+        public async Task<X509Certificate2CollectionApiModel> GetCertificateGroupIssuerCAChainAsync(string group, int? maxResults)
         {
             return new X509Certificate2CollectionApiModel(
-                await this._certificateGroups.GetCACertificateChainAsync(groupId));
+                await this._certificateGroups.GetIssuerCACertificateChainAsync(group));
         }
 
-        /// <summary>Get CA Certificate chain</summary>
-        [HttpPost("{groupId}/cacertnext")]
-        [SwaggerOperation(OperationId = "GetCACertificateChainNext")]
-        public async Task<X509Certificate2CollectionApiModel> GetCACertificateChainNextAsync(string groupId, [FromBody] string nextPageLink, int? maxResults)
+        /// <summary>Get Issuer CA Certificate chain</summary>
+        [HttpPost("{group}/issuerca/next")]
+        public async Task<X509Certificate2CollectionApiModel> GetCertificateGroupIssuerCAChainNextAsync(string group, [FromBody] string nextPageLink, int? maxResults)
         {
             return new X509Certificate2CollectionApiModel(
-                await this._certificateGroups.GetCACertificateChainAsync(groupId));
+                await this._certificateGroups.GetIssuerCACertificateChainAsync(group));
         }
 
-        /// <summary>Get CA CRL chain</summary>
-        [HttpGet("{groupId}/cacrl")]
-        [SwaggerOperation(OperationId = "GetCACrlChain")]
-        public async Task<X509CrlCollectionApiModel> GetCACrlChainAsync(string groupId, int? maxResults)
+        /// <summary>Get Issuer CA CRL chain</summary>
+        [HttpGet("{group}/issuercacrl")]
+        public async Task<X509CrlCollectionApiModel> GetCertificateGroupIssuerCACrlChainAsync(string group, int? maxResults)
         {
             return new X509CrlCollectionApiModel(
-                await this._certificateGroups.GetCACrlChainAsync(groupId));
+                await this._certificateGroups.GetIssuerCACrlChainAsync(group));
         }
 
-        /// <summary>Get CA CRL chain</summary>
-        [HttpPost("{groupId}/cacrlnext")]
-        [SwaggerOperation(OperationId = "GetCACrlChainNext")]
-        public async Task<X509CrlCollectionApiModel> GetCACrlChainNextAsync(string groupId, [FromBody] string nextPageLink, int? maxResults)
+        /// <summary>Get Issuer CA CRL chain</summary>
+        [HttpPost("{group}/issuercacrl/next")]
+        public async Task<X509CrlCollectionApiModel> GetCertificateGroupIssuerCACrlChainNextAsync(string group, [FromBody] string nextPageLink, int? maxResults)
         {
             return new X509CrlCollectionApiModel(
-                await this._certificateGroups.GetCACrlChainAsync(groupId));
+                await this._certificateGroups.GetIssuerCACrlChainAsync(group));
         }
 
         /// <summary>Get trust list</summary>
-        [HttpGet("{groupId}/trustlist")]
-        [SwaggerOperation(OperationId = "GetTrustList")]
-        public async Task<TrustListApiModel> GetTrustListAsync(string groupId, int? maxResults)
+        [HttpGet("{group}/trustlist")]
+        public async Task<TrustListApiModel> GetCertificateGroupTrustListAsync(string group, int? maxResults)
         {
-            return new TrustListApiModel(await this._certificateGroups.GetTrustListAsync(groupId, maxResults, null));
+            return new TrustListApiModel(await this._certificateGroups.GetTrustListAsync(group, maxResults, null));
         }
 
         /// <summary>Get trust list</summary>
-        [HttpPost("{groupId}/trustlistnext")]
-        [SwaggerOperation(OperationId = "GetTrustListNext")]
-        public async Task<TrustListApiModel> GetTrustListNextAsync(string groupId, [FromBody] string nextPageLink, int? maxResults)
+        [HttpPost("{group}/trustlist/next")]
+        public async Task<TrustListApiModel> GetCertificateGroupTrustListNextAsync(string group, [FromBody] string nextPageLink, int? maxResults)
         {
-            return new TrustListApiModel(await this._certificateGroups.GetTrustListAsync(groupId, maxResults, nextPageLink));
+            return new TrustListApiModel(await this._certificateGroups.GetTrustListAsync(group, maxResults, nextPageLink));
         }
 
         /// <summary>Create new CA Certificate</summary>
-        [HttpPost("{groupId}/create")]
-        [SwaggerOperation(OperationId = "CreateCACertificate")]
+        [HttpPost("{group}/issuerca/create")]
         [Authorize(Policy = Policies.CanManage)]
-        public async Task<X509Certificate2ApiModel> PostCreateAsync(string groupId)
+        public async Task<X509Certificate2ApiModel> CreateCertificateGroupIssuerCACertAsync(string group)
         {
             var onBehalfOfCertificateGroups = await this._certificateGroups.OnBehalfOfRequest(Request);
             return new X509Certificate2ApiModel(
-                await onBehalfOfCertificateGroups.CreateCACertificateAsync(groupId));
+                await onBehalfOfCertificateGroups.CreateIssuerCACertificateAsync(group));
         }
 
     }

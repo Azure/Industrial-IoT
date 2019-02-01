@@ -94,7 +94,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                         apiModel.ServerCapabilities = null;
                         apiModel.DiscoveryUrls = null;
                     }
-                    apiModel.ApplicationId = await opcVault.RegisterApplicationAsync(apiModel);
+                    var application = await opcVault.RegisterApplicationAsync(apiModel);
+                    apiModel = new ApplicationRecordRegisterApiModel(application);
                 }
                 catch (Exception ex)
                 {
@@ -111,7 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 AuthorizeClient();
                 try
                 {
-                    var applications = await opcVault.FindApplicationAsync(apiModel.ApplicationUri);
+                    var applications = await opcVault.ListApplicationsAsync(apiModel.ApplicationUri);
                     if (applications == null || applications.Count == 0)
                     {
                         ViewData["ErrorMessage"] =
@@ -164,7 +165,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> StartNewKeyPairAsync(string id)
         {
             AuthorizeClient();
-            var groups = await opcVault.GetCertificateGroupConfigurationCollectionAsync();
+            var groups = await opcVault.GetCertificateGroupsConfigurationAsync();
             if (groups == null)
             {
                 return new NotFoundResult();
@@ -215,7 +216,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             ViewData["Application"] = application;
             ViewData["Groups"] = groups;
 
-            var request = new StartNewKeyPairRequestFormApiModel()
+            var request = new CreateNewKeyPairRequestFormApiModel()
             {
                 ApplicationId = id,
                 CertificateGroupId = defaultGroupId,
@@ -230,7 +231,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         [ActionName("StartNewKeyPair")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> StartNewKeyPairAsync(
-            StartNewKeyPairRequestFormApiModel request,
+            CreateNewKeyPairRequestFormApiModel request,
             string add,
             string del)
         {
@@ -243,7 +244,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 string id;
                 try
                 {
-                    id = await opcVault.StartNewKeyPairRequestAsync(request);
+                    id = await opcVault.CreateNewKeyPairRequestAsync(request);
                 }
                 catch (Exception ex)
                 {
@@ -291,7 +292,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> StartSigningAsync(string id)
         {
             AuthorizeClient();
-            var groups = await opcVault.GetCertificateGroupConfigurationCollectionAsync();
+            var groups = await opcVault.GetCertificateGroupsConfigurationAsync();
             if (groups == null)
             {
                 return new NotFoundResult();
@@ -314,9 +315,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 return new NotFoundResult();
             }
 
-            var request = new StartSigningRequestUploadApiModel()
+            var request = new CreateSigningRequestUploadApiModel()
             {
-                ApiModel = new StartSigningRequestApiModel()
+                ApiModel = new CreateSigningRequestApiModel()
                 {
                     ApplicationId = id,
                     CertificateGroupId = defaultGroupId,
@@ -333,7 +334,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         [ActionName("StartSigning")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> StartSigningAsync(
-            StartSigningRequestUploadApiModel request)
+            CreateSigningRequestUploadApiModel request)
         {
             if (ModelState.IsValid && (request.CertificateRequestFile != null || request.ApiModel.CertificateRequest != null))
             {
@@ -347,7 +348,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                     }
                 }
                 AuthorizeClient();
-                var id = await opcVault.StartSigningRequestAsync(requestApi);
+                var id = await opcVault.CreateSigningRequestAsync(requestApi);
                 string message = null;
                 try
                 {
@@ -395,7 +396,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             }
         }
 
-        private void UpdateApiModel(StartNewKeyPairRequestFormApiModel request)
+        private void UpdateApiModel(CreateNewKeyPairRequestFormApiModel request)
         {
             if (request.DomainNames != null)
             {

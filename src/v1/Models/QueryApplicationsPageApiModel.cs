@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -12,25 +12,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
     public sealed class QueryApplicationsPageApiModel
     {
-        [JsonProperty(PropertyName = "ApplicationName", Order = 20)]
+        [JsonProperty(PropertyName = "applicationName", Order = 20)]
         public string ApplicationName { get; set; }
 
-        [JsonProperty(PropertyName = "ApplicationUri", Order = 30)]
+        [JsonProperty(PropertyName = "applicationUri", Order = 30)]
         public string ApplicationUri { get; set; }
 
-        [JsonProperty(PropertyName = "ApplicationType", Order = 40)]
+        [JsonProperty(PropertyName = "applicationType", Order = 40)]
         public uint ApplicationType { get; set; }
 
-        [JsonProperty(PropertyName = "ProductUri", Order = 50)]
+        [JsonProperty(PropertyName = "productUri", Order = 50)]
         public string ProductUri { get; set; }
 
-        [JsonProperty(PropertyName = "ServerCapabilities", Order = 60)]
-        public string [] ServerCapabilities { get; set; }
+        [JsonProperty(PropertyName = "serverCapabilities", Order = 60)]
+        public IList<string> ServerCapabilities { get; set; }
 
-        [JsonProperty(PropertyName = "NextPageLink", Order = 70)]
+        [JsonProperty(PropertyName = "nextPageLink", Order = 70)]
         public string NextPageLink { get; set; }
 
-        [JsonProperty(PropertyName = "MaxRecordsToReturn", Order = 80)]
+        [JsonProperty(PropertyName = "maxRecordsToReturn", Order = 80)]
         public int MaxRecordsToReturn { get; set; }
 
         public QueryApplicationsPageApiModel(
@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
             this.ApplicationUri = applicationUri;
             this.ApplicationType = applicationType;
             this.ProductUri = productUri;
-            this.ServerCapabilities = serverCapabilities?.ToArray();
+            this.ServerCapabilities = serverCapabilities;
             this.NextPageLink = nextPageLink;
             this.MaxRecordsToReturn = maxRecordsToReturn;
         }

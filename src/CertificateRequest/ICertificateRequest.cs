@@ -1,13 +1,14 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
-using System.Threading.Tasks;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
@@ -29,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             string certificateGroupId,
             string certificateTypeId,
             string subjectName,
-            string[] domainNames,
+            IList<string> domainNames,
             string privateKeyFormat,
             string privateKeyPassword,
             string authorityId);
@@ -54,7 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             string groupId,
             bool? allVersions);
 
-        Task<FinishRequestResultModel> FinishRequestAsync(
+        Task<FetchRequestResultModel> FetchRequestAsync(
             string requestId,
             string applicationId
             );
@@ -63,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             string requestId);
 
         Task<(string, ReadRequestResultModel[])> QueryPageAsync(
-            string appId, 
+            string appId,
             CertificateRequestState? state,
             string NextPageLink,
             int? maxResults = null

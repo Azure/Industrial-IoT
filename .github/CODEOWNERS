@@ -11,5 +11,6 @@ LICENSE             @mregen
 api-csharp/         @mregen
 app/	            @mregen
 module/	            @mregen
-src/			    @mregen
+src/                @mregen
 tests/	            @mregen
+deploy/             @mregen

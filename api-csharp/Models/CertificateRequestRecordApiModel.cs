@@ -51,47 +51,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "RequestId")]
+        [JsonProperty(PropertyName = "requestId")]
         public string RequestId { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ApplicationId")]
+        [JsonProperty(PropertyName = "applicationId")]
         public string ApplicationId { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "State")]
+        [JsonProperty(PropertyName = "state")]
         public string State { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "CertificateGroupId")]
+        [JsonProperty(PropertyName = "certificateGroupId")]
         public string CertificateGroupId { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "CertificateTypeId")]
+        [JsonProperty(PropertyName = "certificateTypeId")]
         public string CertificateTypeId { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "SigningRequest")]
+        [JsonProperty(PropertyName = "signingRequest")]
         public bool? SigningRequest { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "SubjectName")]
+        [JsonProperty(PropertyName = "subjectName")]
         public string SubjectName { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "DomainNames")]
+        [JsonProperty(PropertyName = "domainNames")]
         public IList<string> DomainNames { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "PrivateKeyFormat")]
+        [JsonProperty(PropertyName = "privateKeyFormat")]
         public string PrivateKeyFormat { get; set; }
 
     }

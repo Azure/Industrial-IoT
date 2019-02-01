@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// Initializes a new instance of the
         /// CertificateGroupConfigurationApiModel class.
         /// </summary>
-        public CertificateGroupConfigurationApiModel(string name = default(string), string certificateType = default(string), string subjectName = default(string), int? defaultCertificateLifetime = default(int?), int? defaultCertificateKeySize = default(int?), int? defaultCertificateHashSize = default(int?), int? cACertificateLifetime = default(int?), int? cACertificateKeySize = default(int?), int? cACertificateHashSize = default(int?))
+        public CertificateGroupConfigurationApiModel(string name = default(string), string certificateType = default(string), string subjectName = default(string), int? defaultCertificateLifetime = default(int?), int? defaultCertificateKeySize = default(int?), int? defaultCertificateHashSize = default(int?), int? issuerCACertificateLifetime = default(int?), int? issuerCACertificateKeySize = default(int?), int? issuerCACertificateHashSize = default(int?))
         {
             Name = name;
             CertificateType = certificateType;
@@ -36,9 +36,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
             DefaultCertificateLifetime = defaultCertificateLifetime;
             DefaultCertificateKeySize = defaultCertificateKeySize;
             DefaultCertificateHashSize = defaultCertificateHashSize;
-            CACertificateLifetime = cACertificateLifetime;
-            CACertificateKeySize = cACertificateKeySize;
-            CACertificateHashSize = cACertificateHashSize;
+            IssuerCACertificateLifetime = issuerCACertificateLifetime;
+            IssuerCACertificateKeySize = issuerCACertificateKeySize;
+            IssuerCACertificateHashSize = issuerCACertificateHashSize;
             CustomInit();
         }
 
@@ -49,48 +49,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Name")]
+        [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "CertificateType")]
+        [JsonProperty(PropertyName = "certificateType")]
         public string CertificateType { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "SubjectName")]
+        [JsonProperty(PropertyName = "subjectName")]
         public string SubjectName { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "DefaultCertificateLifetime")]
+        [JsonProperty(PropertyName = "defaultCertificateLifetime")]
         public int? DefaultCertificateLifetime { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "DefaultCertificateKeySize")]
+        [JsonProperty(PropertyName = "defaultCertificateKeySize")]
         public int? DefaultCertificateKeySize { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "DefaultCertificateHashSize")]
+        [JsonProperty(PropertyName = "defaultCertificateHashSize")]
         public int? DefaultCertificateHashSize { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "CACertificateLifetime")]
-        public int? CACertificateLifetime { get; set; }
+        [JsonProperty(PropertyName = "issuerCACertificateLifetime")]
+        public int? IssuerCACertificateLifetime { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "CACertificateKeySize")]
-        public int? CACertificateKeySize { get; set; }
+        [JsonProperty(PropertyName = "issuerCACertificateKeySize")]
+        public int? IssuerCACertificateKeySize { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "CACertificateHashSize")]
-        public int? CACertificateHashSize { get; set; }
+        [JsonProperty(PropertyName = "issuerCACertificateHashSize")]
+        public int? IssuerCACertificateHashSize { get; set; }
 
     }
 }

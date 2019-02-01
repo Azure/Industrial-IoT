@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// Initializes a new instance of the StatusApiModel class.
         /// </summary>
-        /// <param name="uID">Value generated at bootstrap by each instance of
+        /// <param name="uid">Value generated at bootstrap by each instance of
         /// the service and
         /// used to correlate logs coming from the same instance. The value
         /// changes every time the service starts.</param>
@@ -36,14 +36,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// service</param>
         /// <param name="dependencies">A property bag with details about the
         /// internal dependencies</param>
-        public StatusApiModel(string name = default(string), string status = default(string), string currentTime = default(string), string startTime = default(string), long? upTime = default(long?), string uID = default(string), IDictionary<string, string> properties = default(IDictionary<string, string>), IDictionary<string, string> dependencies = default(IDictionary<string, string>), IDictionary<string, string> metadata = default(IDictionary<string, string>))
+        public StatusApiModel(string name = default(string), string status = default(string), string currentTime = default(string), string startTime = default(string), long? upTime = default(long?), string uid = default(string), IDictionary<string, string> properties = default(IDictionary<string, string>), IDictionary<string, string> dependencies = default(IDictionary<string, string>), IDictionary<string, string> metadata = default(IDictionary<string, string>))
         {
             Name = name;
             Status = status;
             CurrentTime = currentTime;
             StartTime = startTime;
             UpTime = upTime;
-            UID = uID;
+            Uid = uid;
             Properties = properties;
             Dependencies = dependencies;
             Metadata = metadata;
@@ -57,27 +57,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Name")]
+        [JsonProperty(PropertyName = "name")]
         public string Name { get; private set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Status")]
+        [JsonProperty(PropertyName = "status")]
         public string Status { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "CurrentTime")]
+        [JsonProperty(PropertyName = "currentTime")]
         public string CurrentTime { get; private set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "StartTime")]
+        [JsonProperty(PropertyName = "startTime")]
         public string StartTime { get; private set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "UpTime")]
+        [JsonProperty(PropertyName = "upTime")]
         public long? UpTime { get; private set; }
 
         /// <summary>
@@ -86,19 +86,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// used to correlate logs coming from the same instance. The value
         /// changes every time the service starts.
         /// </summary>
-        [JsonProperty(PropertyName = "UID")]
-        public string UID { get; private set; }
+        [JsonProperty(PropertyName = "uid")]
+        public string Uid { get; private set; }
 
         /// <summary>
         /// Gets a property bag with details about the service
         /// </summary>
-        [JsonProperty(PropertyName = "Properties")]
+        [JsonProperty(PropertyName = "properties")]
         public IDictionary<string, string> Properties { get; private set; }
 
         /// <summary>
         /// Gets a property bag with details about the internal dependencies
         /// </summary>
-        [JsonProperty(PropertyName = "Dependencies")]
+        [JsonProperty(PropertyName = "dependencies")]
         public IDictionary<string, string> Dependencies { get; private set; }
 
         /// <summary>

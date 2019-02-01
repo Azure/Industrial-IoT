@@ -45,13 +45,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "Requests")]
+        [JsonProperty(PropertyName = "requests")]
         public IList<CertificateRequestRecordApiModel> Requests { get; set; }
 
         /// <summary>
         /// Gets or sets continuation token to use
         /// </summary>
-        [JsonProperty(PropertyName = "NextPageLink")]
+        [JsonProperty(PropertyName = "nextPageLink")]
         public string NextPageLink { get; set; }
 
     }

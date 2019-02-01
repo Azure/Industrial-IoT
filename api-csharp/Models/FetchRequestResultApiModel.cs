@@ -13,20 +13,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
     using Newtonsoft.Json;
     using System.Linq;
 
-    public partial class FinishRequestApiModel
+    public partial class FetchRequestResultApiModel
     {
         /// <summary>
-        /// Initializes a new instance of the FinishRequestApiModel class.
+        /// Initializes a new instance of the FetchRequestResultApiModel class.
         /// </summary>
-        public FinishRequestApiModel()
+        public FetchRequestResultApiModel()
         {
             CustomInit();
         }
 
         /// <summary>
-        /// Initializes a new instance of the FinishRequestApiModel class.
+        /// Initializes a new instance of the FetchRequestResultApiModel class.
         /// </summary>
-        public FinishRequestApiModel(string requestId = default(string), string applicationId = default(string), string state = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), string signedCertificate = default(string), string privateKeyFormat = default(string), string privateKey = default(string), string authorityId = default(string))
+        public FetchRequestResultApiModel(string requestId = default(string), string applicationId = default(string), string state = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), string signedCertificate = default(string), string privateKeyFormat = default(string), string privateKey = default(string), string authorityId = default(string))
         {
             RequestId = requestId;
             ApplicationId = applicationId;
@@ -47,47 +47,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "RequestId")]
+        [JsonProperty(PropertyName = "requestId")]
         public string RequestId { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ApplicationId")]
+        [JsonProperty(PropertyName = "applicationId")]
         public string ApplicationId { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "State")]
+        [JsonProperty(PropertyName = "state")]
         public string State { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "CertificateGroupId")]
+        [JsonProperty(PropertyName = "certificateGroupId")]
         public string CertificateGroupId { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "CertificateTypeId")]
+        [JsonProperty(PropertyName = "certificateTypeId")]
         public string CertificateTypeId { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "SignedCertificate")]
+        [JsonProperty(PropertyName = "signedCertificate")]
         public string SignedCertificate { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "PrivateKeyFormat")]
+        [JsonProperty(PropertyName = "privateKeyFormat")]
         public string PrivateKeyFormat { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "PrivateKey")]
+        [JsonProperty(PropertyName = "privateKey")]
         public string PrivateKey { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "AuthorityId")]
+        [JsonProperty(PropertyName = "authorityId")]
         public string AuthorityId { get; set; }
 
     }

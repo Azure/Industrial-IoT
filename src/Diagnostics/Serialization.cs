@@ -19,7 +19,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Diagnostics
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
                 PreserveReferencesHandling = PreserveReferencesHandling.None,
-                MaxDepth = 4
+                MaxDepth = 4,
+                Converters = new List<JsonConverter>
+                {
+                    new Newtonsoft.Json.Converters.StringEnumConverter()
+                    {
+                        CamelCaseText = true,
+                        AllowIntegerValues = true
+                    }
+                }
             };
 
         public static string Serialize(object o)
@@ -49,8 +57,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Diagnostics
 
         private static object SerializeException(Exception e, int depth = 3)
         {
-            if (e == null) return null;
-            if (depth == 0) return "-max serialization depth reached-";
+            if (e == null)
+            {
+                return null;
+            }
+
+            if (depth == 0)
+            {
+                return "-max serialization depth reached-";
+            }
 
             if (e is AggregateException exception)
             {

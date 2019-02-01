@@ -54,6 +54,7 @@
     <When Condition="Exists('..\..\UA-.NETStandard') and '$(Configuration)'=='Develop'">
       <ItemGroup>
         <ProjectReference Include="..\..\UA-.NETStandard\SampleApplications\Samples\GDS\ServerCommon\GlobalDiscoveryServerLibrary.csproj" />
+        <ProjectReference Include="..\..\UA-.NETStandard\SampleApplications\Samples\GDS\ClientCommon\GlobalDiscoveryClientLibrary.csproj" />
         <ProjectReference Include="..\..\UA-.NETStandard\SampleApplications\SDK\Opc.Ua.Configuration\Opc.Ua.Configuration.csproj" />
       </ItemGroup>
     </When>

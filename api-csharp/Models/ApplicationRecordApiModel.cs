@@ -28,10 +28,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// Initializes a new instance of the ApplicationRecordApiModel class.
         /// </summary>
-        public ApplicationRecordApiModel(string applicationId = default(string), int? id = default(int?), string applicationUri = default(string), string applicationName = default(string), int? applicationType = default(int?), IList<ApplicationNameApiModel> applicationNames = default(IList<ApplicationNameApiModel>), string productUri = default(string), IList<string> discoveryUrls = default(IList<string>), string serverCapabilities = default(string), string gatewayServerUri = default(string), string discoveryProfileUri = default(string))
+        public ApplicationRecordApiModel(string applicationId = default(string), int? id = default(int?), string state = default(string), string applicationUri = default(string), string applicationName = default(string), int? applicationType = default(int?), IList<ApplicationNameApiModel> applicationNames = default(IList<ApplicationNameApiModel>), string productUri = default(string), IList<string> discoveryUrls = default(IList<string>), string serverCapabilities = default(string), string gatewayServerUri = default(string), string discoveryProfileUri = default(string))
         {
             ApplicationId = applicationId;
-            ID = id;
+            Id = id;
+            State = state;
             ApplicationUri = applicationUri;
             ApplicationName = applicationName;
             ApplicationType = applicationType;
@@ -51,57 +52,62 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ApplicationId")]
+        [JsonProperty(PropertyName = "applicationId")]
         public string ApplicationId { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ID")]
-        public int? ID { get; private set; }
+        [JsonProperty(PropertyName = "id")]
+        public int? Id { get; private set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ApplicationUri")]
+        [JsonProperty(PropertyName = "state")]
+        public string State { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "applicationUri")]
         public string ApplicationUri { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ApplicationName")]
+        [JsonProperty(PropertyName = "applicationName")]
         public string ApplicationName { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ApplicationType")]
+        [JsonProperty(PropertyName = "applicationType")]
         public int? ApplicationType { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ApplicationNames")]
+        [JsonProperty(PropertyName = "applicationNames")]
         public IList<ApplicationNameApiModel> ApplicationNames { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ProductUri")]
+        [JsonProperty(PropertyName = "productUri")]
         public string ProductUri { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "DiscoveryUrls")]
+        [JsonProperty(PropertyName = "discoveryUrls")]
         public IList<string> DiscoveryUrls { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "ServerCapabilities")]
+        [JsonProperty(PropertyName = "serverCapabilities")]
         public string ServerCapabilities { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "GatewayServerUri")]
+        [JsonProperty(PropertyName = "gatewayServerUri")]
         public string GatewayServerUri { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "DiscoveryProfileUri")]
+        [JsonProperty(PropertyName = "discoveryProfileUri")]
         public string DiscoveryProfileUri { get; set; }
 
     }

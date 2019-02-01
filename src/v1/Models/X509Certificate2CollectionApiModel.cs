@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -11,13 +11,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
     public sealed class X509Certificate2CollectionApiModel
     {
-        [JsonProperty(PropertyName = "Chain", Order = 10)]
-        public X509Certificate2ApiModel[] Chain { get; set; }
-        [JsonProperty(PropertyName = "NextPageLink", Order = 20)]
-        public string NextPageLink { get; set; }
+        [JsonProperty(PropertyName = "chain", Order = 10)]
+        public IList<X509Certificate2ApiModel> Chain { get; set; }
 
-
-        public X509Certificate2CollectionApiModel(X509Certificate2Collection certificateCollection, string nextPageLink = null)
+        public X509Certificate2CollectionApiModel(X509Certificate2Collection certificateCollection)
         {
             var chain = new List<X509Certificate2ApiModel>();
             foreach (var cert in certificateCollection)
@@ -25,8 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
                 var certApiModel = new X509Certificate2ApiModel(cert);
                 chain.Add(certApiModel);
             }
-            this.Chain = chain.ToArray();
-            this.NextPageLink = nextPageLink;
+            this.Chain = chain;
         }
 
     }
