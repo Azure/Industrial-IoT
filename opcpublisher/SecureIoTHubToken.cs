@@ -1,5 +1,4 @@
-﻿
-using Opc.Ua;
+﻿using Opc.Ua;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -25,7 +24,7 @@ namespace OpcPublisher
         /// <summary>
         /// Returns the token from the cert in the given cert store.
         /// </summary>
-        public async static Task<string> ReadAsync(string name, string storeType, string storePath)
+        public static async Task<string> ReadAsync(string name, string storeType, string storePath)
         {
             string token = null;
 
@@ -79,7 +78,7 @@ namespace OpcPublisher
         /// <summary>
         /// Creates a cert with the connectionstring (token) and stores it in the given cert store.
         /// </summary>
-        public async static Task WriteAsync(string name, string connectionString, string storeType, string storePath)
+        public static async Task WriteAsync(string name, string connectionString, string storeType, string storePath)
         {
             if (string.IsNullOrEmpty(connectionString))
             {

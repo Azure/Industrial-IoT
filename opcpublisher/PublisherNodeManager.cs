@@ -1,4 +1,3 @@
-
 using Opc.Ua;
 using Opc.Ua.Server;
 using System;
@@ -13,7 +12,6 @@ namespace OpcPublisher
     using System.Text;
     using static OpcApplicationConfiguration;
     using static OpcPublisher.Program;
-    using static PublisherNodeConfiguration;
 
     public class PublisherNodeManager : CustomNodeManager2
     {
@@ -60,11 +58,7 @@ namespace OpcPublisher
                 UserWriteMask = AttributeWriteMask.None,
                 EventNotifier = EventNotifiers.None
             };
-
-            if (parent != null)
-            {
-                parent.AddChild(folder);
-            }
+            parent?.AddChild(folder);
 
             return folder;
         }
@@ -82,9 +76,8 @@ namespace OpcPublisher
         {
             lock (Lock)
             {
-                IList<IReference> references = null;
 
-                if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out references))
+                if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out IList<IReference> references))
                 {
                     externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
                 }
@@ -115,7 +108,7 @@ namespace OpcPublisher
 
                     MethodState getPublishedNodesLegacyMethod = CreateMethod(methodsFolder, "GetPublishedNodes", "GetPublishedNodes");
                     SetGetPublishedNodesLegacyMethodProperties(ref getPublishedNodesLegacyMethod);
-                    
+
                     MethodState iotHubDirectMethodMethod = CreateMethod(methodsFolder, "IoTHubDirectMethod", "IoTHubDirectMethod");
                     SetGetIoTHubDirectMethodMethodProperties(ref iotHubDirectMethodMethod);
                 }
@@ -312,10 +305,7 @@ namespace OpcPublisher
             variable.Definition.AccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.Definition.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
 
-            if (parent != null)
-            {
-                parent.AddChild(variable);
-            }
+            parent?.AddChild(variable);
 
             return variable;
         }
@@ -368,10 +358,7 @@ namespace OpcPublisher
             variable.Definition.AccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.Definition.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
 
-            if (parent != null)
-            {
-                parent.AddChild(variable);
-            }
+            parent?.AddChild(variable);
 
             return variable;
         }
@@ -409,10 +396,7 @@ namespace OpcPublisher
                 variable.ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0, 0 });
             }
 
-            if (parent != null)
-            {
-                parent.AddChild(variable);
-            }
+            parent?.AddChild(variable);
 
             return variable;
         }
@@ -435,10 +419,7 @@ namespace OpcPublisher
                 UserExecutable = true
             };
 
-            if (parent != null)
-            {
-                parent.AddChild(method);
-            }
+            parent?.AddChild(method);
 
             return method;
         }
@@ -461,10 +442,7 @@ namespace OpcPublisher
                 UserExecutable = true
             };
 
-            if (parent != null)
-            {
-                parent.AddChild(method);
-            }
+            parent?.AddChild(method);
 
             return method;
         }
@@ -516,7 +494,7 @@ namespace OpcPublisher
             try
             {
                 // lock the publishing configuration till we are done
-                OpcSessionsListSemaphore.Wait();
+                NodeConfiguration.OpcSessionsListSemaphore.Wait();
 
                 if (ShutdownTokenSource.IsCancellationRequested)
                 {
@@ -524,15 +502,15 @@ namespace OpcPublisher
                 }
 
                 // find the session we need to monitor the node
-                OpcSession opcSession = null;
-                opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
+                IOpcSession opcSession = null;
+                opcSession = NodeConfiguration.OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
 
                 // add a new session.
                 if (opcSession == null)
                 {
                     // create new session info.
                     opcSession = new OpcSession(endpointUri.OriginalString, true, OpcSessionCreationTimeout);
-                    OpcSessions.Add(opcSession);
+                    NodeConfiguration.OpcSessions.Add(opcSession);
                     Logger.Information($"OnPublishNodeCall: No matching session found for endpoint '{endpointUri.OriginalString}'. Requested to create a new one.");
                 }
 
@@ -556,7 +534,7 @@ namespace OpcPublisher
             }
             finally
             {
-                OpcSessionsListSemaphore.Release();
+                NodeConfiguration.OpcSessionsListSemaphore.Release();
             }
 
             if (statusCode == HttpStatusCode.OK || statusCode == HttpStatusCode.Accepted)
@@ -612,17 +590,17 @@ namespace OpcPublisher
             // find the session and stop monitoring the node.
             try
             {
-                OpcSessionsListSemaphore.Wait();
+                NodeConfiguration.OpcSessionsListSemaphore.Wait();
                 if (ShutdownTokenSource.IsCancellationRequested)
                 {
                     return ServiceResult.Create(StatusCodes.BadUnexpectedError, $"Publisher shutdown in progress.");
                 }
 
                 // find the session we need to monitor the node
-                OpcSession opcSession = null;
+                IOpcSession opcSession = null;
                 try
                 {
-                    opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
+                    opcSession = NodeConfiguration.OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
                 }
                 catch
                 {
@@ -658,7 +636,7 @@ namespace OpcPublisher
             }
             finally
             {
-                OpcSessionsListSemaphore.Release();
+                NodeConfiguration.OpcSessionsListSemaphore.Release();
             }
             return (statusCode == HttpStatusCode.OK || statusCode == HttpStatusCode.Accepted ? ServiceResult.Good : ServiceResult.Create(StatusCodes.Bad, "Can not stop monitoring node!"));
         }
@@ -692,7 +670,7 @@ namespace OpcPublisher
             }
 
             // get the list of published nodes in NodeId format
-            List<PublisherConfigurationFileEntryLegacyModel> configFileEntries = GetPublisherConfigurationFileEntriesAsNodeIdsAsync(endpointUri.OriginalString).Result;
+            List<PublisherConfigurationFileEntryLegacyModel> configFileEntries = NodeConfiguration.GetPublisherConfigurationFileEntriesAsNodeIdsAsync(endpointUri.OriginalString).Result;
             outputArguments[0] = JsonConvert.SerializeObject(configFileEntries);
             Logger.Information($"{logPrefix} Success (number of entries: {configFileEntries.Count})");
             return ServiceResult.Good;

@@ -1,5 +1,4 @@
-﻿
-using Opc.Ua.Client;
+﻿using Opc.Ua.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,15 +12,16 @@ namespace OpcPublisher
     using System.Threading.Tasks;
     using static OpcApplicationConfiguration;
     using static OpcPublisher.OpcMonitoredItem;
-    using static OpcPublisher.PublisherTelemetryConfiguration;
     using static Program;
-    using static PublisherNodeConfiguration;
 
     /// <summary>
     /// Class to manage OPC sessions.
     /// </summary>
-    public class OpcSession : IDisposable
+    public class OpcSession : IOpcSession
     {
+        /// <summary>
+        /// The state of the session object.
+        /// </summary>
         public enum SessionState
         {
             Disconnected = 0,
@@ -29,36 +29,85 @@ namespace OpcPublisher
             Connected,
         }
 
+        /// <summary>
+        /// Command line option to flag to read the node display names from the server and use it in telemetry events.
+        /// </summary>
         public static bool FetchOpcNodeDisplayName { get; set; } = false;
 
+        /// <summary>
+        /// Command line argument to set the site to be added to telemetry events, identifying the source of the event,
+        /// by prepending it to the ApplicationUri value of the event.
+        /// </summary>
         public static string PublisherSite { get; set; }
 
 #pragma warning disable CA2211 // Non-constant fields should not be visible
+        /// <summary>
+        /// The version of the node configuration. Each change in the configuration
+        /// increments the version to protect get calls using continuation tokens.
+        /// </summary>
         public static int NodeConfigVersion = 0;
 #pragma warning restore CA2211 // Non-constant fields should not be visible
 
+        /// <summary>
+        /// Command line argument to control the time to wait till a new attempt is made
+        /// to establish a connection which is not yet connected again.
+        /// </summary>
         public static int SessionConnectWaitSec { get; set; } = 10;
 
+        /// <summary>
+        /// The endpoint to connect to for the session.
+        /// </summary>
         public string EndpointUrl { get; set; }
 
-        public Session OpcUaClientSession { get; set; }
+        /// <summary>
+        /// The OPC UA stack session object of the session.
+        /// </summary>
+        public IOpcUaSession OpcUaClientSession { get; set; }
 
+        /// <summary>
+        /// The state of the session.
+        /// </summary>
         public SessionState State { get; set; }
 
-        public List<OpcSubscription> OpcSubscriptions { get; }
+        /// <summary>
+        /// The subscriptions on this session.
+        /// </summary>
+        public List<IOpcSubscription> OpcSubscriptions { get; }
 
+        /// <summary>
+        /// Counts session connection attempts which were unsuccessful.
+        /// </summary>
         public uint UnsuccessfulConnectionCount { get; set; }
 
+        /// <summary>
+        /// Counts missed keep alives.
+        /// </summary>
         public uint MissedKeepAlives { get; set; }
 
+        /// <summary>
+        /// The default publishing interval to use on this session.
+        /// </summary>
         public int PublishingInterval { get; set; }
 
+        /// <summary>
+        /// The OPC UA timeout setting to use for the OPC UA session.
+        /// </summary>
         public uint SessionTimeout { get; }
 
+        /// <summary>
+        /// Flag to control if a secure or unsecure OPC UA transport should be used for the session.
+        /// </summary>
         public bool UseSecurity { get; set; } = true;
 
+        /// <summary>
+        /// Signals to run the connect and monitor task.
+        /// </summary>
         public AutoResetEvent ConnectAndMonitorSession { get; set; }
 
+        /// <summary>
+        /// Number of subscirptoins on this session.
+        /// </summary>
+        /// <returns></returns>
         public int GetNumberOfOpcSubscriptions()
         {
             int result = 0;
@@ -81,6 +130,10 @@ namespace OpcPublisher
             return result;
         }
 
+        /// <summary>
+        /// Number of configured monitored items on this session.
+        /// </summary>
+        /// <returns></returns>
         public int GetNumberOfOpcMonitoredItemsConfigured()
         {
             int result = 0;
@@ -106,6 +159,10 @@ namespace OpcPublisher
             return result;
         }
 
+        /// <summary>
+        /// Number of actually monitored items on this sessions.
+        /// </summary>
+        /// <returns></returns>
         public int GetNumberOfOpcMonitoredItemsMonitored()
         {
             int result = 0;
@@ -131,6 +188,10 @@ namespace OpcPublisher
             return result;
         }
 
+        /// <summary>
+        /// Number of monitored items to be removed from this session.
+        /// </summary>
+        /// <returns></returns>
         public int GetNumberOfOpcMonitoredItemsToRemove()
         {
             int result = 0;
@@ -164,7 +225,7 @@ namespace OpcPublisher
             State = SessionState.Disconnected;
             EndpointUrl = endpointUrl;
             SessionTimeout = sessionTimeout * 1000;
-            OpcSubscriptions = new List<OpcSubscription>();
+            OpcSubscriptions = new List<IOpcSubscription>();
             UnsuccessfulConnectionCount = 0;
             MissedKeepAlives = 0;
             PublishingInterval = OpcPublishingInterval;
@@ -174,23 +235,45 @@ namespace OpcPublisher
             _sessionCancelationToken = _sessionCancelationTokenSource.Token;
             _opcSessionSemaphore = new SemaphoreSlim(1);
             _namespaceTable = new NamespaceTable();
-            _telemetryConfiguration = GetEndpointTelemetryConfiguration(endpointUrl);
-            Task.Run(ConnectAndMonitorAsync);
+            _telemetryConfiguration = TelemetryConfiguration.GetEndpointTelemetryConfiguration(endpointUrl);
+            _connectAndMonitorAsync = Task.Run(ConnectAndMonitorAsync, _sessionCancelationToken);
+        }
+
+        /// <summary>
+        /// Ctor for the session.
+        /// </summary>
+        public OpcSession()
+        {
         }
 
         /// <summary>
         /// Implement IDisposable.
         /// </summary>
-        virtual protected void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (disposing)
             {
                 // dispose managed resources
-                _sessionCancelationTokenSource.Cancel();
-                _sessionCancelationTokenSource.Dispose();
+                _sessionCancelationTokenSource?.Cancel();
+                DisconnectAsync().Wait();
+                foreach (var opcSubscription in OpcSubscriptions)
+                {
+                    opcSubscription.Dispose();
+                }
+                OpcSubscriptions?.Clear();
+                try
+                {
+                    _connectAndMonitorAsync.Wait();
+                }
+                catch
+                {
+                }
+                _sessionCancelationTokenSource?.Dispose();
                 _sessionCancelationTokenSource = null;
-                _opcSessionSemaphore.Dispose();
+                _opcSessionSemaphore?.Dispose();
                 _opcSessionSemaphore = null;
+                OpcUaClientSession?.Dispose();
+                OpcUaClientSession = null;
             }
         }
 
@@ -211,17 +294,18 @@ namespace OpcPublisher
         /// - unused subscriptions (without any nodes to monitor) are removed.
         /// - sessions with out subscriptions are removed.
         /// </summary>
-        public async Task ConnectAndMonitorAsync()
+        public virtual async Task ConnectAndMonitorAsync()
         {
             uint lastNodeConfigVersion = 0;
-            WaitHandle[] connectAndMonitorEvents = new WaitHandle[] 
+
+            WaitHandle[] connectAndMonitorEvents = new WaitHandle[]
             {
                 _sessionCancelationToken.WaitHandle,
                 ConnectAndMonitorSession
             };
 
             // run till session is closed
-            while (!_sessionCancelationToken.IsCancellationRequested)
+            while (true)
             {
                 try
                 {
@@ -229,10 +313,12 @@ namespace OpcPublisher
                     // - cancelation is requested
                     // - got signaled because we need to check for pending session activity
                     // - timeout to try to reestablish any disconnected sessions
-                    WaitHandle.WaitAny(connectAndMonitorEvents, SessionConnectWaitSec * 1000);
-
-                    // step out on cancel
-                    if (_sessionCancelationToken.IsCancellationRequested)
+                    try
+                    {
+                        WaitHandle.WaitAny(connectAndMonitorEvents, SessionConnectWaitSec * 1000);
+                        _sessionCancelationToken.ThrowIfCancellationRequested();
+                    }
+                    catch
                     {
                         break;
                     }
@@ -240,23 +326,34 @@ namespace OpcPublisher
                     await ConnectSessionAsync(_sessionCancelationToken).ConfigureAwait(false);
 
                     await MonitorNodesAsync(_sessionCancelationToken).ConfigureAwait(false);
+                    _sessionCancelationToken.ThrowIfCancellationRequested();
 
                     await StopMonitoringNodesAsync(_sessionCancelationToken).ConfigureAwait(false);
+                    _sessionCancelationToken.ThrowIfCancellationRequested();
 
                     await RemoveUnusedSubscriptionsAsync(_sessionCancelationToken).ConfigureAwait(false);
+                    _sessionCancelationToken.ThrowIfCancellationRequested();
 
                     await RemoveUnusedSessionsAsync(_sessionCancelationToken).ConfigureAwait(false);
+                    _sessionCancelationToken.ThrowIfCancellationRequested();
 
                     // update the config file if required
                     if (NodeConfigVersion != lastNodeConfigVersion)
                     {
                         lastNodeConfigVersion = (uint)NodeConfigVersion;
-                        await UpdateNodeConfigurationFileAsync().ConfigureAwait(false);
+                        await NodeConfiguration.UpdateNodeConfigurationFileAsync().ConfigureAwait(false);
                     }
                 }
                 catch (Exception e)
                 {
-                    Logger.Error(e, "Exception");
+                    if (_sessionCancelationToken != null && !_sessionCancelationToken.IsCancellationRequested)
+                    {
+                        Logger.Error(e, "Exception");
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
         }
@@ -271,12 +368,20 @@ namespace OpcPublisher
             {
                 EndpointDescription selectedEndpoint = null;
                 ConfiguredEndpoint configuredEndpoint = null;
-                sessionLocked = await LockSessionAsync().ConfigureAwait(false);
 
-                // if the session is already connected or connecting or shutdown in progress, return
-                if (!sessionLocked || ct.IsCancellationRequested || State == SessionState.Connected || State == SessionState.Connecting)
+                try
                 {
-                    return;
+                    sessionLocked = await LockSessionAsync().ConfigureAwait(false);
+
+                    // if the session is already connected or connecting or shutdown in progress, return
+                    if (!sessionLocked || ct.IsCancellationRequested || State == SessionState.Connected || State == SessionState.Connecting)
+                    {
+                        return;
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
                 }
 
                 Logger.Information($"Connect and monitor session and nodes on endpoint '{EndpointUrl}'.");
@@ -292,7 +397,7 @@ namespace OpcPublisher
                     configuredEndpoint = new ConfiguredEndpoint(null, selectedEndpoint, EndpointConfiguration.Create(OpcApplicationConfiguration.ApplicationConfiguration));
                     uint timeout = SessionTimeout * ((UnsuccessfulConnectionCount >= OpcSessionCreationBackoffMax) ? OpcSessionCreationBackoffMax : UnsuccessfulConnectionCount + 1);
                     Logger.Information($"Create {(UseSecurity ? "secured" : "unsecured")} session for endpoint URI '{EndpointUrl}' with timeout of {timeout} ms.");
-                    OpcUaClientSession = await Session.Create(
+                    OpcUaClientSession = new OpcUaSession(
                             OpcApplicationConfiguration.ApplicationConfiguration,
                             configuredEndpoint,
                             true,
@@ -300,7 +405,7 @@ namespace OpcPublisher
                             OpcApplicationConfiguration.ApplicationConfiguration.ApplicationName,
                             timeout,
                             new UserIdentity(new AnonymousIdentityToken()),
-                            null).ConfigureAwait(false);
+                            null);
                 }
                 catch (Exception e)
                 {
@@ -368,18 +473,24 @@ namespace OpcPublisher
         /// <summary>
         /// Monitoring for a node starts if it is required.
         /// </summary>
-        public async Task<bool> MonitorNodesAsync(CancellationToken ct)
+        public async Task MonitorNodesAsync(CancellationToken ct)
         {
-            bool requestConfigFileUpdate = false;
             bool sessionLocked = false;
             try
             {
-                sessionLocked = await LockSessionAsync().ConfigureAwait(false);
-
-                // if the session is not connected or shutdown in progress, return
-                if (!sessionLocked || ct.IsCancellationRequested || State != SessionState.Connected)
+                try
                 {
-                    return requestConfigFileUpdate;
+                    sessionLocked = await LockSessionAsync().ConfigureAwait(false);
+
+                    // if the session is not connected or shutdown in progress, return
+                    if (!sessionLocked || ct.IsCancellationRequested || State != SessionState.Connected)
+                    {
+                        return;
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
                 }
 
                 // ensure all nodes in all subscriptions of this session are monitored.
@@ -388,8 +499,7 @@ namespace OpcPublisher
                     // create the subscription, if it is not yet there.
                     if (opcSubscription.OpcUaClientSubscription == null)
                     {
-                        int revisedPublishingInterval;
-                        opcSubscription.OpcUaClientSubscription = CreateSubscription(opcSubscription.RequestedPublishingInterval, out revisedPublishingInterval);
+                        opcSubscription.OpcUaClientSubscription = CreateSubscription(opcSubscription.RequestedPublishingInterval, out int revisedPublishingInterval);
                         opcSubscription.PublishingInterval = revisedPublishingInterval;
                         Logger.Information($"Create subscription on endpoint '{EndpointUrl}' requested OPC publishing interval is {opcSubscription.RequestedPublishingInterval} ms. (revised: {revisedPublishingInterval} ms)");
                     }
@@ -487,7 +597,7 @@ namespace OpcPublisher
                             }
 
                             // add the new monitored item.
-                            MonitoredItem monitoredItem = new MonitoredItem()
+                            IOpcUaMonitoredItem monitoredItem = new OpcUaMonitoredItem()
                             {
                                 StartNodeId = currentNodeId,
                                 AttributeId = item.AttributeId,
@@ -515,10 +625,8 @@ namespace OpcPublisher
                             }
                             if (additionalMonitoredItemsCount % 10000 == 0)
                             {
-                                    Logger.Information($"Now monitoring {monitoredItemsCount + additionalMonitoredItemsCount} items in subscription with id '{opcSubscription.OpcUaClientSubscription.Id}'");
+                                Logger.Information($"Now monitoring {monitoredItemsCount + additionalMonitoredItemsCount} items in subscription with id '{opcSubscription.OpcUaClientSubscription.Id}'");
                             }
-                            // request a config file update, if everything is successfully monitored
-                            requestConfigFileUpdate = true;
                         }
                         catch (Exception e) when (e.GetType() == typeof(ServiceResultException))
                         {
@@ -572,24 +680,29 @@ namespace OpcPublisher
                     ReleaseSession();
                 }
             }
-            return requestConfigFileUpdate;
         }
 
         /// <summary>
         /// Checks if there are monitored nodes tagged to stop monitoring.
         /// </summary>
-        public async Task<bool> StopMonitoringNodesAsync(CancellationToken ct)
+        public async Task StopMonitoringNodesAsync(CancellationToken ct)
         {
-            bool requestConfigFileUpdate = false;
             bool sessionLocked = false;
             try
             {
-                sessionLocked = await LockSessionAsync().ConfigureAwait(false);
-
-                // if shutdown is in progress, return
-                if (!sessionLocked || ct.IsCancellationRequested)
+                try
                 {
-                    return requestConfigFileUpdate;
+                    sessionLocked = await LockSessionAsync().ConfigureAwait(false);
+
+                    // if shutdown is in progress, return
+                    if (!sessionLocked || ct.IsCancellationRequested)
+                    {
+                        return;
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
                 }
 
                 foreach (var opcSubscription in OpcSubscriptions)
@@ -612,7 +725,6 @@ namespace OpcPublisher
                         opcSubscription.OpcMonitoredItems.RemoveAll(i => i.State == OpcMonitoredItemState.RemovalRequested);
                         Interlocked.Increment(ref NodeConfigVersion);
                         Logger.Information($"There are now {opcSubscription.OpcMonitoredItems.Count} items managed by publisher for this subscription. (version: {NodeConfigVersion:X8})");
-                        requestConfigFileUpdate = true;
                     }
                 }
             }
@@ -623,7 +735,6 @@ namespace OpcPublisher
                     ReleaseSession();
                 }
             }
-            return requestConfigFileUpdate;
         }
 
         /// <summary>
@@ -677,7 +788,14 @@ namespace OpcPublisher
         {
             try
             {
-                await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    await NodeConfiguration.OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    return;
+                }
 
                 // if shutdown is in progress, return
                 if (ct.IsCancellationRequested)
@@ -686,18 +804,18 @@ namespace OpcPublisher
                 }
 
                 // remove sessions in the stack
-                var sessionsToRemove = OpcSessions.Where(s => s.OpcSubscriptions.Count == 0);
+                var sessionsToRemove = NodeConfiguration.OpcSessions.Where(s => s.OpcSubscriptions.Count == 0);
                 foreach (var sessionToRemove in sessionsToRemove)
                 {
                     Logger.Information($"Remove unused session on endpoint '{EndpointUrl}'.");
                     await sessionToRemove.ShutdownAsync().ConfigureAwait(false);
                 }
                 // remove then in our data structures
-                OpcSessions.RemoveAll(s => s.OpcSubscriptions.Count == 0);
+                NodeConfiguration.OpcSessions.RemoveAll(s => s.OpcSubscriptions.Count == 0);
             }
             finally
             {
-                OpcSessionsListSemaphore.Release();
+                NodeConfiguration?.OpcSessionsListSemaphore?.Release();
             }
         }
 
@@ -741,19 +859,14 @@ namespace OpcPublisher
                 {
                     try
                     {
-                        OpcUaClientSession.RemoveSubscription(opcSubscription.OpcUaClientSubscription);
+                        if (opcSubscription.OpcUaClientSubscription != null)
+                        {
+                            OpcUaClientSession.RemoveSubscription(opcSubscription.OpcUaClientSubscription);
+                        }
                     }
                     catch
                     {
                         // the session might be already invalidated. ignore.
-                    }
-                    try
-                    {
-                        opcSubscription.OpcUaClientSubscription.Delete(true);
-                    }
-                    catch
-                    {
-                        // the subscription might be already invalidated. ignore.
                     }
                     opcSubscription.OpcUaClientSubscription = null;
 
@@ -769,7 +882,7 @@ namespace OpcPublisher
                 }
                 try
                 {
-                    OpcUaClientSession.Close();
+                    OpcUaClientSession?.Close();
                 }
                 catch
                 {
@@ -789,7 +902,7 @@ namespace OpcPublisher
         /// Adds a node to be monitored. If there is no subscription with the requested publishing interval,
         /// one is created.
         /// </summary>
-        public async Task<HttpStatusCode> AddNodeForMonitoringAsync(NodeId nodeId, ExpandedNodeId expandedNodeId, int? opcPublishingInterval, int? opcSamplingInterval, string displayName, CancellationToken ct)
+        public async Task<System.Net.HttpStatusCode> AddNodeForMonitoringAsync(NodeId nodeId, ExpandedNodeId expandedNodeId, int? opcPublishingInterval, int? opcSamplingInterval, string displayName, CancellationToken ct)
         {
             string logPrefix = "AddNodeForMonitoringAsync:";
             bool sessionLocked = false;
@@ -802,9 +915,9 @@ namespace OpcPublisher
                 }
 
                 // check if there is already a subscription with the same publishing interval, which can be used to monitor the node
-                int opcPublishingIntervalForNode = opcPublishingInterval == null ? OpcPublishingIntervalDefault : (int)opcPublishingInterval;
-                OpcSubscription opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == opcPublishingIntervalForNode);
-                
+                int opcPublishingIntervalForNode = opcPublishingInterval ?? OpcPublishingIntervalDefault;
+                IOpcSubscription opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == opcPublishingIntervalForNode);
+
                 // if there was none found, create one
                 if (opcSubscription == null)
                 {
@@ -818,7 +931,7 @@ namespace OpcPublisher
                         Logger.Information($"{logPrefix} No matching subscription with publishing interval of {opcPublishingInterval} found.");
                         Logger.Information($"Create a new subscription with a publishing interval of {opcPublishingInterval}.");
                     }
-                    opcSubscription = new OpcSubscription(opcPublishingInterval); 
+                    opcSubscription = new OpcSubscription(opcPublishingInterval);
                     OpcSubscriptions.Add(opcSubscription);
                 }
 
@@ -980,7 +1093,7 @@ namespace OpcPublisher
         /// <summary>
         /// Checks if the node specified by either the given NodeId or ExpandedNodeId on the given endpoint is published in the session.
         /// </summary>
-        private bool IsNodePublishedInSession(NodeId nodeId, ExpandedNodeId expandedNodeId)
+        public bool IsNodePublishedInSession(NodeId nodeId, ExpandedNodeId expandedNodeId)
         {
             bool result = false;
             bool sessionLocked = false;
@@ -1014,10 +1127,10 @@ namespace OpcPublisher
         {
             try
             {
-                OpcSessionsListSemaphore.Wait();
+                NodeConfiguration.OpcSessionsListSemaphore.Wait();
 
                 // itereate through all sessions, subscriptions and monitored items and create config file entries
-                foreach (var opcSession in OpcSessions)
+                foreach (var opcSession in NodeConfiguration.OpcSessions)
                 {
                     if (opcSession.EndpointUrl.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase))
                     {
@@ -1034,15 +1147,15 @@ namespace OpcPublisher
             }
             finally
             {
-                OpcSessionsListSemaphore.Release();
+                NodeConfiguration.OpcSessionsListSemaphore.Release();
             }
             return false;
         }
 
-    /// <summary>
-    /// Shutdown the current session if it is connected.
-    /// </summary>
-    public async Task ShutdownAsync()
+        /// <summary>
+        /// Shutdown the current session if it is connected.
+        /// </summary>
+        public async Task ShutdownAsync()
         {
             bool sessionLocked = false;
             try
@@ -1062,9 +1175,9 @@ namespace OpcPublisher
                         Logger.Information($"Removing {OpcUaClientSession.SubscriptionCount} subscriptions from session.");
                         while (OpcSubscriptions.Count > 0)
                         {
-                            OpcSubscription opcSubscription = OpcSubscriptions.ElementAt(0);
+                            IOpcSubscription opcSubscription = OpcSubscriptions.ElementAt(0);
                             OpcSubscriptions.RemoveAt(0);
-                            Subscription opcUaClientSubscription = opcSubscription.OpcUaClientSubscription;
+                            IOpcUaSubscription opcUaClientSubscription = opcSubscription.OpcUaClientSubscription;
                             opcUaClientSubscription.Delete(true);
                         }
                         Logger.Information($"Closing session to endpoint URI '{EndpointUrl}' closed successfully.");
@@ -1086,6 +1199,8 @@ namespace OpcPublisher
                 {
                     // cancel all threads waiting on the session semaphore
                     _sessionCancelationTokenSource.Cancel();
+                    _connectAndMonitorAsync.Wait();
+                    _opcSessionSemaphore.Release();
                     _opcSessionSemaphore.Dispose();
                     _opcSessionSemaphore = null;
                 }
@@ -1095,9 +1210,9 @@ namespace OpcPublisher
         /// <summary>
         /// Create a subscription in the session.
         /// </summary>
-        private Subscription CreateSubscription(int requestedPublishingInterval, out int revisedPublishingInterval)
+        private IOpcUaSubscription CreateSubscription(int requestedPublishingInterval, out int revisedPublishingInterval)
         {
-            Subscription subscription = new Subscription()
+            IOpcUaSubscription subscription = new OpcUaSubscription()
             {
                 PublishingInterval = requestedPublishingInterval,
             };
@@ -1173,8 +1288,15 @@ namespace OpcPublisher
         /// </summary>
         public async Task<bool> LockSessionAsync()
         {
-            await _opcSessionSemaphore.WaitAsync(_sessionCancelationToken).ConfigureAwait(false);
-            if (_sessionCancelationToken.IsCancellationRequested)
+            try
+            {
+                await _opcSessionSemaphore.WaitAsync(_sessionCancelationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                return false;
+            }
+            if (_sessionCancelationToken == null || _sessionCancelationToken.IsCancellationRequested)
             {
                 return false;
             }
@@ -1186,14 +1308,15 @@ namespace OpcPublisher
         /// </summary>
         public void ReleaseSession()
         {
-            _opcSessionSemaphore.Release();
+            _opcSessionSemaphore?.Release();
         }
 
         private SemaphoreSlim _opcSessionSemaphore;
         private CancellationTokenSource _sessionCancelationTokenSource;
         private CancellationToken _sessionCancelationToken;
         private NamespaceTable _namespaceTable;
-        private EndpointTelemetryConfiguration _telemetryConfiguration;
+        private IEndpointTelemetryConfigurationModel _telemetryConfiguration;
         private double _minSupportedSamplingInterval;
+        private Task _connectAndMonitorAsync;
     }
 }

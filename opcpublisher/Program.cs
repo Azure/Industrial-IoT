@@ -1,5 +1,4 @@
-﻿
-using Mono.Options;
+﻿using Mono.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +38,17 @@ namespace OpcPublisher
         /// <summary>
         /// Telemetry configuration object.
         /// </summary>
-        public static PublisherTelemetryConfiguration TelemetryConfiguration { get; set; }
+        public static IPublisherTelemetryConfiguration TelemetryConfiguration { get; set; }
+
+        /// <summary>
+        /// Node configuration object.
+        /// </summary>
+        public static IPublisherNodeConfiguration NodeConfiguration { get; set; }
+
+        /// <summary>
+        /// Diagnostics object.
+        /// </summary>
+        public static IPublisherDiagnostics Diag { get; set; }
 
         /// <summary>
         /// Shutdown token source.
@@ -67,6 +76,16 @@ namespace OpcPublisher
         public static bool StartupCompleted { get; set; } = false;
 
         /// <summary>
+        /// Name of the log file.
+        /// </summary>
+        public static string LogFileName { get; set; } = $"{Utils.GetHostName()}-publisher.log";
+
+        /// <summary>
+        /// Log level.
+        /// </summary>
+        public static string LogLevel { get; set; } = "info";
+
+        /// <summary>
         /// Synchronous main method of the app.
         /// </summary>
         public static void Main(string[] args)
@@ -85,7 +104,7 @@ namespace OpcPublisher
         /// <summary>
         /// Asynchronous part of the main method of the app.
         /// </summary>
-        public async static Task MainAsync(string[] args)
+        public static async Task MainAsync(string[] args)
         {
             try
             {
@@ -144,7 +163,7 @@ namespace OpcPublisher
                         { "ns|noshutdown=", $"same as runforever.\nDefault: {_noShutdown}", (bool b) => _noShutdown = b },
                         { "rf|runforever", $"publisher can not be stopped by pressing a key on the console, but will run forever.\nDefault: {_noShutdown}", b => _noShutdown = b != null },
 
-                        { "lf|logfile=", $"the filename of the logfile to use.\nDefault: './{_logFileName}'", (string l) => _logFileName = l },
+                        { "lf|logfile=", $"the filename of the logfile to use.\nDefault: './{LogFileName}'", (string l) => LogFileName = l },
                         { "lt|logflushtimespan=", $"the timespan in seconds when the logfile should be flushed.\nDefault: {_logFileFlushTimeSpanSec} sec", (int s) => {
                                 if (s > 0)
                                 {
@@ -161,7 +180,7 @@ namespace OpcPublisher
 #pragma warning disable CA1308 // Normalize strings to uppercase
                                 if (logLevels.Contains(l.ToLowerInvariant()))
                                 {
-                                    _logLevel = l.ToLowerInvariant();
+                                    LogLevel = l.ToLowerInvariant();
                                 }
 #pragma warning restore CA1308 // Normalize strings to uppercase
                                 else
@@ -605,19 +624,8 @@ namespace OpcPublisher
                     return;
                 }
 
-                // read telemetry configuration file
-                PublisherTelemetryConfiguration.Init();
-                if (!await PublisherTelemetryConfiguration.ReadConfigAsync().ConfigureAwait(false))
-                {
-                    return;
-                }
-
-                // read node configuration file
-                PublisherNodeConfiguration.Init();
-                if (!await PublisherNodeConfiguration.ReadConfigAsync().ConfigureAwait(false))
-                {
-                    return;
-                }
+                // initialize the telemetry configuration
+                TelemetryConfiguration = PublisherTelemetryConfiguration.Instance;
 
                 // initialize hub communication
                 if (IsIotEdgeModule)
@@ -631,10 +639,8 @@ namespace OpcPublisher
                     Hub = IotHubCommunication.Instance;
                 }
 
-                if (!await CreateOpcPublishingDataAsync().ConfigureAwait(false))
-                {
-                    return;
-                }
+                // initialize the node configuration
+                NodeConfiguration = PublisherNodeConfiguration.Instance;
 
                 // kick off OPC session creation and node monitoring
                 await SessionStartAsync().ConfigureAwait(false);
@@ -643,9 +649,6 @@ namespace OpcPublisher
                 _publisherServer.CurrentInstance.SessionManager.SessionActivated += ServerEventStatus;
                 _publisherServer.CurrentInstance.SessionManager.SessionClosing += ServerEventStatus;
                 _publisherServer.CurrentInstance.SessionManager.SessionCreated += ServerEventStatus;
-
-                // initialize publisher diagnostics
-                PublisherDiagnostics.Init();
 
                 // startup completed
                 StartupCompleted = true;
@@ -682,12 +685,8 @@ namespace OpcPublisher
                 Hub.Dispose();
                 Hub = null;
 
-                // shutdown diagnostics
-                await PublisherDiagnostics.ShutdownAsync().ConfigureAwait(false);
-
                 // free resources
-                PublisherTelemetryConfiguration.Deinit();
-                PublisherNodeConfiguration.Deinit();
+                NodeConfiguration.Dispose();
                 ShutdownTokenSource = null;
             }
             catch (Exception e)
@@ -701,17 +700,21 @@ namespace OpcPublisher
                 }
                 Logger.Fatal("Publisher exiting... ");
             }
+
+            // shutdown diagnostics
+            Diag.Dispose();
+            Diag = null;
         }
 
         /// <summary>
         /// Start all sessions.
         /// </summary>
-        public async static Task SessionStartAsync()
+        public static async Task SessionStartAsync()
         {
             try
             {
-                await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
-                OpcSessions.ForEach(s => s.ConnectAndMonitorSession.Set());
+                await NodeConfiguration.OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
+                NodeConfiguration.OpcSessions.ForEach(s => s.ConnectAndMonitorSession.Set());
             }
             catch (Exception e)
             {
@@ -719,29 +722,29 @@ namespace OpcPublisher
             }
             finally
             {
-                OpcSessionsListSemaphore.Release();
+                NodeConfiguration.OpcSessionsListSemaphore.Release();
             }
         }
 
         /// <summary>
         /// Shutdown all sessions.
         /// </summary>
-        public async static Task SessionShutdownAsync()
+        public static async Task SessionShutdownAsync()
         {
             try
             {
-                while (OpcSessions.Count > 0)
+                while (NodeConfiguration.OpcSessions.Count > 0)
                 {
-                    OpcSession opcSession = null;
+                    IOpcSession opcSession = null;
                     try
                     {
-                        await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
-                        opcSession = OpcSessions.ElementAt(0);
-                        OpcSessions.RemoveAt(0);
+                        await NodeConfiguration.OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
+                        opcSession = NodeConfiguration.OpcSessions.ElementAt(0);
+                        NodeConfiguration.OpcSessions.RemoveAt(0);
                     }
                     finally
                     {
-                        OpcSessionsListSemaphore.Release();
+                        NodeConfiguration.OpcSessionsListSemaphore.Release();
                     }
                     await (opcSession?.ShutdownAsync()).ConfigureAwait(false);
                 }
@@ -755,7 +758,7 @@ namespace OpcPublisher
             uint maxTries = PublisherShutdownWaitPeriod;
             while (true)
             {
-                int sessionCount = OpcSessions.Count;
+                int sessionCount = NodeConfiguration.OpcSessions.Count;
                 if (sessionCount == 0)
                 {
                     return;
@@ -846,7 +849,7 @@ namespace OpcPublisher
             LoggerConfiguration loggerConfiguration = new LoggerConfiguration();
 
             // set the log level
-            switch (_logLevel)
+            switch (LogLevel)
             {
                 case "fatal":
                     loggerConfiguration.MinimumLevel.Fatal();
@@ -886,21 +889,24 @@ namespace OpcPublisher
 
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_GW_LOGP")))
             {
-                _logFileName = Environment.GetEnvironmentVariable("_GW_LOGP");
+                LogFileName = Environment.GetEnvironmentVariable("_GW_LOGP");
             }
 
-            if (!string.IsNullOrEmpty(_logFileName))
+            if (!string.IsNullOrEmpty(LogFileName))
             {
                 // configure rolling file sink
                 const int MAX_LOGFILE_SIZE = 1024 * 1024;
                 const int MAX_RETAINED_LOGFILES = 2;
-                loggerConfiguration.WriteTo.File(_logFileName, fileSizeLimitBytes: MAX_LOGFILE_SIZE, flushToDiskInterval: _logFileFlushTimeSpanSec, rollOnFileSizeLimit: true, retainedFileCountLimit: MAX_RETAINED_LOGFILES);
+                loggerConfiguration.WriteTo.File(LogFileName, fileSizeLimitBytes: MAX_LOGFILE_SIZE, flushToDiskInterval: _logFileFlushTimeSpanSec, rollOnFileSizeLimit: true, retainedFileCountLimit: MAX_RETAINED_LOGFILES);
             }
+
+            // initialize publisher diagnostics
+            Diag = PublisherDiagnostics.Instance;
 
             Logger = loggerConfiguration.CreateLogger();
             Logger.Information($"Current directory is: {System.IO.Directory.GetCurrentDirectory()}");
-            Logger.Information($"Log file is: {_logFileName}");
-            Logger.Information($"Log level is: {_logLevel}");
+            Logger.Information($"Log file is: {LogFileName}");
+            Logger.Information($"Log level is: {LogLevel}");
             return;
         }
 
@@ -994,8 +1000,6 @@ namespace OpcPublisher
         private static PublisherServer _publisherServer;
         private static bool _noShutdown = false;
         private static bool _installOnly = false;
-        private static string _logFileName = $"{Utils.GetHostName()}-publisher.log";
-        private static string _logLevel = "info";
         private static TimeSpan _logFileFlushTimeSpanSec = TimeSpan.FromSeconds(30);
         private static string _hubProtocols = string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()));
     }

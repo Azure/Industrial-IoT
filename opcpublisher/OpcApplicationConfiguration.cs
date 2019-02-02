@@ -1,5 +1,4 @@
-﻿
-using Opc.Ua;
+﻿using Opc.Ua;
 using System;
 
 namespace OpcPublisher

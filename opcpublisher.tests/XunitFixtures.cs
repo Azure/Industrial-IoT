@@ -1,4 +1,3 @@
-
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using System;
@@ -204,9 +203,27 @@ namespace OpcPublisher
 
         public TestDirectoriesFixture()
         {
-            if (!Directory.Exists($"{Directory.GetCurrentDirectory()}/tempdata"))
+            try
             {
-                Directory.CreateDirectory($"{Directory.GetCurrentDirectory()}/tempdata");
+                if (!Directory.Exists($"{Directory.GetCurrentDirectory()}/tempdata"))
+                {
+                    Directory.CreateDirectory($"{Directory.GetCurrentDirectory()}/tempdata");
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            try
+            {
+                if (File.Exists(LogFileName))
+                {
+                    File.Delete(LogFileName);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
 
@@ -218,6 +235,8 @@ namespace OpcPublisher
         public OpcPublisherFixture()
         {
             // init publisher logging
+            //LogLevel = "debug";
+            LogLevel = "info";
             if (Logger == null)
             {
                 InitLogging();
@@ -231,8 +250,15 @@ namespace OpcPublisher
                 OpcOwnCertStoreType = CertificateStoreType.X509Store;
                 OpcOwnCertStorePath = OpcOwnCertX509StorePathDefault;
             }
-            _opcApplicationConfiguration.ConfigureAsync().Wait();
+            if (_opcApplicationConfiguration == null)
+            {
+                _opcApplicationConfiguration = new OpcApplicationConfiguration();
+                _opcApplicationConfiguration.ConfigureAsync().Wait();
+            }
 
+            // configure hub communication
+            HubCommunicationBase.DefaultSendIntervalSeconds = 0;
+            HubCommunicationBase.HubMessageSize = 0;
         }
 
         /// <summary>
@@ -256,6 +282,6 @@ namespace OpcPublisher
             GC.SuppressFinalize(this);
         }
 
-        private static OpcApplicationConfiguration _opcApplicationConfiguration = new OpcApplicationConfiguration();
+        private static OpcApplicationConfiguration _opcApplicationConfiguration = null;
     }
 }

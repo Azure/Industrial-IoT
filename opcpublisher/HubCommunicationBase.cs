@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,10 +18,7 @@ namespace OpcPublisher
     using System.Runtime.InteropServices;
     using static OpcApplicationConfiguration;
     using static OpcPublisher.OpcMonitoredItem;
-    using static OpcPublisher.PublisherNodeConfiguration;
-    using static OpcPublisher.PublisherTelemetryConfiguration;
     using static Program;
-    using static PublisherDiagnostics;
 
     /// <summary>
     /// Class to handle all IoTHub/EdgeHub communication.
@@ -112,8 +108,8 @@ namespace OpcPublisher
         /// <summary>
         /// The protocol to use for hub communication.
         /// </summary>
-        virtual public TransportType HubProtocol { get; set; } = TransportType.Mqtt_Tcp_Only;
-        
+        public virtual TransportType HubProtocol { get; set; } = TransportType.Mqtt_Tcp_Only;
+
         /// <summary>
         /// Dictionary of available IoTHub direct methods.
         /// </summary>
@@ -122,7 +118,7 @@ namespace OpcPublisher
         /// <summary>
         /// Check if transport type to use is HTTP.
         /// </summary>
-        bool IsHttp1Transport() => (_transportType == TransportType.Http1);
+        bool IsHttp1Transport() => HubProtocol == TransportType.Http1;
 
         /// <summary>
         /// Ctor for the class.
@@ -146,35 +142,25 @@ namespace OpcPublisher
         /// <summary>
         /// Implement IDisposable.
         /// </summary>
-        virtual protected void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (disposing)
             {
                 // send cancellation token and wait for last IoT Hub message to be sent.
-                _hubCommunicationCts.Cancel();
+                _hubCommunicationCts?.Cancel();
                 try
                 {
-                    _monitoredItemsProcessorTask.Wait();
-
-                    if (_iotHubClient != null)
-                    {
-                        _iotHubClient.CloseAsync().Wait();
-                        _iotHubClient = null;
-                    }
-                    if (_edgeHubClient != null)
-                    {
-                        _edgeHubClient.CloseAsync().Wait();
-                        _edgeHubClient = null;
-                    }
+                    _monitoredItemsProcessorTask?.Wait();
                     _monitoredItemsDataQueue = null;
                     _monitoredItemsProcessorTask = null;
+                    _hubClient?.Dispose();
+                    _hubClient = null;
                 }
                 catch (Exception e)
                 {
                     Logger.Error(e, "Failure while shutting down hub messaging.");
-                    throw;
                 }
-                _hubCommunicationCts.Dispose();
+                _hubCommunicationCts?.Dispose();
                 _hubCommunicationCts = null;
             }
         }
@@ -182,7 +168,7 @@ namespace OpcPublisher
         /// <summary>
         /// Implement IDisposable.
         /// </summary>
-        virtual public void Dispose()
+        public void Dispose()
         {
             // do cleanup
             Dispose(true);
@@ -190,93 +176,43 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Initializes message broker communication.
-        /// </summary>
-        virtual public Task<bool> InitAsync()
-        {
-            throw new Exception("HubCommunication::InitAsync should not be called");
-        }
-
-        /// <summary>
         /// Initializes edge message broker communication.
         /// </summary>
-        public async Task<bool> InitHubCommunicationAsync(ModuleClient edgeHubClient)
-        {
-            // init EdgeHub communication parameters
-            _edgeHubClient = edgeHubClient;
-            return await InitHubCommunicationAsync(HubProtocol).ConfigureAwait(false);
-        }
-
-
-        /// <summary>
-        /// Initializes message broker communication.
-        /// </summary>
-        public async Task<bool> InitHubCommunicationAsync(DeviceClient iotHubClient)
-        {
-            // init IoTHub communication parameters
-            _iotHubClient = iotHubClient;
-            return await InitHubCommunicationAsync(HubProtocol).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Initializes message broker communication.
-        /// </summary>
-        private async Task<bool> InitHubCommunicationAsync(TransportType transportType)
+        public async Task<bool> InitHubCommunicationAsync(IHubClient hubClient)
         {
             try
             {
                 // set hub communication parameters
-                _transportType = transportType;
+                _hubClient = hubClient;
                 ExponentialBackoff exponentialRetryPolicy = new ExponentialBackoff(int.MaxValue, TimeSpan.FromMilliseconds(2), TimeSpan.FromMilliseconds(1024), TimeSpan.FromMilliseconds(3));
 
                 // show IoTCentral mode
                 Logger.Information($"IoTCentral mode: {IotCentralMode}");
 
-                if (_iotHubClient == null)
+                _hubClient.ProductInfo = "OpcPublisher";
+                _hubClient.SetRetryPolicy(exponentialRetryPolicy);
+                // register connection status change handler
+                _hubClient.SetConnectionStatusChangesHandler(ConnectionStatusChange);
+
+                // open connection
+                Logger.Debug($"Open hub communication");
+                await _hubClient.OpenAsync().ConfigureAwait(false);
+
+                // init twin properties and method callbacks (not supported for HTTP)
+                // todo check if this is 
+                if (!IsHttp1Transport())
                 {
-                    _edgeHubClient.ProductInfo = "OpcPublisher";
-                    _edgeHubClient.SetRetryPolicy(exponentialRetryPolicy);
-                    // register connection status change handler
-                    _edgeHubClient.SetConnectionStatusChangesHandler(ConnectionStatusChange);
-
-                    // open connection
-                    Logger.Debug($"Open EdgeHub communication");
-                    await _edgeHubClient.OpenAsync().ConfigureAwait(false);
-
                     // init twin properties and method callbacks
                     Logger.Debug($"Register desired properties and method callbacks");
 
                     // register method handlers
                     foreach (var iotHubMethod in IotHubDirectMethods)
                     {
-                        await _edgeHubClient.SetMethodHandlerAsync(iotHubMethod.Key, iotHubMethod.Value, _edgeHubClient).ConfigureAwait(false);
+                        await _hubClient.SetMethodHandlerAsync(iotHubMethod.Key, iotHubMethod.Value).ConfigureAwait(false);
                     }
-                    await _edgeHubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync, _edgeHubClient).ConfigureAwait(false);
+                    await _hubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync).ConfigureAwait(false);
                 }
-                else
-                {
-                    _iotHubClient.ProductInfo = "OpcPublisher";
-                    _iotHubClient.SetRetryPolicy(exponentialRetryPolicy);
-                    // register connection status change handler
-                    _iotHubClient.SetConnectionStatusChangesHandler(ConnectionStatusChange);
 
-                    // open connection
-                    Logger.Debug($"Open IoTHub communication");
-                    await _iotHubClient.OpenAsync().ConfigureAwait(false);
-
-                    // init twin properties and method callbacks (not supported for HTTP)
-                    if (!IsHttp1Transport())
-                    {
-                        Logger.Debug($"Register desired properties and method callbacks");
-
-                        // register method handlers
-                        foreach (var iotHubMethod in IotHubDirectMethods)
-                        {
-                            await _iotHubClient.SetMethodHandlerAsync(iotHubMethod.Key, iotHubMethod.Value, _iotHubClient).ConfigureAwait(false);
-                        }
-                        await _iotHubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync, _iotHubClient).ConfigureAwait(false);
-                    }
-                }
                 Logger.Debug($"Init D2C message processing");
                 return await InitMessageProcessingAsync().ConfigureAwait(false);
             }
@@ -305,7 +241,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle publish node method call.
         /// </summary>
-        virtual public async Task<MethodResponse> HandlePublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
+        public virtual async Task<MethodResponse> HandlePublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandlePublishNodesMethodAsync:";
             Uri endpointUri = null;
@@ -341,7 +277,7 @@ namespace OpcPublisher
                 try
                 {
                     // lock the publishing configuration till we are done
-                    await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
+                    await NodeConfiguration.OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
 
                     if (ShutdownTokenSource.IsCancellationRequested)
                     {
@@ -353,15 +289,15 @@ namespace OpcPublisher
                     else
                     {
                         // find the session we need to monitor the node
-                        OpcSession opcSession = null;
-                        opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
+                        IOpcSession opcSession = null;
+                        opcSession = NodeConfiguration.OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
 
                         // add a new session.
                         if (opcSession == null)
                         {
                             // create new session info.
                             opcSession = new OpcSession(endpointUri.OriginalString, true, OpcSessionCreationTimeout);
-                            OpcSessions.Add(opcSession);
+                            NodeConfiguration.OpcSessions.Add(opcSession);
                             Logger.Information($"{logPrefix} No matching session found for endpoint '{endpointUri.OriginalString}'. Requested to create a new one.");
                         }
 
@@ -371,7 +307,7 @@ namespace OpcPublisher
                             // support legacy format
                             if (string.IsNullOrEmpty(node.Id) && !string.IsNullOrEmpty(node.ExpandedNodeId))
                             {
-                                    node.Id = node.ExpandedNodeId;
+                                node.Id = node.ExpandedNodeId;
                             }
 
                             NodeId nodeId = null;
@@ -474,7 +410,7 @@ namespace OpcPublisher
                 }
                 finally
                 {
-                    OpcSessionsListSemaphore.Release();
+                    NodeConfiguration.OpcSessionsListSemaphore.Release();
                 }
             }
 
@@ -497,7 +433,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle unpublish node method call.
         /// </summary>
-        virtual public async Task<MethodResponse> HandleUnpublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
+        public virtual async Task<MethodResponse> HandleUnpublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleUnpublishNodesMethodAsync:";
             NodeId nodeId = null;
@@ -534,7 +470,7 @@ namespace OpcPublisher
             {
                 try
                 {
-                    await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
+                    await NodeConfiguration.OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
                     if (ShutdownTokenSource.IsCancellationRequested)
                     {
                         statusMessage = $"Publisher is in shutdown";
@@ -545,10 +481,10 @@ namespace OpcPublisher
                     else
                     {
                         // find the session we need to monitor the node
-                        OpcSession opcSession = null;
+                        IOpcSession opcSession = null;
                         try
                         {
-                            opcSession = OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
+                            opcSession = NodeConfiguration.OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
                         }
                         catch
                         {
@@ -700,7 +636,7 @@ namespace OpcPublisher
                 }
                 finally
                 {
-                    OpcSessionsListSemaphore.Release();
+                    NodeConfiguration.OpcSessionsListSemaphore.Release();
                 }
             }
 
@@ -723,7 +659,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle unpublish all nodes method call.
         /// </summary>
-        virtual public async Task<MethodResponse> HandleUnpublishAllNodesMethodAsync(MethodRequest methodRequest, object userContext)
+        public virtual async Task<MethodResponse> HandleUnpublishAllNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleUnpublishAllNodesMethodAsync:";
             Uri endpointUri = null;
@@ -764,7 +700,7 @@ namespace OpcPublisher
                 // schedule to remove all nodes on all sessions
                 try
                 {
-                    await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
+                    await NodeConfiguration.OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
                     if (ShutdownTokenSource.IsCancellationRequested)
                     {
                         statusMessage = $"Publisher is in shutdown";
@@ -775,7 +711,7 @@ namespace OpcPublisher
                     else
                     {
                         // loop through all sessions
-                        foreach (var session in OpcSessions)
+                        foreach (var session in NodeConfiguration.OpcSessions)
                         {
                             bool sessionLocked = false;
                             try
@@ -832,7 +768,7 @@ namespace OpcPublisher
                 }
                 finally
                 {
-                    OpcSessionsListSemaphore.Release();
+                    NodeConfiguration.OpcSessionsListSemaphore.Release();
                 }
             }
 
@@ -876,7 +812,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get all endpoints which published nodes.
         /// </summary>
-        virtual public Task<MethodResponse> HandleGetConfiguredEndpointsMethodAsync(MethodRequest methodRequest, object userContext)
+        public virtual Task<MethodResponse> HandleGetConfiguredEndpointsMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetConfiguredEndpointsMethodAsync:";
             GetConfiguredEndpointsMethodRequestModel getConfiguredEndpointsMethodRequest = null;
@@ -909,7 +845,7 @@ namespace OpcPublisher
             if (statusCode == HttpStatusCode.OK)
             {
                 // get the list of all endpoints
-                endpointUrls = GetPublisherConfigurationFileEntries(null, false, out nodeConfigVersion).Select(e => e.EndpointUrl.OriginalString).ToList();
+                endpointUrls = NodeConfiguration.GetPublisherConfigurationFileEntries(null, false, out nodeConfigVersion).Select(e => e.EndpointUrl.OriginalString).ToList();
                 uint endpointsCount = (uint)endpointUrls.Count;
 
                 // validate version
@@ -987,7 +923,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get list of configured nodes on a specific endpoint.
         /// </summary>
-        virtual public Task<MethodResponse> HandleGetConfiguredNodesOnEndpointMethodAsync(MethodRequest methodRequest, object userContext)
+        public virtual Task<MethodResponse> HandleGetConfiguredNodesOnEndpointMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetConfiguredNodesOnEndpointMethodAsync:";
             Uri endpointUri = null;
@@ -1027,7 +963,7 @@ namespace OpcPublisher
             if (statusCode == HttpStatusCode.OK)
             {
                 // get the list of published nodes for the endpoint
-                List<PublisherConfigurationFileEntryModel> configFileEntries = GetPublisherConfigurationFileEntries(endpointUri.OriginalString, false, out nodeConfigVersion);
+                List<PublisherConfigurationFileEntryModel> configFileEntries = NodeConfiguration.GetPublisherConfigurationFileEntries(endpointUri.OriginalString, false, out nodeConfigVersion);
 
                 // return if there are no nodes configured for this endpoint
                 if (configFileEntries.Count == 0)
@@ -1126,7 +1062,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get diagnostic information.
         /// </summary>
-        virtual public Task<MethodResponse> HandleGetDiagnosticInfoMethodAsync(MethodRequest methodRequest, object userContext)
+        public virtual Task<MethodResponse> HandleGetDiagnosticInfoMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticInfoMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1137,7 +1073,7 @@ namespace OpcPublisher
             DiagnosticInfoMethodResponseModel diagnosticInfo = new DiagnosticInfoMethodResponseModel();
             try
             {
-                diagnosticInfo = GetDiagnosticInfo();
+                diagnosticInfo = Diag.GetDiagnosticInfo();
             }
             catch (Exception e)
             {
@@ -1172,7 +1108,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get log information.
         /// </summary>
-        virtual public async Task<MethodResponse> HandleGetDiagnosticLogMethodAsync(MethodRequest methodRequest, object userContext)
+        public virtual async Task<MethodResponse> HandleGetDiagnosticLogMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticLogMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1183,7 +1119,7 @@ namespace OpcPublisher
             DiagnosticLogMethodResponseModel diagnosticLogMethodResponseModel = new DiagnosticLogMethodResponseModel();
             try
             {
-                diagnosticLogMethodResponseModel = await GetDiagnosticLogAsync().ConfigureAwait(false);
+                diagnosticLogMethodResponseModel = await Diag.GetDiagnosticLogAsync().ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -1218,7 +1154,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get log information.
         /// </summary>
-        virtual public async Task<MethodResponse> HandleGetDiagnosticStartupLogMethodAsync(MethodRequest methodRequest, object userContext)
+        public virtual async Task<MethodResponse> HandleGetDiagnosticStartupLogMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticStartupLogMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1229,7 +1165,7 @@ namespace OpcPublisher
             DiagnosticLogMethodResponseModel diagnosticLogMethodResponseModel = new DiagnosticLogMethodResponseModel();
             try
             {
-                diagnosticLogMethodResponseModel = await GetDiagnosticStartupLogAsync().ConfigureAwait(false);
+                diagnosticLogMethodResponseModel = await Diag.GetDiagnosticStartupLogAsync().ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -1264,7 +1200,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get log information.
         /// </summary>
-        virtual public Task<MethodResponse> HandleExitApplicationMethodAsync(MethodRequest methodRequest, object userContext)
+        public virtual Task<MethodResponse> HandleExitApplicationMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleExitApplicationMethodAsync:";
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -1329,7 +1265,7 @@ namespace OpcPublisher
         /// <summary>
         /// Handle method call to get application information.
         /// </summary>
-        virtual public Task<MethodResponse> HandleGetInfoMethodAsync(MethodRequest methodRequest, object userContext)
+        public virtual Task<MethodResponse> HandleGetInfoMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetInfoMethodAsync:";
             GetInfoMethodResponseModel getInfoMethodResponseModel = new GetInfoMethodResponseModel();
@@ -1382,7 +1318,7 @@ namespace OpcPublisher
         /// <summary>
         /// Method that is called for any unimplemented call. Just returns that info to the caller
         /// </summary>
-        virtual public Task<MethodResponse> DefaultMethodHandlerAsync(MethodRequest methodRequest, object userContext)
+        public virtual Task<MethodResponse> DefaultMethodHandlerAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "DefaultMethodHandlerAsync:";
             string errorMessage = $"Method '{methodRequest.Name}' successfully received, but this method is not implemented";
@@ -1424,7 +1360,7 @@ namespace OpcPublisher
         /// <summary>
         /// Enqueue a message for sending to IoTHub.
         /// </summary>
-        virtual public void Enqueue(MessageData json)
+        public virtual void Enqueue(MessageData json)
         {
             // Try to add the message.
             Interlocked.Increment(ref _enqueueCount);
@@ -1446,7 +1382,7 @@ namespace OpcPublisher
             try
             {
                 // get telemetry configration
-                EndpointTelemetryConfiguration telemetryConfiguration = GetEndpointTelemetryConfiguration(messageData.EndpointUrl);
+                IEndpointTelemetryConfigurationModel telemetryConfiguration = TelemetryConfiguration.GetEndpointTelemetryConfiguration(messageData.EndpointUrl);
 
                 // currently the pattern processing is done in MonitoredItemNotificationHandler of OpcSession.cs. in case of perf issues
                 // it can be also done here, the risk is then to lose messages in the communication queue. if you enable it here, disable it in OpcSession.cs
@@ -1595,7 +1531,7 @@ namespace OpcPublisher
         /// <summary>
         /// Dequeue monitored item notification messages, batch them for send (if needed) and send them to IoTHub.
         /// </summary>
-        virtual public async Task MonitoredItemsProcessorAsync(CancellationToken ct)
+        public virtual async Task MonitoredItemsProcessorAsync(CancellationToken ct)
         {
             uint jsonSquareBracketLength = 2;
             Message tempMsg = new Message();
@@ -1666,7 +1602,7 @@ namespace OpcPublisher
                             jsonMessageSize = Encoding.UTF8.GetByteCount(jsonMessage.ToString(CultureInfo.InvariantCulture));
 
                             // sanity check that the user has set a large enough messages size
-                            if ((HubMessageSize > 0 && jsonMessageSize > HubMessageSize ) || (HubMessageSize == 0 && jsonMessageSize > hubMessageBufferSize))
+                            if ((HubMessageSize > 0 && jsonMessageSize > HubMessageSize) || (HubMessageSize == 0 && jsonMessageSize > hubMessageBufferSize))
                             {
                                 Logger.Error($"There is a telemetry message (size: {jsonMessageSize}), which will not fit into an hub message (max size: {hubMessageBufferSize}].");
                                 Logger.Error($"Please check your hub message size settings. The telemetry message will be discarded silently. Sorry:(");
@@ -1736,7 +1672,7 @@ namespace OpcPublisher
                                 hubMessage.Write(Encoding.UTF8.GetBytes("]"), 0, 1);
                                 encodedhubMessage = new Message(hubMessage.ToArray());
                             }
-                            if (_iotHubClient != null || _edgeHubClient != null)
+                            if (_hubClient != null)
                             {
                                 encodedhubMessage.ContentType = CONTENT_TYPE_OPCUAJSON;
                                 encodedhubMessage.ContentEncoding = CONTENT_ENCODING_UTF8;
@@ -1745,14 +1681,7 @@ namespace OpcPublisher
                                 try
                                 {
                                     SentBytes += encodedhubMessage.GetBytes().Length;
-                                    if (_iotHubClient != null)
-                                    {
-                                        await _iotHubClient.SendEventAsync(encodedhubMessage).ConfigureAwait(false);
-                                    }
-                                    else
-                                    {
-                                        await _edgeHubClient.SendEventAsync(encodedhubMessage).ConfigureAwait(false);
-                                    }
+                                    await _hubClient.SendEventAsync(encodedhubMessage).ConfigureAwait(false);
                                     SentMessages++;
                                     SentLastTime = DateTime.UtcNow;
                                     Logger.Debug($"Sending {encodedhubMessage.BodyStream.Length} bytes to hub.");
@@ -1803,7 +1732,7 @@ namespace OpcPublisher
         /// <summary>
         /// Exit the application.
         /// </summary>
-        virtual public async Task ExitApplicationAsync(int secondsTillExit)
+        public virtual async Task ExitApplicationAsync(int secondsTillExit)
         {
             string logPrefix = "ExitApplicationAsync:";
 
@@ -1862,11 +1791,8 @@ namespace OpcPublisher
         private static long _enqueueFailureCount;
         private static BlockingCollection<MessageData> _monitoredItemsDataQueue;
         private static Task _monitoredItemsProcessorTask;
-        private static DeviceClient _iotHubClient;
-        private static ModuleClient _edgeHubClient;
+        private static IHubClient _hubClient;
         private CancellationTokenSource _hubCommunicationCts;
         private CancellationToken _shutdownToken;
-
-        private TransportType _transportType;
     }
 }

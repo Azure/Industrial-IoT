@@ -1,11 +1,6 @@
-﻿
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace OpcPublisher
+﻿namespace OpcPublisher
 {
     using Microsoft.Azure.Devices;
-    using Microsoft.Azure.Devices.Client;
     using Opc.Ua;
     using System;
     using static OpcApplicationConfiguration;
@@ -24,7 +19,7 @@ namespace OpcPublisher
         /// <summary>
         /// Specifies the protocol to use for hub communication.
         /// </summary>
-        override public Microsoft.Azure.Devices.Client.TransportType HubProtocol { get; set; } = Microsoft.Azure.Devices.Client.TransportType.Mqtt_WebSocket_Only;
+        public override Microsoft.Azure.Devices.Client.TransportType HubProtocol { get; set; } = Microsoft.Azure.Devices.Client.TransportType.Mqtt_WebSocket_Only;
 
         /// <summary>
         /// Default cert store path of the IoTHub credentials for store type directory.
@@ -58,6 +53,11 @@ namespace OpcPublisher
         public static string IotHubOwnerConnectionString { get; set; } = null;
 
         /// <summary>
+        /// This property is only there to allow mocking of the device client.
+        /// </summary>
+        public static IHubClient IotHubClient { get; set; }
+
+        /// <summary>
         /// Get the singleton.
         /// </summary>
         public static IotHubCommunication Instance
@@ -67,10 +67,10 @@ namespace OpcPublisher
                 lock (_singletonLock)
                 {
                     if (_instance == null)
-                {
-                    _instance = new IotHubCommunication();
-                }
-                return _instance;
+                    {
+                        _instance = new IotHubCommunication();
+                    }
+                    return _instance;
                 }
             }
         }
@@ -153,11 +153,11 @@ namespace OpcPublisher
                 throw new ArgumentException(errorMessage);
             }
 
-            // connect to IoTHub
+            // connect as device client
             HubProtocol = IotHubProtocol;
-            Logger.Information($"Create IoTHub client using '{HubProtocol}' for communication.");
-            DeviceClient hubClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, HubProtocol);
-            if (!InitHubCommunicationAsync(hubClient).Result)
+            Logger.Information($"Create device client using '{HubProtocol}' for communication.");
+            IotHubClient = HubClient.CreateDeviceClientFromConnectionString(DeviceConnectionString, HubProtocol);
+            if (!InitHubCommunicationAsync(IotHubClient).Result)
             {
                 string errorMessage = $"Cannot create IoTHub client. Exiting...";
                 Logger.Fatal(errorMessage);

@@ -1,8 +1,4 @@
-﻿
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace OpcPublisher
+﻿namespace OpcPublisher
 {
     using Microsoft.Azure.Devices.Client;
     using System;
@@ -14,14 +10,14 @@ namespace OpcPublisher
     public class IotEdgeHubCommunication : HubCommunicationBase
     {
         /// <summary>
-        /// Protocol tu use when running as IoT Edge module.
+        /// Command line argument to select protocol to use when running as IoT Edge module.
         /// </summary>
         public static TransportType IotEdgeHubProtocol { get; set; } = TransportType.Mqtt_Tcp_Only;
 
         /// <summary>
         /// Specifies the protocol to use for hub communication.
         /// </summary>
-        override public TransportType HubProtocol { get; set; } = TransportType.Mqtt_Tcp_Only;
+        public override TransportType HubProtocol { get; set; } = TransportType.Mqtt_Tcp_Only;
 
         /// <summary>
         /// Detects if publisher is running as an IoTEdge module.
@@ -59,14 +55,14 @@ namespace OpcPublisher
         /// </summary>
         public IotEdgeHubCommunication()
         {
-            // connect to EdgeHub
+            // connect to IoT Edge hub
             HubProtocol = IotEdgeHubProtocol;
-            Logger.Information($"Create IoTEdgeHub module client using '{HubProtocol}' for communication.");
-            ModuleClient hubClient = ModuleClient.CreateFromEnvironmentAsync(HubProtocol).Result;
+            Logger.Information($"Create module client using '{HubProtocol}' for communication.");
+            IHubClient hubClient = HubClient.CreateModuleClientFromEnvironment(HubProtocol);
 
             if (!InitHubCommunicationAsync(hubClient).Result)
             {
-                string errorMessage = $"Cannot create EdgeHub client. Exiting...";
+                string errorMessage = $"Cannot create module client. Exiting...";
                 Logger.Fatal(errorMessage);
                 throw new Exception(errorMessage);
             }

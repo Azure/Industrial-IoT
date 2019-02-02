@@ -1,5 +1,4 @@
-﻿
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace OpcPublisher
@@ -28,9 +27,9 @@ namespace OpcPublisher
         void Dispose();
 
         /// <summary>
-        /// Initializes edge message broker communication.
+        /// Initializes the hub communication.
         /// </summary>
-        Task<bool> InitAsync();
+        Task<bool> InitHubCommunicationAsync(IHubClient hubClient);
 
         /// <summary>
         /// Handle publish node method call.
