@@ -1199,7 +1199,6 @@ namespace OpcPublisher
                 {
                     // cancel all threads waiting on the session semaphore
                     _sessionCancelationTokenSource.Cancel();
-                    _connectAndMonitorAsync.Wait();
                     _opcSessionSemaphore.Release();
                     _opcSessionSemaphore.Dispose();
                     _opcSessionSemaphore = null;
