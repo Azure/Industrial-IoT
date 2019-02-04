@@ -1326,7 +1326,7 @@ namespace OpcPublisher
 
             string resultString = JsonConvert.SerializeObject(errorMessage);
             byte[] result = Encoding.UTF8.GetBytes(resultString);
-            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.OK);
+            MethodResponse methodResponse = new MethodResponse(result, (int)HttpStatusCode.NotImplemented);
             return Task.FromResult(methodResponse);
         }
 
