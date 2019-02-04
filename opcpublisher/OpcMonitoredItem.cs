@@ -6,11 +6,122 @@ using System.Linq;
 namespace OpcPublisher
 {
     using Opc.Ua;
+    using System.Collections.Generic;
     using System.Globalization;
+    using System.Threading;
     using static HubCommunication;
     using static OpcApplicationConfiguration;
     using static OpcPublisher.PublisherTelemetryConfiguration;
     using static Program;
+
+    /// <summary>
+    /// Class used to pass data from the MonitoredItem notification to the hub message processing to ingest a telemetry event.
+    /// </summary>
+    public class MessageData
+    {
+        /// <summary>
+        /// The endpoint URL of the OPC UA server.
+        /// </summary>
+        public string EndpointUrl { get; set; }
+
+        /// <summary>
+        /// The id of the node.
+        /// </summary>
+        public string NodeId { get; set; }
+
+        /// <summary>
+        /// The OPC UA application URI of the OPC UA server application.
+        /// </summary>
+        public string ApplicationUri { get; set; }
+
+        /// <summary>
+        /// The display name to use.
+        /// </summary>
+        public string DisplayName { get; set; }
+
+        /// <summary>
+        /// The value of the node.
+        /// </summary>
+        public string Value { get; set; }
+
+        /// <summary>
+        /// The SourceTimestamp of the nodes values the OPC UA server has reported.
+        /// </summary>
+        public string SourceTimestamp { get; set; }
+
+        /// <summary>
+        /// The status code of the node the OPC UA server has reported.
+        /// </summary>
+        public uint? StatusCode { get; set; }
+
+        /// <summary>
+        /// the status of the node the OPC UA server has reported.
+        /// </summary>
+        public string Status { get; set; }
+
+        /// <summary>
+        /// A flag to preserve quotes in the node value.
+        /// </summary>
+        public bool PreserveValueQuotes { get; set; }
+
+        /// <summary>
+        /// Ctor of the object.
+        /// </summary>
+        public MessageData()
+        {
+            EndpointUrl = null;
+            NodeId = null;
+            ApplicationUri = null;
+            DisplayName = null;
+            Value = null;
+            StatusCode = null;
+            SourceTimestamp = null;
+            Status = null;
+            PreserveValueQuotes = false;
+        }
+
+        /// <summary>
+        /// Allows to apply patterns to the keys and values configured via the telemetry configuration.
+        /// </summary>
+        public void ApplyPatterns(EndpointTelemetryConfiguration telemetryConfiguration)
+        {
+            if (telemetryConfiguration.EndpointUrl.Publish == true)
+            {
+                EndpointUrl = telemetryConfiguration.EndpointUrl.PatternMatch(EndpointUrl);
+            }
+            if (telemetryConfiguration.NodeId.Publish == true)
+            {
+                NodeId = telemetryConfiguration.NodeId.PatternMatch(NodeId);
+            }
+            if (telemetryConfiguration.MonitoredItem.ApplicationUri.Publish == true)
+            {
+                ApplicationUri = telemetryConfiguration.MonitoredItem.ApplicationUri.PatternMatch(ApplicationUri);
+            }
+            if (telemetryConfiguration.MonitoredItem.DisplayName.Publish == true)
+            {
+                DisplayName = telemetryConfiguration.MonitoredItem.DisplayName.PatternMatch(DisplayName);
+            }
+            if (telemetryConfiguration.Value.Value.Publish == true)
+            {
+                Value = telemetryConfiguration.Value.Value.PatternMatch(Value);
+            }
+            if (telemetryConfiguration.Value.SourceTimestamp.Publish == true)
+            {
+                SourceTimestamp = telemetryConfiguration.Value.SourceTimestamp.PatternMatch(SourceTimestamp);
+            }
+            if (telemetryConfiguration.Value.StatusCode.Publish == true && StatusCode != null)
+            {
+                if (!string.IsNullOrEmpty(telemetryConfiguration.Value.StatusCode.Pattern))
+                {
+                    Logger.Information($"'Pattern' settngs for StatusCode are ignored.");
+                }
+            }
+            if (telemetryConfiguration.Value.Status.Publish == true)
+            {
+                Status = telemetryConfiguration.Value.Status.PatternMatch(Status);
+            }
+        }
+    }
 
     /// <summary>
     /// Class to manage the OPC monitored items, which are the nodes we need to publish.
@@ -65,29 +176,59 @@ namespace OpcPublisher
 
         public OpcMonitoredItemConfigurationType ConfigType { get; set; }
 
+        public const int HeartbeatIntvervalMax = 24 * 60 * 60;
+
+        public static int? HeartbeatIntervalDefault { get; set; } = 0;
+
+        public int HeartbeatInterval
+        {
+            get => _heartbeatInterval;
+            set => _heartbeatInterval = (value <= 0 ? 0 : value > HeartbeatIntvervalMax ? HeartbeatIntvervalMax : value);
+        }
+
+        public bool HeartbeatIntervalFromConfiguration { get; set; } = false;
+
+        public MessageData HeartbeatMessage { get; set; } = null;
+
+        public Timer HeartbeatSendTimer { get; set; } = null;
+
+        public bool SkipNextEvent { get; set; } = false;
+
+        public static bool SkipFirstDefault { get; set; } = false;
+
+        public bool SkipFirst { get; set; }
+
+        public bool SkipFirstFromConfiguration { get; set; } = false;
+
+        public const string SuppressedOpcStatusCodesDefault = "BadNoCommunication, BadWaitingForInitialData";
+
+        public static List<uint> SuppressedOpcStatusCodes { get; } = new List<uint>();
+
         /// <summary>
         /// Ctor using NodeId (ns syntax for namespace).
         /// </summary>
-        public OpcMonitoredItem(NodeId nodeId, string sessionEndpointUrl, int? samplingInterval, string displayName)
+        public OpcMonitoredItem(NodeId nodeId, string sessionEndpointUrl, int? samplingInterval,
+            string displayName, int? heartbeatInterval, bool? skipFirst)
         {
             ConfigNodeId = nodeId;
             ConfigExpandedNodeId = null;
             OriginalId = nodeId.ToString();
             ConfigType = OpcMonitoredItemConfigurationType.NodeId;
-            Init(sessionEndpointUrl, samplingInterval, displayName);
+            Init(sessionEndpointUrl, samplingInterval, displayName, heartbeatInterval, skipFirst);
             State = OpcMonitoredItemState.Unmonitored;
         }
 
         /// <summary>
         /// Ctor using ExpandedNodeId (nsu syntax for namespace).
         /// </summary>
-        public OpcMonitoredItem(ExpandedNodeId expandedNodeId, string sessionEndpointUrl, int? samplingInterval, string displayName)
+        public OpcMonitoredItem(ExpandedNodeId expandedNodeId, string sessionEndpointUrl, int? samplingInterval,
+            string displayName, int? heartbeatInterval, bool? skipFirst)
         {
             ConfigNodeId = null;
             ConfigExpandedNodeId = expandedNodeId;
             OriginalId = expandedNodeId.ToString();
             ConfigType = OpcMonitoredItemConfigurationType.ExpandedNodeId;
-            Init(sessionEndpointUrl, samplingInterval, displayName);
+            Init(sessionEndpointUrl, samplingInterval, displayName, heartbeatInterval, skipFirst);
             State = OpcMonitoredItemState.UnmonitoredNamespaceUpdateRequested;
         }
 
@@ -148,75 +289,6 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Class used to pass data from the MonitoredItem notification to the hub message processing.
-        /// </summary>
-        internal class MessageData
-        {
-            public string EndpointUrl { get; set; }
-            public string NodeId { get; set; }
-            public string ApplicationUri { get; set; }
-            public string DisplayName { get; set; }
-            public string Value { get; set; }
-            public string SourceTimestamp { get; set; }
-            public uint? StatusCode { get; set; }
-            public string Status { get; set; }
-            public bool PreserveValueQuotes { get; set; }
-
-            public MessageData()
-            {
-                EndpointUrl = null;
-                NodeId = null;
-                ApplicationUri = null;
-                DisplayName = null;
-                Value = null;
-                StatusCode = null;
-                SourceTimestamp = null;
-                Status = null;
-                PreserveValueQuotes = false;
-            }
-
-            public void ApplyPatterns(EndpointTelemetryConfiguration telemetryConfiguration)
-            {
-                if (telemetryConfiguration.EndpointUrl.Publish == true)
-                {
-                    EndpointUrl = telemetryConfiguration.EndpointUrl.PatternMatch(EndpointUrl);
-                }
-                if (telemetryConfiguration.NodeId.Publish == true)
-                {
-                    NodeId = telemetryConfiguration.NodeId.PatternMatch(NodeId);
-                }
-                if (telemetryConfiguration.MonitoredItem.ApplicationUri.Publish == true)
-                {
-                    ApplicationUri = telemetryConfiguration.MonitoredItem.ApplicationUri.PatternMatch(ApplicationUri);
-                }
-                if (telemetryConfiguration.MonitoredItem.DisplayName.Publish == true)
-                {
-                    DisplayName = telemetryConfiguration.MonitoredItem.DisplayName.PatternMatch(DisplayName);
-                }
-                if (telemetryConfiguration.Value.Value.Publish == true)
-                {
-                    Value = telemetryConfiguration.Value.Value.PatternMatch(Value);
-                }
-                if (telemetryConfiguration.Value.SourceTimestamp.Publish == true)
-                {
-                    SourceTimestamp = telemetryConfiguration.Value.SourceTimestamp.PatternMatch(SourceTimestamp);
-                }
-                if (telemetryConfiguration.Value.StatusCode.Publish == true && StatusCode != null)
-                {
-                    if (!string.IsNullOrEmpty(telemetryConfiguration.Value.StatusCode.Pattern))
-                    {
-                        Logger.Information($"'Pattern' settngs for StatusCode are ignored.");
-                    }
-                }
-                if (telemetryConfiguration.Value.Status.Publish == true)
-                {
-                    Status = telemetryConfiguration.Value.Status.PatternMatch(Status);
-                }
-            }
-        }
-
-
-        /// <summary>
         /// The notification that the data for a monitored item has changed on an OPC UA server.
         /// </summary>
         public void MonitoredItemNotificationEventHandler(MonitoredItem monitoredItem, MonitoredItemNotificationEventArgs e)
@@ -237,6 +309,16 @@ namespace OpcPublisher
                 {
                     return;
                 }
+
+                // filter out configured suppression status codes
+                if (SuppressedOpcStatusCodes != null && SuppressedOpcStatusCodes.Contains(notification.Value.StatusCode.Code))
+                {
+                    Logger.Debug($"Filtered notification with status code '{notification.Value.StatusCode.Code}'");
+                    return;
+                }
+
+                // stop the heartbeat timer
+                HeartbeatSendTimer?.Change(Timeout.Infinite, Timeout.Infinite);
 
                 MessageData messageData = new MessageData();
                 if (IotCentralMode)
@@ -376,7 +458,52 @@ namespace OpcPublisher
                     Logger.Debug($"Enqueue a new message from subscription {(monitoredItem.Subscription == null ? "removed" : monitoredItem.Subscription.Id.ToString(CultureInfo.InvariantCulture))}");
                     Logger.Debug($" with publishing interval: {monitoredItem.Subscription.PublishingInterval} and sampling interval: {monitoredItem.SamplingInterval}):");
                 }
-                HubCommunication.Enqueue(messageData);
+
+                // setupo heartbeat processing
+                if (HeartbeatInterval > 0)
+                {
+                    if (HeartbeatMessage != null)
+                    {
+                        // ensure that the timestamp of the message is larger than the current heartbeat message
+                        lock (HeartbeatMessage)
+                        {
+                            DateTime sourceTimestamp;
+                            DateTime heartbeatSourceTimestamp;
+                            if (DateTime.TryParse(messageData.SourceTimestamp, out sourceTimestamp) && DateTime.TryParse(HeartbeatMessage.SourceTimestamp, out heartbeatSourceTimestamp))
+                            {
+                                if (heartbeatSourceTimestamp >= sourceTimestamp)
+                                {
+                                    Logger.Warning($"HeartbeatMessage has larger or equal timestamp than message. Adjusting...");
+                                    sourceTimestamp.AddMilliseconds(1);
+                                }
+                                messageData.SourceTimestamp = sourceTimestamp.ToString("o", CultureInfo.InvariantCulture);
+                            }
+
+                            // store the message for the heartbeat
+                            HeartbeatMessage = messageData;
+                        }
+                    }
+                    else
+                    {
+                        HeartbeatMessage = messageData;
+                    }
+
+                    // recharge the heartbeat timer
+                    HeartbeatSendTimer.Change(HeartbeatInterval * 1000, HeartbeatInterval * 1000);
+                    Logger.Debug($"Setting up {HeartbeatInterval} sec heartbeat for node '{DisplayName}'.");
+                }
+
+                // skip event if needed
+                if (SkipNextEvent)
+                {
+                    Logger.Debug($"Skipping first telemetry event for node '{DisplayName}'.");
+                    SkipNextEvent = false;
+                }
+                else
+                {
+                    // enqueue the telemetry event
+                    Enqueue(messageData);
+                }
             }
             catch (Exception ex)
             {
@@ -387,7 +514,7 @@ namespace OpcPublisher
         /// <summary>
         /// Init instance variables.
         /// </summary>
-        private void Init(string sessionEndpointUrl, int? samplingInterval, string displayName)
+        private void Init(string sessionEndpointUrl, int? samplingInterval, string displayName, int? heartbeatInterval, bool? skipFirst)
         {
             State = OpcMonitoredItemState.Unmonitored;
             AttributeId = Attributes.Value;
@@ -401,6 +528,41 @@ namespace OpcPublisher
             RequestedSamplingInterval = samplingInterval == null ? OpcSamplingInterval : (int)samplingInterval;
             RequestedSamplingIntervalFromConfiguration = samplingInterval != null ? true : false;
             SamplingInterval = RequestedSamplingInterval;
+            HeartbeatInterval = (int)(heartbeatInterval == null ? HeartbeatIntervalDefault : heartbeatInterval);
+            HeartbeatIntervalFromConfiguration = heartbeatInterval != null ? true : false;
+            SkipFirst = skipFirst == null ? SkipFirstDefault : (bool)skipFirst;
+            SkipFirstFromConfiguration = skipFirst != null ? true : false;
         }
+
+        /// <summary>
+        /// Timer callback for heartbeat telemetry send.
+        /// </summary>
+        internal void HeartbeatSend(object state)
+        {
+            // send the last known message
+            lock (HeartbeatMessage)
+            {
+                if (HeartbeatMessage != null)
+                {
+                    // advance the SourceTimestamp
+                    DateTime sourceTimestamp;
+                    if (DateTime.TryParse(HeartbeatMessage.SourceTimestamp, out sourceTimestamp))
+                    {
+                        sourceTimestamp = sourceTimestamp.AddSeconds(HeartbeatInterval);
+                        HeartbeatMessage.SourceTimestamp = sourceTimestamp.ToUniversalTime().ToString("o", CultureInfo.InvariantCulture);
+                    }
+
+                    // enqueue the message
+                    Enqueue(HeartbeatMessage);
+                    Logger.Debug($"Message enqueued for heartbeat with sourceTimestamp '{HeartbeatMessage.SourceTimestamp}'.");
+                }
+                else
+                {
+                    Logger.Warning($"No message is available for heartbeat.");
+                }
+            }
+        }
+
+        private int _heartbeatInterval = 0;
     }
 }

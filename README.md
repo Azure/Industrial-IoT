@@ -1,6 +1,6 @@
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments
 
-# OPC Publisher for Azure IoT Edge
+# OPC Publisher
 This reference implementation demonstrates how to connect to existing OPC UA servers and publishes JSON encoded telemetry data from these servers in OPC UA "Pub/Sub" format (using a JSON payload) to Azure IoT Hub. All transport protocols supported by Azure IoT Edge can be used, i.e. HTTPS, AMQP and MQTT (the default).
 
 This application, apart from including an OPC UA *client* for connecting to existing OPC UA servers you have on your network, also includes an OPC UA *server* on port 62222 that can be used to manage what gets published and offers IoTHub direct methods to do the same.
@@ -294,9 +294,12 @@ The syntax of the configuration file is as follows:
 ## Command line options
 The complete usage of the application can be shown using the `--help` command line option and is as follows:
 
-        Current directory is: <current directory>
+        Current directory is: /appdata
         Log file is: <hostname>-publisher.log
         Log level is: info
+
+        OPC Publisher V2.3.0
+        Informational version: V2.3.0+Branch.develop_hans_methodlog.Sha.0985e54f01a0b0d7f143b1248936022ea5d749f9
 
         Usage: opcpublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
 
@@ -320,9 +323,7 @@ The complete usage of the application can be shown using the `--help` command li
         Options:
               --pf, --publishfile=VALUE
                                      the filename to configure the nodes to publish.
-                                       Default: 'D:\repos\hg\iot-edge-opc-publisher-
-                                       work1\opcpublisher\bin\Debug\netcoreapp2.1\
-                                       publishednodes.json'
+                                       Default: '/appdata/publishednodes.json'
               --tc, --telemetryconfigfile=VALUE
                                      the filename to configure the ingested telemetry
                                        Default: ''
@@ -403,6 +404,17 @@ The complete usage of the application can be shown using the `--help` command li
           -c, --connectionstring=VALUE
                                      the IoTHub owner connectionstring.
                                        Default: none
+              --hb, --heartbeatinterval=VALUE
+                                     the publisher is using this as default value in
+                                       seconds for the heartbeat interval setting of
+                                       nodes without
+                                       a heartbeat interval setting.
+                                       Default: 0
+              --sf, --skipfirstevent=VALUE
+                                     the publisher is using this as default value for
+                                       the skip first event setting of nodes without
+                                       a skip first event setting.
+                                       Default: False
               --pn, --portnum=VALUE  the server port of the publisher OPC server
                                        endpoint.
                                        Default: 62222
@@ -480,6 +492,11 @@ The complete usage of the application can be shown using the `--help` command li
                                        node from the server. this will increase the
                                        runtime.
                                        Default: False
+              --ss, --suppressedopcstatuscodes=VALUE
+                                     specifies the OPC UA status codes for which no
+                                       events should be generated.
+                                       Default: BadNoCommunication,
+                                       BadWaitingForInitialData
               --at, --appcertstoretype=VALUE
                                      the own application cert store type.
                                        (allowed values: Directory, X509Store)
@@ -584,6 +601,8 @@ The complete usage of the application can be shown using the `--help` command li
                                         the trusted issuer cert store will always
                                        reside in a directory.
 
+
+
 Typically you specify the IoTHub owner connectionstring only on the first start of the application. The connectionstring will be encrypted and stored in the platforms certificiate store.
 On subsequent calls it will be read from there and reused. If you specify the connectionstring on each start, the device which is created for the application in the IoTHub device registry will be removed and recreated each time.
 
@@ -600,11 +619,12 @@ Build your own container and then start the container:
     docker run <your-container-name> <applicationname> [<iothubconnectionstring>] [options]
 
 ## Using a container from Microsoft Container Registry
-There is a prebuilt container available on DockerHub. To start it, just do:
+There is a prebuilt container available on docker hub. To start it, just do:
 
     docker run mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
-Check the Docker Hub to see which operating systems and processor architectures are supported.
+Check [docker Hub](https://hub.docker.com/_/microsoft-iotedge-opc-publisher) to see which operating systems and processor architectures are supported.
+The right container for your OS and CPU architecture (if supported) will be automatically selected and used.
 
 ## Using it as a module in Azure IoT Edge
 OPC Publisher is ready to be used as a module to run in [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge) Microsoft's Intelligent Edge framework.
@@ -615,75 +635,22 @@ To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure 
 * Select `Set Modules`.
 * Select `Add`under `Deployment Modules`and then `IoT Edge Module`.
 * In the `Name` field, enter `publisher`.
-* In the `Image URI` field, enter `mcr.microsoft.com/iotedge/opc-publisher:<tag>` You must specify `<tag>` otherwise IoT Edge will try to pull the nonexistent tag 1.0. The tags available can be found on [Docker Hub](https://hub.docker.com/r/microsoft/iot-edge-opc-publisher/)
+* In the `Image URI` field, enter `mcr.microsoft.com/iotedge/opc-publisher:<tag>`
+* The tags available can be found on [docker Hub](https://hub.docker.com/_/microsoft-iotedge-opc-publisher)
 * Paste the following into the `Container Create Options` field:
 
         {
             "Hostname": "publisher",
             "Cmd": [
-                "publisher",
-                "--pf=./pn.json",
-                "--di=60",
-                "--to",
-                "--aa",
-                "--si=0",
-                "--ms=0"
-            ],
-            "ExposedPorts": {
-                "62222/tcp": {}
-            }, 
-            "HostConfig": {
-                "PortBindings": {
-                    "62222/tcp": [{
-                        "HostPort": "62222"
-                    }]
-                },
-                "Binds": [
-                    "d:/iiotedge:/appdata"
-                ],
-                "ExtraHosts": [
-                    "localhost:127.0.0.1",
-                    "opctestsvr:192.168.178.26"
-                ]
-            }
-        }
-
-Here the same with less whitespaces:
-
-        { "Hostname": "publisher", "Cmd": [ "publisher", "--pf=./pn.json", "--di=60", "--to", "--aa", "--si=0", "--ms=0" ], "ExposedPorts": { "62222/tcp": {} }, "HostConfig": { "PortBindings": { "62222/tcp": [{ "HostPort": "62222" }] }, "Binds": [ "d:/iiotedge:/appdata" ], "ExtraHosts": [ "localhost:127.0.0.1", "opctestsvr:192.168.178.26" ] } }
-
-* Here a short explanation of the effects which this configuration will have:
-  * This configuration will configure IoT Edge to start a container named `publisher`.
-  * The hostname will be set to `publisher`.
-  * OPC Publisher is called with the following command line options: `publisher --pf=./pn.json --di=60 --to --aa --si=0 --ms=0`.
-    With those options OPC Publisher will read the nodes it should publish from the file `./pn.json`. The container's working directory is set to
-    `/appdata`at startup (see `./Dockerfile` in the repository) and thus OPC Publisher will read the file `/appdata/pn.json` inside the container to get the configuration.
-    Without the `--pf`option, OPC Publisher will try to read its default configuration file `./publishednodes.json`.
-  * OPC Publisher will write diagnostic information each 60 seconds to the console (`--di=60`).
-  * The log file `publisher-publisher.log` (default name) will be written to `/appdata` and the `CertificateStores` directory will also be created in this directory.
-  * OPC Publisher will trust the OPC servers it connects to (`--aa`) will put its own public certificate into the `CertificateStores/trusted/certs`(`--to`) and will send if any value of the published configured nodes changes, immediately a message to IoTHub (`--si=0 ---ms=0`). 
-  * Port 62222 of the container will be exposed to the host system because of the `ExposedPorts' configuration. This is the port on which OPC Publisher's integrated OPC UA server listens. So you can connect with an OPC UA client and call OPC UA methods to configure the nodes to (un)publish.
-  * The `ExtraHosts` configuration enables the container's network stack to do hostname name resolution even without DNS. (Note: on Windows hosts this is essential to configure)
-    On my system with the hostname `opctestsvr` and the IPv4 address `192.168.178.26`i run a OPC UA server and my pn.json which i have put in `d:\iiotedge` has the following content:
-
-        [
-          {
-            "EndpointUrl": "opc.tcp://opctestsvr:51210/UA/SampleServer",
-            "OpcNodes": [
-              {
-                "Id": "i=2258"
-              }
+                "--aa"
             ]
-          }
-        ]
+        }
+    This configuration will configure IoT Edge to start a container named `publisher` with OPC Publisher as the image. 
+    The hostname of the container's system will be set to `publisher`.
+    OPC Publisher is called with the following command line: `--aa`.
+    With this option OPC Publisher trusts those OPC UA server's certificates it is connecting to.
+    You can use any options in the `Cmd` array OPC Publisher supports. The only limitation is the size of the `Container Create Options`supported by IoT Edge.
 
-    This allows OPC Publisher to access the OPC UA server running outside of docker on my local dev machine `opctestsvr`.
-  * The `d://iiotedge:/appdata` bind will map the directory `/appdata` (which is the current working directory on container startup) to the host directory `d://iiotedge`.
-  * This is obviously a configuration for a Windows host. On a Linux host you specify a full qualified Linux path (e.g. `/iiotedge`). 
-  * This bind will allow that the file `/appdata/pn.json` is accessible on the host (in our example you pub the file on the host system as `d:/iiotedge/pn.json`) and will make the log file and all the certificates visisble on the host.
-
-* This [reference (here the link to the V1.37 API)](https://docs.docker.com/engine/api/v1.37/#operation/ContainerCreate) explains which `Container Create Options` exist and what the meaning of it is.
-* You can adjust the command line parameters in the `Cmd` object of the IoT Edge module configuration to fit your needs. You can use all available OPC Publisher options as shown in the usage above.
 * Leave the other settings unchanged and select `Save`.
 * If you want to process the output of the OPC Publisher locally with another Edge module, go back to the `Set Modules` page, and go to the `Specify Routes` tab and add a new route looking like (Notice the usage of the output for the OPC publisher):
 
@@ -693,11 +660,10 @@ Here the same with less whitespaces:
             "opcPublisherToProcessingModule": "FROM /messages/modules/publisher INTO BrokeredEndpoint(\"/modules/processingModule/inputs/input1\")"
         }
 
-
 * Back in the `Set Modules` page, select `Next`, till you reach the last page of the configuration.
 * Select `Submit` to send your configuration down to IoT Edge
 * When you have started IoT Edge on your edge device and the docker container `publisher` is started, you can check out the log output of OPC Publisher either by
-  using `docker logs -f publisher` or by checking the logfile (in our example above `d:\iiotegde\publisher-publisher.log` content.
+  using `docker logs -f publisher` or by checking the logfile (in our example above `d:\iiotegde\publisher-publisher.log` content or by using the diagnostic tool [here](https://github.com/Azure-Samples/iot-edge-opc-publisher-diagnostics).
 
 
 
@@ -733,6 +699,30 @@ OPC Publisher uses the hostname of the machine is running on for certificate and
 ### Using bind mounts (shared filesystem)
 In certain use cases it may make sense to read configuration information from or write log files to locations on the host and not keep 
 them in the container file system only. To achieve this you need to use the `-v` option of `docker run` in the bind mount mode.
+
+### Using IoT Edge
+The description in **Using it as a module in Azure IoT Edge** above is the simplest configuration. Very common is that you want to use the configuration files accessible in the host file system.
+Here is a set of `Container Create Options`which allow you to achieve this:
+
+        {
+            "Hostname": "publisher",
+            "Cmd": [
+                "--pf=./pn.json",
+                "--aa"
+            ],
+            "HostConfig": {
+                "Binds": [
+                    "d:/iiotedge:/appdata"
+                ]
+            }
+        }
+With those options OPC Publisher will read the nodes it should publish from the file `./pn.json`. The container's working directory is set to
+`/appdata`at startup (see `./Dockerfile` in the repository) and thus OPC Publisher will read the file `/appdata/pn.json` inside the container to get the configuration.
+Without the `--pf` option, OPC Publisher will try to read its default configuration file `./publishednodes.json`.
+The log file `publisher-publisher.log` (default name) will be written to `/appdata` and the `CertificateStores` directory will also be created in this directory.
+To make all those files available in the host file system the container configuration requires a bind mount volume.
+The `d://iiotedge:/appdata` bind will map the directory `/appdata` (which is the current working directory on container startup) to the host directory `d://iiotedge`.
+If this is not given, all file data will be not persisted when the container is started again.
 
 ## OPC UA X.509 certificates
 As you know, OPC UA is using X.509 certificates to authenticate OPC UA client and server during establishment of a connection and 

@@ -410,9 +410,9 @@ namespace OpcPublisher
         /// <summary>
         /// Event handler to validate certificates.
         /// </summary>
-        private static void CertificateValidator_CertificateValidation(Opc.Ua.CertificateValidator validator, Opc.Ua.CertificateValidationEventArgs e)
+        private static void CertificateValidator_CertificateValidation(CertificateValidator validator, CertificateValidationEventArgs e)
        {
-            if (e.Error.StatusCode == Opc.Ua.StatusCodes.BadCertificateUntrusted)
+            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
             {
                 e.Accept = AutoAcceptCerts;
                 if (AutoAcceptCerts)
@@ -423,9 +423,9 @@ namespace OpcPublisher
                 {
                     Logger.Information($"Not trusting OPC application  with the certificate subject '{e.Certificate.Subject}'.");
                     Logger.Information("If you want to trust this certificate, please copy it from the directory:");
-                    Logger.Information($"{OpcApplicationConfiguration.ApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore.StorePath}/certs");
+                    Logger.Information($"{ApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore.StorePath}/certs");
                     Logger.Information("to the directory:");
-                    Logger.Information($"{OpcApplicationConfiguration.ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath}/certs");
+                    Logger.Information($"{ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath}/certs");
                     Logger.Information($"Rejecting certificate for now.");
                 }
             }
