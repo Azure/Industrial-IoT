@@ -596,6 +596,15 @@ namespace OpcPublisher
                                 }
                             }
 
+                            // handle skip first request
+                            item.SkipNextEvent = item.SkipFirst;
+
+                            // create a heartbeat timer, but no start it
+                            if (item.HeartbeatInterval > 0)
+                            {
+                                item.HeartbeatSendTimer = new Timer(item.HeartbeatSend, null, Timeout.Infinite, Timeout.Infinite);
+                            }
+
                             // add the new monitored item.
                             IOpcUaMonitoredItem monitoredItem = new OpcUaMonitoredItem()
                             {
@@ -608,6 +617,7 @@ namespace OpcPublisher
                                 DiscardOldest = item.DiscardOldest
                             };
                             monitoredItem.Notification += item.Notification;
+
                             opcSubscription.OpcUaClientSubscription.AddItem(monitoredItem);
                             if (additionalMonitoredItemsCount++ % 10000 == 0)
                             {
@@ -902,7 +912,9 @@ namespace OpcPublisher
         /// Adds a node to be monitored. If there is no subscription with the requested publishing interval,
         /// one is created.
         /// </summary>
-        public async Task<System.Net.HttpStatusCode> AddNodeForMonitoringAsync(NodeId nodeId, ExpandedNodeId expandedNodeId, int? opcPublishingInterval, int? opcSamplingInterval, string displayName, CancellationToken ct)
+        public async Task<HttpStatusCode> AddNodeForMonitoringAsync(NodeId nodeId, ExpandedNodeId expandedNodeId,
+            int? opcPublishingInterval, int? opcSamplingInterval, string displayName,
+            int? heartbeatInterval, bool? skipFirst, CancellationToken ct)
         {
             string logPrefix = "AddNodeForMonitoringAsync:";
             bool sessionLocked = false;
@@ -959,11 +971,11 @@ namespace OpcPublisher
                     // add a new item to monitor
                     if (expandedNodeId == null)
                     {
-                        opcMonitoredItem = new OpcMonitoredItem(nodeId, EndpointUrl, opcSamplingInterval, displayName);
+                        opcMonitoredItem = new OpcMonitoredItem(nodeId, EndpointUrl, opcSamplingInterval, displayName, heartbeatInterval, skipFirst);
                     }
                     else
                     {
-                        opcMonitoredItem = new OpcMonitoredItem(expandedNodeId, EndpointUrl, opcSamplingInterval, displayName);
+                        opcMonitoredItem = new OpcMonitoredItem(expandedNodeId, EndpointUrl, opcSamplingInterval, displayName, heartbeatInterval, skipFirst);
                     }
                     opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                     Interlocked.Increment(ref NodeConfigVersion);

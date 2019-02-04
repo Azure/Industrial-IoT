@@ -26,13 +26,11 @@ namespace OpcPublisher
         /// </summary>
         public override NodeId New(ISystemContext context, NodeState node)
         {
-            BaseInstanceState instance = node as BaseInstanceState;
 
-            if (instance != null && instance.Parent != null)
+            if (node is BaseInstanceState instance && instance.Parent != null)
             {
-                string id = instance.Parent.NodeId.Identifier as string;
 
-                if (id != null)
+                if (instance.Parent.NodeId.Identifier is string id)
                 {
                     return new NodeId(id + "_" + instance.SymbolicName, instance.Parent.NodeId.NamespaceIndex);
                 }
@@ -518,13 +516,13 @@ namespace OpcPublisher
                 {
                     // add the node info to the subscription with the default publishing interval, execute syncronously
                     Logger.Debug($"{logPrefix} Request to monitor item with NodeId '{nodeId.ToString()}' (with default PublishingInterval and SamplingInterval)");
-                    statusCode = opcSession.AddNodeForMonitoringAsync(nodeId, null, null, null, null, ShutdownTokenSource.Token).Result;
+                    statusCode = opcSession.AddNodeForMonitoringAsync(nodeId, null, null, null, null, null, null, ShutdownTokenSource.Token).Result;
                 }
                 else
                 {
                     // add the node info to the subscription with the default publishing interval, execute syncronously
                     Logger.Debug($"{logPrefix} Request to monitor item with ExpandedNodeId '{expandedNodeId.ToString()}' (with default PublishingInterval and SamplingInterval)");
-                    statusCode = opcSession.AddNodeForMonitoringAsync(null, expandedNodeId, null, null, null, ShutdownTokenSource.Token).Result;
+                    statusCode = opcSession.AddNodeForMonitoringAsync(null, expandedNodeId, null, null, null, null, null, ShutdownTokenSource.Token).Result;
                 }
             }
             catch (Exception e)

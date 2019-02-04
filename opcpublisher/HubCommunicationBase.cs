@@ -244,6 +244,7 @@ namespace OpcPublisher
         public virtual async Task<MethodResponse> HandlePublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandlePublishNodesMethodAsync:";
+            bool useSecurity = true;
             Uri endpointUri = null;
             PublishNodesMethodRequestModel publishNodesMethodData = null;
             HttpStatusCode statusCode = HttpStatusCode.OK;
@@ -255,6 +256,7 @@ namespace OpcPublisher
                 Logger.Debug($"{logPrefix} called");
                 publishNodesMethodData = JsonConvert.DeserializeObject<PublishNodesMethodRequestModel>(methodRequest.DataAsJson);
                 endpointUri = new Uri(publishNodesMethodData.EndpointUrl);
+                useSecurity = publishNodesMethodData.UseSecurity;
             }
             catch (UriFormatException e)
             {
@@ -296,8 +298,8 @@ namespace OpcPublisher
                         if (opcSession == null)
                         {
                             // create new session info.
-                            opcSession = new OpcSession(endpointUri.OriginalString, true, OpcSessionCreationTimeout);
-                            NodeConfiguration.OpcSessions.Add(opcSession);
+                            opcSession = new OpcSession(endpointUri.OriginalString, useSecurity, OpcSessionCreationTimeout);
+                            OpcSessions.Add(opcSession);
                             Logger.Information($"{logPrefix} No matching session found for endpoint '{endpointUri.OriginalString}'. Requested to create a new one.");
                         }
 
@@ -341,13 +343,19 @@ namespace OpcPublisher
                                 {
                                     // add the node info to the subscription with the default publishing interval, execute syncronously
                                     Logger.Debug($"{logPrefix} Request to monitor item with NodeId '{node.Id}' (PublishingInterval: {node.OpcPublishingInterval.ToString() ?? "--"}, SamplingInterval: {node.OpcSamplingInterval.ToString() ?? "--"})");
-                                    nodeStatusCode = await opcSession.AddNodeForMonitoringAsync(nodeId, null, node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName, ShutdownTokenSource.Token).ConfigureAwait(false);
+                                    nodeStatusCode = await opcSession.AddNodeForMonitoringAsync(nodeId, null,
+                                        node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName,
+                                        node.HeartbeatInterval, node.SkipFirst,
+                                        ShutdownTokenSource.Token).ConfigureAwait(false);
                                 }
                                 else
                                 {
                                     // add the node info to the subscription with the default publishing interval, execute syncronously
                                     Logger.Debug($"{logPrefix} Request to monitor item with ExpandedNodeId '{node.Id}' (PublishingInterval: {node.OpcPublishingInterval.ToString() ?? "--"}, SamplingInterval: {node.OpcSamplingInterval.ToString() ?? "--"})");
-                                    nodeStatusCode = await opcSession.AddNodeForMonitoringAsync(null, expandedNodeId, node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName, ShutdownTokenSource.Token).ConfigureAwait(false);
+                                    nodeStatusCode = await opcSession.AddNodeForMonitoringAsync(null, expandedNodeId,
+                                        node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName,
+                                        node.HeartbeatInterval, node.SkipFirst,
+                                        ShutdownTokenSource.Token).ConfigureAwait(false);
                                 }
 
                                 // check and store a result message in case of an error
@@ -547,7 +555,6 @@ namespace OpcPublisher
                                             nodeId = NodeId.Parse(node.Id);
                                             isNodeIdFormat = true;
                                         }
-
                                     }
                                     catch (Exception e)
                                     {
@@ -614,7 +621,6 @@ namespace OpcPublisher
                             }
                         }
                     }
-
                 }
                 catch (AggregateException e)
                 {
@@ -1722,7 +1728,6 @@ namespace OpcPublisher
                 {
                     if (!(e is OperationCanceledException))
                     {
-
                         Logger.Error(e, "Error while processing monitored item messages.");
                     }
                 }

@@ -22,11 +22,13 @@ namespace OpcPublisher
     using static IotHubCommunication;
     using static Opc.Ua.CertificateStoreType;
     using static OpcApplicationConfiguration;
+    using static OpcMonitoredItem;
     using static OpcSession;
     using static PublisherDiagnostics;
     using static PublisherNodeConfiguration;
     using static PublisherTelemetryConfiguration;
     using static System.Console;
+    using System.ComponentModel;
 
     public sealed class Program
     {
@@ -109,6 +111,7 @@ namespace OpcPublisher
             try
             {
                 var shouldShowHelp = false;
+                string opcStatusCodesToSuppress = SuppressedOpcStatusCodesDefault;
 
                 // detect the runtime environment. either we run standalone (native or containerized) or as IoT Edge module (containerized)
                 // check if we have an environment variable containing an IoT Edge connectionstring, we run as IoT Edge module
@@ -119,6 +122,8 @@ namespace OpcPublisher
 
                 // command line options
                 Mono.Options.OptionSet options = new Mono.Options.OptionSet {
+
+
                         // Publisher configuration options
                         { "pf|publishfile=", $"the filename to configure the nodes to publish.\nDefault: '{PublisherNodeConfigurationFilename}'", (string p) => PublisherNodeConfigurationFilename = p },
                         { "tc|telemetryconfigfile=", $"the filename to configure the ingested telemetry\nDefault: '{PublisherTelemetryConfigurationFilename}'", (string p) => PublisherTelemetryConfigurationFilename = p },
@@ -189,6 +194,8 @@ namespace OpcPublisher
                                 }
                             }
                         },
+
+
                         // IoTHub specific options
                         { "ih|iothubprotocol=", $"{(IsIotEdgeModule ? "not supported when running as IoT Edge module\n" : $"the protocol to use for communication with Azure IoTHub (allowed values: {_hubProtocols}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}")}",
                             (TransportType p) => {
@@ -228,6 +235,7 @@ namespace OpcPublisher
                                 }
                             }
                         },
+
                         { "dc|deviceconnectionstring=", $"{(IsIotEdgeModule ? "not supported when running as IoTEdge module\n" : $"if publisher is not able to register itself with IoTHub, you can create a device with name <applicationname> manually and pass in the connectionstring of this device.\nDefault: none")}",
                             (string dc) => DeviceConnectionString = (IsIotEdgeModule ? null : dc)
                         },
@@ -235,7 +243,26 @@ namespace OpcPublisher
                             (string cs) => IotHubOwnerConnectionString = cs
                         },
 
-                        // opc server configuration options
+                        { "hb|heartbeatinterval=", "the publisher is using this as default value in seconds for the heartbeat interval setting of nodes without\n" +
+                            "a heartbeat interval setting.\n" +
+                            $"Default: {HeartbeatIntervalDefault}", (int i) => {
+                                if (i >= 0 && i <= HeartbeatIntvervalMax)
+                                {
+                                    HeartbeatIntervalDefault = i;
+                                }
+                                else
+                                {
+                                    throw new OptionException($"The heartbeatinterval setting ({i}) must be larger or equal than 0.", "opcpublishinterval");
+                                }
+                            }
+                        },
+                        { "sf|skipfirstevent=", "the publisher is using this as default value for the skip first event setting of nodes without\n" +
+                            "a skip first event setting.\n" +
+                            $"Default: {SkipFirstDefault}", (bool b) => { SkipFirstDefault = b; }
+                        },
+
+
+                        // opc configuration options
                         { "pn|portnum=", $"the server port of the publisher OPC server endpoint.\nDefault: {ServerPort}", (ushort p) => ServerPort = p },
                         { "pa|path=", $"the enpoint URL path part of the publisher OPC server endpoint.\nDefault: '{ServerPath}'", (string a) => ServerPath = a },
                         { "lr|ldsreginterval=", $"the LDS(-ME) registration interval in ms. If 0, then the registration is disabled.\nDefault: {LdsRegistrationInterval}", (int i) => {
@@ -333,12 +360,15 @@ namespace OpcPublisher
 
                         { "aa|autoaccept", $"the publisher trusts all servers it is establishing a connection to.\nDefault: {AutoAcceptCerts}", b => AutoAcceptCerts = b != null },
 
-                        // trust own public cert option
                         { "tm|trustmyself=", $"same as trustowncert.\nDefault: {TrustMyself}", (bool b) => TrustMyself = b  },
                         { "to|trustowncert", $"the publisher certificate is put into the trusted certificate store automatically.\nDefault: {TrustMyself}", t => TrustMyself = t != null  },
-                        // read the display name of the nodes to publish from the server and publish them instead of the node id
+
                         { "fd|fetchdisplayname=", $"same as fetchname.\nDefault: {FetchOpcNodeDisplayName}", (bool b) => FetchOpcNodeDisplayName = IotCentralMode ? true : b },
                         { "fn|fetchname", $"enable to read the display name of a published node from the server. this will increase the runtime.\nDefault: {FetchOpcNodeDisplayName}", b => FetchOpcNodeDisplayName = IotCentralMode ? true : b != null },
+
+                        { "ss|suppressedopcstatuscodes=", $"specifies the OPC UA status codes for which no events should be generated.\n" +
+                            $"Default: {SuppressedOpcStatusCodesDefault}", (string s) => opcStatusCodesToSuppress = s },
+
 
                         // cert store options
                         { "at|appcertstoretype=", $"the own application cert store type. \n(allowed values: Directory, X509Store)\nDefault: '{OpcOwnCertStoreType}'", (string s) => {
@@ -505,6 +535,44 @@ namespace OpcPublisher
                 {
                     // parse the command line
                     extraArgs = options.Parse(args);
+
+                    // verify opc status codes to suppress
+                    List<string> statusCodesToSuppress = ParseListOfStrings(opcStatusCodesToSuppress);
+                    foreach (var statusCodeValueOrName in statusCodesToSuppress)
+                    {
+                        uint statusCodeValue;
+                        try
+                        {
+                            // convert integers and prefixed hex values
+                            statusCodeValue = (uint)new UInt32Converter().ConvertFromInvariantString(statusCodeValueOrName);
+                            SuppressedOpcStatusCodes.Add(statusCodeValue);
+                        }
+                        catch
+                        {
+                            // convert non prefixed hex values
+                            if (uint.TryParse(statusCodeValueOrName, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out statusCodeValue))
+                            {
+                                SuppressedOpcStatusCodes.Add(statusCodeValue);
+                            }
+                            else
+                            {
+                                // convert constant names
+                                statusCodeValue = StatusCodes.GetIdentifier(statusCodeValueOrName);
+                                if (statusCodeValueOrName.Equals("Good", StringComparison.InvariantCulture) || statusCodeValue != 0)
+                                {
+                                    SuppressedOpcStatusCodes.Add(statusCodeValue);
+                                }
+                                else
+                                {
+                                    throw new OptionException($"The OPC UA status code '{statusCodeValueOrName}' to suppress is unknown. Please specify a valid string, int or hex value.", "suppressedopcstatuscodes");
+                                }
+                            }
+                        }
+                    }
+                    // filter out duplicate status codes
+                    List<uint> distinctSuppressedOpcStatusCodes = SuppressedOpcStatusCodes.Distinct().ToList();
+                    SuppressedOpcStatusCodes.Clear();
+                    SuppressedOpcStatusCodes.AddRange(distinctSuppressedOpcStatusCodes);
                 }
                 catch (OptionException e)
                 {
@@ -593,6 +661,14 @@ namespace OpcPublisher
                 }
                 catch
                 {
+                }
+
+                // show suppressed status codes
+                Logger.Information($"OPC UA monitored item notifications with one of the following {SuppressedOpcStatusCodes.Count} status codes will not generate telemetry events:");
+                foreach (var suppressedOpcStatusCode in SuppressedOpcStatusCodes)
+                {
+                    string statusName = StatusCodes.GetBrowseName(suppressedOpcStatusCode);
+                    Logger.Information($"StatusCode: {(string.IsNullOrEmpty(statusName) ? "Unknown" : statusName)} (dec: {suppressedOpcStatusCode}, hex: {suppressedOpcStatusCode:X})");
                 }
 
                 // init OPC configuration and tracing
@@ -911,7 +987,7 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Helper to build a list of byte arrays out of a comma separated list of base64 strings (optional in double quotes).
+        /// Helper to build a list of strings out of a comma separated list of strings (optional in double quotes).
         /// </summary>
         public static List<string> ParseListOfStrings(string s)
         {

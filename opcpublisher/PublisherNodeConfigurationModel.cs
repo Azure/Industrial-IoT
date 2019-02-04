@@ -6,6 +6,7 @@ using System.Collections.Generic;
 namespace OpcPublisher
 {
     using System.ComponentModel;
+    using System.Globalization;
 
 
     /// <summary>
@@ -13,13 +14,16 @@ namespace OpcPublisher
     /// </summary>
     public class OpcNodeOnEndpointModel
     {
-        public OpcNodeOnEndpointModel(string id, string expandedNodeId = null, int? opcSamplingInterval = null, int? opcPublishingInterval = null, string displayName = null)
+        public OpcNodeOnEndpointModel(string id, string expandedNodeId = null, int? opcSamplingInterval = null, int? opcPublishingInterval = null,
+            string displayName = null, int? heartbeatInterval = null, bool? skipFirst = null)
         {
             Id = id;
             ExpandedNodeId = expandedNodeId;
             OpcSamplingInterval = opcSamplingInterval;
             OpcPublishingInterval = opcPublishingInterval;
             DisplayName = displayName;
+            HeartbeatInterval = heartbeatInterval;
+            SkipFirst = skipFirst;
         }
 
         // Id can be:
@@ -39,6 +43,12 @@ namespace OpcPublisher
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string DisplayName { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int? HeartbeatInterval { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public bool? SkipFirst { get; set; }
     }
 
     /// <summary>
@@ -73,16 +83,62 @@ namespace OpcPublisher
     /// </summary>
     public class NodePublishingConfigurationModel
     {
+        /// <summary>
+        /// The endpoint URL of the OPC UA server.
+        /// </summary>
         public string EndpointUrl { get; set; }
+
+        /// <summary>
+        /// Flag if a secure transport should be used to connect to the endpoint.
+        /// </summary>
         public bool UseSecurity { get; set; }
+
+        /// <summary>
+        /// The node to monitor in "ns=" syntax.
+        /// </summary>
         public NodeId NodeId { get; set; }
+
+        /// <summary>
+        /// The node to monitor in "nsu=" syntax.
+        /// </summary>
         public ExpandedNodeId ExpandedNodeId { get; set; }
+
+        /// <summary>
+        /// The node id as it was configured.
+        /// </summary>
         public string OriginalId { get; set; }
+
+        /// <summary>
+        /// The display name to use for the node in telemetry events.
+        /// </summary>
         public string DisplayName { get; set; }
+
+        /// <summary>
+        /// The OPC UA sampling interval for the node.
+        /// </summary>
         public int? OpcSamplingInterval { get; set; }
+
+        /// <summary>
+        /// The OPC UA publishing interval for the node.
+        /// </summary>
         public int? OpcPublishingInterval { get; set; }
 
-        public NodePublishingConfigurationModel(ExpandedNodeId expandedNodeId, string originalId, string endpointUrl, bool? useSecurity, int? opcPublishingInterval, int? opcSamplingInterval, string displayName)
+        /// <summary>
+        /// Flag to enable a hardbeat telemetry event publish for the node.
+        /// </summary>
+        public int? HeartbeatInterval { get; set; }
+
+        /// <summary>
+        /// Flag to skip the first telemetry event for the node after connect.
+        /// </summary>
+        public bool? SkipFirst { get; set; }
+
+        /// <summary>
+        /// Ctor of the object.
+        /// </summary>
+        public NodePublishingConfigurationModel(ExpandedNodeId expandedNodeId, string originalId, string endpointUrl, bool? useSecurity,
+                    int? opcPublishingInterval, int? opcSamplingInterval, string displayName, int? heartbeatInterval, bool? skipFirst)
+
         {
             NodeId = null;
             ExpandedNodeId = expandedNodeId;
@@ -92,9 +148,15 @@ namespace OpcPublisher
             DisplayName = displayName;
             OpcSamplingInterval = opcSamplingInterval;
             OpcPublishingInterval = opcPublishingInterval;
+            HeartbeatInterval = heartbeatInterval;
+            SkipFirst = skipFirst;
         }
 
-        public NodePublishingConfigurationModel(NodeId nodeId, string originalId, string endpointUrl, bool? useSecurity, int? opcPublishingInterval, int? opcSamplingInterval, string displayName)
+        /// <summary>
+        /// Ctor of the object.
+        /// </summary>
+        public NodePublishingConfigurationModel(NodeId nodeId, string originalId, string endpointUrl, bool? useSecurity,
+                    int? opcPublishingInterval, int? opcSamplingInterval, string displayName, int? heartbeatInterval, bool? skipFirst)
         {
             NodeId = nodeId;
             ExpandedNodeId = null;
@@ -104,35 +166,55 @@ namespace OpcPublisher
             DisplayName = displayName;
             OpcSamplingInterval = opcSamplingInterval;
             OpcPublishingInterval = opcPublishingInterval;
+            HeartbeatInterval = heartbeatInterval;
+            SkipFirst = skipFirst;
         }
     }
 
     /// <summary>
     /// Class describing the nodes which should be published. It supports two formats:
-    /// - NodeId syntax using the namespace index (ns) syntax
+    /// - NodeId syntax using the namespace index (ns) syntax. This is only used in legacy environments and is only supported for backward compatibility.
     /// - List of ExpandedNodeId syntax, to allow putting nodes with similar publishing and/or sampling intervals in one object
     /// </summary>
     public partial class PublisherConfigurationFileEntryLegacyModel
     {
+        /// <summary>
+        /// Ctor of the object.
+        /// </summary>
         public PublisherConfigurationFileEntryLegacyModel()
         {
         }
 
+        /// <summary>
+        /// Ctor of the object.
+        /// </summary>
         public PublisherConfigurationFileEntryLegacyModel(string nodeId, string endpointUrl)
         {
             NodeId = new NodeId(nodeId);
             EndpointUrl = new Uri(endpointUrl);
         }
 
+        /// <summary>
+        /// The endpoint URL of the OPC UA server.
+        /// </summary>
         public Uri EndpointUrl { get; set; }
 
+        /// <summary>
+        /// Flag if a secure transport should be used to connect to the endpoint.
+        /// </summary>
         [DefaultValue(true)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
         public bool? UseSecurity { get; set; }
 
+        /// <summary>
+        /// The node to monitor in "ns=" syntax. This key is only supported for backward compatibility and should not be used anymore.
+        /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public NodeId NodeId { get; set; }
 
+        /// <summary>
+        /// Instead all nodes should be defined in this collection.
+        /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 #pragma warning disable CA2227 // Collection properties should be read only
         public List<OpcNodeOnEndpointModel> OpcNodes { get; set; }
