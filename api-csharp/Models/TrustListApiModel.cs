@@ -26,9 +26,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// Initializes a new instance of the TrustListApiModel class.
         /// </summary>
-        public TrustListApiModel(string id = default(string), X509Certificate2CollectionApiModel issuerCertificates = default(X509Certificate2CollectionApiModel), X509CrlCollectionApiModel issuerCrls = default(X509CrlCollectionApiModel), X509Certificate2CollectionApiModel trustedCertificates = default(X509Certificate2CollectionApiModel), X509CrlCollectionApiModel trustedCrls = default(X509CrlCollectionApiModel), string nextPageLink = default(string))
+        public TrustListApiModel(string groupId = default(string), X509Certificate2CollectionApiModel issuerCertificates = default(X509Certificate2CollectionApiModel), X509CrlCollectionApiModel issuerCrls = default(X509CrlCollectionApiModel), X509Certificate2CollectionApiModel trustedCertificates = default(X509Certificate2CollectionApiModel), X509CrlCollectionApiModel trustedCrls = default(X509CrlCollectionApiModel), string nextPageLink = default(string))
         {
-            Id = id;
+            GroupId = groupId;
             IssuerCertificates = issuerCertificates;
             IssuerCrls = issuerCrls;
             TrustedCertificates = trustedCertificates;
@@ -44,8 +44,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
-        public string Id { get; set; }
+        [JsonProperty(PropertyName = "groupId")]
+        public string GroupId { get; set; }
 
         /// <summary>
         /// </summary>

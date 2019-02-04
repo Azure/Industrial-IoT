@@ -4,26 +4,12 @@
 // ------------------------------------------------------------
 
 using System;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Types;
 using Newtonsoft.Json;
+
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models
 {
-    public enum ApplicationType : int
-    {
-        Server = 0,
-        Client = 1,
-        ClientAndServer = 2,
-        DiscoveryServer = 3
-    }
-
-    public enum ApplicationState : int
-    {
-        New = 0,
-        Approved = 1,
-        Rejected = 2,
-        Unregistered = 3,
-        Deleted = 4
-    }
 
     [Serializable]
     public class ApplicationName

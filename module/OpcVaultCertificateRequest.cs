@@ -183,9 +183,7 @@ namespace Opc.Ua.Gds.Server.OpcVault
             try
             {
                 var request = _opcVaultServiceClient.FetchCertificateRequestResult(reqId, appId);
-
-                var state = (CertificateRequestState)Enum.Parse(typeof(CertificateRequestState), request.State);
-
+                var state = (CertificateRequestState)Enum.Parse(typeof(CertificateRequestState), request.State.ToString(), true);
                 if (state == CertificateRequestState.Approved)
                 {
                     certificateGroupId = request.CertificateGroupId;

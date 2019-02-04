@@ -96,7 +96,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         {
             AuthorizeClient();
             var result = await opcVault.FetchCertificateRequestResultAsync(requestId, applicationId);
-            if (String.Compare(result.State, "Approved", StringComparison.OrdinalIgnoreCase) == 0 &&
+            if ((result.State == Api.Vault.Models.CertificateRequestState.Approved ||
+                result.State == Api.Vault.Models.CertificateRequestState.Accepted) &&
                 result.SignedCertificate != null)
             {
                 var byteArray = Convert.FromBase64String(result.SignedCertificate);
@@ -113,7 +114,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         {
             AuthorizeClient();
             var result = await opcVault.FetchCertificateRequestResultAsync(requestId, applicationId);
-            if (String.Compare(result.State, "Approved", StringComparison.OrdinalIgnoreCase) == 0 &&
+            if ((result.State == Api.Vault.Models.CertificateRequestState.Approved ||
+                result.State == Api.Vault.Models.CertificateRequestState.Accepted) &&
                 result.SignedCertificate != null)
             {
                 return RedirectToAction("DownloadCertBase64", new { cert = result.SignedCertificate });
@@ -205,7 +207,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         {
             AuthorizeClient();
             var result = await opcVault.FetchCertificateRequestResultAsync(requestId, applicationId);
-            if (String.Compare(result.State, "Approved", StringComparison.OrdinalIgnoreCase) == 0 &&
+            if (result.State == Api.Vault.Models.CertificateRequestState.Approved &&
                 result.PrivateKey != null)
             {
                 if (String.Compare(result.PrivateKeyFormat, "PFX", StringComparison.OrdinalIgnoreCase) == 0)
@@ -233,7 +235,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         {
             AuthorizeClient();
             var result = await opcVault.FetchCertificateRequestResultAsync(requestId, applicationId);
-            if (String.Compare(result.State, "Approved", StringComparison.OrdinalIgnoreCase) == 0 &&
+            if (result.State == Api.Vault.Models.CertificateRequestState.Approved &&
                 result.PrivateKey != null)
             {
                 var model = new KeyDetailsApiModel();

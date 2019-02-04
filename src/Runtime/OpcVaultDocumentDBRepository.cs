@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
+namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
 {
     using System.Security;
-    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
 
     public class OpcVaultDocumentDbRepository : DocumentDBRepository
     {

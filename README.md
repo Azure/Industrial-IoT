@@ -4,6 +4,8 @@
 
 ### OPC Unified Architecture (OPC UA) Certificate Management Service
 
+An overview about the OPC Vault certificate microservice is [here](docs/opcvault-services-overview.md).
+
 The certificate management service for OPC UA facilitates a CA certificate cloud service for OPC UA devices
 based on Azure Key Vault and CosmosDB, a ASP.Net Core web application front end and a OPC UA GDS server based on .Net Standard.
 
@@ -62,6 +64,10 @@ A Powershell deployment script automatically builds and deploys the services to 
 11. For development purposes and testing, the AzureAD registration can be enabled for a 'Writer' role to allow to create certificate requests and to update applications, 
 but this configuration shall not be used in production deployments.
 
+## [Overview](docs/opcvault-services-overview.md) on the OPC Vault microservice
+
+An overview about the service is [here](docs/opcvault-services-overview.md).
+
 ## [Build and Deploy](docs/howto-deploy-services.md) the service to Azure
 
 The documentation how to build and deploy the service is [here](docs/howto-deploy-services.md).
@@ -69,6 +75,10 @@ The documentation how to build and deploy the service is [here](docs/howto-deplo
 ## [Manage certificates](docs/howto-use-cert-services.md) with the Web Sample Application
 
 The documentation how to manage certificates with the Web sample application is [here](docs/howto-use-cert-services.md).
+
+## [Secure](docs/howto-secureca-services.md) the Certificate service
+
+Guidelines how to run a secure certificate service are [here](docs/howto-secureca-services.md).
 
 <!---
 ## [Build and Run](docs/howto-run-services-locally.md) the services locally

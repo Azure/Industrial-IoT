@@ -42,17 +42,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> IndexAsync()
         {
             AuthorizeClient();
-            var applicationQuery = new QueryApplicationsPageApiModel();
+            var applicationQuery = new QueryApplicationsApiModel();
             var applicationsTrimmed = new List<ApplicationRecordTrimmedApiModel>();
+            string nextPageLink = null;
             do
             {
-                var applications = await _opcVault.QueryApplicationsPageAsync(applicationQuery);
+                var applications = await _opcVault.QueryApplicationsAsync(applicationQuery, nextPageLink);
                 foreach (var app in applications.Applications)
                 {
                     applicationsTrimmed.Add(new ApplicationRecordTrimmedApiModel(app));
                 }
-                applicationQuery.NextPageLink = applications.NextPageLink;
-            } while (applicationQuery.NextPageLink != null);
+                nextPageLink = applications.NextPageLink;
+            } while (nextPageLink != null);
             return View(applicationsTrimmed);
         }
 
@@ -94,6 +95,120 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             }
             return View(application);
         }
+
+        [ActionName("Register")]
+        public async Task<IActionResult> RegisterAsync(string id)
+        {
+            var apiModel = new ApplicationRecordApiModel();
+            AuthorizeClient();
+            if (id != null)
+            {
+                try
+                {
+                    apiModel = await _opcVault.GetApplicationAsync(id);
+                    ViewData["SuccessMessage"] =
+                        "Application with id " + id + " successfully loaded.";
+                }
+                catch (Exception ex)
+                {
+                    ViewData["ErrorMessage"] =
+                        "An application with id " + id + " could not be found in the database.\r\n" +
+                        "Message:" + ex.Message;
+                }
+            }
+            UpdateApiModel(apiModel);
+            return View(new ApplicationRecordRegisterApiModel(apiModel));
+        }
+
+        [HttpPost]
+        [ActionName("Register")]
+        [ValidateAntiForgeryToken]
+        [ApplicationRecordRegisterApiModel]
+        public async Task<ActionResult> RegisterAsync(
+            ApplicationRecordRegisterApiModel apiModel,
+            string find,
+            string reg,
+            string add,
+            string del,
+            string req)
+        {
+            string command = null;
+            if (!String.IsNullOrEmpty(find)) { command = "find"; }
+            if (!String.IsNullOrEmpty(add)) { command = "add"; }
+            if (!String.IsNullOrEmpty(del)) { command = "delete"; }
+            if (!String.IsNullOrEmpty(reg)) { command = "register"; }
+            if (!String.IsNullOrEmpty(req)) { command = "request"; }
+
+            UpdateApiModel(apiModel);
+
+            if (ModelState.IsValid &&
+                command == "request" &&
+                apiModel.ApplicationId != null)
+            {
+                return RedirectToAction("Request", "CertificateRequest", new { id = apiModel.ApplicationId });
+            }
+
+            if (ModelState.IsValid &&
+                command == "register")
+            {
+                AuthorizeClient();
+                try
+                {
+                    if (apiModel.ApplicationType == ApplicationType.Client)
+                    {
+                        apiModel.ServerCapabilities = null;
+                        apiModel.DiscoveryUrls = null;
+                    }
+                    var application = await _opcVault.RegisterApplicationAsync(apiModel);
+                    apiModel = new ApplicationRecordRegisterApiModel(application);
+                }
+                catch (Exception ex)
+                {
+                    ViewData["ErrorMessage"] =
+                        "The application registration failed.\r\n" +
+                        "Message: " + ex.Message;
+                    return View(apiModel);
+                }
+                return RedirectToAction("Request", "CertificateRequest", new { id = apiModel.ApplicationId });
+            }
+
+            if (command == "find")
+            {
+                AuthorizeClient();
+                try
+                {
+                    var applications = await _opcVault.ListApplicationsAsync(apiModel.ApplicationUri);
+                    if (applications == null ||
+                        applications.Applications == null ||
+                        applications.Applications.Count == 0)
+                    {
+                        ViewData["ErrorMessage"] =
+                            "Couldn't find the application with ApplicationUri " + apiModel.ApplicationUri;
+                    }
+                    else
+                    {
+                        var lastApp = applications.Applications.LastOrDefault();
+                        return RedirectToAction("Register", new { id = lastApp.ApplicationId });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewData["ErrorMessage"] =
+                        "Failed to find the application with ApplicationUri" + apiModel.ApplicationUri + "\r\n" +
+                        "Message:" + ex.Message;
+                    return View(apiModel);
+                }
+            }
+
+            if (!String.IsNullOrWhiteSpace(apiModel.DiscoveryUrls.Last()) &&
+                command == "add")
+            {
+                apiModel.DiscoveryUrls.Add("");
+            }
+
+            return View(apiModel);
+        }
+
 
         private void AuthorizeClient()
         {

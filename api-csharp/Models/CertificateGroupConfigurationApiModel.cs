@@ -10,6 +10,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 {
+    using Microsoft.Rest;
     using Newtonsoft.Json;
     using System.Linq;
 
@@ -28,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// Initializes a new instance of the
         /// CertificateGroupConfigurationApiModel class.
         /// </summary>
-        public CertificateGroupConfigurationApiModel(string name = default(string), string certificateType = default(string), string subjectName = default(string), int? defaultCertificateLifetime = default(int?), int? defaultCertificateKeySize = default(int?), int? defaultCertificateHashSize = default(int?), int? issuerCACertificateLifetime = default(int?), int? issuerCACertificateKeySize = default(int?), int? issuerCACertificateHashSize = default(int?))
+        public CertificateGroupConfigurationApiModel(string name, string certificateType, string subjectName, int defaultCertificateLifetime, int defaultCertificateKeySize, int defaultCertificateHashSize, int issuerCACertificateLifetime, int issuerCACertificateKeySize, int issuerCACertificateHashSize)
         {
             Name = name;
             CertificateType = certificateType;
@@ -65,32 +66,53 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "defaultCertificateLifetime")]
-        public int? DefaultCertificateLifetime { get; set; }
+        public int DefaultCertificateLifetime { get; set; }
 
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "defaultCertificateKeySize")]
-        public int? DefaultCertificateKeySize { get; set; }
+        public int DefaultCertificateKeySize { get; set; }
 
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "defaultCertificateHashSize")]
-        public int? DefaultCertificateHashSize { get; set; }
+        public int DefaultCertificateHashSize { get; set; }
 
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "issuerCACertificateLifetime")]
-        public int? IssuerCACertificateLifetime { get; set; }
+        public int IssuerCACertificateLifetime { get; set; }
 
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "issuerCACertificateKeySize")]
-        public int? IssuerCACertificateKeySize { get; set; }
+        public int IssuerCACertificateKeySize { get; set; }
 
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "issuerCACertificateHashSize")]
-        public int? IssuerCACertificateHashSize { get; set; }
+        public int IssuerCACertificateHashSize { get; set; }
 
+        /// <summary>
+        /// Validate the object.
+        /// </summary>
+        /// <exception cref="ValidationException">
+        /// Thrown if validation fails
+        /// </exception>
+        public virtual void Validate()
+        {
+            if (Name == null)
+            {
+                throw new ValidationException(ValidationRules.CannotBeNull, "Name");
+            }
+            if (CertificateType == null)
+            {
+                throw new ValidationException(ValidationRules.CannotBeNull, "CertificateType");
+            }
+            if (SubjectName == null)
+            {
+                throw new ValidationException(ValidationRules.CannotBeNull, "SubjectName");
+            }
+        }
     }
 }

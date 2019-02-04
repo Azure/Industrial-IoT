@@ -28,7 +28,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// Initializes a new instance of the ApplicationRecordApiModel class.
         /// </summary>
-        public ApplicationRecordApiModel(string applicationId = default(string), int? id = default(int?), string state = default(string), string applicationUri = default(string), string applicationName = default(string), int? applicationType = default(int?), IList<ApplicationNameApiModel> applicationNames = default(IList<ApplicationNameApiModel>), string productUri = default(string), IList<string> discoveryUrls = default(IList<string>), string serverCapabilities = default(string), string gatewayServerUri = default(string), string discoveryProfileUri = default(string))
+        /// <param name="state">Possible values include: 'new', 'approved',
+        /// 'rejected', 'unregistered', 'deleted'</param>
+        /// <param name="applicationType">Possible values include: 'server',
+        /// 'client', 'clientAndServer', 'discoveryServer'</param>
+        public ApplicationRecordApiModel(ApplicationState state, ApplicationType applicationType, string applicationId = default(string), int? id = default(int?), string applicationUri = default(string), string applicationName = default(string), IList<ApplicationNameApiModel> applicationNames = default(IList<ApplicationNameApiModel>), string productUri = default(string), IList<string> discoveryUrls = default(IList<string>), string serverCapabilities = default(string), string gatewayServerUri = default(string), string discoveryProfileUri = default(string))
         {
             ApplicationId = applicationId;
             Id = id;
@@ -61,9 +65,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         public int? Id { get; private set; }
 
         /// <summary>
+        /// Gets possible values include: 'new', 'approved', 'rejected',
+        /// 'unregistered', 'deleted'
         /// </summary>
         [JsonProperty(PropertyName = "state")]
-        public string State { get; set; }
+        public ApplicationState State { get; private set; }
 
         /// <summary>
         /// </summary>
@@ -76,9 +82,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         public string ApplicationName { get; set; }
 
         /// <summary>
+        /// Gets or sets possible values include: 'server', 'client',
+        /// 'clientAndServer', 'discoveryServer'
         /// </summary>
         [JsonProperty(PropertyName = "applicationType")]
-        public int? ApplicationType { get; set; }
+        public ApplicationType ApplicationType { get; set; }
 
         /// <summary>
         /// </summary>
@@ -110,5 +118,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         [JsonProperty(PropertyName = "discoveryProfileUri")]
         public string DiscoveryProfileUri { get; set; }
 
+        /// <summary>
+        /// Validate the object.
+        /// </summary>
+        /// <exception cref="Rest.ValidationException">
+        /// Thrown if validation fails
+        /// </exception>
+        public virtual void Validate()
+        {
+        }
     }
 }

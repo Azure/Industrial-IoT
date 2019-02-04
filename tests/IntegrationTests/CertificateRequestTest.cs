@@ -7,19 +7,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.IIoT.Auth.Clients;
 using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.Exceptions;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Types;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using Opc.Ua.Test;
 using TestCaseOrdering;
 using Xunit;
@@ -416,7 +413,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                     if (_randomSource.NextInt32(100) > 50)
                     {
                         var request = await _certificateRequest.ReadAsync(requestId);
-                        if (request.State == CertificateRequestState.Approved ||
+                        if (request.State == CertificateRequestState.New ||
+                            request.State == CertificateRequestState.Rejected ||
+                            request.State == CertificateRequestState.Approved ||
                             request.State == CertificateRequestState.Accepted)
                         {
                             await _certificateRequest.DeleteAsync(requestId);
@@ -485,7 +484,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                 foreach (var requestId in application.RequestIds)
                 {
                     var request = await _certificateRequest.ReadAsync(requestId);
-                    if (request.State == CertificateRequestState.Approved ||
+                    if (request.State == CertificateRequestState.New ||
+                        request.State == CertificateRequestState.Rejected ||
+                        request.State == CertificateRequestState.Approved ||
                         request.State == CertificateRequestState.Accepted)
                     {
                         await _certificateRequest.DeleteAsync(requestId);
@@ -549,6 +550,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                     var request = await _certificateRequest.ReadAsync(requestId);
                     if (request.State == CertificateRequestState.Revoked ||
                         request.State == CertificateRequestState.Rejected ||
+                        request.State == CertificateRequestState.Removed ||
                         request.State == CertificateRequestState.New)
                     {
                         await _certificateRequest.PurgeAsync(requestId);
@@ -651,7 +653,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                         Assert.Null(fetchResult.PrivateKey);
                     }
                     else if (fetchResult.State == CertificateRequestState.Rejected ||
-                        fetchResult.State == CertificateRequestState.New
+                        fetchResult.State == CertificateRequestState.New ||
+                        fetchResult.State == CertificateRequestState.Removed
                         )
                     {
                         Assert.Null(fetchResult.PrivateKey);

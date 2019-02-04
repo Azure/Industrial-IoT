@@ -14,6 +14,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         [JsonProperty(PropertyName = "chain", Order = 10)]
         public IList<X509CrlApiModel> Chain { get; set; }
 
+        [JsonProperty(PropertyName = "nextPageLink", Order = 20)]
+        public string NextPageLink { get; set; }
+
         public X509CrlCollectionApiModel(IList<Opc.Ua.X509CRL> crls)
         {
             var chain = new List<X509CrlApiModel>();

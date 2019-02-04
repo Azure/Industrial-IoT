@@ -7,18 +7,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.IIoT.Auth.Clients;
 using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.Exceptions;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Types;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using TestCaseOrdering;
 using Xunit;
 using Xunit.Abstractions;
@@ -301,23 +298,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         }
 
         [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(1000)]
-        private async Task QueryApplicationsAsync()
+        private async Task QueryApplicationsByIdAsync()
         {
             Skip.If(!_fixture.RegistrationOk);
             foreach (var application in _applicationTestSet)
             {
-                var response = await _applicationsDatabase.QueryApplicationsAsync(0, 0, null, null, 0, null, null, true);
+                var response = await _applicationsDatabase.QueryApplicationsByIdAsync(0, 0, null, null, 0, null, null, QueryApplicationState.Any);
                 Assert.NotNull(response);
             }
         }
 
         [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(1000)]
-        private async Task QueryPageApplicationsAsync()
+        private async Task QueryApplicationsAsync()
         {
             Skip.If(!_fixture.RegistrationOk);
             foreach (var application in _applicationTestSet)
             {
-                var response = await _applicationsDatabase.QueryApplicationsPageAsync(null, null, 0, null, null, null, 0, true);
+                var response = await _applicationsDatabase.QueryApplicationsAsync(null, null, 0, null, null, QueryApplicationState.Any);
                 Assert.NotNull(response);
             }
         }

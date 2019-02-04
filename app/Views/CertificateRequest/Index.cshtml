@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models.CertificateRequestIndexApiModel>
+@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models.CertificateRequestIndexApiModel>
 
 @{
     ViewBag.Title = "CertificateRequests";
@@ -41,7 +41,7 @@
             </td>
             <td>
                 @Html.ActionLink("Details", "Details", new { id = request.RequestId })
-                @if (request.State == "New")
+                @if (request.State == Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.CertificateRequestState.New)
                 {
                     @Html.Raw("&nbsp;|&nbsp;");
                     @Html.ActionLink("Approve", "Approve", new { id = request.RequestId }/*,

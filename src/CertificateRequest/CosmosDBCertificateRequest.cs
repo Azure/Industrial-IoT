@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
@@ -19,8 +18,9 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Types;
+using Microsoft.Azure.KeyVault.Models;
 using CertificateRequest = Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models.CertificateRequest;
-using CertificateRequestState = Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models.CertificateRequestState;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
@@ -395,9 +395,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                     {
                         await _certificateGroup.DeletePrivateKeyAsync(request.CertificateGroupId, requestId);
                     }
-                    catch 
+                    catch (KeyVaultErrorException kex)
                     {
-                        // TODO: error handling here
+                        if (kex.Response.StatusCode != HttpStatusCode.Forbidden)
+                        {
+                            throw kex;
+                        }
+                        // ok to ignore, default KeyVault secret access 'Delete' is not granted.
+                        // private key not deleted, must be handled by manager role
                     }
                 }
 
@@ -436,23 +441,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
                 CertificateRequest request = await _certificateRequests.GetAsync(reqId);
 
-                if (request.CertificateRequestState != CertificateRequestState.Approved &&
+                bool newStateRemoved =
+                    request.CertificateRequestState == CertificateRequestState.New ||
+                    request.CertificateRequestState == CertificateRequestState.Rejected;
+
+                if (!newStateRemoved &&
+                    request.CertificateRequestState != CertificateRequestState.Approved &&
                     request.CertificateRequestState != CertificateRequestState.Accepted)
                 {
                     throw new ResourceInvalidStateException("The record is not in a valid state for this operation.");
                 }
 
-                request.CertificateRequestState = CertificateRequestState.Deleted;
+                request.CertificateRequestState = newStateRemoved ? CertificateRequestState.Removed : CertificateRequestState.Deleted;
 
-                if (request.PrivateKeyFormat != null && first)
+                // no need to delete pk for new & rejected requests
+                if (!newStateRemoved && first &&
+                    request.PrivateKeyFormat != null)
                 {
                     try
                     {
                         await _certificateGroup.DeletePrivateKeyAsync(request.CertificateGroupId, requestId);
                     }
-                    catch (Exception ex)
+                    catch (KeyVaultErrorException kex)
                     {
-                        var s = ex.Message;
+                        if (kex.Response.StatusCode != HttpStatusCode.Forbidden)
+                        {
+                            throw kex;
+                        }
+                        // ok to ignore, default KeyVault secret access 'Delete' is not granted.
+                        // private key not deleted, must be handled by manager role
                     }
                 }
                 first = false;
@@ -536,7 +553,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
             if (request.CertificateRequestState != CertificateRequestState.Revoked &&
                 request.CertificateRequestState != CertificateRequestState.Rejected &&
-                request.CertificateRequestState != CertificateRequestState.New)
+                request.CertificateRequestState != CertificateRequestState.New &&
+                request.CertificateRequestState != CertificateRequestState.Removed)
             {
                 throw new ResourceInvalidStateException("The record is not in a valid state for this operation.");
             }
@@ -546,7 +564,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
         public async Task RevokeGroupAsync(string groupId, bool? allVersions)
         {
-            // TODO: implement all versions to renew all CSR for all CA versions
             var queryParameters = new SqlParameterCollection();
             string query = "SELECT * FROM CertificateRequest r WHERE ";
             query += " r.CertificateRequestState = @state";
@@ -585,7 +602,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 }
             }
 
-            await _certificateGroup.RevokeCertificatesAsync(groupId, certCollection);
+            var remainingCertificates = await _certificateGroup.RevokeCertificatesAsync(groupId, certCollection);
 
             foreach (var reqId in deletedRequests)
             {
@@ -597,8 +614,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
                     if (request.CertificateRequestState != CertificateRequestState.Deleted)
                     {
-                        throw new ResourceInvalidStateException("The record is not in a valid state for this operation.");
+                        // skip, there may have been a concurrent update to the database.
+                        continue;
                     }
+
+                    // TODO: test for remaining certificates
 
                     request.CertificateRequestState = CertificateRequestState.Revoked;
                     request.RevokeTime = DateTime.UtcNow;
@@ -644,6 +664,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 case CertificateRequestState.Rejected:
                 case CertificateRequestState.Revoked:
                 case CertificateRequestState.Deleted:
+                case CertificateRequestState.Removed:
                     return new FetchRequestResultModel(request.CertificateRequestState)
                     {
                         ApplicationId = applicationId,
@@ -702,6 +723,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 case CertificateRequestState.Approved:
                 case CertificateRequestState.Deleted:
                 case CertificateRequestState.Revoked:
+                case CertificateRequestState.Removed:
                     break;
                 default:
                     throw new ResourceInvalidStateException("The record is not in a valid state for this operation.");
@@ -748,7 +770,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             else
             {
                 query += " r.CertificateRequestState = @state ";
-                queryParameters.Add(new SqlParameter("@appId", appId));
                 queryParameters.Add(new SqlParameter("@state", state.ToString()));
             }
             SqlQuerySpec sqlQuerySpec = new SqlQuerySpec

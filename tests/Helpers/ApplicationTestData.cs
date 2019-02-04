@@ -103,7 +103,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         /// <returns></returns>
         public static string ServerCapabilities(Application application)
         {
-            if ((int)application.ApplicationType != (int)CosmosDB.Models.ApplicationType.Client)
+            if ((int)application.ApplicationType != (int)Types.ApplicationType.Client)
             {
                 if (application.ServerCapabilities == null || application.ServerCapabilities.Length == 0)
                 {
@@ -191,7 +191,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                 {
                     ApplicationUri = appUri,
                     ApplicationName = appName,
-                    ApplicationType = (CosmosDB.Models.ApplicationType)appType,
+                    ApplicationType = (Types.ApplicationType)appType,
                     ProductUri = prodUri,
                     ServerCapabilities = ApplicationTestData.ServerCapabilities(serverCapabilities.ToArray()),
                     ApplicationNames = new ApplicationName[] { new ApplicationName { Locale = "en-us", Text = appName } },

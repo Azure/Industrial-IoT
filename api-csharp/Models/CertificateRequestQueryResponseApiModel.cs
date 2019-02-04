@@ -15,23 +15,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
     using System.Collections.Generic;
     using System.Linq;
 
-    public partial class CertificateRequestRecordQueryResponseApiModel
+    public partial class CertificateRequestQueryResponseApiModel
     {
         /// <summary>
         /// Initializes a new instance of the
-        /// CertificateRequestRecordQueryResponseApiModel class.
+        /// CertificateRequestQueryResponseApiModel class.
         /// </summary>
-        public CertificateRequestRecordQueryResponseApiModel()
+        public CertificateRequestQueryResponseApiModel()
         {
             CustomInit();
         }
 
         /// <summary>
         /// Initializes a new instance of the
-        /// CertificateRequestRecordQueryResponseApiModel class.
+        /// CertificateRequestQueryResponseApiModel class.
         /// </summary>
-        /// <param name="nextPageLink">Continuation token to use</param>
-        public CertificateRequestRecordQueryResponseApiModel(IList<CertificateRequestRecordApiModel> requests = default(IList<CertificateRequestRecordApiModel>), string nextPageLink = default(string))
+        /// <param name="requests">The query result.</param>
+        /// <param name="nextPageLink">Link to the next page of
+        /// results.</param>
+        public CertificateRequestQueryResponseApiModel(IList<CertificateRequestRecordApiModel> requests = default(IList<CertificateRequestRecordApiModel>), string nextPageLink = default(string))
         {
             Requests = requests;
             NextPageLink = nextPageLink;
@@ -44,12 +46,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         partial void CustomInit();
 
         /// <summary>
+        /// Gets or sets the query result.
         /// </summary>
         [JsonProperty(PropertyName = "requests")]
         public IList<CertificateRequestRecordApiModel> Requests { get; set; }
 
         /// <summary>
-        /// Gets or sets continuation token to use
+        /// Gets or sets link to the next page of results.
         /// </summary>
         [JsonProperty(PropertyName = "nextPageLink")]
         public string NextPageLink { get; set; }

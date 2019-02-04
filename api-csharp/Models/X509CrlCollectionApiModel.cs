@@ -28,9 +28,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// Initializes a new instance of the X509CrlCollectionApiModel class.
         /// </summary>
-        public X509CrlCollectionApiModel(IList<X509CrlApiModel> chain = default(IList<X509CrlApiModel>))
+        public X509CrlCollectionApiModel(IList<X509CrlApiModel> chain = default(IList<X509CrlApiModel>), string nextPageLink = default(string))
         {
             Chain = chain;
+            NextPageLink = nextPageLink;
             CustomInit();
         }
 
@@ -43,6 +44,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// </summary>
         [JsonProperty(PropertyName = "chain")]
         public IList<X509CrlApiModel> Chain { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "nextPageLink")]
+        public string NextPageLink { get; set; }
 
     }
 }

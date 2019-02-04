@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,23 +6,19 @@
 
 
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Types;
+
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
 {
     public sealed class ReadRequestResultModel
     {
         public string RequestId { get; set; }
-
         public string ApplicationId { get; set; }
-
         public CertificateRequestState State { get; set; }
-
         public string CertificateGroupId { get; set; }
-
         public string CertificateTypeId { get; set; }
-
         public bool SigningRequest { get; set; }
-
         public string SubjectName { get; set; }
         public string[] DomainNames { get; set; }
         public string PrivateKeyFormat { get; set; }

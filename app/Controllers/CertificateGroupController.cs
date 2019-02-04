@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> Revoke(string id)
         {
             AuthorizeClient();
-            await _opcVault.RevokeGroupAsync(id);
+            await _opcVault.RevokeCertificateGroupAsync(id);
             return RedirectToAction("IssuerDetails", new { id });
         }
 

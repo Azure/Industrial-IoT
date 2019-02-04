@@ -38,13 +38,10 @@
     <Content Update="Views\CertificateRequest\DownloadCertBase64.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
-    <Content Update="Views\Certomat\Details.cshtml">
+    <Content Update="Views\CertificateRequest\StartNewKeyPair.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
-    <Content Update="Views\Certomat\StartNewKeyPair.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Certomat\StartSigning.cshtml">
+    <Content Update="Views\CertificateRequest\StartSigning.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
     <Content Update="web.config">

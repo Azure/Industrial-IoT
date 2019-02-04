@@ -423,11 +423,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             string[] groups = await _keyVault.GetCertificateGroupIds();
             foreach (string group in groups)
             {
-                var trustList = await _keyVault.GetTrustListAsync(group, 2);
+                var trustList = await _keyVault.GetTrustListAsync(group, null, 2);
                 string nextPageLink = trustList.NextPageLink;
                 while (nextPageLink != null)
                 {
-                    var nextTrustList = await _keyVault.GetTrustListAsync(group, 2, nextPageLink);
+                    var nextTrustList = await _keyVault.GetTrustListAsync(group, nextPageLink, 2);
                     trustList.AddRange(nextTrustList);
                     nextPageLink = nextTrustList.NextPageLink;
                 }
@@ -463,7 +463,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                 string nextPageLink = trustList.NextPageLink;
                 while (nextPageLink != null)
                 {
-                    var nextTrustList = await _keyVault.GetTrustListAsync(group, null, nextPageLink);
+                    var nextTrustList = await _keyVault.GetTrustListAsync(group, nextPageLink);
                     trustList.AddRange(nextTrustList);
                     nextPageLink = nextTrustList.NextPageLink;
                 }
@@ -492,7 +492,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                 string nextPageLink = trustList.NextPageLink;
                 while (nextPageLink != null)
                 {
-                    var nextTrustList = await _keyVault.GetTrustListAsync(group, null, nextPageLink);
+                    var nextTrustList = await _keyVault.GetTrustListAsync(group, nextPageLink);
                     trustList.AddRange(nextTrustList);
                     nextPageLink = nextTrustList.NextPageLink;
                 }

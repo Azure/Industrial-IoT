@@ -157,6 +157,7 @@
         "apiType": "SQL",
         "offerType": "Standard",
         "readPermissions": [ "Get", "List" ],
+        "readDeletePermissions": [ "Get", "List", "Delete" ],
         "writeDeletePermissions": [ "Get", "List", "Set", "Delete" ],
         "signPermissions": [ "Get", "List", "Sign" ],
         "createPermissions": [ "Get", "List", "Update", "Create", "Import", "Delete" ],
@@ -338,7 +339,7 @@
                                 "tenantId": "[parameters('aadTenantId')]",
                                 "objectId": "[parameters('aadServicePrincipalId')]",
                                 "permissions": {
-                                    "secrets": "[variables('readPermissions')]",
+                                    "secrets": "[variables('readDeletePermissions')]",
                                     "certificates": "[variables('readPermissions')]"
                                 }
                             },

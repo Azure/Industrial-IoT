@@ -32,7 +32,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E9C6A792-1
 		DEVELOPMENT.md = DEVELOPMENT.md
 		docs\howto-deploy-services.md = docs\howto-deploy-services.md
 		docs\howto-run-services-locally.md = docs\howto-run-services-locally.md
+		docs\howto-secureca-services.md = docs\howto-secureca-services.md
 		docs\howto-use-cert-services.md = docs\howto-use-cert-services.md
+		docs\opcvault-services-overview.md = docs\opcvault-services-overview.md
 		README.md = README.md
 	EndProjectSection
 EndProject

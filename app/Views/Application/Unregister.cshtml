@@ -3,7 +3,6 @@
 @{
     ViewBag.Title = "Unregister";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    IList<string> AppTypes = new List<string>() { "Server", "Client", "ClientAndServer", "DiscoveryServer" };
 }
 
 <h2>Unregister an Application</h2>
@@ -49,7 +48,7 @@
         </dt>
 
         <dd>
-            @Html.DisplayFor(model => AppTypes[(int)Model.ApplicationType])
+            @Html.DisplayFor(model => model.ApplicationType)
         </dd>
 
         <dt>

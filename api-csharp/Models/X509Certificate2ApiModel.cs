@@ -26,10 +26,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// Initializes a new instance of the X509Certificate2ApiModel class.
         /// </summary>
-        public X509Certificate2ApiModel(string subject = default(string), string thumbprint = default(string), string certificate = default(string))
+        public X509Certificate2ApiModel(string subject = default(string), string thumbprint = default(string), string serialNumber = default(string), System.DateTime? notBefore = default(System.DateTime?), System.DateTime? notAfter = default(System.DateTime?), string certificate = default(string))
         {
             Subject = subject;
             Thumbprint = thumbprint;
+            SerialNumber = serialNumber;
+            NotBefore = notBefore;
+            NotAfter = notAfter;
             Certificate = certificate;
             CustomInit();
         }
@@ -48,6 +51,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// </summary>
         [JsonProperty(PropertyName = "thumbprint")]
         public string Thumbprint { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "serialNumber")]
+        public string SerialNumber { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "notBefore")]
+        public System.DateTime? NotBefore { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "notAfter")]
+        public System.DateTime? NotAfter { get; set; }
 
         /// <summary>
         /// </summary>

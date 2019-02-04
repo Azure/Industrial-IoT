@@ -12,8 +12,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
     public sealed class TrustListApiModel
     {
 
-        [JsonProperty(PropertyName = "id", Order = 10)]
-        public string Id { get; set; }
+        [JsonProperty(PropertyName = "groupId", Order = 10)]
+        public string GroupId { get; set; }
 
         [JsonProperty(PropertyName = "issuerCertificates", Order = 20)]
         public X509Certificate2CollectionApiModel IssuerCertificates { get; set; }
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 
         public TrustListApiModel(KeyVaultTrustListModel keyVaultTrustList)
         {
-            Id = keyVaultTrustList.Id;
+            GroupId = keyVaultTrustList.Group;
             IssuerCertificates = new X509Certificate2CollectionApiModel(keyVaultTrustList.IssuerCertificates);
             IssuerCrls = new X509CrlCollectionApiModel(keyVaultTrustList.IssuerCrls);
             TrustedCertificates = new X509Certificate2CollectionApiModel(keyVaultTrustList.TrustedCertificates);

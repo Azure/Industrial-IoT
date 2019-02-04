@@ -16,6 +16,7 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth;
 using Newtonsoft.Json;
+using Opc.Ua;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
@@ -235,20 +236,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         }
 
         /// <inheritdoc/>
-        public async Task<X509Certificate2Collection> GetIssuerCACertificateChainAsync(string id)
+        public async Task<X509Certificate2Collection> GetIssuerCACertificateVersionsAsync(string id, bool? withCertificates, string nextPageLink, int? pageSize)
         {
             var certificateGroup = await KeyVaultCertificateGroupProvider.Create(_keyVaultServiceClient, id).ConfigureAwait(false);
-            // TODO: return CA chain
+            return new X509Certificate2Collection(await GetIssuerCACertificateVersionsAsync(id).ConfigureAwait(false));
+        }
+
+        /// <inheritdoc/>
+        public async Task<X509Certificate2Collection> GetIssuerCACertificateChainAsync(string id, string thumbPrint = null, string nextPageLink = null, int? pageSize = null)
+        {
+            // TODO: implement thumbPrint and paging
+            var certificateGroup = await KeyVaultCertificateGroupProvider.Create(_keyVaultServiceClient, id).ConfigureAwait(false);
             return new X509Certificate2Collection(await certificateGroup.GetIssuerCACertificateAsync(id).ConfigureAwait(false));
         }
 
         /// <inheritdoc/>
-        public async Task<IList<Opc.Ua.X509CRL>> GetIssuerCACrlChainAsync(string id)
+        public async Task<IList<X509CRL>> GetIssuerCACrlChainAsync(string id, string thumbPrint = null, string nextPageLink = null, int? pageSize = null)
         {
             var certificateGroup = await KeyVaultCertificateGroupProvider.Create(_keyVaultServiceClient, id).ConfigureAwait(false);
             var crlList = new List<Opc.Ua.X509CRL>
             {
-                // TODO: return CA CRL chain
                 await certificateGroup.GetIssuerCACrlAsync(id).ConfigureAwait(false)
             };
             return crlList;
@@ -276,9 +283,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         }
 
         /// <inheritdoc/>
-        public async Task<KeyVaultTrustListModel> GetTrustListAsync(string id, int? maxResults = null, string nextPageLink = null)
+        public async Task<KeyVaultTrustListModel> GetTrustListAsync(string id, string nextPageLink = null, int? pageSize = null)
         {
-            return await _keyVaultServiceClient.GetTrustListAsync(id, maxResults, nextPageLink).ConfigureAwait(false);
+            return await _keyVaultServiceClient.GetTrustListAsync(id, pageSize, nextPageLink).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -288,7 +295,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         }
 
         /// <inheritdoc/>
-        private async Task<X509Certificate2Collection> GetCertificateVersionsAsync(string id)
+        private async Task<X509Certificate2Collection> GetIssuerCACertificateVersionsAsync(string id)
         {
             return await _keyVaultServiceClient.GetCertificateVersionsAsync(id).ConfigureAwait(false);
         }

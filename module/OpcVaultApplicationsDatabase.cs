@@ -44,12 +44,15 @@ namespace Opc.Ua.Gds.Server.Database.OpcVault
 
             string capabilities = base.ServerCapabilities(application);
 
-            ApplicationRecordApiModel applicationModel = new ApplicationRecordApiModel
+            ApplicationRecordApiModel applicationModel = new ApplicationRecordApiModel(
+                ApplicationState.New,
+                (Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationType)application.ApplicationType,
+                applicationId
+                )
             {
-                ApplicationId = applicationId,
                 ApplicationUri = application.ApplicationUri,
                 ApplicationName = application.ApplicationNames[0].Text,
-                ApplicationType = (int)application.ApplicationType,
+                //ApplicationType = (ApplicationType)application.ApplicationType,
                 ProductUri = application.ProductUri,
                 ServerCapabilities = capabilities
             };
@@ -163,55 +166,58 @@ namespace Opc.Ua.Gds.Server.Database.OpcVault
             )
         {
             base.FindApplications(applicationUri);
-            IList<ApplicationRecordApiModel> results;
-
-            results = _opcVaultServiceClient.ListApplications(applicationUri);
-
             List<ApplicationRecordDataType> records = new List<ApplicationRecordDataType>();
-
-            foreach (var result in results)
+            string nextPageLink = null;
+            do
             {
-                LocalizedText[] names = null;
+                IList<ApplicationRecordApiModel> results;
+                var pagedResults = _opcVaultServiceClient.ListApplications(applicationUri, nextPageLink);
+                results = pagedResults.Applications;
 
-                if (result.ApplicationName != null)
+                foreach (var result in results)
                 {
-                    names = new LocalizedText[] { result.ApplicationName };
-                }
+                    LocalizedText[] names = null;
 
-                StringCollection discoveryUrls = null;
-
-                var endpoints = result.DiscoveryUrls;
-                if (endpoints != null)
-                {
-                    discoveryUrls = new StringCollection();
-
-                    foreach (var endpoint in endpoints)
+                    if (result.ApplicationName != null)
                     {
-                        discoveryUrls.Add(endpoint);
+                        names = new LocalizedText[] { result.ApplicationName };
                     }
+
+                    StringCollection discoveryUrls = null;
+
+                    var endpoints = result.DiscoveryUrls;
+                    if (endpoints != null)
+                    {
+                        discoveryUrls = new StringCollection();
+
+                        foreach (var endpoint in endpoints)
+                        {
+                            discoveryUrls.Add(endpoint);
+                        }
+                    }
+
+                    string[] capabilities = null;
+
+                    if (result.ServerCapabilities != null)
+                    {
+                        capabilities = result.ServerCapabilities.Split(',');
+                    }
+
+                    NodeId appNodeId = OpcVaultClientHelper.GetNodeIdFromServiceId(result.ApplicationId, NamespaceIndex);
+
+                    records.Add(new ApplicationRecordDataType()
+                    {
+                        ApplicationId = appNodeId,
+                        ApplicationUri = result.ApplicationUri,
+                        ApplicationType = (ApplicationType)result.ApplicationType,
+                        ApplicationNames = new LocalizedTextCollection(names),
+                        ProductUri = result.ProductUri,
+                        DiscoveryUrls = discoveryUrls,
+                        ServerCapabilities = capabilities
+                    });
                 }
-
-                string[] capabilities = null;
-
-                if (result.ServerCapabilities != null)
-                {
-                    capabilities = result.ServerCapabilities.Split(',');
-                }
-
-                NodeId appNodeId = OpcVaultClientHelper.GetNodeIdFromServiceId(result.ApplicationId, NamespaceIndex);
-
-                records.Add(new ApplicationRecordDataType()
-                {
-                    ApplicationId = appNodeId,
-                    ApplicationUri = result.ApplicationUri,
-                    ApplicationType = (ApplicationType)result.ApplicationType,
-                    ApplicationNames = new LocalizedTextCollection(names),
-                    ProductUri = result.ProductUri,
-                    DiscoveryUrls = discoveryUrls,
-                    ServerCapabilities = capabilities
-                });
-            }
-
+                nextPageLink = pagedResults.NextPageLink;
+            } while (nextPageLink != null);
             return records.ToArray();
         }
 
@@ -227,16 +233,16 @@ namespace Opc.Ua.Gds.Server.Database.OpcVault
             lastCounterResetTime = DateTime.MinValue;
             List<ServerOnNetwork> records = new List<ServerOnNetwork>();
 
-            var query = new QueryApplicationsApiModel(
+            var query = new QueryApplicationsByIdApiModel(
                 (int)startingRecordId,
                 (int)maxRecordsToReturn,
                 applicationName,
                 applicationUri,
-                1, // server only
+                QueryApplicationType.Server,
                 productUri,
                 serverCapabilities?.ToList()
                 );
-            var resultModel = _opcVaultServiceClient.QueryApplications(query);
+            var resultModel = _opcVaultServiceClient.QueryApplicationsById(query);
 
             foreach (var application in resultModel.Applications)
             {
@@ -274,16 +280,16 @@ namespace Opc.Ua.Gds.Server.Database.OpcVault
             lastCounterResetTime = DateTime.MinValue;
             var records = new List<ApplicationDescription>();
 
-            var query = new QueryApplicationsApiModel(
+            var query = new QueryApplicationsByIdApiModel(
                 (int)startingRecordId,
                 (int)maxRecordsToReturn,
                 applicationName,
                 applicationUri,
-                (int)applicationType,
+                (QueryApplicationType)applicationType,
                 productUri,
                 serverCapabilities?.ToList()
                 );
-            var resultModel = _opcVaultServiceClient.QueryApplications(query);
+            var resultModel = _opcVaultServiceClient.QueryApplicationsById(query);
 
             foreach (var application in resultModel.Applications)
             {

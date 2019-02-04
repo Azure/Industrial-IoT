@@ -25,8 +25,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Swagger
         public bool ResponseTypeIsFileStream { get; set; }
 
         /// <summary>
-        /// Sets the contination token link
+        /// Sets the next page link for x-ms-pageable.
         /// </summary>
-        public string ContinuationTokenLinkName { get; set; }
+        public string NextPageLinkName { get; set; }
     }
 }

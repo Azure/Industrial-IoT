@@ -1,9 +1,8 @@
-﻿@model Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationRecordApiModel
+@model Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationRecordApiModel
 
 @{
-    ViewBag.Title = "Certomat";
+    ViewBag.Title = "CertificateRequest";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    IList<string> AppTypes = new List<string>() { "Server", "Client", "ClientAndServer", "DiscoveryServer" };
 }
 
 <h2>Request New Certificate for OPC UA Application</h2>
@@ -32,7 +31,7 @@
         </dt>
 
         <dd>
-            @Html.DisplayFor(model => AppTypes[(int)Model.ApplicationType])
+            @Html.DisplayFor(model => Model.ApplicationType)
         </dd>
 
         @if (Model.DiscoveryUrls != null)
@@ -63,7 +62,7 @@ else
 {
     <div class="col-md-12">
         @Html.ActionLink("Request new KeyPair and Certificate", "StartNewKeyPair", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
-        @Html.ActionLink("Request new Certificate with Signing Request", "StartSigning", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
+        @Html.ActionLink("Request new Certificate with Signing Request (CSR)", "StartSigning", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
     </div>
 }
 

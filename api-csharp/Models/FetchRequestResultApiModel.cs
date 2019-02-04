@@ -26,7 +26,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// Initializes a new instance of the FetchRequestResultApiModel class.
         /// </summary>
-        public FetchRequestResultApiModel(string requestId = default(string), string applicationId = default(string), string state = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), string signedCertificate = default(string), string privateKeyFormat = default(string), string privateKey = default(string), string authorityId = default(string))
+        /// <param name="state">Possible values include: 'new', 'approved',
+        /// 'rejected', 'accepted', 'deleted', 'revoked', 'removed'</param>
+        public FetchRequestResultApiModel(CertificateRequestState state, string requestId = default(string), string applicationId = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), string signedCertificate = default(string), string privateKeyFormat = default(string), string privateKey = default(string), string authorityId = default(string))
         {
             RequestId = requestId;
             ApplicationId = applicationId;
@@ -56,9 +58,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         public string ApplicationId { get; set; }
 
         /// <summary>
+        /// Gets or sets possible values include: 'new', 'approved',
+        /// 'rejected', 'accepted', 'deleted', 'revoked', 'removed'
         /// </summary>
         [JsonProperty(PropertyName = "state")]
-        public string State { get; set; }
+        public CertificateRequestState State { get; set; }
 
         /// <summary>
         /// </summary>
@@ -90,5 +94,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         [JsonProperty(PropertyName = "authorityId")]
         public string AuthorityId { get; set; }
 
+        /// <summary>
+        /// Validate the object.
+        /// </summary>
+        /// <exception cref="Rest.ValidationException">
+        /// Thrown if validation fails
+        /// </exception>
+        public virtual void Validate()
+        {
+        }
     }
 }

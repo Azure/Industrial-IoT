@@ -4,25 +4,26 @@
 // ------------------------------------------------------------
 
 
-using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
     public interface ICertificateGroup
     {
-        Task <ICertificateGroup> OnBehalfOfRequest(HttpRequest request);
+        Task<ICertificateGroup> OnBehalfOfRequest(HttpRequest request);
         Task<string[]> GetCertificateGroupIds();
         Task<CertificateGroupConfigurationModel> GetCertificateGroupConfiguration(string id);
         Task<CertificateGroupConfigurationModel> UpdateCertificateGroupConfiguration(string id, CertificateGroupConfigurationModel config);
         Task<CertificateGroupConfigurationModel> CreateCertificateGroupConfiguration(string id, string subject, string certType);
         Task<IList<CertificateGroupConfigurationModel>> GetCertificateGroupConfigurationCollection();
-        Task<X509Certificate2Collection> GetIssuerCACertificateChainAsync(string id);
-        Task<IList<Opc.Ua.X509CRL>> GetIssuerCACrlChainAsync(string id);
-        Task<KeyVaultTrustListModel> GetTrustListAsync(string id, int? maxResults, string nextPageLink);
+        Task<X509Certificate2Collection> GetIssuerCACertificateVersionsAsync(string id, bool? withCertificates, string nextPageLink = null, int? pageSize = null);
+        Task<X509Certificate2Collection> GetIssuerCACertificateChainAsync(string id, string thumbPrint = null, string nextPageLink = null, int? pageSize = null);
+        Task<IList<Opc.Ua.X509CRL>> GetIssuerCACrlChainAsync(string id, string thumbPrint, string nextPageLink = null, int? pageSize = null);
+        Task<KeyVaultTrustListModel> GetTrustListAsync(string id, string nextPageLink = null, int? pageSize = null);
 
         Task<X509Certificate2> SigningRequestAsync(
             string id,

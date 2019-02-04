@@ -4,28 +4,15 @@
 // ------------------------------------------------------------
 
 
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
-
-    [Serializable]
-    public enum ApplicationType : int
-    {
-        [EnumMember(Value = "server")]
-        Server = 0,
-        [EnumMember(Value = "client")]
-        Client = 1,
-        [EnumMember(Value = "clientAndServer")]
-        ClientAndServer = 2,
-        [EnumMember(Value = "discoveryServer")]
-        DiscoveryServer = 3
-    }
 
     public sealed class ApplicationRecordApiModel
     {
@@ -33,10 +20,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         public string ApplicationId { get; set; }
 
         [JsonProperty(PropertyName = "id")]
-        public int? ID { get; }
+        public int ID { get; }
 
         [JsonProperty(PropertyName = "state")]
-        public string State { get; set; }
+        [Required]
+        public ApplicationState State { get; }
 
         [JsonProperty(PropertyName = "applicationUri")]
         public string ApplicationUri { get; set; }
@@ -45,6 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         public string ApplicationName { get; set; }
 
         [JsonProperty(PropertyName = "applicationType")]
+        [Required]
         public ApplicationType ApplicationType { get; set; }
 
         [JsonProperty(PropertyName = "applicationNames")]
@@ -68,13 +57,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 
         public ApplicationRecordApiModel()
         {
+            this.ID = 0;
+            this.State = ApplicationState.New;
         }
 
-        public ApplicationRecordApiModel(Application application)
+        public ApplicationRecordApiModel(ApplicationRecordApiModel model)
+        {
+            this.ApplicationId = model.ApplicationId;
+            this.ID = model.ID;
+            this.State = model.State;
+            this.ApplicationUri = model.ApplicationUri;
+            this.ApplicationName = model.ApplicationName;
+            this.ApplicationType = model.ApplicationType;
+            this.ApplicationNames = model.ApplicationNames;
+            this.ProductUri = model.ProductUri;
+            this.DiscoveryUrls = model.DiscoveryUrls;
+            this.ServerCapabilities = model.ServerCapabilities;
+            this.GatewayServerUri = model.GatewayServerUri;
+            this.DiscoveryProfileUri = model.DiscoveryProfileUri;
+        }
+
+        public ApplicationRecordApiModel(CosmosDB.Models.Application application)
         {
             this.ApplicationId = application.ApplicationId != Guid.Empty ? application.ApplicationId.ToString() : null;
             this.ID = application.ID;
-            this.State = application.ApplicationState.ToString();
+            this.State = (ApplicationState)application.ApplicationState;
             this.ApplicationUri = application.ApplicationUri;
             this.ApplicationName = application.ApplicationName;
             this.ApplicationType = (ApplicationType)application.ApplicationType;
@@ -92,17 +99,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
             this.DiscoveryProfileUri = application.DiscoveryProfileUri;
         }
 
-        public Application ToServiceModel()
+        public CosmosDB.Models.Application ToServiceModel()
         {
-            var application = new Application();
+            var application = new CosmosDB.Models.Application();
             // ID and State are ignored, readonly
             application.ApplicationId = this.ApplicationId != null ? new Guid(this.ApplicationId) : Guid.Empty;
             application.ApplicationUri = this.ApplicationUri;
             application.ApplicationName = this.ApplicationName;
-            application.ApplicationType = (CosmosDB.Models.ApplicationType)this.ApplicationType;
+            application.ApplicationType = (Types.ApplicationType)this.ApplicationType;
             if (this.ApplicationNames != null)
             {
-                var applicationNames = new List<ApplicationName>();
+                var applicationNames = new List<CosmosDB.Models.ApplicationName>();
                 foreach (var applicationNameModel in this.ApplicationNames)
                 {
                     applicationNames.Add(applicationNameModel.ToServiceModel());
@@ -110,7 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
                 application.ApplicationNames = applicationNames.ToArray();
             }
             application.ProductUri = this.ProductUri;
-            application.DiscoveryUrls = this.DiscoveryUrls.ToArray();
+            application.DiscoveryUrls = this.DiscoveryUrls != null ? this.DiscoveryUrls.ToArray() : null;
             application.ServerCapabilities = this.ServerCapabilities;
             application.GatewayServerUri = this.GatewayServerUri;
             application.DiscoveryProfileUri = this.DiscoveryProfileUri;

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models.ApplicationRecordTrimmedApiModel>
+@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models.ApplicationRecordTrimmedApiModel>
 
 @{
     ViewBag.Title = "List of Applications";
@@ -14,44 +14,50 @@
 <table class="table">
     <tr>
         <!--
-            <th>
-                @Html.DisplayNameFor(model => model.ApplicationId)
-            </th>
-        -->
+        <th>
+            @Html.DisplayNameFor(model => model.ApplicationId)
+        </th>
+    -->
         <th>
             @Html.DisplayNameFor(model => model.ApplicationName)
         </th>
         <th>
             @Html.DisplayNameFor(model => model.ApplicationUri)
         </th>
+        <th>
+            @Html.DisplayNameFor(model => model.State)
+        </th>
         <th></th>
     </tr>
 
     @foreach (var item in Model)
     {
-        <tr>
+    <tr>
+        <!--
+        <td>
+            @Html.DisplayFor(modelItem => item.ApplicationId)
+        </td>
+    -->
+        <td>
+            @Html.DisplayFor(modelItem => item.ApplicationNameTrimmed)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ApplicationUriTrimmed)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.State)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Register", new { id = item.ApplicationId }/*, new { @class = "btn btn-default" }*/) |
+            @Html.ActionLink("Details", "Details", new { id = item.ApplicationId })  |
+            @Html.ActionLink("Unregister", "Unregister", new { id = item.ApplicationId }) |
+            @Html.ActionLink("New Request", "..\\CertificateRequest\\Request", new { id = item.ApplicationId })
             <!--
-                <td>
-                    @Html.DisplayFor(modelItem => item.ApplicationId)
-                </td>
-            -->
-            <td>
-                @Html.DisplayFor(modelItem => item.ApplicationNameTrimmed)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ApplicationUriTrimmed)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "..\\Certomat\\Register", new { id = item.ApplicationId }/*, new { @class = "btn btn-default" }*/) |
-                @Html.ActionLink("Details", "Details", new { id = item.ApplicationId })  |
-                @Html.ActionLink("Unregister", "Unregister", new { id = item.ApplicationId }) |
-                @Html.ActionLink("New Request", "..\\Certomat\\Request", new { id = item.ApplicationId })
-                <!--
-                    @Html.ActionLink("New KeyPair", "..\\CertificateRequest\\StartNewKeyPair", new { id = item.ApplicationId }) |
-                    @Html.ActionLink("New Certificate", "..\\CertificateRequest\\StartSigning", new { id = item.ApplicationId })
-                -->
-            </td>
-        </tr>
+            @Html.ActionLink("New KeyPair", "..\\CertificateRequest\\StartNewKeyPair", new { id = item.ApplicationId }) |
+            @Html.ActionLink("New Certificate", "..\\CertificateRequest\\StartSigning", new { id = item.ApplicationId })
+        -->
+        </td>
+    </tr>
     }
     <tr>
         <th />

@@ -30,11 +30,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// Initializes a new instance of the QueryApplicationsResponseApiModel
         /// class.
         /// </summary>
-        public QueryApplicationsResponseApiModel(System.DateTime lastCounterResetTime, int nextRecordId, IList<ApplicationRecordApiModel> applications = default(IList<ApplicationRecordApiModel>))
+        public QueryApplicationsResponseApiModel(IList<ApplicationRecordApiModel> applications = default(IList<ApplicationRecordApiModel>), string nextPageLink = default(string))
         {
             Applications = applications;
-            LastCounterResetTime = lastCounterResetTime;
-            NextRecordId = nextRecordId;
+            NextPageLink = nextPageLink;
             CustomInit();
         }
 
@@ -50,22 +49,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "lastCounterResetTime")]
-        public System.DateTime LastCounterResetTime { get; set; }
+        [JsonProperty(PropertyName = "nextPageLink")]
+        public string NextPageLink { get; set; }
 
-        /// <summary>
-        /// </summary>
-        [JsonProperty(PropertyName = "nextRecordId")]
-        public int NextRecordId { get; set; }
-
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="Rest.ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-        }
     }
 }

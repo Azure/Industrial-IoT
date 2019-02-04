@@ -18,6 +18,7 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Types;
 using ApplicationsDatabaseBase = Opc.Ua.Gds.Server.Database.ApplicationsDatabaseBase;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
@@ -246,7 +247,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                         (nextPageLink, certificateRequests) = await certificateRequestsService.QueryPageAsync(appId.ToString(), null, nextPageLink);
                         foreach (var request in certificateRequests)
                         {
-                            await certificateRequestsService.DeleteAsync(request.RequestId);
+                            if (request.State < CertificateRequestState.Deleted)
+                            {
+                                await certificateRequestsService.DeleteAsync(request.RequestId);
+                            }
                         }
                     } while (nextPageLink != null);
                 }
@@ -330,7 +334,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         }
 
         /// <inheritdoc/>
-        public async Task<QueryApplicationsResponseModel> QueryApplicationsAsync(
+        public async Task<QueryApplicationsByIdResponseModel> QueryApplicationsByIdAsync(
             uint startingRecordId,
             uint maxRecordsToReturn,
             string applicationName,
@@ -338,7 +342,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             uint applicationType,
             string productUri,
             IList<string> serverCapabilities,
-            bool? anyState
+            QueryApplicationState? applicationState
             )
         {
             // TODO: implement last query time
@@ -360,12 +364,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                     ApplicationsDatabaseBase.IsMatchPattern(applicationName) ||
                     ApplicationsDatabaseBase.IsMatchPattern(applicationUri) ||
                     ApplicationsDatabaseBase.IsMatchPattern(productUri);
-            }
-
-            ApplicationState? applicationState = ApplicationState.Approved;
-            if (anyState != null && (bool)anyState)
-            {
-                applicationState = null;
             }
 
             bool lastQuery = false;
@@ -439,19 +437,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 }
             } while (maxRecordsToReturn > 0 && !lastQuery);
 
-            return new QueryApplicationsResponseModel(records.ToArray(), lastCounterResetTime, nextRecordId);
+            return new QueryApplicationsByIdResponseModel(records.ToArray(), lastCounterResetTime, nextRecordId);
         }
 
         /// <inheritdoc/>
-        public async Task<QueryApplicationsPageResponseModel> QueryApplicationsPageAsync(
+        public async Task<QueryApplicationsResponseModel> QueryApplicationsAsync(
             string applicationName,
             string applicationUri,
             uint applicationType,
             string productUri,
             IList<string> serverCapabilities,
+            QueryApplicationState? applicationState,
             string nextPageLink,
-            int maxRecordsToReturn,
-            bool? anyState)
+            int? maxRecordsToReturn)
         {
             List<Application> records = new List<Application>();
             bool matchQuery = false;
@@ -472,11 +470,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             if (maxRecordsToReturn < 0)
             {
                 maxRecordsToReturn = _defaultRecordsPerQuery;
-            }
-            ApplicationState? applicationState = ApplicationState.Approved;
-            if (anyState != null && (bool)anyState)
-            {
-                applicationState = null;
             }
             SqlQuerySpec sqlQuerySpec = CreateServerQuery(0, 0, applicationState);
             do
@@ -543,7 +536,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 }
             } while (nextPageLink != null);
 
-            return new QueryApplicationsPageResponseModel(records.ToArray(), nextPageLink);
+            return new QueryApplicationsResponseModel(records.ToArray(), nextPageLink);
         }
         #endregion
 
@@ -553,9 +546,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         /// </summary>
         /// <param name="startingRecordId">The first record Id</param>
         /// <param name="maxRecordsToQuery">The max number of records</param>
-        /// <param name="applicationState">The application state filter</param>
+        /// <param name="applicationState">The application state query filter</param>
         /// <returns></returns>
-        private SqlQuerySpec CreateServerQuery(uint startingRecordId, uint maxRecordsToQuery, ApplicationState? applicationState)
+        private SqlQuerySpec CreateServerQuery(uint startingRecordId, uint maxRecordsToQuery, QueryApplicationState? applicationState)
         {
             string query;
             var queryParameters = new SqlParameterCollection();
@@ -570,10 +563,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             }
             query += " * FROM Applications a WHERE a.ID >= @startingRecord";
             queryParameters.Add(new SqlParameter("@startingRecord", startingRecordId));
-            if (applicationState != null)
+            QueryApplicationState queryState = applicationState ?? QueryApplicationState.Approved;
+            if (queryState != 0)
             {
-                query += " AND a.ApplicationState = @applicationState";
-                queryParameters.Add(new SqlParameter("@applicationState", applicationState.ToString()));
+                bool first = true;
+                foreach (QueryApplicationState state in Enum.GetValues(typeof(QueryApplicationState)))
+                {
+                    if (state == 0) continue;
+                    if ((queryState & state) == state)
+                    {
+                        var sqlParm = "@" + state.ToString().ToLower();
+                        if (first)
+                        {
+                            query += " AND (";
+                        }
+                        else
+                        {
+                            query += " OR";
+                        }
+                        query += " a.ApplicationState = " + sqlParm;
+                        queryParameters.Add(new SqlParameter(sqlParm, state.ToString()));
+                        first = false;
+                    }
+                }
+                if (!first)
+                {
+                    query += " )";
+                }
             }
             query += " AND a.ClassType = @classType";
             queryParameters.Add(new SqlParameter("@classType", Application.ClassTypeName));
@@ -680,7 +696,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
         public static string ServerCapabilities(Application application)
         {
-            if ((int)application.ApplicationType != (int)CosmosDB.Models.ApplicationType.Client)
+            if ((int)application.ApplicationType != (int)ApplicationType.Client)
             {
                 if (application.ServerCapabilities == null || application.ServerCapabilities.Length == 0)
                 {

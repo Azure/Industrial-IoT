@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
 {
     public class KeyVaultTrustListModel
     {
-        public readonly string Id;
+        public readonly string Group;
         public X509Certificate2Collection IssuerCertificates;
         public IList<X509CRL> IssuerCrls;
         public X509Certificate2Collection TrustedCertificates;
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
 
         public KeyVaultTrustListModel(string id)
         {
-            Id = id;
+            Group = id;
             IssuerCertificates = new X509Certificate2Collection();
             IssuerCrls = new List<X509CRL>();
             TrustedCertificates = new X509Certificate2Collection();

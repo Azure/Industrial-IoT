@@ -4,13 +4,16 @@
 // ------------------------------------------------------------
 
 
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Types;
+
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
+
     public interface IApplicationsDatabase
     {
         Task Initialize();
@@ -21,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         Task<Application> UnregisterApplicationAsync(string id);
         Task DeleteApplicationAsync(string id, bool force);
         Task<IList<Application>> ListApplicationAsync(string uri);
-        Task<QueryApplicationsResponseModel> QueryApplicationsAsync(
+        Task<QueryApplicationsByIdResponseModel> QueryApplicationsByIdAsync(
             uint startingRecordId,
             uint maxRecordsToReturn,
             string applicationName,
@@ -29,16 +32,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             uint applicationType,
             string productUri,
             IList<string> serverCapabilities,
-            bool? anyState
+            QueryApplicationState? applicationState = null
             );
-        Task<QueryApplicationsPageResponseModel> QueryApplicationsPageAsync(
-            string applicationName, 
-            string applicationUri, 
-            uint applicationType, 
-            string productUri, 
-            IList<string> serverCapabilities, 
-            string nextPageLink, 
-            int maxRecordsToReturn,
-            bool? anyState);
+        Task<QueryApplicationsResponseModel> QueryApplicationsAsync(
+            string applicationName,
+            string applicationUri,
+            uint applicationType,
+            string productUri,
+            IList<string> serverCapabilities,
+            QueryApplicationState? applicationState = null,
+            string nextPageLink = null,
+            int? pageSize = null);
     }
 }

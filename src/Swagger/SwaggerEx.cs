@@ -59,6 +59,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Swagger
                 // Add annotations
                 options.EnableAnnotations();
 
+                // send all enums as string
+                // required for x-ms-enum
+                options.DescribeAllEnumsAsStrings();
+
                 // Add help
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory,
                     config.GetType().Assembly.GetName().Name + ".xml"), true);
@@ -202,14 +206,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Swagger
                     extensions.Add("x-ms-enum", new
                     {
                         name = paramType.Name,
-                        modelAsString = false,
-                        values = paramType
-                            .GetFields(BindingFlags.Static | BindingFlags.Public)
-                            .Select(field => new
-                            {
-                                name = field.Name,
-                                value = field.Name,
-                            })
+                        modelAsString = false
                     });
                 }
             }
@@ -247,11 +244,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Swagger
                     {
                         operation.Extensions.Add("x-ms-long-running-operation", true);
                     }
-                    if (!string.IsNullOrEmpty(attribute.ContinuationTokenLinkName))
+                    if (!string.IsNullOrEmpty(attribute.NextPageLinkName))
                     {
                         operation.Extensions.Add("x-ms-pageable",
                             new Dictionary<string, string> {
-                                { "nextLinkName", attribute.ContinuationTokenLinkName }
+                                { "nextLinkName", attribute.NextPageLinkName }
                             });
                     }
                     if (attribute.ResponseTypeIsFileStream)

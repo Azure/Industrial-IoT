@@ -13,11 +13,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
         { }
 
         public ApplicationRecordTrimmedApiModel(ApplicationRecordApiModel apiModel) :
-            base(apiModel.ApplicationId, apiModel.Id)
+            base(apiModel.State, apiModel.ApplicationType, apiModel.ApplicationId, apiModel.Id)
         {
             ApplicationUri = apiModel.ApplicationUri;
             ApplicationName = apiModel.ApplicationName;
-            ApplicationType = apiModel.ApplicationType;
             ApplicationNames = apiModel.ApplicationNames;
             ProductUri = apiModel.ProductUri;
             DiscoveryUrls = apiModel.DiscoveryUrls;

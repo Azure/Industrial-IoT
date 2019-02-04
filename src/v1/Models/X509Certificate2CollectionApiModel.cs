@@ -14,6 +14,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         [JsonProperty(PropertyName = "chain", Order = 10)]
         public IList<X509Certificate2ApiModel> Chain { get; set; }
 
+        [JsonProperty(PropertyName = "nextPageLink", Order = 20)]
+        public string NextPageLink { get; set; }
+
         public X509Certificate2CollectionApiModel(X509Certificate2Collection certificateCollection)
         {
             var chain = new List<X509Certificate2ApiModel>();

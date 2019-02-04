@@ -14,14 +14,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
         { }
 
         public CertificateRequestIndexApiModel(CertificateRequestRecordApiModel apiModel) :
-            base()
+            base(apiModel.State, apiModel.SigningRequest)
         {
             RequestId = apiModel.RequestId;
             ApplicationId = apiModel.ApplicationId;
-            State = apiModel.State;
             CertificateGroupId = apiModel.CertificateGroupId;
             CertificateTypeId = apiModel.CertificateTypeId;
-            SigningRequest = apiModel.SigningRequest;
             SubjectName = apiModel.SubjectName;
             DomainNames = apiModel.DomainNames;
             PrivateKeyFormat = apiModel.PrivateKeyFormat;

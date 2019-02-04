@@ -30,9 +30,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// Initializes a new instance of the
         /// X509Certificate2CollectionApiModel class.
         /// </summary>
-        public X509Certificate2CollectionApiModel(IList<X509Certificate2ApiModel> chain = default(IList<X509Certificate2ApiModel>))
+        public X509Certificate2CollectionApiModel(IList<X509Certificate2ApiModel> chain = default(IList<X509Certificate2ApiModel>), string nextPageLink = default(string))
         {
             Chain = chain;
+            NextPageLink = nextPageLink;
             CustomInit();
         }
 
@@ -45,6 +46,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// </summary>
         [JsonProperty(PropertyName = "chain")]
         public IList<X509Certificate2ApiModel> Chain { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "nextPageLink")]
+        public string NextPageLink { get; set; }
 
     }
 }

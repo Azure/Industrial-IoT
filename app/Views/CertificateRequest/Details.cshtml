@@ -1,4 +1,4 @@
-﻿@model Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.CertificateRequestRecordApiModel
+@model Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.CertificateRequestRecordApiModel
 
 @{
     ViewBag.Title = "Start New Key Pair Request";
@@ -76,7 +76,7 @@
     <hr />
     <dl class="dl-horizontal">
 
-        @if (Model.State == "New")
+        @if (Model.State == Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.CertificateRequestState.New)
         {
             <dd>
 
@@ -85,7 +85,8 @@
             </dd>
 
         }
-        @if (Model.State == "Approved" /*|| Model.State == "Accepted"*/)
+        @if (Model.State == Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.CertificateRequestState.Approved ||
+            Model.State == Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.CertificateRequestState.Accepted)
         {
             <dt>Download</dt>
             <dd>
@@ -110,18 +111,18 @@
         }
     </dl>
 
-    @if (Model.State == "Approved")
+    @if (Model.State == Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.CertificateRequestState.Approved)
     {
         <hr />
         <dl class="dl-horizontal">
             <dd>
                 @if (!String.IsNullOrEmpty(Model.PrivateKeyFormat))
                 {
-                    @Html.ActionLink("Delete Private Key", "Accept", new { id = Model.RequestId }, htmlAttributes: new { @class = "btn btn-default" })
+                    @Html.ActionLink("Delete Private Key and Accept Certificate", "Accept", new { id = Model.RequestId }, htmlAttributes: new { @class = "btn btn-default" })
                 }
                 else
                 {
-                    @Html.ActionLink("Delete Certificate", "Accept", new { id = Model.RequestId }, htmlAttributes: new { @class = "btn btn-default" })
+                    @Html.ActionLink("Accept Certificate", "Accept", new { id = Model.RequestId }, htmlAttributes: new { @class = "btn btn-default" })
                 }
             </dd>
         </dl>
@@ -133,9 +134,10 @@
     <div class="alert alert-warning">
         <h4>@ViewData["Message"]</h4>
     </div>
-    <hr />
 }
 <div class="col-md-12">
+    <hr />
+    <img src="~/images/opcvaultflowstep3.svg" alt="OpcVault Request" class="img-responsive" />
     <hr />
     @Html.ActionLink("Back to List", "Index")
     <hr />

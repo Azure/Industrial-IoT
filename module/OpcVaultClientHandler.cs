@@ -128,9 +128,9 @@ namespace Opc.Ua.Gds.Server.OpcVault
 
         public async Task<X509TrustList> GetTrustListAsync(string id)
         {
-            const int MaxResults = 3;
+            const int PageSize = 3;
             var result = new X509TrustList();
-            var trustList = await _opcServiceClient.GetCertificateGroupTrustListAsync(id, MaxResults).ConfigureAwait(false);
+            var trustList = await _opcServiceClient.GetCertificateGroupTrustListAsync(id, pageSize: PageSize).ConfigureAwait(false);
             while (trustList != null)
             {
                 result.AddIssuerCertificates(trustList.IssuerCertificates);
@@ -139,7 +139,7 @@ namespace Opc.Ua.Gds.Server.OpcVault
                 result.AddTrustedCrls(trustList.TrustedCrls);
                 if (!String.IsNullOrEmpty(trustList.NextPageLink))
                 {
-                    trustList = await _opcServiceClient.GetCertificateGroupTrustListNextAsync(id, trustList.NextPageLink, MaxResults).ConfigureAwait(false);
+                    trustList = await _opcServiceClient.GetCertificateGroupTrustListAsync(id, trustList.NextPageLink, PageSize).ConfigureAwait(false);
                 }
                 else
                 {

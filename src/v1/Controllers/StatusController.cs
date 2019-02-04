@@ -8,6 +8,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
     using System;
+    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -15,7 +16,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The status service.
+    /// </summary>
     [ApiController]
     [Route(VersionInfo.PATH + "/[controller]"), TypeFilter(typeof(ExceptionsFilterAttribute))]
     [Produces("application/json")]
@@ -26,7 +29,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         private readonly ICertificateGroup _certificateGroups;
         private readonly IApplicationsDatabase _applicationDatabase;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Create the status controller.
+        /// </summary>
         public StatusController(
             IApplicationsDatabase applicationDatabase,
             ICertificateGroup certificateGroups,
@@ -39,17 +44,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         }
 
         /// <summary>
-        /// returns the status
+        /// Get the status.
         /// </summary>
-        /// <returns></returns>
         [HttpGet]
-        public async System.Threading.Tasks.Task<StatusApiModel> GetStatusAsync()
+        public async Task<StatusApiModel> GetStatusAsync()
         {
             bool applicationOk;
             string applicationMessage = "Alive and well";
             try
             {
-                var apps = await _applicationDatabase.QueryApplicationsAsync(0, 1, null, null, 0, null, null, true);
+                var apps = await _applicationDatabase.QueryApplicationsByIdAsync(0, 1, null, null, 0, null, null, Types.QueryApplicationState.Any);
                 applicationOk = apps != null;
             }
             catch (Exception ex)

@@ -28,15 +28,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// Initializes a new instance of the QueryApplicationsApiModel class.
         /// </summary>
-        public QueryApplicationsApiModel(int? startingRecordId = default(int?), int? maxRecordsToReturn = default(int?), string applicationName = default(string), string applicationUri = default(string), int? applicationType = default(int?), string productUri = default(string), IList<string> serverCapabilities = default(IList<string>))
+        /// <param name="applicationType">Possible values include: 'any',
+        /// 'server', 'client', 'clientAndServer'</param>
+        /// <param name="applicationState">Possible values include: 'any',
+        /// 'new', 'approved', 'rejected', 'unregistered', 'deleted'</param>
+        public QueryApplicationsApiModel(string applicationName = default(string), string applicationUri = default(string), QueryApplicationType? applicationType = default(QueryApplicationType?), string productUri = default(string), IList<string> serverCapabilities = default(IList<string>), QueryApplicationState? applicationState = default(QueryApplicationState?))
         {
-            StartingRecordId = startingRecordId;
-            MaxRecordsToReturn = maxRecordsToReturn;
             ApplicationName = applicationName;
             ApplicationUri = applicationUri;
             ApplicationType = applicationType;
             ProductUri = productUri;
             ServerCapabilities = serverCapabilities;
+            ApplicationState = applicationState;
             CustomInit();
         }
 
@@ -44,16 +47,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// An initialization method that performs custom operations like setting defaults
         /// </summary>
         partial void CustomInit();
-
-        /// <summary>
-        /// </summary>
-        [JsonProperty(PropertyName = "startingRecordId")]
-        public int? StartingRecordId { get; set; }
-
-        /// <summary>
-        /// </summary>
-        [JsonProperty(PropertyName = "maxRecordsToReturn")]
-        public int? MaxRecordsToReturn { get; set; }
 
         /// <summary>
         /// </summary>
@@ -66,9 +59,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         public string ApplicationUri { get; set; }
 
         /// <summary>
+        /// Gets or sets possible values include: 'any', 'server', 'client',
+        /// 'clientAndServer'
         /// </summary>
         [JsonProperty(PropertyName = "applicationType")]
-        public int? ApplicationType { get; set; }
+        public QueryApplicationType? ApplicationType { get; set; }
 
         /// <summary>
         /// </summary>
@@ -79,6 +74,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// </summary>
         [JsonProperty(PropertyName = "serverCapabilities")]
         public IList<string> ServerCapabilities { get; set; }
+
+        /// <summary>
+        /// Gets or sets possible values include: 'any', 'new', 'approved',
+        /// 'rejected', 'unregistered', 'deleted'
+        /// </summary>
+        [JsonProperty(PropertyName = "applicationState")]
+        public QueryApplicationState? ApplicationState { get; set; }
 
     }
 }

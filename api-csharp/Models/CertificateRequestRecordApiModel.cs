@@ -30,7 +30,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// Initializes a new instance of the CertificateRequestRecordApiModel
         /// class.
         /// </summary>
-        public CertificateRequestRecordApiModel(string requestId = default(string), string applicationId = default(string), string state = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), bool? signingRequest = default(bool?), string subjectName = default(string), IList<string> domainNames = default(IList<string>), string privateKeyFormat = default(string))
+        /// <param name="state">Possible values include: 'new', 'approved',
+        /// 'rejected', 'accepted', 'deleted', 'revoked', 'removed'</param>
+        public CertificateRequestRecordApiModel(CertificateRequestState state, bool signingRequest, string requestId = default(string), string applicationId = default(string), string certificateGroupId = default(string), string certificateTypeId = default(string), string subjectName = default(string), IList<string> domainNames = default(IList<string>), string privateKeyFormat = default(string))
         {
             RequestId = requestId;
             ApplicationId = applicationId;
@@ -60,9 +62,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         public string ApplicationId { get; set; }
 
         /// <summary>
+        /// Gets possible values include: 'new', 'approved', 'rejected',
+        /// 'accepted', 'deleted', 'revoked', 'removed'
         /// </summary>
         [JsonProperty(PropertyName = "state")]
-        public string State { get; set; }
+        public CertificateRequestState State { get; private set; }
 
         /// <summary>
         /// </summary>
@@ -77,7 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "signingRequest")]
-        public bool? SigningRequest { get; set; }
+        public bool SigningRequest { get; private set; }
 
         /// <summary>
         /// </summary>
@@ -94,5 +98,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models
         [JsonProperty(PropertyName = "privateKeyFormat")]
         public string PrivateKeyFormat { get; set; }
 
+        /// <summary>
+        /// Validate the object.
+        /// </summary>
+        /// <exception cref="Rest.ValidationException">
+        /// Thrown if validation fails
+        /// </exception>
+        public virtual void Validate()
+        {
+        }
     }
 }

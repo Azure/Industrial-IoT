@@ -5,19 +5,10 @@
 
 using System;
 using Newtonsoft.Json;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Types;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models
 {
-    public enum CertificateRequestState
-    {
-        New = 0,
-        Approved = 1,
-        Rejected = 2,
-        Accepted = 3,
-        Deleted = 4,
-        Revoked = 5
-    }
-
     [Serializable]
     public class CertificateRequest
     {

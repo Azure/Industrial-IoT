@@ -3,7 +3,6 @@
 @{
     ViewBag.Title = "Application";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    IList<string> AppTypes = new List<string>() { "Server", "Client", "ClientAndServer", "DiscoveryServer" };
 }
 
 <h2>View Application Details</h2>
@@ -29,6 +28,14 @@
         </dd>
 
         <dt>
+            @Html.DisplayNameFor(model => model.State)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.State)
+        </dd>
+
+        <dt>
             @Html.DisplayNameFor(model => model.ApplicationName)
         </dt>
 
@@ -49,7 +56,7 @@
         </dt>
 
         <dd>
-            @Html.DisplayFor(model => AppTypes[(int)Model.ApplicationType])
+            @Html.DisplayFor(model => Model.ApplicationType)
         </dd>
 
         <dt>
@@ -60,17 +67,17 @@
             @Html.DisplayFor(model => model.ProductUri)
         </dd>
         <!--
-        <dt>
-            @Html.DisplayNameFor(model => model.ApplicationNames)
-        </dt>
+    <dt>
+        @Html.DisplayNameFor(model => model.ApplicationNames)
+    </dt>
 
-        @foreach (var applicationName in Model.ApplicationNames)
-        {
-            <dd>
-                @Html.DisplayFor(model => applicationName.Text)
-            </dd>
-        }
-        -->
+    @foreach (var applicationName in Model.ApplicationNames)
+    {
+        <dd>
+            @Html.DisplayFor(model => applicationName.Text)
+        </dd>
+    }
+    -->
         @if (Model.DiscoveryUrls != null)
         {
 
@@ -96,28 +103,28 @@
             </dd>
         }
         <!--
-                <dt>
-                    @Html.DisplayNameFor(model => model.GatewayServerUri)
-                </dt>
+            <dt>
+                @Html.DisplayNameFor(model => model.GatewayServerUri)
+            </dt>
 
-                <dd>
-                    @Html.DisplayFor(model => model.GatewayServerUri)
-                </dd>
+            <dd>
+                @Html.DisplayFor(model => model.GatewayServerUri)
+            </dd>
 
-                <dt>
-                    @Html.DisplayNameFor(model => model.DiscoveryProfileUri)
-                </dt>
+            <dt>
+                @Html.DisplayNameFor(model => model.DiscoveryProfileUri)
+            </dt>
 
-                <dd>
-                    @Html.DisplayFor(model => model.DiscoveryProfileUri)
-                </dd>
-        -->
+            <dd>
+                @Html.DisplayFor(model => model.DiscoveryProfileUri)
+            </dd>
+    -->
     </dl>
 </div>
 <p>
-    @Html.ActionLink("Edit", "..\\Certomat\\Register", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
+    @Html.ActionLink("Edit", "..\\Application\\Register", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
     @Html.ActionLink("Unregister", "Unregister", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
-    @Html.ActionLink("Request New Certificate", "..\\Certomat\\Request", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
+    @Html.ActionLink("Request New Certificate", "Request", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
 </p>
 <p>
     <hr />

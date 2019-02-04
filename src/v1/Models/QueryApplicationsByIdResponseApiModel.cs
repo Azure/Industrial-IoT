@@ -4,22 +4,29 @@
 // ------------------------------------------------------------
 
 
-using System.Collections.Generic;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 {
-    public sealed class QueryApplicationsPageResponseApiModel
+    public sealed class QueryApplicationsByIdResponseApiModel
     {
         [JsonProperty(PropertyName = "applications", Order = 10)]
         public IList<ApplicationRecordApiModel> Applications { get; set; }
 
-        [JsonProperty(PropertyName = "nextPageLink", Order = 20)]
-        public string NextPageLink { get; set; }
+        [JsonProperty(PropertyName = "lastCounterResetTime", Order = 20)]
+        [Required]
+        public DateTime LastCounterResetTime { get; set; }
 
-        public QueryApplicationsPageResponseApiModel(QueryApplicationsPageResponseModel model)
+        [JsonProperty(PropertyName = "nextRecordId", Order = 30)]
+        [Required]
+        public int NextRecordId { get; set; }
+
+        public QueryApplicationsByIdResponseApiModel(QueryApplicationsByIdResponseModel model)
         {
             var applicationsList = new List<ApplicationRecordApiModel>();
             foreach (Application application in model.Applications)
@@ -27,7 +34,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
                 applicationsList.Add(new ApplicationRecordApiModel(application));
             }
             Applications = applicationsList;
-            NextPageLink = model.NextPageLink;
+            LastCounterResetTime = model.LastCounterResetTime;
+            NextRecordId = model.NextRecordId;
         }
 
     }

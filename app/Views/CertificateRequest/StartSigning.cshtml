@@ -9,7 +9,7 @@
 <h2>Generate a new Certificate with a Signing Request</h2>
 
 
-@using (Html.BeginForm("StartSigning", "Certomat", FormMethod.Post, new { enctype = "multipart/form-data" }))
+@using (Html.BeginForm("StartSigning", "CertificateRequest", FormMethod.Post, new { enctype = "multipart/form-data" }))
 {
     @Html.AntiForgeryToken()
 
@@ -77,7 +77,7 @@
     <div class="form-group">
         <div class="col-md-offset-2 col-md-10">
             <input type="submit" value="Generate New Certificate" class="btn btn-default" />
-            @Html.ActionLink("Clear Form", "StartSigning", "Certomat", new { id = Model.ApiModel.ApplicationId }, new { @class = "btn btn-default" })
+            @Html.ActionLink("Clear Form", "StartSigning", "CertificateRequest", new { id = Model.ApiModel.ApplicationId }, new { @class = "btn btn-default" })
         </div>
     </div>
 </div>

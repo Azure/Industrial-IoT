@@ -36,9 +36,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
 
             if (String.IsNullOrWhiteSpace(application.ApplicationUri)) { errorList.Add(nameof(application.ApplicationUri)); }
             if (String.IsNullOrWhiteSpace(application.ProductUri)) { errorList.Add(nameof(application.ProductUri)); }
-            if (application.ApplicationType == null) { errorList.Add(nameof(application.ApplicationType)); }
             if (String.IsNullOrWhiteSpace(application.ApplicationName)) { errorList.Add(nameof(application.ApplicationName)); }
-            if (application.ApplicationType != null && application.ApplicationType != ApplicationTypeClient)
+            if (application.ApplicationType != ApplicationType.Client)
             {
                 if (String.IsNullOrWhiteSpace(application.ServerCapabilities)) { errorList.Add(nameof(application.ServerCapabilities)); }
                 if (application.DiscoveryUrls != null)
@@ -69,7 +68,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
 
             if (!Uri.IsWellFormedUriString(application.ApplicationUri, UriKind.Absolute)) { errorList.Add("ApplicationUri"); }
             if (!Uri.IsWellFormedUriString(application.ProductUri, UriKind.Absolute)) { errorList.Add("ProductUri"); }
-            if (application.ApplicationType != ApplicationTypeClient)
+            if (application.ApplicationType != ApplicationType.Client)
             {
                 for (int i = 0; i < application.DiscoveryUrls.Count; i++)
                 {
@@ -78,8 +77,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
             }
             if (errorList.Count > 0) { return new ValidationResult("Not a well formed Uri.", errorList); }
 
-            if (application.ApplicationType != null &&
-                application.ApplicationType != ApplicationTypeClient &&
+            if (application.ApplicationType != ApplicationType.Client &&
                 !String.IsNullOrEmpty(application.ServerCapabilities))
             {
                 string[] serverCapModelArray = application.ServerCapabilities.Split(',');
@@ -106,11 +104,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
         { }
 
         public ApplicationRecordRegisterApiModel(ApplicationRecordApiModel apiModel) :
-            base(apiModel.ApplicationId, apiModel.Id)
+            base(ApplicationState.New, apiModel.ApplicationType, apiModel.ApplicationId, apiModel.Id)
         {
             ApplicationUri = apiModel.ApplicationUri;
             ApplicationName = apiModel.ApplicationName;
-            ApplicationType = apiModel.ApplicationType;
             ApplicationNames = apiModel.ApplicationNames;
             ProductUri = apiModel.ProductUri;
             DiscoveryUrls = apiModel.DiscoveryUrls;

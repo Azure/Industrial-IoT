@@ -5,22 +5,27 @@
 // ------------------------------------------------------------
 
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
+using System;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models
 {
-    public sealed class QueryApplicationsPageResponseModel
+    public sealed class QueryApplicationsByIdResponseModel
     {
         public Application[] Applications { get; set; }
 
-        public string NextPageLink { get; set; }
+        public DateTime LastCounterResetTime { get; set; }
 
-        public QueryApplicationsPageResponseModel(
+        public int NextRecordId { get; set; }
+
+        public QueryApplicationsByIdResponseModel(
             Application[] applications,
-            string nextPagelink
+            DateTime lastCounterResetTime,
+            uint nextRecordId
             )
         {
             this.Applications = applications;
-            this.NextPageLink = NextPageLink;
+            this.LastCounterResetTime = lastCounterResetTime;
+            this.NextRecordId = (int)nextRecordId;
         }
     }
 }

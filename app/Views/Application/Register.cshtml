@@ -1,7 +1,7 @@
-﻿@model Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models.ApplicationRecordRegisterApiModel
+@model Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models.ApplicationRecordRegisterApiModel
 
 @{
-    ViewBag.Title = "Certomat";
+    ViewBag.Title = "Application";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -59,10 +59,14 @@ else
        model => model.ApplicationType,
        new SelectList(
            new List<Object>{
-                                new { value = 0 , text = "Server"  },
-                                new { value = 1 , text = "Client" },
-                                new { value = 2 , text = "ClientAndServer" },
-                                new { value = 3 , text = "DiscoveryServer"}
+                                new { value = Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationType.Server ,
+                                    text = Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationType.Server.ToString() },
+                                new { value = Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationType.Client ,
+                                    text = Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationType.Client.ToString() },
+                                new { value = Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationType.ClientAndServer ,
+                                    text = Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationType.ClientAndServer.ToString() },
+                                new { value = Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationType.DiscoveryServer ,
+                                    text = Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationType.DiscoveryServer.ToString() },
            },
        "value",
        "text",
@@ -85,7 +89,7 @@ else
             </div>
         </div>
 
-        @if (Model.ApplicationType != null && Model.ApplicationType != 1)
+        @if (Model.ApplicationType != Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.ApplicationType.Client)
         {
             @for (int i = 0; i < Model.DiscoveryUrls.Count(); i++)
             {
@@ -123,12 +127,14 @@ else
         else
         {
             @Html.HiddenFor(model => Model.ServerCapabilities);
-            @for (int i = 0; i < Model.DiscoveryUrls.Count(); i++)
+            @if (Model.DiscoveryUrls != null)
             {
-                @Html.HiddenFor(model => Model.DiscoveryUrls[i]);
+                @for (int i = 0; i < Model.DiscoveryUrls.Count(); i++)
+                {
+                    @Html.HiddenFor(model => Model.DiscoveryUrls[i]);
+                }
             }
         }
-
         @if (ViewData["ErrorMessage"] != null)
         {
             <hr />
@@ -157,7 +163,7 @@ else
                 {
                     <input type="submit" name="reg" value="Register" class="btn btn-default" />
                 }
-                @Html.ActionLink("Clear Form", "Register", "Certomat", new { id = "" }, new { @class = "btn btn-default" })
+                @Html.ActionLink("Clear Form", "Register", new { id = "" }, new { @class = "btn btn-default" })
             </div>
         </div>
     </div>
@@ -167,7 +173,7 @@ else
     <hr />
     <img src="~/images/opcvaultflowstep1.svg" alt="OpcVault Registration" class="img-responsive" />
     <hr />
-    @Html.ActionLink("Back to Register New", "Register", "Certomat", new { id = "" })
+    @Html.ActionLink("Back to Register New", "Register", new { id = "" })
 </div>
 
 
