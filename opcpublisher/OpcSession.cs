@@ -731,6 +731,11 @@ namespace OpcPublisher
                         {
                             // nodes may be tagged for stop before they are monitored, just continue
                         }
+                        // stop heartbeat timer for all items to remove
+                        foreach (var itemToRemove in itemsToRemove)
+                        {
+                            itemToRemove?.HeartbeatSendTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+                        }
                         // remove them in our data structure
                         opcSubscription.OpcMonitoredItems.RemoveAll(i => i.State == OpcMonitoredItemState.RemovalRequested);
                         Interlocked.Increment(ref NodeConfigVersion);
