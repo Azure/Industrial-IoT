@@ -6,6 +6,7 @@ namespace OpcPublisher
     public class ProgramMethodTests
     {
         [Fact]
+        [Trait("Options", "MethodTest")]
         public void ParseListOfStringsOk()
         {
             string testString = "a, b, c, d";
@@ -22,6 +23,7 @@ namespace OpcPublisher
 
 
         [Theory]
+        [Trait("Options", "MethodTest")]
         [MemberData(nameof(ParseListOfStringsSimplePass0))]
         public void ParseListOfStringsPass(string test, List<string> expected)
         {

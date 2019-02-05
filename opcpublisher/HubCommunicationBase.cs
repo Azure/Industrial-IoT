@@ -299,7 +299,7 @@ namespace OpcPublisher
                         {
                             // create new session info.
                             opcSession = new OpcSession(endpointUri.OriginalString, useSecurity, OpcSessionCreationTimeout);
-                            OpcSessions.Add(opcSession);
+                            NodeConfiguration.OpcSessions.Add(opcSession);
                             Logger.Information($"{logPrefix} No matching session found for endpoint '{endpointUri.OriginalString}'. Requested to create a new one.");
                         }
 

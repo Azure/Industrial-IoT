@@ -20,19 +20,49 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="testdata\opcpublishinginterval\pn_plc_request_payload_no_publishing_interval.json">
+    <None Update="testdata\heartbeatinterval\pn_plc_empty.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="testdata\opcpublishinginterval\pn_plc_request_payload_publishing_interval_2000.json">
+    <None Update="testdata\heartbeatinterval\pn_plc_request_payload_heartbeatinterval_2.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="testdata\opcpublishinginterval\pn_plc_publishing_interval_2000.json">
+    <None Update="testdata\heartbeatinterval\pn_plc_request_payload_heartbeatinterval_unset.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\heartbeatinterval\pn_plc_heartbeatinterval_2.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\heartbeatinterval\pn_plc_heartbeatinterval_unset.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\opcpublishinginterval\pn_plc_request_payload_publishinginterval_unset.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\opcpublishinginterval\pn_plc_request_payload_publishinginterval_2000.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\opcpublishinginterval\pn_plc_publishinginterval_2000.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="testdata\opcpublishinginterval\pn_plc_empty.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="testdata\opcpublishinginterval\pn_plc_publishing_interval_none.json">
+    <None Update="testdata\opcpublishinginterval\pn_plc_publishinginterval_unset.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\opcsamplinginterval\pn_plc_empty.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\opcsamplinginterval\pn_plc_samplinginterval_2000.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\opcsamplinginterval\pn_plc_samplinginterval_unset.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\opcsamplinginterval\pn_plc_request_payload_samplinginterval_unset.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\opcsamplinginterval\pn_plc_request_payload_samplinginterval_2000.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="testdata\pn_plc_simple_enid_id.json">
@@ -75,6 +105,36 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="testdata\publishernodeconfiguration\pn_plc_simple_nid_id.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\skipfirst\pn_plc_empty.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\skipfirst\pn_plc_request_payload_skipfirst_false.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\skipfirst\pn_plc_skipfirst_false.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\skipfirst\pn_plc_skipfirst_true.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\skipfirst\pn_plc_skipfirst_unset.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\skipfirst\pn_plc_request_payload_skipfirst_unset.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\skipfirst\pn_plc_request_payload_skipfirst_true.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\telemetry\pn_plc_productname_heartbeatinterval_2_skipfirst.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\telemetry\pn_plc_productname_heartbeatinterval_2.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testdata\telemetry\pn_plc_productname.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="testdata\telemetry\pn_plc_currenttime.json">

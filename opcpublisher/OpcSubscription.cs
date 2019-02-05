@@ -3,6 +3,7 @@
 namespace OpcPublisher
 {
     using System;
+    using System.Threading;
     using static OpcApplicationConfiguration;
 
     /// <summary>
@@ -56,6 +57,10 @@ namespace OpcPublisher
             if (disposing)
             {
                 // dispose managed resources
+                foreach (var opcMonitoredItem in OpcMonitoredItems)
+                {
+                    opcMonitoredItem?.HeartbeatSendTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+                }
                 OpcMonitoredItems?.Clear();
                 OpcUaClientSubscription?.Dispose();
                 OpcUaClientSubscription = null;

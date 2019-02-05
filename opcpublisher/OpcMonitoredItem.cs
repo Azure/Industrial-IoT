@@ -7,6 +7,7 @@ namespace OpcPublisher
     using Opc.Ua;
     using System.Collections.Generic;
     using System.Globalization;
+    using System.Threading;
     using static HubCommunicationBase;
     using static OpcApplicationConfiguration;
     using static Program;
@@ -556,7 +557,7 @@ namespace OpcPublisher
                 else
                 {
                     // enqueue the telemetry event
-                    Enqueue(messageData);
+                    Hub.Enqueue(messageData);
                 }
             }
             catch (Exception ex)
@@ -607,7 +608,7 @@ namespace OpcPublisher
                     }
 
                     // enqueue the message
-                    Enqueue(HeartbeatMessage);
+                    Hub.Enqueue(HeartbeatMessage);
                     Logger.Debug($"Message enqueued for heartbeat with sourceTimestamp '{HeartbeatMessage.SourceTimestamp}'.");
                 }
                 else

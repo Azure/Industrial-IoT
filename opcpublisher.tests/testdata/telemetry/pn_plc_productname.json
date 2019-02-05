@@ -3,7 +3,8 @@
         "EndpointUrl": "opc.tcp://localhost:50000",
         "OpcNodes": [
             {
-                "Id": "i=2258"
+                "Id": "i=2261",
+                "OpcPublishingInterval":  1000
             }
         ]
     }
