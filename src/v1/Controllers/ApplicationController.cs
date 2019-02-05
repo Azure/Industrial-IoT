@@ -16,7 +16,9 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// Application services.
+    /// </summary>
     [ApiController]
     [Route(VersionInfo.PATH + "/app"), TypeFilter(typeof(ExceptionsFilterAttribute))]
     [Produces("application/json")]
@@ -57,6 +59,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// <summary>
         /// Get application.
         /// </summary>
+        /// <remarks>
+        /// Returns the record of any application.
+        /// </remarks>
         /// <param name="applicationId">The application id</param>
         /// <returns>The application record</returns>
         [HttpGet("{applicationId}")]
@@ -109,11 +114,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// <summary>
         /// Unregister application.
         /// </summary>
+        /// <remarks>
         /// Unregisters the application record and all associated information.
         /// The application record remains in the database in 'Unregistered' state.
         /// Certificate Requests associated with the application id are set to the 'Deleted' state,
         /// and will be revoked with the next CRL update.
         /// Requires Writer role.
+        ///</remarks>      
         /// <param name="applicationId">The application id</param>
         [HttpDelete("{applicationId}/unregister")]
         [Authorize(Policy = Policies.CanWrite)]
@@ -125,10 +132,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// <summary>
         /// Delete application.
         /// </summary>
+        /// <remarks>
         /// Deletes the application record.
         /// Certificate Requests associated with the application id are set in the deleted state,
         /// and will be revoked with the next CRL update.
         /// Requires Manager role.
+        /// </remarks>
         /// <param name="applicationId">The application id</param>
         /// <param name="force">optional, skip sanity checks and force to delete application</param>
         [HttpDelete("{applicationId}")]
@@ -169,9 +178,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// <summary>
         /// Query applications by id.
         /// </summary>
-        /// <remark>
+        /// <remarks>
         /// A query model which supports the OPC UA Global Discovery Server query.
-        /// </remark>
+        /// </remarks>
         /// <param name="query"></param>
         /// <returns></returns>
         [HttpPost("querybyid")]
@@ -199,11 +208,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// <summary>
         /// Query applications.
         /// </summary>
-        /// <remark>
+        /// <remarks>
         /// List applications that match the query model.
         /// The returned model can contain a next page link if more results are
         /// available.
-        /// </remark>
+        /// </remarks>
         /// <param name="query">The Application query parameters</param>
         /// <param name="nextPageLink">optional, link to next page </param>
         /// <param name="pageSize">optional, the maximum number of result per page</param>
