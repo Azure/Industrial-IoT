@@ -28,10 +28,10 @@
     {
         <tr>
             <td>
-                @Html.ActionLink(request.ApplicationNameTrimmed, "..\\Application\\Details", new { id = request.ApplicationId })
+                @Html.ActionLink(request.ApplicationNameTrimmed, "Details", "Application", new { id = request.ApplicationId })
             </td>
             <td>
-                @Html.ActionLink(request.ApplicationUriTrimmed, "..\\Application\\Details", new { id = request.ApplicationId })
+                @Html.ActionLink(request.ApplicationUriTrimmed, "Details", "Application", new { id = request.ApplicationId })
             </td>
             <td>
                 @Html.DisplayFor(requestItem => request.State)
@@ -60,6 +60,21 @@
         <th />
     </tr>
 </table>
-
+@if (ViewData["ErrorMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-warning">
+        <h4>@ViewData["ErrorMessage"]</h4>
+    </div>
+    <hr />
+}
+@if (ViewData["SuccessMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-success">
+        <h4>@ViewData["SuccessMessage"]</h4>
+    </div>
+    <hr />
+}
 <p>
 </p>

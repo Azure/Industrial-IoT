@@ -19,6 +19,9 @@ using Microsoft.Rest;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
 {
+    /// <summary>
+    /// The Application Controller.
+    /// </summary>
     [Authorize]
     public class ApplicationController : Controller
     {
@@ -37,65 +40,118 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             _tokenCacheService = tokenCacheService;
         }
 
-
+        /// <summary>
+        /// List all applications.
+        /// </summary>
         [ActionName("Index")]
         public async Task<ActionResult> IndexAsync()
         {
             AuthorizeClient();
             var applicationQuery = new QueryApplicationsApiModel();
             var applicationsTrimmed = new List<ApplicationRecordTrimmedApiModel>();
+            // TODO: Implement paging.
             string nextPageLink = null;
-            do
+            try
             {
-                var applications = await _opcVault.QueryApplicationsAsync(applicationQuery, nextPageLink);
-                foreach (var app in applications.Applications)
+                do
                 {
-                    applicationsTrimmed.Add(new ApplicationRecordTrimmedApiModel(app));
-                }
-                nextPageLink = applications.NextPageLink;
-            } while (nextPageLink != null);
+                    var applications = await _opcVault.QueryApplicationsAsync(applicationQuery, nextPageLink);
+                    foreach (var app in applications.Applications)
+                    {
+                        applicationsTrimmed.Add(new ApplicationRecordTrimmedApiModel(app));
+                    }
+                    nextPageLink = applications.NextPageLink;
+                } while (nextPageLink != null);
+            }
+            catch (Exception ex)
+            {
+                ViewData["ErrorMessage"] = "The application query failed." +
+                    "Message:" + ex.Message;
+                return View(applicationsTrimmed);
+            }
             return View(applicationsTrimmed);
         }
 
+        /// <summary>
+        /// Show the details for unregister of the application.
+        /// </summary>
         [ActionName("Unregister")]
-        public async Task<ActionResult> DeleteAsync(string id)
+        public async Task<ActionResult> UnregisterAsync(string id)
         {
             if (String.IsNullOrEmpty(id))
             {
                 return new BadRequestResult();
             }
             AuthorizeClient();
-            var application = await _opcVault.GetApplicationAsync(id);
-            if (application == null)
+            var application = new ApplicationRecordApiModel();
+            try
             {
-                return new NotFoundResult();
+                application = await _opcVault.GetApplicationAsync(id);
+                if (application == null)
+                {
+                    return new NotFoundResult();
+                }
             }
-
+            catch (Exception ex)
+            {
+                ViewData["ErrorMessage"] = "Load unregister details of the application failed. " +
+                    "Message:" + ex.Message;
+                return View(application);
+            }
             return View(application);
         }
 
+        /// <summary>
+        /// Execute the application unregister. 
+        /// </summary>
         [HttpPost]
         [ActionName("Unregister")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> UnregisterConfirmedAsync([Bind("Id")] string id)
         {
             AuthorizeClient();
-            await _opcVault.UnregisterApplicationAsync(id);
-            return RedirectToAction("Index");
+            try
+            {
+                await _opcVault.UnregisterApplicationAsync(id);
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ViewData["ErrorMessage"] = "Unregister of the application failed. " +
+                    "Message:" + ex.Message;
+                return await UnregisterAsync(id);
+            }
         }
 
+        /// <summary>
+        /// Show details of application id.
+        /// </summary>
         [ActionName("Details")]
         public async Task<ActionResult> DetailsAsync(string id)
         {
             AuthorizeClient();
-            var application = await _opcVault.GetApplicationAsync(id);
-            if (application == null)
+            var application = new ApplicationRecordApiModel();
+            try
             {
-                return new NotFoundResult();
+                application = await _opcVault.GetApplicationAsync(id);
+                if (application == null)
+                {
+                    return new NotFoundResult();
+                }
+                return View(application);
             }
-            return View(application);
+            catch (Exception ex)
+            {
+                ViewData["ErrorMessage"] =
+                    "An application with id " + id + " could not be found in the database.\r\n" +
+                    "Message:" + ex.Message;
+                return View(application);
+            }
         }
 
+        /// <summary>
+        /// The registration form.
+        /// </summary>
         [ActionName("Register")]
         public async Task<IActionResult> RegisterAsync(string id)
         {
@@ -120,6 +176,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             return View(new ApplicationRecordRegisterApiModel(apiModel));
         }
 
+        /// <summary>
+        /// Handle the registration form.
+        /// Implements the interactivity when the number of array fields change.
+        /// Validates the input fields.
+        /// </summary>
         [HttpPost]
         [ActionName("Register")]
         [ValidateAntiForgeryToken]
@@ -200,7 +261,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 }
             }
 
-            if (!String.IsNullOrWhiteSpace(apiModel.DiscoveryUrls.Last()) &&
+            if (apiModel.DiscoveryUrls != null &&
+                !String.IsNullOrWhiteSpace(apiModel.DiscoveryUrls.Last()) &&
                 command == "add")
             {
                 apiModel.DiscoveryUrls.Add("");
@@ -209,7 +271,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             return View(apiModel);
         }
 
-
+        /// <summary>
+        /// Get the ServiceClientCredentials for the client Api.
+        /// </summary>
         private void AuthorizeClient()
         {
             if (_opcVault == null)
@@ -220,6 +284,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             }
         }
 
+        /// <summary>
+        /// Helper to format the array fields in the register application form.
+        /// </summary>
         private void UpdateApiModel(ApplicationRecordApiModel application)
         {
             if (application.ApplicationNames != null)

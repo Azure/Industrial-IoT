@@ -1,0 +1,14 @@
+@using Microsoft.AspNetCore.Http.Features
+@{
+    bool showRevoke = false;
+    var consentFeature = Context.Features.Get<ITrackingConsentFeature>();
+    if (consentFeature != null && consentFeature.IsConsentNeeded)
+    {
+        showRevoke = consentFeature.CanTrack;
+    }
+}
+
+@if (showRevoke)
+{
+    <form style="display:inline" asp-page="/Home/Privacy" asp-page-handler="Withdraw" method="post"><button type="submit" class="btn btn-link">Revoke Cookie Consent</button>    </form>
+}

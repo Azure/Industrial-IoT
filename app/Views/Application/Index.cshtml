@@ -14,10 +14,10 @@
 <table class="table">
     <tr>
         <!--
-        <th>
-            @Html.DisplayNameFor(model => model.ApplicationId)
-        </th>
-    -->
+            <th>
+                @Html.DisplayNameFor(model => model.ApplicationId)
+            </th>
+        -->
         <th>
             @Html.DisplayNameFor(model => model.ApplicationName)
         </th>
@@ -32,32 +32,32 @@
 
     @foreach (var item in Model)
     {
-    <tr>
-        <!--
-        <td>
-            @Html.DisplayFor(modelItem => item.ApplicationId)
-        </td>
-    -->
-        <td>
-            @Html.DisplayFor(modelItem => item.ApplicationNameTrimmed)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.ApplicationUriTrimmed)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.State)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Register", new { id = item.ApplicationId }/*, new { @class = "btn btn-default" }*/) |
-            @Html.ActionLink("Details", "Details", new { id = item.ApplicationId })  |
-            @Html.ActionLink("Unregister", "Unregister", new { id = item.ApplicationId }) |
-            @Html.ActionLink("New Request", "..\\CertificateRequest\\Request", new { id = item.ApplicationId })
+        <tr>
             <!--
-            @Html.ActionLink("New KeyPair", "..\\CertificateRequest\\StartNewKeyPair", new { id = item.ApplicationId }) |
-            @Html.ActionLink("New Certificate", "..\\CertificateRequest\\StartSigning", new { id = item.ApplicationId })
-        -->
-        </td>
-    </tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ApplicationId)
+                </td>
+            -->
+            <td>
+                @Html.DisplayFor(modelItem => item.ApplicationNameTrimmed)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ApplicationUriTrimmed)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.State)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Register", new { id = item.ApplicationId }/*, new { @class = "btn btn-default" }*/) |
+                @Html.ActionLink("Details", "Details", new { id = item.ApplicationId })  |
+                @Html.ActionLink("Unregister", "Unregister", new { id = item.ApplicationId }) |
+                @Html.ActionLink("New Request", "Request", "CertificateRequest", new { id = item.ApplicationId })
+                <!--
+                    @Html.ActionLink("New KeyPair", "StartNewKeyPair", "CertificateRequest", new { id = item.ApplicationId }) |
+                    @Html.ActionLink("New Certificate", "StartSigning", "CertificateRequest", new { id = item.ApplicationId })
+                -->
+            </td>
+        </tr>
     }
     <tr>
         <th />
@@ -66,6 +66,25 @@
         <th />
     </tr>
 </table>
+
+@if (ViewData["ErrorMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-warning">
+        <h4>@ViewData["ErrorMessage"]</h4>
+    </div>
+    <hr />
+}
+
+@if (ViewData["SuccessMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-success">
+        <h4>@ViewData["SuccessMessage"]</h4>
+    </div>
+    <hr />
+}
+
 <p>
     <!--@Html.ActionLink("Register New", "Register")-->
 </p>

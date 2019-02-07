@@ -473,7 +473,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         /// <summary>
         /// Creates a new signed application certificate in group id.
         /// </summary>
-        public async Task<X509Certificate2> CreateSignedKeyPairAsync(
+        /// <remarks>
+        /// The key for the certificate is created in KeyVault, then exported.
+        /// In order to deleted the created key, the impersonated user needs
+        /// create, get and delete rights for KeyVault certificates
+        /// </remarks>
+        public async Task<X509Certificate2> CreateSignedKeyPairCertAsync(
             string caCertId,
             X509Certificate2 issuerCert,
             string applicationUri,
@@ -575,6 +580,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 }
             }
         }
+
+
 
         /// <summary>
         /// Imports a new CRL for group id.

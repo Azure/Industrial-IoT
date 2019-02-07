@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models;
 
@@ -35,11 +36,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             return View();
         }
 
+        public IActionResult OnPostWithdraw()
+        {
+            HttpContext.Features.Get<ITrackingConsentFeature>().WithdrawConsent();
+            return RedirectToPage("Index");
+        }
+
         [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                StatusCode = HttpContext.Response.StatusCode });
         }
     }
 }

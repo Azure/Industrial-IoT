@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.CertificateGroupConfigurationApiModel>
+@model IEnumerable<Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.CertificateGroupConfigurationApiModel>
 
 @{
     ViewBag.Title = "CertificateGroups";
@@ -46,6 +46,24 @@
         <th />
     </tr>
 </table>
+
+@if (ViewData["ErrorMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-warning">
+        <h4>@ViewData["ErrorMessage"]</h4>
+    </div>
+    <hr />
+}
+
+@if (ViewData["SuccessMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-success">
+        <h4>@ViewData["SuccessMessage"]</h4>
+    </div>
+    <hr />
+}
 
 <p>
 </p>

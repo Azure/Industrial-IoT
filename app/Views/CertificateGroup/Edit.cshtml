@@ -80,11 +80,30 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Save" class="btn btn-default" />
+        @if (ViewData["SuccessMessage"] != null)
+        {
+            <hr />
+            <div class="alert alert-success">
+                <h4>@ViewData["SuccessMessage"]</h4>
             </div>
-        </div>
+            <hr />
+        }
+        @if (ViewData["ErrorMessage"] != null)
+        {
+            <hr />
+            <div class="alert alert-warning">
+                <h4>@ViewData["ErrorMessage"]</h4>
+            </div>
+            <hr />
+        }
+        else
+        {
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <input type="submit" value="Save" class="btn btn-default" />
+                </div>
+            </div>
+        }
     </div>
 }
 <div>

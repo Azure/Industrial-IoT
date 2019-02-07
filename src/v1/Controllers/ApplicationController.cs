@@ -94,12 +94,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 
         /// <summary>
         /// Approve or reject a new application.
+        /// </summary>
         /// <remarks>
         /// A manager can approve a new application or force an application from any state.
         /// After approval the application is in the 'Approved' or 'Rejected' state.
         /// Requires Manager role.
         /// </remarks>
-        /// </summary>
         /// <param name="applicationId">The application id</param>
         /// <param name="approved">approve or reject the new application</param>
         /// <param name="force">optional, force application in new state</param>

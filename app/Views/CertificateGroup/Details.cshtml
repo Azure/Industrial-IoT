@@ -81,32 +81,54 @@
 
     </dl>
 </div>
-<hr />
-<dl class="dl-horizontal">
-    <dt>Download Certificate</dt>
-    <dd>
-        @Html.ActionLink("Issuer", "DownloadIssuer", new { id = Model.Name }, new { @class = "btn btn-default" })
-        @Html.ActionLink("Crl", "DownloadIssuerCrl", new { id = Model.Name }, new { @class = "btn btn-default" })
-    </dd>
-    <dt>Download as Base64</dt>
-    <dd>
-        @Html.ActionLink("Issuer", "..\\CertificateRequest\\DownloadIssuerBase64", new { groupId = Model.Name }, htmlAttributes: new { @class = "btn btn-default" })
-        @Html.ActionLink("Crl", "..\\CertificateRequest\\DownloadIssuerCrlBase64", new { groupId = Model.Name }, htmlAttributes: new { @class = "btn btn-default" })
-    </dd>
-</dl>
-<hr />
-<div>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.Name }, new { @class = "btn btn-default" })
-    @Html.ActionLink("Issuer Certificate Details", "IssuerDetails", new { id = Model.Name }, new { @class = "btn btn-default" })
-</div>
-<hr />
-<div>
-    @Html.ActionLink("Renew CA Certificate", "Renew", new { id = Model.Name },
-            new { @class = "btn btn-warning",
-                onclick = "return confirm('Do you really want to renew the CA certificate for group " + Model.Name + "?')" })
-    @Html.ActionLink("Update Cert Revocation List (CRL)", "Revoke", new { id = Model.Name },
-            new { @class = "btn btn-warning" })
-</div>
+
+@if (ViewData["SuccessMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-success">
+        <h4>@ViewData["SuccessMessage"]</h4>
+    </div>
+}
+
+@if (ViewData["ErrorMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-warning">
+        <h4>@ViewData["ErrorMessage"]</h4>
+    </div>
+}
+else
+{
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>Download Certificate</dt>
+        <dd>
+            @Html.ActionLink("Issuer", "DownloadIssuer", new { id = Model.Name }, new { @class = "btn btn-default" })
+            @Html.ActionLink("Crl", "DownloadIssuerCrl", new { id = Model.Name }, new { @class = "btn btn-default" })
+        </dd>
+        <dt>Download as Base64</dt>
+        <dd>
+            @Html.ActionLink("Issuer", "DownloadIssuerBase64", "CertificateRequest", new { groupId = Model.Name }, htmlAttributes: new { @class = "btn btn-default" })
+            @Html.ActionLink("Crl", "DownloadIssuerCrlBase64", "CertificateRequest", new { groupId = Model.Name }, htmlAttributes: new { @class = "btn btn-default" })
+        </dd>
+    </dl>
+    <hr />
+    <div>
+        @Html.ActionLink("Edit", "Edit", new { id = Model.Name }, new { @class = "btn btn-default" })
+        @Html.ActionLink("Issuer Certificate Details", "IssuerDetails", new { id = Model.Name }, new { @class = "btn btn-default" })
+    </div>
+    <hr />
+    <div>
+        @Html.ActionLink("Renew CA Certificate", "Renew", new { id = Model.Name },
+                    new
+                    {
+                        @class = "btn btn-warning",
+                        onclick = "return confirm('Do you really want to renew the CA certificate for group " + Model.Name + "?')"
+                    })
+        @Html.ActionLink("Update Cert Revocation List (CRL)", "Revoke", new { id = Model.Name },
+                    new { @class = "btn btn-warning" })
+    </div>
+}
 <div>
     <hr />
     @Html.ActionLink("Back to List", "Index")

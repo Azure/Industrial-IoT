@@ -26,43 +26,42 @@ This repo contains all components required to run a CA in the Azure cloud for yo
 A Powershell deployment script automatically builds and deploys the services to your subscription. By default, security is configured for a production system. 
 
 ### Certificate Management Microservice Features
-1. Production ready certificate microservice based on C# with ASP.Net Core 2.1.
-2. Uses Azure Key Vault as CA certificate store, key pair generator and certificate signer backed by FIPS 140-2 Level 2 validated HSMs.
-3. Uses Cosmos DB as application and certificate request database. Open database interface to integrate with other database services.
-2. Secured by AzureAD role based access with separation of Reader, Writer, Approver and Administrator roles.
-2. Exposes Rest API (with Swagger UI) to easily integrate certificate microservice in other cloud services.
-7. Support for RSA certificates with a SHA256 signature and keys with a length of 2048, 3072 or 4096 bits.
-8. Support to sign certificates created with new key pairs from Azure Key Vault or by using Certificate Signing Requests (CSR).
-4. Key Pairs and signed certificates with extensions follow requirements and guidelines as specified in the OPC UA GDS Certificate Management Services, Part 12.
-9. The CA has full CRL support with revocation of unregistered OPC UA applications.
-5. Uses on behalf tokens to access Azure Key Vault to validate user permissions at KeyVault level in addition to the validation at the microservice Rest API.
-8. Busines logic ensures secure workflow with assigned user roles and the validation of certificate requests against the application database.
-9. Follows Microsoft SDL guidelines for public-key infrastructure.
-5. Leverages OPC UA .NetStandard GDS Server Common libraries.
-13. Uses Azure Key Vault versioning and auditing to track CA certificate access and CRL history.
+- Production ready certificate microservice based on C# with ASP.Net Core 2.1.
+- Uses Azure Key Vault as CA certificate store, key pair generator and certificate signer backed by FIPS 140-2 Level 2 validated HSMs.
+- Uses Cosmos DB as application and certificate request database. Open database interface to integrate with other database services.
+- Secured by AzureAD role based access with separation of Reader, Writer, Approver and Administrator roles.
+- Exposes Rest API (with Swagger UI) to easily integrate certificate microservice in other cloud services.
+- Support for RSA certificates with a SHA256 signature and keys with a length of 2048, 3072 or 4096 bits.
+- Support to sign certificates created with new key pairs from Azure Key Vault or by using Certificate Signing Requests (CSR).
+- Key Pairs and signed certificates with extensions follow requirements and guidelines as specified in the OPC UA GDS Certificate Management Services, Part 12.
+- The CA has full CRL support with revocation of unregistered OPC UA applications.
+- Uses on behalf tokens to access Azure Key Vault to validate user permissions at KeyVault level in addition to the validation at the microservice Rest API.
+- Busines logic ensures secure workflow with assigned user roles and the validation of certificate requests against the application database.
+- Follows Microsoft SDL guidelines for public-key infrastructure.
+- Leverages OPC UA .NetStandard GDS Server Common libraries.
+- Uses Azure Key Vault versioning and auditing to track CA certificate access and CRL history.
 
 ### Web Certificate Management Sample Features
-1. Sample code is based on the certificate management microservice Rest API using C# with ASP.Net Core 2.1.
-8. Workflow to secure a OPC UA application with a CA signed certificate: Register an OPC UA application, request a certificate or key pair, generate the signed certificate and download it.
-7. Secure workflow to unregister and revoke a OPC UA application including CRL updates.
-5. Forms to manage OPC UA applications and certificate requests.
-8. CA certificate management for the Administrator role to configure CA cert lifetime and subject name.
-9. Renewal of a CA certificates.
-8. Create key pairs and sign certificates with a CSR validated with application database information.
-11. Upload CSR for signing requests as file or base64 string.
-9. Binary and base64 download of certificates and keys as PFX, PEM and DER.
-10. Issues consolidated CRL updates for multiple unregistered applications in a single step.
-11. Accesses the microservice on behalf of the user to be able to execute protected functions in Azure Key Vault (e.g. signing rights for Approver).
+- Sample code is based on the certificate management microservice Rest API using C# with ASP.Net Core 2.1.
+- Workflow to secure a OPC UA application with a CA signed certificate: Register an OPC UA application, request a certificate or key pair, generate the signed certificate and download it.
+- Secure workflow to unregister and revoke a OPC UA application including CRL updates.
+- Forms to manage OPC UA applications and certificate requests.
+- CA certificate management for the Administrator role to configure CA cert lifetime and subject name.
+- Renewal of a CA certificates.
+- Create key pairs and sign certificates with a CSR validated with application database information.
+- Upload CSR for signing requests as file or base64 string.
+- Binary and base64 download of certificates and keys as PFX, PEM and DER.
+- Issues consolidated CRL updates for multiple unregistered applications in a single step.
+- Accesses the microservice on behalf of the user to be able to execute protected functions in Azure Key Vault (e.g. signing rights for Approver).
 
 ### On premise Global Discovery Server (GDS) with cloud integration
-1. Based on the GDS server common library of the OPC UA .NetStandard SDK.
-6. Implements OPC UA Discovery and Certificate management services by connecting to the microservice.
-7. Executes in a docker container or as a .Net Core 2.0 application on Windows or Linux.
-8. Implements namespace of OPC UA GDS Discovery and Certificate Management Services V1.04, Part 12.
-6. **Note:** At this time the server can only act in a reader role with limited functionality due
-10.  to the lack of user OAUTH2 authentication support in the .NetStandard SDK. 
-11. For development purposes and testing, the AzureAD registration can be enabled for a 'Writer' role to allow to create certificate requests and to update applications, 
-but this configuration shall not be used in production deployments.
+- Based on the GDS server common library of the OPC UA .NetStandard SDK.
+- Implements OPC UA Discovery and Certificate management services by connecting to the microservice.
+- Executes in a docker container or as a .Net Core 2.0 application on Windows or Linux.
+- Implements namespace of OPC UA GDS Discovery and Certificate Management Services V1.04, Part 12.
+- **Note:** At this time the server can only act in a reader role with limited functionality due to the lack of user OAuth2 authentication support in the .NetStandard SDK. 
+- For development purposes and testing, the AzureAD registration can be enabled for a 'Writer' role to allow to create certificate requests and to update applications, 
+  but this configuration is not recommended for use in production deployments.
 
 ## [Overview](docs/opcvault-services-overview.md) on the OPC Vault microservice
 

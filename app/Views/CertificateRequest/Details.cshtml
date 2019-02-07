@@ -16,7 +16,7 @@
         </dt>
 
         <dd>
-            @Html.ActionLink(application.ApplicationName, "..\\Application\\Details", new { id = application.ApplicationId })
+            @Html.ActionLink(application.ApplicationName, "Details", "Application", new { id = application.ApplicationId })
         </dd>
 
         <dt>
@@ -24,7 +24,7 @@
         </dt>
 
         <dd>
-            @Html.ActionLink(application.ApplicationUri, "..\\Application\\Details", new { id = Model.ApplicationId })
+            @Html.ActionLink(application.ApplicationUri, "Details", "Application", new { id = Model.ApplicationId })
         </dd>
 
         <dt>
@@ -86,7 +86,7 @@
 
         }
         @if (Model.State == Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.CertificateRequestState.Approved ||
-            Model.State == Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.CertificateRequestState.Accepted)
+           Model.State == Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models.CertificateRequestState.Accepted)
         {
             <dt>Download</dt>
             <dd>
@@ -128,11 +128,18 @@
         </dl>
     }
 </div>
-@if (ViewData["Message"] != null)
+@if (ViewData["ErrorMessage"] != null)
 {
     <hr />
     <div class="alert alert-warning">
-        <h4>@ViewData["Message"]</h4>
+        <h4>@ViewData["ErrorMessage"]</h4>
+    </div>
+}
+@if (ViewData["SuccessMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-success">
+        <h4>@ViewData["SuccessMessage"]</h4>
     </div>
 }
 <div class="col-md-12">

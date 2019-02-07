@@ -37,7 +37,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
 
         public byte [] ToServiceModel()
         {
-            return CertificateRequest != null ? Convert.FromBase64String(CertificateRequest) : null;
+            const string certRequestPemHeader = "-----BEGIN CERTIFICATE REQUEST-----";
+            const string certRequestPemFooter = "-----END CERTIFICATE REQUEST-----";
+            if (CertificateRequest != null)
+            {
+                if (CertificateRequest.Contains(certRequestPemHeader, StringComparison.OrdinalIgnoreCase))
+                {
+                    var strippedCertificateRequest = CertificateRequest.Replace(certRequestPemHeader, "", StringComparison.OrdinalIgnoreCase);
+                    strippedCertificateRequest = strippedCertificateRequest.Replace(certRequestPemFooter, "", StringComparison.OrdinalIgnoreCase);
+                    return Convert.FromBase64String(strippedCertificateRequest);
+                }
+                return Convert.FromBase64String(CertificateRequest);
+            }
+            return null;
         }
 
     }

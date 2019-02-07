@@ -37,34 +37,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             AuthorizeClient();
             string nextPageLink = null;
             var indexRequests = new List<CertificateRequestIndexApiModel>();
-            var requests = await opcVault.QueryCertificateRequestsAsync();
-            while (requests != null)
+            try
             {
-                foreach (var request in requests.Requests)
+                var requests = await _opcVault.QueryCertificateRequestsAsync();
+                while (requests != null)
                 {
-                    var indexRequest = new CertificateRequestIndexApiModel(request);
-                    ApplicationRecordApiModel application;
-                    if (!appDictionary.TryGetValue(request.ApplicationId, out application))
+                    foreach (var request in requests.Requests)
                     {
-                        application = await opcVault.GetApplicationAsync(request.ApplicationId);
-                    }
+                        var indexRequest = new CertificateRequestIndexApiModel(request);
+                        ApplicationRecordApiModel application;
+                        if (!appDictionary.TryGetValue(request.ApplicationId, out application))
+                        {
+                            application = await _opcVault.GetApplicationAsync(request.ApplicationId);
+                        }
 
-                    if (application != null)
-                    {
-                        appDictionary[request.ApplicationId] = application;
-                        indexRequest.ApplicationName = application.ApplicationName;
-                        indexRequest.ApplicationUri = application.ApplicationUri;
+                        if (application != null)
+                        {
+                            appDictionary[request.ApplicationId] = application;
+                            indexRequest.ApplicationName = application.ApplicationName;
+                            indexRequest.ApplicationUri = application.ApplicationUri;
+                        }
+                        indexRequests.Add(indexRequest);
                     }
-                    indexRequests.Add(indexRequest);
+                    if (requests.NextPageLink == null)
+                    {
+                        break;
+                    }
+                    nextPageLink = requests.NextPageLink;
+                    requests = await _opcVault.QueryCertificateRequestsAsync(nextPageLink);
                 }
-                if (requests.NextPageLink == null)
-                {
-                    break;
-                }
-                nextPageLink = requests.NextPageLink;
-                requests = await opcVault.QueryCertificateRequestsAsync(nextPageLink);
             }
-
+            catch (Exception ex)
+            {
+                ViewData["ErrorMessage"] =
+                    "Failed to load all the certificate requests. " +
+                    "Message:" + ex.Message;
+            }
             return View(indexRequests);
         }
 
@@ -74,7 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             AuthorizeClient();
             try
             {
-                var application = await opcVault.GetApplicationAsync(id);
+                var application = await _opcVault.GetApplicationAsync(id);
                 UpdateApiModel(application);
                 return View(application);
             }
@@ -92,7 +100,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> StartNewKeyPairAsync(string id)
         {
             AuthorizeClient();
-            var groups = await opcVault.GetCertificateGroupsConfigurationAsync();
+            var groups = await _opcVault.GetCertificateGroupsConfigurationAsync();
             if (groups == null)
             {
                 return new NotFoundResult();
@@ -109,7 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 return new NotFoundResult();
             }
 
-            var application = await opcVault.GetApplicationAsync(id);
+            var application = await _opcVault.GetApplicationAsync(id);
             if (application == null)
             {
                 return new NotFoundResult();
@@ -171,7 +179,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 string id;
                 try
                 {
-                    id = await opcVault.CreateNewKeyPairRequestAsync(request);
+                    id = await _opcVault.CreateNewKeyPairRequestAsync(request);
                 }
                 catch (Exception ex)
                 {
@@ -180,7 +188,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                         "Message:" + ex.Message;
                     goto LoadAppAndView;
                 }
-                string message = null;
+                string errorMessage = null;
                 try
                 {
                     // TODO: call depending on auto approve setup
@@ -188,12 +196,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 }
                 catch (Exception ex)
                 {
-                    message =
+                    errorMessage =
                     "Failed to approve Certificate Request.\r\n" +
                     "Please contact Administrator for approval." +
                     ex.Message;
                 }
-                return RedirectToAction("Details", new { id, message });
+                return RedirectToAction("Details", new { id, errorMessage });
             }
 
             if (!String.IsNullOrWhiteSpace(request.DomainNames.Last()) &&
@@ -204,7 +212,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
 
             LoadAppAndView:
             // reload app info
-            var application = await opcVault.GetApplicationAsync(request.ApplicationId);
+            var application = await _opcVault.GetApplicationAsync(request.ApplicationId);
             if (application == null)
             {
                 return new NotFoundResult();
@@ -219,7 +227,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public async Task<ActionResult> StartSigningAsync(string id)
         {
             AuthorizeClient();
-            var groups = await opcVault.GetCertificateGroupsConfigurationAsync();
+            var groups = await _opcVault.GetCertificateGroupsConfigurationAsync();
             if (groups == null)
             {
                 return new NotFoundResult();
@@ -236,7 +244,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 return new NotFoundResult();
             }
 
-            var application = await opcVault.GetApplicationAsync(id);
+            var application = await _opcVault.GetApplicationAsync(id);
             if (application == null)
             {
                 return new NotFoundResult();
@@ -275,8 +283,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                     }
                 }
                 AuthorizeClient();
-                var id = await opcVault.CreateSigningRequestAsync(requestApi);
-                string message = null;
+                string errorMessage = null;
+                string id;
+                try
+                {
+                    id = await _opcVault.CreateSigningRequestAsync(requestApi);
+                }
+                catch (Exception ex)
+                {
+                    ViewData["ErrorMessage"] =
+                        "Failed to create Signing Request.\r\n" +
+                        "Message:" + ex.Message;
+                    return View(request);
+                }
+
                 try
                 {
                     // TODO: call depending on auto approve setup
@@ -284,9 +304,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 }
                 catch (Exception ex)
                 {
-                    message = ex.Message;
+                    errorMessage =
+                    "Failed to approve signing request." +
+                    "Message: " + ex.Message;
                 }
-                return RedirectToAction("Details", new { id, message });
+                return RedirectToAction("Details", new { id, errorMessage });
             }
             return View(request);
         }

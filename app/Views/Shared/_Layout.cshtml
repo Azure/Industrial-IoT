@@ -25,7 +25,6 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <!--<a asp-area="" asp-controller="Application" asp-action="Register" class="navbar-brand">OpcVault.App</a>-->
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
@@ -48,7 +47,10 @@
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year - OPC Vault Sample Application</p>
+            <p>
+                &copy; @DateTime.Now.Year - OPC Vault Sample Application - <a asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+                <!---  <partial name="_CookieConsentRevokePartial" />-->
+            </p>
         </footer>
     </div>
 

@@ -99,7 +99,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
                 errorList.Add("ApiModel.CertificateRequest");
                 try
                 {
-                    certificateRequest = Convert.FromBase64String(request.ApiModel.CertificateRequest);
+                    const string certRequestPemHeader = "-----BEGIN CERTIFICATE REQUEST-----";
+                    const string certRequestPemFooter = "-----END CERTIFICATE REQUEST-----";
+                    if (request.ApiModel.CertificateRequest.Contains(certRequestPemHeader, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var strippedCertificateRequest = request.ApiModel.CertificateRequest.Replace(certRequestPemHeader, "", StringComparison.OrdinalIgnoreCase);
+                        strippedCertificateRequest = strippedCertificateRequest.Replace(certRequestPemFooter, "", StringComparison.OrdinalIgnoreCase);
+                        certificateRequest = Convert.FromBase64String(strippedCertificateRequest);
+                    }
+                    else
+                    {
+                        certificateRequest = Convert.FromBase64String(request.ApiModel.CertificateRequest);
+                    }
                 }
                 catch
                 {

@@ -66,21 +66,9 @@
         <dd>
             @Html.DisplayFor(model => model.ProductUri)
         </dd>
-        <!--
-    <dt>
-        @Html.DisplayNameFor(model => model.ApplicationNames)
-    </dt>
 
-    @foreach (var applicationName in Model.ApplicationNames)
-    {
-        <dd>
-            @Html.DisplayFor(model => applicationName.Text)
-        </dd>
-    }
-    -->
         @if (Model.DiscoveryUrls != null)
         {
-
             <dt>
                 @Html.DisplayNameFor(model => model.DiscoveryUrls)
             </dt>
@@ -102,29 +90,31 @@
                 @Html.DisplayFor(model => model.ServerCapabilities)
             </dd>
         }
-        <!--
-            <dt>
-                @Html.DisplayNameFor(model => model.GatewayServerUri)
-            </dt>
-
-            <dd>
-                @Html.DisplayFor(model => model.GatewayServerUri)
-            </dd>
-
-            <dt>
-                @Html.DisplayNameFor(model => model.DiscoveryProfileUri)
-            </dt>
-
-            <dd>
-                @Html.DisplayFor(model => model.DiscoveryProfileUri)
-            </dd>
-    -->
     </dl>
 </div>
+
+@if (ViewData["ErrorMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-warning">
+        <h4>@ViewData["ErrorMessage"]</h4>
+    </div>
+    <hr />
+}
+
+@if (ViewData["SuccessMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-success">
+        <h4>@ViewData["SuccessMessage"]</h4>
+    </div>
+    <hr />
+}
+
 <p>
-    @Html.ActionLink("Edit", "..\\Application\\Register", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
+    @Html.ActionLink("Edit", "Register", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
     @Html.ActionLink("Unregister", "Unregister", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
-    @Html.ActionLink("Request New Certificate", "Request", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
+    @Html.ActionLink("Request New Certificate", "Request", "CertificateRequest", new { id = Model.ApplicationId }, new { @class = "btn btn-default" })
 </p>
 <p>
     <hr />

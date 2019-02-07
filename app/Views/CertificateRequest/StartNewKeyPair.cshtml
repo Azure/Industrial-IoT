@@ -126,6 +126,14 @@
             </div>
             <hr />
         }
+        @if (ViewData["SuccessMessage"] != null)
+        {
+            <hr />
+            <div class="alert alert-success">
+                <h4>@ViewData["SuccessMessage"]</h4>
+            </div>
+            <hr />
+        }
 
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
@@ -135,10 +143,10 @@
     </div>
 }
 
-    <div>
-        <hr />
-        <img src="~/images/opcvaultflowstep2.svg" alt="OpcVault Request" class="img-responsive" />
-        <hr />
-        @Html.ActionLink("Back to Register New", "Register", routeValues: new { id = "" })
-    </div>
+<div>
+    <hr />
+    <img src="~/images/opcvaultflowstep2.svg" alt="OpcVault Request" class="img-responsive" />
+    <hr />
+    @Html.ActionLink("Back to Request New", "Request", routeValues: new { id = Model.ApplicationId })
+</div>
 

@@ -293,10 +293,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Swagger
                 var claims = descriptor.GetRequiredPolicyGlaims(_options.Value);
                 if (claims.Any())
                 {
-                    operation.Responses.Add("401",
-                        new Response { Description = "Unauthorized" });
-                    operation.Responses.Add("403",
-                        new Response { Description = "Forbidden" });
+                    // responses cause csharp api do not throw exception on error
+                    //operation.Responses.Add("401",
+                    //    new Response { Description = "Unauthorized" });
+                    //operation.Responses.Add("403",
+                    //    new Response { Description = "Forbidden" });
 
                     // Add security description
                     operation.Security = new List<IDictionary<string, IEnumerable<string>>> {

@@ -72,7 +72,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
             {
                 for (int i = 0; i < application.DiscoveryUrls.Count; i++)
                 {
-                    if (!Uri.IsWellFormedUriString(application.DiscoveryUrls[i], UriKind.Absolute)) { errorList.Add($"DiscoveryUrls[{i}]"); }
+                    if (!Uri.IsWellFormedUriString(application.DiscoveryUrls[i], UriKind.Absolute)) { errorList.Add($"DiscoveryUrls[{i}]"); continue; }
+                    Uri uri = new Uri(application.DiscoveryUrls[i], UriKind.Absolute);
+                    if (String.IsNullOrEmpty(uri.Host)) { errorList.Add($"DiscoveryUrls[{i}]"); continue; }
+                    if (uri.HostNameType == UriHostNameType.Unknown) { errorList.Add($"DiscoveryUrls[{i}]"); continue; }
                 }
             }
             if (errorList.Count > 0) { return new ValidationResult("Not a well formed Uri.", errorList); }

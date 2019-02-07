@@ -1,4 +1,4 @@
-﻿@model Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models.KeyDetailsApiModel
+@model Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models.KeyDetailsApiModel
 
 <h2>View Private Key Details</h2>
 
@@ -17,7 +17,22 @@
         </dd>
     </dl>
 </div>
-
+@if (ViewData["ErrorMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-warning">
+        <h4>@ViewData["ErrorMessage"]</h4>
+    </div>
+    <hr />
+}
+@if (ViewData["SuccessMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-success">
+        <h4>@ViewData["SuccessMessage"]</h4>
+    </div>
+    <hr />
+}
 <div>
     <hr />
     <a href="javascript:history.go(-1)">Back</a>

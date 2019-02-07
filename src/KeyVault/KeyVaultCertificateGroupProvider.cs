@@ -6,7 +6,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
@@ -114,7 +116,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 throw new ArgumentException("groupid doesn't match config id");
             }
             string json = await keyVaultServiceClient.GetCertificateConfigurationGroupsAsync().ConfigureAwait(false);
-            List<CertificateGroupConfigurationModel> certificateGroupCollection = JsonConvert.DeserializeObject<List<CertificateGroupConfigurationModel>>(json);
+            List<CertificateGroupConfigurationModel> certificateGroupCollection =
+                JsonConvert.DeserializeObject<List<CertificateGroupConfigurationModel>>(json);
 
             var original = certificateGroupCollection.SingleOrDefault(cg => String.Equals(cg.Id, id, StringComparison.OrdinalIgnoreCase));
             if (original != null)
@@ -355,9 +358,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         }
 
         /// <summary>
-        /// Creates a new key pair with KeyVault and signs it with KeyVault.
+        /// Creates a new key pair as KeyVault certificate and signs it with KeyVault.
         /// </summary>
-        public async Task<Opc.Ua.Gds.Server.X509Certificate2KeyPair> NewKeyPairRequestKeyVaultAsync(
+        public async Task<Opc.Ua.Gds.Server.X509Certificate2KeyPair> NewKeyPairRequestKeyVaultCertAsync(
             ApplicationRecordDataType application,
             string subjectName,
             string[] domainNames,
@@ -369,7 +372,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             DateTime notBefore = TrimmedNotBeforeDate();
             DateTime notAfter = notBefore.AddMonths(Configuration.DefaultCertificateLifetime);
             // create new cert with KeyVault
-            using (var signedCertWithPrivateKey = await _keyVaultServiceClient.CreateSignedKeyPairAsync(
+            using (var signedCertWithPrivateKey = await _keyVaultServiceClient.CreateSignedKeyPairCertAsync(
                 Configuration.Id,
                 Certificate,
                 application.ApplicationUri,
@@ -411,38 +414,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             string privateKeyPassword)
         {
             DateTime notBefore = DateTime.UtcNow.AddDays(-1);
-            // create self signed
-            using (var selfSignedCertificate = CertificateFactory.CreateCertificate(
-                 null,
-                 null,
-                 null,
-                 application.ApplicationUri ?? "urn:ApplicationURI",
-                 application.ApplicationNames.Count > 0 ? application.ApplicationNames[0].Text : "ApplicationName",
-                 subjectName,
-                 domainNames,
-                 Configuration.DefaultCertificateKeySize,
-                 notBefore,
-                 Configuration.DefaultCertificateLifetime,
-                 Configuration.DefaultCertificateHashSize,
-                 false,
-                 null,
-                 null))
-            {
+            // create public/private key pair
+            using (RSA keyPair = RSA.Create(Configuration.DefaultCertificateKeySize))
+            { 
                 await LoadPublicAssets().ConfigureAwait(false);
+                // sign public key with KeyVault
                 var signedCert = await KeyVaultCertFactory.CreateSignedCertificate(
                     application.ApplicationUri,
                     application.ApplicationNames.Count > 0 ? application.ApplicationNames[0].Text : "ApplicationName",
                     subjectName,
                     domainNames,
                     Configuration.DefaultCertificateKeySize,
-                    selfSignedCertificate.NotBefore,
-                    selfSignedCertificate.NotAfter,
+                    notBefore,
+                    notBefore.AddMonths(Configuration.DefaultCertificateLifetime),
                     Configuration.DefaultCertificateHashSize,
                     Certificate,
-                    selfSignedCertificate.GetRSAPublicKey(),
+                    keyPair,
                     new KeyVaultSignatureGenerator(_keyVaultServiceClient, _caCertKeyIdentifier, Certificate));
-
-                using (var signedCertWithPrivateKey = CertificateFactory.CreateCertificateWithPrivateKey(signedCert, selfSignedCertificate))
+                // Create a PEM or PFX 
+                using (var signedCertWithPrivateKey = CreateCertificateWithPrivateKey(signedCert, keyPair))
                 {
                     byte[] privateKey;
                     if (privateKeyFormat == "PFX")
@@ -608,7 +598,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 Id = id,
                 SubjectName = subject,
                 CertificateType = CertTypeMap()[Opc.Ua.ObjectTypeIds.RsaSha256ApplicationCertificateType],
-                DefaultCertificateLifetime = 12,
+                DefaultCertificateLifetime = 24,
                 DefaultCertificateHashSize = 256,
                 DefaultCertificateKeySize = 2048,
                 IssuerCACertificateLifetime = 60,
@@ -732,6 +722,66 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Create a X509Certificate2 with a private key by combining 
+        /// the new certificate with a private key from an RSA key.
+        /// </summary>
+        public static X509Certificate2 CreateCertificateWithPrivateKey(
+            X509Certificate2 certificate,
+            RSA privatekey)
+        {
+            using (var cfrg = new CertificateFactoryRandomGenerator())
+            {
+                var random = new Org.BouncyCastle.Security.SecureRandom(cfrg);
+                Org.BouncyCastle.X509.X509Certificate x509 = new Org.BouncyCastle.X509.X509CertificateParser().ReadCertificate(certificate.RawData);
+                return CreateCertificateWithPrivateKey(x509, GetPrivateKeyParameter(privatekey), random);
+            }
+        }
+
+        /// <summary>
+        /// Create a X509Certificate2 with a private key by combining 
+        /// a bouncy castle X509Certificate and private key parameters.
+        /// </summary>
+        private static X509Certificate2 CreateCertificateWithPrivateKey(
+            Org.BouncyCastle.X509.X509Certificate certificate,
+            Org.BouncyCastle.Crypto.AsymmetricKeyParameter privateKey,
+            Org.BouncyCastle.Security.SecureRandom random)
+        {
+            // create pkcs12 store for cert and private key
+            using (MemoryStream pfxData = new MemoryStream())
+            {
+                var builder = new Org.BouncyCastle.Pkcs.Pkcs12StoreBuilder();
+                builder.SetUseDerEncoding(true);
+                var pkcsStore = builder.Build();
+                var chain = new Org.BouncyCastle.Pkcs.X509CertificateEntry[1];
+                string passcode = Guid.NewGuid().ToString();
+                chain[0] = new Org.BouncyCastle.Pkcs.X509CertificateEntry(certificate);
+                pkcsStore.SetKeyEntry("PrivateKey", new Org.BouncyCastle.Pkcs.AsymmetricKeyEntry(privateKey), chain);
+                pkcsStore.Save(pfxData, passcode.ToCharArray(), random);
+                // merge into X509Certificate2
+                return CertificateFactory.CreateCertificateFromPKCS12(pfxData.ToArray(), passcode);
+            }
+        }
+
+        /// <summary>
+        /// Get private key parameters from a RSA key.
+        /// The private key must be exportable.
+        /// </summary>
+        private static Org.BouncyCastle.Crypto.Parameters.RsaPrivateCrtKeyParameters GetPrivateKeyParameter(RSA rsaKey)
+        {
+                RSAParameters rsaParams = rsaKey.ExportParameters(true);
+                var keyParams = new Org.BouncyCastle.Crypto.Parameters.RsaPrivateCrtKeyParameters(
+                    new Org.BouncyCastle.Math.BigInteger(1, rsaParams.Modulus),
+                    new Org.BouncyCastle.Math.BigInteger(1, rsaParams.Exponent),
+                    new Org.BouncyCastle.Math.BigInteger(1, rsaParams.D),
+                    new Org.BouncyCastle.Math.BigInteger(1, rsaParams.P),
+                    new Org.BouncyCastle.Math.BigInteger(1, rsaParams.Q),
+                    new Org.BouncyCastle.Math.BigInteger(1, rsaParams.DP),
+                    new Org.BouncyCastle.Math.BigInteger(1, rsaParams.DQ),
+                    new Org.BouncyCastle.Math.BigInteger(1, rsaParams.InverseQ));
+                return keyParams;
         }
 
         private DateTime TrimmedNotBeforeDate()

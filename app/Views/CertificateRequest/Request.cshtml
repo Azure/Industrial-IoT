@@ -52,11 +52,21 @@
         }
     </dl>
 </div>
-@if (ViewData["Message"] != null)
+@if (ViewData["SuccessMessage"] != null)
 {
-    <div class="alert alert-danger">
-        <h4>@ViewData["Message"]</h4>
+    <hr />
+    <div class="alert alert-success">
+        <h4>@ViewData["SuccessMessage"]</h4>
     </div>
+    <hr />
+}
+@if (ViewData["ErrorMessage"] != null)
+{
+    <hr />
+    <div class="alert alert-warning">
+        <h4>@ViewData["ErrorMessage"]</h4>
+    </div>
+    <hr />
 }
 else
 {

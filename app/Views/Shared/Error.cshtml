@@ -1,10 +1,19 @@
-﻿@model Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models.ErrorViewModel
+@model Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models.ErrorViewModel
 @{
     ViewData["Title"] = "Error";
 }
 
 <h1 class="text-danger">Error.</h1>
 <h2 class="text-danger">An error occurred while processing your request.</h2>
+
+@if (Model.StatusCode == 403)
+{
+    <h2 class="text-danger">Not authorized, you don't have the permissions for the operation you requested.</h2>
+}
+@if (Model.StatusCode == 401)
+{
+    <h2 class="text-danger">Not authenticated, please login.</h2>
+}
 
 @if (Model.ShowRequestId)
 {

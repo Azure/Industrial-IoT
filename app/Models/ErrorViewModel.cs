@@ -10,5 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models
         public string RequestId { get; set; }
 
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+
+        public int StatusCode { get; internal set; }
     }
 }

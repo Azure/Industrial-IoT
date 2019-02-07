@@ -28,6 +28,14 @@
         </dd>
 
         <dt>
+            @Html.DisplayNameFor(model => model.State)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.State)
+        </dd>
+
+        <dt>
             @Html.DisplayNameFor(model => model.ApplicationName)
         </dt>
 
@@ -58,18 +66,7 @@
         <dd>
             @Html.DisplayFor(model => model.ProductUri)
         </dd>
-        <!--
-        <dt>
-            @Html.DisplayNameFor(model => model.ApplicationNames)
-        </dt>
 
-        @foreach (var applicationName in Model.ApplicationNames)
-        {
-            <dd>
-                @Html.DisplayFor(model => applicationName.Text)
-            </dd>
-        }
-            -->
         @if (Model.DiscoveryUrls != null)
         {
             <dt>
@@ -112,22 +109,42 @@
             -->
     </dl>
 
-    @using (Html.BeginForm())
+    @if (ViewData["ErrorMessage"] != null)
     {
-        @Html.AntiForgeryToken()
-
         <hr />
         <div class="alert alert-warning">
-            <h3>Are you sure you want to unregister this OPC UA Application?</h3>
-            <h4>All certificate requests of this Application will be deleted and revoked.</h4>
+            <h4>@ViewData["ErrorMessage"]</h4>
         </div>
         <hr />
+    }
 
-        <div class="form-actions no-color">
-            <input type="submit" value="Unregister" class="btn btn-danger" />
+    @if (ViewData["SuccessMessage"] != null)
+    {
+        <hr />
+        <div class="alert alert-success">
+            <h4>@ViewData["SuccessMessage"]</h4>
         </div>
+        <hr />
+    }
+
+    @if (ViewData["ErrorMessage"] == null)
+    {
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+
+            <hr />
+            <div class="alert alert-warning">
+                <h3>Are you sure you want to unregister this OPC UA Application?</h3>
+                <h4>All certificate requests of this Application will be deleted and revoked.</h4>
+            </div>
+            <hr />
+
+            <div class="form-actions no-color">
+                <input type="submit" value="Unregister" class="btn btn-danger" />
+            </div>
+        }
     }
     <hr />
     @Html.ActionLink("Back to List", "Index", new { })
-
 </div>

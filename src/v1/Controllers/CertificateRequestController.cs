@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         }
 
         /// <summary>
-        /// Create a a certificate request with a new key pair.
+        /// Create a certificate request with a new key pair.
         /// </summary>
         /// <remarks>
         /// The request is in the 'New' state after this call.
@@ -104,11 +104,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
         /// </summary>
         /// <remarks>
         /// Validates the request with the application database.
-        /// If Approved:
-        ///    New Key Pair request: Creates the new key pair
+        ///- If Approved:
+        ///  - New Key Pair request: Creates the new key pair
         ///        in the requested format, signs the certificate and stores the
         ///        private key for later securely in KeyVault.
-        ///    Cert Signing Request: Creates and signs the certificate.
+        ///  - Cert Signing Request: Creates and signs the certificate.
         ///        Deletes the CSR from the database.
         /// Stores the signed certificate for later use in the Database.
         /// The request is in the 'Approved' or 'Rejected' state after this call.

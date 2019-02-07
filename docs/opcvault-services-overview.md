@@ -49,7 +49,7 @@ OPC UA Global Discovery Server interface to distribute certificates
 and trust lists according to the Part 12 specification. 
 However, as of our knowledge, this GDS server interface is not widely 
 used yet and has yet limited functionality (Reader role). [On demand, we will 
-improve the experience on customer request (*)](/docs/Yet-Unsupported-features).
+improve the experience on customer request (*)](#Yet-Unsupported-features).
 
 ## Architecture
 
@@ -74,7 +74,7 @@ for applications with search expressions.
 a valid application in order to process a request and to issue a signed certificate 
 with all OPC UA specific extensions. 
 - The application service is either backed by a CosmosDB 
-database or the [OpcTwin device registry (*)](/docs/Yet-Unsupported-features), depending on the customer configuration.
+database or the [OpcTwin device registry (*)](#Yet-Unsupported-features), depending on the customer configuration.
 
 ### CertificateGroup
 - A certificate group is an entity which stores a root CA or a sub CA certificate 
@@ -82,7 +82,7 @@ including the private key to sign certificates.
 - The RSA key length, the SHA-2 hash length 
 and the lifetimes are configurable for both Issuer CA and signed application certificates. 
 - Multiple groups can be hosted in a single service to allow for future extensions with https, 
-user or ECC algorithm certificate groups [(*)](/docs/Yet-Unsupported-features). 
+user or ECC algorithm certificate groups [(*)](#Yet-Unsupported-features). 
 - The CA certificates are stored in Azure Key Vault backed with FIPS 140-2 Level 2 Hardware Security Modules (HSM). 
 The private key never leaves the secure storage because signing is done 
 by an AzureAD secured Key Vault operation. 
@@ -108,7 +108,7 @@ Over the lifetime of a signed certificate an application might be deleted or a k
 - A manager may regularly execute a renewal of the Issuer CA CRL. At the renewal time all the deleted Certificate Requests are revoked and the certificate serial numbers are added to the CRL revocation list. Revoked certificate requests are marked as revoked.
 - In urgent events, single certificate requests can be revoked, too.
 - Finally the updated CRLs are available for distribution to the participating OPC UA clients and servers.
- 
+
 See swagger documentation of the OPC Vault Microservice for more information on the API.
 
 ## OPC Vault Module
@@ -117,7 +117,7 @@ execute as a local .Net Core application or can be started in a docker image.
 Due to a lack of Auth2 authentication support in the current OPC UA .Net Standard stack, 
 the functionality of the OPC Vault edge module is limited to a Reader role, because a user cannot be 
 impersonated from the edge module to the micro service using the OPC UA GDS standard interface. 
-Only operations which do not require the Write, Manage or Sign role are permitted at this point[(*)](/docs/Yet-Unsupported-features). 
+Only operations which do not require the Write, Manage or Sign role are permitted at this point[(*)](#Yet-Unsupported-features). 
 
 ## Yet Unsupported features
 
