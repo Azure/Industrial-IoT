@@ -48,7 +48,9 @@ namespace OpcPublisher
 
         public static uint HubMessageSize { get; set; } = 262144;
 
-        public static TransportType HubProtocol { get; set; } = TransportType.Mqtt_WebSocket_Only;
+        public const TransportType IotHubProtocolDefault = TransportType.Mqtt_WebSocket_Only;
+        public const TransportType IotEdgeHubProtocolDefault = TransportType.Amqp_Tcp_Only;
+        public static TransportType HubProtocol { get; set; } = IotHubProtocolDefault;
 
         public static int DefaultSendIntervalSeconds { get; set; } = 10;
 

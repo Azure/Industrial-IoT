@@ -21,11 +21,6 @@ namespace OpcPublisher
         public static string IotDeviceCertX509StorePathDefault => "My";
 
         public static string IotHubOwnerConnectionString { get; set; } = null;
-        public static Microsoft.Azure.Devices.Client.TransportType IotHubProtocol
-        {
-            get => HubProtocol;
-            set => HubProtocol = value;
-        }
 
         public static string IotDeviceCertStoreType { get; set; } = CertificateStoreType.X509Store;
         public static string IotDeviceCertStorePath { get; set; } = IotDeviceCertX509StorePathDefault;
@@ -118,8 +113,9 @@ namespace OpcPublisher
                 }
 
                 // connect to IoTHub
-                DeviceClient hubClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, IotHubProtocol);
-                if (await InitHubCommunicationAsync(hubClient, IotHubProtocol).ConfigureAwait(false))
+                Logger.Information($"Protocol used for IoTHub communication is'{HubProtocol}'");
+                DeviceClient hubClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, HubProtocol);
+                if (await InitHubCommunicationAsync(hubClient, HubProtocol).ConfigureAwait(false))
                 {
                     return true;
                 }

@@ -1,7 +1,7 @@
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments
 
 # OPC Publisher
-This reference implementation demonstrates how to connect to existing OPC UA servers and publishes JSON encoded telemetry data from these servers in OPC UA "Pub/Sub" format (using a JSON payload) to Azure IoT Hub. All transport protocols supported by the Azure IoTHub client SDK can be used, i.e. HTTPS, AMQP and MQTT (the default).
+This reference implementation demonstrates how to connect to existing OPC UA servers and publishes JSON encoded telemetry data from these servers in OPC UA "Pub/Sub" format (using a JSON payload) to Azure IoT Hub. All transport protocols supported by the Azure IoTHub client SDK can be used, i.e. HTTPS, AMQP and MQTT.
 
 This application, apart from including an OPC UA *client* for connecting to existing OPC UA servers you have on your network, also includes an OPC UA *server* on port 62222 that can be used to manage what gets published and offers IoTHub direct methods to do the same.
 
@@ -374,12 +374,14 @@ The complete usage of the application can be shown using the `--help` command li
               --ll, --loglevel=VALUE the loglevel to use (allowed: fatal, error, warn,
                                        info, debug, verbose).
                                        Default: info
-              --ih, --iothubprotocol=VALUE
-                                     the protocol to use for communication with Azure
-                                       IoTHub (allowed values: Amqp, Http1, Amqp_
-                                       WebSocket_Only, Amqp_Tcp_Only, Mqtt, Mqtt_
-                                       WebSocket_Only, Mqtt_Tcp_Only).
-                                       Default: Mqtt_WebSocket_Only
+               --ih, --iothubprotocol=VALUE
+                                      the protocol to use for communication with IoTHub (
+                                        allowed values: Amqp, Http1, Amqp_WebSocket_Only,
+                                         Amqp_Tcp_Only, Mqtt, Mqtt_WebSocket_Only, Mqtt_
+                                        Tcp_Only) or IoT EdgeHub (allowed values: Mqtt_
+                                        Tcp_Only, Amqp_Tcp_Only).
+                                        Default for IoTHub: Mqtt_WebSocket_Only
+                                        Default for IoT EdgeHub: Amqp_Tcp_Only
               --ms, --iothubmessagesize=VALUE
                                      the max size of a message which can be send to
                                        IoTHub. when telemetry of this size is available
@@ -629,7 +631,7 @@ The right container for your OS and CPU architecture (if supported) will be auto
 ## Using it as a module in Azure IoT Edge
 OPC Publisher is ready to be used as a module to run in [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge) Microsoft's Intelligent Edge framework.
 We recommend to take a look on the information available on the beforementioned link and use then the information provided here. When using
-OPC Publisher as IoT Edge module only Amqp_Tcp_Only and Mqtt_Tcp_Only (default) are supported as transport protocols.
+OPC Publisher as IoT Edge module only Amqp_Tcp_Only and Mqtt_Tcp_Only are supported as transport protocols.
 
 To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure portal and navigate to your IoTHub and:
 * Go to IoT Edge and create or select your IoT Edge device.
