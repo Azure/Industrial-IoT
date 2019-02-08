@@ -41,10 +41,8 @@ namespace OpcPublisher
             try
             {
                 // connect to EdgeHub
-                HubProtocol = TransportType.Mqtt_Tcp_Only;
-                Logger.Information($"Create IoTEdgeHub module client using '{HubProtocol}' for communication.");
+                Logger.Information($"Protocol used for IoT EdgeHub communication is'{HubProtocol}'");
                 ModuleClient hubClient = await ModuleClient.CreateFromEnvironmentAsync(HubProtocol).ConfigureAwait(false);
-
                 if (await InitHubCommunicationAsync(hubClient, HubProtocol).ConfigureAwait(false))
                 {
                     return true;

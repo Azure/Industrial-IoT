@@ -97,6 +97,9 @@ namespace OpcPublisher
                 if (IsIotEdgeModule)
                 {
                     WriteLine("IoTEdge detected.");
+
+                    // set IoT Edge specific defaults
+                    HubProtocol = IotEdgeHubProtocolDefault;
                 }
 
                 // command line options
@@ -176,19 +179,16 @@ namespace OpcPublisher
 
 
                         // IoTHub specific options
-                        { "ih|iothubprotocol=", $"{(IsIotEdgeModule ? "not supported when running as IoT Edge module\n" : $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}")}",
+                        { "ih|iothubprotocol=", $"the protocol to use for communication with IoTHub (allowed values: {$"{string.Join(", ", Enum.GetNames(HubProtocol.GetType()))}"}) or IoT EdgeHub (allowed values: Mqtt_Tcp_Only, Amqp_Tcp_Only).\nDefault for IoTHub: {IotHubProtocolDefault}\nDefault for IoT EdgeHub: {IotEdgeHubProtocolDefault}",
                             (Microsoft.Azure.Devices.Client.TransportType p) => {
+                                HubProtocol = p;
                                 if (IsIotEdgeModule)
                                 {
-                                    if (p != Microsoft.Azure.Devices.Client.TransportType.Mqtt_Tcp_Only)
+                                    if (p != Microsoft.Azure.Devices.Client.TransportType.Mqtt_Tcp_Only && p != Microsoft.Azure.Devices.Client.TransportType.Amqp_Tcp_Only)
                                     {
-                                        WriteLine("When running as IoTEdge module Mqtt_Tcp_Only is enforced.");
-                                        IotHubProtocol = Microsoft.Azure.Devices.Client.TransportType.Mqtt_Tcp_Only;
+                                        WriteLine("When running as IoTEdge module only Mqtt_Tcp_Only or Amqp_Tcp_Only are supported. Using Amqp_Tcp_Only");
+                                        HubProtocol = IotEdgeHubProtocolDefault;
                                     }
-                                }
-                                else
-                                {
-                                    IotHubProtocol = p;
                                 }
                             }
                         },
