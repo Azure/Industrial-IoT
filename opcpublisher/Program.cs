@@ -178,17 +178,14 @@ namespace OpcPublisher
                         // IoTHub specific options
                         { "ih|iothubprotocol=", $"{(IsIotEdgeModule ? "not supported when running as IoT Edge module\n" : $"the protocol to use for communication with Azure IoTHub (allowed values: {string.Join(", ", Enum.GetNames(IotHubProtocol.GetType()))}).\nDefault: {Enum.GetName(IotHubProtocol.GetType(), IotHubProtocol)}")}",
                             (Microsoft.Azure.Devices.Client.TransportType p) => {
+                                IotHubProtocol = p;
                                 if (IsIotEdgeModule)
                                 {
-                                    if (p != Microsoft.Azure.Devices.Client.TransportType.Mqtt_Tcp_Only)
+                                    if (p != Microsoft.Azure.Devices.Client.TransportType.Mqtt_Tcp_Only && p != Microsoft.Azure.Devices.Client.TransportType.Amqp_Tcp_Only)
                                     {
-                                        WriteLine("When running as IoTEdge module Mqtt_Tcp_Only is enforced.");
+                                        WriteLine("When running as IoTEdge module only Mqtt_Tcp_Only or Amqp_Tcp_Only are supported. Enforcing Mqtt_Tcp_Only");
                                         IotHubProtocol = Microsoft.Azure.Devices.Client.TransportType.Mqtt_Tcp_Only;
                                     }
-                                }
-                                else
-                                {
-                                    IotHubProtocol = p;
                                 }
                             }
                         },
