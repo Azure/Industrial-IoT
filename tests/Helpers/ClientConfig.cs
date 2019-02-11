@@ -4,12 +4,8 @@
 // ------------------------------------------------------------
 
 
-using System.Text.RegularExpressions;
 using Microsoft.Azure.IIoT.Auth.Clients;
 using Microsoft.Azure.IIoT.Diagnostics;
-using Opc.Ua;
-using Opc.Ua.Gds;
-using Opc.Ua.Test;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
 {

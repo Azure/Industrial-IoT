@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             RSA publicKey,
             X509SignatureGenerator generator,
             bool caCert = false,
-            string crlDistributionPoint = null
+            string extensionUrl = null
             )
         {
             if (publicKey == null)
@@ -95,12 +95,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                         X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
                         true));
 
-                if (crlDistributionPoint != null)
+                if (extensionUrl != null)
                 {
-                    string serial = BitConverter.ToString(serialNumber).Replace("-", "").ToLower();
                     // add CRL endpoint, if available
                     request.CertificateExtensions.Add(
-                        BuildX509CRLDistributionPoints(crlDistributionPoint.Replace("%serial%", serial))
+                        BuildX509CRLDistributionPoints(PatchExtensionUrl(extensionUrl, serialNumber))
                         );
                 }
             }
@@ -128,6 +127,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 // Subject Alternative Name
                 var subjectAltName = BuildSubjectAlternativeName(applicationUri, domainNames);
                 request.CertificateExtensions.Add(new X509Extension(subjectAltName, false));
+
+                if (issuerCAKeyCert != null &&
+                    extensionUrl != null)
+                {   // add Authority Information Access, if available
+                    request.CertificateExtensions.Add(
+                        BuildX509AuthorityInformationAccess(new string[] { PatchExtensionUrl(extensionUrl, issuerCAKeyCert.SerialNumber) })
+                        );
+                }
             }
 
             if (issuerCAKeyCert != null)
@@ -383,6 +390,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             if (!String.IsNullOrEmpty(subjectName))
             {
                 subjectNameEntries = Opc.Ua.Utils.ParseDistinguishedName(subjectName);
+                // enforce proper formatting for the subject name string
+                subjectName = string.Join(", ", subjectNameEntries);
             }
 
             // check the application name.
@@ -481,6 +490,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             return new X500DistinguishedName(subjectName);
         }
 
+        /// <summary>
+        /// Build the Subject Alternative name extension (for OPC UA application certs)
+        /// </summary>
+        /// <param name="applicationUri">The application Uri</param>
+        /// <param name="domainNames">The domain names. DNS Hostnames, IPv4 or IPv6 addresses</param>
         private static X509Extension BuildSubjectAlternativeName(string applicationUri, IList<string> domainNames)
         {
             var sanBuilder = new SubjectAlternativeNameBuilder();
@@ -505,6 +519,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             return sanBuilder.Build();
         }
 
+        /// <summary>
+        /// Convert a hex string to a byte array.
+        /// </summary>
+        /// <param name="hexString">The hex string</param>
         internal static byte[] HexToByteArray(string hexString)
         {
             byte[] bytes = new byte[hexString.Length / 2];
@@ -518,13 +536,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             return bytes;
         }
 
-        private static X509Extension BuildAuthorityKeyIdentifier(X509Certificate2 issuer)
+        /// <summary>
+        /// Build the Authority Key Identifier from an Issuer CA certificate.
+        /// </summary>
+        /// <param name="issuerCaCertificate">The issuer CA certificate</param>
+        private static X509Extension BuildAuthorityKeyIdentifier(X509Certificate2 issuerCaCertificate)
         {
             // force exception if SKI is not present
-            var ski = issuer.Extensions.OfType<X509SubjectKeyIdentifierExtension>().Single();
-            return BuildAuthorityKeyIdentifier(issuer.SubjectName, issuer.GetSerialNumber(), ski);
+            var ski = issuerCaCertificate.Extensions.OfType<X509SubjectKeyIdentifierExtension>().Single();
+            return BuildAuthorityKeyIdentifier(issuerCaCertificate.SubjectName, issuerCaCertificate.GetSerialNumber(), ski);
         }
 
+        /// <summary>
+        /// Build the CRL Distribution Point extension.
+        /// </summary>
+        /// <param name="distributionPoint">The CRL distribution point</param>
         private static X509Extension BuildX509CRLDistributionPoints(
             string distributionPoint
             )
@@ -552,6 +578,62 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             }
         }
 
+        /// <summary>
+        /// Build the Authority information Access extension.
+        /// </summary>
+        /// <param name="caIssuerUrls">Array of CA Issuer Urls</param>
+        /// <param name="ocspResponder">optional, the OCSP responder </param>
+        private static X509Extension BuildX509AuthorityInformationAccess(
+            string[] caIssuerUrls,
+            string ocspResponder = null
+            )
+        {
+            if (String.IsNullOrEmpty(ocspResponder) &&
+               (caIssuerUrls == null ||
+               (caIssuerUrls != null && caIssuerUrls.Length == 0)))
+            {
+                throw new ArgumentNullException(nameof(caIssuerUrls), "One CA Issuer Url or OCSP responder is required for the extension.");
+            }
+
+            var context0 = new Asn1Tag(TagClass.ContextSpecific, 0, true);
+            Asn1Tag generalNameUriChoice = new Asn1Tag(TagClass.ContextSpecific, 6);
+            using (AsnWriter writer = new AsnWriter(AsnEncodingRules.DER))
+            {
+                writer.PushSequence();
+                if (caIssuerUrls != null)
+                {
+                    foreach (var caIssuerUrl in caIssuerUrls)
+                    {
+                        writer.PushSequence();
+                        writer.WriteObjectIdentifier("1.3.6.1.5.5.7.48.2");
+                        writer.WriteCharacterString(
+                            generalNameUriChoice,
+                            UniversalTagNumber.IA5String,
+                            caIssuerUrl);
+                        writer.PopSequence();
+                    }
+                }
+                if (!String.IsNullOrEmpty(ocspResponder))
+                {
+                    writer.PushSequence();
+                    writer.WriteObjectIdentifier("1.3.6.1.5.5.7.48.1");
+                    writer.WriteCharacterString(
+                        generalNameUriChoice,
+                        UniversalTagNumber.IA5String,
+                        ocspResponder);
+                    writer.PopSequence();
+                }
+                writer.PopSequence();
+                return new X509Extension("1.3.6.1.5.5.7.1.1", writer.Encode(), false);
+            }
+        }
+
+        /// <summary>
+        /// Build the X509 Authority Key extension.
+        /// </summary>
+        /// <param name="issuerName">The distinguished name of the issuer</param>
+        /// <param name="issuerSerialNumber">The serial number of the issuer</param>
+        /// <param name="ski">The subject key identifier extension to use</param>
         private static X509Extension BuildAuthorityKeyIdentifier(
             X500DistinguishedName issuerName,
             byte[] issuerSerialNumber,
@@ -589,47 +671,77 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         }
 
         /// <summary>
-        /// The X509 signature generator to sign a digest with a KeyVault key.
+        /// Patch serial number in a Url. byte version.
         /// </summary>
-        public class KeyVaultSignatureGenerator : X509SignatureGenerator
+        private static string PatchExtensionUrl(string extensionUrl, byte[] serialNumber)
         {
-            private X509Certificate2 _issuerCert;
-            private KeyVaultServiceClient _keyVaultServiceClient;
-            private readonly string _signingKey;
+            string serial = BitConverter.ToString(serialNumber).Replace("-", "");
+            return PatchExtensionUrl(extensionUrl, serial);
+        }
 
-            public KeyVaultSignatureGenerator(
-                KeyVaultServiceClient keyVaultServiceClient,
-                string signingKey,
-                X509Certificate2 issuerCertificate)
+        /// <summary>
+        /// Patch serial number in a Url. string version.
+        /// </summary>
+        private static string PatchExtensionUrl(string extensionUrl, string serial)
+        {
+            return extensionUrl.Replace("%serial%", serial.ToLower());
+        }
+
+    }
+    /// <summary>
+    /// The X509 signature generator to sign a digest with a KeyVault key.
+    /// </summary>
+    public class KeyVaultSignatureGenerator : X509SignatureGenerator
+    {
+        private X509Certificate2 _issuerCert;
+        private KeyVaultServiceClient _keyVaultServiceClient;
+        private readonly string _signingKey;
+
+        /// <summary>
+        /// Create the KeyVault signature generator.
+        /// </summary>
+        /// <param name="keyVaultServiceClient">The KeyVault service client to use</param>
+        /// <param name="signingKey">The KeyVault signing key</param>
+        /// <param name="issuerCertificate">The issuer certificate used for signing</param>
+        public KeyVaultSignatureGenerator(
+            KeyVaultServiceClient keyVaultServiceClient,
+            string signingKey,
+            X509Certificate2 issuerCertificate)
+        {
+            _issuerCert = issuerCertificate;
+            _keyVaultServiceClient = keyVaultServiceClient;
+            _signingKey = signingKey;
+        }
+
+        /// <summary>
+        /// Callback to sign a digest with KeyVault key.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="hashAlgorithm"></param>
+        /// <returns></returns>
+        public override byte[] SignData(byte[] data, HashAlgorithmName hashAlgorithm)
+        {
+            HashAlgorithm hash;
+            if (hashAlgorithm == HashAlgorithmName.SHA256)
             {
-                _issuerCert = issuerCertificate;
-                _keyVaultServiceClient = keyVaultServiceClient;
-                _signingKey = signingKey;
+                hash = SHA256.Create();
             }
-
-            public override byte[] SignData(byte[] data, HashAlgorithmName hashAlgorithm)
+            else if (hashAlgorithm == HashAlgorithmName.SHA384)
             {
-                HashAlgorithm hash;
-                if (hashAlgorithm == HashAlgorithmName.SHA256)
-                {
-                    hash = SHA256.Create();
-                }
-                else if (hashAlgorithm == HashAlgorithmName.SHA384)
-                {
-                    hash = SHA384.Create();
-                }
-                else if (hashAlgorithm == HashAlgorithmName.SHA512)
-                {
-                    hash = SHA512.Create();
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException(nameof(hashAlgorithm));
-                }
-                var digest = hash.ComputeHash(data);
-                var resultKeyVaultPkcs = _keyVaultServiceClient.SignDigestAsync(_signingKey, digest, hashAlgorithm, RSASignaturePadding.Pkcs1).GetAwaiter().GetResult();
+                hash = SHA384.Create();
+            }
+            else if (hashAlgorithm == HashAlgorithmName.SHA512)
+            {
+                hash = SHA512.Create();
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(hashAlgorithm), "The hash algorithm " + hashAlgorithm.Name + " is not supported.");
+            }
+            var digest = hash.ComputeHash(data);
+            var resultKeyVaultPkcs = _keyVaultServiceClient.SignDigestAsync(_signingKey, digest, hashAlgorithm, RSASignaturePadding.Pkcs1).GetAwaiter().GetResult();
 #if TESTANDVERIFYTHEKEYVAULTSIGNER
-                // for testing only
+                // for test and dev only, verify the KeyVault signer acts identical to the internal signer
                 if (_issuerCert.HasPrivateKey)
                 {
                     var resultKeyVaultPss = _keyVaultServiceClient.SignDigestAsync(_signingKey, digest, hashAlgorithm, RSASignaturePadding.Pss).GetAwaiter().GetResult();
@@ -651,49 +763,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                     }
                 }
 #endif
-                return resultKeyVaultPkcs;
-            }
+            return resultKeyVaultPkcs;
+        }
 
-            protected override PublicKey BuildPublicKey()
+        protected override PublicKey BuildPublicKey()
+        {
+            return _issuerCert.PublicKey;
+        }
+
+        internal static PublicKey BuildPublicKey(RSA rsa)
+        {
+            if (rsa == null)
             {
-                return _issuerCert.PublicKey;
+                throw new ArgumentNullException(nameof(rsa));
             }
+            // function is never called
+            return null;
+        }
 
-            internal static PublicKey BuildPublicKey(RSA rsa)
+        public override byte[] GetSignatureAlgorithmIdentifier(HashAlgorithmName hashAlgorithm)
+        {
+            byte[] oidSequence;
+
+            if (hashAlgorithm == HashAlgorithmName.SHA256)
             {
-                if (rsa == null)
-                {
-                    throw new ArgumentNullException(nameof(rsa));
-                }
-
-                return null;
+                //const string RsaPkcs1Sha256 = "1.2.840.113549.1.1.11";
+                oidSequence = new byte[] { 48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 11, 5, 0 };
             }
-
-            public override byte[] GetSignatureAlgorithmIdentifier(HashAlgorithmName hashAlgorithm)
+            else if (hashAlgorithm == HashAlgorithmName.SHA384)
             {
-                byte[] oidSequence;
-
-                if (hashAlgorithm == HashAlgorithmName.SHA256)
-                {
-                    //const string RsaPkcs1Sha256 = "1.2.840.113549.1.1.11";
-                    oidSequence = new byte[] { 48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 11, 5, 0 };
-                }
-                else if (hashAlgorithm == HashAlgorithmName.SHA384)
-                {
-                    //const string RsaPkcs1Sha384 = "1.2.840.113549.1.1.12";
-                    oidSequence = new byte[] { 48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 12, 5, 0 };
-                }
-                else if (hashAlgorithm == HashAlgorithmName.SHA512)
-                {
-                    //const string RsaPkcs1Sha512 = "1.2.840.113549.1.1.13";
-                    oidSequence = new byte[] { 48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 13, 5, 0 };
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException(nameof(hashAlgorithm));
-                }
-                return oidSequence;
+                //const string RsaPkcs1Sha384 = "1.2.840.113549.1.1.12";
+                oidSequence = new byte[] { 48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 12, 5, 0 };
             }
+            else if (hashAlgorithm == HashAlgorithmName.SHA512)
+            {
+                //const string RsaPkcs1Sha512 = "1.2.840.113549.1.1.13";
+                oidSequence = new byte[] { 48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 13, 5, 0 };
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(hashAlgorithm), "The hash algorithm " + hashAlgorithm.Name + " is not supported.");
+            }
+            return oidSequence;
         }
     }
 

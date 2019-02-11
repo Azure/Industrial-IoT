@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         Task<CertificateGroupConfigurationModel> UpdateCertificateGroupConfiguration(string id, CertificateGroupConfigurationModel config);
         Task<CertificateGroupConfigurationModel> CreateCertificateGroupConfiguration(string id, string subject, string certType);
         Task<IList<CertificateGroupConfigurationModel>> GetCertificateGroupConfigurationCollection();
-        Task<X509Certificate2Collection> GetIssuerCACertificateVersionsAsync(string id, bool? withCertificates, string nextPageLink = null, int? pageSize = null);
+        Task<(X509Certificate2Collection, string)> GetIssuerCACertificateVersionsAsync(string id, bool? withCertificates, string nextPageLink = null, int? pageSize = null);
         Task<X509Certificate2Collection> GetIssuerCACertificateChainAsync(string id, string thumbPrint = null, string nextPageLink = null, int? pageSize = null);
         Task<IList<Opc.Ua.X509CRL>> GetIssuerCACrlChainAsync(string id, string thumbPrint, string nextPageLink = null, int? pageSize = null);
         Task<KeyVaultTrustListModel> GetTrustListAsync(string id, string nextPageLink = null, int? pageSize = null);

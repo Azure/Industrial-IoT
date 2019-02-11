@@ -460,6 +460,72 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
             }
 
             /// <summary>
+            /// Get Issuer Certificate for Authority Information Access endpoint.
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='serial'>
+            /// </param>
+            /// <param name='cert'>
+            /// </param>
+            public static void GetIssuerCert(this IOpcVault operations, string serial, string cert)
+            {
+                operations.GetIssuerCertAsync(serial, cert).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Get Issuer Certificate for Authority Information Access endpoint.
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='serial'>
+            /// </param>
+            /// <param name='cert'>
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task GetIssuerCertAsync(this IOpcVault operations, string serial, string cert, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.GetIssuerCertWithHttpMessagesAsync(serial, cert, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Get Issuer CRL in CRL Distribution Endpoint.
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='serial'>
+            /// </param>
+            /// <param name='crl'>
+            /// </param>
+            public static void GetIssuerCrl(this IOpcVault operations, string serial, string crl)
+            {
+                operations.GetIssuerCrlAsync(serial, crl).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Get Issuer CRL in CRL Distribution Endpoint.
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='serial'>
+            /// </param>
+            /// <param name='crl'>
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task GetIssuerCrlAsync(this IOpcVault operations, string serial, string crl, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.GetIssuerCrlWithHttpMessagesAsync(serial, crl, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
             /// Get Certificate Group Names.
             /// </summary>
             /// <remarks>

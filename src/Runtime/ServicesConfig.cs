@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
 {
     public interface IServicesConfig
     {
+        string ServiceHost { get; set; }
         string KeyVaultBaseUrl { get; set; }
         string KeyVaultResourceId { get; set; }
         string CosmosDBEndpoint { get; set; }
@@ -28,7 +29,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
             CosmosDBCollection = "AppsAndCertRequests";
             ApplicationsAutoApprove = true;
         }
-
+        /// <inheritdoc/>
+        public string ServiceHost { get; set; }
         /// <inheritdoc/>
         public string KeyVaultBaseUrl { get; set; }
         /// <inheritdoc/>

@@ -11,6 +11,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.Azure.IIoT.Auth.Clients;
 using Microsoft.Azure.IIoT.Diagnostics;
+using Microsoft.Azure.IIoT.Exceptions;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers;
@@ -33,6 +34,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         public ApplicationTestDataGenerator RandomGenerator;
         public KeyVaultCertificateGroup KeyVault;
         public bool KeyVaultInitOk;
+        public readonly string ConfigId;
+        public readonly string GroupId;
 
         const int _randomStart = 3388;
         const int _testSetSize = 10;
@@ -50,7 +53,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             if (!InvalidConfiguration())
             {
                 RandomGenerator = new ApplicationTestDataGenerator();
-                KeyVault = new KeyVaultCertificateGroup(_serviceConfig, _clientConfig, _logger);
+
+                var timeid = (DateTime.UtcNow.ToFileTimeUtc() / 1000) % 10000;
+                GroupId = "GroupTestIssuerCA" + timeid.ToString();
+                ConfigId = "GroupTestConfig" + timeid.ToString();
+                var keyVaultServiceClient = KeyVaultServiceClient.Get(ConfigId, _serviceConfig, _clientConfig, _logger);
+                KeyVault = new KeyVaultCertificateGroup(keyVaultServiceClient, _serviceConfig, _clientConfig, _logger);
+                KeyVault.PurgeAsync(ConfigId, GroupId).Wait();
+                KeyVault.CreateCertificateGroupConfiguration(GroupId, "CN=OPC Vault Cert Request Test CA, O=Microsoft, OU=Azure IoT", null).Wait();
             }
             KeyVaultInitOk = false;
         }
@@ -71,6 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
 
         public void Dispose()
         {
+            KeyVault?.PurgeAsync(ConfigId, GroupId).Wait();
         }
     }
 
@@ -105,7 +116,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         private async Task KeyVaultPurgeCACertificateAsync()
         {
             Skip.If(!_fixture.KeyVaultInitOk);
-            await _keyVault.PurgeAsync();
+            await _keyVault.PurgeAsync(null, _fixture.GroupId);
         }
 
         /// <summary>
@@ -409,6 +420,75 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                 await Assert.ThrowsAsync<KeyVaultErrorException>(async () =>
                 {
                     privateKey = await _keyVault.LoadPrivateKeyAsync(group, requestId.ToString(), randomApp.PrivateKeyFormat);
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get the certificate versions for every group, try paging..
+        /// </summary>
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(3000)]
+        public async Task GetCertificateVersionsAsync()
+        {
+            Skip.If(!_fixture.KeyVaultInitOk);
+            string[] groups = await _keyVault.GetCertificateGroupIds();
+            foreach (string group in groups)
+            {
+                // read all certs
+                X509Certificate2Collection certCollection;
+                string nextPageLink;
+                (certCollection, nextPageLink) = await _keyVault.GetIssuerCACertificateVersionsAsync(group, true, null, 2);
+                while (nextPageLink != null)
+                {
+                    X509Certificate2Collection result;
+                    (result, nextPageLink) = await _keyVault.GetIssuerCACertificateVersionsAsync(group, true, nextPageLink, 2);
+                    certCollection.AddRange(result);
+                }
+
+                // read all matching cert and crl by thumbprint
+                var chainId = await _keyVault.GetIssuerCACertificateChainAsync(group);
+                Assert.NotNull(chainId);
+                Assert.True(chainId.Count >= 1);
+                var crlId = await _keyVault.GetIssuerCACrlChainAsync(group);
+                Assert.NotNull(chainId);
+                Assert.True(chainId.Count >= 1);
+                foreach (var cert in certCollection)
+                {
+                    var certChain = await _keyVault.GetIssuerCACertificateChainAsync(group, cert.Thumbprint);
+                    Assert.NotNull(certChain);
+                    Assert.True(certChain.Count >= 1);
+                    Assert.Equal(cert.Thumbprint, certChain[0].Thumbprint);
+
+                    var crlChain = await _keyVault.GetIssuerCACrlChainAsync(group, cert.Thumbprint);
+                    Assert.NotNull(crlChain);
+                    Assert.True(crlChain.Count >= 1);
+                    crlChain[0].VerifySignature(cert, true);
+                    crlChain[0].VerifySignature(certChain[0], true);
+
+                    // invalid parameter test
+                    // invalid parameter test
+                    await Assert.ThrowsAsync<ResourceNotFoundException>(async () =>
+                    {
+                        await _keyVault.GetIssuerCACrlChainAsync(group, cert.Thumbprint+"a");
+                    });
+                    await Assert.ThrowsAsync<ResourceNotFoundException>(async () =>
+                    {
+                        await _keyVault.GetIssuerCACrlChainAsync("abc", cert.Thumbprint);
+                    });
+                }
+
+                // invalid parameters
+                await Assert.ThrowsAsync<ResourceNotFoundException>(async () =>
+                {
+                    await _keyVault.GetIssuerCACrlChainAsync(group, "abcd");
+                });
+                await Assert.ThrowsAsync<ResourceNotFoundException>(async () =>
+                {
+                    await _keyVault.GetIssuerCACertificateChainAsync("abc");
+                });
+                await Assert.ThrowsAsync<ResourceNotFoundException>(async () =>
+                {
+                    await _keyVault.GetIssuerCACrlChainAsync("abc");
                 });
             }
         }

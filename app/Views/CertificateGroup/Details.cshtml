@@ -6,7 +6,6 @@
     <h4>Certificate Group</h4>
     <hr />
     <dl class="dl-horizontal">
-
         <dt>
             @Html.DisplayNameFor(model => model.Name)
         </dt>
@@ -31,8 +30,20 @@
             @Html.DisplayFor(model => model.SubjectName)
         </dd>
 
+        <dt></dt>
+        <dd></dd>
+
         <dt>
+            Default Certificate
+        </dt>
+        <dd></dd>
+
+        <dt>
+
+            Lifetime
+            <!--
             @Html.DisplayNameFor(model => model.DefaultCertificateLifetime)
+            -->
         </dt>
 
         <dd>
@@ -40,7 +51,11 @@
         </dd>
 
         <dt>
-            @Html.DisplayNameFor(model => model.DefaultCertificateKeySize)
+
+            KeySize
+            <!--
+                @Html.DisplayNameFor(model => model.DefaultCertificateKeySize)
+            -->
         </dt>
 
         <dd>
@@ -48,15 +63,30 @@
         </dd>
 
         <dt>
-            @Html.DisplayNameFor(model => model.DefaultCertificateHashSize)
+
+            HashSize
+            <!--
+                @Html.DisplayNameFor(model => model.DefaultCertificateHashSize)
+            -->
         </dt>
 
         <dd>
             @Html.DisplayFor(model => model.DefaultCertificateHashSize)
         </dd>
 
+        <dt></dt>
+        <dd></dd>
+
         <dt>
-            @Html.DisplayNameFor(model => model.IssuerCACertificateLifetime)
+            Issuer CA Certificate
+        </dt>
+        <dd></dd>
+
+        <dt>
+            Lifetime
+            <!--
+                @Html.DisplayNameFor(model => model.IssuerCACertificateLifetime)
+                    -->
         </dt>
 
         <dd>
@@ -64,7 +94,10 @@
         </dd>
 
         <dt>
-            @Html.DisplayNameFor(model => model.IssuerCACertificateKeySize)
+            KeySize
+            <!--
+                @Html.DisplayNameFor(model => model.IssuerCACertificateKeySize)
+                -->
         </dt>
 
         <dd>
@@ -72,11 +105,37 @@
         </dd>
 
         <dt>
-            @Html.DisplayNameFor(model => model.IssuerCACertificateHashSize)
+            HashSize
+            <!--
+                @Html.DisplayNameFor(model => model.IssuerCACertificateHashSize)
+            -->
         </dt>
 
         <dd>
             @Html.DisplayFor(model => model.IssuerCACertificateHashSize)
+        </dd>
+
+        <dt>
+            CRL Distribution Point
+            <!--
+                @Html.DisplayNameFor(model => model.IssuerCACRLDistributionPoint)
+            -->
+        </dt>
+
+        <dd>
+
+            @Html.DisplayFor(model => model.IssuerCACRLDistributionPoint)
+        </dd>
+
+        <dt>
+            Authority Information Access
+            <!--
+                @Html.DisplayNameFor(model => model.IssuerCAAuthorityInformationAccess)
+            -->
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IssuerCAAuthorityInformationAccess)
         </dd>
 
     </dl>

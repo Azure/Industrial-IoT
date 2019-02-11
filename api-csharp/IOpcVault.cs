@@ -245,6 +245,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault
         Task<HttpOperationResponse<QueryApplicationsResponseApiModel>> QueryApplicationsWithHttpMessagesAsync(QueryApplicationsApiModel query = default(QueryApplicationsApiModel), string nextPageLink = default(string), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Get Issuer Certificate for Authority Information Access endpoint.
+        /// </summary>
+        /// <param name='serial'>
+        /// </param>
+        /// <param name='cert'>
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> GetIssuerCertWithHttpMessagesAsync(string serial, string cert, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Get Issuer CRL in CRL Distribution Endpoint.
+        /// </summary>
+        /// <param name='serial'>
+        /// </param>
+        /// <param name='crl'>
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> GetIssuerCrlWithHttpMessagesAsync(string serial, string crl, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Get Certificate Group Names.
         /// </summary>
         /// <remarks>

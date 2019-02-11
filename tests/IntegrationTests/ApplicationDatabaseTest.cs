@@ -267,7 +267,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             }
         }
 
-        [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(1000)]
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(1500)]
         private async Task ListAllApplications()
         {
             Skip.If(!_fixture.RegistrationOk);
@@ -297,7 +297,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             }
         }
 
-        [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(1000)]
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(2200)]
         private async Task QueryApplicationsByIdAsync()
         {
             Skip.If(!_fixture.RegistrationOk);
@@ -308,7 +308,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             }
         }
 
-        [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(1000)]
+        [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(2300)]
         private async Task QueryApplicationsAsync()
         {
             Skip.If(!_fixture.RegistrationOk);

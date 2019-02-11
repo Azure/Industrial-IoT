@@ -154,13 +154,16 @@ The Microservice follows these guidelines in the default implementation.
 
 - All certificates must include the following X.509 fields as specified below:
   - The content of the version field must be v3. 
-  - The contents of the serialNumber field must include at least 8 bytes of entropy obtained from a FIPS 140 approved random number generator.
+  - The contents of the serialNumber field must include at least 8 bytes of entropy obtained from a FIPS 140 approved random number generator.<br>
     **Important Note:** The OPC Vault serial number is by default 20 byte and obtained from OS cryptographic random number generator. The random number generator is FIPS 140 approved on Windows devices, however not on Linux flavors. This fact needs to be considered when choosing a service deployment which uses Linux VMs or Linux docker containers, on which the underlying technology OpenSSL is usually not FIPS 140 approved.
   - The issuerUniqueID and subjectUniqueID fields must not be present.
-  - **Important Note:** The CRL Distribution Point (CDP) is not present in OPC OPC Vault CA Certificates, because there are custom methods used in OPC UA to distribute CRLs.
   - End-entity certificates must be identified with the Basic Constraints extension in accordance with IETF RFC 5280.
   - The pathLenConstraint field must be set to 0 for the Issuing CA certificate. 
   - The Extended Key Usage extension must be present and contain the minimum set of Extended Key Usage object identifiers (OIDs). The anyExtendedKeyUsage OID (2.5.29.37.0) must not be specified. 
+  - The CRL Distribution Point (CDP) extension must be present in the Issuer CA certificate.<br>
+    **Important Note:** The CRL Distribution Point (CDP) extension is present in OPC Vault CA certificates, nevertheless OPC UA devices use custom methods to distribute CRLs.
+  - The Authority Information Access extension must be present in the subscriber certificates.<br>
+    **Important Note:** The Authority Information Access extension is present in OPC Vault subscriber certificates, nevertheless OPC UA devices use custom methods to distribute Issuer CA information.
 - Approved asymmetric algorithms, key lengths, hash functions and padding modes must be used.
   - **RSA** and **SHA-2** are the only supported algorithms (*).
   - RSA may be used for encryption, key exchange and signature.
@@ -172,9 +175,9 @@ The Microservice follows these guidelines in the default implementation.
 - Certificate Lifetime
   - Root CA certificates: The maximum certificate validity period for root CAs must not exceed 25 years.
   - Sub CA or online Issuer CA certificates: The maximum certificate validity period for CAs that are online and issue only subscriber 
-  certificates must not exceed 6 years. For these CAs the related private signature key must not be used longer than 3 years to issue new certificates. 
+  certificates must not exceed 6 years. For these CAs the related private signature key must not be used longer than 3 years to issue new certificates.<br>
   **Important Note:** The Issuer certificate as it is generated in the default OPC Vault service without external Root CA is treated like a online Sub CA with respective requirements and lifetimes. The default lifetime is set to 5 years with a key length >= 2048.
-  - All asymmetric keys must have a maximum five-year lifetime, recommended one-year lifetime. 
+  - All asymmetric keys must have a maximum five-year lifetime, recommended one-year lifetime.<br>
   **Important Note:** By default the lifetimes of application certificates issued with OpcVault have a lifetime of 2 years and should be replaced every year. 
   - Whenever a certificate is renewed, it is renewed with a new key.
 - OPC UA specific extensions in application instance certificates

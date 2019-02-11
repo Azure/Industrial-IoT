@@ -161,6 +161,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                 group.IssuerCACertificateLifetime = newGroup.IssuerCACertificateLifetime;
                 //group.IssuerCACertificateKeySize = newGroup.IssuerCACertificateKeySize;
                 //group.IssuerCACertificateHashSize = newGroup.IssuerCACertificateHashSize;
+                //group.IssuerCACRLDistributionPoint = newGroup.IssuerCACRLDistributionPoint;
+                //group.IssuerCAAuthorityInformationAccess = newGroup.IssuerCAAuthorityInformationAccess;
                 try
                 {
                     await _opcVault.UpdateCertificateGroupConfigurationAsync(group.Name, group).ConfigureAwait(false);

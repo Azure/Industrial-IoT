@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
         [JsonProperty(PropertyName = "nextPageLink", Order = 20)]
         public string NextPageLink { get; set; }
 
-        public X509Certificate2CollectionApiModel(X509Certificate2Collection certificateCollection)
+        public X509Certificate2CollectionApiModel(X509Certificate2Collection certificateCollection, string nextPageLink = null)
         {
             var chain = new List<X509Certificate2ApiModel>();
             foreach (var cert in certificateCollection)
@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models
                 chain.Add(certApiModel);
             }
             this.Chain = chain;
+            this.NextPageLink = nextPageLink;
         }
 
     }

@@ -31,6 +31,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         private readonly IDocumentDBRepository _documentDBRepository;
         private ServicesConfig _serviceConfig = new ServicesConfig();
         private IConfigurationRoot _configuration;
+        private readonly string _configId;
+        private readonly string _groupId;
+        private KeyVaultCertificateGroup _keyVaultCertificateGroup;
         public TraceLogger Logger = new TraceLogger(new LogConfig());
         public IApplicationsDatabase ApplicationsDatabase;
         public ICertificateGroup CertificateGroup;
@@ -57,7 +60,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             {
                 _documentDBRepository = new OpcVaultDocumentDbRepository(_serviceConfig);
                 ApplicationsDatabase = CosmosDBApplicationsDatabaseFactory.Create(null, _serviceConfig, _documentDBRepository, Logger);
-                CertificateGroup = new KeyVaultCertificateGroup(_serviceConfig, _clientConfig, Logger);
+
+                var timeid = (DateTime.UtcNow.ToFileTimeUtc() / 1000) % 10000;
+                _groupId = "CertReqIssuerCA" + timeid.ToString();
+                _configId = "CertReqConfig" + timeid.ToString();
+                var keyVaultServiceClient = KeyVaultServiceClient.Get(_configId, _serviceConfig, _clientConfig, Logger);
+                _keyVaultCertificateGroup = new KeyVaultCertificateGroup(keyVaultServiceClient, _serviceConfig, _clientConfig, Logger);
+                _keyVaultCertificateGroup.PurgeAsync(_configId, _groupId).Wait();
+                CertificateGroup = _keyVaultCertificateGroup;
+                CertificateGroup = new KeyVaultCertificateGroup(keyVaultServiceClient, _serviceConfig, _clientConfig, Logger);
+                CertificateGroup.CreateCertificateGroupConfiguration(_groupId, "CN=OPC Vault Cert Request Test CA, O=Microsoft, OU=Azure IoT", null).Wait();
                 CertificateRequest = CosmosDBCertificateRequestFactory.Create(ApplicationsDatabase, CertificateGroup, _serviceConfig, _documentDBRepository, Logger);
 
                 // create test set
@@ -75,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
 
         public void Dispose()
         {
-            //throw new NotImplementedException();
+            _keyVaultCertificateGroup?.PurgeAsync(_configId, _groupId).Wait();
         }
 
         public void SkipOnInvalidConfiguration()
@@ -174,11 +186,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             string[] groups = await _certificateGroup.GetCertificateGroupIds();
             foreach (var group in groups)
             {
+                await _certificateGroup.CreateIssuerCACertificateAsync(group);
                 var chain = await _certificateGroup.GetIssuerCACertificateChainAsync(group);
-                if (chain.Count == 0)
-                {
-                    await _certificateGroup.CreateIssuerCACertificateAsync(group);
-                }
+                Assert.NotNull(chain);
+                Assert.True(chain.Count > 0);
             }
         }
 

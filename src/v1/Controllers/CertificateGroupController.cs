@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -176,8 +177,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
             [FromQuery] string nextPageLink,
             [FromQuery] int? pageSize)
         {
-            return new X509Certificate2CollectionApiModel(
-                await _certificateGroups.GetIssuerCACertificateVersionsAsync(group, withCertificates, nextPageLink, pageSize));
+            X509Certificate2Collection collection;
+            (collection, nextPageLink) = await _certificateGroups.GetIssuerCACertificateVersionsAsync(group, withCertificates, nextPageLink, pageSize);
+            return new X509Certificate2CollectionApiModel(collection, nextPageLink);
         }
 
         /// <summary>

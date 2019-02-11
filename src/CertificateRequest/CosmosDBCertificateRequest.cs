@@ -104,16 +104,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 //TODO
             }
 
-            CertificateRequest request = null;
-            bool isNew = false;
-
-            if (request == null)
-            {
-                request = new CertificateRequest() { RequestId = Guid.NewGuid(), AuthorityId = authorityId };
-                request.ID = _certRequestIdCounter++;
-                isNew = true;
-            }
-
+            CertificateRequest request = new CertificateRequest() { RequestId = Guid.NewGuid(), AuthorityId = authorityId };
+            request.ID = _certRequestIdCounter++;
             request.CertificateRequestState = (int)CertificateRequestState.New;
             request.CertificateGroupId = certificateGroupId;
             request.CertificateTypeId = certificateTypeId;
@@ -125,29 +117,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             request.ApplicationId = applicationId;
             request.RequestTime = DateTime.UtcNow;
 
-            if (isNew)
+            bool retry;
+            do
             {
-                bool retry;
-                do
+                retry = false;
+                try
                 {
-                    retry = false;
-                    try
+                    var result = await _certificateRequests.CreateAsync(request);
+                }
+                catch (DocumentClientException dce)
+                {
+                    if (dce.StatusCode == System.Net.HttpStatusCode.Conflict)
                     {
-                        var result = await _certificateRequests.CreateAsync(request);
+                        // retry with new guid and id
+                        request.RequestId = Guid.NewGuid();
+                        _certRequestIdCounter = await GetMaxCertIDAsync();
+                        request.ID = _certRequestIdCounter++;
+                        retry = true;
                     }
-                    catch (DocumentClientException dce)
-                    {
-                        if (dce.StatusCode == System.Net.HttpStatusCode.Conflict)
-                        {
-                            // retry with new guid and id
-                            request.RequestId = Guid.NewGuid();
-                            _certRequestIdCounter = await GetMaxCertIDAsync();
-                            request.ID = _certRequestIdCounter++;
-                            retry = true;
-                        }
-                    }
-                } while (retry);
-            }
+                }
+            } while (retry);
 
             return request.RequestId.ToString();
         }
@@ -166,7 +155,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 
             if (string.IsNullOrEmpty(certificateGroupId))
             {
-                //TODO:
+                //TODO
             }
 
             if (string.IsNullOrEmpty(certificateTypeId))
@@ -174,17 +163,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 //TODO
             }
 
-            CertificateRequest request = null;
-            bool isNew = false;
-            if (request == null)
+            if (string.IsNullOrEmpty(subjectName))
             {
-                request = new CertificateRequest()
-                {
-                    RequestId = Guid.NewGuid(),
-                    AuthorityId = authorityId
-                };
-                isNew = true;
+                throw new ArgumentNullException(nameof(subjectName));
             }
+
+            CertificateRequest request = null;
+            request = new CertificateRequest()
+            {
+                RequestId = Guid.NewGuid(),
+                AuthorityId = authorityId
+            };
+
+            var subjectList = Opc.Ua.Utils.ParseDistinguishedName(subjectName);
+            if (subjectList == null ||
+                subjectList.Count == 0)
+            {
+                throw new ArgumentException("Invalid Subject", nameof(subjectName));
+            }
+
+            if (!subjectList.Any(c => c.StartsWith("CN=", StringComparison.InvariantCulture)))
+            {
+                throw new ArgumentException("Invalid Subject, must have a common name (CN=).", nameof(subjectName));
+            }
+
+            // enforce proper formatting for the subject name string
+            subjectName = string.Join(", ", subjectList);
 
             List<string> discoveryUrlDomainNames = new List<string>();
             if (domainNames != null)
@@ -247,29 +251,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             request.ApplicationId = application.ApplicationId.ToString();
             request.RequestTime = DateTime.UtcNow;
 
-            if (isNew)
+            bool retry;
+            do
             {
-                bool retry;
-                do
+                retry = false;
+                try
                 {
-                    retry = false;
-                    try
+                    var result = await _certificateRequests.CreateAsync(request);
+                }
+                catch (DocumentClientException dce)
+                {
+                    if (dce.StatusCode == System.Net.HttpStatusCode.Conflict)
                     {
-                        var result = await _certificateRequests.CreateAsync(request);
+                        // retry with new guid and id
+                        request.RequestId = Guid.NewGuid();
+                        _certRequestIdCounter = await GetMaxCertIDAsync();
+                        request.ID = _certRequestIdCounter++;
+                        retry = true;
                     }
-                    catch (DocumentClientException dce)
-                    {
-                        if (dce.StatusCode == System.Net.HttpStatusCode.Conflict)
-                        {
-                            // retry with new guid and id
-                            request.RequestId = Guid.NewGuid();
-                            _certRequestIdCounter = await GetMaxCertIDAsync();
-                            request.ID = _certRequestIdCounter++;
-                            retry = true;
-                        }
-                    }
-                } while (retry);
-            }
+                }
+            } while (retry);
 
             return request.RequestId.ToString();
         }

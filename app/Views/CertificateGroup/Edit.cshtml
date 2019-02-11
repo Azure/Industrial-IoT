@@ -6,105 +6,137 @@
 {
     @Html.AntiForgeryToken()
 
-    <div class="form-horizontal">
-        <h4>Certificate Group</h4>
-        <hr />
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        @Html.HiddenFor(model => model.Name)
-        @Html.HiddenFor(model => model.CertificateType)
-        @Html.HiddenFor(model => model.DefaultCertificateKeySize)
-        @Html.HiddenFor(model => model.DefaultCertificateHashSize)
-        @Html.HiddenFor(model => model.IssuerCACertificateKeySize)
-        @Html.HiddenFor(model => model.IssuerCACertificateHashSize)
-        <div class="form-group">
-            @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DisplayFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
-            </div>
+<div class="form-horizontal">
+    <h4>Certificate Group</h4>
+    <hr />
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Name)
+    @Html.HiddenFor(model => model.CertificateType)
+    @Html.HiddenFor(model => model.DefaultCertificateKeySize)
+    @Html.HiddenFor(model => model.DefaultCertificateHashSize)
+    @Html.HiddenFor(model => model.IssuerCACertificateKeySize)
+    @Html.HiddenFor(model => model.IssuerCACertificateHashSize)
+    @Html.HiddenFor(model => model.IssuerCACRLDistributionPoint)
+    @Html.HiddenFor(model => model.IssuerCAAuthorityInformationAccess)
+    <div class="form-group">
+        <div class="col-md-3">
+            @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "pull-right" })
         </div>
-        <div class="form-group">
-            @Html.LabelFor(model => model.CertificateType, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DisplayFor(model => model.CertificateType, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.CertificateType, "", new { @class = "text-danger" })
-            </div>
+        <div class="col-md-8">
+            @Html.DisplayFor(model => model.Name)
         </div>
-        <div class="form-group">
-            @Html.LabelFor(model => model.SubjectName, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.SubjectName, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.SubjectName, "", new { @class = "text-danger" })
-            </div>
-        </div>
-        <div class="form-group">
-            @Html.LabelFor(model => model.DefaultCertificateLifetime, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.DefaultCertificateLifetime, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.DefaultCertificateLifetime, "", new { @class = "text-danger" })
-            </div>
-        </div>
-        <div class="form-group">
-            @Html.LabelFor(model => model.DefaultCertificateKeySize, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DisplayFor(model => model.DefaultCertificateKeySize, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.DefaultCertificateKeySize, "", new { @class = "text-danger" })
-            </div>
-        </div>
-        <div class="form-group">
-            @Html.LabelFor(model => model.DefaultCertificateHashSize, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DisplayFor(model => model.DefaultCertificateHashSize, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.DefaultCertificateHashSize, "", new { @class = "text-danger" })
-            </div>
-        </div>
-        <div class="form-group">
-            @Html.LabelFor(model => model.IssuerCACertificateLifetime, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.IssuerCACertificateLifetime, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.IssuerCACertificateLifetime, "", new { @class = "text-danger" })
-            </div>
-        </div>
-        <div class="form-group">
-            @Html.LabelFor(model => model.IssuerCACertificateKeySize, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DisplayFor(model => model.IssuerCACertificateKeySize, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.IssuerCACertificateKeySize, "", new { @class = "text-danger" })
-            </div>
-        </div>
-        <div class="form-group">
-            @Html.LabelFor(model => model.IssuerCACertificateHashSize, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DisplayFor(model => model.IssuerCACertificateHashSize, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.IssuerCACertificateHashSize, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        @if (ViewData["SuccessMessage"] != null)
-        {
-            <hr />
-            <div class="alert alert-success">
-                <h4>@ViewData["SuccessMessage"]</h4>
-            </div>
-            <hr />
-        }
-        @if (ViewData["ErrorMessage"] != null)
-        {
-            <hr />
-            <div class="alert alert-warning">
-                <h4>@ViewData["ErrorMessage"]</h4>
-            </div>
-            <hr />
-        }
-        else
-        {
-            <div class="form-group">
-                <div class="col-md-offset-2 col-md-10">
-                    <input type="submit" value="Save" class="btn btn-default" />
-                </div>
-            </div>
-        }
     </div>
+    <div class="form-group">
+        <div class="col-md-3">
+            @Html.LabelFor(model => model.CertificateType, htmlAttributes: new { @class = "pull-right" })
+        </div>
+        <div class="col-md-8">
+            @Html.DisplayFor(model => model.CertificateType)
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.SubjectName, htmlAttributes: new { @class = "control-label col-md-3" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.SubjectName, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.SubjectName, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.DefaultCertificateLifetime, htmlAttributes: new { @class = "control-label col-md-3" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.DefaultCertificateLifetime, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.DefaultCertificateLifetime, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-3">
+            @Html.LabelFor(model => model.DefaultCertificateKeySize, htmlAttributes: new { @class = "pull-right" })
+        </div>
+        <div class="col-md-8">
+            @Html.DisplayFor(model => model.DefaultCertificateKeySize, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.DefaultCertificateKeySize, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-3">
+            @Html.LabelFor(model => model.DefaultCertificateHashSize, htmlAttributes: new { @class = "pull-right" })
+        </div>
+        <div class="col-md-8">
+            @Html.DisplayFor(model => model.DefaultCertificateHashSize, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.DefaultCertificateHashSize, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-3">
+            @Html.LabelFor(model => model.IssuerCACertificateLifetime, htmlAttributes: new { @class = "control-label col-md-3" })
+        </div>
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.IssuerCACertificateLifetime, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.IssuerCACertificateLifetime, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-3">
+            @Html.LabelFor(model => model.IssuerCACertificateKeySize, htmlAttributes: new { @class = "pull-right" })
+        </div>
+        <div class="col-md-8">
+            @Html.DisplayFor(model => model.IssuerCACertificateKeySize, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.IssuerCACertificateKeySize, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-3">
+            @Html.LabelFor(model => model.IssuerCACertificateHashSize, htmlAttributes: new { @class = "pull-right" })
+        </div>
+        <div class="col-md-8">
+            @Html.DisplayFor(model => model.IssuerCACertificateHashSize, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.IssuerCACertificateHashSize, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-3">
+            @Html.LabelFor(model => model.IssuerCACRLDistributionPoint, htmlAttributes: new { @class = "pull-right" })
+        </div>
+        <div class="col-md-8">
+            @Html.DisplayFor(model => model.IssuerCACRLDistributionPoint, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.IssuerCACRLDistributionPoint, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-3">
+            @Html.LabelFor(model => model.IssuerCAAuthorityInformationAccess, htmlAttributes: new { @class = "pull-right" })
+        </div>
+        <div class="col-md-8">
+            @Html.DisplayFor(model => model.IssuerCAAuthorityInformationAccess, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.IssuerCAAuthorityInformationAccess, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    @if (ViewData["SuccessMessage"] != null)
+    {
+        <hr />
+        <div class="alert alert-success">
+            <h4>@ViewData["SuccessMessage"]</h4>
+        </div>
+        <hr />
+    }
+    @if (ViewData["ErrorMessage"] != null)
+    {
+        <hr />
+        <div class="alert alert-warning">
+            <h4>@ViewData["ErrorMessage"]</h4>
+        </div>
+        <hr />
+    }
+    else
+    {
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </div>
+    }
+</div>
 }
 <div>
     <hr />

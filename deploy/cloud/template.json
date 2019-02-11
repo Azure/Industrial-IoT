@@ -160,7 +160,7 @@
         "readDeletePermissions": [ "Get", "List", "Delete" ],
         "writeDeletePermissions": [ "Get", "List", "Set", "Delete" ],
         "signPermissions": [ "Get", "List", "Sign" ],
-        "createPermissions": [ "Get", "List", "Update", "Create", "Import", "Delete" ],
+        "createPermissions": [ "Get", "List", "Update", "Create", "Import" ],
         "groupsObject": {
             "secrets": [
                 {
@@ -280,6 +280,18 @@
             "dependsOn": [
                 "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))]",
                 "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(variables('keyVaultName'), '/', 'Service-OpcVault--ServiceHost')]",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "properties": {
+                "value": "[reference(concat('Microsoft.Web/sites/', variables('webAppServiceName'))).hostNames[0]]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+                "[resourceId('Microsoft.Web/sites/', variables('webAppServiceName'))]"
             ]
         },
         {
@@ -469,6 +481,7 @@
                         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]",
                         "ASPNETCORE_ENVIRONMENT": "[parameters('environment')]",
                         "KEYVAULT": "[reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))).vaultUri]",
+                        //"OPCVAULT__SERVICEHOST": "[concat('https://', reference(concat('Microsoft.Web/sites/', variables('webAppServiceName'))).hostNames[0])]",
                         "OPCVAULT__KEYVAULTBASEURL": "[reference(resourceId('Microsoft.KeyVault/vaults', variables('opcVaultName'))).vaultUri]",
                         "OPCVAULT__COSMOSDBENDPOINT": "[reference(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName'))).documentEndpoint]",
                         //"OPCVAULT__COSMOSDBTOKEN": "[listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDBName')), variables('documentDBApiVersion')).primaryMasterKey]",

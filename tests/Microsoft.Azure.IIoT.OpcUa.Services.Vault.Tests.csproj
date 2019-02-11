@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <LangVersion>6</LangVersion>
+    <LangVersion>7.0</LangVersion>
     <AssemblyName>Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test</AssemblyName>
     <RootNamespace>Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test</RootNamespace>
     <Configurations>Debug;Release;Develop</Configurations>
