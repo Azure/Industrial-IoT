@@ -1,38 +1,53 @@
----
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
+# Type of issue <!-- [x] in all the boxes that apply -->
 
----
+- [ ] Bug
+- [ ] New feature
+- [ ] Enhancement
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+# Description <!-- Please provide a succinct description -->
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+...
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+# Steps to reproduce <!-- The steps required to reproduce the issue -->
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+1. [First step]
+2. [Second step]
+3. [and so on...]
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+# Expected behavior <!-- The behavior you expect -->
+...
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+# Current behavior <!-- The actual behavior you observed -->
+...
 
-**Additional context**
-Add any other context about the problem here.
+# Known workarounds <!-- If you know any known workaround please share here -->
+...
+
+# Possible solution <!-- If you have a suggestion, how the issue could be solved -->
+...
+
+# Context and Environment
+* Operating System: ...
+* GitHub branch: ...
+* .NET Runtime: ...
+
+# Code to reproduce the bug <!-- Possibly include a test to reproduce the issue -->
+```
+using Xunit;
+
+public class MyTest
+{
+    [Fact]
+    public void TestToReproduceIssue()
+    {
+        // Arrange
+        ...
+
+        // Act
+        ...
+
+        // Assert
+        ...
+    }
+}
+```

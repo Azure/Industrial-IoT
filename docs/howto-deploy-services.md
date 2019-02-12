@@ -37,7 +37,7 @@ A Powershell script provides an easy way to deploy the OPC Vault microservice an
 or enter a full command line:  
 `.\deploy.ps1  -subscriptionName "MySubscriptionName" -resourceGroupLocation "East US" -tenantId "myTenantId" -resourceGroupName "myResourceGroup"`
 7. If you plan to develop with this deployment, add `-development 1` to enable the Swagger UI and to deploy debug builds.
-6. Follow the instructions in the script to login to your subscription and to provide additional information
+6. Follow the instructions in the script to login to your subscription and to provide additional information.
 9. After a successful build and deploy operation you should see the following message:
 
 ```
@@ -56,13 +56,13 @@ To start the local dotnet GDS server:
 In case you run into issues please follow the steps [below](#Troubleshooting-deployment-failures).
 
 8. Open your favorite browser and open the application page: `https://myResourceGroup-app.azurewebsites.net`
-8. Give the web app and the web service a few minutes to warm up after deployment.
+8. Give the web app and the OPC Vault microservice a few minutes to warm up after deployment. The web home page may hang on first use for up to a minute until you get the first responses.
 11. To take a look at the Swagger Api open: `https://myResourceGroup-service.azurewebsites.net`
 13. To start a local GDS server with dotnet start `.\myResourceGroup-gds.cmd` or with docker start `.\myResourceGroup-dockergds.cmd`.
 
 As a sidenote, it is possible to redeploy a build with exactly the same settings. Be aware that such an operation renews all application secrets and may reset some settings in the AAD application registrations.
 
-## How to use the Certificate Management Service
+## [How to use the Certificate Management Service](howto-use-cert-services.md)
 
 Please find an article describing how to use the Certificate Management Service [here](howto-use-cert-services.md).
 

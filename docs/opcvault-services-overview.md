@@ -1,6 +1,8 @@
-### Azure Industrial IoT OPC Unified Architecture (OPC UA) Certificate Management Service
+# Azure Industrial IoT Services
 
-This article gives an overview about the OPC UA Certificate Management Service and the core microservice called OPCVault.
+## OPC UA Certificate Management Service
+
+This article gives an overview about the OPC UA Certificate Management Service and the **OPC Vault Microservice** and the **OPC Vault Edge Module** and the .
 
 ## Overview
 
@@ -34,7 +36,7 @@ be renewed and to be replaced for the affected applications.
 Azure Industrial IoT OPC UA Certificate Management Service is our solution to 
 manage a company specific CA for OPC UA applications which is based on the OPC Vault microservice.
 
-OPC Vault provides a micro service to host a company specific CA in a secure 
+OPC Vault provides a microservice to host a company specific CA in a secure 
 cloud, backed by Azure AD secured services with Azure Key Vault with HSM, 
 Cosmos DB and optionally also IoT Hub as application store.
 
@@ -43,10 +45,9 @@ personal requests signed application certificates and where security
 administrators and approvers with signing rights in Azure Key Vault 
 approve or reject these requests.
 
-For compatibility with existing OPC UA GDS based OT solutions OPC Vault 
-supports a micro service backed edge module which implements the 
-OPC UA Global Discovery Server interface to distribute certificates 
-and trust lists according to the Part 12 specification. 
+For compatibility with existing OPC UA GDS based OT solutions the services include
+support for a OPC Vault microservice backed edge module which implements the 
+*OPC UA Global Discovery Server and Certificate Management* interface to distribute certificates and trust lists according to the Part 12 of the specification. 
 However, as of our knowledge, this GDS server interface is not widely 
 used yet and has yet limited functionality (Reader role). [On demand, we will 
 improve the experience on customer request (*)](#Yet-Unsupported-features).
@@ -54,7 +55,7 @@ improve the experience on customer request (*)](#Yet-Unsupported-features).
 ## Architecture
 
 The architecture is based on a the OPC Vault microservice with an OPC Vault 
-edge module for the factory network and an OPC Vault sample UX to control the workflow:
+edge module for the factory network and a web sample UX to control the workflow:
 
 ![OPCVault Architecture](opcvaultarchitecture.png "OPCVault architecture")
 
@@ -76,7 +77,7 @@ with all OPC UA specific extensions.
 - The application service is either backed by a CosmosDB 
 database or the [OpcTwin device registry (*)](#Yet-Unsupported-features), depending on the customer configuration.
 
-### CertificateGroup
+### Certificate Group
 - A certificate group is an entity which stores a root CA or a sub CA certificate 
 including the private key to sign certificates. 
 - The RSA key length, the SHA-2 hash length 
@@ -92,7 +93,7 @@ remain still in safe storage due to Key Vault history.
 Once an application is unregistered, the application certificate is also revoked in the CRL by an administrator.
 - Batched and single certificate revocation is supported.
 
-### CertificateRequest
+### Certificate Request
 A certificate request implements the workflow to generate a new key pair or a signed certificate using a CSR for an OPC UA Application. 
 - The request is stored in a database with accompanying information like the Subject or a “Certificate Signing Request” (CSR) and a reference to the OPC UA Application. 
 - The business logic in the service validates the request against the information stored in the application database. 
@@ -103,7 +104,7 @@ For example the application Uri in the database must match the application Uri i
 
 Over the lifetime of a signed certificate an application might be deleted or a key might become compromised. In such a case, a CA manager can:
 - Delete an application, which at the same time deletes also all pending and approved certificate requests of the app. 
-- Another option is to delete just the single certificate request if only a key is renewed or compromised.
+- Another option is to delete just a single certificate request if only a key is renewed or compromised.
 - Now compromised Approved and Accepted certificate requests are marked as deleted.
 - A manager may regularly execute a renewal of the Issuer CA CRL. At the renewal time all the deleted Certificate Requests are revoked and the certificate serial numbers are added to the CRL revocation list. Revoked certificate requests are marked as revoked.
 - In urgent events, single certificate requests can be revoked, too.
@@ -111,7 +112,7 @@ Over the lifetime of a signed certificate an application might be deleted or a k
 
 See swagger documentation of the OPC Vault Microservice for more information on the API.
 
-## OPC Vault Module
+## OPC Vault Edge Module
 To support a factory network Global Discovery Server the OPC Vault module can be deployed on the edge, 
 execute as a local .Net Core application or can be started in a docker image. 
 Due to a lack of Auth2 authentication support in the current OPC UA .Net Standard stack, 
