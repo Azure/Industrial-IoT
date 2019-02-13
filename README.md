@@ -705,7 +705,7 @@ them in the container file system only. To achieve this you need to use the `-v`
 
 ### Using IoT Edge
 The description in **Using it as a module in Azure IoT Edge** above is the simplest configuration. Very common is that you want to use the configuration files accessible in the host file system.
-Here is a set of `Container Create Options`which allow you to achieve this:
+Here is a set of `Container Create Options`which allow you to achieve this (be aware that the following example is of a deployment using Linux Containers for Windows):
 
         {
             "Hostname": "publisher",
@@ -726,6 +726,24 @@ The log file `publisher-publisher.log` (default name) will be written to `/appda
 To make all those files available in the host file system the container configuration requires a bind mount volume.
 The `d://iiotedge:/appdata` bind will map the directory `/appdata` (which is the current working directory on container startup) to the host directory `d://iiotedge`.
 If this is not given, all file data will be not persisted when the container is started again.
+If you are running Windows containers, then the syntax of the `Binds`parameter is different. At container startup the working directory is `c:\appdata`.
+That means you need to specify the following mapping in the `HostConfig` if you want to put the configuration file in the directory `d:\iiotedge`on the host:
+
+            "HostConfig": {
+                "Binds": [
+                    "d:/iiotedge:c:/appdata"
+                ]
+            }
+
+If you are running Linux containers on Linux, then the syntax of the `Binds`parameter is again different. At container startup the working directory is `/appdata`.
+That means if you specify the following mapping in the `HostConfig`, then the configuration file should reside in the directory `/iiotedge` on the host:
+
+            "HostConfig": {
+                "Binds": [
+                    "/iiotedge:/appdata"
+                ]
+            }
+
 
 ## OPC UA X.509 certificates
 As you know, OPC UA is using X.509 certificates to authenticate OPC UA client and server during establishment of a connection and 
