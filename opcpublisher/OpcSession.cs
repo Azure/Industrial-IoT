@@ -443,11 +443,6 @@ namespace OpcPublisher
                             {
                                 Logger.Information($"Namespace index {i++}: {ns}");
                             }
-
-                            // fetch the minimum supported item sampling interval from the server.
-                            DataValue minSupportedSamplingInterval = OpcUaClientSession.ReadValue(VariableIds.Server_ServerCapabilities_MinSupportedSampleRate);
-                            _minSupportedSamplingInterval = minSupportedSamplingInterval.GetValue(0);
-                            Logger.Information($"The server on endpoint '{selectedEndpoint.EndpointUrl}' supports a minimal sampling interval of {_minSupportedSamplingInterval} ms.");
                             State = SessionState.Connected;
                         }
                         else
@@ -1332,7 +1327,6 @@ namespace OpcPublisher
         private CancellationToken _sessionCancelationToken;
         private NamespaceTable _namespaceTable;
         private IEndpointTelemetryConfigurationModel _telemetryConfiguration;
-        private double _minSupportedSamplingInterval;
         private Task _connectAndMonitorAsync;
     }
 }

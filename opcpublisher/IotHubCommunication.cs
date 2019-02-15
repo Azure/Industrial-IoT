@@ -1,6 +1,7 @@
 ﻿namespace OpcPublisher
 {
     using Microsoft.Azure.Devices;
+    using Microsoft.Azure.Devices.Client;
     using Opc.Ua;
     using System;
     using static OpcApplicationConfiguration;
@@ -11,16 +12,6 @@
     /// </summary>
     public class IotHubCommunication : HubCommunicationBase
     {
-        /// <summary>
-        /// Protocol tu use when running as IoTHub client.
-        /// </summary>
-        public static Microsoft.Azure.Devices.Client.TransportType IotHubProtocol { get; set; } = Microsoft.Azure.Devices.Client.TransportType.Mqtt_WebSocket_Only;
-
-        /// <summary>
-        /// Specifies the protocol to use for hub communication.
-        /// </summary>
-        public override Microsoft.Azure.Devices.Client.TransportType HubProtocol { get; set; } = Microsoft.Azure.Devices.Client.TransportType.Mqtt_WebSocket_Only;
-
         /// <summary>
         /// Default cert store path of the IoTHub credentials for store type directory.
         /// </summary>
@@ -154,7 +145,6 @@
             }
 
             // connect as device client
-            HubProtocol = IotHubProtocol;
             Logger.Information($"Create device client using '{HubProtocol}' for communication.");
             IotHubClient = HubClient.CreateDeviceClientFromConnectionString(DeviceConnectionString, HubProtocol);
             if (!InitHubCommunicationAsync(IotHubClient).Result)

@@ -91,7 +91,7 @@ namespace OpcPublisher
             }
             catch (Exception)
             {
-                throw new Exception("Cannot create the PLC container");
+                throw;
             }
 
             try
@@ -100,7 +100,7 @@ namespace OpcPublisher
             }
             catch (Exception)
             {
-                throw new Exception("Cannot start the PLC container");
+                throw;
 
             }
         }
@@ -160,6 +160,8 @@ namespace OpcPublisher
             return Task.FromResult(0);
         }
 
+        // when testing locally, spin up your own registry and put the image in here
+        //string _plcImage = "localhost:5000/opc-plc";
         string _plcImage = "mcr.microsoft.com/iotedge/opc-plc";
         string _plcPort = "50000";
         DockerClient _dockerClient = null;

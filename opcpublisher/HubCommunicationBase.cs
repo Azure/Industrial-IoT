@@ -108,7 +108,9 @@ namespace OpcPublisher
         /// <summary>
         /// The protocol to use for hub communication.
         /// </summary>
-        public virtual TransportType HubProtocol { get; set; } = TransportType.Mqtt_Tcp_Only;
+        public const TransportType IotHubProtocolDefault = TransportType.Mqtt_WebSocket_Only;
+        public const TransportType IotEdgeHubProtocolDefault = TransportType.Amqp_Tcp_Only;
+        public static TransportType HubProtocol { get; set; } = IotHubProtocolDefault;
 
         /// <summary>
         /// Dictionary of available IoTHub direct methods.

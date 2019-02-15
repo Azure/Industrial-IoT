@@ -12,11 +12,6 @@ namespace OpcPublisher
     public interface IHubCommunication
     {
         /// <summary>
-        /// Specifies the protocol to use for hub communication.
-        /// </summary>
-        TransportType HubProtocol { get; set; }
-
-        /// <summary>
         /// Dictionary of available IoTHub direct methods.
         /// </summary>
         Dictionary<string, MethodCallback> IotHubDirectMethods { get; }

@@ -12,7 +12,7 @@ namespace OpcPublisher
     using Xunit.Abstractions;
     using static Program;
 
-    [Collection("Need PLC and app config")]
+    [Collection("Need PLC and publisher config")]
     public sealed class TelemetryUnitTests : IDisposable
     {
         public TelemetryUnitTests(ITestOutputHelper output)

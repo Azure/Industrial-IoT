@@ -119,7 +119,7 @@ namespace OpcPublisher
                 diagnosticInfo.WorkingSetMB = Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024);
                 diagnosticInfo.DefaultSendIntervalSeconds = DefaultSendIntervalSeconds;
                 diagnosticInfo.HubMessageSize = HubMessageSize;
-                diagnosticInfo.HubProtocol = Hub.HubProtocol;
+                diagnosticInfo.HubProtocol = HubProtocol;
             }
             catch
             {

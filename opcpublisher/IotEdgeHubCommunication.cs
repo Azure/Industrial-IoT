@@ -10,16 +10,6 @@
     public class IotEdgeHubCommunication : HubCommunicationBase
     {
         /// <summary>
-        /// Command line argument to select protocol to use when running as IoT Edge module.
-        /// </summary>
-        public static TransportType IotEdgeHubProtocol { get; set; } = TransportType.Mqtt_Tcp_Only;
-
-        /// <summary>
-        /// Specifies the protocol to use for hub communication.
-        /// </summary>
-        public override TransportType HubProtocol { get; set; } = TransportType.Mqtt_Tcp_Only;
-
-        /// <summary>
         /// Detects if publisher is running as an IoTEdge module.
         /// </summary>
         public static bool IsIotEdgeModule
@@ -56,7 +46,6 @@
         public IotEdgeHubCommunication()
         {
             // connect to IoT Edge hub
-            HubProtocol = IotEdgeHubProtocol;
             Logger.Information($"Create module client using '{HubProtocol}' for communication.");
             IHubClient hubClient = HubClient.CreateModuleClientFromEnvironment(HubProtocol);
 

@@ -12,7 +12,7 @@ namespace OpcPublisher
     using static OpcApplicationConfiguration;
     using static Program;
 
-    [Collection("Need PLC and app config")]
+    [Collection("Need PLC and publisher config")]
     public sealed class ConfigurationViaIotMethodUnitTests : IDisposable
     {
         public ConfigurationViaIotMethodUnitTests(ITestOutputHelper output)
