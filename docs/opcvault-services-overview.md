@@ -1,8 +1,8 @@
 # Azure Industrial IoT Services
 
-## OPC UA Certificate Management Service
+## OPC UA Certificate Management Services
 
-This article gives an overview about the OPC UA Certificate Management Service and the **OPC Vault Microservice** and the **OPC Vault Edge Module** and the .
+This article gives an overview about the **OPC Vault Microservice** and the **OPC Vault Edge Module**..
 
 ## Overview
 

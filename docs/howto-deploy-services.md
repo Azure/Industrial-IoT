@@ -1,4 +1,6 @@
-# Build and Deploy the Azure Industrial IoT OPC UA Certificate Management Service and dependencies
+# Azure Industrial IoT Services
+
+## Build and Deploy the OPC UA Certificate Management Service and dependencies
 
 This article explains how to deploy the OPC UA Certificate Management Service in Azure.
 
@@ -62,9 +64,9 @@ In case you run into issues please follow the steps [below](#Troubleshooting-dep
 
 As a sidenote, it is possible to redeploy a build with exactly the same settings. Be aware that such an operation renews all application secrets and may reset some settings in the AAD application registrations.
 
-## [How to use the Certificate Management Service](howto-use-cert-services.md)
+It is also possible to redeploy just the web app binaries. With the parameter `-onlyBuild 1` new zip packages of the service and the app are deployed to the web applications.
 
-Please find an article describing how to use the Certificate Management Service [here](howto-use-cert-services.md).
+After successful deployment, please feel free to start using the services: [How to use the Certificate Management Service](howto-use-cert-services.md)
 
 ## Delete the Certificate management services from the subscription
 

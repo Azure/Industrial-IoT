@@ -192,4 +192,4 @@ if ($aadConfig -and $aadConfig.ServiceObjectId) {
     Set-AzureADApplication -ObjectId $aadConfig.ServiceObjectId -ReplyUrls $replyUrls -HomePage $webServicePortalUrl
 }
 
-Return $webAppPortalUrl, $webAppServiceUrl
+Return $webAppPortalUrl, $webAppServiceUrl, $keyVaultBaseUrl, $opcVaultBaseUrl, $cosmosDBEndpoint

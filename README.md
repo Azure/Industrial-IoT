@@ -62,17 +62,13 @@ A Powershell deployment script automatically builds and deploys the services to 
 
 ### [How to Build and Deploy the service to Azure](docs/howto-deploy-services.md) 
 
+### [How to Build, Run and Debug the services locally](docs/howto-develop-locally.md) 
+
 ### [How to Manage certificates with the Web Sample Application](docs/howto-use-cert-services.md)
 
 ### [How to run a Secure Certificate Service](docs/howto-secureca-services.md)
 
-<!---
-
-### [How to Build, Run and Debug the services locally](docs/howto-run-services-locally.md) 
-
--->
-
-## [Contributing](CONTRIBUTING.md)
+## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us

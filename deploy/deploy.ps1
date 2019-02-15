@@ -971,6 +971,55 @@ if (-Not $onlyBuild)
 
     if ($development)
     {
+        # build appsettings.Development.json for web app
+        $appConfiguration = '{'+"`r`n"
+        $appConfiguration += '    "AzureAd":{'+"`r`n"
+        $appConfiguration += '        "Instance": "'+$($aadConfig.Instance)+'",'+"`r`n"
+        $appConfiguration += '        "TenantId": "'+$($aadConfig.TenantId)+'",'+"`r`n"
+#        $appConfiguration += '        //"ClientSecret": "'+$($aadConfig.ClientSecret)+'",'+"`r`n"
+        $appConfiguration += '        "ClientId": "'+$($aadConfig.ClientId)+'"'+"`r`n"
+        $appConfiguration += '    },'+"`r`n"
+        $appConfiguration += '    "KeyVault": "'+$serviceUrls[2]+'",'+"`r`n"
+        $appConfiguration += '    "OpcVault": {'+"`r`n"
+        $appConfiguration += '        "ResourceId": "'+$($aadConfig.ServiceId)+'",'+"`r`n"
+        $appConfiguration += '        "BaseAddress": "'+$serviceUrls[1]+'"'+"`r`n"
+        $appConfiguration += '        //"BaseAddress":"http://localhost:58801"'+"`r`n"
+        $appConfiguration += '    }'+"`r`n"
+        $appConfiguration += '}'+"`r`n"
+
+        # save config for user, e.g. for VS debugging of the application
+        $appsettingsPath = Join-Path -Path $deploydir -ChildPath "$($resourceGroupName).appsettings.Development.json"
+        Write-Output $appConfiguration | Out-File -FilePath $appsettingsPath -Encoding ascii
+        Write-Host "Saved app configuration: $($resourceGroupName).appsettings.Development.json"
+
+        # build appsettings.Development.json for service
+        $serviceConfiguration = '{'+"`r`n"
+        $serviceConfiguration += '    "OpcVault":{'+"`r`n"
+        $serviceConfiguration += '           "KeyVaultBaseUrl": "'+$serviceUrls[3]+'",'+"`r`n"
+        $serviceConfiguration += '           "CosmosDBEndpoint": "'+$serviceUrls[4]+'"'+"`r`n"
+        $serviceConfiguration += '           //"CosmosDBToken": ""'+"`r`n"
+        $serviceConfiguration += '    },'+"`r`n"
+        $serviceConfiguration += '    "Auth": {'+"`r`n"
+        $serviceConfiguration += '        "Required": true,'+"`r`n"
+        $serviceConfiguration += '        "TrustedIssuer": "https://sts.windows.net/'+$($aadConfig.TenantId)+'",'+"`r`n"
+        $serviceConfiguration += '        "Audience": "'+$($aadConfig.Audience)+'",'+"`r`n"
+        $serviceConfiguration += '        "TenantId": "'+$($aadConfig.TenantId)+'",'+"`r`n"
+        $serviceConfiguration += '        "AppId": "'+$($aadConfig.ServiceId)+'"'+"`r`n"
+#        $serviceConfiguration += '        //"AppSecret": "'+$($aadConfig.ServiceSecret)+'"'+"`r`n"
+        $serviceConfiguration += '    },'+"`r`n"
+        $serviceConfiguration += '    "KeyVault": "'+$serviceUrls[2]+'",'+"`r`n"
+        $serviceConfiguration += '    "Swagger": {'+"`r`n"
+        $serviceConfiguration += '        "Enabled": true,'+"`r`n"
+        $serviceConfiguration += '        "AppId": "'+$($aadConfig.ClientId)+'"'+"`r`n"
+#        $serviceConfiguration += '        //"AppSecret": "'+$($aadConfig.ServiceSecret)+'",'+"`r`n"
+        $serviceConfiguration += '    }'+"`r`n"
+        $serviceConfiguration += '}'+"`r`n"
+
+        # save config for user, e.g. for VS debugging of the service
+        $servicesettingsPath = Join-Path -Path $deploydir -ChildPath "$($resourceGroupName)-service.appsettings.Development.json"
+        Write-Output $serviceConfiguration | Out-File -FilePath $servicesettingsPath -Encoding ascii
+        Write-Host "Saved service configuration: $($resourceGroupName)-service.appsettings.Development.json"
+
         # output information
         Write-Host "GDS module configuration:"
         Write-Host "--vault="$serviceUrls[1]
