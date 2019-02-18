@@ -1,0 +1,37 @@
+[
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "NodeId": {
+            "Identifier": "i=2258"
+        }
+    },
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "NodeId": {
+            "Identifier": "ns=0;i=2261"
+        }
+    },
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
+
+            {
+                "ExpandedNodeId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean"
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
+            {
+                "Id": "i=2262"
+            },
+            {
+                "Id": "ns=2;s=DipData"
+            },
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"
+            }
+        ]
+    }
+]

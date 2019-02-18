@@ -1,5 +1,4 @@
-﻿
-using Opc.Ua.Client;
+﻿using Opc.Ua.Client;
 using System;
 using System.Linq;
 
@@ -9,33 +8,32 @@ namespace OpcPublisher
     using System.Collections.Generic;
     using System.Globalization;
     using System.Threading;
-    using static HubCommunication;
+    using static HubCommunicationBase;
     using static OpcApplicationConfiguration;
-    using static OpcPublisher.PublisherTelemetryConfiguration;
     using static Program;
 
     /// <summary>
-    /// Class used to pass data from the MonitoredItem notification to the hub message processing to ingest a telemetry event.
+    /// Class used to pass data from the MonitoredItem notification to the hub message processing.
     /// </summary>
-    public class MessageData
+    public class MessageData : IMessageData
     {
         /// <summary>
-        /// The endpoint URL of the OPC UA server.
+        /// The endpoint URL the monitored item belongs to.
         /// </summary>
         public string EndpointUrl { get; set; }
 
         /// <summary>
-        /// The id of the node.
+        /// The OPC UA NodeId of the monitored item.
         /// </summary>
         public string NodeId { get; set; }
 
         /// <summary>
-        /// The OPC UA application URI of the OPC UA server application.
+        /// The Application URI of the OPC UA server the node belongs to.
         /// </summary>
         public string ApplicationUri { get; set; }
 
         /// <summary>
-        /// The display name to use.
+        /// The display name of the node.
         /// </summary>
         public string DisplayName { get; set; }
 
@@ -45,22 +43,22 @@ namespace OpcPublisher
         public string Value { get; set; }
 
         /// <summary>
-        /// The SourceTimestamp of the nodes values the OPC UA server has reported.
+        /// The OPC UA source timestamp the value was seen.
         /// </summary>
         public string SourceTimestamp { get; set; }
 
         /// <summary>
-        /// The status code of the node the OPC UA server has reported.
+        /// The OPC UA status code of the value.
         /// </summary>
         public uint? StatusCode { get; set; }
 
         /// <summary>
-        /// the status of the node the OPC UA server has reported.
+        /// The OPC UA status of the value.
         /// </summary>
         public string Status { get; set; }
 
         /// <summary>
-        /// A flag to preserve quotes in the node value.
+        /// Flag if the encoding of the value should preserve quotes.
         /// </summary>
         public bool PreserveValueQuotes { get; set; }
 
@@ -81,9 +79,9 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Allows to apply patterns to the keys and values configured via the telemetry configuration.
+        /// Apply the patterns specified in the telemetry configuration on the message data fields.
         /// </summary>
-        public void ApplyPatterns(EndpointTelemetryConfiguration telemetryConfiguration)
+        public void ApplyPatterns(IEndpointTelemetryConfigurationModel telemetryConfiguration)
         {
             if (telemetryConfiguration.EndpointUrl.Publish == true)
             {
@@ -126,8 +124,11 @@ namespace OpcPublisher
     /// <summary>
     /// Class to manage the OPC monitored items, which are the nodes we need to publish.
     /// </summary>
-    public class OpcMonitoredItem
+    public class OpcMonitoredItem : IOpcMonitoredItem
     {
+        /// <summary>
+        /// The state of the monitored item.
+        /// </summary>
         public enum OpcMonitoredItemState
         {
             Unmonitored = 0,
@@ -136,44 +137,98 @@ namespace OpcPublisher
             RemovalRequested,
         }
 
+        /// <summary>
+        /// The configuration type of the monitored item.
+        /// </summary>
         public enum OpcMonitoredItemConfigurationType
         {
             NodeId = 0,
             ExpandedNodeId
         }
 
+        /// <summary>
+        /// The display name to use in the telemetry event for the monitored item.
+        /// </summary>
         public string DisplayName { get; set; }
 
+        /// <summary>
+        /// Flag to signal that the display name was requested by the node configuration.
+        /// </summary>
         public bool DisplayNameFromConfiguration { get; set; }
 
+        /// <summary>
+        /// The state of the monitored item.
+        /// </summary>
         public OpcMonitoredItemState State { get; set; }
 
+        /// <summary>
+        /// The OPC UA attributes to use when monitoring the node.
+        /// </summary>
         public uint AttributeId { get; set; }
 
+        /// <summary>
+        /// The OPC UA monitoring mode to use when monitoring the node.
+        /// </summary>
         public MonitoringMode MonitoringMode { get; set; }
 
+        /// <summary>
+        /// The requested sampling interval to be used for the node.
+        /// </summary>
         public int RequestedSamplingInterval { get; set; }
 
+        /// <summary>
+        /// The actual sampling interval used for the node.
+        /// </summary>
         public double SamplingInterval { get; set; }
 
+        /// <summary>
+        /// Flag to signal that the sampling interval was requested by the node configuration.
+        /// </summary>
         public bool RequestedSamplingIntervalFromConfiguration { get; set; }
 
+        /// <summary>
+        /// The OPC UA queue size to use for the node monitoring.
+        /// </summary>
         public uint QueueSize { get; set; }
 
+        /// <summary>
+        /// A flag to control the queue behaviour of the OPC UA stack for the node.
+        /// </summary>
         public bool DiscardOldest { get; set; }
 
+        /// <summary>
+        /// The event handler of the node in case the OPC UA stack detected a change.
+        /// </summary>
         public MonitoredItemNotificationEventHandler Notification { get; set; }
 
+        /// <summary>
+        /// The endpoint URL of the OPC UA server this nodes is residing on.
+        /// </summary>
         public string EndpointUrl { get; set; }
 
-        public MonitoredItem OpcUaClientMonitoredItem { get; set; }
+        /// <summary>
+        /// The OPC UA stacks monitored item object.
+        /// </summary>
+        public IOpcUaMonitoredItem OpcUaClientMonitoredItem { get; set; }
 
+        /// <summary>
+        /// The OPC UA identifier of the node in NodeId ("ns=") syntax.
+        /// </summary>
         public NodeId ConfigNodeId { get; set; }
 
+        /// <summary>
+        /// The OPC UA identifier of the node in ExpandedNodeId ("nsu=") syntax.
+        /// </summary>
         public ExpandedNodeId ConfigExpandedNodeId { get; set; }
 
+        /// <summary>
+        /// The OPC UA identifier of the node as it was configured.
+        /// </summary>
         public string OriginalId { get; set; }
 
+        /// <summary>
+        /// Identifies the configuration type of the node.
+        /// </summary>
         public OpcMonitoredItemConfigurationType ConfigType { get; set; }
 
         public const int HeartbeatIntvervalMax = 24 * 60 * 60;
@@ -219,7 +274,7 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Ctor using ExpandedNodeId (nsu syntax for namespace).
+        /// Ctor using ExpandedNodeId ("nsu=") syntax.
         /// </summary>
         public OpcMonitoredItem(ExpandedNodeId expandedNodeId, string sessionEndpointUrl, int? samplingInterval,
             string displayName, int? heartbeatInterval, bool? skipFirst)
@@ -277,7 +332,7 @@ namespace OpcPublisher
                 }
                 if (expandedNodeId != null)
                 {
-                    if (ConfigExpandedNodeId.NamespaceUri != null && 
+                    if (ConfigExpandedNodeId.NamespaceUri != null &&
                         ConfigExpandedNodeId.NamespaceUri.Equals(expandedNodeId.NamespaceUri, StringComparison.OrdinalIgnoreCase) &&
                         ConfigExpandedNodeId.Identifier.ToString().Equals(expandedNodeId.Identifier.ToString(), StringComparison.OrdinalIgnoreCase))
                     {
@@ -368,8 +423,8 @@ namespace OpcPublisher
                 }
                 else
                 {
-                    // update the required message data to pass only the required data to HubCommunication
-                    EndpointTelemetryConfiguration telemetryConfiguration = GetEndpointTelemetryConfiguration(EndpointUrl);
+                    // update the required message data to pass only the required data to the hub communication
+                    IEndpointTelemetryConfigurationModel telemetryConfiguration = TelemetryConfiguration.GetEndpointTelemetryConfiguration(EndpointUrl);
 
                     // the endpoint URL is required to allow HubCommunication lookup the telemetry configuration
                     messageData.EndpointUrl = EndpointUrl;
@@ -502,7 +557,7 @@ namespace OpcPublisher
                 else
                 {
                     // enqueue the telemetry event
-                    Enqueue(messageData);
+                    Hub.Enqueue(messageData);
                 }
             }
             catch (Exception ex)
@@ -525,7 +580,7 @@ namespace OpcPublisher
             EndpointUrl = sessionEndpointUrl;
             DisplayName = displayName;
             DisplayNameFromConfiguration = string.IsNullOrEmpty(displayName) ? false : true;
-            RequestedSamplingInterval = samplingInterval == null ? OpcSamplingInterval : (int)samplingInterval;
+            RequestedSamplingInterval = samplingInterval ?? OpcSamplingInterval;
             RequestedSamplingIntervalFromConfiguration = samplingInterval != null ? true : false;
             SamplingInterval = RequestedSamplingInterval;
             HeartbeatInterval = (int)(heartbeatInterval == null ? HeartbeatIntervalDefault : heartbeatInterval);
@@ -553,7 +608,7 @@ namespace OpcPublisher
                     }
 
                     // enqueue the message
-                    Enqueue(HeartbeatMessage);
+                    Hub.Enqueue(HeartbeatMessage);
                     Logger.Debug($"Message enqueued for heartbeat with sourceTimestamp '{HeartbeatMessage.SourceTimestamp}'.");
                 }
                 else

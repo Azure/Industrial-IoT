@@ -1,4 +1,3 @@
-
 using Opc.Ua;
 using Opc.Ua.Server;
 using System.Collections.Generic;
@@ -46,7 +45,7 @@ namespace OpcPublisher
                 BuildNumber = Utils.GetAssemblyBuildNumber(),
                 BuildDate = Utils.GetAssemblyTimestamp()
             };
-            return properties; 
+            return properties;
         }
 
         /// <summary>
@@ -82,7 +81,7 @@ namespace OpcPublisher
             try
             {
                 // check for connected clients
-                IList<Session> currentessions = this.ServerInternal.SessionManager.GetSessions();
+                IList<Session> currentessions = ServerInternal.SessionManager.GetSessions();
 
                 if (currentessions.Count > 0)
                 {

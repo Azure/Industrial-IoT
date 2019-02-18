@@ -1,5 +1,4 @@
-﻿
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Opc.Ua;
 using System;
 using System.Collections.Generic;

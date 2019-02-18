@@ -1,0 +1,14 @@
+[
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "NodeId": {
+            "Identifier": "i=2258"
+        }
+    },
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "NodeId": {
+            "Identifier": "ns=0;i=2261"
+        }
+    }
+]

@@ -1,5 +1,4 @@
-﻿
-using Opc.Ua;
+﻿using Opc.Ua;
 using System;
 
 namespace OpcPublisher
@@ -49,7 +48,7 @@ namespace OpcPublisher
         /// <summary>
         /// Set the max string length the OPC stack supports.
         /// </summary>
-        public static int OpcMaxStringLength { get; set; } = HubCommunication.MaxResponsePayloadLength;
+        public static int OpcMaxStringLength { get; set; } = HubCommunicationBase.MaxResponsePayloadLength;
 
         /// <summary>
         /// <summary>

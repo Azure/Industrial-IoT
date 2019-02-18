@@ -1,5 +1,4 @@
-﻿
-using Opc.Ua;
+﻿using Opc.Ua;
 using System;
 using System.Security.Cryptography.X509Certificates;
 
@@ -187,7 +186,7 @@ namespace OpcPublisher
             {
                 if (!await UpdateApplicationCertificateAsync(NewCertificateBase64String, NewCertificateFileName, CertificatePassword, PrivateKeyBase64String, PrivateKeyFileName).ConfigureAwait(false))
                 {
-                        throw new Exception("Update/Setting of the application certificate failed.");
+                    throw new Exception("Update/Setting of the application certificate failed.");
                 }
             }
 
@@ -215,7 +214,7 @@ namespace OpcPublisher
                     null,
                     null
                     );
-                    Logger.Information($"Application certificate with thumbprint '{certificate.Thumbprint}' created.");
+                Logger.Information($"Application certificate with thumbprint '{certificate.Thumbprint}' created.");
 
                 // update security information
                 ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.Certificate = certificate ?? throw new Exception("OPC UA application certificate can not be created! Cannot continue without it!");
@@ -410,9 +409,9 @@ namespace OpcPublisher
         /// <summary>
         /// Event handler to validate certificates.
         /// </summary>
-        private static void CertificateValidator_CertificateValidation(CertificateValidator validator, CertificateValidationEventArgs e)
-       {
-            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
+        private static void CertificateValidator_CertificateValidation(Opc.Ua.CertificateValidator validator, Opc.Ua.CertificateValidationEventArgs e)
+        {
+            if (e.Error.StatusCode == Opc.Ua.StatusCodes.BadCertificateUntrusted)
             {
                 e.Accept = AutoAcceptCerts;
                 if (AutoAcceptCerts)

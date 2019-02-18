@@ -1,5 +1,4 @@
-﻿
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Opc.Ua;
 using System;
 using System.Collections.Generic;
@@ -16,16 +15,17 @@ namespace OpcPublisher
     using static OpcSession;
     using static Program;
 
-    public static class PublisherNodeConfiguration
+    public class PublisherNodeConfiguration : IPublisherNodeConfiguration, IDisposable
     {
-        public static SemaphoreSlim PublisherNodeConfigurationSemaphore { get; set; }
-        public static SemaphoreSlim PublisherNodeConfigurationFileSemaphore { get; set; }
-        public static List<OpcSession> OpcSessions { get; } = new List<OpcSession>();
-        public static SemaphoreSlim OpcSessionsListSemaphore { get; set; }
-
+        /// <summary>
+        /// Name of the node configuration file.
+        /// </summary>
         public static string PublisherNodeConfigurationFilename { get; set; } = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
 
-        public static int NumberOfOpcSessionsConfigured
+        /// <summary>
+        /// Number of configured OPC UA sessions.
+        /// </summary>
+        public int NumberOfOpcSessionsConfigured
         {
             get
             {
@@ -43,7 +43,10 @@ namespace OpcPublisher
             }
         }
 
-        public static int NumberOfOpcSessionsConnected
+        /// <summary>
+        /// Number of connected OPC UA session.
+        /// </summary>
+        public int NumberOfOpcSessionsConnected
         {
             get
             {
@@ -61,7 +64,10 @@ namespace OpcPublisher
             }
         }
 
-        public static int NumberOfOpcSubscriptionsConfigured
+        /// <summary>
+        /// Number of configured OPC UA subscriptions.
+        /// </summary>
+        public int NumberOfOpcSubscriptionsConfigured
         {
             get
             {
@@ -82,7 +88,10 @@ namespace OpcPublisher
                 return result;
             }
         }
-        public static int NumberOfOpcSubscriptionsConnected
+        /// <summary>
+        /// Number of connected OPC UA subscriptions.
+        /// </summary>
+        public int NumberOfOpcSubscriptionsConnected
         {
             get
             {
@@ -104,7 +113,10 @@ namespace OpcPublisher
             }
         }
 
-        public static int NumberOfOpcMonitoredItemsConfigured
+        /// <summary>
+        /// Number of OPC UA nodes configured to monitor.
+        /// </summary>
+        public int NumberOfOpcMonitoredItemsConfigured
         {
             get
             {
@@ -125,7 +137,10 @@ namespace OpcPublisher
             }
         }
 
-        public static int NumberOfOpcMonitoredItemsMonitored
+        /// <summary>
+        /// Number of monitored OPC UA nodes.
+        /// </summary>
+        public int NumberOfOpcMonitoredItemsMonitored
         {
             get
             {
@@ -147,7 +162,10 @@ namespace OpcPublisher
             }
         }
 
-        public static int NumberOfOpcMonitoredItemsToRemove
+        /// <summary>
+        /// Number of OPC UA nodes requested to stop monitoring.
+        /// </summary>
+        public int NumberOfOpcMonitoredItemsToRemove
         {
             get
             {
@@ -169,9 +187,49 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Initialize resources for the node configuration.
+        /// Semaphore to protect the node configuration data structures.
         /// </summary>
-        public static void Init()
+        public SemaphoreSlim PublisherNodeConfigurationSemaphore { get; set; }
+
+        /// <summary>
+        /// Semaphore to protect the node configuration file.
+        /// </summary>
+        public SemaphoreSlim PublisherNodeConfigurationFileSemaphore { get; set; }
+
+        /// <summary>
+        /// Semaphore to protect the OPC UA sessions list.
+        /// </summary>
+        public SemaphoreSlim OpcSessionsListSemaphore { get; set; }
+
+#pragma warning disable CA2227 // Collection properties should be read only
+        /// <summary>
+        /// List of configured OPC UA sessions.
+        /// </summary>
+        public virtual List<IOpcSession> OpcSessions { get; set; } = new List<IOpcSession>();
+#pragma warning restore CA2227 // Collection properties should be read only
+
+        /// <summary>
+        /// Get the singleton.
+        /// </summary>
+        public static IPublisherNodeConfiguration Instance
+        {
+            get
+            {
+                lock (_singletonLock)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new PublisherNodeConfiguration();
+                    }
+                    return _instance;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Ctor to initialize resources for the telemetry configuration.
+        /// </summary>
+        public PublisherNodeConfiguration()
         {
             OpcSessionsListSemaphore = new SemaphoreSlim(1);
             PublisherNodeConfigurationSemaphore = new SemaphoreSlim(1);
@@ -179,28 +237,90 @@ namespace OpcPublisher
             OpcSessions.Clear();
             _nodePublishingConfiguration = new List<NodePublishingConfigurationModel>();
             _configurationFileEntries = new List<PublisherConfigurationFileEntryLegacyModel>();
+
+            // read the configuration from the configuration file
+            if (!ReadConfigAsync().Result)
+            {
+                string errorMessage = $"Error while reading the node configuration file '{PublisherNodeConfigurationFilename}'";
+                Logger.Error(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            // create the configuration data structures
+            if (!CreateOpcPublishingDataAsync().Result)
+            {
+                string errorMessage = $"Error while creating node configuration data structures.";
+                Logger.Error(errorMessage);
+                throw new Exception(errorMessage);
+            }
         }
 
         /// <summary>
-        /// Frees resources for the node configuration.
+        /// Implement IDisposable.
         /// </summary>
-        public static void Deinit()
+        protected virtual void Dispose(bool disposing)
         {
-            OpcSessions.Clear();
-            _nodePublishingConfiguration = null;
-            OpcSessionsListSemaphore.Dispose();
-            OpcSessionsListSemaphore = null;
-            PublisherNodeConfigurationSemaphore.Dispose();
-            PublisherNodeConfigurationSemaphore = null;
-            PublisherNodeConfigurationFileSemaphore.Dispose();
-            PublisherNodeConfigurationFileSemaphore = null;
+            if (disposing)
+            {
+                OpcSessionsListSemaphore.Wait();
+                foreach (var opcSession in OpcSessions)
+                {
+                    opcSession.Dispose();
+                }
+                OpcSessions?.Clear();
+                OpcSessionsListSemaphore?.Dispose();
+                OpcSessionsListSemaphore = null;
+                PublisherNodeConfigurationSemaphore?.Dispose();
+                PublisherNodeConfigurationSemaphore = null;
+                PublisherNodeConfigurationFileSemaphore?.Dispose();
+                PublisherNodeConfigurationFileSemaphore = null;
+                _nodePublishingConfiguration?.Clear();
+                _nodePublishingConfiguration = null;
+                lock (_singletonLock)
+                {
+                    _instance = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Implement IDisposable.
+        /// </summary>
+        public void Dispose()
+        {
+            // do cleanup
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Initialize the node configuration.
+        /// </summary>
+        /// <returns></returns>
+        public async Task InitAsync()
+        {
+            // read the configuration from the configuration file
+            if (!await ReadConfigAsync().ConfigureAwait(false))
+            {
+                string errorMessage = $"Error while reading the node configuration file '{PublisherNodeConfigurationFilename}'";
+                Logger.Error(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            // create the configuration data structures
+            if (!await CreateOpcPublishingDataAsync().ConfigureAwait(false))
+            {
+                string errorMessage = $"Error while creating node configuration data structures.";
+                Logger.Error(errorMessage);
+                throw new Exception(errorMessage);
+            }
         }
 
         /// <summary>
         /// Read and parse the publisher node configuration file.
         /// </summary>
         /// <returns></returns>
-        public static async Task<bool> ReadConfigAsync()
+        public async Task<bool> ReadConfigAsync()
         {
             // get information on the nodes to publish and validate the json by deserializing it.
             try
@@ -298,11 +418,16 @@ namespace OpcPublisher
             return true;
         }
 
+        public virtual IOpcSession CreateOpcSession(string endpointUrl, bool useSecurity, uint sessionTimeout)
+        {
+            return new OpcSession(endpointUrl, _nodePublishingConfiguration.Where(n => n.EndpointUrl == endpointUrl).First().UseSecurity, OpcSessionCreationTimeout);
+        }
+
         /// <summary>
         /// Create the publisher data structures to manage OPC sessions, subscriptions and monitored items.
         /// </summary>
         /// <returns></returns>
-        public static async Task<bool> CreateOpcPublishingDataAsync()
+        public async Task<bool> CreateOpcPublishingDataAsync()
         {
             // create a list to manage sessions, subscriptions and monitored items.
             try
@@ -314,14 +439,14 @@ namespace OpcPublisher
                 foreach (var endpointUrl in uniqueEndpointUrls)
                 {
                     // create new session info.
-                    OpcSession opcSession = new OpcSession(endpointUrl, _nodePublishingConfiguration.Where(n => n.EndpointUrl == endpointUrl).First().UseSecurity, OpcSessionCreationTimeout);
+                    IOpcSession opcSession = new OpcSession(endpointUrl, _nodePublishingConfiguration.Where(n => n.EndpointUrl == endpointUrl).First().UseSecurity, OpcSessionCreationTimeout);
 
                     // create a subscription for each distinct publishing inverval
                     var nodesDistinctPublishingInterval = _nodePublishingConfiguration.Where(n => n.EndpointUrl.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase)).Select(c => c.OpcPublishingInterval).Distinct();
                     foreach (var nodeDistinctPublishingInterval in nodesDistinctPublishingInterval)
                     {
                         // create a subscription for the publishing interval and add it to the session.
-                        OpcSubscription opcSubscription = new OpcSubscription(nodeDistinctPublishingInterval);
+                        IOpcSubscription opcSubscription = new OpcSubscription(nodeDistinctPublishingInterval);
 
                         // add all nodes with this OPC publishing interval to this subscription.
                         var nodesWithSamePublishingInterval = _nodePublishingConfiguration.Where(n => n.EndpointUrl.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase)).Where(n => n.OpcPublishingInterval == nodeDistinctPublishingInterval);
@@ -376,7 +501,7 @@ namespace OpcPublisher
         /// Returns a list of all published nodes for a specific endpoint in config file format.
         /// </summary>
         /// <returns></returns>
-        public static List<PublisherConfigurationFileEntryModel> GetPublisherConfigurationFileEntries(string endpointUrl, bool getAll, out uint nodeConfigVersion)
+        public List<PublisherConfigurationFileEntryModel> GetPublisherConfigurationFileEntries(string endpointUrl, bool getAll, out uint nodeConfigVersion)
         {
             List<PublisherConfigurationFileEntryModel> publisherConfigurationFileEntries = new List<PublisherConfigurationFileEntryModel>();
             nodeConfigVersion = (uint)NodeConfigVersion;
@@ -456,7 +581,7 @@ namespace OpcPublisher
         /// Returns a list of all configured nodes in NodeId format.
         /// </summary>
         /// <returns></returns>
-        public static async Task<List<PublisherConfigurationFileEntryLegacyModel>> GetPublisherConfigurationFileEntriesAsNodeIdsAsync(string endpointUrl)
+        public async Task<List<PublisherConfigurationFileEntryLegacyModel>> GetPublisherConfigurationFileEntriesAsNodeIdsAsync(string endpointUrl)
         {
             List<PublisherConfigurationFileEntryLegacyModel> publisherConfigurationFileEntriesLegacy = new List<PublisherConfigurationFileEntryLegacyModel>();
             try
@@ -541,13 +666,12 @@ namespace OpcPublisher
         /// <summary>
         /// Updates the configuration file to persist all currently published nodes
         /// </summary>
-        public static async Task UpdateNodeConfigurationFileAsync()
+        public async Task UpdateNodeConfigurationFileAsync()
         {
             try
             {
                 // itereate through all sessions, subscriptions and monitored items and create config file entries
-                uint nodeConfigVersion = 0;
-                List<PublisherConfigurationFileEntryModel> publisherNodeConfiguration = GetPublisherConfigurationFileEntries(null, true, out nodeConfigVersion);
+                List<PublisherConfigurationFileEntryModel> publisherNodeConfiguration = GetPublisherConfigurationFileEntries(null, true, out uint nodeConfigVersion);
 
                 // update the config file
                 try
@@ -566,7 +690,10 @@ namespace OpcPublisher
             }
         }
 
-        private static List<NodePublishingConfigurationModel> _nodePublishingConfiguration;
-        private static List<PublisherConfigurationFileEntryLegacyModel> _configurationFileEntries;
+        private List<NodePublishingConfigurationModel> _nodePublishingConfiguration;
+        private List<PublisherConfigurationFileEntryLegacyModel> _configurationFileEntries;
+
+        private static readonly object _singletonLock = new object();
+        private static IPublisherNodeConfiguration _instance = null;
     }
 }

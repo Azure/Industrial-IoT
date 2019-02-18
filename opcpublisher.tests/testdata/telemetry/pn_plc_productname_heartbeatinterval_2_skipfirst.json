@@ -1,0 +1,12 @@
+[
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
+            {
+                "Id": "i=2261",
+                "HeartbeatInterval": 2,
+                "SkipFirst": true
+            }
+        ]
+    }
+]
