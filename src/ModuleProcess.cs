@@ -89,7 +89,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                         // Find publisher in network before starting supervisor
                         await publisher.StartAsync();
                         // Start module
-                        await module.StartAsync( "supervisor", SiteId, "OpcTwin", this);
+                        await module.StartAsync("supervisor", SiteId, "OpcTwin", this);
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {
