@@ -19,11 +19,15 @@ module azure.iiot.opc.registry
       # @return [String] Application id endpoint is registered under.
       attr_accessor :application_id
 
-      # @return [Boolean] Whether endpoint is activated on this registration
-      attr_accessor :activated
+      # @return [EndpointActivationState] Activation state of endpoint.
+      # Possible values include: 'Deactivated', 'Activated',
+      # 'ActivatedAndConnected'
+      attr_accessor :activation_state
 
-      # @return [Boolean] Whether endpoint is connected on this registration
-      attr_accessor :connected
+      # @return [EndpointConnectivityState] Last state of the activated
+      # endpoint. Possible values include: 'Connecting', 'NotReachable',
+      # 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+      attr_accessor :endpoint_state
 
       # @return [Boolean] Whether the registration is out of sync
       attr_accessor :out_of_sync
@@ -62,20 +66,22 @@ module azure.iiot.opc.registry
                   name: 'String'
                 }
               },
-              activated: {
+              activation_state: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'activated',
+                serialized_name: 'activationState',
                 type: {
-                  name: 'Boolean'
+                  name: 'Enum',
+                  module: 'EndpointActivationState'
                 }
               },
-              connected: {
+              endpoint_state: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'connected',
+                serialized_name: 'endpointState',
                 type: {
-                  name: 'Boolean'
+                  name: 'Enum',
+                  module: 'EndpointConnectivityState'
                 }
               },
               out_of_sync: {

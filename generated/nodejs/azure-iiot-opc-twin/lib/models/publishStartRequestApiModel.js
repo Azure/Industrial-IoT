@@ -19,6 +19,9 @@ class PublishStartRequestApiModel {
    * Create a PublishStartRequestApiModel.
    * @property {object} item Item to publish
    * @property {string} [item.nodeId] Node to monitor
+   * @property {array} [item.browsePath] An optional path from NodeId instance
+   * to
+   * the actual node.
    * @property {string} [item.nodeAttribute] Attribute to monitor. Possible
    * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
    * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
@@ -29,14 +32,21 @@ class PublishStartRequestApiModel {
    * 'AccessRestrictions'
    * @property {number} [item.publishingInterval] Publishing interval to use
    * @property {number} [item.samplingInterval] Sampling interval to use
-   * @property {object} [diagnostics] Optional diagnostics configuration
-   * @property {string} [diagnostics.level] Requested level of response
+   * @property {object} [header] Optional request header
+   * @property {object} [header.elevation] Optional User elevation
+   * @property {string} [header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @property {object} [header.elevation.value] Value to pass to server
+   * @property {array} [header.locales] Optional list of locales in preference
+   * order.
+   * @property {object} [header.diagnostics] Optional diagnostics configuration
+   * @property {string} [header.diagnostics.level] Requested level of response
    * diagnostics.
    * (default: Status). Possible values include: 'None', 'Status',
    * 'Operations', 'Diagnostics', 'Verbose'
-   * @property {string} [diagnostics.auditId] Client audit log entry.
+   * @property {string} [header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
-   * @property {date} [diagnostics.timeStamp] Timestamp of request.
+   * @property {date} [header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    */
   constructor() {
@@ -64,12 +74,12 @@ class PublishStartRequestApiModel {
               className: 'PublishedItemApiModel'
             }
           },
-          diagnostics: {
+          header: {
             required: false,
-            serializedName: 'diagnostics',
+            serializedName: 'header',
             type: {
               name: 'Composite',
-              className: 'DiagnosticsApiModel'
+              className: 'RequestHeaderApiModel'
             }
           }
         }

@@ -19,7 +19,7 @@ class DiscoveryConfigApiModel {
    * Create a DiscoveryConfigApiModel.
    * @property {string} [addressRangesToScan] Address ranges to scan (null ==
    * all wired nics)
-   * @property {number} [networkProbeTimeoutMs] Networking probe timeout
+   * @property {number} [networkProbeTimeoutMs] Network probe timeout
    * @property {number} [maxNetworkProbes] Max network probes that should ever
    * run.
    * @property {string} [portRangesToScan] Port ranges to scan (null == all

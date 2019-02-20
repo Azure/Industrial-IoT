@@ -12,6 +12,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
 {
     using Microsoft.Rest;
     using Newtonsoft.Json;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
@@ -32,15 +34,17 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Initializes a new instance of the MethodMetadataRequestApiModel
         /// class.
         /// </summary>
-        /// <param name="methodId">Count of input arguments</param>
-        /// <param name="elevation">Optional User elevation</param>
-        /// <param name="diagnostics">Optional diagnostics
-        /// configuration</param>
-        public MethodMetadataRequestApiModel(string methodId, CredentialApiModel elevation = default(CredentialApiModel), DiagnosticsApiModel diagnostics = default(DiagnosticsApiModel))
+        /// <param name="methodId">Method id of method to call.
+        /// (Required)</param>
+        /// <param name="methodBrowsePath">An optional component path from the
+        /// node identified by
+        /// MethodId to the actual method node.</param>
+        /// <param name="header">Optional request header</param>
+        public MethodMetadataRequestApiModel(string methodId, IList<string> methodBrowsePath = default(IList<string>), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             MethodId = methodId;
-            Elevation = elevation;
-            Diagnostics = diagnostics;
+            MethodBrowsePath = methodBrowsePath;
+            Header = header;
             CustomInit();
         }
 
@@ -50,22 +54,24 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets count of input arguments
+        /// Gets or sets method id of method to call.
+        /// (Required)
         /// </summary>
         [JsonProperty(PropertyName = "methodId")]
         public string MethodId { get; set; }
 
         /// <summary>
-        /// Gets or sets optional User elevation
+        /// Gets or sets an optional component path from the node identified by
+        /// MethodId to the actual method node.
         /// </summary>
-        [JsonProperty(PropertyName = "elevation")]
-        public CredentialApiModel Elevation { get; set; }
+        [JsonProperty(PropertyName = "methodBrowsePath")]
+        public IList<string> MethodBrowsePath { get; set; }
 
         /// <summary>
-        /// Gets or sets optional diagnostics configuration
+        /// Gets or sets optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "diagnostics")]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "header")]
+        public RequestHeaderApiModel Header { get; set; }
 
         /// <summary>
         /// Validate the object.

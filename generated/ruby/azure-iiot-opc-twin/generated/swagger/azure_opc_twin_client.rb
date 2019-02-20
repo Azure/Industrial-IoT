@@ -108,7 +108,8 @@ module azure.iiot.opc.twin
     # and the targetNodesOnly flag set to true.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param node_id [String] The node to browse or omit to browse object root
+    # @param node_id [String] The node to browse or omit to browse the root node
+    # (i=84)
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -133,7 +134,8 @@ module azure.iiot.opc.twin
     # and the targetNodesOnly flag set to true.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param node_id [String] The node to browse or omit to browse object root
+    # @param node_id [String] The node to browse or omit to browse the root node
+    # (i=84)
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -157,7 +159,8 @@ module azure.iiot.opc.twin
     # and the targetNodesOnly flag set to true.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param node_id [String] The node to browse or omit to browse object root
+    # @param node_id [String] The node to browse or omit to browse the root node
+    # (i=84)
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -186,7 +189,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -289,7 +292,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -398,7 +401,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -504,7 +507,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -610,7 +613,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -716,7 +719,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -819,7 +822,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -922,7 +925,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1025,7 +1028,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1122,7 +1125,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1225,7 +1228,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1322,7 +1325,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1425,7 +1428,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1528,7 +1531,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1631,7 +1634,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1734,7 +1737,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1915,7 +1918,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -2018,7 +2021,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -2121,7 +2124,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end

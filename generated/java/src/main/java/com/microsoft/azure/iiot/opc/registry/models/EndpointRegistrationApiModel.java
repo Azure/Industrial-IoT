@@ -48,7 +48,8 @@ public class EndpointRegistrationApiModel {
     private byte[] certificate;
 
     /**
-     * Supported authentication methods for the endpoint.
+     * Supported authentication methods that can be selected to
+     * obtain a credential and used to interact with the endpoint.
      */
     @JsonProperty(value = "authenticationMethods")
     private List<AuthenticationMethodApiModel> authenticationMethods;
@@ -154,7 +155,8 @@ public class EndpointRegistrationApiModel {
     }
 
     /**
-     * Get supported authentication methods for the endpoint.
+     * Get supported authentication methods that can be selected to
+     obtain a credential and used to interact with the endpoint.
      *
      * @return the authenticationMethods value
      */
@@ -163,7 +165,8 @@ public class EndpointRegistrationApiModel {
     }
 
     /**
-     * Set supported authentication methods for the endpoint.
+     * Set supported authentication methods that can be selected to
+     obtain a credential and used to interact with the endpoint.
      *
      * @param authenticationMethods the authenticationMethods value to set
      * @return the EndpointRegistrationApiModel object itself.

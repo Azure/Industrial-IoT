@@ -25,10 +25,8 @@ class BrowsePathRequestApiModel(Model):
      nodes.
      (default is false). Default value: False .
     :type read_variable_values: bool
-    :param elevation: Optional User elevation
-    :type elevation: ~azure-iiot-opc-twin.models.CredentialApiModel
-    :param diagnostics: Optional diagnostics configuration
-    :type diagnostics: ~azure-iiot-opc-twin.models.DiagnosticsApiModel
+    :param header: Optional request header
+    :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 
     _validation = {
@@ -39,14 +37,12 @@ class BrowsePathRequestApiModel(Model):
         'node_id': {'key': 'nodeId', 'type': 'str'},
         'path_elements': {'key': 'pathElements', 'type': '[str]'},
         'read_variable_values': {'key': 'readVariableValues', 'type': 'bool'},
-        'elevation': {'key': 'elevation', 'type': 'CredentialApiModel'},
-        'diagnostics': {'key': 'diagnostics', 'type': 'DiagnosticsApiModel'},
+        'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, path_elements, node_id=None, read_variable_values=False, elevation=None, diagnostics=None):
+    def __init__(self, path_elements, node_id=None, read_variable_values=False, header=None):
         super(BrowsePathRequestApiModel, self).__init__()
         self.node_id = node_id
         self.path_elements = path_elements
         self.read_variable_values = read_variable_values
-        self.elevation = elevation
-        self.diagnostics = diagnostics
+        self.header = header

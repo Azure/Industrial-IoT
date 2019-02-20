@@ -16,6 +16,10 @@ module azure.iiot.opc.twin
       # @return [String] Node to monitor
       attr_accessor :node_id
 
+      # @return [Array<String>] An optional path from NodeId instance to
+      # the actual node.
+      attr_accessor :browse_path
+
       # @return [NodeAttribute] Attribute to monitor. Possible values include:
       # 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask',
       # 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
@@ -52,6 +56,22 @@ module azure.iiot.opc.twin
                 serialized_name: 'nodeId',
                 type: {
                   name: 'String'
+                }
+              },
+              browse_path: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'browsePath',
+                type: {
+                  name: 'Sequence',
+                  element: {
+                      client_side_validation: true,
+                      required: false,
+                      serialized_name: 'StringElementType',
+                      type: {
+                        name: 'String'
+                      }
+                  }
                 }
               },
               node_attribute: {

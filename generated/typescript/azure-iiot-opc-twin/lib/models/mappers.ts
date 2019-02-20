@@ -104,6 +104,41 @@ export const DiagnosticsApiModel: msRest.CompositeMapper = {
   }
 };
 
+export const RequestHeaderApiModel: msRest.CompositeMapper = {
+  serializedName: "RequestHeaderApiModel",
+  type: {
+    name: "Composite",
+    className: "RequestHeaderApiModel",
+    modelProperties: {
+      elevation: {
+        serializedName: "elevation",
+        type: {
+          name: "Composite",
+          className: "CredentialApiModel"
+        }
+      },
+      locales: {
+        serializedName: "locales",
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "String"
+            }
+          }
+        }
+      },
+      diagnostics: {
+        serializedName: "diagnostics",
+        type: {
+          name: "Composite",
+          className: "DiagnosticsApiModel"
+        }
+      }
+    }
+  }
+};
+
 export const BrowseRequestApiModel: msRest.CompositeMapper = {
   serializedName: "BrowseRequestApiModel",
   type: {
@@ -167,18 +202,11 @@ export const BrowseRequestApiModel: msRest.CompositeMapper = {
           name: "Boolean"
         }
       },
-      elevation: {
-        serializedName: "elevation",
+      header: {
+        serializedName: "header",
         type: {
           name: "Composite",
-          className: "CredentialApiModel"
-        }
-      },
-      diagnostics: {
-        serializedName: "diagnostics",
-        type: {
-          name: "Composite",
-          className: "DiagnosticsApiModel"
+          className: "RequestHeaderApiModel"
         }
       }
     }
@@ -255,9 +283,9 @@ export const NodeApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
-      id: {
+      nodeId: {
         required: true,
-        serializedName: "id",
+        serializedName: "nodeId",
         type: {
           name: "String"
         }
@@ -268,14 +296,8 @@ export const NodeApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
-      children: {
-        serializedName: "children",
-        type: {
-          name: "Boolean"
-        }
-      },
-      name: {
-        serializedName: "name",
+      browseName: {
+        serializedName: "browseName",
         type: {
           name: "String"
         }
@@ -464,6 +486,18 @@ export const NodeApiModel: msRest.CompositeMapper = {
             }
           }
         }
+      },
+      typeDefinitionId: {
+        serializedName: "typeDefinitionId",
+        type: {
+          name: "String"
+        }
+      },
+      children: {
+        serializedName: "children",
+        type: {
+          name: "Boolean"
+        }
       }
     }
   }
@@ -475,14 +509,8 @@ export const NodeReferenceApiModel: msRest.CompositeMapper = {
     name: "Composite",
     className: "NodeReferenceApiModel",
     modelProperties: {
-      typeId: {
-        serializedName: "typeId",
-        type: {
-          name: "String"
-        }
-      },
-      browseName: {
-        serializedName: "browseName",
+      referenceTypeId: {
+        serializedName: "referenceTypeId",
         type: {
           name: "String"
         }
@@ -498,24 +526,12 @@ export const NodeReferenceApiModel: msRest.CompositeMapper = {
           ]
         }
       },
-      displayName: {
-        serializedName: "displayName",
-        type: {
-          name: "String"
-        }
-      },
       target: {
         required: true,
         serializedName: "target",
         type: {
           name: "Composite",
           className: "NodeApiModel"
-        }
-      },
-      typeDefinition: {
-        serializedName: "typeDefinition",
-        type: {
-          name: "String"
         }
       }
     }
@@ -626,18 +642,11 @@ export const BrowseNextRequestApiModel: msRest.CompositeMapper = {
           name: "Boolean"
         }
       },
-      elevation: {
-        serializedName: "elevation",
+      header: {
+        serializedName: "header",
         type: {
           name: "Composite",
-          className: "CredentialApiModel"
-        }
-      },
-      diagnostics: {
-        serializedName: "diagnostics",
-        type: {
-          name: "Composite",
-          className: "DiagnosticsApiModel"
+          className: "RequestHeaderApiModel"
         }
       }
     }
@@ -710,18 +719,11 @@ export const BrowsePathRequestApiModel: msRest.CompositeMapper = {
           name: "Boolean"
         }
       },
-      elevation: {
-        serializedName: "elevation",
+      header: {
+        serializedName: "header",
         type: {
           name: "Composite",
-          className: "CredentialApiModel"
-        }
-      },
-      diagnostics: {
-        serializedName: "diagnostics",
-        type: {
-          name: "Composite",
-          className: "DiagnosticsApiModel"
+          className: "RequestHeaderApiModel"
         }
       }
     }
@@ -794,18 +796,22 @@ export const MethodMetadataRequestApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
-      elevation: {
-        serializedName: "elevation",
+      methodBrowsePath: {
+        serializedName: "methodBrowsePath",
         type: {
-          name: "Composite",
-          className: "CredentialApiModel"
+          name: "Sequence",
+          element: {
+            type: {
+              name: "String"
+            }
+          }
         }
       },
-      diagnostics: {
-        serializedName: "diagnostics",
+      header: {
+        serializedName: "header",
         type: {
           name: "Composite",
-          className: "DiagnosticsApiModel"
+          className: "RequestHeaderApiModel"
         }
       }
     }
@@ -948,7 +954,6 @@ export const MethodCallRequestApiModel: msRest.CompositeMapper = {
     className: "MethodCallRequestApiModel",
     modelProperties: {
       methodId: {
-        required: true,
         serializedName: "methodId",
         type: {
           name: "String"
@@ -972,18 +977,33 @@ export const MethodCallRequestApiModel: msRest.CompositeMapper = {
           }
         }
       },
-      elevation: {
-        serializedName: "elevation",
+      methodBrowsePath: {
+        serializedName: "methodBrowsePath",
         type: {
-          name: "Composite",
-          className: "CredentialApiModel"
+          name: "Sequence",
+          element: {
+            type: {
+              name: "String"
+            }
+          }
         }
       },
-      diagnostics: {
-        serializedName: "diagnostics",
+      objectBrowsePath: {
+        serializedName: "objectBrowsePath",
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "String"
+            }
+          }
+        }
+      },
+      header: {
+        serializedName: "header",
         type: {
           name: "Composite",
-          className: "DiagnosticsApiModel"
+          className: "RequestHeaderApiModel"
         }
       }
     }
@@ -1030,6 +1050,17 @@ export const PublishedItemApiModel: msRest.CompositeMapper = {
         serializedName: "nodeId",
         type: {
           name: "String"
+        }
+      },
+      browsePath: {
+        serializedName: "browsePath",
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "String"
+            }
+          }
         }
       },
       nodeAttribute: {
@@ -1095,11 +1126,11 @@ export const PublishStartRequestApiModel: msRest.CompositeMapper = {
           className: "PublishedItemApiModel"
         }
       },
-      diagnostics: {
-        serializedName: "diagnostics",
+      header: {
+        serializedName: "header",
         type: {
           name: "Composite",
-          className: "DiagnosticsApiModel"
+          className: "RequestHeaderApiModel"
         }
       }
     }
@@ -1134,6 +1165,17 @@ export const PublishStopRequestApiModel: msRest.CompositeMapper = {
         serializedName: "nodeId",
         type: {
           name: "String"
+        }
+      },
+      browsePath: {
+        serializedName: "browsePath",
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "String"
+            }
+          }
         }
       },
       nodeAttribute: {
@@ -1254,24 +1296,28 @@ export const ValueReadRequestApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
+      browsePath: {
+        serializedName: "browsePath",
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "String"
+            }
+          }
+        }
+      },
       indexRange: {
         serializedName: "indexRange",
         type: {
           name: "String"
         }
       },
-      elevation: {
-        serializedName: "elevation",
+      header: {
+        serializedName: "header",
         type: {
           name: "Composite",
-          className: "CredentialApiModel"
-        }
-      },
-      diagnostics: {
-        serializedName: "diagnostics",
-        type: {
-          name: "Composite",
-          className: "DiagnosticsApiModel"
+          className: "RequestHeaderApiModel"
         }
       }
     }
@@ -1401,18 +1447,11 @@ export const ReadRequestApiModel: msRest.CompositeMapper = {
           }
         }
       },
-      elevation: {
-        serializedName: "elevation",
+      header: {
+        serializedName: "header",
         type: {
           name: "Composite",
-          className: "CredentialApiModel"
-        }
-      },
-      diagnostics: {
-        serializedName: "diagnostics",
-        type: {
-          name: "Composite",
-          className: "DiagnosticsApiModel"
+          className: "RequestHeaderApiModel"
         }
       }
     }
@@ -1477,6 +1516,17 @@ export const HistoryReadRequestApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
+      browsePath: {
+        serializedName: "browsePath",
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "String"
+            }
+          }
+        }
+      },
       request: {
         required: true,
         serializedName: "request",
@@ -1490,18 +1540,11 @@ export const HistoryReadRequestApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
-      elevation: {
-        serializedName: "elevation",
+      header: {
+        serializedName: "header",
         type: {
           name: "Composite",
-          className: "CredentialApiModel"
-        }
-      },
-      diagnostics: {
-        serializedName: "diagnostics",
-        type: {
-          name: "Composite",
-          className: "DiagnosticsApiModel"
+          className: "RequestHeaderApiModel"
         }
       }
     }
@@ -1557,18 +1600,11 @@ export const HistoryReadNextRequestApiModel: msRest.CompositeMapper = {
           name: "Boolean"
         }
       },
-      elevation: {
-        serializedName: "elevation",
+      header: {
+        serializedName: "header",
         type: {
           name: "Composite",
-          className: "CredentialApiModel"
-        }
-      },
-      diagnostics: {
-        serializedName: "diagnostics",
-        type: {
-          name: "Composite",
-          className: "DiagnosticsApiModel"
+          className: "RequestHeaderApiModel"
         }
       }
     }
@@ -1704,6 +1740,17 @@ export const ValueWriteRequestApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
+      browsePath: {
+        serializedName: "browsePath",
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "String"
+            }
+          }
+        }
+      },
       value: {
         required: true,
         serializedName: "value",
@@ -1723,18 +1770,11 @@ export const ValueWriteRequestApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
-      elevation: {
-        serializedName: "elevation",
+      header: {
+        serializedName: "header",
         type: {
           name: "Composite",
-          className: "CredentialApiModel"
-        }
-      },
-      diagnostics: {
-        serializedName: "diagnostics",
-        type: {
-          name: "Composite",
-          className: "DiagnosticsApiModel"
+          className: "RequestHeaderApiModel"
         }
       }
     }
@@ -1835,18 +1875,11 @@ export const WriteRequestApiModel: msRest.CompositeMapper = {
           }
         }
       },
-      elevation: {
-        serializedName: "elevation",
+      header: {
+        serializedName: "header",
         type: {
           name: "Composite",
-          className: "CredentialApiModel"
-        }
-      },
-      diagnostics: {
-        serializedName: "diagnostics",
-        type: {
-          name: "Composite",
-          className: "DiagnosticsApiModel"
+          className: "RequestHeaderApiModel"
         }
       }
     }
@@ -1905,18 +1938,11 @@ export const HistoryUpdateRequestApiModel: msRest.CompositeMapper = {
           name: "Object"
         }
       },
-      elevation: {
-        serializedName: "elevation",
+      header: {
+        serializedName: "header",
         type: {
           name: "Composite",
-          className: "CredentialApiModel"
-        }
-      },
-      diagnostics: {
-        serializedName: "diagnostics",
-        type: {
-          name: "Composite",
-          className: "DiagnosticsApiModel"
+          className: "RequestHeaderApiModel"
         }
       }
     }

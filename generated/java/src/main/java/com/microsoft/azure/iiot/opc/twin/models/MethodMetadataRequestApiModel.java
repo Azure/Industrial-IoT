@@ -10,6 +10,7 @@
 
 package com.microsoft.azure.iiot.opc.twin.models;
 
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -17,25 +18,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class MethodMetadataRequestApiModel {
     /**
-     * Count of input arguments.
+     * Method id of method to call.
+     * (Required).
      */
     @JsonProperty(value = "methodId", required = true)
     private String methodId;
 
     /**
-     * Optional User elevation.
+     * An optional component path from the node identified by
+     * MethodId to the actual method node.
      */
-    @JsonProperty(value = "elevation")
-    private CredentialApiModel elevation;
+    @JsonProperty(value = "methodBrowsePath")
+    private List<String> methodBrowsePath;
 
     /**
-     * Optional diagnostics configuration.
+     * Optional request header.
      */
-    @JsonProperty(value = "diagnostics")
-    private DiagnosticsApiModel diagnostics;
+    @JsonProperty(value = "header")
+    private RequestHeaderApiModel headerProperty;
 
     /**
-     * Get count of input arguments.
+     * Get method id of method to call.
+     (Required).
      *
      * @return the methodId value
      */
@@ -44,7 +48,8 @@ public class MethodMetadataRequestApiModel {
     }
 
     /**
-     * Set count of input arguments.
+     * Set method id of method to call.
+     (Required).
      *
      * @param methodId the methodId value to set
      * @return the MethodMetadataRequestApiModel object itself.
@@ -55,42 +60,44 @@ public class MethodMetadataRequestApiModel {
     }
 
     /**
-     * Get optional User elevation.
+     * Get an optional component path from the node identified by
+     MethodId to the actual method node.
      *
-     * @return the elevation value
+     * @return the methodBrowsePath value
      */
-    public CredentialApiModel elevation() {
-        return this.elevation;
+    public List<String> methodBrowsePath() {
+        return this.methodBrowsePath;
     }
 
     /**
-     * Set optional User elevation.
+     * Set an optional component path from the node identified by
+     MethodId to the actual method node.
      *
-     * @param elevation the elevation value to set
+     * @param methodBrowsePath the methodBrowsePath value to set
      * @return the MethodMetadataRequestApiModel object itself.
      */
-    public MethodMetadataRequestApiModel withElevation(CredentialApiModel elevation) {
-        this.elevation = elevation;
+    public MethodMetadataRequestApiModel withMethodBrowsePath(List<String> methodBrowsePath) {
+        this.methodBrowsePath = methodBrowsePath;
         return this;
     }
 
     /**
-     * Get optional diagnostics configuration.
+     * Get optional request header.
      *
-     * @return the diagnostics value
+     * @return the headerProperty value
      */
-    public DiagnosticsApiModel diagnostics() {
-        return this.diagnostics;
+    public RequestHeaderApiModel headerProperty() {
+        return this.headerProperty;
     }
 
     /**
-     * Set optional diagnostics configuration.
+     * Set optional request header.
      *
-     * @param diagnostics the diagnostics value to set
+     * @param headerProperty the headerProperty value to set
      * @return the MethodMetadataRequestApiModel object itself.
      */
-    public MethodMetadataRequestApiModel withDiagnostics(DiagnosticsApiModel diagnostics) {
-        this.diagnostics = diagnostics;
+    public MethodMetadataRequestApiModel withHeaderProperty(RequestHeaderApiModel headerProperty) {
+        this.headerProperty = headerProperty;
         return this;
     }
 

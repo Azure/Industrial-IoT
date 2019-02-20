@@ -15,8 +15,11 @@ from msrest.serialization import Model
 class PublishStopRequestApiModel(Model):
     """Unpublish request.
 
-    :param node_id: Node of item to unpublish
+    :param node_id: Node of published item to unpublish
     :type node_id: str
+    :param browse_path: An optional path from NodeId instance to
+     the actual node.
+    :type browse_path: list[str]
     :param node_attribute: Attribute of item to unpublish. Possible values
      include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
      'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
@@ -36,12 +39,14 @@ class PublishStopRequestApiModel(Model):
 
     _attribute_map = {
         'node_id': {'key': 'nodeId', 'type': 'str'},
+        'browse_path': {'key': 'browsePath', 'type': '[str]'},
         'node_attribute': {'key': 'nodeAttribute', 'type': 'NodeAttribute'},
         'diagnostics': {'key': 'diagnostics', 'type': 'DiagnosticsApiModel'},
     }
 
-    def __init__(self, node_id, node_attribute=None, diagnostics=None):
+    def __init__(self, node_id, browse_path=None, node_attribute=None, diagnostics=None):
         super(PublishStopRequestApiModel, self).__init__()
         self.node_id = node_id
+        self.browse_path = browse_path
         self.node_attribute = node_attribute
         self.diagnostics = diagnostics

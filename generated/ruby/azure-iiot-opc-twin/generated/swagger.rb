@@ -27,8 +27,9 @@ module azure.iiot.opc.twin
 
   module Models
     autoload :PublishStartResponseApiModel,                       'generated/swagger/models/publish_start_response_api_model.rb'
+    autoload :BrowseViewApiModel,                                 'generated/swagger/models/browse_view_api_model.rb'
     autoload :PublishStopRequestApiModel,                         'generated/swagger/models/publish_stop_request_api_model.rb'
-    autoload :CredentialApiModel,                                 'generated/swagger/models/credential_api_model.rb'
+    autoload :DiagnosticsApiModel,                                'generated/swagger/models/diagnostics_api_model.rb'
     autoload :PublishStopResponseApiModel,                        'generated/swagger/models/publish_stop_response_api_model.rb'
     autoload :BrowseRequestApiModel,                              'generated/swagger/models/browse_request_api_model.rb'
     autoload :PublishedItemListRequestApiModel,                   'generated/swagger/models/published_item_list_request_api_model.rb'
@@ -50,7 +51,7 @@ module azure.iiot.opc.twin
     autoload :HistoryReadRequestApiModel,                         'generated/swagger/models/history_read_request_api_model.rb'
     autoload :PublishStartRequestApiModel,                        'generated/swagger/models/publish_start_request_api_model.rb'
     autoload :HistoryReadResponseApiModel,                        'generated/swagger/models/history_read_response_api_model.rb'
-    autoload :DiagnosticsApiModel,                                'generated/swagger/models/diagnostics_api_model.rb'
+    autoload :RequestHeaderApiModel,                              'generated/swagger/models/request_header_api_model.rb'
     autoload :HistoryReadNextRequestApiModel,                     'generated/swagger/models/history_read_next_request_api_model.rb'
     autoload :NodeReferenceApiModel,                              'generated/swagger/models/node_reference_api_model.rb'
     autoload :HistoryReadNextResponseApiModel,                    'generated/swagger/models/history_read_next_response_api_model.rb'
@@ -60,7 +61,7 @@ module azure.iiot.opc.twin
     autoload :ValueWriteRequestApiModel,                          'generated/swagger/models/value_write_request_api_model.rb'
     autoload :MethodCallRequestApiModel,                          'generated/swagger/models/method_call_request_api_model.rb'
     autoload :ValueWriteResponseApiModel,                         'generated/swagger/models/value_write_response_api_model.rb'
-    autoload :BrowseViewApiModel,                                 'generated/swagger/models/browse_view_api_model.rb'
+    autoload :CredentialApiModel,                                 'generated/swagger/models/credential_api_model.rb'
     autoload :AttributeWriteRequestApiModel,                      'generated/swagger/models/attribute_write_request_api_model.rb'
     autoload :BrowseResponseApiModel,                             'generated/swagger/models/browse_response_api_model.rb'
     autoload :WriteRequestApiModel,                               'generated/swagger/models/write_request_api_model.rb'

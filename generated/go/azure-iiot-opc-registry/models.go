@@ -93,6 +93,48 @@ const fqdn = "go/azure-iiot-opc-registry"
         return []DiscoveryMode{Fast,Local,Network,Off,Scan}
     }
 
+        // EndpointActivationState enumerates the values for endpoint
+        // activation state.
+    type EndpointActivationState string
+
+    const (
+                // Activated ...
+        Activated EndpointActivationState = "Activated"
+                // ActivatedAndConnected ...
+        ActivatedAndConnected EndpointActivationState = "ActivatedAndConnected"
+                // Deactivated ...
+        Deactivated EndpointActivationState = "Deactivated"
+            )
+    // PossibleEndpointActivationStateValues returns an array of possible values for the EndpointActivationState const type.
+    func PossibleEndpointActivationStateValues() []EndpointActivationState {
+        return []EndpointActivationState{Activated,ActivatedAndConnected,Deactivated}
+    }
+
+        // EndpointConnectivityState enumerates the values for endpoint
+        // connectivity state.
+    type EndpointConnectivityState string
+
+    const (
+                // Busy ...
+        Busy EndpointConnectivityState = "Busy"
+                // CertificateInvalid ...
+        CertificateInvalid EndpointConnectivityState = "CertificateInvalid"
+                // Connecting ...
+        Connecting EndpointConnectivityState = "Connecting"
+                // Error ...
+        Error EndpointConnectivityState = "Error"
+                // NotReachable ...
+        NotReachable EndpointConnectivityState = "NotReachable"
+                // NoTrust ...
+        NoTrust EndpointConnectivityState = "NoTrust"
+                // Ready ...
+        Ready EndpointConnectivityState = "Ready"
+            )
+    // PossibleEndpointConnectivityStateValues returns an array of possible values for the EndpointConnectivityState const type.
+    func PossibleEndpointConnectivityStateValues() []EndpointConnectivityState {
+        return []EndpointConnectivityState{Busy,CertificateInvalid,Connecting,Error,NotReachable,NoTrust,Ready}
+    }
+
         // SecurityAssessment enumerates the values for security assessment.
     type SecurityAssessment string
 
@@ -129,7 +171,7 @@ const fqdn = "go/azure-iiot-opc-registry"
         return []SecurityMode{SecurityModeBest,SecurityModeNone,SecurityModeSign,SecurityModeSignAndEncrypt}
     }
 
-            // ApplicationInfoAPIModel application model
+            // ApplicationInfoAPIModel application info model
             type ApplicationInfoAPIModel struct {
             // ApplicationID - Unique application id
             ApplicationID *string `json:"applicationId,omitempty"`
@@ -520,7 +562,7 @@ const fqdn = "go/azure-iiot-opc-registry"
 
             // AuthenticationMethodAPIModel authentication Method model
             type AuthenticationMethodAPIModel struct {
-            // ID - Method identifier
+            // ID - Method id
             ID *string `json:"id,omitempty"`
             // CredentialType - Type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
             CredentialType CredentialType `json:"credentialType,omitempty"`
@@ -535,7 +577,7 @@ const fqdn = "go/azure-iiot-opc-registry"
             // URI - Uri to call - should use https scheme in which
             // case security is enforced.
             URI *string `json:"uri,omitempty"`
-            // Method - Method to use for callback. Possible values include: 'Get', 'Post', 'Put', 'Delete'
+            // Method - Http Method to use for callback. Possible values include: 'Get', 'Post', 'Put', 'Delete'
             Method CallbackMethodType `json:"method,omitempty"`
             // AuthenticationHeader - Authentication header to add or null if not needed
             AuthenticationHeader *string `json:"authenticationHeader,omitempty"`
@@ -553,7 +595,7 @@ const fqdn = "go/azure-iiot-opc-registry"
             type DiscoveryConfigAPIModel struct {
             // AddressRangesToScan - Address ranges to scan (null == all wired nics)
             AddressRangesToScan *string `json:"addressRangesToScan,omitempty"`
-            // NetworkProbeTimeoutMs - Networking probe timeout
+            // NetworkProbeTimeoutMs - Network probe timeout
             NetworkProbeTimeoutMs *int32 `json:"networkProbeTimeoutMs,omitempty"`
             // MaxNetworkProbes - Max network probes that should ever run.
             MaxNetworkProbes *int32 `json:"maxNetworkProbes,omitempty"`
@@ -603,6 +645,15 @@ const fqdn = "go/azure-iiot-opc-registry"
             SecurityMode SecurityMode `json:"securityMode,omitempty"`
             }
 
+            // EndpointActivationStatusAPIModel endpoint Activation status
+            // model
+            type EndpointActivationStatusAPIModel struct {
+            // ID - Identifier of the endoint
+            ID *string `json:"id,omitempty"`
+            // ActivationState - Activation state. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
+            ActivationState EndpointActivationState `json:"activationState,omitempty"`
+            }
+
             // EndpointAPIModel endpoint model
             type EndpointAPIModel struct {
             // URL - Endpoint
@@ -626,10 +677,10 @@ const fqdn = "go/azure-iiot-opc-registry"
             Registration *EndpointRegistrationAPIModel `json:"registration,omitempty"`
             // ApplicationID - Application id endpoint is registered under.
             ApplicationID *string `json:"applicationId,omitempty"`
-            // Activated - Whether endpoint is activated on this registration
-            Activated *bool `json:"activated,omitempty"`
-            // Connected - Whether endpoint is connected on this registration
-            Connected *bool `json:"connected,omitempty"`
+            // ActivationState - Activation state of endpoint. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
+            ActivationState EndpointActivationState `json:"activationState,omitempty"`
+            // EndpointState - Last state of the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+            EndpointState EndpointConnectivityState `json:"endpointState,omitempty"`
             // OutOfSync - Whether the registration is out of sync
             OutOfSync *bool `json:"outOfSync,omitempty"`
             // NotSeenSince - Last time endpoint was seen
@@ -787,7 +838,8 @@ const fqdn = "go/azure-iiot-opc-registry"
             SecurityLevel *int32 `json:"securityLevel,omitempty"`
             // Certificate - Endpoint cert that was registered.
             Certificate *[]byte `json:"certificate,omitempty"`
-            // AuthenticationMethods - Supported authentication methods for the endpoint.
+            // AuthenticationMethods - Supported authentication methods that can be selected to
+            // obtain a credential and used to interact with the endpoint.
             AuthenticationMethods *[]AuthenticationMethodAPIModel `json:"authenticationMethods,omitempty"`
             }
 
@@ -1056,6 +1108,19 @@ const fqdn = "go/azure-iiot-opc-registry"
             Discovery DiscoveryMode `json:"discovery,omitempty"`
             // Connected - Included connected or disconnected
             Connected *bool `json:"connected,omitempty"`
+            }
+
+            // SupervisorStatusAPIModel supervisor runtime status
+            type SupervisorStatusAPIModel struct {
+            autorest.Response `json:"-"`
+            // DeviceID - Edge device id
+            DeviceID *string `json:"deviceId,omitempty"`
+            // ModuleID - Module id
+            ModuleID *string `json:"moduleId,omitempty"`
+            // SiteID - Site id
+            SiteID *string `json:"siteId,omitempty"`
+            // Endpoints - Endpoint activation status
+            Endpoints *[]EndpointActivationStatusAPIModel `json:"endpoints,omitempty"`
             }
 
             // SupervisorUpdateAPIModel supervisor registration update request

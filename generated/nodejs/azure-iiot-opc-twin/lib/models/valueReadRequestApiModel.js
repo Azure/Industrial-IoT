@@ -18,23 +18,28 @@ class ValueReadRequestApiModel {
   /**
    * Create a ValueReadRequestApiModel.
    * @property {string} nodeId Node to read from (mandatory)
+   * @property {array} [browsePath] An optional path from NodeId instance to
+   * the actual node.
    * @property {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
-   * @property {object} [elevation] Optional User elevation
-   * @property {string} [elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   * @property {object} [elevation.value] Value to pass to server
-   * @property {object} [diagnostics] Optional diagnostics configuration
-   * @property {string} [diagnostics.level] Requested level of response
+   * @property {object} [header] Optional request header
+   * @property {object} [header.elevation] Optional User elevation
+   * @property {string} [header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @property {object} [header.elevation.value] Value to pass to server
+   * @property {array} [header.locales] Optional list of locales in preference
+   * order.
+   * @property {object} [header.diagnostics] Optional diagnostics configuration
+   * @property {string} [header.diagnostics.level] Requested level of response
    * diagnostics.
    * (default: Status). Possible values include: 'None', 'Status',
    * 'Operations', 'Diagnostics', 'Verbose'
-   * @property {string} [diagnostics.auditId] Client audit log entry.
+   * @property {string} [header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
-   * @property {date} [diagnostics.timeStamp] Timestamp of request.
+   * @property {date} [header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    */
   constructor() {
@@ -61,6 +66,20 @@ class ValueReadRequestApiModel {
               name: 'String'
             }
           },
+          browsePath: {
+            required: false,
+            serializedName: 'browsePath',
+            type: {
+              name: 'Sequence',
+              element: {
+                  required: false,
+                  serializedName: 'StringElementType',
+                  type: {
+                    name: 'String'
+                  }
+              }
+            }
+          },
           indexRange: {
             required: false,
             serializedName: 'indexRange',
@@ -68,20 +87,12 @@ class ValueReadRequestApiModel {
               name: 'String'
             }
           },
-          elevation: {
+          header: {
             required: false,
-            serializedName: 'elevation',
+            serializedName: 'header',
             type: {
               name: 'Composite',
-              className: 'CredentialApiModel'
-            }
-          },
-          diagnostics: {
-            required: false,
-            serializedName: 'diagnostics',
-            type: {
-              name: 'Composite',
-              className: 'DiagnosticsApiModel'
+              className: 'RequestHeaderApiModel'
             }
           }
         }

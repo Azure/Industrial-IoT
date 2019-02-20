@@ -35,14 +35,11 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <param name="request">The HistoryUpdateDetailsType extension object
         /// encoded in json and containing the tunneled
         /// update request for the Historian server.</param>
-        /// <param name="elevation">Optional User elevation</param>
-        /// <param name="diagnostics">Optional diagnostics
-        /// configuration</param>
-        public HistoryUpdateRequestApiModel(object request, CredentialApiModel elevation = default(CredentialApiModel), DiagnosticsApiModel diagnostics = default(DiagnosticsApiModel))
+        /// <param name="header">Optional request header</param>
+        public HistoryUpdateRequestApiModel(object request, RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             Request = request;
-            Elevation = elevation;
-            Diagnostics = diagnostics;
+            Header = header;
             CustomInit();
         }
 
@@ -60,16 +57,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public object Request { get; set; }
 
         /// <summary>
-        /// Gets or sets optional User elevation
+        /// Gets or sets optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "elevation")]
-        public CredentialApiModel Elevation { get; set; }
-
-        /// <summary>
-        /// Gets or sets optional diagnostics configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "diagnostics")]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "header")]
+        public RequestHeaderApiModel Header { get; set; }
 
         /// <summary>
         /// Validate the object.

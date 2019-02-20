@@ -22,14 +22,10 @@ class NodePathTargetApiModel {
    * include: 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType',
    * 'ReferenceType', 'DataType', 'View'
    * @property {string} [target.displayName] Display name
-   * @property {string} [target.id] Id of node.
+   * @property {string} [target.nodeId] Id of node.
    * (Mandatory).
    * @property {string} [target.description] Description if any
-   * @property {boolean} [target.children] Whether node has children which are
-   * defined as
-   * any forward hierarchical references.
-   * (default: unknown)
-   * @property {string} [target.name] Browse name
+   * @property {string} [target.browseName] Browse name
    * @property {string} [target.accessRestrictions] Node access restrictions if
    * any.
    * (default: none). Possible values include: 'SigningRequired',
@@ -102,6 +98,12 @@ class NodePathTargetApiModel {
    * null.
    * @property {array} [target.rolePermissions] Role permissions
    * @property {array} [target.userRolePermissions] User Role permissions
+   * @property {string} [target.typeDefinitionId] Optional type definition of
+   * the node
+   * @property {boolean} [target.children] Whether node has children which are
+   * defined as
+   * any forward hierarchical references.
+   * (default: unknown)
    * @property {number} [remainingPathIndex] Remaining index in path
    */
   constructor() {

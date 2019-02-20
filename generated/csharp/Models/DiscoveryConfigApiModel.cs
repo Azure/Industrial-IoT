@@ -33,8 +33,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// </summary>
         /// <param name="addressRangesToScan">Address ranges to scan (null ==
         /// all wired nics)</param>
-        /// <param name="networkProbeTimeoutMs">Networking probe
-        /// timeout</param>
+        /// <param name="networkProbeTimeoutMs">Network probe timeout</param>
         /// <param name="maxNetworkProbes">Max network probes that should ever
         /// run.</param>
         /// <param name="portRangesToScan">Port ranges to scan (null == all
@@ -83,7 +82,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string AddressRangesToScan { get; set; }
 
         /// <summary>
-        /// Gets or sets networking probe timeout
+        /// Gets or sets network probe timeout
         /// </summary>
         [JsonProperty(PropertyName = "networkProbeTimeoutMs")]
         public int? NetworkProbeTimeoutMs { get; set; }

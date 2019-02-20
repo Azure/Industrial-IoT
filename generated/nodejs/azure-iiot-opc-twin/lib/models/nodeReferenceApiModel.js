@@ -17,24 +17,18 @@
 class NodeReferenceApiModel {
   /**
    * Create a NodeReferenceApiModel.
-   * @property {string} [typeId] Reference Type identifier
-   * @property {string} [browseName] Browse name of reference
+   * @property {string} [referenceTypeId] Reference Type identifier
    * @property {string} [direction] Browse direction of reference. Possible
    * values include: 'Forward', 'Backward', 'Both'
-   * @property {string} [displayName] Display name of reference
    * @property {object} target Target node
    * @property {string} [target.nodeClass] Type of node. Possible values
    * include: 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType',
    * 'ReferenceType', 'DataType', 'View'
    * @property {string} [target.displayName] Display name
-   * @property {string} [target.id] Id of node.
+   * @property {string} [target.nodeId] Id of node.
    * (Mandatory).
    * @property {string} [target.description] Description if any
-   * @property {boolean} [target.children] Whether node has children which are
-   * defined as
-   * any forward hierarchical references.
-   * (default: unknown)
-   * @property {string} [target.name] Browse name
+   * @property {string} [target.browseName] Browse name
    * @property {string} [target.accessRestrictions] Node access restrictions if
    * any.
    * (default: none). Possible values include: 'SigningRequired',
@@ -107,8 +101,12 @@ class NodeReferenceApiModel {
    * null.
    * @property {array} [target.rolePermissions] Role permissions
    * @property {array} [target.userRolePermissions] User Role permissions
-   * @property {string} [typeDefinition] Optional type definition of the
-   * reference
+   * @property {string} [target.typeDefinitionId] Optional type definition of
+   * the node
+   * @property {boolean} [target.children] Whether node has children which are
+   * defined as
+   * any forward hierarchical references.
+   * (default: unknown)
    */
   constructor() {
   }
@@ -127,16 +125,9 @@ class NodeReferenceApiModel {
         name: 'Composite',
         className: 'NodeReferenceApiModel',
         modelProperties: {
-          typeId: {
+          referenceTypeId: {
             required: false,
-            serializedName: 'typeId',
-            type: {
-              name: 'String'
-            }
-          },
-          browseName: {
-            required: false,
-            serializedName: 'browseName',
+            serializedName: 'referenceTypeId',
             type: {
               name: 'String'
             }
@@ -149,26 +140,12 @@ class NodeReferenceApiModel {
               allowedValues: [ 'Forward', 'Backward', 'Both' ]
             }
           },
-          displayName: {
-            required: false,
-            serializedName: 'displayName',
-            type: {
-              name: 'String'
-            }
-          },
           target: {
             required: true,
             serializedName: 'target',
             type: {
               name: 'Composite',
               className: 'NodeApiModel'
-            }
-          },
-          typeDefinition: {
-            required: false,
-            serializedName: 'typeDefinition',
-            type: {
-              name: 'String'
             }
           }
         }

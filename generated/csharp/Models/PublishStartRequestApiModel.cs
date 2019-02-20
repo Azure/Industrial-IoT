@@ -33,12 +33,11 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// class.
         /// </summary>
         /// <param name="item">Item to publish</param>
-        /// <param name="diagnostics">Optional diagnostics
-        /// configuration</param>
-        public PublishStartRequestApiModel(PublishedItemApiModel item, DiagnosticsApiModel diagnostics = default(DiagnosticsApiModel))
+        /// <param name="header">Optional request header</param>
+        public PublishStartRequestApiModel(PublishedItemApiModel item, RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             Item = item;
-            Diagnostics = diagnostics;
+            Header = header;
             CustomInit();
         }
 
@@ -54,10 +53,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public PublishedItemApiModel Item { get; set; }
 
         /// <summary>
-        /// Gets or sets optional diagnostics configuration
+        /// Gets or sets optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "diagnostics")]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "header")]
+        public RequestHeaderApiModel Header { get; set; }
 
         /// <summary>
         /// Validate the object.

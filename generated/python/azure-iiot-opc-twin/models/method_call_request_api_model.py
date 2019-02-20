@@ -15,35 +15,42 @@ from msrest.serialization import Model
 class MethodCallRequestApiModel(Model):
     """Call request model.
 
-    :param method_id: Method id of method to call
+    :param method_id: Method id of method to call.
     :type method_id: str
-    :param object_id: If not global (= null), object or type scope
+    :param object_id: Context of the method, i.e. an object or object type
+     node.
     :type object_id: str
     :param arguments: Arguments for the method - null means no args
     :type arguments:
      list[~azure-iiot-opc-twin.models.MethodCallArgumentApiModel]
-    :param elevation: Optional User elevation
-    :type elevation: ~azure-iiot-opc-twin.models.CredentialApiModel
-    :param diagnostics: Optional diagnostics configuration
-    :type diagnostics: ~azure-iiot-opc-twin.models.DiagnosticsApiModel
+    :param method_browse_path: An optional component path from the node
+     identified by
+     MethodId or from a resolved objectId to the actual
+     method node.
+    :type method_browse_path: list[str]
+    :param object_browse_path: An optional component path from the node
+     identified by
+     ObjectId to the actual object or objectType node.
+     If ObjectId is null, the root node (i=84) is used.
+    :type object_browse_path: list[str]
+    :param header: Optional request header
+    :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
-
-    _validation = {
-        'method_id': {'required': True},
-    }
 
     _attribute_map = {
         'method_id': {'key': 'methodId', 'type': 'str'},
         'object_id': {'key': 'objectId', 'type': 'str'},
         'arguments': {'key': 'arguments', 'type': '[MethodCallArgumentApiModel]'},
-        'elevation': {'key': 'elevation', 'type': 'CredentialApiModel'},
-        'diagnostics': {'key': 'diagnostics', 'type': 'DiagnosticsApiModel'},
+        'method_browse_path': {'key': 'methodBrowsePath', 'type': '[str]'},
+        'object_browse_path': {'key': 'objectBrowsePath', 'type': '[str]'},
+        'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, method_id, object_id=None, arguments=None, elevation=None, diagnostics=None):
+    def __init__(self, method_id=None, object_id=None, arguments=None, method_browse_path=None, object_browse_path=None, header=None):
         super(MethodCallRequestApiModel, self).__init__()
         self.method_id = method_id
         self.object_id = object_id
         self.arguments = arguments
-        self.elevation = elevation
-        self.diagnostics = diagnostics
+        self.method_browse_path = method_browse_path
+        self.object_browse_path = object_browse_path
+        self.header = header

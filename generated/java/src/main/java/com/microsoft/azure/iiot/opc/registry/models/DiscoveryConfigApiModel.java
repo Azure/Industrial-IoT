@@ -24,7 +24,7 @@ public class DiscoveryConfigApiModel {
     private String addressRangesToScan;
 
     /**
-     * Networking probe timeout.
+     * Network probe timeout.
      */
     @JsonProperty(value = "networkProbeTimeoutMs")
     private Integer networkProbeTimeoutMs;
@@ -110,7 +110,7 @@ public class DiscoveryConfigApiModel {
     }
 
     /**
-     * Get networking probe timeout.
+     * Get network probe timeout.
      *
      * @return the networkProbeTimeoutMs value
      */
@@ -119,7 +119,7 @@ public class DiscoveryConfigApiModel {
     }
 
     /**
-     * Set networking probe timeout.
+     * Set network probe timeout.
      *
      * @param networkProbeTimeoutMs the networkProbeTimeoutMs value to set
      * @return the DiscoveryConfigApiModel object itself.

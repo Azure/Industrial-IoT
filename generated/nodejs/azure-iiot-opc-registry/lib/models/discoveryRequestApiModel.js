@@ -23,7 +23,7 @@ class DiscoveryRequestApiModel {
    * @property {object} [configuration] Scan configuration to use
    * @property {string} [configuration.addressRangesToScan] Address ranges to
    * scan (null == all wired nics)
-   * @property {number} [configuration.networkProbeTimeoutMs] Networking probe
+   * @property {number} [configuration.networkProbeTimeoutMs] Network probe
    * timeout
    * @property {number} [configuration.maxNetworkProbes] Max network probes
    * that should ever run.

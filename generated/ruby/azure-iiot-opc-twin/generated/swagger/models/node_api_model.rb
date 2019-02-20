@@ -10,7 +10,7 @@
 module azure.iiot.opc.twin
   module Models
     #
-    # node model
+    # Node model
     #
     class NodeApiModel
       # @return [NodeClass] Type of node. Possible values include: 'Object',
@@ -23,18 +23,13 @@ module azure.iiot.opc.twin
 
       # @return [String] Id of node.
       # (Mandatory).
-      attr_accessor :id
+      attr_accessor :node_id
 
       # @return [String] Description if any
       attr_accessor :description
 
-      # @return [Boolean] Whether node has children which are defined as
-      # any forward hierarchical references.
-      # (default: unknown)
-      attr_accessor :children
-
       # @return [String] Browse name
-      attr_accessor :name
+      attr_accessor :browse_name
 
       # @return [NodeAccessRestrictions] Node access restrictions if any.
       # (default: none). Possible values include: 'SigningRequired',
@@ -137,6 +132,14 @@ module azure.iiot.opc.twin
       # @return [Array<RolePermissionApiModel>] User Role permissions
       attr_accessor :user_role_permissions
 
+      # @return [String] Optional type definition of the node
+      attr_accessor :type_definition_id
+
+      # @return [Boolean] Whether node has children which are defined as
+      # any forward hierarchical references.
+      # (default: unknown)
+      attr_accessor :children
+
 
       #
       # Mapper for NodeApiModel class as Ruby Hash.
@@ -168,10 +171,10 @@ module azure.iiot.opc.twin
                   name: 'String'
                 }
               },
-              id: {
+              node_id: {
                 client_side_validation: true,
                 required: true,
-                serialized_name: 'id',
+                serialized_name: 'nodeId',
                 type: {
                   name: 'String'
                 }
@@ -184,18 +187,10 @@ module azure.iiot.opc.twin
                   name: 'String'
                 }
               },
-              children: {
+              browse_name: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'children',
-                type: {
-                  name: 'Boolean'
-                }
-              },
-              name: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'name',
+                serialized_name: 'browseName',
                 type: {
                   name: 'String'
                 }
@@ -397,6 +392,22 @@ module azure.iiot.opc.twin
                         class_name: 'RolePermissionApiModel'
                       }
                   }
+                }
+              },
+              type_definition_id: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'typeDefinitionId',
+                type: {
+                  name: 'String'
+                }
+              },
+              children: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'children',
+                type: {
+                  name: 'Boolean'
                 }
               }
             }

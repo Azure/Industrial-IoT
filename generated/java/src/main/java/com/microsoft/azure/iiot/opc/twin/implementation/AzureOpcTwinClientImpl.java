@@ -329,7 +329,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
      and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param nodeId The node to browse or omit to browse object root
+     * @param nodeId The node to browse or omit to browse the root node (i=84)
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -351,7 +351,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
      and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param nodeId The node to browse or omit to browse object root
+     * @param nodeId The node to browse or omit to browse the root node (i=84)
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -372,7 +372,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
      and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param nodeId The node to browse or omit to browse object root
+     * @param nodeId The node to browse or omit to browse the root node (i=84)
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the BrowseResponseApiModel object
      */
@@ -397,7 +397,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
      and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param nodeId The node to browse or omit to browse object root
+     * @param nodeId The node to browse or omit to browse the root node (i=84)
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the BrowseResponseApiModel object
      */
@@ -422,8 +422,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<BrowseResponseApiModel> getSetOfUniqueNodesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<BrowseResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<BrowseResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -516,8 +514,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<BrowseResponseApiModel> browseDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<BrowseResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<BrowseResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -621,8 +617,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<BrowseNextResponseApiModel> getNextSetOfUniqueNodesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<BrowseNextResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<BrowseNextResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -715,8 +709,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<BrowseNextResponseApiModel> browseNextDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<BrowseNextResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<BrowseNextResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -813,8 +805,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<BrowsePathResponseApiModel> browseUsingPathDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<BrowsePathResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<BrowsePathResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -911,8 +901,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<MethodMetadataResponseApiModel> getCallMetadataDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<MethodMetadataResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<MethodMetadataResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1005,8 +993,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<MethodCallResponseApiModel> callMethodDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<MethodCallResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<MethodCallResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1099,8 +1085,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<PublishStartResponseApiModel> startPublishingValuesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<PublishStartResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<PublishStartResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1193,8 +1177,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<PublishStopResponseApiModel> stopPublishingValuesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<PublishStopResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<PublishStopResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1286,8 +1268,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<PublishedItemListResponseApiModel> getNextListOfPublishedNodesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<PublishedItemListResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<PublishedItemListResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1380,8 +1360,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<PublishedItemListResponseApiModel> getFirstListOfPublishedNodesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<PublishedItemListResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<PublishedItemListResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1473,8 +1451,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<ValueReadResponseApiModel> getValueDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ValueReadResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ValueReadResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1567,8 +1543,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<ValueReadResponseApiModel> readValueDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ValueReadResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ValueReadResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1661,8 +1635,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<ReadResponseApiModel> readAttributesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ReadResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ReadResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1755,8 +1727,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<HistoryReadResponseApiModel> readHistoryDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<HistoryReadResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<HistoryReadResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1849,8 +1819,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<HistoryReadNextResponseApiModel> readHistoryNextDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<HistoryReadNextResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<HistoryReadNextResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2012,8 +1980,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<ValueWriteResponseApiModel> writeValueDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ValueWriteResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ValueWriteResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2106,8 +2072,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<WriteResponseApiModel> writeAttributesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<WriteResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<WriteResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2200,8 +2164,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<HistoryUpdateResponseApiModel> writeHistoryDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<HistoryUpdateResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<HistoryUpdateResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 

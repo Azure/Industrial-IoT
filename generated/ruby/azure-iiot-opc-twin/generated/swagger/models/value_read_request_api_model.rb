@@ -16,17 +16,18 @@ module azure.iiot.opc.twin
       # @return [String] Node to read from (mandatory)
       attr_accessor :node_id
 
+      # @return [Array<String>] An optional path from NodeId instance to
+      # the actual node.
+      attr_accessor :browse_path
+
       # @return [String] Index range to read, e.g. 1:2,0:1 for 2 slices
       # out of a matrix or 0:1 for the first item in
       # an array, string or bytestring.
       # See 7.22 of part 4: NumericRange.
       attr_accessor :index_range
 
-      # @return [CredentialApiModel] Optional User elevation
-      attr_accessor :elevation
-
-      # @return [DiagnosticsApiModel] Optional diagnostics configuration
-      attr_accessor :diagnostics
+      # @return [RequestHeaderApiModel] Optional request header
+      attr_accessor :header
 
 
       #
@@ -50,6 +51,22 @@ module azure.iiot.opc.twin
                   name: 'String'
                 }
               },
+              browse_path: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'browsePath',
+                type: {
+                  name: 'Sequence',
+                  element: {
+                      client_side_validation: true,
+                      required: false,
+                      serialized_name: 'StringElementType',
+                      type: {
+                        name: 'String'
+                      }
+                  }
+                }
+              },
               index_range: {
                 client_side_validation: true,
                 required: false,
@@ -58,22 +75,13 @@ module azure.iiot.opc.twin
                   name: 'String'
                 }
               },
-              elevation: {
+              header: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'elevation',
+                serialized_name: 'header',
                 type: {
                   name: 'Composite',
-                  class_name: 'CredentialApiModel'
-                }
-              },
-              diagnostics: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'diagnostics',
-                type: {
-                  name: 'Composite',
-                  class_name: 'DiagnosticsApiModel'
+                  class_name: 'RequestHeaderApiModel'
                 }
               }
             }

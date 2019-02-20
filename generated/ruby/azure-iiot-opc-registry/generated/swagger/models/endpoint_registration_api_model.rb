@@ -29,7 +29,8 @@ module azure.iiot.opc.registry
       attr_accessor :certificate
 
       # @return [Array<AuthenticationMethodApiModel>] Supported authentication
-      # methods for the endpoint.
+      # methods that can be selected to
+      # obtain a credential and used to interact with the endpoint.
       attr_accessor :authentication_methods
 
 

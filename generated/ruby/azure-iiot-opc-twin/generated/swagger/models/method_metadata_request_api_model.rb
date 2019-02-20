@@ -13,14 +13,17 @@ module azure.iiot.opc.twin
     # Method metadata request model
     #
     class MethodMetadataRequestApiModel
-      # @return [String] Count of input arguments
+      # @return [String] Method id of method to call.
+      # (Required)
       attr_accessor :method_id
 
-      # @return [CredentialApiModel] Optional User elevation
-      attr_accessor :elevation
+      # @return [Array<String>] An optional component path from the node
+      # identified by
+      # MethodId to the actual method node.
+      attr_accessor :method_browse_path
 
-      # @return [DiagnosticsApiModel] Optional diagnostics configuration
-      attr_accessor :diagnostics
+      # @return [RequestHeaderApiModel] Optional request header
+      attr_accessor :header
 
 
       #
@@ -44,22 +47,29 @@ module azure.iiot.opc.twin
                   name: 'String'
                 }
               },
-              elevation: {
+              method_browse_path: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'elevation',
+                serialized_name: 'methodBrowsePath',
                 type: {
-                  name: 'Composite',
-                  class_name: 'CredentialApiModel'
+                  name: 'Sequence',
+                  element: {
+                      client_side_validation: true,
+                      required: false,
+                      serialized_name: 'StringElementType',
+                      type: {
+                        name: 'String'
+                      }
+                  }
                 }
               },
-              diagnostics: {
+              header: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'diagnostics',
+                serialized_name: 'header',
                 type: {
                   name: 'Composite',
-                  class_name: 'DiagnosticsApiModel'
+                  class_name: 'RequestHeaderApiModel'
                 }
               }
             }

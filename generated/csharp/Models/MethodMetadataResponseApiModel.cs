@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
     using System.Linq;
 
     /// <summary>
-    /// method metadata query model
+    /// Method metadata query model
     /// </summary>
     public partial class MethodMetadataResponseApiModel
     {

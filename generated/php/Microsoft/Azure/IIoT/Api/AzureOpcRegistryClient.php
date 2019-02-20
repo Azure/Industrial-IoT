@@ -36,6 +36,8 @@ final class AzureOpcRegistryClient
         $this->_GetStatus_operation = $_client->createOperation('GetStatus');
         $this->_GetSupervisor_operation = $_client->createOperation('GetSupervisor');
         $this->_UpdateSupervisor_operation = $_client->createOperation('UpdateSupervisor');
+        $this->_GetSupervisorStatus_operation = $_client->createOperation('GetSupervisorStatus');
+        $this->_ResetSupervisor_operation = $_client->createOperation('ResetSupervisor');
         $this->_GetListOfSupervisors_operation = $_client->createOperation('GetListOfSupervisors');
         $this->_GetFilteredListOfSupervisors_operation = $_client->createOperation('GetFilteredListOfSupervisors');
         $this->_QuerySupervisors_operation = $_client->createOperation('QuerySupervisors');
@@ -365,6 +367,24 @@ identified by the supervisor id or update site information.
         ]);
     }
     /**
+     * Allows a caller to get runtime status for a supervisor.
+     * @param string $supervisorId
+     * @return array
+     */
+    public function getSupervisorStatus($supervisorId)
+    {
+        return $this->_GetSupervisorStatus_operation->call(['supervisorId' => $supervisorId]);
+    }
+    /**
+     * Allows a caller to reset the twin module using its supervisor
+identity identifier.
+     * @param string $supervisorId
+     */
+    public function resetSupervisor($supervisorId)
+    {
+        return $this->_ResetSupervisor_operation->call(['supervisorId' => $supervisorId]);
+    }
+    /**
      * Get all registered supervisors and therefore twin modules in paged form.
 The returned model can contain a continuation token if more results are
 available.
@@ -525,6 +545,14 @@ more results.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
+    private $_GetSupervisorStatus_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_ResetSupervisor_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
     private $_GetListOfSupervisors_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
@@ -555,11 +583,7 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
                 ],
                 'put' => [
                     'operationId' => 'CreateApplication',
@@ -569,11 +593,7 @@ more results.
                         'required' => TRUE,
                         'schema' => ['$ref' => '#/definitions/ApplicationRegistrationRequestApiModel']
                     ]],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ApplicationRegistrationResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationRegistrationResponseApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'RegisterServer',
@@ -583,11 +603,7 @@ more results.
                         'required' => TRUE,
                         'schema' => ['$ref' => '#/definitions/ServerRegistrationRequestApiModel']
                     ]],
-                    'responses' => [
-                        '200' => [],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => []]
                 ],
                 'delete' => [
                     'operationId' => 'DeleteAllDisabledApplications',
@@ -597,11 +613,7 @@ more results.
                         'required' => FALSE,
                         'type' => 'string'
                     ]],
-                    'responses' => [
-                        '200' => [],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => []]
                 ]
             ],
             '/v1/applications/discover' => ['post' => [
@@ -612,11 +624,7 @@ more results.
                     'required' => TRUE,
                     'schema' => ['$ref' => '#/definitions/DiscoveryRequestApiModel']
                 ]],
-                'responses' => [
-                    '200' => [],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => []]
             ]],
             '/v1/applications/{applicationId}' => [
                 'get' => [
@@ -627,11 +635,7 @@ more results.
                         'required' => TRUE,
                         'type' => 'string'
                     ]],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ApplicationRegistrationApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationRegistrationApiModel']]]
                 ],
                 'delete' => [
                     'operationId' => 'DeleteApplication',
@@ -641,11 +645,7 @@ more results.
                         'required' => TRUE,
                         'type' => 'string'
                     ]],
-                    'responses' => [
-                        '200' => [],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => []]
                 ],
                 'patch' => [
                     'operationId' => 'UpdateApplicationRegistration',
@@ -663,11 +663,7 @@ more results.
                             'schema' => ['$ref' => '#/definitions/ApplicationRegistrationUpdateApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => [],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => []]
                 ]
             ],
             '/v1/applications/sites' => ['get' => [
@@ -687,11 +683,7 @@ more results.
                         'format' => 'int32'
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/ApplicationSiteListApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationSiteListApiModel']]]
             ]],
             '/v1/applications/query' => [
                 'get' => [
@@ -711,11 +703,7 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'QueryApplications',
@@ -734,11 +722,7 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
                 ]
             ],
             '/v1/endpoints/{endpointId}/activate' => ['post' => [
@@ -749,11 +733,7 @@ more results.
                     'required' => TRUE,
                     'type' => 'string'
                 ]],
-                'responses' => [
-                    '200' => [],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => []]
             ]],
             '/v1/endpoints/{endpointId}' => [
                 'get' => [
@@ -772,11 +752,7 @@ more results.
                             'type' => 'boolean'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoApiModel']]]
                 ],
                 'patch' => [
                     'operationId' => 'UpdateEndpoint',
@@ -794,11 +770,7 @@ more results.
                             'schema' => ['$ref' => '#/definitions/EndpointRegistrationUpdateApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => [],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => []]
                 ]
             ],
             '/v1/endpoints' => ['get' => [
@@ -824,11 +796,7 @@ more results.
                         'format' => 'int32'
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']]]
             ]],
             '/v1/endpoints/query' => [
                 'get' => [
@@ -909,11 +877,7 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'QueryEndpoints',
@@ -938,11 +902,7 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']]]
                 ]
             ],
             '/v1/endpoints/{endpointId}/deactivate' => ['post' => [
@@ -953,11 +913,7 @@ more results.
                     'required' => TRUE,
                     'type' => 'string'
                 ]],
-                'responses' => [
-                    '200' => [],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => []]
             ]],
             '/v1/status' => ['get' => [
                 'operationId' => 'GetStatus',
@@ -981,11 +937,7 @@ more results.
                             'type' => 'boolean'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/SupervisorApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorApiModel']]]
                 ],
                 'patch' => [
                     'operationId' => 'UpdateSupervisor',
@@ -1003,13 +955,29 @@ more results.
                             'schema' => ['$ref' => '#/definitions/SupervisorUpdateApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => [],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => []]
                 ]
             ],
+            '/v1/supervisors/{supervisorId}/status' => ['get' => [
+                'operationId' => 'GetSupervisorStatus',
+                'parameters' => [[
+                    'name' => 'supervisorId',
+                    'in' => 'path',
+                    'required' => TRUE,
+                    'type' => 'string'
+                ]],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorStatusApiModel']]]
+            ]],
+            '/v1/supervisors/{supervisorId}/reset' => ['post' => [
+                'operationId' => 'ResetSupervisor',
+                'parameters' => [[
+                    'name' => 'supervisorId',
+                    'in' => 'path',
+                    'required' => TRUE,
+                    'type' => 'string'
+                ]],
+                'responses' => ['200' => []]
+            ]],
             '/v1/supervisors' => ['get' => [
                 'operationId' => 'GetListOfSupervisors',
                 'parameters' => [
@@ -1033,11 +1001,7 @@ more results.
                         'format' => 'int32'
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']]]
             ]],
             '/v1/supervisors/query' => [
                 'get' => [
@@ -1082,11 +1046,7 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'QuerySupervisors',
@@ -1111,11 +1071,7 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']]]
                 ]
             ]
         ],
@@ -1481,8 +1437,26 @@ more results.
                 'properties' => [
                     'registration' => ['$ref' => '#/definitions/EndpointRegistrationApiModel'],
                     'applicationId' => ['type' => 'string'],
-                    'activated' => ['type' => 'boolean'],
-                    'connected' => ['type' => 'boolean'],
+                    'activationState' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Deactivated',
+                            'Activated',
+                            'ActivatedAndConnected'
+                        ]
+                    ],
+                    'endpointState' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Connecting',
+                            'NotReachable',
+                            'Busy',
+                            'NoTrust',
+                            'CertificateInvalid',
+                            'Ready',
+                            'Error'
+                        ]
+                    ],
                     'outOfSync' => ['type' => 'boolean'],
                     'notSeenSince' => [
                         'type' => 'string',
@@ -1613,6 +1587,34 @@ more results.
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []
+            ],
+            'EndpointActivationStatusApiModel' => [
+                'properties' => [
+                    'id' => ['type' => 'string'],
+                    'activationState' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Deactivated',
+                            'Activated',
+                            'ActivatedAndConnected'
+                        ]
+                    ]
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['id']
+            ],
+            'SupervisorStatusApiModel' => [
+                'properties' => [
+                    'deviceId' => ['type' => 'string'],
+                    'moduleId' => ['type' => 'string'],
+                    'siteId' => ['type' => 'string'],
+                    'endpoints' => [
+                        'type' => 'array',
+                        'items' => ['$ref' => '#/definitions/EndpointActivationStatusApiModel']
+                    ]
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['deviceId']
             ],
             'SupervisorListApiModel' => [
                 'properties' => [

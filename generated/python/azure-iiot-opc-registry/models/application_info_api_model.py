@@ -13,7 +13,7 @@ from msrest.serialization import Model
 
 
 class ApplicationInfoApiModel(Model):
-    """Application model.
+    """Application info model.
 
     :param application_id: Unique application id
     :type application_id: str

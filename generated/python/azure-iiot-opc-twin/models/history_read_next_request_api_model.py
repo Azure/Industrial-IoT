@@ -20,10 +20,8 @@ class HistoryReadNextRequestApiModel(Model):
     :type continuation_token: str
     :param abort: Abort reading after this read. Default value: False .
     :type abort: bool
-    :param elevation: Optional User elevation
-    :type elevation: ~azure-iiot-opc-twin.models.CredentialApiModel
-    :param diagnostics: Optional diagnostics configuration
-    :type diagnostics: ~azure-iiot-opc-twin.models.DiagnosticsApiModel
+    :param header: Optional request header
+    :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 
     _validation = {
@@ -33,13 +31,11 @@ class HistoryReadNextRequestApiModel(Model):
     _attribute_map = {
         'continuation_token': {'key': 'continuationToken', 'type': 'str'},
         'abort': {'key': 'abort', 'type': 'bool'},
-        'elevation': {'key': 'elevation', 'type': 'CredentialApiModel'},
-        'diagnostics': {'key': 'diagnostics', 'type': 'DiagnosticsApiModel'},
+        'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, continuation_token, abort=False, elevation=None, diagnostics=None):
+    def __init__(self, continuation_token, abort=False, header=None):
         super(HistoryReadNextRequestApiModel, self).__init__()
         self.continuation_token = continuation_token
         self.abort = abort
-        self.elevation = elevation
-        self.diagnostics = diagnostics
+        self.header = header

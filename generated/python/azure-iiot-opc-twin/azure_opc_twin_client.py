@@ -83,7 +83,8 @@ class AzureOpcTwinClient(object):
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param node_id: The node to browse or omit to browse object root
+        :param node_id: The node to browse or omit to browse the root node
+         (i=84)
         :type node_id: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -118,7 +119,7 @@ class AzureOpcTwinClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -180,7 +181,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -244,7 +245,7 @@ class AzureOpcTwinClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -306,7 +307,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -369,7 +370,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -434,7 +435,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -496,7 +497,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -558,7 +559,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -620,7 +621,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -680,7 +681,7 @@ class AzureOpcTwinClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -744,7 +745,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -803,7 +804,7 @@ class AzureOpcTwinClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -865,7 +866,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -927,7 +928,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -989,7 +990,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1053,7 +1054,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1162,7 +1163,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1224,7 +1225,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1288,7 +1289,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None

@@ -11,7 +11,7 @@
 'use strict';
 
 /**
- * Application model
+ * Application info model
  *
  */
 class ApplicationInfoApiModel {

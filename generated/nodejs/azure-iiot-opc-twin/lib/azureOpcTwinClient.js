@@ -38,8 +38,8 @@ const models = require('./models');
  *
  * @param {object} [options] Optional Parameters.
  *
- * @param {string} [options.nodeId] The node to browse or omit to browse object
- * root
+ * @param {string} [options.nodeId] The node to browse or omit to browse the
+ * root node (i=84)
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
  * request
@@ -114,7 +114,7 @@ function _getSetOfUniqueNodes(endpointId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -211,24 +211,30 @@ function _getSetOfUniqueNodes(endpointId, options, callback) {
  * values on target nodes.
  * (default is false)
  *
- * @param {object} [request.elevation] Optional User elevation
+ * @param {object} [request.header] Optional request header
  *
- * @param {string} [request.elevation.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {object} [request.header.elevation] Optional User elevation
  *
- * @param {object} [request.elevation.value] Value to pass to server
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
+ * @param {object} [request.header.elevation.value] Value to pass to server
  *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
  * (default: Status). Possible values include: 'None', 'Status', 'Operations',
  * 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -312,7 +318,7 @@ function _browse(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -446,7 +452,7 @@ function _getNextSetOfUniqueNodes(endpointId, continuationToken, options, callba
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -521,24 +527,30 @@ function _getNextSetOfUniqueNodes(endpointId, continuationToken, options, callba
  * values on target nodes.
  * (default is false)
  *
- * @param {object} [request.elevation] Optional User elevation
+ * @param {object} [request.header] Optional request header
  *
- * @param {string} [request.elevation.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {object} [request.header.elevation] Optional User elevation
  *
- * @param {object} [request.elevation.value] Value to pass to server
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
+ * @param {object} [request.header.elevation.value] Value to pass to server
  *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
  * (default: Status). Possible values include: 'None', 'Status', 'Operations',
  * 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -622,7 +634,7 @@ function _browseNext(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -692,24 +704,30 @@ function _browseNext(endpointId, request, options, callback) {
  * values on target nodes.
  * (default is false)
  *
- * @param {object} [request.elevation] Optional User elevation
+ * @param {object} [request.header] Optional request header
  *
- * @param {string} [request.elevation.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {object} [request.header.elevation] Optional User elevation
  *
- * @param {object} [request.elevation.value] Value to pass to server
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
+ * @param {object} [request.header.elevation.value] Value to pass to server
  *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
  * (default: Status). Possible values include: 'None', 'Status', 'Operations',
  * 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -793,7 +811,7 @@ function _browseUsingPath(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -852,26 +870,37 @@ function _browseUsingPath(endpointId, request, options, callback) {
  *
  * @param {object} request The method metadata request
  *
- * @param {string} request.methodId Count of input arguments
+ * @param {string} request.methodId Method id of method to call.
+ * (Required)
  *
- * @param {object} [request.elevation] Optional User elevation
+ * @param {array} [request.methodBrowsePath] An optional component path from
+ * the node identified by
+ * MethodId to the actual method node.
  *
- * @param {string} [request.elevation.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {object} [request.header] Optional request header
  *
- * @param {object} [request.elevation.value] Value to pass to server
+ * @param {object} [request.header.elevation] Optional User elevation
  *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
  * (default: Status). Possible values include: 'None', 'Status', 'Operations',
  * 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -955,7 +984,7 @@ function _getCallMetadata(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1013,32 +1042,49 @@ function _getCallMetadata(endpointId, request, options, callback) {
  *
  * @param {object} request The method call request
  *
- * @param {string} request.methodId Method id of method to call
+ * @param {string} [request.methodId] Method id of method to call.
  *
- * @param {string} [request.objectId] If not global (= null), object or type
- * scope
+ * @param {string} [request.objectId] Context of the method, i.e. an object or
+ * object type
+ * node.
  *
  * @param {array} [request.argumentsProperty] Arguments for the method - null
  * means no args
  *
- * @param {object} [request.elevation] Optional User elevation
+ * @param {array} [request.methodBrowsePath] An optional component path from
+ * the node identified by
+ * MethodId or from a resolved objectId to the actual
+ * method node.
  *
- * @param {string} [request.elevation.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {array} [request.objectBrowsePath] An optional component path from
+ * the node identified by
+ * ObjectId to the actual object or objectType node.
+ * If ObjectId is null, the root node (i=84) is used.
  *
- * @param {object} [request.elevation.value] Value to pass to server
+ * @param {object} [request.header] Optional request header
  *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
+ * @param {object} [request.header.elevation] Optional User elevation
  *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
  * (default: Status). Possible values include: 'None', 'Status', 'Operations',
  * 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -1122,7 +1168,7 @@ function _callMethod(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1184,6 +1230,10 @@ function _callMethod(endpointId, request, options, callback) {
  *
  * @param {string} request.item.nodeId Node to monitor
  *
+ * @param {array} [request.item.browsePath] An optional path from NodeId
+ * instance to
+ * the actual node.
+ *
  * @param {string} [request.item.nodeAttribute] Attribute to monitor. Possible
  * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
  * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
@@ -1197,17 +1247,30 @@ function _callMethod(endpointId, request, options, callback) {
  *
  * @param {number} [request.item.samplingInterval] Sampling interval to use
  *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
+ * @param {object} [request.header] Optional request header
  *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
  * (default: Status). Possible values include: 'None', 'Status', 'Operations',
  * 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -1291,7 +1354,7 @@ function _startPublishingValues(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1349,7 +1412,10 @@ function _startPublishingValues(endpointId, request, options, callback) {
  *
  * @param {object} request The unpublish request
  *
- * @param {string} request.nodeId Node of item to unpublish
+ * @param {string} request.nodeId Node of published item to unpublish
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
  *
  * @param {string} [request.nodeAttribute] Attribute of item to unpublish.
  * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
@@ -1454,7 +1520,7 @@ function _stopPublishingValues(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1584,7 +1650,7 @@ function _getNextListOfPublishedNodes(endpointId, continuationToken, options, ca
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1726,7 +1792,7 @@ function _getFirstListOfPublishedNodes(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1856,7 +1922,7 @@ function _getValue(endpointId, nodeId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1916,30 +1982,39 @@ function _getValue(endpointId, nodeId, options, callback) {
  *
  * @param {string} request.nodeId Node to read from (mandatory)
  *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
  * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
  * slices
  * out of a matrix or 0:1 for the first item in
  * an array, string or bytestring.
  * See 7.22 of part 4: NumericRange.
  *
- * @param {object} [request.elevation] Optional User elevation
+ * @param {object} [request.header] Optional request header
  *
- * @param {string} [request.elevation.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {object} [request.header.elevation] Optional User elevation
  *
- * @param {object} [request.elevation.value] Value to pass to server
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
+ * @param {object} [request.header.elevation.value] Value to pass to server
  *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
  * (default: Status). Possible values include: 'None', 'Status', 'Operations',
  * 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2023,7 +2098,7 @@ function _readValue(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2083,24 +2158,30 @@ function _readValue(endpointId, request, options, callback) {
  *
  * @param {array} request.attributes Attributes to read
  *
- * @param {object} [request.elevation] Optional User Elevation
+ * @param {object} [request.header] Optional request header
  *
- * @param {string} [request.elevation.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {object} [request.header.elevation] Optional User elevation
  *
- * @param {object} [request.elevation.value] Value to pass to server
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
+ * @param {object} [request.header.elevation.value] Value to pass to server
  *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
  * (default: Status). Possible values include: 'None', 'Status', 'Operations',
  * 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2183,7 +2264,7 @@ function _readAttributes(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2243,6 +2324,9 @@ function _readAttributes(endpointId, request, options, callback) {
  *
  * @param {string} request.nodeId Node to read from (mandatory)
  *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
  * @param {object} request.request The HistoryReadDetailsType extension object
  * encoded in json and containing the tunneled
  * Historian reader request.
@@ -2253,24 +2337,30 @@ function _readAttributes(endpointId, request, options, callback) {
  * an array, string or bytestring.
  * See 7.22 of part 4: NumericRange.
  *
- * @param {object} [request.elevation] Optional User elevation
+ * @param {object} [request.header] Optional request header
  *
- * @param {string} [request.elevation.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {object} [request.header.elevation] Optional User elevation
  *
- * @param {object} [request.elevation.value] Value to pass to server
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
+ * @param {object} [request.header.elevation.value] Value to pass to server
  *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
  * (default: Status). Possible values include: 'None', 'Status', 'Operations',
  * 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2354,7 +2444,7 @@ function _readHistory(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2418,24 +2508,30 @@ function _readHistory(endpointId, request, options, callback) {
  *
  * @param {boolean} [request.abort] Abort reading after this read
  *
- * @param {object} [request.elevation] Optional User elevation
+ * @param {object} [request.header] Optional request header
  *
- * @param {string} [request.elevation.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {object} [request.header.elevation] Optional User elevation
  *
- * @param {object} [request.elevation.value] Value to pass to server
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
+ * @param {object} [request.header.elevation.value] Value to pass to server
  *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
  * (default: Status). Possible values include: 'None', 'Status', 'Operations',
  * 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2519,7 +2615,7 @@ function _readHistoryNext(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2683,7 +2779,10 @@ function _getStatus(options, callback) {
  *
  * @param {object} request The write value request
  *
- * @param {string} request.nodeId Node id to to write value to. (Mandatory)
+ * @param {string} request.nodeId Node id to to write value to.
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
  *
  * @param {object} request.value Value to write. The system tries to convert
  * the value according to the data type value,
@@ -2698,24 +2797,30 @@ function _getStatus(options, callback) {
  *
  * @param {string} [request.indexRange] Index range to write
  *
- * @param {object} [request.elevation] Optional User elevation
+ * @param {object} [request.header] Optional request header
  *
- * @param {string} [request.elevation.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {object} [request.header.elevation] Optional User elevation
  *
- * @param {object} [request.elevation.value] Value to pass to server
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
+ * @param {object} [request.header.elevation.value] Value to pass to server
  *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
  * (default: Status). Possible values include: 'None', 'Status', 'Operations',
  * 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2799,7 +2904,7 @@ function _writeValue(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2859,24 +2964,30 @@ function _writeValue(endpointId, request, options, callback) {
  *
  * @param {array} request.attributes Attributes to update
  *
- * @param {object} [request.elevation] Optional User Elevation
+ * @param {object} [request.header] Optional request header
  *
- * @param {string} [request.elevation.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {object} [request.header.elevation] Optional User elevation
  *
- * @param {object} [request.elevation.value] Value to pass to server
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
+ * @param {object} [request.header.elevation.value] Value to pass to server
  *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
  * (default: Status). Possible values include: 'None', 'Status', 'Operations',
  * 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2959,7 +3070,7 @@ function _writeAttributes(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -3022,24 +3133,30 @@ function _writeAttributes(endpointId, request, options, callback) {
  * encoded in json and containing the tunneled
  * update request for the Historian server.
  *
- * @param {object} [request.elevation] Optional User elevation
+ * @param {object} [request.header] Optional request header
  *
- * @param {string} [request.elevation.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {object} [request.header.elevation] Optional User elevation
  *
- * @param {object} [request.elevation.value] Value to pass to server
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
+ * @param {object} [request.header.elevation.value] Value to pass to server
  *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
  * (default: Status). Possible values include: 'None', 'Status', 'Operations',
  * 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -3123,7 +3240,7 @@ function _writeHistory(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -3240,8 +3357,8 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.nodeId] The node to browse or omit to browse object
-   * root
+   * @param {string} [options.nodeId] The node to browse or omit to browse the
+   * root node (i=84)
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -3283,8 +3400,8 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.nodeId] The node to browse or omit to browse object
-   * root
+   * @param {string} [options.nodeId] The node to browse or omit to browse the
+   * root node (i=84)
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -3382,24 +3499,30 @@ class AzureOpcTwinClient extends ServiceClient {
    * values on target nodes.
    * (default is false)
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3477,24 +3600,30 @@ class AzureOpcTwinClient extends ServiceClient {
    * values on target nodes.
    * (default is false)
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3676,24 +3805,30 @@ class AzureOpcTwinClient extends ServiceClient {
    * values on target nodes.
    * (default is false)
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3749,24 +3884,30 @@ class AzureOpcTwinClient extends ServiceClient {
    * values on target nodes.
    * (default is false)
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3840,24 +3981,30 @@ class AzureOpcTwinClient extends ServiceClient {
    * values on target nodes.
    * (default is false)
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3908,24 +4055,30 @@ class AzureOpcTwinClient extends ServiceClient {
    * values on target nodes.
    * (default is false)
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3988,26 +4141,37 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The method metadata request
    *
-   * @param {string} request.methodId Count of input arguments
+   * @param {string} request.methodId Method id of method to call.
+   * (Required)
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {array} [request.methodBrowsePath] An optional component path from
+   * the node identified by
+   * MethodId to the actual method node.
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header] Optional request header
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4047,26 +4211,37 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The method metadata request
    *
-   * @param {string} request.methodId Count of input arguments
+   * @param {string} request.methodId Method id of method to call.
+   * (Required)
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {array} [request.methodBrowsePath] An optional component path from
+   * the node identified by
+   * MethodId to the actual method node.
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header] Optional request header
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4128,32 +4303,49 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The method call request
    *
-   * @param {string} request.methodId Method id of method to call
+   * @param {string} [request.methodId] Method id of method to call.
    *
-   * @param {string} [request.objectId] If not global (= null), object or type
-   * scope
+   * @param {string} [request.objectId] Context of the method, i.e. an object or
+   * object type
+   * node.
    *
    * @param {array} [request.argumentsProperty] Arguments for the method - null
    * means no args
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {array} [request.methodBrowsePath] An optional component path from
+   * the node identified by
+   * MethodId or from a resolved objectId to the actual
+   * method node.
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {array} [request.objectBrowsePath] An optional component path from
+   * the node identified by
+   * ObjectId to the actual object or objectType node.
+   * If ObjectId is null, the root node (i=84) is used.
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {object} [request.header] Optional request header
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4192,32 +4384,49 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The method call request
    *
-   * @param {string} request.methodId Method id of method to call
+   * @param {string} [request.methodId] Method id of method to call.
    *
-   * @param {string} [request.objectId] If not global (= null), object or type
-   * scope
+   * @param {string} [request.objectId] Context of the method, i.e. an object or
+   * object type
+   * node.
    *
    * @param {array} [request.argumentsProperty] Arguments for the method - null
    * means no args
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {array} [request.methodBrowsePath] An optional component path from
+   * the node identified by
+   * MethodId or from a resolved objectId to the actual
+   * method node.
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {array} [request.objectBrowsePath] An optional component path from
+   * the node identified by
+   * ObjectId to the actual object or objectType node.
+   * If ObjectId is null, the root node (i=84) is used.
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {object} [request.header] Optional request header
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4283,6 +4492,10 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {string} request.item.nodeId Node to monitor
    *
+   * @param {array} [request.item.browsePath] An optional path from NodeId
+   * instance to
+   * the actual node.
+   *
    * @param {string} [request.item.nodeAttribute] Attribute to monitor. Possible
    * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
    * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
@@ -4296,17 +4509,30 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {number} [request.item.samplingInterval] Sampling interval to use
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4349,6 +4575,10 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {string} request.item.nodeId Node to monitor
    *
+   * @param {array} [request.item.browsePath] An optional path from NodeId
+   * instance to
+   * the actual node.
+   *
    * @param {string} [request.item.nodeAttribute] Attribute to monitor. Possible
    * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
    * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
@@ -4362,17 +4592,30 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {number} [request.item.samplingInterval] Sampling interval to use
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4434,7 +4677,10 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The unpublish request
    *
-   * @param {string} request.nodeId Node of item to unpublish
+   * @param {string} request.nodeId Node of published item to unpublish
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
    * @param {string} [request.nodeAttribute] Attribute of item to unpublish.
    * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
@@ -4494,7 +4740,10 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The unpublish request
    *
-   * @param {string} request.nodeId Node of item to unpublish
+   * @param {string} request.nodeId Node of published item to unpublish
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
    * @param {string} [request.nodeAttribute] Attribute of item to unpublish.
    * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
@@ -4870,30 +5119,39 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {string} request.nodeId Node to read from (mandatory)
    *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
    * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4934,30 +5192,39 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {string} request.nodeId Node to read from (mandatory)
    *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
    * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5021,24 +5288,30 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {array} request.attributes Attributes to read
    *
-   * @param {object} [request.elevation] Optional User Elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5079,24 +5352,30 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {array} request.attributes Attributes to read
    *
-   * @param {object} [request.elevation] Optional User Elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5159,6 +5438,9 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {string} request.nodeId Node to read from (mandatory)
    *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
    * @param {object} request.request The HistoryReadDetailsType extension object
    * encoded in json and containing the tunneled
    * Historian reader request.
@@ -5169,24 +5451,30 @@ class AzureOpcTwinClient extends ServiceClient {
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5227,6 +5515,9 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {string} request.nodeId Node to read from (mandatory)
    *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
    * @param {object} request.request The HistoryReadDetailsType extension object
    * encoded in json and containing the tunneled
    * Historian reader request.
@@ -5237,24 +5528,30 @@ class AzureOpcTwinClient extends ServiceClient {
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5322,24 +5619,30 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {boolean} [request.abort] Abort reading after this read
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5384,24 +5687,30 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {boolean} [request.abort] Abort reading after this read
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5544,7 +5853,10 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The write value request
    *
-   * @param {string} request.nodeId Node id to to write value to. (Mandatory)
+   * @param {string} request.nodeId Node id to to write value to.
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
    * @param {object} request.value Value to write. The system tries to convert
    * the value according to the data type value,
@@ -5559,24 +5871,30 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {string} [request.indexRange] Index range to write
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5615,7 +5933,10 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The write value request
    *
-   * @param {string} request.nodeId Node id to to write value to. (Mandatory)
+   * @param {string} request.nodeId Node id to to write value to.
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
    * @param {object} request.value Value to write. The system tries to convert
    * the value according to the data type value,
@@ -5630,24 +5951,30 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {string} [request.indexRange] Index range to write
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5711,24 +6038,30 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {array} request.attributes Attributes to update
    *
-   * @param {object} [request.elevation] Optional User Elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5769,24 +6102,30 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {array} request.attributes Attributes to update
    *
-   * @param {object} [request.elevation] Optional User Elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5852,24 +6191,30 @@ class AzureOpcTwinClient extends ServiceClient {
    * encoded in json and containing the tunneled
    * update request for the Historian server.
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5913,24 +6258,30 @@ class AzureOpcTwinClient extends ServiceClient {
    * encoded in json and containing the tunneled
    * update request for the Historian server.
    *
-   * @param {object} [request.elevation] Optional User elevation
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.elevation.value] Value to pass to server
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
    * (default: Status). Possible values include: 'None', 'Status', 'Operations',
    * 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.

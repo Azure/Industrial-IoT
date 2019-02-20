@@ -10,6 +10,7 @@
 
 package com.microsoft.azure.iiot.opc.twin.models;
 
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -17,10 +18,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class PublishStopRequestApiModel {
     /**
-     * Node of item to unpublish.
+     * Node of published item to unpublish.
      */
     @JsonProperty(value = "nodeId", required = true)
     private String nodeId;
+
+    /**
+     * An optional path from NodeId instance to
+     * the actual node.
+     */
+    @JsonProperty(value = "browsePath")
+    private List<String> browsePath;
 
     /**
      * Attribute of item to unpublish. Possible values include: 'NodeClass',
@@ -42,7 +50,7 @@ public class PublishStopRequestApiModel {
     private DiagnosticsApiModel diagnostics;
 
     /**
-     * Get node of item to unpublish.
+     * Get node of published item to unpublish.
      *
      * @return the nodeId value
      */
@@ -51,13 +59,35 @@ public class PublishStopRequestApiModel {
     }
 
     /**
-     * Set node of item to unpublish.
+     * Set node of published item to unpublish.
      *
      * @param nodeId the nodeId value to set
      * @return the PublishStopRequestApiModel object itself.
      */
     public PublishStopRequestApiModel withNodeId(String nodeId) {
         this.nodeId = nodeId;
+        return this;
+    }
+
+    /**
+     * Get an optional path from NodeId instance to
+     the actual node.
+     *
+     * @return the browsePath value
+     */
+    public List<String> browsePath() {
+        return this.browsePath;
+    }
+
+    /**
+     * Set an optional path from NodeId instance to
+     the actual node.
+     *
+     * @param browsePath the browsePath value to set
+     * @return the PublishStopRequestApiModel object itself.
+     */
+    public PublishStopRequestApiModel withBrowsePath(List<String> browsePath) {
+        this.browsePath = browsePath;
         return this;
     }
 

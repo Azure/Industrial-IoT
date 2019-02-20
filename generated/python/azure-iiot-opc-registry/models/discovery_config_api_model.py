@@ -18,7 +18,7 @@ class DiscoveryConfigApiModel(Model):
     :param address_ranges_to_scan: Address ranges to scan (null == all wired
      nics)
     :type address_ranges_to_scan: str
-    :param network_probe_timeout_ms: Networking probe timeout
+    :param network_probe_timeout_ms: Network probe timeout
     :type network_probe_timeout_ms: int
     :param max_network_probes: Max network probes that should ever run.
     :type max_network_probes: int

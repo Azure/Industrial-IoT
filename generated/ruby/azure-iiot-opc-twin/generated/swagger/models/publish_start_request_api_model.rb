@@ -16,8 +16,8 @@ module azure.iiot.opc.twin
       # @return [PublishedItemApiModel] Item to publish
       attr_accessor :item
 
-      # @return [DiagnosticsApiModel] Optional diagnostics configuration
-      attr_accessor :diagnostics
+      # @return [RequestHeaderApiModel] Optional request header
+      attr_accessor :header
 
 
       #
@@ -42,13 +42,13 @@ module azure.iiot.opc.twin
                   class_name: 'PublishedItemApiModel'
                 }
               },
-              diagnostics: {
+              header: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'diagnostics',
+                serialized_name: 'header',
                 type: {
                   name: 'Composite',
-                  class_name: 'DiagnosticsApiModel'
+                  class_name: 'RequestHeaderApiModel'
                 }
               }
             }

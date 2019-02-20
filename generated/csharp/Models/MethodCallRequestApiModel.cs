@@ -10,7 +10,6 @@
 
 namespace Microsoft.Azure.IIoT.Opc.Twin.Models
 {
-    using Microsoft.Rest;
     using Newtonsoft.Json;
     using System.Collections;
     using System.Collections.Generic;
@@ -32,21 +31,29 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <summary>
         /// Initializes a new instance of the MethodCallRequestApiModel class.
         /// </summary>
-        /// <param name="methodId">Method id of method to call</param>
-        /// <param name="objectId">If not global (= null), object or type
-        /// scope</param>
+        /// <param name="methodId">Method id of method to call.</param>
+        /// <param name="objectId">Context of the method, i.e. an object or
+        /// object type
+        /// node.</param>
         /// <param name="arguments">Arguments for the method - null means no
         /// args</param>
-        /// <param name="elevation">Optional User elevation</param>
-        /// <param name="diagnostics">Optional diagnostics
-        /// configuration</param>
-        public MethodCallRequestApiModel(string methodId, string objectId = default(string), IList<MethodCallArgumentApiModel> arguments = default(IList<MethodCallArgumentApiModel>), CredentialApiModel elevation = default(CredentialApiModel), DiagnosticsApiModel diagnostics = default(DiagnosticsApiModel))
+        /// <param name="methodBrowsePath">An optional component path from the
+        /// node identified by
+        /// MethodId or from a resolved objectId to the actual
+        /// method node.</param>
+        /// <param name="objectBrowsePath">An optional component path from the
+        /// node identified by
+        /// ObjectId to the actual object or objectType node.
+        /// If ObjectId is null, the root node (i=84) is used.</param>
+        /// <param name="header">Optional request header</param>
+        public MethodCallRequestApiModel(string methodId = default(string), string objectId = default(string), IList<MethodCallArgumentApiModel> arguments = default(IList<MethodCallArgumentApiModel>), IList<string> methodBrowsePath = default(IList<string>), IList<string> objectBrowsePath = default(IList<string>), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             MethodId = methodId;
             ObjectId = objectId;
             Arguments = arguments;
-            Elevation = elevation;
-            Diagnostics = diagnostics;
+            MethodBrowsePath = methodBrowsePath;
+            ObjectBrowsePath = objectBrowsePath;
+            Header = header;
             CustomInit();
         }
 
@@ -56,13 +63,14 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets method id of method to call
+        /// Gets or sets method id of method to call.
         /// </summary>
         [JsonProperty(PropertyName = "methodId")]
         public string MethodId { get; set; }
 
         /// <summary>
-        /// Gets or sets if not global (= null), object or type scope
+        /// Gets or sets context of the method, i.e. an object or object type
+        /// node.
         /// </summary>
         [JsonProperty(PropertyName = "objectId")]
         public string ObjectId { get; set; }
@@ -74,29 +82,26 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public IList<MethodCallArgumentApiModel> Arguments { get; set; }
 
         /// <summary>
-        /// Gets or sets optional User elevation
+        /// Gets or sets an optional component path from the node identified by
+        /// MethodId or from a resolved objectId to the actual
+        /// method node.
         /// </summary>
-        [JsonProperty(PropertyName = "elevation")]
-        public CredentialApiModel Elevation { get; set; }
+        [JsonProperty(PropertyName = "methodBrowsePath")]
+        public IList<string> MethodBrowsePath { get; set; }
 
         /// <summary>
-        /// Gets or sets optional diagnostics configuration
+        /// Gets or sets an optional component path from the node identified by
+        /// ObjectId to the actual object or objectType node.
+        /// If ObjectId is null, the root node (i=84) is used.
         /// </summary>
-        [JsonProperty(PropertyName = "diagnostics")]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "objectBrowsePath")]
+        public IList<string> ObjectBrowsePath { get; set; }
 
         /// <summary>
-        /// Validate the object.
+        /// Gets or sets optional request header
         /// </summary>
-        /// <exception cref="ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (MethodId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "MethodId");
-            }
-        }
+        [JsonProperty(PropertyName = "header")]
+        public RequestHeaderApiModel Header { get; set; }
+
     }
 }

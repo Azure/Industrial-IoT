@@ -13,7 +13,7 @@ from msrest.serialization import Model
 
 
 class PublishStopResponseApiModel(Model):
-    """Result of publish stop request.
+    """Result of unpublish request.
 
     :param error_info: Service result in case of error
     :type error_info: ~azure-iiot-opc-twin.models.ServiceResultApiModel

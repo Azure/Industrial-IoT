@@ -17,7 +17,7 @@ module azure.iiot.opc.registry
       # case security is enforced.
       attr_accessor :uri
 
-      # @return [CallbackMethodType] Method to use for callback. Possible
+      # @return [CallbackMethodType] Http Method to use for callback. Possible
       # values include: 'Get', 'Post', 'Put', 'Delete'
       attr_accessor :method
 

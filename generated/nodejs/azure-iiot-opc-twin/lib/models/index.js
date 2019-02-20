@@ -17,6 +17,7 @@
 exports.BrowseViewApiModel = require('./browseViewApiModel');
 exports.CredentialApiModel = require('./credentialApiModel');
 exports.DiagnosticsApiModel = require('./diagnosticsApiModel');
+exports.RequestHeaderApiModel = require('./requestHeaderApiModel');
 exports.BrowseRequestApiModel = require('./browseRequestApiModel');
 exports.RolePermissionApiModel = require('./rolePermissionApiModel');
 exports.NodeApiModel = require('./nodeApiModel');

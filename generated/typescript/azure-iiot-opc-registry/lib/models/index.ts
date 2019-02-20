@@ -25,8 +25,8 @@ export interface CallbackApiModel {
    */
   uri?: string;
   /**
-   * @member {CallbackMethodType} [method] Method to use for callback. Possible
-   * values include: 'Get', 'Post', 'Put', 'Delete'
+   * @member {CallbackMethodType} [method] Http Method to use for callback.
+   * Possible values include: 'Get', 'Post', 'Put', 'Delete'
    */
   method?: CallbackMethodType;
   /**
@@ -153,7 +153,7 @@ export interface ApplicationRegistrationResponseApiModel {
 /**
  * @interface
  * An interface representing ApplicationInfoApiModel.
- * Application model
+ * Application info model
  *
  */
 export interface ApplicationInfoApiModel {
@@ -249,7 +249,7 @@ export interface DiscoveryConfigApiModel {
    */
   addressRangesToScan?: string;
   /**
-   * @member {number} [networkProbeTimeoutMs] Networking probe timeout
+   * @member {number} [networkProbeTimeoutMs] Network probe timeout
    */
   networkProbeTimeoutMs?: number;
   /**
@@ -386,7 +386,7 @@ export interface EndpointApiModel {
  */
 export interface AuthenticationMethodApiModel {
   /**
-   * @member {string} id Method identifier
+   * @member {string} id Method id
    */
   id: string;
   /**
@@ -436,7 +436,8 @@ export interface EndpointRegistrationApiModel {
   certificate?: Uint8Array;
   /**
    * @member {AuthenticationMethodApiModel[]} [authenticationMethods] Supported
-   * authentication methods for the endpoint.
+   * authentication methods that can be selected to
+   * obtain a credential and used to interact with the endpoint.
    */
   authenticationMethods?: AuthenticationMethodApiModel[];
 }
@@ -594,15 +595,17 @@ export interface EndpointInfoApiModel {
    */
   applicationId: string;
   /**
-   * @member {boolean} [activated] Whether endpoint is activated on this
-   * registration
+   * @member {EndpointActivationState} [activationState] Activation state of
+   * endpoint. Possible values include: 'Deactivated', 'Activated',
+   * 'ActivatedAndConnected'
    */
-  activated?: boolean;
+  activationState?: EndpointActivationState;
   /**
-   * @member {boolean} [connected] Whether endpoint is connected on this
-   * registration
+   * @member {EndpointConnectivityState} [endpointState] Last state of the
+   * activated endpoint. Possible values include: 'Connecting', 'NotReachable',
+   * 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
    */
-  connected?: boolean;
+  endpointState?: EndpointConnectivityState;
   /**
    * @member {boolean} [outOfSync] Whether the registration is out of sync
    */
@@ -819,6 +822,51 @@ export interface SupervisorUpdateApiModel {
    * callbacks
    */
   removeDiscoveryCallbacks?: boolean;
+}
+
+/**
+ * @interface
+ * An interface representing EndpointActivationStatusApiModel.
+ * Endpoint Activation status model
+ *
+ */
+export interface EndpointActivationStatusApiModel {
+  /**
+   * @member {string} id Identifier of the endoint
+   */
+  id: string;
+  /**
+   * @member {EndpointActivationState} [activationState] Activation state.
+   * Possible values include: 'Deactivated', 'Activated',
+   * 'ActivatedAndConnected'
+   */
+  activationState?: EndpointActivationState;
+}
+
+/**
+ * @interface
+ * An interface representing SupervisorStatusApiModel.
+ * Supervisor runtime status
+ *
+ */
+export interface SupervisorStatusApiModel {
+  /**
+   * @member {string} deviceId Edge device id
+   */
+  deviceId: string;
+  /**
+   * @member {string} [moduleId] Module id
+   */
+  moduleId?: string;
+  /**
+   * @member {string} [siteId] Site id
+   */
+  siteId?: string;
+  /**
+   * @member {EndpointActivationStatusApiModel[]} [endpoints] Endpoint
+   * activation status
+   */
+  endpoints?: EndpointActivationStatusApiModel[];
 }
 
 /**
@@ -1212,6 +1260,23 @@ export type CredentialType = 'None' | 'UserName' | 'X509Certificate' | 'JwtToken
 export type SecurityAssessment = 'Unknown' | 'Low' | 'Medium' | 'High';
 
 /**
+ * Defines values for EndpointActivationState.
+ * Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
+ * @readonly
+ * @enum {string}
+ */
+export type EndpointActivationState = 'Deactivated' | 'Activated' | 'ActivatedAndConnected';
+
+/**
+ * Defines values for EndpointConnectivityState.
+ * Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
+ * 'Ready', 'Error'
+ * @readonly
+ * @enum {string}
+ */
+export type EndpointConnectivityState = 'Connecting' | 'NotReachable' | 'Busy' | 'NoTrust' | 'CertificateInvalid' | 'Ready' | 'Error';
+
+/**
  * Defines values for UserAuthentication.
  * Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
  * @readonly
@@ -1460,6 +1525,25 @@ export type GetSupervisorResponse = SupervisorApiModel & {
        * The response body as parsed JSON or XML
        */
       parsedBody: SupervisorApiModel;
+    };
+};
+
+/**
+ * Contains response data for the getSupervisorStatus operation.
+ */
+export type GetSupervisorStatusResponse = SupervisorStatusApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: SupervisorStatusApiModel;
     };
 };
 

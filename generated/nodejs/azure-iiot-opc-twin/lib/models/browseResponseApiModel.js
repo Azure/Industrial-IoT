@@ -22,14 +22,10 @@ class BrowseResponseApiModel {
    * 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType',
    * 'ReferenceType', 'DataType', 'View'
    * @property {string} [node.displayName] Display name
-   * @property {string} [node.id] Id of node.
+   * @property {string} [node.nodeId] Id of node.
    * (Mandatory).
    * @property {string} [node.description] Description if any
-   * @property {boolean} [node.children] Whether node has children which are
-   * defined as
-   * any forward hierarchical references.
-   * (default: unknown)
-   * @property {string} [node.name] Browse name
+   * @property {string} [node.browseName] Browse name
    * @property {string} [node.accessRestrictions] Node access restrictions if
    * any.
    * (default: none). Possible values include: 'SigningRequired',
@@ -101,6 +97,12 @@ class BrowseResponseApiModel {
    * null.
    * @property {array} [node.rolePermissions] Role permissions
    * @property {array} [node.userRolePermissions] User Role permissions
+   * @property {string} [node.typeDefinitionId] Optional type definition of the
+   * node
+   * @property {boolean} [node.children] Whether node has children which are
+   * defined as
+   * any forward hierarchical references.
+   * (default: unknown)
    * @property {array} [references] References, if included, otherwise null.
    * @property {string} [continuationToken] Continuation token if more results
    * pending.

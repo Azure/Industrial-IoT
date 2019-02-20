@@ -147,7 +147,7 @@ public interface AzureOpcTwinClient {
      and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param nodeId The node to browse or omit to browse object root
+     * @param nodeId The node to browse or omit to browse the root node (i=84)
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -167,7 +167,7 @@ public interface AzureOpcTwinClient {
      and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param nodeId The node to browse or omit to browse object root
+     * @param nodeId The node to browse or omit to browse the root node (i=84)
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -186,7 +186,7 @@ public interface AzureOpcTwinClient {
      and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param nodeId The node to browse or omit to browse object root
+     * @param nodeId The node to browse or omit to browse the root node (i=84)
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the BrowseResponseApiModel object
      */
@@ -204,7 +204,7 @@ public interface AzureOpcTwinClient {
      and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param nodeId The node to browse or omit to browse object root
+     * @param nodeId The node to browse or omit to browse the root node (i=84)
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the BrowseResponseApiModel object
      */

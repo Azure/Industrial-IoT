@@ -19,8 +19,8 @@ class CallbackApiModel {
    * Create a CallbackApiModel.
    * @property {string} [uri] Uri to call - should use https scheme in which
    * case security is enforced.
-   * @property {string} [method] Method to use for callback. Possible values
-   * include: 'Get', 'Post', 'Put', 'Delete'
+   * @property {string} [method] Http Method to use for callback. Possible
+   * values include: 'Get', 'Post', 'Put', 'Delete'
    * @property {string} [authenticationHeader] Authentication header to add or
    * null if not needed
    */

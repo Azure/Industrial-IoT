@@ -113,7 +113,7 @@ function _getListOfApplications(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -266,7 +266,7 @@ function _createApplication(request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -332,7 +332,7 @@ function _createApplication(request, options, callback) {
  * in which
  * case security is enforced.
  *
- * @param {string} [request.callback.method] Method to use for callback.
+ * @param {string} [request.callback.method] Http Method to use for callback.
  * Possible values include: 'Get', 'Post', 'Put', 'Delete'
  *
  * @param {string} [request.callback.authenticationHeader] Authentication
@@ -431,7 +431,7 @@ function _registerServer(request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -538,7 +538,7 @@ function _deleteAllDisabledApplications(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -586,8 +586,8 @@ function _deleteAllDisabledApplications(options, callback) {
  * @param {string} [request.configuration.addressRangesToScan] Address ranges
  * to scan (null == all wired nics)
  *
- * @param {number} [request.configuration.networkProbeTimeoutMs] Networking
- * probe timeout
+ * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
+ * timeout
  *
  * @param {number} [request.configuration.maxNetworkProbes] Max network probes
  * that should ever run.
@@ -709,7 +709,7 @@ function _discoverServer(request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -808,7 +808,7 @@ function _getApplicationRegistration(applicationId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -924,7 +924,7 @@ function _deleteApplication(applicationId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1058,7 +1058,7 @@ function _updateApplicationRegistration(applicationId, request, options, callbac
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1177,7 +1177,7 @@ function _getListOfSites(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1344,7 +1344,7 @@ function _getFilteredListOfApplications(query, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1512,7 +1512,7 @@ function _queryApplications(query, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1630,7 +1630,7 @@ function _activateEndpoint(endpointId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1745,7 +1745,7 @@ function _getEndpoint(endpointId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1886,7 +1886,7 @@ function _updateEndpoint(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2016,7 +2016,7 @@ function _getListOfEndpoints(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2234,7 +2234,7 @@ function _getFilteredListOfEndpoints(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2413,7 +2413,7 @@ function _queryEndpoints(query, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2529,7 +2529,7 @@ function _deactivateEndpoint(endpointId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2751,7 +2751,7 @@ function _getSupervisor(supervisorId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2820,7 +2820,7 @@ function _getSupervisor(supervisorId, options, callback) {
  * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
  * to scan (null == all wired nics)
  *
- * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Networking
+ * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
  * probe timeout
  *
  * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
@@ -2953,7 +2953,225 @@ function _updateSupervisor(supervisorId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Get runtime status of supervisor
+ *
+ * Allows a caller to get runtime status for a supervisor.
+ *
+ * @param {string} supervisorId supervisor identifier
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link SupervisorStatusApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _getSupervisorStatus(supervisorId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (supervisorId === null || supervisorId === undefined || typeof supervisorId.valueOf() !== 'string') {
+      throw new Error('supervisorId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/supervisors/{supervisorId}/status';
+  requestUrl = requestUrl.replace('{supervisorId}', encodeURIComponent(supervisorId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'GET';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['SupervisorStatusApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Reset supervisor
+ *
+ * Allows a caller to reset the twin module using its supervisor
+ * identity identifier.
+ *
+ * @param {string} supervisorId supervisor identifier
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _resetSupervisor(supervisorId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (supervisorId === null || supervisorId === undefined || typeof supervisorId.valueOf() !== 'string') {
+      throw new Error('supervisorId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/supervisors/{supervisorId}/reset';
+  requestUrl = requestUrl.replace('{supervisorId}', encodeURIComponent(supervisorId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -3083,7 +3301,7 @@ function _getListOfSupervisors(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -3251,7 +3469,7 @@ function _getFilteredListOfSupervisors(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -3417,7 +3635,7 @@ function _querySupervisors(query, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -3515,6 +3733,8 @@ class AzureOpcRegistryClient extends ServiceClient {
     this._getStatus = _getStatus;
     this._getSupervisor = _getSupervisor;
     this._updateSupervisor = _updateSupervisor;
+    this._getSupervisorStatus = _getSupervisorStatus;
+    this._resetSupervisor = _resetSupervisor;
     this._getListOfSupervisors = _getListOfSupervisors;
     this._getFilteredListOfSupervisors = _getFilteredListOfSupervisors;
     this._querySupervisors = _querySupervisors;
@@ -3772,7 +3992,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    * in which
    * case security is enforced.
    *
-   * @param {string} [request.callback.method] Method to use for callback.
+   * @param {string} [request.callback.method] Http Method to use for callback.
    * Possible values include: 'Get', 'Post', 'Put', 'Delete'
    *
    * @param {string} [request.callback.authenticationHeader] Authentication
@@ -3840,7 +4060,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    * in which
    * case security is enforced.
    *
-   * @param {string} [request.callback.method] Method to use for callback.
+   * @param {string} [request.callback.method] Http Method to use for callback.
    * Possible values include: 'Get', 'Post', 'Put', 'Delete'
    *
    * @param {string} [request.callback.authenticationHeader] Authentication
@@ -4015,8 +4235,8 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} [request.configuration.addressRangesToScan] Address ranges
    * to scan (null == all wired nics)
    *
-   * @param {number} [request.configuration.networkProbeTimeoutMs] Networking
-   * probe timeout
+   * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
+   * timeout
    *
    * @param {number} [request.configuration.maxNetworkProbes] Max network probes
    * that should ever run.
@@ -4106,8 +4326,8 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} [request.configuration.addressRangesToScan] Address ranges
    * to scan (null == all wired nics)
    *
-   * @param {number} [request.configuration.networkProbeTimeoutMs] Networking
-   * probe timeout
+   * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
+   * timeout
    *
    * @param {number} [request.configuration.maxNetworkProbes] Max network probes
    * that should ever run.
@@ -5825,7 +6045,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
    * to scan (null == all wired nics)
    *
-   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Networking
+   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
    * probe timeout
    *
    * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
@@ -5926,7 +6146,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
    * to scan (null == all wired nics)
    *
-   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Networking
+   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
    * probe timeout
    *
    * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
@@ -6023,6 +6243,180 @@ class AzureOpcRegistryClient extends ServiceClient {
       });
     } else {
       return self._updateSupervisor(supervisorId, request, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Get runtime status of supervisor
+   *
+   * Allows a caller to get runtime status for a supervisor.
+   *
+   * @param {string} supervisorId supervisor identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<SupervisorStatusApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  getSupervisorStatusWithHttpOperationResponse(supervisorId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._getSupervisorStatus(supervisorId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Get runtime status of supervisor
+   *
+   * Allows a caller to get runtime status for a supervisor.
+   *
+   * @param {string} supervisorId supervisor identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {SupervisorStatusApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link SupervisorStatusApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getSupervisorStatus(supervisorId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._getSupervisorStatus(supervisorId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._getSupervisorStatus(supervisorId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Reset supervisor
+   *
+   * Allows a caller to reset the twin module using its supervisor
+   * identity identifier.
+   *
+   * @param {string} supervisorId supervisor identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  resetSupervisorWithHttpOperationResponse(supervisorId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._resetSupervisor(supervisorId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Reset supervisor
+   *
+   * Allows a caller to reset the twin module using its supervisor
+   * identity identifier.
+   *
+   * @param {string} supervisorId supervisor identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  resetSupervisor(supervisorId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._resetSupervisor(supervisorId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._resetSupervisor(supervisorId, options, optionalCallback);
     }
   }
 

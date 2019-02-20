@@ -25,8 +25,9 @@ class EndpointRegistrationApiModel(Model):
     :type security_level: int
     :param certificate: Endpoint cert that was registered.
     :type certificate: bytearray
-    :param authentication_methods: Supported authentication methods for the
-     endpoint.
+    :param authentication_methods: Supported authentication methods that can
+     be selected to
+     obtain a credential and used to interact with the endpoint.
     :type authentication_methods:
      list[~azure-iiot-opc-registry.models.AuthenticationMethodApiModel]
     """

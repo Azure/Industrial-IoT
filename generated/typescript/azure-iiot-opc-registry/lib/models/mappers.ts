@@ -921,16 +921,30 @@ export const EndpointInfoApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
-      activated: {
-        serializedName: "activated",
+      activationState: {
+        serializedName: "activationState",
         type: {
-          name: "Boolean"
+          name: "Enum",
+          allowedValues: [
+            "Deactivated",
+            "Activated",
+            "ActivatedAndConnected"
+          ]
         }
       },
-      connected: {
-        serializedName: "connected",
+      endpointState: {
+        serializedName: "endpointState",
         type: {
-          name: "Boolean"
+          name: "Enum",
+          allowedValues: [
+            "Connecting",
+            "NotReachable",
+            "Busy",
+            "NoTrust",
+            "CertificateInvalid",
+            "Ready",
+            "Error"
+          ]
         }
       },
       outOfSync: {
@@ -1245,6 +1259,75 @@ export const SupervisorUpdateApiModel: msRest.CompositeMapper = {
         serializedName: "removeDiscoveryCallbacks",
         type: {
           name: "Boolean"
+        }
+      }
+    }
+  }
+};
+
+export const EndpointActivationStatusApiModel: msRest.CompositeMapper = {
+  serializedName: "EndpointActivationStatusApiModel",
+  type: {
+    name: "Composite",
+    className: "EndpointActivationStatusApiModel",
+    modelProperties: {
+      id: {
+        required: true,
+        serializedName: "id",
+        type: {
+          name: "String"
+        }
+      },
+      activationState: {
+        serializedName: "activationState",
+        type: {
+          name: "Enum",
+          allowedValues: [
+            "Deactivated",
+            "Activated",
+            "ActivatedAndConnected"
+          ]
+        }
+      }
+    }
+  }
+};
+
+export const SupervisorStatusApiModel: msRest.CompositeMapper = {
+  serializedName: "SupervisorStatusApiModel",
+  type: {
+    name: "Composite",
+    className: "SupervisorStatusApiModel",
+    modelProperties: {
+      deviceId: {
+        required: true,
+        serializedName: "deviceId",
+        type: {
+          name: "String"
+        }
+      },
+      moduleId: {
+        serializedName: "moduleId",
+        type: {
+          name: "String"
+        }
+      },
+      siteId: {
+        serializedName: "siteId",
+        type: {
+          name: "String"
+        }
+      },
+      endpoints: {
+        serializedName: "endpoints",
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "Composite",
+              className: "EndpointActivationStatusApiModel"
+            }
+          }
         }
       }
     }

@@ -80,6 +80,28 @@ export interface DiagnosticsApiModel {
 
 /**
  * @interface
+ * An interface representing RequestHeaderApiModel.
+ * Request header model
+ *
+ */
+export interface RequestHeaderApiModel {
+  /**
+   * @member {CredentialApiModel} [elevation] Optional User elevation
+   */
+  elevation?: CredentialApiModel;
+  /**
+   * @member {string[]} [locales] Optional list of locales in preference order.
+   */
+  locales?: string[];
+  /**
+   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
+   * configuration
+   */
+  diagnostics?: DiagnosticsApiModel;
+}
+
+/**
+ * @interface
  * An interface representing BrowseRequestApiModel.
  * Browse request model
  *
@@ -135,14 +157,9 @@ export interface BrowseRequestApiModel {
    */
   readVariableValues?: boolean;
   /**
-   * @member {CredentialApiModel} [elevation] Optional User elevation
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  elevation?: CredentialApiModel;
-  /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
-   */
-  diagnostics?: DiagnosticsApiModel;
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -170,7 +187,7 @@ export interface RolePermissionApiModel {
 /**
  * @interface
  * An interface representing NodeApiModel.
- * node model
+ * Node model
  *
  */
 export interface NodeApiModel {
@@ -185,25 +202,18 @@ export interface NodeApiModel {
    */
   displayName?: string;
   /**
-   * @member {string} id Id of node.
+   * @member {string} nodeId Id of node.
    * (Mandatory).
    */
-  id: string;
+  nodeId: string;
   /**
    * @member {string} [description] Description if any
    */
   description?: string;
   /**
-   * @member {boolean} [children] Whether node has children which are defined
-   * as
-   * any forward hierarchical references.
-   * (default: unknown)
+   * @member {string} [browseName] Browse name
    */
-  children?: boolean;
-  /**
-   * @member {string} [name] Browse name
-   */
-  name?: string;
+  browseName?: string;
   /**
    * @member {NodeAccessRestrictions} [accessRestrictions] Node access
    * restrictions if any.
@@ -333,6 +343,17 @@ export interface NodeApiModel {
    * permissions
    */
   userRolePermissions?: RolePermissionApiModel[];
+  /**
+   * @member {string} [typeDefinitionId] Optional type definition of the node
+   */
+  typeDefinitionId?: string;
+  /**
+   * @member {boolean} [children] Whether node has children which are defined
+   * as
+   * any forward hierarchical references.
+   * (default: unknown)
+   */
+  children?: boolean;
 }
 
 /**
@@ -343,31 +364,18 @@ export interface NodeApiModel {
  */
 export interface NodeReferenceApiModel {
   /**
-   * @member {string} [typeId] Reference Type identifier
+   * @member {string} [referenceTypeId] Reference Type identifier
    */
-  typeId?: string;
-  /**
-   * @member {string} [browseName] Browse name of reference
-   */
-  browseName?: string;
+  referenceTypeId?: string;
   /**
    * @member {BrowseDirection} [direction] Browse direction of reference.
    * Possible values include: 'Forward', 'Backward', 'Both'
    */
   direction?: BrowseDirection;
   /**
-   * @member {string} [displayName] Display name of reference
-   */
-  displayName?: string;
-  /**
    * @member {NodeApiModel} target Target node
    */
   target: NodeApiModel;
-  /**
-   * @member {string} [typeDefinition] Optional type definition of the
-   * reference
-   */
-  typeDefinition?: string;
 }
 
 /**
@@ -452,14 +460,9 @@ export interface BrowseNextRequestApiModel {
    */
   readVariableValues?: boolean;
   /**
-   * @member {CredentialApiModel} [elevation] Optional User elevation
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  elevation?: CredentialApiModel;
-  /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
-   */
-  diagnostics?: DiagnosticsApiModel;
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -511,14 +514,9 @@ export interface BrowsePathRequestApiModel {
    */
   readVariableValues?: boolean;
   /**
-   * @member {CredentialApiModel} [elevation] Optional User elevation
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  elevation?: CredentialApiModel;
-  /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
-   */
-  diagnostics?: DiagnosticsApiModel;
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -564,18 +562,20 @@ export interface BrowsePathResponseApiModel {
  */
 export interface MethodMetadataRequestApiModel {
   /**
-   * @member {string} methodId Count of input arguments
+   * @member {string} methodId Method id of method to call.
+   * (Required)
    */
   methodId: string;
   /**
-   * @member {CredentialApiModel} [elevation] Optional User elevation
+   * @member {string[]} [methodBrowsePath] An optional component path from the
+   * node identified by
+   * MethodId to the actual method node.
    */
-  elevation?: CredentialApiModel;
+  methodBrowsePath?: string[];
   /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  diagnostics?: DiagnosticsApiModel;
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -616,7 +616,7 @@ export interface MethodMetadataArgumentApiModel {
 /**
  * @interface
  * An interface representing MethodMetadataResponseApiModel.
- * method metadata query model
+ * Method metadata query model
  *
  */
 export interface MethodMetadataResponseApiModel {
@@ -666,11 +666,13 @@ export interface MethodCallArgumentApiModel {
  */
 export interface MethodCallRequestApiModel {
   /**
-   * @member {string} methodId Method id of method to call
+   * @member {string} [methodId] Method id of method to call.
    */
-  methodId: string;
+  methodId?: string;
   /**
-   * @member {string} [objectId] If not global (= null), object or type scope
+   * @member {string} [objectId] Context of the method, i.e. an object or
+   * object type
+   * node.
    */
   objectId?: string;
   /**
@@ -679,14 +681,23 @@ export interface MethodCallRequestApiModel {
    */
   argumentsProperty?: MethodCallArgumentApiModel[];
   /**
-   * @member {CredentialApiModel} [elevation] Optional User elevation
+   * @member {string[]} [methodBrowsePath] An optional component path from the
+   * node identified by
+   * MethodId or from a resolved objectId to the actual
+   * method node.
    */
-  elevation?: CredentialApiModel;
+  methodBrowsePath?: string[];
   /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
+   * @member {string[]} [objectBrowsePath] An optional component path from the
+   * node identified by
+   * ObjectId to the actual object or objectType node.
+   * If ObjectId is null, the root node (i=84) is used.
    */
-  diagnostics?: DiagnosticsApiModel;
+  objectBrowsePath?: string[];
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -718,6 +729,11 @@ export interface PublishedItemApiModel {
    * @member {string} nodeId Node to monitor
    */
   nodeId: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
   /**
    * @member {NodeAttribute} [nodeAttribute] Attribute to monitor. Possible
    * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
@@ -751,10 +767,9 @@ export interface PublishStartRequestApiModel {
    */
   item: PublishedItemApiModel;
   /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  diagnostics?: DiagnosticsApiModel;
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -779,9 +794,14 @@ export interface PublishStartResponseApiModel {
  */
 export interface PublishStopRequestApiModel {
   /**
-   * @member {string} nodeId Node of item to unpublish
+   * @member {string} nodeId Node of published item to unpublish
    */
   nodeId: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
   /**
    * @member {NodeAttribute} [nodeAttribute] Attribute of item to unpublish.
    * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
@@ -803,7 +823,7 @@ export interface PublishStopRequestApiModel {
 /**
  * @interface
  * An interface representing PublishStopResponseApiModel.
- * Result of publish stop request
+ * Result of unpublish request
  *
  */
 export interface PublishStopResponseApiModel {
@@ -856,6 +876,11 @@ export interface ValueReadRequestApiModel {
    */
   nodeId: string;
   /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
    * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
@@ -864,14 +889,9 @@ export interface ValueReadRequestApiModel {
    */
   indexRange?: string;
   /**
-   * @member {CredentialApiModel} [elevation] Optional User elevation
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  elevation?: CredentialApiModel;
-  /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
-   */
-  diagnostics?: DiagnosticsApiModel;
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -952,14 +972,9 @@ export interface ReadRequestApiModel {
    */
   attributes: AttributeReadRequestApiModel[];
   /**
-   * @member {CredentialApiModel} [elevation] Optional User Elevation
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  elevation?: CredentialApiModel;
-  /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
-   */
-  diagnostics?: DiagnosticsApiModel;
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -1006,6 +1021,11 @@ export interface HistoryReadRequestApiModel {
    */
   nodeId: string;
   /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
    * @member {any} request The HistoryReadDetailsType extension object
    * encoded in json and containing the tunneled
    * Historian reader request.
@@ -1020,14 +1040,9 @@ export interface HistoryReadRequestApiModel {
    */
   indexRange?: string;
   /**
-   * @member {CredentialApiModel} [elevation] Optional User elevation
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  elevation?: CredentialApiModel;
-  /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
-   */
-  diagnostics?: DiagnosticsApiModel;
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -1072,14 +1087,9 @@ export interface HistoryReadNextRequestApiModel {
    */
   abort?: boolean;
   /**
-   * @member {CredentialApiModel} [elevation] Optional User elevation
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  elevation?: CredentialApiModel;
-  /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
-   */
-  diagnostics?: DiagnosticsApiModel;
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -1180,9 +1190,14 @@ export interface StatusResponseApiModel {
  */
 export interface ValueWriteRequestApiModel {
   /**
-   * @member {string} nodeId Node id to to write value to. (Mandatory)
+   * @member {string} nodeId Node id to to write value to.
    */
   nodeId: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
   /**
    * @member {any} value Value to write. The system tries to convert
    * the value according to the data type value,
@@ -1202,14 +1217,9 @@ export interface ValueWriteRequestApiModel {
    */
   indexRange?: string;
   /**
-   * @member {CredentialApiModel} [elevation] Optional User elevation
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  elevation?: CredentialApiModel;
-  /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
-   */
-  diagnostics?: DiagnosticsApiModel;
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -1266,14 +1276,9 @@ export interface WriteRequestApiModel {
    */
   attributes: AttributeWriteRequestApiModel[];
   /**
-   * @member {CredentialApiModel} [elevation] Optional User Elevation
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  elevation?: CredentialApiModel;
-  /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
-   */
-  diagnostics?: DiagnosticsApiModel;
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -1318,14 +1323,9 @@ export interface HistoryUpdateRequestApiModel {
    */
   request: any;
   /**
-   * @member {CredentialApiModel} [elevation] Optional User elevation
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  elevation?: CredentialApiModel;
-  /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
-   */
-  diagnostics?: DiagnosticsApiModel;
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -1368,7 +1368,8 @@ export interface AzureOpcTwinClientOptions extends ServiceClientOptions {
  */
 export interface AzureOpcTwinClientGetSetOfUniqueNodesOptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {string} [nodeId] The node to browse or omit to browse object root
+   * @member {string} [nodeId] The node to browse or omit to browse the root
+   * node (i=84)
    */
   nodeId?: string;
 }

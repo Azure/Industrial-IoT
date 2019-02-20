@@ -13,21 +13,31 @@ module azure.iiot.opc.twin
     # Call request model
     #
     class MethodCallRequestApiModel
-      # @return [String] Method id of method to call
+      # @return [String] Method id of method to call.
       attr_accessor :method_id
 
-      # @return [String] If not global (= null), object or type scope
+      # @return [String] Context of the method, i.e. an object or object type
+      # node.
       attr_accessor :object_id
 
       # @return [Array<MethodCallArgumentApiModel>] Arguments for the method -
       # null means no args
       attr_accessor :arguments
 
-      # @return [CredentialApiModel] Optional User elevation
-      attr_accessor :elevation
+      # @return [Array<String>] An optional component path from the node
+      # identified by
+      # MethodId or from a resolved objectId to the actual
+      # method node.
+      attr_accessor :method_browse_path
 
-      # @return [DiagnosticsApiModel] Optional diagnostics configuration
-      attr_accessor :diagnostics
+      # @return [Array<String>] An optional component path from the node
+      # identified by
+      # ObjectId to the actual object or objectType node.
+      # If ObjectId is null, the root node (i=84) is used.
+      attr_accessor :object_browse_path
+
+      # @return [RequestHeaderApiModel] Optional request header
+      attr_accessor :header
 
 
       #
@@ -45,7 +55,7 @@ module azure.iiot.opc.twin
             model_properties: {
               method_id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'methodId',
                 type: {
                   name: 'String'
@@ -76,22 +86,45 @@ module azure.iiot.opc.twin
                   }
                 }
               },
-              elevation: {
+              method_browse_path: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'elevation',
+                serialized_name: 'methodBrowsePath',
                 type: {
-                  name: 'Composite',
-                  class_name: 'CredentialApiModel'
+                  name: 'Sequence',
+                  element: {
+                      client_side_validation: true,
+                      required: false,
+                      serialized_name: 'StringElementType',
+                      type: {
+                        name: 'String'
+                      }
+                  }
                 }
               },
-              diagnostics: {
+              object_browse_path: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'diagnostics',
+                serialized_name: 'objectBrowsePath',
+                type: {
+                  name: 'Sequence',
+                  element: {
+                      client_side_validation: true,
+                      required: false,
+                      serialized_name: 'StringElementType',
+                      type: {
+                        name: 'String'
+                      }
+                  }
+                }
+              },
+              header: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'header',
                 type: {
                   name: 'Composite',
-                  class_name: 'DiagnosticsApiModel'
+                  class_name: 'RequestHeaderApiModel'
                 }
               }
             }

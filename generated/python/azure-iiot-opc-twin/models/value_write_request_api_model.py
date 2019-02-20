@@ -15,8 +15,11 @@ from msrest.serialization import Model
 class ValueWriteRequestApiModel(Model):
     """Value write request model.
 
-    :param node_id: Node id to to write value to. (Mandatory)
+    :param node_id: Node id to to write value to.
     :type node_id: str
+    :param browse_path: An optional path from NodeId instance to
+     the actual node.
+    :type browse_path: list[str]
     :param value: Value to write. The system tries to convert
      the value according to the data type value,
      e.g. convert comma seperated value strings
@@ -29,10 +32,8 @@ class ValueWriteRequestApiModel(Model):
     :type data_type: str
     :param index_range: Index range to write
     :type index_range: str
-    :param elevation: Optional User elevation
-    :type elevation: ~azure-iiot-opc-twin.models.CredentialApiModel
-    :param diagnostics: Optional diagnostics configuration
-    :type diagnostics: ~azure-iiot-opc-twin.models.DiagnosticsApiModel
+    :param header: Optional request header
+    :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 
     _validation = {
@@ -42,18 +43,18 @@ class ValueWriteRequestApiModel(Model):
 
     _attribute_map = {
         'node_id': {'key': 'nodeId', 'type': 'str'},
+        'browse_path': {'key': 'browsePath', 'type': '[str]'},
         'value': {'key': 'value', 'type': 'object'},
         'data_type': {'key': 'dataType', 'type': 'str'},
         'index_range': {'key': 'indexRange', 'type': 'str'},
-        'elevation': {'key': 'elevation', 'type': 'CredentialApiModel'},
-        'diagnostics': {'key': 'diagnostics', 'type': 'DiagnosticsApiModel'},
+        'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, node_id, value, data_type=None, index_range=None, elevation=None, diagnostics=None):
+    def __init__(self, node_id, value, browse_path=None, data_type=None, index_range=None, header=None):
         super(ValueWriteRequestApiModel, self).__init__()
         self.node_id = node_id
+        self.browse_path = browse_path
         self.value = value
         self.data_type = data_type
         self.index_range = index_range
-        self.elevation = elevation
-        self.diagnostics = diagnostics
+        self.header = header

@@ -14,7 +14,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * node model.
+ * Node model.
  */
 public class NodeApiModel {
     /**
@@ -34,8 +34,8 @@ public class NodeApiModel {
      * Id of node.
      * (Mandatory).
      */
-    @JsonProperty(value = "id", required = true)
-    private String id;
+    @JsonProperty(value = "nodeId", required = true)
+    private String nodeId;
 
     /**
      * Description if any.
@@ -44,18 +44,10 @@ public class NodeApiModel {
     private String description;
 
     /**
-     * Whether node has children which are defined as
-     * any forward hierarchical references.
-     * (default: unknown).
-     */
-    @JsonProperty(value = "children")
-    private Boolean children;
-
-    /**
      * Browse name.
      */
-    @JsonProperty(value = "name")
-    private String name;
+    @JsonProperty(value = "browseName")
+    private String browseName;
 
     /**
      * Node access restrictions if any.
@@ -220,6 +212,20 @@ public class NodeApiModel {
     private List<RolePermissionApiModel> userRolePermissions;
 
     /**
+     * Optional type definition of the node.
+     */
+    @JsonProperty(value = "typeDefinitionId")
+    private String typeDefinitionId;
+
+    /**
+     * Whether node has children which are defined as
+     * any forward hierarchical references.
+     * (default: unknown).
+     */
+    @JsonProperty(value = "children")
+    private Boolean children;
+
+    /**
      * Get type of node. Possible values include: 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType', 'DataType', 'View'.
      *
      * @return the nodeClass value
@@ -263,21 +269,21 @@ public class NodeApiModel {
      * Get id of node.
      (Mandatory).
      *
-     * @return the id value
+     * @return the nodeId value
      */
-    public String id() {
-        return this.id;
+    public String nodeId() {
+        return this.nodeId;
     }
 
     /**
      * Set id of node.
      (Mandatory).
      *
-     * @param id the id value to set
+     * @param nodeId the nodeId value to set
      * @return the NodeApiModel object itself.
      */
-    public NodeApiModel withId(String id) {
-        this.id = id;
+    public NodeApiModel withNodeId(String nodeId) {
+        this.nodeId = nodeId;
         return this;
     }
 
@@ -302,46 +308,22 @@ public class NodeApiModel {
     }
 
     /**
-     * Get whether node has children which are defined as
-     any forward hierarchical references.
-     (default: unknown).
-     *
-     * @return the children value
-     */
-    public Boolean children() {
-        return this.children;
-    }
-
-    /**
-     * Set whether node has children which are defined as
-     any forward hierarchical references.
-     (default: unknown).
-     *
-     * @param children the children value to set
-     * @return the NodeApiModel object itself.
-     */
-    public NodeApiModel withChildren(Boolean children) {
-        this.children = children;
-        return this;
-    }
-
-    /**
      * Get browse name.
      *
-     * @return the name value
+     * @return the browseName value
      */
-    public String name() {
-        return this.name;
+    public String browseName() {
+        return this.browseName;
     }
 
     /**
      * Set browse name.
      *
-     * @param name the name value to set
+     * @param browseName the browseName value to set
      * @return the NodeApiModel object itself.
      */
-    public NodeApiModel withName(String name) {
-        this.name = name;
+    public NodeApiModel withBrowseName(String browseName) {
+        this.browseName = browseName;
         return this;
     }
 
@@ -816,6 +798,50 @@ public class NodeApiModel {
      */
     public NodeApiModel withUserRolePermissions(List<RolePermissionApiModel> userRolePermissions) {
         this.userRolePermissions = userRolePermissions;
+        return this;
+    }
+
+    /**
+     * Get optional type definition of the node.
+     *
+     * @return the typeDefinitionId value
+     */
+    public String typeDefinitionId() {
+        return this.typeDefinitionId;
+    }
+
+    /**
+     * Set optional type definition of the node.
+     *
+     * @param typeDefinitionId the typeDefinitionId value to set
+     * @return the NodeApiModel object itself.
+     */
+    public NodeApiModel withTypeDefinitionId(String typeDefinitionId) {
+        this.typeDefinitionId = typeDefinitionId;
+        return this;
+    }
+
+    /**
+     * Get whether node has children which are defined as
+     any forward hierarchical references.
+     (default: unknown).
+     *
+     * @return the children value
+     */
+    public Boolean children() {
+        return this.children;
+    }
+
+    /**
+     * Set whether node has children which are defined as
+     any forward hierarchical references.
+     (default: unknown).
+     *
+     * @param children the children value to set
+     * @return the NodeApiModel object itself.
+     */
+    public NodeApiModel withChildren(Boolean children) {
+        this.children = children;
         return this;
     }
 

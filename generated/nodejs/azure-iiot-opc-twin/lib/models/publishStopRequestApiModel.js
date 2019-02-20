@@ -17,7 +17,9 @@
 class PublishStopRequestApiModel {
   /**
    * Create a PublishStopRequestApiModel.
-   * @property {string} nodeId Node of item to unpublish
+   * @property {string} nodeId Node of published item to unpublish
+   * @property {array} [browsePath] An optional path from NodeId instance to
+   * the actual node.
    * @property {string} [nodeAttribute] Attribute of item to unpublish.
    * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
    * 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
@@ -58,6 +60,20 @@ class PublishStopRequestApiModel {
             serializedName: 'nodeId',
             type: {
               name: 'String'
+            }
+          },
+          browsePath: {
+            required: false,
+            serializedName: 'browsePath',
+            type: {
+              name: 'Sequence',
+              element: {
+                  required: false,
+                  serializedName: 'StringElementType',
+                  type: {
+                    name: 'String'
+                  }
+              }
             }
           },
           nodeAttribute: {

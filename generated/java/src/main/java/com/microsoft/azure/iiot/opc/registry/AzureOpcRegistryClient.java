@@ -27,6 +27,7 @@ import com.microsoft.azure.iiot.opc.registry.models.StatusResponseApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorListApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorQueryApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.SupervisorStatusApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorUpdateApiModel;
 import com.microsoft.rest.RestException;
 import com.microsoft.rest.ServiceCallback;
@@ -1700,6 +1701,95 @@ public interface AzureOpcRegistryClient {
      * @return the {@link ServiceResponse} object if successful.
      */
     Observable<ServiceResponse<Void>> updateSupervisorWithServiceResponseAsync(String supervisorId, SupervisorUpdateApiModel request);
+
+    /**
+     * Get runtime status of supervisor.
+     * Allows a caller to get runtime status for a supervisor.
+     *
+     * @param supervisorId supervisor identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the SupervisorStatusApiModel object if successful.
+     */
+    SupervisorStatusApiModel getSupervisorStatus(String supervisorId);
+
+    /**
+     * Get runtime status of supervisor.
+     * Allows a caller to get runtime status for a supervisor.
+     *
+     * @param supervisorId supervisor identifier
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<SupervisorStatusApiModel> getSupervisorStatusAsync(String supervisorId, final ServiceCallback<SupervisorStatusApiModel> serviceCallback);
+
+    /**
+     * Get runtime status of supervisor.
+     * Allows a caller to get runtime status for a supervisor.
+     *
+     * @param supervisorId supervisor identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the SupervisorStatusApiModel object
+     */
+    Observable<SupervisorStatusApiModel> getSupervisorStatusAsync(String supervisorId);
+
+    /**
+     * Get runtime status of supervisor.
+     * Allows a caller to get runtime status for a supervisor.
+     *
+     * @param supervisorId supervisor identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the SupervisorStatusApiModel object
+     */
+    Observable<ServiceResponse<SupervisorStatusApiModel>> getSupervisorStatusWithServiceResponseAsync(String supervisorId);
+
+    /**
+     * Reset supervisor.
+     * Allows a caller to reset the twin module using its supervisor
+     identity identifier.
+     *
+     * @param supervisorId supervisor identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void resetSupervisor(String supervisorId);
+
+    /**
+     * Reset supervisor.
+     * Allows a caller to reset the twin module using its supervisor
+     identity identifier.
+     *
+     * @param supervisorId supervisor identifier
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> resetSupervisorAsync(String supervisorId, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Reset supervisor.
+     * Allows a caller to reset the twin module using its supervisor
+     identity identifier.
+     *
+     * @param supervisorId supervisor identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> resetSupervisorAsync(String supervisorId);
+
+    /**
+     * Reset supervisor.
+     * Allows a caller to reset the twin module using its supervisor
+     identity identifier.
+     *
+     * @param supervisorId supervisor identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> resetSupervisorWithServiceResponseAsync(String supervisorId);
 
     /**
      * Get list of supervisors.

@@ -11,7 +11,7 @@
 'use strict';
 
 /**
- * Result of publish stop request
+ * Result of unpublish request
  *
  */
 class PublishStopResponseApiModel {

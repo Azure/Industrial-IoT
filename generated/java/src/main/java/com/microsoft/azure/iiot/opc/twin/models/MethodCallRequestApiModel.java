@@ -20,11 +20,12 @@ public class MethodCallRequestApiModel {
     /**
      * Method id of method to call.
      */
-    @JsonProperty(value = "methodId", required = true)
+    @JsonProperty(value = "methodId")
     private String methodId;
 
     /**
-     * If not global (= null), object or type scope.
+     * Context of the method, i.e. an object or object type
+     * node.
      */
     @JsonProperty(value = "objectId")
     private String objectId;
@@ -36,16 +37,26 @@ public class MethodCallRequestApiModel {
     private List<MethodCallArgumentApiModel> arguments;
 
     /**
-     * Optional User elevation.
+     * An optional component path from the node identified by
+     * MethodId or from a resolved objectId to the actual
+     * method node.
      */
-    @JsonProperty(value = "elevation")
-    private CredentialApiModel elevation;
+    @JsonProperty(value = "methodBrowsePath")
+    private List<String> methodBrowsePath;
 
     /**
-     * Optional diagnostics configuration.
+     * An optional component path from the node identified by
+     * ObjectId to the actual object or objectType node.
+     * If ObjectId is null, the root node (i=84) is used.
      */
-    @JsonProperty(value = "diagnostics")
-    private DiagnosticsApiModel diagnostics;
+    @JsonProperty(value = "objectBrowsePath")
+    private List<String> objectBrowsePath;
+
+    /**
+     * Optional request header.
+     */
+    @JsonProperty(value = "header")
+    private RequestHeaderApiModel headerProperty;
 
     /**
      * Get method id of method to call.
@@ -68,7 +79,8 @@ public class MethodCallRequestApiModel {
     }
 
     /**
-     * Get if not global (= null), object or type scope.
+     * Get context of the method, i.e. an object or object type
+     node.
      *
      * @return the objectId value
      */
@@ -77,7 +89,8 @@ public class MethodCallRequestApiModel {
     }
 
     /**
-     * Set if not global (= null), object or type scope.
+     * Set context of the method, i.e. an object or object type
+     node.
      *
      * @param objectId the objectId value to set
      * @return the MethodCallRequestApiModel object itself.
@@ -108,42 +121,70 @@ public class MethodCallRequestApiModel {
     }
 
     /**
-     * Get optional User elevation.
+     * Get an optional component path from the node identified by
+     MethodId or from a resolved objectId to the actual
+     method node.
      *
-     * @return the elevation value
+     * @return the methodBrowsePath value
      */
-    public CredentialApiModel elevation() {
-        return this.elevation;
+    public List<String> methodBrowsePath() {
+        return this.methodBrowsePath;
     }
 
     /**
-     * Set optional User elevation.
+     * Set an optional component path from the node identified by
+     MethodId or from a resolved objectId to the actual
+     method node.
      *
-     * @param elevation the elevation value to set
+     * @param methodBrowsePath the methodBrowsePath value to set
      * @return the MethodCallRequestApiModel object itself.
      */
-    public MethodCallRequestApiModel withElevation(CredentialApiModel elevation) {
-        this.elevation = elevation;
+    public MethodCallRequestApiModel withMethodBrowsePath(List<String> methodBrowsePath) {
+        this.methodBrowsePath = methodBrowsePath;
         return this;
     }
 
     /**
-     * Get optional diagnostics configuration.
+     * Get an optional component path from the node identified by
+     ObjectId to the actual object or objectType node.
+     If ObjectId is null, the root node (i=84) is used.
      *
-     * @return the diagnostics value
+     * @return the objectBrowsePath value
      */
-    public DiagnosticsApiModel diagnostics() {
-        return this.diagnostics;
+    public List<String> objectBrowsePath() {
+        return this.objectBrowsePath;
     }
 
     /**
-     * Set optional diagnostics configuration.
+     * Set an optional component path from the node identified by
+     ObjectId to the actual object or objectType node.
+     If ObjectId is null, the root node (i=84) is used.
      *
-     * @param diagnostics the diagnostics value to set
+     * @param objectBrowsePath the objectBrowsePath value to set
      * @return the MethodCallRequestApiModel object itself.
      */
-    public MethodCallRequestApiModel withDiagnostics(DiagnosticsApiModel diagnostics) {
-        this.diagnostics = diagnostics;
+    public MethodCallRequestApiModel withObjectBrowsePath(List<String> objectBrowsePath) {
+        this.objectBrowsePath = objectBrowsePath;
+        return this;
+    }
+
+    /**
+     * Get optional request header.
+     *
+     * @return the headerProperty value
+     */
+    public RequestHeaderApiModel headerProperty() {
+        return this.headerProperty;
+    }
+
+    /**
+     * Set optional request header.
+     *
+     * @param headerProperty the headerProperty value to set
+     * @return the MethodCallRequestApiModel object itself.
+     */
+    public MethodCallRequestApiModel withHeaderProperty(RequestHeaderApiModel headerProperty) {
+        this.headerProperty = headerProperty;
         return this;
     }
 

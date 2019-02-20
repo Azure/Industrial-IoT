@@ -18,6 +18,8 @@ class PublishedItemApiModel {
   /**
    * Create a PublishedItemApiModel.
    * @property {string} nodeId Node to monitor
+   * @property {array} [browsePath] An optional path from NodeId instance to
+   * the actual node.
    * @property {string} [nodeAttribute] Attribute to monitor. Possible values
    * include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
    * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
@@ -51,6 +53,20 @@ class PublishedItemApiModel {
             serializedName: 'nodeId',
             type: {
               name: 'String'
+            }
+          },
+          browsePath: {
+            required: false,
+            serializedName: 'browsePath',
+            type: {
+              name: 'Sequence',
+              element: {
+                  required: false,
+                  serializedName: 'StringElementType',
+                  type: {
+                    name: 'String'
+                  }
+              }
             }
           },
           nodeAttribute: {

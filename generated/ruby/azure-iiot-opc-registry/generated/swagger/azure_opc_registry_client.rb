@@ -175,7 +175,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -279,7 +279,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -379,7 +379,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -456,7 +456,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -540,7 +540,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -610,7 +610,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -695,7 +695,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -790,7 +790,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -874,7 +874,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -982,7 +982,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1093,7 +1093,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1184,7 +1184,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1270,7 +1270,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1360,7 +1360,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1453,7 +1453,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1598,7 +1598,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1712,7 +1712,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1797,7 +1797,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1964,7 +1964,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -2063,7 +2063,171 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Get runtime status of supervisor
+    #
+    # Allows a caller to get runtime status for a supervisor.
+    #
+    # @param supervisor_id [String] supervisor identifier
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [SupervisorStatusApiModel] operation results.
+    #
+    def get_supervisor_status(supervisor_id, custom_headers:nil)
+      response = get_supervisor_status_async(supervisor_id, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Get runtime status of supervisor
+    #
+    # Allows a caller to get runtime status for a supervisor.
+    #
+    # @param supervisor_id [String] supervisor identifier
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def get_supervisor_status_with_http_info(supervisor_id, custom_headers:nil)
+      get_supervisor_status_async(supervisor_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Get runtime status of supervisor
+    #
+    # Allows a caller to get runtime status for a supervisor.
+    #
+    # @param supervisor_id [String] supervisor identifier
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def get_supervisor_status_async(supervisor_id, custom_headers:nil)
+      fail ArgumentError, 'supervisor_id is nil' if supervisor_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v1/supervisors/{supervisorId}/status'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'supervisorId' => supervisor_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:get, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::SupervisorStatusApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Reset supervisor
+    #
+    # Allows a caller to reset the twin module using its supervisor
+    # identity identifier.
+    #
+    # @param supervisor_id [String] supervisor identifier
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def reset_supervisor(supervisor_id, custom_headers:nil)
+      response = reset_supervisor_async(supervisor_id, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Reset supervisor
+    #
+    # Allows a caller to reset the twin module using its supervisor
+    # identity identifier.
+    #
+    # @param supervisor_id [String] supervisor identifier
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def reset_supervisor_with_http_info(supervisor_id, custom_headers:nil)
+      reset_supervisor_async(supervisor_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Reset supervisor
+    #
+    # Allows a caller to reset the twin module using its supervisor
+    # identity identifier.
+    #
+    # @param supervisor_id [String] supervisor identifier
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def reset_supervisor_async(supervisor_id, custom_headers:nil)
+      fail ArgumentError, 'supervisor_id is nil' if supervisor_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v1/supervisors/{supervisorId}/reset'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'supervisorId' => supervisor_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -2156,7 +2320,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -2274,7 +2438,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -2391,7 +2555,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end

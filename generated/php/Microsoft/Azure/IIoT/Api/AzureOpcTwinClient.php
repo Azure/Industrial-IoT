@@ -495,11 +495,7 @@ and server must trust each other.
                             'type' => 'string'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/BrowseResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseResponseApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'Browse',
@@ -517,11 +513,7 @@ and server must trust each other.
                             'schema' => ['$ref' => '#/definitions/BrowseRequestApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/BrowseResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseResponseApiModel']]]
                 ]
             ],
             '/v1/browse/{endpointId}/next' => [
@@ -541,11 +533,7 @@ and server must trust each other.
                             'type' => 'string'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/BrowseNextResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseNextResponseApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'BrowseNext',
@@ -563,11 +551,7 @@ and server must trust each other.
                             'schema' => ['$ref' => '#/definitions/BrowseNextRequestApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/BrowseNextResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseNextResponseApiModel']]]
                 ]
             ],
             '/v1/browse/{endpointId}/path' => ['post' => [
@@ -586,11 +570,7 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/BrowsePathRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/BrowsePathResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowsePathResponseApiModel']]]
             ]],
             '/v1/call/{endpointId}/metadata' => ['post' => [
                 'operationId' => 'GetCallMetadata',
@@ -608,11 +588,7 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/MethodMetadataRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/MethodMetadataResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/MethodMetadataResponseApiModel']]]
             ]],
             '/v1/call/{endpointId}' => ['post' => [
                 'operationId' => 'CallMethod',
@@ -630,11 +606,7 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/MethodCallRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/MethodCallResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/MethodCallResponseApiModel']]]
             ]],
             '/v1/publish/{endpointId}/start' => ['post' => [
                 'operationId' => 'StartPublishingValues',
@@ -652,11 +624,7 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/PublishStartRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/PublishStartResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishStartResponseApiModel']]]
             ]],
             '/v1/publish/{endpointId}/stop' => ['post' => [
                 'operationId' => 'StopPublishingValues',
@@ -674,11 +642,7 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/PublishStopRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/PublishStopResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishStopResponseApiModel']]]
             ]],
             '/v1/publish/{endpointId}' => [
                 'get' => [
@@ -697,11 +661,7 @@ and server must trust each other.
                             'type' => 'string'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'GetFirstListOfPublishedNodes',
@@ -719,11 +679,7 @@ and server must trust each other.
                             'schema' => ['$ref' => '#/definitions/PublishedItemListRequestApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']]]
                 ]
             ],
             '/v1/read/{endpointId}' => [
@@ -743,11 +699,7 @@ and server must trust each other.
                             'type' => 'string'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ValueReadResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ValueReadResponseApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'ReadValue',
@@ -765,11 +717,7 @@ and server must trust each other.
                             'schema' => ['$ref' => '#/definitions/ValueReadRequestApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ValueReadResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ValueReadResponseApiModel']]]
                 ]
             ],
             '/v1/read/{endpointId}/attributes' => ['post' => [
@@ -788,11 +736,7 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/ReadRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/ReadResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ReadResponseApiModel']]]
             ]],
             '/v1/read/{endpointId}/history' => ['post' => [
                 'operationId' => 'ReadHistory',
@@ -810,11 +754,7 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/HistoryReadRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/HistoryReadResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryReadResponseApiModel']]]
             ]],
             '/v1/read/{endpointId}/history/next' => ['post' => [
                 'operationId' => 'ReadHistoryNext',
@@ -832,11 +772,7 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/HistoryReadNextRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/HistoryReadNextResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryReadNextResponseApiModel']]]
             ]],
             '/v1/status' => ['get' => [
                 'operationId' => 'GetStatus',
@@ -859,11 +795,7 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/ValueWriteRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/ValueWriteResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ValueWriteResponseApiModel']]]
             ]],
             '/v1/write/{endpointId}/attributes' => ['post' => [
                 'operationId' => 'WriteAttributes',
@@ -881,11 +813,7 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/WriteRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/WriteResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/WriteResponseApiModel']]]
             ]],
             '/v1/write/{endpointId}/history' => ['post' => [
                 'operationId' => 'WriteHistory',
@@ -903,11 +831,7 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/HistoryUpdateRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/HistoryUpdateResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryUpdateResponseApiModel']]]
             ]]
         ],
         'definitions' => [
@@ -963,6 +887,18 @@ and server must trust each other.
                 'additionalProperties' => FALSE,
                 'required' => []
             ],
+            'RequestHeaderApiModel' => [
+                'properties' => [
+                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
+                    'locales' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
             'BrowseRequestApiModel' => [
                 'properties' => [
                     'nodeId' => ['type' => 'string'],
@@ -983,8 +919,7 @@ and server must trust each other.
                     ],
                     'targetNodesOnly' => ['type' => 'boolean'],
                     'readVariableValues' => ['type' => 'boolean'],
-                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []
@@ -1034,10 +969,9 @@ and server must trust each other.
                         ]
                     ],
                     'displayName' => ['type' => 'string'],
-                    'id' => ['type' => 'string'],
+                    'nodeId' => ['type' => 'string'],
                     'description' => ['type' => 'string'],
-                    'children' => ['type' => 'boolean'],
-                    'name' => ['type' => 'string'],
+                    'browseName' => ['type' => 'string'],
                     'accessRestrictions' => [
                         'type' => 'string',
                         'enum' => [
@@ -1131,15 +1065,16 @@ and server must trust each other.
                     'userRolePermissions' => [
                         'type' => 'array',
                         'items' => ['$ref' => '#/definitions/RolePermissionApiModel']
-                    ]
+                    ],
+                    'typeDefinitionId' => ['type' => 'string'],
+                    'children' => ['type' => 'boolean']
                 ],
                 'additionalProperties' => FALSE,
-                'required' => ['id']
+                'required' => ['nodeId']
             ],
             'NodeReferenceApiModel' => [
                 'properties' => [
-                    'typeId' => ['type' => 'string'],
-                    'browseName' => ['type' => 'string'],
+                    'referenceTypeId' => ['type' => 'string'],
                     'direction' => [
                         'type' => 'string',
                         'enum' => [
@@ -1148,9 +1083,7 @@ and server must trust each other.
                             'Both'
                         ]
                     ],
-                    'displayName' => ['type' => 'string'],
-                    'target' => ['$ref' => '#/definitions/NodeApiModel'],
-                    'typeDefinition' => ['type' => 'string']
+                    'target' => ['$ref' => '#/definitions/NodeApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['target']
@@ -1186,8 +1119,7 @@ and server must trust each other.
                     'abort' => ['type' => 'boolean'],
                     'targetNodesOnly' => ['type' => 'boolean'],
                     'readVariableValues' => ['type' => 'boolean'],
-                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['continuationToken']
@@ -1212,8 +1144,7 @@ and server must trust each other.
                         'items' => ['type' => 'string']
                     ],
                     'readVariableValues' => ['type' => 'boolean'],
-                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['pathElements']
@@ -1243,8 +1174,11 @@ and server must trust each other.
             'MethodMetadataRequestApiModel' => [
                 'properties' => [
                     'methodId' => ['type' => 'string'],
-                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                    'methodBrowsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['methodId']
@@ -1309,11 +1243,18 @@ and server must trust each other.
                         'type' => 'array',
                         'items' => ['$ref' => '#/definitions/MethodCallArgumentApiModel']
                     ],
-                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                    'methodBrowsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'objectBrowsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
-                'required' => ['methodId']
+                'required' => []
             ],
             'MethodCallResponseApiModel' => [
                 'properties' => [
@@ -1329,6 +1270,10 @@ and server must trust each other.
             'PublishedItemApiModel' => [
                 'properties' => [
                     'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
                     'nodeAttribute' => [
                         'type' => 'string',
                         'enum' => [
@@ -1374,7 +1319,7 @@ and server must trust each other.
             'PublishStartRequestApiModel' => [
                 'properties' => [
                     'item' => ['$ref' => '#/definitions/PublishedItemApiModel'],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['item']
@@ -1387,6 +1332,10 @@ and server must trust each other.
             'PublishStopRequestApiModel' => [
                 'properties' => [
                     'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
                     'nodeAttribute' => [
                         'type' => 'string',
                         'enum' => [
@@ -1446,9 +1395,12 @@ and server must trust each other.
             'ValueReadRequestApiModel' => [
                 'properties' => [
                     'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
                     'indexRange' => ['type' => 'string'],
-                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['nodeId']
@@ -1524,8 +1476,7 @@ and server must trust each other.
                         'type' => 'array',
                         'items' => ['$ref' => '#/definitions/AttributeReadRequestApiModel']
                     ],
-                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['attributes']
@@ -1549,10 +1500,13 @@ and server must trust each other.
             'HistoryReadRequestApiModel' => [
                 'properties' => [
                     'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
                     'request' => ['type' => 'object'],
                     'indexRange' => ['type' => 'string'],
-                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => [
@@ -1573,8 +1527,7 @@ and server must trust each other.
                 'properties' => [
                     'continuationToken' => ['type' => 'string'],
                     'abort' => ['type' => 'boolean'],
-                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['continuationToken']
@@ -1618,11 +1571,14 @@ and server must trust each other.
             'ValueWriteRequestApiModel' => [
                 'properties' => [
                     'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
                     'value' => ['type' => 'object'],
                     'dataType' => ['type' => 'string'],
                     'indexRange' => ['type' => 'string'],
-                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => [
@@ -1683,8 +1639,7 @@ and server must trust each other.
                         'type' => 'array',
                         'items' => ['$ref' => '#/definitions/AttributeWriteRequestApiModel']
                     ],
-                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['attributes']
@@ -1705,8 +1660,7 @@ and server must trust each other.
             'HistoryUpdateRequestApiModel' => [
                 'properties' => [
                     'request' => ['type' => 'object'],
-                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['request']

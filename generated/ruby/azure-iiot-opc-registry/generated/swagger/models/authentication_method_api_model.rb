@@ -13,7 +13,7 @@ module azure.iiot.opc.registry
     # Authentication Method model
     #
     class AuthenticationMethodApiModel
-      # @return [String] Method identifier
+      # @return [String] Method id
       attr_accessor :id
 
       # @return [CredentialType] Type of credential. Possible values include:

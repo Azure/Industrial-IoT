@@ -233,7 +233,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * in which
    * case security is enforced.
    *
-   * @param {string} [request.callback.method] Method to use for callback.
+   * @param {string} [request.callback.method] Http Method to use for callback.
    * Possible values include: 'Get', 'Post', 'Put', 'Delete'
    *
    * @param {string} [request.callback.authenticationHeader] Authentication
@@ -289,7 +289,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * in which
    * case security is enforced.
    *
-   * @param {string} [request.callback.method] Method to use for callback.
+   * @param {string} [request.callback.method] Http Method to use for callback.
    * Possible values include: 'Get', 'Post', 'Put', 'Delete'
    *
    * @param {string} [request.callback.authenticationHeader] Authentication
@@ -422,8 +422,8 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} [request.configuration.addressRangesToScan] Address ranges
    * to scan (null == all wired nics)
    *
-   * @param {number} [request.configuration.networkProbeTimeoutMs] Networking
-   * probe timeout
+   * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
+   * timeout
    *
    * @param {number} [request.configuration.maxNetworkProbes] Max network probes
    * that should ever run.
@@ -501,8 +501,8 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} [request.configuration.addressRangesToScan] Address ranges
    * to scan (null == all wired nics)
    *
-   * @param {number} [request.configuration.networkProbeTimeoutMs] Networking
-   * probe timeout
+   * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
+   * timeout
    *
    * @param {number} [request.configuration.maxNetworkProbes] Max network probes
    * that should ever run.
@@ -1800,7 +1800,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
    * to scan (null == all wired nics)
    *
-   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Networking
+   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
    * probe timeout
    *
    * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
@@ -1889,7 +1889,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
    * to scan (null == all wired nics)
    *
-   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Networking
+   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
    * probe timeout
    *
    * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
@@ -1972,6 +1972,126 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   updateSupervisor(supervisorId: string, request: models.SupervisorUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
   updateSupervisor(supervisorId: string, request: models.SupervisorUpdateApiModel, callback: ServiceCallback<void>): void;
   updateSupervisor(supervisorId: string, request: models.SupervisorUpdateApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Get runtime status of supervisor
+   *
+   * Allows a caller to get runtime status for a supervisor.
+   *
+   * @param {string} supervisorId supervisor identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<SupervisorStatusApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getSupervisorStatusWithHttpOperationResponse(supervisorId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.SupervisorStatusApiModel>>;
+
+  /**
+   * @summary Get runtime status of supervisor
+   *
+   * Allows a caller to get runtime status for a supervisor.
+   *
+   * @param {string} supervisorId supervisor identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {SupervisorStatusApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {SupervisorStatusApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link SupervisorStatusApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getSupervisorStatus(supervisorId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.SupervisorStatusApiModel>;
+  getSupervisorStatus(supervisorId: string, callback: ServiceCallback<models.SupervisorStatusApiModel>): void;
+  getSupervisorStatus(supervisorId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.SupervisorStatusApiModel>): void;
+
+
+  /**
+   * @summary Reset supervisor
+   *
+   * Allows a caller to reset the twin module using its supervisor
+   * identity identifier.
+   *
+   * @param {string} supervisorId supervisor identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  resetSupervisorWithHttpOperationResponse(supervisorId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Reset supervisor
+   *
+   * Allows a caller to reset the twin module using its supervisor
+   * identity identifier.
+   *
+   * @param {string} supervisorId supervisor identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  resetSupervisor(supervisorId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  resetSupervisor(supervisorId: string, callback: ServiceCallback<void>): void;
+  resetSupervisor(supervisorId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
 
 
   /**

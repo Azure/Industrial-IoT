@@ -42,7 +42,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <param name="certificate">Endpoint cert that was
         /// registered.</param>
         /// <param name="authenticationMethods">Supported authentication
-        /// methods for the endpoint.</param>
+        /// methods that can be selected to
+        /// obtain a credential and used to interact with the endpoint.</param>
         public EndpointRegistrationApiModel(string id, EndpointApiModel endpoint, string siteId = default(string), int? securityLevel = default(int?), byte[] certificate = default(byte[]), IList<AuthenticationMethodApiModel> authenticationMethods = default(IList<AuthenticationMethodApiModel>))
         {
             Id = id;
@@ -90,7 +91,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public byte[] Certificate { get; set; }
 
         /// <summary>
-        /// Gets or sets supported authentication methods for the endpoint.
+        /// Gets or sets supported authentication methods that can be selected
+        /// to
+        /// obtain a credential and used to interact with the endpoint.
         /// </summary>
         [JsonProperty(PropertyName = "authenticationMethods")]
         public IList<AuthenticationMethodApiModel> AuthenticationMethods { get; set; }

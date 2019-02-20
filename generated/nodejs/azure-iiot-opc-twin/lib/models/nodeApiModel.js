@@ -11,7 +11,7 @@
 'use strict';
 
 /**
- * node model
+ * Node model
  *
  */
 class NodeApiModel {
@@ -21,14 +21,10 @@ class NodeApiModel {
    * 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType',
    * 'ReferenceType', 'DataType', 'View'
    * @property {string} [displayName] Display name
-   * @property {string} id Id of node.
+   * @property {string} nodeId Id of node.
    * (Mandatory).
    * @property {string} [description] Description if any
-   * @property {boolean} [children] Whether node has children which are defined
-   * as
-   * any forward hierarchical references.
-   * (default: unknown)
-   * @property {string} [name] Browse name
+   * @property {string} [browseName] Browse name
    * @property {string} [accessRestrictions] Node access restrictions if any.
    * (default: none). Possible values include: 'SigningRequired',
    * 'EncryptionRequired', 'SessionRequired'
@@ -94,6 +90,11 @@ class NodeApiModel {
    * null.
    * @property {array} [rolePermissions] Role permissions
    * @property {array} [userRolePermissions] User Role permissions
+   * @property {string} [typeDefinitionId] Optional type definition of the node
+   * @property {boolean} [children] Whether node has children which are defined
+   * as
+   * any forward hierarchical references.
+   * (default: unknown)
    */
   constructor() {
   }
@@ -127,9 +128,9 @@ class NodeApiModel {
               name: 'String'
             }
           },
-          id: {
+          nodeId: {
             required: true,
-            serializedName: 'id',
+            serializedName: 'nodeId',
             type: {
               name: 'String'
             }
@@ -141,16 +142,9 @@ class NodeApiModel {
               name: 'String'
             }
           },
-          children: {
+          browseName: {
             required: false,
-            serializedName: 'children',
-            type: {
-              name: 'Boolean'
-            }
-          },
-          name: {
-            required: false,
-            serializedName: 'name',
+            serializedName: 'browseName',
             type: {
               name: 'String'
             }
@@ -328,6 +322,20 @@ class NodeApiModel {
                     className: 'RolePermissionApiModel'
                   }
               }
+            }
+          },
+          typeDefinitionId: {
+            required: false,
+            serializedName: 'typeDefinitionId',
+            type: {
+              name: 'String'
+            }
+          },
+          children: {
+            required: false,
+            serializedName: 'children',
+            type: {
+              name: 'Boolean'
             }
           }
         }

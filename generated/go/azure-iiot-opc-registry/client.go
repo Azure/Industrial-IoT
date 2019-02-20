@@ -107,7 +107,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByClosing())
         result.Response = resp
             return
@@ -188,7 +188,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -257,7 +257,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByClosing())
         result.Response = resp
             return
@@ -328,7 +328,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByClosing())
         result.Response = resp
             return
@@ -396,7 +396,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByClosing())
         result.Response = resp
             return
@@ -463,7 +463,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByClosing())
         result.Response = resp
             return
@@ -530,7 +530,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -608,7 +608,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -687,7 +687,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -802,7 +802,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -896,7 +896,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -977,7 +977,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1098,7 +1098,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1213,7 +1213,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1335,7 +1335,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1514,7 +1514,75 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByUnmarshallingJSON(&result),
+        autorest.ByClosing())
+        result.Response = autorest.Response{Response: resp}
+            return
+        }
+
+    // GetSupervisorStatus allows a caller to get runtime status for a supervisor.
+        // Parameters:
+            // supervisorID - supervisor identifier
+    func (client BaseClient) GetSupervisorStatus(ctx context.Context, supervisorID string) (result SupervisorStatusAPIModel, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetSupervisorStatus")
+            defer func() {
+                sc := -1
+                if result.Response.Response != nil {
+                    sc = result.Response.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.GetSupervisorStatusPreparer(ctx, supervisorID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetSupervisorStatus", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.GetSupervisorStatusSender(req)
+                if err != nil {
+                result.Response = autorest.Response{Response: resp}
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetSupervisorStatus", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.GetSupervisorStatusResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetSupervisorStatus", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // GetSupervisorStatusPreparer prepares the GetSupervisorStatus request.
+        func (client BaseClient) GetSupervisorStatusPreparer(ctx context.Context, supervisorID string) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "supervisorId": autorest.Encode("path",supervisorID),
+                }
+
+        preparer := autorest.CreatePreparer(
+        autorest.AsGet(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v1/supervisors/{supervisorId}/status",pathParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // GetSupervisorStatusSender sends the GetSupervisorStatus request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) GetSupervisorStatusSender(req *http.Request) (*http.Response, error) {
+                return autorest.SendWithSender(client, req,
+                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                }
+
+    // GetSupervisorStatusResponder handles the response to the GetSupervisorStatus request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) GetSupervisorStatusResponder(resp *http.Response) (result SupervisorStatusAPIModel, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1593,7 +1661,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1676,7 +1744,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1760,7 +1828,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1835,7 +1903,76 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // ResetSupervisor allows a caller to reset the twin module using its
+    // supervisor
+    // identity identifier.
+        // Parameters:
+            // supervisorID - supervisor identifier
+    func (client BaseClient) ResetSupervisor(ctx context.Context, supervisorID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.ResetSupervisor")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.ResetSupervisorPreparer(ctx, supervisorID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "ResetSupervisor", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.ResetSupervisorSender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "ResetSupervisor", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.ResetSupervisorResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "ResetSupervisor", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // ResetSupervisorPreparer prepares the ResetSupervisor request.
+        func (client BaseClient) ResetSupervisorPreparer(ctx context.Context, supervisorID string) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "supervisorId": autorest.Encode("path",supervisorID),
+                }
+
+        preparer := autorest.CreatePreparer(
+        autorest.AsPost(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v1/supervisors/{supervisorId}/reset",pathParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // ResetSupervisorSender sends the ResetSupervisor request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) ResetSupervisorSender(req *http.Request) (*http.Response, error) {
+                return autorest.SendWithSender(client, req,
+                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                }
+
+    // ResetSupervisorResponder handles the response to the ResetSupervisor request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) ResetSupervisorResponder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByClosing())
         result.Response = resp
             return
@@ -1908,7 +2045,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByClosing())
         result.Response = resp
             return
@@ -1978,7 +2115,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByClosing())
         result.Response = resp
             return
@@ -2050,7 +2187,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByClosing())
         result.Response = resp
             return

@@ -17,15 +17,16 @@ class ValueReadRequestApiModel(Model):
 
     :param node_id: Node to read from (mandatory)
     :type node_id: str
+    :param browse_path: An optional path from NodeId instance to
+     the actual node.
+    :type browse_path: list[str]
     :param index_range: Index range to read, e.g. 1:2,0:1 for 2 slices
      out of a matrix or 0:1 for the first item in
      an array, string or bytestring.
      See 7.22 of part 4: NumericRange.
     :type index_range: str
-    :param elevation: Optional User elevation
-    :type elevation: ~azure-iiot-opc-twin.models.CredentialApiModel
-    :param diagnostics: Optional diagnostics configuration
-    :type diagnostics: ~azure-iiot-opc-twin.models.DiagnosticsApiModel
+    :param header: Optional request header
+    :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 
     _validation = {
@@ -34,14 +35,14 @@ class ValueReadRequestApiModel(Model):
 
     _attribute_map = {
         'node_id': {'key': 'nodeId', 'type': 'str'},
+        'browse_path': {'key': 'browsePath', 'type': '[str]'},
         'index_range': {'key': 'indexRange', 'type': 'str'},
-        'elevation': {'key': 'elevation', 'type': 'CredentialApiModel'},
-        'diagnostics': {'key': 'diagnostics', 'type': 'DiagnosticsApiModel'},
+        'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, node_id, index_range=None, elevation=None, diagnostics=None):
+    def __init__(self, node_id, browse_path=None, index_range=None, header=None):
         super(ValueReadRequestApiModel, self).__init__()
         self.node_id = node_id
+        self.browse_path = browse_path
         self.index_range = index_range
-        self.elevation = elevation
-        self.diagnostics = diagnostics
+        self.header = header

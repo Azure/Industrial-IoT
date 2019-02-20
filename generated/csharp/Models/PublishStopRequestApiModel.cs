@@ -12,6 +12,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
 {
     using Microsoft.Rest;
     using Newtonsoft.Json;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
@@ -30,7 +32,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <summary>
         /// Initializes a new instance of the PublishStopRequestApiModel class.
         /// </summary>
-        /// <param name="nodeId">Node of item to unpublish</param>
+        /// <param name="nodeId">Node of published item to unpublish</param>
+        /// <param name="browsePath">An optional path from NodeId instance to
+        /// the actual node.</param>
         /// <param name="nodeAttribute">Attribute of item to unpublish.
         /// Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
         /// 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract',
@@ -42,9 +46,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// 'AccessRestrictions'</param>
         /// <param name="diagnostics">Optional diagnostics
         /// configuration</param>
-        public PublishStopRequestApiModel(string nodeId, NodeAttribute? nodeAttribute = default(NodeAttribute?), DiagnosticsApiModel diagnostics = default(DiagnosticsApiModel))
+        public PublishStopRequestApiModel(string nodeId, IList<string> browsePath = default(IList<string>), NodeAttribute? nodeAttribute = default(NodeAttribute?), DiagnosticsApiModel diagnostics = default(DiagnosticsApiModel))
         {
             NodeId = nodeId;
+            BrowsePath = browsePath;
             NodeAttribute = nodeAttribute;
             Diagnostics = diagnostics;
             CustomInit();
@@ -56,10 +61,17 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets node of item to unpublish
+        /// Gets or sets node of published item to unpublish
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
         public string NodeId { get; set; }
+
+        /// <summary>
+        /// Gets or sets an optional path from NodeId instance to
+        /// the actual node.
+        /// </summary>
+        [JsonProperty(PropertyName = "browsePath")]
+        public IList<string> BrowsePath { get; set; }
 
         /// <summary>
         /// Gets or sets attribute of item to unpublish. Possible values

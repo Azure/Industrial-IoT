@@ -12,6 +12,7 @@
 from .browse_view_api_model import BrowseViewApiModel
 from .credential_api_model import CredentialApiModel
 from .diagnostics_api_model import DiagnosticsApiModel
+from .request_header_api_model import RequestHeaderApiModel
 from .browse_request_api_model import BrowseRequestApiModel
 from .role_permission_api_model import RolePermissionApiModel
 from .node_api_model import NodeApiModel
@@ -72,6 +73,7 @@ __all__ = [
     'BrowseViewApiModel',
     'CredentialApiModel',
     'DiagnosticsApiModel',
+    'RequestHeaderApiModel',
     'BrowseRequestApiModel',
     'RolePermissionApiModel',
     'NodeApiModel',

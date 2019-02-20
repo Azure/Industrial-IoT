@@ -31,10 +31,8 @@ class BrowseNextRequestApiModel(Model):
      nodes.
      (default is false). Default value: False .
     :type read_variable_values: bool
-    :param elevation: Optional User elevation
-    :type elevation: ~azure-iiot-opc-twin.models.CredentialApiModel
-    :param diagnostics: Optional diagnostics configuration
-    :type diagnostics: ~azure-iiot-opc-twin.models.DiagnosticsApiModel
+    :param header: Optional request header
+    :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 
     _validation = {
@@ -46,15 +44,13 @@ class BrowseNextRequestApiModel(Model):
         'abort': {'key': 'abort', 'type': 'bool'},
         'target_nodes_only': {'key': 'targetNodesOnly', 'type': 'bool'},
         'read_variable_values': {'key': 'readVariableValues', 'type': 'bool'},
-        'elevation': {'key': 'elevation', 'type': 'CredentialApiModel'},
-        'diagnostics': {'key': 'diagnostics', 'type': 'DiagnosticsApiModel'},
+        'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, continuation_token, abort=False, target_nodes_only=False, read_variable_values=False, elevation=None, diagnostics=None):
+    def __init__(self, continuation_token, abort=False, target_nodes_only=False, read_variable_values=False, header=None):
         super(BrowseNextRequestApiModel, self).__init__()
         self.continuation_token = continuation_token
         self.abort = abort
         self.target_nodes_only = target_nodes_only
         self.read_variable_values = read_variable_values
-        self.elevation = elevation
-        self.diagnostics = diagnostics
+        self.header = header

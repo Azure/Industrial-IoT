@@ -18,11 +18,8 @@ module azure.iiot.opc.twin
       # update request for the Historian server.
       attr_accessor :request
 
-      # @return [CredentialApiModel] Optional User elevation
-      attr_accessor :elevation
-
-      # @return [DiagnosticsApiModel] Optional diagnostics configuration
-      attr_accessor :diagnostics
+      # @return [RequestHeaderApiModel] Optional request header
+      attr_accessor :header
 
 
       #
@@ -46,22 +43,13 @@ module azure.iiot.opc.twin
                   name: 'Object'
                 }
               },
-              elevation: {
+              header: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'elevation',
+                serialized_name: 'header',
                 type: {
                   name: 'Composite',
-                  class_name: 'CredentialApiModel'
-                }
-              },
-              diagnostics: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'diagnostics',
-                type: {
-                  name: 'Composite',
-                  class_name: 'DiagnosticsApiModel'
+                  class_name: 'RequestHeaderApiModel'
                 }
               }
             }

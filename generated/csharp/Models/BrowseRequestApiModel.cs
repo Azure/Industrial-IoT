@@ -55,10 +55,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <param name="readVariableValues">Whether to read variable values on
         /// target nodes.
         /// (default is false)</param>
-        /// <param name="elevation">Optional User elevation</param>
-        /// <param name="diagnostics">Optional diagnostics
-        /// configuration</param>
-        public BrowseRequestApiModel(string nodeId = default(string), BrowseDirection? direction = default(BrowseDirection?), BrowseViewApiModel view = default(BrowseViewApiModel), string referenceTypeId = default(string), bool? noSubtypes = default(bool?), int? maxReferencesToReturn = default(int?), bool? targetNodesOnly = default(bool?), bool? readVariableValues = default(bool?), CredentialApiModel elevation = default(CredentialApiModel), DiagnosticsApiModel diagnostics = default(DiagnosticsApiModel))
+        /// <param name="header">Optional request header</param>
+        public BrowseRequestApiModel(string nodeId = default(string), BrowseDirection? direction = default(BrowseDirection?), BrowseViewApiModel view = default(BrowseViewApiModel), string referenceTypeId = default(string), bool? noSubtypes = default(bool?), int? maxReferencesToReturn = default(int?), bool? targetNodesOnly = default(bool?), bool? readVariableValues = default(bool?), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             NodeId = nodeId;
             Direction = direction;
@@ -68,8 +66,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
             MaxReferencesToReturn = maxReferencesToReturn;
             TargetNodesOnly = targetNodesOnly;
             ReadVariableValues = readVariableValues;
-            Elevation = elevation;
-            Diagnostics = diagnostics;
+            Header = header;
             CustomInit();
         }
 
@@ -141,16 +138,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public bool? ReadVariableValues { get; set; }
 
         /// <summary>
-        /// Gets or sets optional User elevation
+        /// Gets or sets optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "elevation")]
-        public CredentialApiModel Elevation { get; set; }
-
-        /// <summary>
-        /// Gets or sets optional diagnostics configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "diagnostics")]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "header")]
+        public RequestHeaderApiModel Header { get; set; }
 
         /// <summary>
         /// Validate the object.

@@ -24,14 +24,10 @@ class MethodMetadataArgumentApiModel {
    * 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType',
    * 'ReferenceType', 'DataType', 'View'
    * @property {string} [type.displayName] Display name
-   * @property {string} [type.id] Id of node.
+   * @property {string} [type.nodeId] Id of node.
    * (Mandatory).
    * @property {string} [type.description] Description if any
-   * @property {boolean} [type.children] Whether node has children which are
-   * defined as
-   * any forward hierarchical references.
-   * (default: unknown)
-   * @property {string} [type.name] Browse name
+   * @property {string} [type.browseName] Browse name
    * @property {string} [type.accessRestrictions] Node access restrictions if
    * any.
    * (default: none). Possible values include: 'SigningRequired',
@@ -103,6 +99,12 @@ class MethodMetadataArgumentApiModel {
    * null.
    * @property {array} [type.rolePermissions] Role permissions
    * @property {array} [type.userRolePermissions] User Role permissions
+   * @property {string} [type.typeDefinitionId] Optional type definition of the
+   * node
+   * @property {boolean} [type.children] Whether node has children which are
+   * defined as
+   * any forward hierarchical references.
+   * (default: unknown)
    * @property {object} [defaultValue] Default value
    * @property {string} [valueRank] Optional, scalar if not set. Possible
    * values include: 'ScalarOrOneDimension', 'Any', 'Scalar',

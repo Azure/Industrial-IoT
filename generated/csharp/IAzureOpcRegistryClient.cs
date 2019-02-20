@@ -525,6 +525,41 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         Task<HttpOperationResponse> UpdateSupervisorWithHttpMessagesAsync(string supervisorId, SupervisorUpdateApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Get runtime status of supervisor
+        /// </summary>
+        /// <remarks>
+        /// Allows a caller to get runtime status for a supervisor.
+        /// </remarks>
+        /// <param name='supervisorId'>
+        /// supervisor identifier
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<SupervisorStatusApiModel>> GetSupervisorStatusWithHttpMessagesAsync(string supervisorId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Reset supervisor
+        /// </summary>
+        /// <remarks>
+        /// Allows a caller to reset the twin module using its supervisor
+        /// identity identifier.
+        /// </remarks>
+        /// <param name='supervisorId'>
+        /// supervisor identifier
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> ResetSupervisorWithHttpMessagesAsync(string supervisorId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Get list of supervisors
         /// </summary>
         /// <remarks>

@@ -33,6 +33,7 @@ import com.microsoft.azure.iiot.opc.registry.models.StatusResponseApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorListApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorQueryApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.SupervisorStatusApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorUpdateApiModel;
 import com.microsoft.rest.RestException;
 import com.microsoft.rest.ServiceCallback;
@@ -210,6 +211,14 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient updateSupervisor" })
         @PATCH("v1/supervisors/{supervisorId}")
         Observable<Response<ResponseBody>> updateSupervisor(@Path("supervisorId") String supervisorId, @Body SupervisorUpdateApiModel request);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getSupervisorStatus" })
+        @GET("v1/supervisors/{supervisorId}/status")
+        Observable<Response<ResponseBody>> getSupervisorStatus(@Path("supervisorId") String supervisorId);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient resetSupervisor" })
+        @POST("v1/supervisors/{supervisorId}/reset")
+        Observable<Response<ResponseBody>> resetSupervisor(@Path("supervisorId") String supervisorId);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getListOfSupervisors" })
         @GET("v1/supervisors")
@@ -396,8 +405,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationInfoListApiModel> getListOfApplicationsDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<ApplicationInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationInfoListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -487,8 +494,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationRegistrationResponseApiModel> createApplicationDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ApplicationRegistrationResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationRegistrationResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -573,8 +578,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> registerServerDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -710,8 +713,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> deleteAllDisabledApplicationsDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -792,8 +793,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> discoverServerDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -866,8 +865,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationRegistrationApiModel> getApplicationRegistrationDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ApplicationRegistrationApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationRegistrationApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -943,8 +940,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> deleteApplicationDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1036,8 +1031,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> updateApplicationRegistrationDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1188,8 +1181,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationSiteListApiModel> getListOfSitesDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<ApplicationSiteListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationSiteListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1375,8 +1366,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationInfoListApiModel> getFilteredListOfApplicationsDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ApplicationInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationInfoListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1566,8 +1555,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationInfoListApiModel> queryApplicationsDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ApplicationInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationInfoListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1651,8 +1638,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> activateEndpointDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1812,8 +1797,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<EndpointInfoApiModel> getEndpointDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<EndpointInfoApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<EndpointInfoApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1893,8 +1876,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> updateEndpointDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2070,8 +2051,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<EndpointInfoListApiModel> getListOfEndpointsDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<EndpointInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<EndpointInfoListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2296,8 +2275,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<EndpointInfoListApiModel> getFilteredListOfEndpointsDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<EndpointInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<EndpointInfoListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2492,8 +2469,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<EndpointInfoListApiModel> queryEndpointsDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<EndpointInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<EndpointInfoListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2569,8 +2544,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> deactivateEndpointDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2807,8 +2780,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<SupervisorApiModel> getSupervisorDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<SupervisorApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<SupervisorApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2896,8 +2867,161 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> updateSupervisorDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Get runtime status of supervisor.
+     * Allows a caller to get runtime status for a supervisor.
+     *
+     * @param supervisorId supervisor identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the SupervisorStatusApiModel object if successful.
+     */
+    public SupervisorStatusApiModel getSupervisorStatus(String supervisorId) {
+        return getSupervisorStatusWithServiceResponseAsync(supervisorId).toBlocking().single().body();
+    }
+
+    /**
+     * Get runtime status of supervisor.
+     * Allows a caller to get runtime status for a supervisor.
+     *
+     * @param supervisorId supervisor identifier
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<SupervisorStatusApiModel> getSupervisorStatusAsync(String supervisorId, final ServiceCallback<SupervisorStatusApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(getSupervisorStatusWithServiceResponseAsync(supervisorId), serviceCallback);
+    }
+
+    /**
+     * Get runtime status of supervisor.
+     * Allows a caller to get runtime status for a supervisor.
+     *
+     * @param supervisorId supervisor identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the SupervisorStatusApiModel object
+     */
+    public Observable<SupervisorStatusApiModel> getSupervisorStatusAsync(String supervisorId) {
+        return getSupervisorStatusWithServiceResponseAsync(supervisorId).map(new Func1<ServiceResponse<SupervisorStatusApiModel>, SupervisorStatusApiModel>() {
+            @Override
+            public SupervisorStatusApiModel call(ServiceResponse<SupervisorStatusApiModel> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Get runtime status of supervisor.
+     * Allows a caller to get runtime status for a supervisor.
+     *
+     * @param supervisorId supervisor identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the SupervisorStatusApiModel object
+     */
+    public Observable<ServiceResponse<SupervisorStatusApiModel>> getSupervisorStatusWithServiceResponseAsync(String supervisorId) {
+        if (supervisorId == null) {
+            throw new IllegalArgumentException("Parameter supervisorId is required and cannot be null.");
+        }
+        return service.getSupervisorStatus(supervisorId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<SupervisorStatusApiModel>>>() {
+                @Override
+                public Observable<ServiceResponse<SupervisorStatusApiModel>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<SupervisorStatusApiModel> clientResponse = getSupervisorStatusDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<SupervisorStatusApiModel> getSupervisorStatusDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<SupervisorStatusApiModel, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<SupervisorStatusApiModel>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Reset supervisor.
+     * Allows a caller to reset the twin module using its supervisor
+     identity identifier.
+     *
+     * @param supervisorId supervisor identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void resetSupervisor(String supervisorId) {
+        resetSupervisorWithServiceResponseAsync(supervisorId).toBlocking().single().body();
+    }
+
+    /**
+     * Reset supervisor.
+     * Allows a caller to reset the twin module using its supervisor
+     identity identifier.
+     *
+     * @param supervisorId supervisor identifier
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> resetSupervisorAsync(String supervisorId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(resetSupervisorWithServiceResponseAsync(supervisorId), serviceCallback);
+    }
+
+    /**
+     * Reset supervisor.
+     * Allows a caller to reset the twin module using its supervisor
+     identity identifier.
+     *
+     * @param supervisorId supervisor identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> resetSupervisorAsync(String supervisorId) {
+        return resetSupervisorWithServiceResponseAsync(supervisorId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Reset supervisor.
+     * Allows a caller to reset the twin module using its supervisor
+     identity identifier.
+     *
+     * @param supervisorId supervisor identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> resetSupervisorWithServiceResponseAsync(String supervisorId) {
+        if (supervisorId == null) {
+            throw new IllegalArgumentException("Parameter supervisorId is required and cannot be null.");
+        }
+        return service.resetSupervisor(supervisorId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = resetSupervisorDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> resetSupervisorDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -3073,8 +3197,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<SupervisorListApiModel> getListOfSupervisorsDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<SupervisorListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<SupervisorListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -3272,8 +3394,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<SupervisorListApiModel> getFilteredListOfSupervisorsDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<SupervisorListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<SupervisorListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -3472,8 +3592,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<SupervisorListApiModel> querySupervisorsDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<SupervisorListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<SupervisorListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 

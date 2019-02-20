@@ -118,7 +118,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -197,7 +197,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -277,7 +277,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -301,13 +301,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-                if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.MethodID", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
-                return result, validation.NewError("azureiiotopctwin.BaseClient", "CallMethod", err.Error())
-                }
-
-                    req, err := client.CallMethodPreparer(ctx, endpointID, request)
+            req, err := client.CallMethodPreparer(ctx, endpointID, request)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "CallMethod", nil , "Failure preparing request")
         return
@@ -356,7 +350,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -437,7 +431,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -511,7 +505,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -589,7 +583,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -708,7 +702,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -763,7 +757,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // and the targetNodesOnly flag set to true.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // nodeID - the node to browse or omit to browse object root
+            // nodeID - the node to browse or omit to browse the root node (i=84)
     func (client BaseClient) GetSetOfUniqueNodes(ctx context.Context, endpointID string, nodeID string) (result BrowseResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetSetOfUniqueNodes")
@@ -829,7 +823,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -967,7 +961,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1046,7 +1040,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1126,7 +1120,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1206,7 +1200,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1285,7 +1279,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1366,7 +1360,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1445,7 +1439,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1524,7 +1518,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1603,7 +1597,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1683,7 +1677,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}

@@ -31,8 +31,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// </summary>
         /// <param name="uri">Uri to call - should use https scheme in which
         /// case security is enforced.</param>
-        /// <param name="method">Method to use for callback. Possible values
-        /// include: 'Get', 'Post', 'Put', 'Delete'</param>
+        /// <param name="method">Http Method to use for callback. Possible
+        /// values include: 'Get', 'Post', 'Put', 'Delete'</param>
         /// <param name="authenticationHeader">Authentication header to add or
         /// null if not needed</param>
         public CallbackApiModel(string uri = default(string), CallbackMethodType? method = default(CallbackMethodType?), string authenticationHeader = default(string))
@@ -56,8 +56,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string Uri { get; set; }
 
         /// <summary>
-        /// Gets or sets method to use for callback. Possible values include:
-        /// 'Get', 'Post', 'Put', 'Delete'
+        /// Gets or sets http Method to use for callback. Possible values
+        /// include: 'Get', 'Post', 'Put', 'Delete'
         /// </summary>
         [JsonProperty(PropertyName = "method")]
         public CallbackMethodType? Method { get; set; }

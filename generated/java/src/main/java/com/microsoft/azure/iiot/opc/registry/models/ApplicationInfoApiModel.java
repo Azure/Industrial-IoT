@@ -15,7 +15,7 @@ import org.joda.time.DateTime;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Application model.
+ * Application info model.
  */
 public class ApplicationInfoApiModel {
     /**

@@ -10,6 +10,7 @@
 
 package com.microsoft.azure.iiot.opc.twin.models;
 
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -21,6 +22,13 @@ public class PublishedItemApiModel {
      */
     @JsonProperty(value = "nodeId", required = true)
     private String nodeId;
+
+    /**
+     * An optional path from NodeId instance to
+     * the actual node.
+     */
+    @JsonProperty(value = "browsePath")
+    private List<String> browsePath;
 
     /**
      * Attribute to monitor. Possible values include: 'NodeClass',
@@ -64,6 +72,28 @@ public class PublishedItemApiModel {
      */
     public PublishedItemApiModel withNodeId(String nodeId) {
         this.nodeId = nodeId;
+        return this;
+    }
+
+    /**
+     * Get an optional path from NodeId instance to
+     the actual node.
+     *
+     * @return the browsePath value
+     */
+    public List<String> browsePath() {
+        return this.browsePath;
+    }
+
+    /**
+     * Set an optional path from NodeId instance to
+     the actual node.
+     *
+     * @param browsePath the browsePath value to set
+     * @return the PublishedItemApiModel object itself.
+     */
+    public PublishedItemApiModel withBrowsePath(List<String> browsePath) {
+        this.browsePath = browsePath;
         return this;
     }
 

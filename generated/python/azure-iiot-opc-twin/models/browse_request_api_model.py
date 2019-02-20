@@ -46,10 +46,8 @@ class BrowseRequestApiModel(Model):
      nodes.
      (default is false). Default value: False .
     :type read_variable_values: bool
-    :param elevation: Optional User elevation
-    :type elevation: ~azure-iiot-opc-twin.models.CredentialApiModel
-    :param diagnostics: Optional diagnostics configuration
-    :type diagnostics: ~azure-iiot-opc-twin.models.DiagnosticsApiModel
+    :param header: Optional request header
+    :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 
     _attribute_map = {
@@ -61,11 +59,10 @@ class BrowseRequestApiModel(Model):
         'max_references_to_return': {'key': 'maxReferencesToReturn', 'type': 'int'},
         'target_nodes_only': {'key': 'targetNodesOnly', 'type': 'bool'},
         'read_variable_values': {'key': 'readVariableValues', 'type': 'bool'},
-        'elevation': {'key': 'elevation', 'type': 'CredentialApiModel'},
-        'diagnostics': {'key': 'diagnostics', 'type': 'DiagnosticsApiModel'},
+        'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, node_id=None, direction=None, view=None, reference_type_id=None, no_subtypes=False, max_references_to_return=None, target_nodes_only=False, read_variable_values=False, elevation=None, diagnostics=None):
+    def __init__(self, node_id=None, direction=None, view=None, reference_type_id=None, no_subtypes=False, max_references_to_return=None, target_nodes_only=False, read_variable_values=False, header=None):
         super(BrowseRequestApiModel, self).__init__()
         self.node_id = node_id
         self.direction = direction
@@ -75,5 +72,4 @@ class BrowseRequestApiModel(Model):
         self.max_references_to_return = max_references_to_return
         self.target_nodes_only = target_nodes_only
         self.read_variable_values = read_variable_values
-        self.elevation = elevation
-        self.diagnostics = diagnostics
+        self.header = header

@@ -17,6 +17,9 @@ class PublishedItemApiModel(Model):
 
     :param node_id: Node to monitor
     :type node_id: str
+    :param browse_path: An optional path from NodeId instance to
+     the actual node.
+    :type browse_path: list[str]
     :param node_attribute: Attribute to monitor. Possible values include:
      'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask',
      'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
@@ -38,14 +41,16 @@ class PublishedItemApiModel(Model):
 
     _attribute_map = {
         'node_id': {'key': 'nodeId', 'type': 'str'},
+        'browse_path': {'key': 'browsePath', 'type': '[str]'},
         'node_attribute': {'key': 'nodeAttribute', 'type': 'NodeAttribute'},
         'publishing_interval': {'key': 'publishingInterval', 'type': 'int'},
         'sampling_interval': {'key': 'samplingInterval', 'type': 'int'},
     }
 
-    def __init__(self, node_id, node_attribute=None, publishing_interval=None, sampling_interval=None):
+    def __init__(self, node_id, browse_path=None, node_attribute=None, publishing_interval=None, sampling_interval=None):
         super(PublishedItemApiModel, self).__init__()
         self.node_id = node_id
+        self.browse_path = browse_path
         self.node_attribute = node_attribute
         self.publishing_interval = publishing_interval
         self.sampling_interval = sampling_interval

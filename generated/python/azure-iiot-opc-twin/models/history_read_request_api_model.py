@@ -17,6 +17,9 @@ class HistoryReadRequestApiModel(Model):
 
     :param node_id: Node to read from (mandatory)
     :type node_id: str
+    :param browse_path: An optional path from NodeId instance to
+     the actual node.
+    :type browse_path: list[str]
     :param request: The HistoryReadDetailsType extension object
      encoded in json and containing the tunneled
      Historian reader request.
@@ -26,10 +29,8 @@ class HistoryReadRequestApiModel(Model):
      an array, string or bytestring.
      See 7.22 of part 4: NumericRange.
     :type index_range: str
-    :param elevation: Optional User elevation
-    :type elevation: ~azure-iiot-opc-twin.models.CredentialApiModel
-    :param diagnostics: Optional diagnostics configuration
-    :type diagnostics: ~azure-iiot-opc-twin.models.DiagnosticsApiModel
+    :param header: Optional request header
+    :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 
     _validation = {
@@ -39,16 +40,16 @@ class HistoryReadRequestApiModel(Model):
 
     _attribute_map = {
         'node_id': {'key': 'nodeId', 'type': 'str'},
+        'browse_path': {'key': 'browsePath', 'type': '[str]'},
         'request': {'key': 'request', 'type': 'object'},
         'index_range': {'key': 'indexRange', 'type': 'str'},
-        'elevation': {'key': 'elevation', 'type': 'CredentialApiModel'},
-        'diagnostics': {'key': 'diagnostics', 'type': 'DiagnosticsApiModel'},
+        'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, node_id, request, index_range=None, elevation=None, diagnostics=None):
+    def __init__(self, node_id, request, browse_path=None, index_range=None, header=None):
         super(HistoryReadRequestApiModel, self).__init__()
         self.node_id = node_id
+        self.browse_path = browse_path
         self.request = request
         self.index_range = index_range
-        self.elevation = elevation
-        self.diagnostics = diagnostics
+        self.header = header

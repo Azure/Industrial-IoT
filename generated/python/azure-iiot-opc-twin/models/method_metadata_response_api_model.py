@@ -13,7 +13,7 @@ from msrest.serialization import Model
 
 
 class MethodMetadataResponseApiModel(Model):
-    """method metadata query model.
+    """Method metadata query model.
 
     :param object_id: Id of object that the method is a component of
     :type object_id: str

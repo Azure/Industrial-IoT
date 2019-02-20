@@ -1043,6 +1043,85 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             }
 
             /// <summary>
+            /// Get runtime status of supervisor
+            /// </summary>
+            /// <remarks>
+            /// Allows a caller to get runtime status for a supervisor.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='supervisorId'>
+            /// supervisor identifier
+            /// </param>
+            public static SupervisorStatusApiModel GetSupervisorStatus(this IAzureOpcRegistryClient operations, string supervisorId)
+            {
+                return operations.GetSupervisorStatusAsync(supervisorId).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Get runtime status of supervisor
+            /// </summary>
+            /// <remarks>
+            /// Allows a caller to get runtime status for a supervisor.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='supervisorId'>
+            /// supervisor identifier
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<SupervisorStatusApiModel> GetSupervisorStatusAsync(this IAzureOpcRegistryClient operations, string supervisorId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.GetSupervisorStatusWithHttpMessagesAsync(supervisorId, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Reset supervisor
+            /// </summary>
+            /// <remarks>
+            /// Allows a caller to reset the twin module using its supervisor
+            /// identity identifier.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='supervisorId'>
+            /// supervisor identifier
+            /// </param>
+            public static void ResetSupervisor(this IAzureOpcRegistryClient operations, string supervisorId)
+            {
+                operations.ResetSupervisorAsync(supervisorId).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Reset supervisor
+            /// </summary>
+            /// <remarks>
+            /// Allows a caller to reset the twin module using its supervisor
+            /// identity identifier.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='supervisorId'>
+            /// supervisor identifier
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task ResetSupervisorAsync(this IAzureOpcRegistryClient operations, string supervisorId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.ResetSupervisorWithHttpMessagesAsync(supervisorId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
             /// Get list of supervisors
             /// </summary>
             /// <remarks>

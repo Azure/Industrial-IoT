@@ -19,10 +19,8 @@ class HistoryUpdateRequestApiModel(Model):
      encoded in json and containing the tunneled
      update request for the Historian server.
     :type request: object
-    :param elevation: Optional User elevation
-    :type elevation: ~azure-iiot-opc-twin.models.CredentialApiModel
-    :param diagnostics: Optional diagnostics configuration
-    :type diagnostics: ~azure-iiot-opc-twin.models.DiagnosticsApiModel
+    :param header: Optional request header
+    :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 
     _validation = {
@@ -31,12 +29,10 @@ class HistoryUpdateRequestApiModel(Model):
 
     _attribute_map = {
         'request': {'key': 'request', 'type': 'object'},
-        'elevation': {'key': 'elevation', 'type': 'CredentialApiModel'},
-        'diagnostics': {'key': 'diagnostics', 'type': 'DiagnosticsApiModel'},
+        'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, request, elevation=None, diagnostics=None):
+    def __init__(self, request, header=None):
         super(HistoryUpdateRequestApiModel, self).__init__()
         self.request = request
-        self.elevation = elevation
-        self.diagnostics = diagnostics
+        self.header = header

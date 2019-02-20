@@ -18,8 +18,8 @@ class CallbackApiModel(Model):
     :param uri: Uri to call - should use https scheme in which
      case security is enforced.
     :type uri: str
-    :param method: Method to use for callback. Possible values include: 'Get',
-     'Post', 'Put', 'Delete'
+    :param method: Http Method to use for callback. Possible values include:
+     'Get', 'Post', 'Put', 'Delete'
     :type method: str or ~azure-iiot-opc-registry.models.CallbackMethodType
     :param authentication_header: Authentication header to add or null if not
      needed

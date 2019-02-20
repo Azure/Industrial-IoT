@@ -12,6 +12,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
 {
     using Microsoft.Rest;
     using Newtonsoft.Json;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
@@ -30,28 +32,27 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <summary>
         /// Initializes a new instance of the ValueWriteRequestApiModel class.
         /// </summary>
-        /// <param name="nodeId">Node id to to write value to.
-        /// (Mandatory)</param>
+        /// <param name="nodeId">Node id to to write value to.</param>
         /// <param name="value">Value to write. The system tries to convert
         /// the value according to the data type value,
         /// e.g. convert comma seperated value strings
         /// into arrays.  (Mandatory)</param>
+        /// <param name="browsePath">An optional path from NodeId instance to
+        /// the actual node.</param>
         /// <param name="dataType">A built in datatype for the value. This can
         /// be a data type from browse, or a built in
         /// type.
         /// (default: best effort)</param>
         /// <param name="indexRange">Index range to write</param>
-        /// <param name="elevation">Optional User elevation</param>
-        /// <param name="diagnostics">Optional diagnostics
-        /// configuration</param>
-        public ValueWriteRequestApiModel(string nodeId, object value, string dataType = default(string), string indexRange = default(string), CredentialApiModel elevation = default(CredentialApiModel), DiagnosticsApiModel diagnostics = default(DiagnosticsApiModel))
+        /// <param name="header">Optional request header</param>
+        public ValueWriteRequestApiModel(string nodeId, object value, IList<string> browsePath = default(IList<string>), string dataType = default(string), string indexRange = default(string), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             NodeId = nodeId;
+            BrowsePath = browsePath;
             Value = value;
             DataType = dataType;
             IndexRange = indexRange;
-            Elevation = elevation;
-            Diagnostics = diagnostics;
+            Header = header;
             CustomInit();
         }
 
@@ -61,10 +62,17 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets node id to to write value to. (Mandatory)
+        /// Gets or sets node id to to write value to.
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
         public string NodeId { get; set; }
+
+        /// <summary>
+        /// Gets or sets an optional path from NodeId instance to
+        /// the actual node.
+        /// </summary>
+        [JsonProperty(PropertyName = "browsePath")]
+        public IList<string> BrowsePath { get; set; }
 
         /// <summary>
         /// Gets or sets value to write. The system tries to convert
@@ -91,16 +99,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string IndexRange { get; set; }
 
         /// <summary>
-        /// Gets or sets optional User elevation
+        /// Gets or sets optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "elevation")]
-        public CredentialApiModel Elevation { get; set; }
-
-        /// <summary>
-        /// Gets or sets optional diagnostics configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "diagnostics")]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "header")]
+        public RequestHeaderApiModel Header { get; set; }
 
         /// <summary>
         /// Validate the object.

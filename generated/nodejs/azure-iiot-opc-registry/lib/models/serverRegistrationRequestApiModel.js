@@ -23,8 +23,8 @@ class ServerRegistrationRequestApiModel {
    * @property {string} [callback.uri] Uri to call - should use https scheme in
    * which
    * case security is enforced.
-   * @property {string} [callback.method] Method to use for callback. Possible
-   * values include: 'Get', 'Post', 'Put', 'Delete'
+   * @property {string} [callback.method] Http Method to use for callback.
+   * Possible values include: 'Get', 'Post', 'Put', 'Delete'
    * @property {string} [callback.authenticationHeader] Authentication header
    * to add or null if not needed
    * @property {object} [activationFilter] Upon discovery, activate all

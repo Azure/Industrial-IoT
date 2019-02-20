@@ -30,16 +30,19 @@ public class EndpointInfoApiModel {
     private String applicationId;
 
     /**
-     * Whether endpoint is activated on this registration.
+     * Activation state of endpoint. Possible values include: 'Deactivated',
+     * 'Activated', 'ActivatedAndConnected'.
      */
-    @JsonProperty(value = "activated")
-    private Boolean activated;
+    @JsonProperty(value = "activationState")
+    private EndpointActivationState activationState;
 
     /**
-     * Whether endpoint is connected on this registration.
+     * Last state of the activated endpoint. Possible values include:
+     * 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
+     * 'Ready', 'Error'.
      */
-    @JsonProperty(value = "connected")
-    private Boolean connected;
+    @JsonProperty(value = "endpointState")
+    private EndpointConnectivityState endpointState;
 
     /**
      * Whether the registration is out of sync.
@@ -94,42 +97,42 @@ public class EndpointInfoApiModel {
     }
 
     /**
-     * Get whether endpoint is activated on this registration.
+     * Get activation state of endpoint. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'.
      *
-     * @return the activated value
+     * @return the activationState value
      */
-    public Boolean activated() {
-        return this.activated;
+    public EndpointActivationState activationState() {
+        return this.activationState;
     }
 
     /**
-     * Set whether endpoint is activated on this registration.
+     * Set activation state of endpoint. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'.
      *
-     * @param activated the activated value to set
+     * @param activationState the activationState value to set
      * @return the EndpointInfoApiModel object itself.
      */
-    public EndpointInfoApiModel withActivated(Boolean activated) {
-        this.activated = activated;
+    public EndpointInfoApiModel withActivationState(EndpointActivationState activationState) {
+        this.activationState = activationState;
         return this;
     }
 
     /**
-     * Get whether endpoint is connected on this registration.
+     * Get last state of the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
      *
-     * @return the connected value
+     * @return the endpointState value
      */
-    public Boolean connected() {
-        return this.connected;
+    public EndpointConnectivityState endpointState() {
+        return this.endpointState;
     }
 
     /**
-     * Set whether endpoint is connected on this registration.
+     * Set last state of the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
      *
-     * @param connected the connected value to set
+     * @param endpointState the endpointState value to set
      * @return the EndpointInfoApiModel object itself.
      */
-    public EndpointInfoApiModel withConnected(Boolean connected) {
-        this.connected = connected;
+    public EndpointInfoApiModel withEndpointState(EndpointConnectivityState endpointState) {
+        this.endpointState = endpointState;
         return this;
     }
 

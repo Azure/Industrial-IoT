@@ -737,8 +737,6 @@ const getSetOfUniqueNodesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.BrowseResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -761,8 +759,6 @@ const browseOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.BrowseResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -782,8 +778,6 @@ const getNextSetOfUniqueNodesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.BrowseNextResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -806,8 +800,6 @@ const browseNextOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.BrowseNextResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -830,8 +822,6 @@ const browseUsingPathOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.BrowsePathResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -854,8 +844,6 @@ const getCallMetadataOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.MethodMetadataResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -878,8 +866,6 @@ const callMethodOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.MethodCallResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -902,8 +888,6 @@ const startPublishingValuesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.PublishStartResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -926,8 +910,6 @@ const stopPublishingValuesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.PublishStopResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -947,8 +929,6 @@ const getNextListOfPublishedNodesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.PublishedItemListResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -971,8 +951,6 @@ const getFirstListOfPublishedNodesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.PublishedItemListResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -992,8 +970,6 @@ const getValueOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ValueReadResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1016,8 +992,6 @@ const readValueOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ValueReadResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1040,8 +1014,6 @@ const readAttributesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ReadResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1064,8 +1036,6 @@ const readHistoryOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.HistoryReadResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1088,8 +1058,6 @@ const readHistoryNextOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.HistoryReadNextResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1125,8 +1093,6 @@ const writeValueOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ValueWriteResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1149,8 +1115,6 @@ const writeAttributesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.WriteResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1173,8 +1137,6 @@ const writeHistoryOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.HistoryUpdateResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer

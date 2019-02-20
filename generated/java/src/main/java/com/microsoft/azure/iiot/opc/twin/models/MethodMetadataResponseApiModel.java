@@ -14,7 +14,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * method metadata query model.
+ * Method metadata query model.
  */
 public class MethodMetadataResponseApiModel {
     /**

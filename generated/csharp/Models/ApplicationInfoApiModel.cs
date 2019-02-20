@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
     using System.Linq;
 
     /// <summary>
-    /// Application model
+    /// Application info model
     /// </summary>
     public partial class ApplicationInfoApiModel
     {

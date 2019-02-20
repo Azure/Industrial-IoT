@@ -20,10 +20,15 @@ class EndpointInfoApiModel(Model):
      ~azure-iiot-opc-registry.models.EndpointRegistrationApiModel
     :param application_id: Application id endpoint is registered under.
     :type application_id: str
-    :param activated: Whether endpoint is activated on this registration
-    :type activated: bool
-    :param connected: Whether endpoint is connected on this registration
-    :type connected: bool
+    :param activation_state: Activation state of endpoint. Possible values
+     include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
+    :type activation_state: str or
+     ~azure-iiot-opc-registry.models.EndpointActivationState
+    :param endpoint_state: Last state of the activated endpoint. Possible
+     values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
+     'CertificateInvalid', 'Ready', 'Error'
+    :type endpoint_state: str or
+     ~azure-iiot-opc-registry.models.EndpointConnectivityState
     :param out_of_sync: Whether the registration is out of sync
     :type out_of_sync: bool
     :param not_seen_since: Last time endpoint was seen
@@ -38,17 +43,17 @@ class EndpointInfoApiModel(Model):
     _attribute_map = {
         'registration': {'key': 'registration', 'type': 'EndpointRegistrationApiModel'},
         'application_id': {'key': 'applicationId', 'type': 'str'},
-        'activated': {'key': 'activated', 'type': 'bool'},
-        'connected': {'key': 'connected', 'type': 'bool'},
+        'activation_state': {'key': 'activationState', 'type': 'EndpointActivationState'},
+        'endpoint_state': {'key': 'endpointState', 'type': 'EndpointConnectivityState'},
         'out_of_sync': {'key': 'outOfSync', 'type': 'bool'},
         'not_seen_since': {'key': 'notSeenSince', 'type': 'iso-8601'},
     }
 
-    def __init__(self, registration, application_id, activated=None, connected=None, out_of_sync=None, not_seen_since=None):
+    def __init__(self, registration, application_id, activation_state=None, endpoint_state=None, out_of_sync=None, not_seen_since=None):
         super(EndpointInfoApiModel, self).__init__()
         self.registration = registration
         self.application_id = application_id
-        self.activated = activated
-        self.connected = connected
+        self.activation_state = activation_state
+        self.endpoint_state = endpoint_state
         self.out_of_sync = out_of_sync
         self.not_seen_since = not_seen_since

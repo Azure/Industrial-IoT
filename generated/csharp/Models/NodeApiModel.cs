@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
     using System.Linq;
 
     /// <summary>
-    /// node model
+    /// Node model
     /// </summary>
     public partial class NodeApiModel
     {
@@ -32,18 +32,14 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <summary>
         /// Initializes a new instance of the NodeApiModel class.
         /// </summary>
-        /// <param name="id">Id of node.
+        /// <param name="nodeId">Id of node.
         /// (Mandatory).</param>
         /// <param name="nodeClass">Type of node. Possible values include:
         /// 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType',
         /// 'ReferenceType', 'DataType', 'View'</param>
         /// <param name="displayName">Display name</param>
         /// <param name="description">Description if any</param>
-        /// <param name="children">Whether node has children which are defined
-        /// as
-        /// any forward hierarchical references.
-        /// (default: unknown)</param>
-        /// <param name="name">Browse name</param>
+        /// <param name="browseName">Browse name</param>
         /// <param name="accessRestrictions">Node access restrictions if any.
         /// (default: none). Possible values include: 'SigningRequired',
         /// 'EncryptionRequired', 'SessionRequired'</param>
@@ -112,14 +108,19 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// null.</param>
         /// <param name="rolePermissions">Role permissions</param>
         /// <param name="userRolePermissions">User Role permissions</param>
-        public NodeApiModel(string id, NodeClass? nodeClass = default(NodeClass?), string displayName = default(string), string description = default(string), bool? children = default(bool?), string name = default(string), NodeAccessRestrictions? accessRestrictions = default(NodeAccessRestrictions?), int? writeMask = default(int?), int? userWriteMask = default(int?), bool? isAbstract = default(bool?), bool? containsNoLoops = default(bool?), NodeEventNotifier? eventNotifier = default(NodeEventNotifier?), bool? executable = default(bool?), bool? userExecutable = default(bool?), object dataTypeDefinition = default(object), NodeAccessLevel? accessLevel = default(NodeAccessLevel?), NodeAccessLevel? userAccessLevel = default(NodeAccessLevel?), string dataType = default(string), NodeValueRank? valueRank = default(NodeValueRank?), IList<int?> arrayDimensions = default(IList<int?>), bool? historizing = default(bool?), double? minimumSamplingInterval = default(double?), object value = default(object), string inverseName = default(string), bool? symmetric = default(bool?), IList<RolePermissionApiModel> rolePermissions = default(IList<RolePermissionApiModel>), IList<RolePermissionApiModel> userRolePermissions = default(IList<RolePermissionApiModel>))
+        /// <param name="typeDefinitionId">Optional type definition of the
+        /// node</param>
+        /// <param name="children">Whether node has children which are defined
+        /// as
+        /// any forward hierarchical references.
+        /// (default: unknown)</param>
+        public NodeApiModel(string nodeId, NodeClass? nodeClass = default(NodeClass?), string displayName = default(string), string description = default(string), string browseName = default(string), NodeAccessRestrictions? accessRestrictions = default(NodeAccessRestrictions?), int? writeMask = default(int?), int? userWriteMask = default(int?), bool? isAbstract = default(bool?), bool? containsNoLoops = default(bool?), NodeEventNotifier? eventNotifier = default(NodeEventNotifier?), bool? executable = default(bool?), bool? userExecutable = default(bool?), object dataTypeDefinition = default(object), NodeAccessLevel? accessLevel = default(NodeAccessLevel?), NodeAccessLevel? userAccessLevel = default(NodeAccessLevel?), string dataType = default(string), NodeValueRank? valueRank = default(NodeValueRank?), IList<int?> arrayDimensions = default(IList<int?>), bool? historizing = default(bool?), double? minimumSamplingInterval = default(double?), object value = default(object), string inverseName = default(string), bool? symmetric = default(bool?), IList<RolePermissionApiModel> rolePermissions = default(IList<RolePermissionApiModel>), IList<RolePermissionApiModel> userRolePermissions = default(IList<RolePermissionApiModel>), string typeDefinitionId = default(string), bool? children = default(bool?))
         {
             NodeClass = nodeClass;
             DisplayName = displayName;
-            Id = id;
+            NodeId = nodeId;
             Description = description;
-            Children = children;
-            Name = name;
+            BrowseName = browseName;
             AccessRestrictions = accessRestrictions;
             WriteMask = writeMask;
             UserWriteMask = userWriteMask;
@@ -141,6 +142,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
             Symmetric = symmetric;
             RolePermissions = rolePermissions;
             UserRolePermissions = userRolePermissions;
+            TypeDefinitionId = typeDefinitionId;
+            Children = children;
             CustomInit();
         }
 
@@ -167,8 +170,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Gets or sets id of node.
         /// (Mandatory).
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
-        public string Id { get; set; }
+        [JsonProperty(PropertyName = "nodeId")]
+        public string NodeId { get; set; }
 
         /// <summary>
         /// Gets or sets description if any
@@ -177,18 +180,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string Description { get; set; }
 
         /// <summary>
-        /// Gets or sets whether node has children which are defined as
-        /// any forward hierarchical references.
-        /// (default: unknown)
-        /// </summary>
-        [JsonProperty(PropertyName = "children")]
-        public bool? Children { get; set; }
-
-        /// <summary>
         /// Gets or sets browse name
         /// </summary>
-        [JsonProperty(PropertyName = "name")]
-        public string Name { get; set; }
+        [JsonProperty(PropertyName = "browseName")]
+        public string BrowseName { get; set; }
 
         /// <summary>
         /// Gets or sets node access restrictions if any.
@@ -354,6 +349,20 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public IList<RolePermissionApiModel> UserRolePermissions { get; set; }
 
         /// <summary>
+        /// Gets or sets optional type definition of the node
+        /// </summary>
+        [JsonProperty(PropertyName = "typeDefinitionId")]
+        public string TypeDefinitionId { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether node has children which are defined as
+        /// any forward hierarchical references.
+        /// (default: unknown)
+        /// </summary>
+        [JsonProperty(PropertyName = "children")]
+        public bool? Children { get; set; }
+
+        /// <summary>
         /// Validate the object.
         /// </summary>
         /// <exception cref="ValidationException">
@@ -361,9 +370,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// </exception>
         public virtual void Validate()
         {
-            if (Id == null)
+            if (NodeId == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "Id");
+                throw new ValidationException(ValidationRules.CannotBeNull, "NodeId");
             }
             if (RolePermissions != null)
             {

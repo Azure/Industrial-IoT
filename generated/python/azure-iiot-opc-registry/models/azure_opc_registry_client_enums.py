@@ -58,3 +58,21 @@ class SecurityAssessment(Enum):
     low = "Low"
     medium = "Medium"
     high = "High"
+
+
+class EndpointActivationState(Enum):
+
+    deactivated = "Deactivated"
+    activated = "Activated"
+    activated_and_connected = "ActivatedAndConnected"
+
+
+class EndpointConnectivityState(Enum):
+
+    connecting = "Connecting"
+    not_reachable = "NotReachable"
+    busy = "Busy"
+    no_trust = "NoTrust"
+    certificate_invalid = "CertificateInvalid"
+    ready = "Ready"
+    error = "Error"

@@ -17,8 +17,8 @@ class PublishStartRequestApiModel(Model):
 
     :param item: Item to publish
     :type item: ~azure-iiot-opc-twin.models.PublishedItemApiModel
-    :param diagnostics: Optional diagnostics configuration
-    :type diagnostics: ~azure-iiot-opc-twin.models.DiagnosticsApiModel
+    :param header: Optional request header
+    :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 
     _validation = {
@@ -27,10 +27,10 @@ class PublishStartRequestApiModel(Model):
 
     _attribute_map = {
         'item': {'key': 'item', 'type': 'PublishedItemApiModel'},
-        'diagnostics': {'key': 'diagnostics', 'type': 'DiagnosticsApiModel'},
+        'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, item, diagnostics=None):
+    def __init__(self, item, header=None):
         super(PublishStartRequestApiModel, self).__init__()
         self.item = item
-        self.diagnostics = diagnostics
+        self.header = header

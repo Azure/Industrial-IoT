@@ -654,6 +654,65 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
+   * Allows a caller to get runtime status for a supervisor.
+   * @summary Get runtime status of supervisor
+   * @param supervisorId supervisor identifier
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetSupervisorStatusResponse>
+   */
+  getSupervisorStatus(supervisorId: string, options?: msRest.RequestOptionsBase): Promise<Models.GetSupervisorStatusResponse>;
+  /**
+   * @param supervisorId supervisor identifier
+   * @param callback The callback
+   */
+  getSupervisorStatus(supervisorId: string, callback: msRest.ServiceCallback<Models.SupervisorStatusApiModel>): void;
+  /**
+   * @param supervisorId supervisor identifier
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getSupervisorStatus(supervisorId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.SupervisorStatusApiModel>): void;
+  getSupervisorStatus(supervisorId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.SupervisorStatusApiModel>, callback?: msRest.ServiceCallback<Models.SupervisorStatusApiModel>): Promise<Models.GetSupervisorStatusResponse> {
+    return this.sendOperationRequest(
+      {
+        supervisorId,
+        options
+      },
+      getSupervisorStatusOperationSpec,
+      callback) as Promise<Models.GetSupervisorStatusResponse>;
+  }
+
+  /**
+   * Allows a caller to reset the twin module using its supervisor
+   * identity identifier.
+   * @summary Reset supervisor
+   * @param supervisorId supervisor identifier
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  resetSupervisor(supervisorId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param supervisorId supervisor identifier
+   * @param callback The callback
+   */
+  resetSupervisor(supervisorId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param supervisorId supervisor identifier
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  resetSupervisor(supervisorId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  resetSupervisor(supervisorId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        supervisorId,
+        options
+      },
+      resetSupervisorOperationSpec,
+      callback);
+  }
+
+  /**
    * Get all registered supervisors and therefore twin modules in paged form.
    * The returned model can contain a continuation token if more results are
    * available.
@@ -757,8 +816,6 @@ const getListOfApplicationsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ApplicationInfoListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -779,8 +836,6 @@ const createApplicationOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ApplicationRegistrationResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -799,8 +854,6 @@ const registerServerOperationSpec: msRest.OperationSpec = {
   contentType: "application/json-patch+json; charset=utf-8",
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -814,8 +867,6 @@ const deleteAllDisabledApplicationsOperationSpec: msRest.OperationSpec = {
   ],
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -834,8 +885,6 @@ const discoverServerOperationSpec: msRest.OperationSpec = {
   contentType: "application/json-patch+json; charset=utf-8",
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -851,8 +900,6 @@ const getApplicationRegistrationOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ApplicationRegistrationApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -866,8 +913,6 @@ const deleteApplicationOperationSpec: msRest.OperationSpec = {
   ],
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -889,8 +934,6 @@ const updateApplicationRegistrationOperationSpec: msRest.OperationSpec = {
   contentType: "application/json-patch+json; charset=utf-8",
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -907,8 +950,6 @@ const getListOfSitesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ApplicationSiteListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -932,8 +973,6 @@ const getFilteredListOfApplicationsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ApplicationInfoListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -957,8 +996,6 @@ const queryApplicationsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ApplicationInfoListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -972,8 +1009,6 @@ const activateEndpointOperationSpec: msRest.OperationSpec = {
   ],
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -992,8 +1027,6 @@ const getEndpointOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.EndpointInfoApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1015,8 +1048,6 @@ const updateEndpointOperationSpec: msRest.OperationSpec = {
   contentType: "application/json-patch+json; charset=utf-8",
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1034,8 +1065,6 @@ const getListOfEndpointsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.EndpointInfoListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1060,8 +1089,6 @@ const getFilteredListOfEndpointsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.EndpointInfoListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1086,8 +1113,6 @@ const queryEndpointsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.EndpointInfoListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1101,8 +1126,6 @@ const deactivateEndpointOperationSpec: msRest.OperationSpec = {
   ],
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1133,8 +1156,6 @@ const getSupervisorOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.SupervisorApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1156,8 +1177,34 @@ const updateSupervisorOperationSpec: msRest.OperationSpec = {
   contentType: "application/json-patch+json; charset=utf-8",
   responses: {
     200: {},
-    401: {},
-    403: {},
+    default: {}
+  },
+  serializer
+};
+
+const getSupervisorStatusOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "v1/supervisors/{supervisorId}/status",
+  urlParameters: [
+    Parameters.supervisorId
+  ],
+  responses: {
+    200: {
+      bodyMapper: Mappers.SupervisorStatusApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const resetSupervisorOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v1/supervisors/{supervisorId}/reset",
+  urlParameters: [
+    Parameters.supervisorId
+  ],
+  responses: {
+    200: {},
     default: {}
   },
   serializer
@@ -1175,8 +1222,6 @@ const getListOfSupervisorsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.SupervisorListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1196,8 +1241,6 @@ const getFilteredListOfSupervisorsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.SupervisorListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1222,8 +1265,6 @@ const querySupervisorsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.SupervisorListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer

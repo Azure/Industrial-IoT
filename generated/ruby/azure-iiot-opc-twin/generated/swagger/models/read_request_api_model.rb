@@ -16,11 +16,8 @@ module azure.iiot.opc.twin
       # @return [Array<AttributeReadRequestApiModel>] Attributes to read
       attr_accessor :attributes
 
-      # @return [CredentialApiModel] Optional User Elevation
-      attr_accessor :elevation
-
-      # @return [DiagnosticsApiModel] Optional diagnostics configuration
-      attr_accessor :diagnostics
+      # @return [RequestHeaderApiModel] Optional request header
+      attr_accessor :header
 
 
       #
@@ -53,22 +50,13 @@ module azure.iiot.opc.twin
                   }
                 }
               },
-              elevation: {
+              header: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'elevation',
+                serialized_name: 'header',
                 type: {
                   name: 'Composite',
-                  class_name: 'CredentialApiModel'
-                }
-              },
-              diagnostics: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'diagnostics',
-                type: {
-                  name: 'Composite',
-                  class_name: 'DiagnosticsApiModel'
+                  class_name: 'RequestHeaderApiModel'
                 }
               }
             }

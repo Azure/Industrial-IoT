@@ -33,6 +33,8 @@ from .endpoint_registration_query_api_model import EndpointRegistrationQueryApiM
 from .status_response_api_model import StatusResponseApiModel
 from .supervisor_api_model import SupervisorApiModel
 from .supervisor_update_api_model import SupervisorUpdateApiModel
+from .endpoint_activation_status_api_model import EndpointActivationStatusApiModel
+from .supervisor_status_api_model import SupervisorStatusApiModel
 from .supervisor_list_api_model import SupervisorListApiModel
 from .supervisor_query_api_model import SupervisorQueryApiModel
 from .azure_opc_registry_client_enums import (
@@ -42,6 +44,8 @@ from .azure_opc_registry_client_enums import (
     DiscoveryMode,
     CredentialType,
     SecurityAssessment,
+    EndpointActivationState,
+    EndpointConnectivityState,
 )
 
 __all__ = [
@@ -69,6 +73,8 @@ __all__ = [
     'StatusResponseApiModel',
     'SupervisorApiModel',
     'SupervisorUpdateApiModel',
+    'EndpointActivationStatusApiModel',
+    'SupervisorStatusApiModel',
     'SupervisorListApiModel',
     'SupervisorQueryApiModel',
     'CallbackMethodType',
@@ -77,4 +83,6 @@ __all__ = [
     'DiscoveryMode',
     'CredentialType',
     'SecurityAssessment',
+    'EndpointActivationState',
+    'EndpointConnectivityState',
 ]

@@ -38,5 +38,7 @@ exports.EndpointRegistrationQueryApiModel = require('./endpointRegistrationQuery
 exports.StatusResponseApiModel = require('./statusResponseApiModel');
 exports.SupervisorApiModel = require('./supervisorApiModel');
 exports.SupervisorUpdateApiModel = require('./supervisorUpdateApiModel');
+exports.EndpointActivationStatusApiModel = require('./endpointActivationStatusApiModel');
+exports.SupervisorStatusApiModel = require('./supervisorStatusApiModel');
 exports.SupervisorListApiModel = require('./supervisorListApiModel');
 exports.SupervisorQueryApiModel = require('./supervisorQueryApiModel');

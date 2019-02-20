@@ -113,7 +113,7 @@ class AzureOpcRegistryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -173,7 +173,7 @@ class AzureOpcRegistryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -229,7 +229,7 @@ class AzureOpcRegistryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
@@ -274,7 +274,7 @@ class AzureOpcRegistryClient(object):
         request = self._client.delete(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
@@ -322,7 +322,7 @@ class AzureOpcRegistryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
@@ -369,7 +369,7 @@ class AzureOpcRegistryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -422,7 +422,7 @@ class AzureOpcRegistryClient(object):
         request = self._client.delete(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
@@ -478,7 +478,7 @@ class AzureOpcRegistryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
@@ -529,7 +529,7 @@ class AzureOpcRegistryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -593,7 +593,7 @@ class AzureOpcRegistryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -657,7 +657,7 @@ class AzureOpcRegistryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -712,7 +712,7 @@ class AzureOpcRegistryClient(object):
         request = self._client.post(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
@@ -765,7 +765,7 @@ class AzureOpcRegistryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -823,7 +823,7 @@ class AzureOpcRegistryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
@@ -880,7 +880,7 @@ class AzureOpcRegistryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -979,7 +979,7 @@ class AzureOpcRegistryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1047,7 +1047,7 @@ class AzureOpcRegistryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1100,7 +1100,7 @@ class AzureOpcRegistryClient(object):
         request = self._client.post(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
@@ -1201,7 +1201,7 @@ class AzureOpcRegistryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1263,13 +1263,114 @@ class AzureOpcRegistryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
             client_raw_response = ClientRawResponse(None, response)
             return client_raw_response
     update_supervisor.metadata = {'url': '/v1/supervisors/{supervisorId}'}
+
+    def get_supervisor_status(
+            self, supervisor_id, custom_headers=None, raw=False, **operation_config):
+        """Get runtime status of supervisor.
+
+        Allows a caller to get runtime status for a supervisor.
+
+        :param supervisor_id: supervisor identifier
+        :type supervisor_id: str
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: SupervisorStatusApiModel or ClientRawResponse if raw=true
+        :rtype: ~azure-iiot-opc-registry.models.SupervisorStatusApiModel or
+         ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
+        """
+        # Construct URL
+        url = self.get_supervisor_status.metadata['url']
+        path_format_arguments = {
+            'supervisorId': self._serialize.url("supervisor_id", supervisor_id, 'str')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if custom_headers:
+            header_parameters.update(custom_headers)
+
+        # Construct and send request
+        request = self._client.get(url, query_parameters)
+        response = self._client.send(request, header_parameters, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise HttpOperationError(self._deserialize, response)
+
+        deserialized = None
+
+        if response.status_code == 200:
+            deserialized = self._deserialize('SupervisorStatusApiModel', response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(deserialized, response)
+            return client_raw_response
+
+        return deserialized
+    get_supervisor_status.metadata = {'url': '/v1/supervisors/{supervisorId}/status'}
+
+    def reset_supervisor(
+            self, supervisor_id, custom_headers=None, raw=False, **operation_config):
+        """Reset supervisor.
+
+        Allows a caller to reset the twin module using its supervisor
+        identity identifier.
+
+        :param supervisor_id: supervisor identifier
+        :type supervisor_id: str
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: None or ClientRawResponse if raw=true
+        :rtype: None or ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
+        """
+        # Construct URL
+        url = self.reset_supervisor.metadata['url']
+        path_format_arguments = {
+            'supervisorId': self._serialize.url("supervisor_id", supervisor_id, 'str')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if custom_headers:
+            header_parameters.update(custom_headers)
+
+        # Construct and send request
+        request = self._client.post(url, query_parameters)
+        response = self._client.send(request, header_parameters, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise HttpOperationError(self._deserialize, response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(None, response)
+            return client_raw_response
+    reset_supervisor.metadata = {'url': '/v1/supervisors/{supervisorId}/reset'}
 
     def get_list_of_supervisors(
             self, only_server_state=None, continuation_token=None, page_size=None, custom_headers=None, raw=False, **operation_config):
@@ -1321,7 +1422,7 @@ class AzureOpcRegistryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1397,7 +1498,7 @@ class AzureOpcRegistryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1465,7 +1566,7 @@ class AzureOpcRegistryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None

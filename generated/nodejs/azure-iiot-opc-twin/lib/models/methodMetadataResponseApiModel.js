@@ -11,7 +11,7 @@
 'use strict';
 
 /**
- * method metadata query model
+ * Method metadata query model
  *
  */
 class MethodMetadataResponseApiModel {

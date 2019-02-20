@@ -24,7 +24,7 @@ public class CallbackApiModel {
     private String uri;
 
     /**
-     * Method to use for callback. Possible values include: 'Get', 'Post',
+     * Http Method to use for callback. Possible values include: 'Get', 'Post',
      * 'Put', 'Delete'.
      */
     @JsonProperty(value = "method")
@@ -59,7 +59,7 @@ public class CallbackApiModel {
     }
 
     /**
-     * Get method to use for callback. Possible values include: 'Get', 'Post', 'Put', 'Delete'.
+     * Get http Method to use for callback. Possible values include: 'Get', 'Post', 'Put', 'Delete'.
      *
      * @return the method value
      */
@@ -68,7 +68,7 @@ public class CallbackApiModel {
     }
 
     /**
-     * Set method to use for callback. Possible values include: 'Get', 'Post', 'Put', 'Delete'.
+     * Set http Method to use for callback. Possible values include: 'Get', 'Post', 'Put', 'Delete'.
      *
      * @param method the method value to set
      * @return the CallbackApiModel object itself.

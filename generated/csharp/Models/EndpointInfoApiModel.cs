@@ -33,19 +33,21 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <param name="registration">Endpoint registration</param>
         /// <param name="applicationId">Application id endpoint is registered
         /// under.</param>
-        /// <param name="activated">Whether endpoint is activated on this
-        /// registration</param>
-        /// <param name="connected">Whether endpoint is connected on this
-        /// registration</param>
+        /// <param name="activationState">Activation state of endpoint.
+        /// Possible values include: 'Deactivated', 'Activated',
+        /// 'ActivatedAndConnected'</param>
+        /// <param name="endpointState">Last state of the activated endpoint.
+        /// Possible values include: 'Connecting', 'NotReachable', 'Busy',
+        /// 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'</param>
         /// <param name="outOfSync">Whether the registration is out of
         /// sync</param>
         /// <param name="notSeenSince">Last time endpoint was seen</param>
-        public EndpointInfoApiModel(EndpointRegistrationApiModel registration, string applicationId, bool? activated = default(bool?), bool? connected = default(bool?), bool? outOfSync = default(bool?), System.DateTime? notSeenSince = default(System.DateTime?))
+        public EndpointInfoApiModel(EndpointRegistrationApiModel registration, string applicationId, EndpointActivationState? activationState = default(EndpointActivationState?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? outOfSync = default(bool?), System.DateTime? notSeenSince = default(System.DateTime?))
         {
             Registration = registration;
             ApplicationId = applicationId;
-            Activated = activated;
-            Connected = connected;
+            ActivationState = activationState;
+            EndpointState = endpointState;
             OutOfSync = outOfSync;
             NotSeenSince = notSeenSince;
             CustomInit();
@@ -69,16 +71,19 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string ApplicationId { get; set; }
 
         /// <summary>
-        /// Gets or sets whether endpoint is activated on this registration
+        /// Gets or sets activation state of endpoint. Possible values include:
+        /// 'Deactivated', 'Activated', 'ActivatedAndConnected'
         /// </summary>
-        [JsonProperty(PropertyName = "activated")]
-        public bool? Activated { get; set; }
+        [JsonProperty(PropertyName = "activationState")]
+        public EndpointActivationState? ActivationState { get; set; }
 
         /// <summary>
-        /// Gets or sets whether endpoint is connected on this registration
+        /// Gets or sets last state of the activated endpoint. Possible values
+        /// include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
+        /// 'CertificateInvalid', 'Ready', 'Error'
         /// </summary>
-        [JsonProperty(PropertyName = "connected")]
-        public bool? Connected { get; set; }
+        [JsonProperty(PropertyName = "endpointState")]
+        public EndpointConnectivityState? EndpointState { get; set; }
 
         /// <summary>
         /// Gets or sets whether the registration is out of sync

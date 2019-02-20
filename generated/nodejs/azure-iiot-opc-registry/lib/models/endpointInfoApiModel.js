@@ -42,13 +42,16 @@ class EndpointInfoApiModel {
    * @property {buffer} [registration.certificate] Endpoint cert that was
    * registered.
    * @property {array} [registration.authenticationMethods] Supported
-   * authentication methods for the endpoint.
+   * authentication methods that can be selected to
+   * obtain a credential and used to interact with the endpoint.
    * @property {string} applicationId Application id endpoint is registered
    * under.
-   * @property {boolean} [activated] Whether endpoint is activated on this
-   * registration
-   * @property {boolean} [connected] Whether endpoint is connected on this
-   * registration
+   * @property {string} [activationState] Activation state of endpoint.
+   * Possible values include: 'Deactivated', 'Activated',
+   * 'ActivatedAndConnected'
+   * @property {string} [endpointState] Last state of the activated endpoint.
+   * Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
+   * 'CertificateInvalid', 'Ready', 'Error'
    * @property {boolean} [outOfSync] Whether the registration is out of sync
    * @property {date} [notSeenSince] Last time endpoint was seen
    */
@@ -84,18 +87,20 @@ class EndpointInfoApiModel {
               name: 'String'
             }
           },
-          activated: {
+          activationState: {
             required: false,
-            serializedName: 'activated',
+            serializedName: 'activationState',
             type: {
-              name: 'Boolean'
+              name: 'Enum',
+              allowedValues: [ 'Deactivated', 'Activated', 'ActivatedAndConnected' ]
             }
           },
-          connected: {
+          endpointState: {
             required: false,
-            serializedName: 'connected',
+            serializedName: 'endpointState',
             type: {
-              name: 'Boolean'
+              name: 'Enum',
+              allowedValues: [ 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error' ]
             }
           },
           outOfSync: {

@@ -18,7 +18,7 @@ export interface CallbackApiModel {
    */
   uri?: string;
   /**
-   * Method to use for callback. Possible values include: 'Get', 'Post', 'Put', 'Delete'
+   * Http Method to use for callback. Possible values include: 'Get', 'Post', 'Put', 'Delete'
    */
   method?: string;
   /**
@@ -122,7 +122,7 @@ export interface ApplicationRegistrationResponseApiModel {
 }
 
 /**
- * Application model
+ * Application info model
  */
 export interface ApplicationInfoApiModel {
   /**
@@ -206,7 +206,7 @@ export interface DiscoveryConfigApiModel {
    */
   addressRangesToScan?: string;
   /**
-   * Networking probe timeout
+   * Network probe timeout
    */
   networkProbeTimeoutMs?: number;
   /**
@@ -316,7 +316,7 @@ export interface EndpointApiModel {
  */
 export interface AuthenticationMethodApiModel {
   /**
-   * Method identifier
+   * Method id
    */
   id: string;
   /**
@@ -358,7 +358,8 @@ export interface EndpointRegistrationApiModel {
    */
   certificate?: Buffer;
   /**
-   * Supported authentication methods for the endpoint.
+   * Supported authentication methods that can be selected to
+   * obtain a credential and used to interact with the endpoint.
    */
   authenticationMethods?: AuthenticationMethodApiModel[];
 }
@@ -490,13 +491,15 @@ export interface EndpointInfoApiModel {
    */
   applicationId: string;
   /**
-   * Whether endpoint is activated on this registration
+   * Activation state of endpoint. Possible values include: 'Deactivated', 'Activated',
+   * 'ActivatedAndConnected'
    */
-  activated?: boolean;
+  activationState?: string;
   /**
-   * Whether endpoint is connected on this registration
+   * Last state of the activated endpoint. Possible values include: 'Connecting', 'NotReachable',
+   * 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
    */
-  connected?: boolean;
+  endpointState?: string;
   /**
    * Whether the registration is out of sync
    */
@@ -665,6 +668,42 @@ export interface SupervisorUpdateApiModel {
    * Whether to add or remove callbacks
    */
   removeDiscoveryCallbacks?: boolean;
+}
+
+/**
+ * Endpoint Activation status model
+ */
+export interface EndpointActivationStatusApiModel {
+  /**
+   * Identifier of the endoint
+   */
+  id: string;
+  /**
+   * Activation state. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
+   */
+  activationState?: string;
+}
+
+/**
+ * Supervisor runtime status
+ */
+export interface SupervisorStatusApiModel {
+  /**
+   * Edge device id
+   */
+  deviceId: string;
+  /**
+   * Module id
+   */
+  moduleId?: string;
+  /**
+   * Site id
+   */
+  siteId?: string;
+  /**
+   * Endpoint activation status
+   */
+  endpoints?: EndpointActivationStatusApiModel[];
 }
 
 /**

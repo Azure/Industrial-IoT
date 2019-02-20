@@ -13,7 +13,7 @@ from msrest.serialization import Model
 
 
 class NodeApiModel(Model):
-    """node model.
+    """Node model.
 
     :param node_class: Type of node. Possible values include: 'Object',
      'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType',
@@ -21,17 +21,13 @@ class NodeApiModel(Model):
     :type node_class: str or ~azure-iiot-opc-twin.models.NodeClass
     :param display_name: Display name
     :type display_name: str
-    :param id: Id of node.
+    :param node_id: Id of node.
      (Mandatory).
-    :type id: str
+    :type node_id: str
     :param description: Description if any
     :type description: str
-    :param children: Whether node has children which are defined as
-     any forward hierarchical references.
-     (default: unknown)
-    :type children: bool
-    :param name: Browse name
-    :type name: str
+    :param browse_name: Browse name
+    :type browse_name: str
     :param access_restrictions: Node access restrictions if any.
      (default: none). Possible values include: 'SigningRequired',
      'EncryptionRequired', 'SessionRequired'
@@ -113,19 +109,24 @@ class NodeApiModel(Model):
     :param user_role_permissions: User Role permissions
     :type user_role_permissions:
      list[~azure-iiot-opc-twin.models.RolePermissionApiModel]
+    :param type_definition_id: Optional type definition of the node
+    :type type_definition_id: str
+    :param children: Whether node has children which are defined as
+     any forward hierarchical references.
+     (default: unknown)
+    :type children: bool
     """
 
     _validation = {
-        'id': {'required': True},
+        'node_id': {'required': True},
     }
 
     _attribute_map = {
         'node_class': {'key': 'nodeClass', 'type': 'NodeClass'},
         'display_name': {'key': 'displayName', 'type': 'str'},
-        'id': {'key': 'id', 'type': 'str'},
+        'node_id': {'key': 'nodeId', 'type': 'str'},
         'description': {'key': 'description', 'type': 'str'},
-        'children': {'key': 'children', 'type': 'bool'},
-        'name': {'key': 'name', 'type': 'str'},
+        'browse_name': {'key': 'browseName', 'type': 'str'},
         'access_restrictions': {'key': 'accessRestrictions', 'type': 'NodeAccessRestrictions'},
         'write_mask': {'key': 'writeMask', 'type': 'int'},
         'user_write_mask': {'key': 'userWriteMask', 'type': 'int'},
@@ -147,16 +148,17 @@ class NodeApiModel(Model):
         'symmetric': {'key': 'symmetric', 'type': 'bool'},
         'role_permissions': {'key': 'rolePermissions', 'type': '[RolePermissionApiModel]'},
         'user_role_permissions': {'key': 'userRolePermissions', 'type': '[RolePermissionApiModel]'},
+        'type_definition_id': {'key': 'typeDefinitionId', 'type': 'str'},
+        'children': {'key': 'children', 'type': 'bool'},
     }
 
-    def __init__(self, id, node_class=None, display_name=None, description=None, children=None, name=None, access_restrictions=None, write_mask=None, user_write_mask=None, is_abstract=None, contains_no_loops=None, event_notifier=None, executable=None, user_executable=None, data_type_definition=None, access_level=None, user_access_level=None, data_type=None, value_rank=None, array_dimensions=None, historizing=None, minimum_sampling_interval=None, value=None, inverse_name=None, symmetric=None, role_permissions=None, user_role_permissions=None):
+    def __init__(self, node_id, node_class=None, display_name=None, description=None, browse_name=None, access_restrictions=None, write_mask=None, user_write_mask=None, is_abstract=None, contains_no_loops=None, event_notifier=None, executable=None, user_executable=None, data_type_definition=None, access_level=None, user_access_level=None, data_type=None, value_rank=None, array_dimensions=None, historizing=None, minimum_sampling_interval=None, value=None, inverse_name=None, symmetric=None, role_permissions=None, user_role_permissions=None, type_definition_id=None, children=None):
         super(NodeApiModel, self).__init__()
         self.node_class = node_class
         self.display_name = display_name
-        self.id = id
+        self.node_id = node_id
         self.description = description
-        self.children = children
-        self.name = name
+        self.browse_name = browse_name
         self.access_restrictions = access_restrictions
         self.write_mask = write_mask
         self.user_write_mask = user_write_mask
@@ -178,3 +180,5 @@ class NodeApiModel(Model):
         self.symmetric = symmetric
         self.role_permissions = role_permissions
         self.user_role_permissions = user_role_permissions
+        self.type_definition_id = type_definition_id
+        self.children = children

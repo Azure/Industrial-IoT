@@ -16,7 +16,7 @@ module azure.iiot.opc.registry
       # @return [String] Address ranges to scan (null == all wired nics)
       attr_accessor :address_ranges_to_scan
 
-      # @return [Integer] Networking probe timeout
+      # @return [Integer] Network probe timeout
       attr_accessor :network_probe_timeout_ms
 
       # @return [Integer] Max network probes that should ever run.

@@ -24,16 +24,10 @@ public class ReadRequestApiModel {
     private List<AttributeReadRequestApiModel> attributes;
 
     /**
-     * Optional User Elevation.
+     * Optional request header.
      */
-    @JsonProperty(value = "elevation")
-    private CredentialApiModel elevation;
-
-    /**
-     * Optional diagnostics configuration.
-     */
-    @JsonProperty(value = "diagnostics")
-    private DiagnosticsApiModel diagnostics;
+    @JsonProperty(value = "header")
+    private RequestHeaderApiModel headerProperty;
 
     /**
      * Get attributes to read.
@@ -56,42 +50,22 @@ public class ReadRequestApiModel {
     }
 
     /**
-     * Get optional User Elevation.
+     * Get optional request header.
      *
-     * @return the elevation value
+     * @return the headerProperty value
      */
-    public CredentialApiModel elevation() {
-        return this.elevation;
+    public RequestHeaderApiModel headerProperty() {
+        return this.headerProperty;
     }
 
     /**
-     * Set optional User Elevation.
+     * Set optional request header.
      *
-     * @param elevation the elevation value to set
+     * @param headerProperty the headerProperty value to set
      * @return the ReadRequestApiModel object itself.
      */
-    public ReadRequestApiModel withElevation(CredentialApiModel elevation) {
-        this.elevation = elevation;
-        return this;
-    }
-
-    /**
-     * Get optional diagnostics configuration.
-     *
-     * @return the diagnostics value
-     */
-    public DiagnosticsApiModel diagnostics() {
-        return this.diagnostics;
-    }
-
-    /**
-     * Set optional diagnostics configuration.
-     *
-     * @param diagnostics the diagnostics value to set
-     * @return the ReadRequestApiModel object itself.
-     */
-    public ReadRequestApiModel withDiagnostics(DiagnosticsApiModel diagnostics) {
-        this.diagnostics = diagnostics;
+    public ReadRequestApiModel withHeaderProperty(RequestHeaderApiModel headerProperty) {
+        this.headerProperty = headerProperty;
         return this;
     }
 

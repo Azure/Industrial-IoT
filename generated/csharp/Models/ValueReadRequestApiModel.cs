@@ -12,6 +12,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
 {
     using Microsoft.Rest;
     using Newtonsoft.Json;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
@@ -31,20 +33,20 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Initializes a new instance of the ValueReadRequestApiModel class.
         /// </summary>
         /// <param name="nodeId">Node to read from (mandatory)</param>
+        /// <param name="browsePath">An optional path from NodeId instance to
+        /// the actual node.</param>
         /// <param name="indexRange">Index range to read, e.g. 1:2,0:1 for 2
         /// slices
         /// out of a matrix or 0:1 for the first item in
         /// an array, string or bytestring.
         /// See 7.22 of part 4: NumericRange.</param>
-        /// <param name="elevation">Optional User elevation</param>
-        /// <param name="diagnostics">Optional diagnostics
-        /// configuration</param>
-        public ValueReadRequestApiModel(string nodeId, string indexRange = default(string), CredentialApiModel elevation = default(CredentialApiModel), DiagnosticsApiModel diagnostics = default(DiagnosticsApiModel))
+        /// <param name="header">Optional request header</param>
+        public ValueReadRequestApiModel(string nodeId, IList<string> browsePath = default(IList<string>), string indexRange = default(string), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             NodeId = nodeId;
+            BrowsePath = browsePath;
             IndexRange = indexRange;
-            Elevation = elevation;
-            Diagnostics = diagnostics;
+            Header = header;
             CustomInit();
         }
 
@@ -60,6 +62,13 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string NodeId { get; set; }
 
         /// <summary>
+        /// Gets or sets an optional path from NodeId instance to
+        /// the actual node.
+        /// </summary>
+        [JsonProperty(PropertyName = "browsePath")]
+        public IList<string> BrowsePath { get; set; }
+
+        /// <summary>
         /// Gets or sets index range to read, e.g. 1:2,0:1 for 2 slices
         /// out of a matrix or 0:1 for the first item in
         /// an array, string or bytestring.
@@ -69,16 +78,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string IndexRange { get; set; }
 
         /// <summary>
-        /// Gets or sets optional User elevation
+        /// Gets or sets optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "elevation")]
-        public CredentialApiModel Elevation { get; set; }
-
-        /// <summary>
-        /// Gets or sets optional diagnostics configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "diagnostics")]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "header")]
+        public RequestHeaderApiModel Header { get; set; }
 
         /// <summary>
         /// Validate the object.

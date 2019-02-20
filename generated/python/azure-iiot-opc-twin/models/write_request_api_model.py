@@ -18,10 +18,8 @@ class WriteRequestApiModel(Model):
     :param attributes: Attributes to update
     :type attributes:
      list[~azure-iiot-opc-twin.models.AttributeWriteRequestApiModel]
-    :param elevation: Optional User Elevation
-    :type elevation: ~azure-iiot-opc-twin.models.CredentialApiModel
-    :param diagnostics: Optional diagnostics configuration
-    :type diagnostics: ~azure-iiot-opc-twin.models.DiagnosticsApiModel
+    :param header: Optional request header
+    :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 
     _validation = {
@@ -30,12 +28,10 @@ class WriteRequestApiModel(Model):
 
     _attribute_map = {
         'attributes': {'key': 'attributes', 'type': '[AttributeWriteRequestApiModel]'},
-        'elevation': {'key': 'elevation', 'type': 'CredentialApiModel'},
-        'diagnostics': {'key': 'diagnostics', 'type': 'DiagnosticsApiModel'},
+        'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, attributes, elevation=None, diagnostics=None):
+    def __init__(self, attributes, header=None):
         super(WriteRequestApiModel, self).__init__()
         self.attributes = attributes
-        self.elevation = elevation
-        self.diagnostics = diagnostics
+        self.header = header

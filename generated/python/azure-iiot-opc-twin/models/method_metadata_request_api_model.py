@@ -15,12 +15,15 @@ from msrest.serialization import Model
 class MethodMetadataRequestApiModel(Model):
     """Method metadata request model.
 
-    :param method_id: Count of input arguments
+    :param method_id: Method id of method to call.
+     (Required)
     :type method_id: str
-    :param elevation: Optional User elevation
-    :type elevation: ~azure-iiot-opc-twin.models.CredentialApiModel
-    :param diagnostics: Optional diagnostics configuration
-    :type diagnostics: ~azure-iiot-opc-twin.models.DiagnosticsApiModel
+    :param method_browse_path: An optional component path from the node
+     identified by
+     MethodId to the actual method node.
+    :type method_browse_path: list[str]
+    :param header: Optional request header
+    :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 
     _validation = {
@@ -29,12 +32,12 @@ class MethodMetadataRequestApiModel(Model):
 
     _attribute_map = {
         'method_id': {'key': 'methodId', 'type': 'str'},
-        'elevation': {'key': 'elevation', 'type': 'CredentialApiModel'},
-        'diagnostics': {'key': 'diagnostics', 'type': 'DiagnosticsApiModel'},
+        'method_browse_path': {'key': 'methodBrowsePath', 'type': '[str]'},
+        'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, method_id, elevation=None, diagnostics=None):
+    def __init__(self, method_id, method_browse_path=None, header=None):
         super(MethodMetadataRequestApiModel, self).__init__()
         self.method_id = method_id
-        self.elevation = elevation
-        self.diagnostics = diagnostics
+        self.method_browse_path = method_browse_path
+        self.header = header

@@ -19,14 +19,8 @@ public class NodeReferenceApiModel {
     /**
      * Reference Type identifier.
      */
-    @JsonProperty(value = "typeId")
-    private String typeId;
-
-    /**
-     * Browse name of reference.
-     */
-    @JsonProperty(value = "browseName")
-    private String browseName;
+    @JsonProperty(value = "referenceTypeId")
+    private String referenceTypeId;
 
     /**
      * Browse direction of reference. Possible values include: 'Forward',
@@ -36,60 +30,28 @@ public class NodeReferenceApiModel {
     private BrowseDirection direction;
 
     /**
-     * Display name of reference.
-     */
-    @JsonProperty(value = "displayName")
-    private String displayName;
-
-    /**
      * Target node.
      */
     @JsonProperty(value = "target", required = true)
     private NodeApiModel target;
 
     /**
-     * Optional type definition of the reference.
-     */
-    @JsonProperty(value = "typeDefinition")
-    private String typeDefinition;
-
-    /**
      * Get reference Type identifier.
      *
-     * @return the typeId value
+     * @return the referenceTypeId value
      */
-    public String typeId() {
-        return this.typeId;
+    public String referenceTypeId() {
+        return this.referenceTypeId;
     }
 
     /**
      * Set reference Type identifier.
      *
-     * @param typeId the typeId value to set
+     * @param referenceTypeId the referenceTypeId value to set
      * @return the NodeReferenceApiModel object itself.
      */
-    public NodeReferenceApiModel withTypeId(String typeId) {
-        this.typeId = typeId;
-        return this;
-    }
-
-    /**
-     * Get browse name of reference.
-     *
-     * @return the browseName value
-     */
-    public String browseName() {
-        return this.browseName;
-    }
-
-    /**
-     * Set browse name of reference.
-     *
-     * @param browseName the browseName value to set
-     * @return the NodeReferenceApiModel object itself.
-     */
-    public NodeReferenceApiModel withBrowseName(String browseName) {
-        this.browseName = browseName;
+    public NodeReferenceApiModel withReferenceTypeId(String referenceTypeId) {
+        this.referenceTypeId = referenceTypeId;
         return this;
     }
 
@@ -114,26 +76,6 @@ public class NodeReferenceApiModel {
     }
 
     /**
-     * Get display name of reference.
-     *
-     * @return the displayName value
-     */
-    public String displayName() {
-        return this.displayName;
-    }
-
-    /**
-     * Set display name of reference.
-     *
-     * @param displayName the displayName value to set
-     * @return the NodeReferenceApiModel object itself.
-     */
-    public NodeReferenceApiModel withDisplayName(String displayName) {
-        this.displayName = displayName;
-        return this;
-    }
-
-    /**
      * Get target node.
      *
      * @return the target value
@@ -150,26 +92,6 @@ public class NodeReferenceApiModel {
      */
     public NodeReferenceApiModel withTarget(NodeApiModel target) {
         this.target = target;
-        return this;
-    }
-
-    /**
-     * Get optional type definition of the reference.
-     *
-     * @return the typeDefinition value
-     */
-    public String typeDefinition() {
-        return this.typeDefinition;
-    }
-
-    /**
-     * Set optional type definition of the reference.
-     *
-     * @param typeDefinition the typeDefinition value to set
-     * @return the NodeReferenceApiModel object itself.
-     */
-    public NodeReferenceApiModel withTypeDefinition(String typeDefinition) {
-        this.typeDefinition = typeDefinition;
         return this;
     }
 

@@ -10,7 +10,7 @@
 module azure.iiot.opc.twin
   module Models
     #
-    # Result of publish stop request
+    # Result of unpublish request
     #
     class PublishStopResponseApiModel
       # @return [ServiceResultApiModel] Service result in case of error

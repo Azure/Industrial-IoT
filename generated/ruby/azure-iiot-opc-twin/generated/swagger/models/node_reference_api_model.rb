@@ -14,23 +14,14 @@ module azure.iiot.opc.twin
     #
     class NodeReferenceApiModel
       # @return [String] Reference Type identifier
-      attr_accessor :type_id
-
-      # @return [String] Browse name of reference
-      attr_accessor :browse_name
+      attr_accessor :reference_type_id
 
       # @return [BrowseDirection] Browse direction of reference. Possible
       # values include: 'Forward', 'Backward', 'Both'
       attr_accessor :direction
 
-      # @return [String] Display name of reference
-      attr_accessor :display_name
-
       # @return [NodeApiModel] Target node
       attr_accessor :target
-
-      # @return [String] Optional type definition of the reference
-      attr_accessor :type_definition
 
 
       #
@@ -46,18 +37,10 @@ module azure.iiot.opc.twin
             name: 'Composite',
             class_name: 'NodeReferenceApiModel',
             model_properties: {
-              type_id: {
+              reference_type_id: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'typeId',
-                type: {
-                  name: 'String'
-                }
-              },
-              browse_name: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'browseName',
+                serialized_name: 'referenceTypeId',
                 type: {
                   name: 'String'
                 }
@@ -71,14 +54,6 @@ module azure.iiot.opc.twin
                   module: 'BrowseDirection'
                 }
               },
-              display_name: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'displayName',
-                type: {
-                  name: 'String'
-                }
-              },
               target: {
                 client_side_validation: true,
                 required: true,
@@ -86,14 +61,6 @@ module azure.iiot.opc.twin
                 type: {
                   name: 'Composite',
                   class_name: 'NodeApiModel'
-                }
-              },
-              type_definition: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'typeDefinition',
-                type: {
-                  name: 'String'
                 }
               }
             }

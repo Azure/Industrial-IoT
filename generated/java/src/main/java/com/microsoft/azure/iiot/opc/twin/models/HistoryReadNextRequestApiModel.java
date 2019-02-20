@@ -30,16 +30,10 @@ public class HistoryReadNextRequestApiModel {
     private Boolean abort;
 
     /**
-     * Optional User elevation.
+     * Optional request header.
      */
-    @JsonProperty(value = "elevation")
-    private CredentialApiModel elevation;
-
-    /**
-     * Optional diagnostics configuration.
-     */
-    @JsonProperty(value = "diagnostics")
-    private DiagnosticsApiModel diagnostics;
+    @JsonProperty(value = "header")
+    private RequestHeaderApiModel headerProperty;
 
     /**
      * Get continuation token to continue reading more
@@ -84,42 +78,22 @@ public class HistoryReadNextRequestApiModel {
     }
 
     /**
-     * Get optional User elevation.
+     * Get optional request header.
      *
-     * @return the elevation value
+     * @return the headerProperty value
      */
-    public CredentialApiModel elevation() {
-        return this.elevation;
+    public RequestHeaderApiModel headerProperty() {
+        return this.headerProperty;
     }
 
     /**
-     * Set optional User elevation.
+     * Set optional request header.
      *
-     * @param elevation the elevation value to set
+     * @param headerProperty the headerProperty value to set
      * @return the HistoryReadNextRequestApiModel object itself.
      */
-    public HistoryReadNextRequestApiModel withElevation(CredentialApiModel elevation) {
-        this.elevation = elevation;
-        return this;
-    }
-
-    /**
-     * Get optional diagnostics configuration.
-     *
-     * @return the diagnostics value
-     */
-    public DiagnosticsApiModel diagnostics() {
-        return this.diagnostics;
-    }
-
-    /**
-     * Set optional diagnostics configuration.
-     *
-     * @param diagnostics the diagnostics value to set
-     * @return the HistoryReadNextRequestApiModel object itself.
-     */
-    public HistoryReadNextRequestApiModel withDiagnostics(DiagnosticsApiModel diagnostics) {
-        this.diagnostics = diagnostics;
+    public HistoryReadNextRequestApiModel withHeaderProperty(RequestHeaderApiModel headerProperty) {
+        this.headerProperty = headerProperty;
         return this;
     }
 

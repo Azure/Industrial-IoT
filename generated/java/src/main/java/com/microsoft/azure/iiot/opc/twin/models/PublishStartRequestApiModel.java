@@ -23,10 +23,10 @@ public class PublishStartRequestApiModel {
     private PublishedItemApiModel item;
 
     /**
-     * Optional diagnostics configuration.
+     * Optional request header.
      */
-    @JsonProperty(value = "diagnostics")
-    private DiagnosticsApiModel diagnostics;
+    @JsonProperty(value = "header")
+    private RequestHeaderApiModel headerProperty;
 
     /**
      * Get item to publish.
@@ -49,22 +49,22 @@ public class PublishStartRequestApiModel {
     }
 
     /**
-     * Get optional diagnostics configuration.
+     * Get optional request header.
      *
-     * @return the diagnostics value
+     * @return the headerProperty value
      */
-    public DiagnosticsApiModel diagnostics() {
-        return this.diagnostics;
+    public RequestHeaderApiModel headerProperty() {
+        return this.headerProperty;
     }
 
     /**
-     * Set optional diagnostics configuration.
+     * Set optional request header.
      *
-     * @param diagnostics the diagnostics value to set
+     * @param headerProperty the headerProperty value to set
      * @return the PublishStartRequestApiModel object itself.
      */
-    public PublishStartRequestApiModel withDiagnostics(DiagnosticsApiModel diagnostics) {
-        this.diagnostics = diagnostics;
+    public PublishStartRequestApiModel withHeaderProperty(RequestHeaderApiModel headerProperty) {
+        this.headerProperty = headerProperty;
         return this;
     }
 

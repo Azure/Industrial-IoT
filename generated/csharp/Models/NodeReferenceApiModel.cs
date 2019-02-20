@@ -31,21 +31,14 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Initializes a new instance of the NodeReferenceApiModel class.
         /// </summary>
         /// <param name="target">Target node</param>
-        /// <param name="typeId">Reference Type identifier</param>
-        /// <param name="browseName">Browse name of reference</param>
+        /// <param name="referenceTypeId">Reference Type identifier</param>
         /// <param name="direction">Browse direction of reference. Possible
         /// values include: 'Forward', 'Backward', 'Both'</param>
-        /// <param name="displayName">Display name of reference</param>
-        /// <param name="typeDefinition">Optional type definition of the
-        /// reference</param>
-        public NodeReferenceApiModel(NodeApiModel target, string typeId = default(string), string browseName = default(string), BrowseDirection? direction = default(BrowseDirection?), string displayName = default(string), string typeDefinition = default(string))
+        public NodeReferenceApiModel(NodeApiModel target, string referenceTypeId = default(string), BrowseDirection? direction = default(BrowseDirection?))
         {
-            TypeId = typeId;
-            BrowseName = browseName;
+            ReferenceTypeId = referenceTypeId;
             Direction = direction;
-            DisplayName = displayName;
             Target = target;
-            TypeDefinition = typeDefinition;
             CustomInit();
         }
 
@@ -57,14 +50,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <summary>
         /// Gets or sets reference Type identifier
         /// </summary>
-        [JsonProperty(PropertyName = "typeId")]
-        public string TypeId { get; set; }
-
-        /// <summary>
-        /// Gets or sets browse name of reference
-        /// </summary>
-        [JsonProperty(PropertyName = "browseName")]
-        public string BrowseName { get; set; }
+        [JsonProperty(PropertyName = "referenceTypeId")]
+        public string ReferenceTypeId { get; set; }
 
         /// <summary>
         /// Gets or sets browse direction of reference. Possible values
@@ -74,22 +61,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public BrowseDirection? Direction { get; set; }
 
         /// <summary>
-        /// Gets or sets display name of reference
-        /// </summary>
-        [JsonProperty(PropertyName = "displayName")]
-        public string DisplayName { get; set; }
-
-        /// <summary>
         /// Gets or sets target node
         /// </summary>
         [JsonProperty(PropertyName = "target")]
         public NodeApiModel Target { get; set; }
-
-        /// <summary>
-        /// Gets or sets optional type definition of the reference
-        /// </summary>
-        [JsonProperty(PropertyName = "typeDefinition")]
-        public string TypeDefinition { get; set; }
 
         /// <summary>
         /// Validate the object.

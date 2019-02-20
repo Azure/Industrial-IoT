@@ -10,6 +10,7 @@
 
 package com.microsoft.azure.iiot.opc.twin.models;
 
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -21,6 +22,13 @@ public class HistoryReadRequestApiModel {
      */
     @JsonProperty(value = "nodeId", required = true)
     private String nodeId;
+
+    /**
+     * An optional path from NodeId instance to
+     * the actual node.
+     */
+    @JsonProperty(value = "browsePath")
+    private List<String> browsePath;
 
     /**
      * The HistoryReadDetailsType extension object
@@ -40,16 +48,10 @@ public class HistoryReadRequestApiModel {
     private String indexRange;
 
     /**
-     * Optional User elevation.
+     * Optional request header.
      */
-    @JsonProperty(value = "elevation")
-    private CredentialApiModel elevation;
-
-    /**
-     * Optional diagnostics configuration.
-     */
-    @JsonProperty(value = "diagnostics")
-    private DiagnosticsApiModel diagnostics;
+    @JsonProperty(value = "header")
+    private RequestHeaderApiModel headerProperty;
 
     /**
      * Get node to read from (mandatory).
@@ -68,6 +70,28 @@ public class HistoryReadRequestApiModel {
      */
     public HistoryReadRequestApiModel withNodeId(String nodeId) {
         this.nodeId = nodeId;
+        return this;
+    }
+
+    /**
+     * Get an optional path from NodeId instance to
+     the actual node.
+     *
+     * @return the browsePath value
+     */
+    public List<String> browsePath() {
+        return this.browsePath;
+    }
+
+    /**
+     * Set an optional path from NodeId instance to
+     the actual node.
+     *
+     * @param browsePath the browsePath value to set
+     * @return the HistoryReadRequestApiModel object itself.
+     */
+    public HistoryReadRequestApiModel withBrowsePath(List<String> browsePath) {
+        this.browsePath = browsePath;
         return this;
     }
 
@@ -122,42 +146,22 @@ public class HistoryReadRequestApiModel {
     }
 
     /**
-     * Get optional User elevation.
+     * Get optional request header.
      *
-     * @return the elevation value
+     * @return the headerProperty value
      */
-    public CredentialApiModel elevation() {
-        return this.elevation;
+    public RequestHeaderApiModel headerProperty() {
+        return this.headerProperty;
     }
 
     /**
-     * Set optional User elevation.
+     * Set optional request header.
      *
-     * @param elevation the elevation value to set
+     * @param headerProperty the headerProperty value to set
      * @return the HistoryReadRequestApiModel object itself.
      */
-    public HistoryReadRequestApiModel withElevation(CredentialApiModel elevation) {
-        this.elevation = elevation;
-        return this;
-    }
-
-    /**
-     * Get optional diagnostics configuration.
-     *
-     * @return the diagnostics value
-     */
-    public DiagnosticsApiModel diagnostics() {
-        return this.diagnostics;
-    }
-
-    /**
-     * Set optional diagnostics configuration.
-     *
-     * @param diagnostics the diagnostics value to set
-     * @return the HistoryReadRequestApiModel object itself.
-     */
-    public HistoryReadRequestApiModel withDiagnostics(DiagnosticsApiModel diagnostics) {
-        this.diagnostics = diagnostics;
+    public HistoryReadRequestApiModel withHeaderProperty(RequestHeaderApiModel headerProperty) {
+        this.headerProperty = headerProperty;
         return this;
     }
 

@@ -25,8 +25,8 @@ class SupervisorUpdateApiModel {
    * @property {object} [discoveryConfig] Supervisor discovery configuration
    * @property {string} [discoveryConfig.addressRangesToScan] Address ranges to
    * scan (null == all wired nics)
-   * @property {number} [discoveryConfig.networkProbeTimeoutMs] Networking
-   * probe timeout
+   * @property {number} [discoveryConfig.networkProbeTimeoutMs] Network probe
+   * timeout
    * @property {number} [discoveryConfig.maxNetworkProbes] Max network probes
    * that should ever run.
    * @property {string} [discoveryConfig.portRangesToScan] Port ranges to scan

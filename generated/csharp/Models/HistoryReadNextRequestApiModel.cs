@@ -36,15 +36,12 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// reading more
         /// results.</param>
         /// <param name="abort">Abort reading after this read</param>
-        /// <param name="elevation">Optional User elevation</param>
-        /// <param name="diagnostics">Optional diagnostics
-        /// configuration</param>
-        public HistoryReadNextRequestApiModel(string continuationToken, bool? abort = default(bool?), CredentialApiModel elevation = default(CredentialApiModel), DiagnosticsApiModel diagnostics = default(DiagnosticsApiModel))
+        /// <param name="header">Optional request header</param>
+        public HistoryReadNextRequestApiModel(string continuationToken, bool? abort = default(bool?), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             ContinuationToken = continuationToken;
             Abort = abort;
-            Elevation = elevation;
-            Diagnostics = diagnostics;
+            Header = header;
             CustomInit();
         }
 
@@ -67,16 +64,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public bool? Abort { get; set; }
 
         /// <summary>
-        /// Gets or sets optional User elevation
+        /// Gets or sets optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "elevation")]
-        public CredentialApiModel Elevation { get; set; }
-
-        /// <summary>
-        /// Gets or sets optional diagnostics configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "diagnostics")]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "header")]
+        public RequestHeaderApiModel Header { get; set; }
 
         /// <summary>
         /// Validate the object.

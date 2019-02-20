@@ -17,22 +17,35 @@
 class MethodCallRequestApiModel {
   /**
    * Create a MethodCallRequestApiModel.
-   * @property {string} methodId Method id of method to call
-   * @property {string} [objectId] If not global (= null), object or type scope
+   * @property {string} [methodId] Method id of method to call.
+   * @property {string} [objectId] Context of the method, i.e. an object or
+   * object type
+   * node.
    * @property {array} [argumentsProperty] Arguments for the method - null
    * means no args
-   * @property {object} [elevation] Optional User elevation
-   * @property {string} [elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   * @property {object} [elevation.value] Value to pass to server
-   * @property {object} [diagnostics] Optional diagnostics configuration
-   * @property {string} [diagnostics.level] Requested level of response
+   * @property {array} [methodBrowsePath] An optional component path from the
+   * node identified by
+   * MethodId or from a resolved objectId to the actual
+   * method node.
+   * @property {array} [objectBrowsePath] An optional component path from the
+   * node identified by
+   * ObjectId to the actual object or objectType node.
+   * If ObjectId is null, the root node (i=84) is used.
+   * @property {object} [header] Optional request header
+   * @property {object} [header.elevation] Optional User elevation
+   * @property {string} [header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @property {object} [header.elevation.value] Value to pass to server
+   * @property {array} [header.locales] Optional list of locales in preference
+   * order.
+   * @property {object} [header.diagnostics] Optional diagnostics configuration
+   * @property {string} [header.diagnostics.level] Requested level of response
    * diagnostics.
    * (default: Status). Possible values include: 'None', 'Status',
    * 'Operations', 'Diagnostics', 'Verbose'
-   * @property {string} [diagnostics.auditId] Client audit log entry.
+   * @property {string} [header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
-   * @property {date} [diagnostics.timeStamp] Timestamp of request.
+   * @property {date} [header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    */
   constructor() {
@@ -53,7 +66,7 @@ class MethodCallRequestApiModel {
         className: 'MethodCallRequestApiModel',
         modelProperties: {
           methodId: {
-            required: true,
+            required: false,
             serializedName: 'methodId',
             type: {
               name: 'String'
@@ -81,20 +94,40 @@ class MethodCallRequestApiModel {
               }
             }
           },
-          elevation: {
+          methodBrowsePath: {
             required: false,
-            serializedName: 'elevation',
+            serializedName: 'methodBrowsePath',
             type: {
-              name: 'Composite',
-              className: 'CredentialApiModel'
+              name: 'Sequence',
+              element: {
+                  required: false,
+                  serializedName: 'StringElementType',
+                  type: {
+                    name: 'String'
+                  }
+              }
             }
           },
-          diagnostics: {
+          objectBrowsePath: {
             required: false,
-            serializedName: 'diagnostics',
+            serializedName: 'objectBrowsePath',
+            type: {
+              name: 'Sequence',
+              element: {
+                  required: false,
+                  serializedName: 'StringElementType',
+                  type: {
+                    name: 'String'
+                  }
+              }
+            }
+          },
+          header: {
+            required: false,
+            serializedName: 'header',
             type: {
               name: 'Composite',
-              className: 'DiagnosticsApiModel'
+              className: 'RequestHeaderApiModel'
             }
           }
         }

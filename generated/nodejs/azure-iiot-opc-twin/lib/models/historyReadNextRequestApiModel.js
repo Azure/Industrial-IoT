@@ -22,18 +22,21 @@ class HistoryReadNextRequestApiModel {
    * results.
    * @property {boolean} [abort] Abort reading after this read. Default value:
    * false .
-   * @property {object} [elevation] Optional User elevation
-   * @property {string} [elevation.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   * @property {object} [elevation.value] Value to pass to server
-   * @property {object} [diagnostics] Optional diagnostics configuration
-   * @property {string} [diagnostics.level] Requested level of response
+   * @property {object} [header] Optional request header
+   * @property {object} [header.elevation] Optional User elevation
+   * @property {string} [header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @property {object} [header.elevation.value] Value to pass to server
+   * @property {array} [header.locales] Optional list of locales in preference
+   * order.
+   * @property {object} [header.diagnostics] Optional diagnostics configuration
+   * @property {string} [header.diagnostics.level] Requested level of response
    * diagnostics.
    * (default: Status). Possible values include: 'None', 'Status',
    * 'Operations', 'Diagnostics', 'Verbose'
-   * @property {string} [diagnostics.auditId] Client audit log entry.
+   * @property {string} [header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
-   * @property {date} [diagnostics.timeStamp] Timestamp of request.
+   * @property {date} [header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    */
   constructor() {
@@ -68,20 +71,12 @@ class HistoryReadNextRequestApiModel {
               name: 'Boolean'
             }
           },
-          elevation: {
+          header: {
             required: false,
-            serializedName: 'elevation',
+            serializedName: 'header',
             type: {
               name: 'Composite',
-              className: 'CredentialApiModel'
-            }
-          },
-          diagnostics: {
-            required: false,
-            serializedName: 'diagnostics',
-            type: {
-              name: 'Composite',
-              className: 'DiagnosticsApiModel'
+              className: 'RequestHeaderApiModel'
             }
           }
         }

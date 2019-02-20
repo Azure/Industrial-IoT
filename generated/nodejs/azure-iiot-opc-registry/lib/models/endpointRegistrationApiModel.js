@@ -37,7 +37,8 @@ class EndpointRegistrationApiModel {
    * @property {number} [securityLevel] Security level of the endpoint
    * @property {buffer} [certificate] Endpoint cert that was registered.
    * @property {array} [authenticationMethods] Supported authentication methods
-   * for the endpoint.
+   * that can be selected to
+   * obtain a credential and used to interact with the endpoint.
    */
   constructor() {
   }

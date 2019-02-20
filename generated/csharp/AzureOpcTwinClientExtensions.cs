@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// The identifier of the activated endpoint.
             /// </param>
             /// <param name='nodeId'>
-            /// The node to browse or omit to browse object root
+            /// The node to browse or omit to browse the root node (i=84)
             /// </param>
             public static BrowseResponseApiModel GetSetOfUniqueNodes(this IAzureOpcTwinClient operations, string endpointId, string nodeId = default(string))
             {
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// The identifier of the activated endpoint.
             /// </param>
             /// <param name='nodeId'>
-            /// The node to browse or omit to browse object root
+            /// The node to browse or omit to browse the root node (i=84)
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.

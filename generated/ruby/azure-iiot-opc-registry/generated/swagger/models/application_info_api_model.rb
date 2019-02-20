@@ -10,7 +10,7 @@
 module azure.iiot.opc.registry
   module Models
     #
-    # Application model
+    # Application info model
     #
     class ApplicationInfoApiModel
       # @return [String] Unique application id

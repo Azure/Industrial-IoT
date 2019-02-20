@@ -10,7 +10,7 @@
 module azure.iiot.opc.twin
   module Models
     #
-    # method metadata query model
+    # Method metadata query model
     #
     class MethodMetadataResponseApiModel
       # @return [String] Id of object that the method is a component of
