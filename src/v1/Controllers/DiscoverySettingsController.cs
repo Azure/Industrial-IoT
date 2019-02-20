@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Threading.Tasks;

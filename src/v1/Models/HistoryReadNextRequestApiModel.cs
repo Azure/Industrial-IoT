@@ -3,8 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
+    using System;
 
     /// <summary>
     /// Request node history read continuation
@@ -21,12 +23,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public HistoryReadNextRequestApiModel(HistoryReadNextRequestModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             ContinuationToken = model.ContinuationToken;
             Abort = model.Abort;
-            Elevation = model.Elevation == null ? null :
-                new CredentialApiModel(model.Elevation);
-            Diagnostics = model.Diagnostics == null ? null :
-                new DiagnosticsApiModel(model.Diagnostics);
+            Header = model.Header == null ? null :
+                new RequestHeaderApiModel(model.Header);
         }
 
         /// <summary>
@@ -37,8 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             return new HistoryReadNextRequestModel {
                 ContinuationToken = ContinuationToken,
                 Abort = Abort,
-                Diagnostics = Diagnostics?.ToServiceModel(),
-                Elevation = Elevation?.ToServiceModel()
+                Header = Header?.ToServiceModel()
             };
         }
 
@@ -46,21 +48,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// Continuation token to continue reading more
         /// results.
         /// </summary>
+        [JsonProperty(PropertyName = "ContinuationToken")]
         public string ContinuationToken { get; set; }
 
         /// <summary>
         /// Abort reading after this read
         /// </summary>
+        [JsonProperty(PropertyName = "Abort",
+            NullValueHandling = NullValueHandling.Ignore)]
         public bool? Abort { get; set; }
 
         /// <summary>
-        /// Optional User Elevation
+        /// Optional request header
         /// </summary>
-        public CredentialApiModel Elevation { get; set; }
-
-        /// <summary>
-        /// Optional diagnostics configuration
-        /// </summary>
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "Header",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public RequestHeaderApiModel Header { get; set; }
     }
 }

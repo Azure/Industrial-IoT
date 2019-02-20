@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Newtonsoft.Json;
+    using System;
 
     /// <summary>
-    /// For manual discovery requests
+    /// Discovery request
     /// </summary>
     public class DiscoveryRequestApiModel {
 
@@ -21,6 +23,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public DiscoveryRequestApiModel(DiscoveryRequestModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             Id = model.Id;
             Discovery = model.Discovery;
             Configuration = model.Configuration == null ? null :
@@ -28,29 +33,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         }
 
         /// <summary>
-        /// Create service model from api model
+        /// Convert back to service model
         /// </summary>
+        /// <returns></returns>
         public DiscoveryRequestModel ToServiceModel() {
             return new DiscoveryRequestModel {
                 Id = Id,
-                Discovery = Discovery,
-                Configuration = Configuration?.ToServiceModel()
+                Configuration = Configuration?.ToServiceModel(),
+                Discovery = Discovery
             };
         }
 
         /// <summary>
         /// Id of discovery request
         /// </summary>
+        [JsonProperty(PropertyName = "Id",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string Id { get; set; }
 
         /// <summary>
-        /// Simple discovery mode
+        /// Discovery mode to use
         /// </summary>
+        [JsonProperty(PropertyName = "Discovery",
+            NullValueHandling = NullValueHandling.Ignore)]
         public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
-        /// Extended discovery configuration
+        /// Scan configuration to use
         /// </summary>
+        [JsonProperty(PropertyName = "Configuration",
+            NullValueHandling = NullValueHandling.Ignore)]
         public DiscoveryConfigApiModel Configuration { get; set; }
     }
 }

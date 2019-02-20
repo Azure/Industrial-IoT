@@ -3,16 +3,17 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
-    using Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models;
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Filters;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Module.Framework;
     using System;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.OpcUa.Edge;
 
     /// <summary>
     /// Supervisor method controller
@@ -24,23 +25,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// <summary>
         /// Create controller with service
         /// </summary>
+        /// <param name="supervisor"></param>
         /// <param name="browse"></param>
         /// <param name="discover"></param>
         /// <param name="activator"></param>
         /// <param name="nodes"></param>
         /// <param name="publisher"></param>
         /// <param name="logger"></param>
-        public SupervisorMethodsController(IDiscoveryServices discover,
-            IBrowseServices<EndpointModel> browse, IActivationServices<string> activator,
-            INodeServices<EndpointModel> nodes, IPublishServices<EndpointModel> publisher,
-            ILogger logger) {
+        public SupervisorMethodsController(ISupervisorServices supervisor,
+            IDiscoveryServices discover, IBrowseServices<EndpointModel> browse,
+            IActivationServices<string> activator, INodeServices<EndpointModel> nodes,
+            IPublishServices<EndpointModel> publisher, ILogger logger) {
 
+            _supervisor = supervisor ?? throw new ArgumentNullException(nameof(supervisor));
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             _discover = discover ?? throw new ArgumentNullException(nameof(discover));
             _activator = activator ?? throw new ArgumentNullException(nameof(activator));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        /// <summary>
+        /// Reset supervisor
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> ResetAsync() {
+            await _supervisor.ResetAsync();
+            return true;
+        }
+
+        /// <summary>
+        /// Get status
+        /// </summary>
+        /// <returns></returns>
+        public async Task<SupervisorStatusApiModel> GetStatusAsync() {
+            var result = await _supervisor.GetStatusAsync();
+            return new SupervisorStatusApiModel(result);
         }
 
         /// <summary>
@@ -352,6 +373,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
 
         private readonly ILogger _logger;
         private readonly IActivationServices<string> _activator;
+        private readonly ISupervisorServices _supervisor;
         private readonly IBrowseServices<EndpointModel> _browse;
         private readonly INodeServices<EndpointModel> _nodes;
         private readonly IPublishServices<EndpointModel> _publisher;

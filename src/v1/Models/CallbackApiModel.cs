@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Newtonsoft.Json;
     using System;
 
     /// <summary>
@@ -22,14 +23,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public CallbackApiModel(CallbackModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             Uri = model.Uri;
             AuthenticationHeader = model.AuthenticationHeader;
             Method = model.Method;
         }
 
         /// <summary>
-        /// Create service model from api model
+        /// Convert back to service model
         /// </summary>
+        /// <returns></returns>
         public CallbackModel ToServiceModel() {
             return new CallbackModel {
                 Uri = Uri,
@@ -42,16 +47,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// Uri to call - should use https scheme in which
         /// case security is enforced.
         /// </summary>
+        [JsonProperty(PropertyName = "Uri")]
         public Uri Uri { get; set; }
 
         /// <summary>
-        /// Http method to use
+        /// Http Method to use for callback
         /// </summary>
+        [JsonProperty(PropertyName = "Method",
+            NullValueHandling = NullValueHandling.Ignore)]
         public CallbackMethodType? Method { get; set; }
 
         /// <summary>
         /// Authentication header to add or null if not needed
         /// </summary>
+        [JsonProperty(PropertyName = "AuthenticationHeader",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string AuthenticationHeader { get; set; }
     }
 }

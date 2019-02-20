@@ -3,9 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System;
 
     /// <summary>
     /// Attribute value read
@@ -22,6 +24,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public AttributeReadResponseApiModel(AttributeReadResultModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             Value = model.Value;
             ErrorInfo = model.ErrorInfo == null ? null :
                 new ServiceResultApiModel(model.ErrorInfo);
@@ -30,11 +35,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <summary>
         /// Attribute value
         /// </summary>
+        [JsonProperty(PropertyName = "Value")]
         public JToken Value { get; set; }
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
+        [JsonProperty(PropertyName = "ErrorInfo",
+            NullValueHandling = NullValueHandling.Ignore)]
         public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

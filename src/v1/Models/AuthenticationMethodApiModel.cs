@@ -3,9 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System;
 
     /// <summary>
     /// Authentication Method model
@@ -22,10 +24,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public AuthenticationMethodApiModel(AuthenticationMethodModel model) {
-            Id = model?.Id;
-            SecurityPolicy = model?.SecurityPolicy;
-            Configuration = model?.Configuration;
-            CredentialType = model?.CredentialType;
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
+            Id = model.Id;
+            SecurityPolicy = model.SecurityPolicy;
+            Configuration = model.Configuration;
+            CredentialType = model.CredentialType ==
+                IIoT.OpcUa.Registry.Models.CredentialType.None ?
+                    null : model.CredentialType;
         }
 
         /// <summary>
@@ -36,28 +43,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
                 Id = Id,
                 SecurityPolicy = SecurityPolicy,
                 Configuration = Configuration,
-                CredentialType = CredentialType
+                CredentialType = CredentialType ?? IIoT.OpcUa.Registry.Models.CredentialType.None
             };
         }
 
         /// <summary>
         /// Method id
         /// </summary>
+        [JsonProperty(PropertyName = "Id")]
         public string Id { get; set; }
 
         /// <summary>
         /// Type of credential
         /// </summary>
+        [JsonProperty(PropertyName = "CredentialType",
+            NullValueHandling = NullValueHandling.Ignore)]
         public CredentialType? CredentialType { get; set; }
 
         /// <summary>
         /// Security policy to use when passing credential.
         /// </summary>
+        [JsonProperty(PropertyName = "SecurityPolicy",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string SecurityPolicy { get; set; }
 
         /// <summary>
         /// Method specific configuration
         /// </summary>
+        [JsonProperty(PropertyName = "Configuration",
+            NullValueHandling = NullValueHandling.Ignore)]
         public JToken Configuration { get; set; }
     }
 }

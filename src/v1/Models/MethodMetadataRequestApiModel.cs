@@ -3,8 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
+    using System;
 
     /// <summary>
     /// Method metadata request model for module
@@ -21,11 +23,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public MethodMetadataRequestApiModel(MethodMetadataRequestModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             MethodId = model.MethodId;
-            Elevation = model.Elevation == null ? null :
-                new CredentialApiModel(model.Elevation);
-            Diagnostics = model.Diagnostics == null ? null :
-               new DiagnosticsApiModel(model.Diagnostics);
+            MethodBrowsePath = model.MethodBrowsePath;
+            Header = model.Header == null ? null :
+                new RequestHeaderApiModel(model.Header);
         }
 
         /// <summary>
@@ -35,24 +39,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public MethodMetadataRequestModel ToServiceModel() {
             return new MethodMetadataRequestModel {
                 MethodId = MethodId,
-                Diagnostics = Diagnostics?.ToServiceModel(),
-                Elevation = Elevation?.ToServiceModel()
+                MethodBrowsePath = MethodBrowsePath,
+                Header = Header?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Count of input arguments
+        /// Method id of method to call.
         /// </summary>
+        [JsonProperty(PropertyName = "MethodId")]
         public string MethodId { get; set; }
 
         /// <summary>
-        /// Optional User elevation
+        /// An optional component path from the node identified by
+        /// MethodId to the actual method node.
         /// </summary>
-        public CredentialApiModel Elevation { get; set; }
+        [JsonProperty(PropertyName = "MethodBrowsePath",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string[] MethodBrowsePath { get; set; }
 
         /// <summary>
-        /// Optional diagnostics configuration
+        /// Optional request header
         /// </summary>
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "Header",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public RequestHeaderApiModel Header { get; set; }
     }
 }

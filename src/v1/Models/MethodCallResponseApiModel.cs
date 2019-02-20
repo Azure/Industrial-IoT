@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
-    /// Method call response model for module
+    /// Method call response model
     /// </summary>
     public class MethodCallResponseApiModel {
 
@@ -23,8 +25,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public MethodCallResponseApiModel(MethodCallResultModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             Results = model.Results?
-                .Select(arg => new MethodCallArgumentApiModel(arg)).ToList();
+                .Select(a => a == null ? null : new MethodCallArgumentApiModel(a))
+                .ToList();
             ErrorInfo = model.ErrorInfo == null ? null :
                 new ServiceResultApiModel(model.ErrorInfo);
         }
@@ -32,11 +38,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <summary>
         /// Output results
         /// </summary>
+        [JsonProperty(PropertyName = "Results")]
         public List<MethodCallArgumentApiModel> Results { get; set; }
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
+        [JsonProperty(PropertyName = "ErrorInfo",
+            NullValueHandling = NullValueHandling.Ignore)]
         public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

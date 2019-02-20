@@ -3,8 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -23,12 +25,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public ReadRequestApiModel(ReadRequestModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             Attributes = model.Attributes?
-                .Select(a => new AttributeReadRequestApiModel(a)).ToList();
-            Elevation = model.Elevation == null ? null :
-                new CredentialApiModel(model.Elevation);
-            Diagnostics = model.Diagnostics == null ? null :
-                new DiagnosticsApiModel(model.Diagnostics);
+                .Select(a => a == null ? null : new AttributeReadRequestApiModel(a))
+                .ToList();
+            Header = model.Header == null ? null :
+                new RequestHeaderApiModel(model.Header);
         }
 
         /// <summary>
@@ -37,25 +41,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <returns></returns>
         public ReadRequestModel ToServiceModel() {
             return new ReadRequestModel {
-                Attributes = Attributes?.Select(a => a.ToServiceModel()).ToList(),
-                Diagnostics = Diagnostics?.ToServiceModel(),
-                Elevation = Elevation?.ToServiceModel()
+                Attributes = Attributes?.Select(a => a?.ToServiceModel()).ToList(),
+                Header = Header?.ToServiceModel()
             };
         }
 
         /// <summary>
         /// Attributes to read
         /// </summary>
+        [JsonProperty(PropertyName = "Attributes")]
         public List<AttributeReadRequestApiModel> Attributes { get; set; }
 
         /// <summary>
-        /// Optional User Elevation
+        /// Optional request header
         /// </summary>
-        public CredentialApiModel Elevation { get; set; }
-
-        /// <summary>
-        /// Optional diagnostics configuration
-        /// </summary>
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "Header",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public RequestHeaderApiModel Header { get; set; }
     }
 }

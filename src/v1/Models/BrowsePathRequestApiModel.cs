@@ -3,8 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
+    using System;
 
     /// <summary>
     /// Browse nodes by path
@@ -21,13 +23,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public BrowsePathRequestApiModel(BrowsePathRequestModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
+            NodeIdsOnly = model.NodeIdsOnly;
             NodeId = model.NodeId;
             PathElements = model.PathElements;
             ReadVariableValues = model.ReadVariableValues;
-            Elevation = model.Elevation == null ? null :
-                new CredentialApiModel(model.Elevation);
-            Diagnostics = model.Diagnostics == null ? null :
-                new DiagnosticsApiModel(model.Diagnostics);
+            Header = model.Header == null ? null :
+                new RequestHeaderApiModel(model.Header);
         }
 
         /// <summary>
@@ -36,11 +40,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <returns></returns>
         public BrowsePathRequestModel ToServiceModel() {
             return new BrowsePathRequestModel {
+                NodeIdsOnly = NodeIdsOnly,
                 NodeId = NodeId,
                 PathElements = PathElements,
                 ReadVariableValues = ReadVariableValues,
-                Diagnostics = Diagnostics?.ToServiceModel(),
-                Elevation = Elevation?.ToServiceModel()
+                Header = Header?.ToServiceModel()
             };
         }
 
@@ -48,28 +52,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// Node to browse.
         /// (default: RootFolder).
         /// </summary>
+        [JsonProperty(PropertyName = "NodeId")]
         public string NodeId { get; set; }
 
         /// <summary>
         /// The path elements of the path to browse from node.
         /// (mandatory)
         /// </summary>
+        [JsonProperty(PropertyName = "PathElements")]
         public string[] PathElements { get; set; }
 
         /// <summary>
         /// Whether to read variable values on target nodes.
         /// (default is false)
         /// </summary>
+        [JsonProperty(PropertyName = "ReadVariableValues",
+            NullValueHandling = NullValueHandling.Ignore)]
         public bool? ReadVariableValues { get; set; }
 
         /// <summary>
-        /// Optional elevation
+        /// Whether to only return the raw node id
+        /// information and not read the target node.
+        /// (default is false)
         /// </summary>
-        public CredentialApiModel Elevation { get; set; }
+        [JsonProperty(PropertyName = "NodeIdsOnly",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public bool? NodeIdsOnly { get; set; }
 
         /// <summary>
-        /// Optional diagnostics configuration
+        /// Optional request header
         /// </summary>
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "Header",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public RequestHeaderApiModel Header { get; set; }
     }
 }

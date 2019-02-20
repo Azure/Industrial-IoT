@@ -3,8 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
+    using System;
 
     /// <summary>
     /// Node path target
@@ -21,18 +23,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public NodePathTargetApiModel(NodePathTargetModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             RemainingPathIndex = model.RemainingPathIndex;
-            Target = new NodeApiModel(model.Target);
+            Target = model.Target == null ? null :
+                new NodeApiModel(model.Target);
         }
 
         /// <summary>
         /// Target node
         /// </summary>
+        [JsonProperty(PropertyName = "Target")]
         public NodeApiModel Target { get; set; }
 
         /// <summary>
         /// Remaining index in path
         /// </summary>
+        [JsonProperty(PropertyName = "RemainingPathIndex",
+            NullValueHandling = NullValueHandling.Ignore)]
         public int? RemainingPathIndex { get; set; }
     }
 }

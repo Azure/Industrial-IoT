@@ -3,8 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
+    using System;
 
     /// <summary>
     /// Request list of published items
@@ -21,6 +23,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public PublishedItemListRequestApiModel(PublishedItemListRequestModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             ContinuationToken = model.ContinuationToken;
         }
 
@@ -30,12 +35,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public PublishedItemListRequestModel ToServiceModel() {
             return new PublishedItemListRequestModel {
                 ContinuationToken = ContinuationToken
-             };
+            };
         }
 
         /// <summary>
         /// Continuation token or null to start
         /// </summary>
+        [JsonProperty(PropertyName = "ContinuationToken",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string ContinuationToken { get; set; }
     }
 }

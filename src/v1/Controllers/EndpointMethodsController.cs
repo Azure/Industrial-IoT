@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
-    using Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models;
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Filters;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module;
     using System;
@@ -27,14 +27,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         /// </summary>
         /// <param name="browse"></param>
         /// <param name="nodes"></param>
+        /// <param name="publisher"></param>
+        /// <param name="export"></param>
+        /// <param name="twin"></param>
+        /// <param name="events"></param>
         /// <param name="logger"></param>
         public EndpointMethodsController(IBrowseServices<EndpointModel> browse,
             INodeServices<EndpointModel> nodes, IPublishServices<EndpointModel> publisher,
-            IEndpointServices twin, IEventEmitter events, ILogger logger) {
+            IUploadServices<EndpointModel> export, ITwinServices twin,
+            IEventEmitter events, ILogger logger) {
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
+            _export = export ?? throw new ArgumentNullException(nameof(export));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -82,6 +88,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
             var result = await _publisher.NodePublishListAsync(
                 _twin.Endpoint, request.ToServiceModel());
             return new PublishedItemListResponseApiModel(result);
+        }
+
+        /// <summary>
+        /// Start model upload
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<ModelUploadStartResponseApiModel> ModelUploadStartAsync(
+            ModelUploadStartRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _export.ModelUploadStartAsync(
+                _twin.Endpoint, request.ToServiceModel());
+            return new ModelUploadStartResponseApiModel(result);
         }
 
         /// <summary>
@@ -273,8 +294,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
 
         private readonly IBrowseServices<EndpointModel> _browse;
         private readonly INodeServices<EndpointModel> _nodes;
-        private readonly IEndpointServices _twin;
+        private readonly ITwinServices _twin;
         private readonly IPublishServices<EndpointModel> _publisher;
+        private readonly IUploadServices<EndpointModel> _export;
         private readonly IEventEmitter _events;
         private readonly ILogger _logger;
     }

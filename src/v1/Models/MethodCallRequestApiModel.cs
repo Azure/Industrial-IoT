@@ -3,8 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -23,20 +25,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public MethodCallRequestApiModel(MethodCallRequestModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             MethodId = model.MethodId;
             ObjectId = model.ObjectId;
-            if (model.Arguments != null) {
-                Arguments = model.Arguments
-                    .Select(s => new MethodCallArgumentApiModel(s))
-                    .ToList();
-            }
-            else {
-                Arguments = new List<MethodCallArgumentApiModel>();
-            }
-            Elevation = model.Elevation == null ? null :
-                new CredentialApiModel(model.Elevation);
-            Diagnostics = model.Diagnostics == null ? null :
-                new DiagnosticsApiModel(model.Diagnostics);
+            MethodBrowsePath = model.MethodBrowsePath;
+            ObjectBrowsePath = model.ObjectBrowsePath;
+            Arguments = model.Arguments?
+                .Select(a => a != null ? new MethodCallArgumentApiModel(a) : null)
+                .ToList();
+            Header = model.Header == null ? null :
+                new RequestHeaderApiModel(model.Header);
         }
 
         /// <summary>
@@ -47,36 +47,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             return new MethodCallRequestModel {
                 MethodId = MethodId,
                 ObjectId = ObjectId,
-                Diagnostics = Diagnostics?.ToServiceModel(),
-                Elevation = Elevation?.ToServiceModel(),
+                MethodBrowsePath = MethodBrowsePath,
+                ObjectBrowsePath = ObjectBrowsePath,
                 Arguments = Arguments?
-                    .Select(s => s.ToServiceModel()).ToList()
+                    .Select(s => s?.ToServiceModel()).ToList(),
+                Header = Header?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Method to call
+        /// Method id of method to call.
         /// </summary>
+        [JsonProperty(PropertyName = "MethodId",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string MethodId { get; set; }
 
         /// <summary>
-        /// Object scope of the method
+        /// Context of the method, i.e. an object or object type
+        /// node.
         /// </summary>
+        [JsonProperty(PropertyName = "ObjectId",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string ObjectId { get; set; }
 
         /// <summary>
-        /// Input Arguments
+        /// Arguments for the method - null means no args
         /// </summary>
+        [JsonProperty(PropertyName = "Arguments",
+            NullValueHandling = NullValueHandling.Ignore)]
         public List<MethodCallArgumentApiModel> Arguments { get; set; }
 
         /// <summary>
-        /// Elevation
+        /// An optional component path from the node identified by
+        /// MethodId or from a resolved objectId to the actual
+        /// method node.
         /// </summary>
-        public CredentialApiModel Elevation { get; set; }
+        [JsonProperty(PropertyName = "MethodBrowsePath",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string[] MethodBrowsePath { get; set; }
 
         /// <summary>
-        /// Optional diagnostics configuration
+        /// An optional component path from the node identified by
+        /// ObjectId to the actual object or objectType node.
+        /// If ObjectId is null, the root node (i=84) is used.
         /// </summary>
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "ObjectBrowsePath",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string[] ObjectBrowsePath { get; set; }
+
+        /// <summary>
+        /// Optional request header
+        /// </summary>
+        [JsonProperty(PropertyName = "Header",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public RequestHeaderApiModel Header { get; set; }
     }
 }

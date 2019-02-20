@@ -3,8 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
+    using System;
 
     /// <summary>
     /// Publish request
@@ -21,10 +23,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public PublishStartRequestApiModel(PublishStartRequestModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             Item = model.Item == null ? null :
                 new PublishedItemApiModel(model.Item);
-            Diagnostics = model.Diagnostics == null ? null :
-                new DiagnosticsApiModel(model.Diagnostics);
+            Header = model.Header == null ? null :
+                new RequestHeaderApiModel(model.Header);
         }
 
         /// <summary>
@@ -33,18 +38,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public PublishStartRequestModel ToServiceModel() {
             return new PublishStartRequestModel {
                 Item = Item?.ToServiceModel(),
-                Diagnostics = Diagnostics?.ToServiceModel()
+                Header = Header?.ToServiceModel()
             };
         }
 
         /// <summary>
         /// Item to publish
         /// </summary>
+        [JsonProperty(PropertyName = "Item")]
         public PublishedItemApiModel Item { get; set; }
 
         /// <summary>
-        /// Optional diagnostics configuration
+        /// Optional request header
         /// </summary>
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "Header",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public RequestHeaderApiModel Header { get; set; }
     }
 }

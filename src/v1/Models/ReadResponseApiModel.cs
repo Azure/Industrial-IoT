@@ -3,8 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -23,13 +25,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public ReadResponseApiModel(ReadResultModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             Results = model.Results?
-                .Select(a => new AttributeReadResponseApiModel(a)).ToList();
+                .Select(a => a == null ? null : new AttributeReadResponseApiModel(a))
+                .ToList();
         }
 
         /// <summary>
         /// All results of attribute reads
         /// </summary>
+        [JsonProperty(PropertyName = "Results")]
         public List<AttributeReadResponseApiModel> Results { set; get; }
     }
 }

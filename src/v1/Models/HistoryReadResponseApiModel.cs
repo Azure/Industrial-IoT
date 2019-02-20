@@ -3,9 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+	using System;
 
     /// <summary>
     /// History read results
@@ -22,6 +24,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public HistoryReadResponseApiModel(HistoryReadResultModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             History = model.History;
             ContinuationToken = model.ContinuationToken;
             ErrorInfo = model.ErrorInfo == null ? null :
@@ -31,16 +36,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <summary>
         /// History as json encoded extension object
         /// </summary>
+        [JsonProperty(PropertyName = "History")]
         public JToken History { get; set; }
 
         /// <summary>
         /// Continuation token if more results pending.
         /// </summary>
+        [JsonProperty(PropertyName = "ContinuationToken",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string ContinuationToken { get; set; }
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
+        [JsonProperty(PropertyName = "ErrorInfo",
+            NullValueHandling = NullValueHandling.Ignore)]
         public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

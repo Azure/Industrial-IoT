@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Module.Framework;
     using System;
     using System.Threading.Tasks;
@@ -77,7 +77,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
                         await _activator.DeactivateEndpointAsync(item.Key);
                     }
                     catch (Exception ex) {
-                        _logger.Error($"Error stopping twin {item.Key}", () => ex);
+                        _logger.Error(ex, "Error stopping twin {Key}", item.Key);
                     }
                 }
                 else {
@@ -88,7 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
                         }
                     }
                     catch (Exception ex) {
-                        _logger.Error($"Error starting twin {item.Key}", () => ex);
+                        _logger.Error(ex, "Error starting twin {Key}", item.Key);
                     }
                 }
                 _endpoints.Remove(item.Value);

@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Filters {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Filters {
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Exceptions;

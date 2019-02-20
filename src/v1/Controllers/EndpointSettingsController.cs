@@ -3,16 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Hub;
     using System;
     using System.Threading.Tasks;
-    using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Endpoint settings controller
@@ -77,10 +77,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         }
 
         /// <summary>
+        /// State of the endpoint
+        /// </summary>
+        public EndpointConnectivityState State { get; set; }
+
+        /// <summary>
         /// Create controller with service
         /// </summary>
+        /// <param name="twin"></param>
         /// <param name="logger"></param>
-        public EndpointSettingsController(IEndpointServices twin, ILogger logger) {
+        public EndpointSettingsController(ITwinServices twin, ILogger logger) {
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -95,8 +101,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
                     SecurityMode = _securityMode,
                     SecurityPolicy = _securityPolicy,
                     User =
-                        _credentialType == Registry.Models.CredentialType.None ? null :
-                            new CredentialModel {
+                        _credentialType == IIoT.OpcUa.Registry.Models.CredentialType.None ?
+                            null : new CredentialModel {
                                 Value = _credential,
                                 Type = _credentialType,
                             },
@@ -113,8 +119,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Controllers {
         private SecurityMode? _securityMode;
         private byte[] _serverThumbprint;
         private byte[] _clientCertificate;
-
-        private readonly IEndpointServices _twin;
+        private readonly ITwinServices _twin;
         private readonly ILogger _logger;
     }
 }

@@ -8,9 +8,20 @@ The supervisor also provides discovery services which send device discovery even
 
 The OPC Device Twin module can be deployed in an [IoT Edge][iotedge-url] gateway.  For development and testing purposes it can also be run standalone following the instructions [below](#Build-and-Run).  This module is part of our [Azure Industrial IoT (IIoT) components](#Other-Azure-Industrial-IoT-components) suite.
 
-## Getting started
+## Using the module
 
-### Install any tools and depdendencies
+A pre-built image exits in Microsoft's container registry and can be obtained by running `docker pull mcr.microsoft.com/iotedge/opc-twin:latest`.  
+To use it follow the instructions on how to deploy the module to [IoT Edge][iotedge-docs-url]:
+  * Instructions on how to [deploy](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-portal) a module to one or a set of IoT Edge targets.
+  * Instructions on how to install IoT Edge [on Linux](https://docs.microsoft.com/en-us/azure/iot-edge/quickstart-linux) and [on Windows](https://docs.microsoft.com/en-us/azure/iot-edge/quickstart).
+
+> Install one IoT Edge gateway and module per factory network.  Make sure you run one or more OPC UA servers in the same network to utilize the OPC Device Twin capabilities.
+
+## Build and Run
+
+To build and run the module yourself, clone the repository.  Then...
+
+### Install any tools and dependencies
 
 * [Install .NET Core 2.1+][dotnet-install] if you want to build the services locally.
 * Install [Docker][docker-url] if you want to build and run the services using docker-compose.
@@ -20,9 +31,7 @@ The OPC Device Twin module can be deployed in an [IoT Edge][iotedge-url] gateway
 
 ### Deploy Azure Services
 
-Follow the instructions [here](https://github.com/Azure/azure-iiot-services) to deploy all required services and retrieve the module configuration information, in particular the value for the `PCS_IOTHUB_CONNSTRING` environment variable, which will be needed later on.
-
-## Build and Run
+Follow the instructions [here](https://github.com/Azure/azure-iiot-services) to deploy all required services for local development.  Copy the resulting `.env` file into this repository's root (or into the parent folder).
 
 ### Building and running locally using Docker (Quick start mode)
 
@@ -34,24 +43,18 @@ Follow the instructions [here](https://github.com/Azure/azure-iiot-services) to 
 
 ### Build, run and deploy the module to IoT Edge (Production)
 
-1. Make sure the [Prerequisites](#Install-any-tools-and-depdendencies) are set up.
-1. Change into the repo root and build the quick start docker image using `docker build -f docker/linux/amd64/Dockerfile -t azure-iiot-opc-twin-module .`
-1. Push the module to an accessible registry, e.g. Azure Container Registry, or [dockerhub][dockerhub-url].
-1. Follow the instructions on how to deploy the module to [IoT Edge][iotedge-docs-url]:
-  * Instructions on how to [deploy](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-portal) a module to one or a set of IoT Edge targets.
-  * Instructions on how to install IoT Edge [on Linux](https://docs.microsoft.com/en-us/azure/iot-edge/quickstart-linux) and [on Windows](https://docs.microsoft.com/en-us/azure/iot-edge/quickstart).
-
-> Install one IoT Edge target per your factory network.  Make sure you run one or more OPC UA servers in the same network to utilize the OPC Twin capabilities.
+1. To build your own module container image and deploy it make sure the [Prerequisites](#Install-any-tools-and-depdendencies) are set up.
+1. Change into the repo root and run `docker build -f docker/linux/amd64/Dockerfile -t azure-iiot-opc-twin-module .`. 
+1. Then push the module to an accessible registry, e.g. Azure Container Registry, or [dockerhub][dockerhub-url].
+1. Follow the instructions on how to deploy the module to IoT Edge [here][#Using-the-module].
 
 ### Building and running the module with Visual Studio or VS Code
 
 1. Make sure the [Prerequisites](#Install-any-tools-and-depdendencies) are set up.
-1. Set the `PCS_IOTHUB_CONNSTRING` environment variable in your system.
-  * [This page][windows-envvars-howto-url] describes how to setup env vars in Windows.
-  * For Linux and MacOS, we suggest to create a shell script to set up the environment variables each time before starting the service host (e.g. VS Code or docker). Depending on OS and terminal, there are ways to persist values globally, for more information [this](https://stackoverflow.com/questions/13046624/how-to-permanently-export-a-variable-in-linux), [this](https://help.ubuntu.com/community/EnvironmentVariables), or [this](https://stackoverflow.com/questions/135688/setting-environment-variables-in-os-x) page should help.
-1. Open the solution in Visual Studio or VS Code
-1. Configure the `Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli` project properties to pass `--host` as command line argument when starting. 
-1. Start the `Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli` project (e.g. press F5).
+1. Change into the repo root and ensure the .env file containing an entry for `PCS_IOTHUB_CONNSTRING` exists.
+1. Open the `azure-iiot-opc-twin-module.sln` solution file in Visual Studio or VS Code
+1. Configure the `Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli` project properties to pass `--host` as command line argument when starting. 
+1. Set the `Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli` as startup project and start debugging (e.g. by pressing F5).
 
 ## Other Azure Industrial IoT components
 
@@ -62,7 +65,6 @@ Follow the instructions [here](https://github.com/Azure/azure-iiot-services) to 
 * Other Azure Industrial IoT Edge Modules
   * [OPC Publisher module](https://github.com/Azure/iot-edge-opc-publisher)
   * [OPC Proxy module](https://github.com/Azure/iot-edge-opc-proxy)
-
 
 ## Contributing
 

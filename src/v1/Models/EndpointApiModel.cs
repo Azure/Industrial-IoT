@@ -3,8 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Newtonsoft.Json;
+    using System;
 
     /// <summary>
     /// Endpoint model for edgeservice api
@@ -21,12 +23,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public EndpointApiModel(EndpointModel model) {
-            Url = model?.Url;
-            User = model?.User == null ? null :
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
+            Url = model.Url;
+            User = model.User == null ? null :
                 new CredentialApiModel(model.User);
-            Validation = model?.ServerThumbprint;
-            SecurityMode = model?.SecurityMode;
-            SecurityPolicy = model?.SecurityPolicy;
+            ServerThumbprint = model.ServerThumbprint;
+            SecurityMode = model.SecurityMode;
+            SecurityPolicy = model.SecurityPolicy;
         }
 
         /// <summary>
@@ -36,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
             return new EndpointModel {
                 Url = Url,
                 User = User?.ToServiceModel(),
-                ServerThumbprint = Validation,
+                ServerThumbprint = ServerThumbprint,
                 SecurityMode = SecurityMode,
                 SecurityPolicy = SecurityPolicy,
             };
@@ -45,26 +50,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <summary>
         /// Endpoint
         /// </summary>
+        [JsonProperty(PropertyName = "Url")]
         public string Url { get; set; }
 
         /// <summary>
         /// User Authentication
         /// </summary>
+        [JsonProperty(PropertyName = "User",
+            NullValueHandling = NullValueHandling.Ignore)]
         public CredentialApiModel User { get; set; }
 
         /// <summary>
-        /// Endpoint security policy to use - null = Best.
+        /// Security Mode to use for communication
+        /// default to best.
         /// </summary>
-        public string SecurityPolicy { get; set; }
-
-        /// <summary>
-        /// Security mode to use for communication - null = Best
-        /// </summary>
+        [JsonProperty(PropertyName = "SecurityMode",
+            NullValueHandling = NullValueHandling.Ignore)]
         public SecurityMode? SecurityMode { get; set; }
 
         /// <summary>
-        /// Certificate to validate against or null to trust any.
+        /// Security policy uri to use for communication
+        /// default to best.
         /// </summary>
-        public byte[] Validation { get; set; }
+        [JsonProperty(PropertyName = "SecurityPolicy",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string SecurityPolicy { get; set; }
+
+        /// <summary>
+        /// Thumbprint to validate against or null to trust any.
+        /// </summary>
+        [JsonProperty(PropertyName = "ServerThumbprint",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public byte[] ServerThumbprint { get; set; }
     }
 }

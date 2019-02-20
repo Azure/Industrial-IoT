@@ -7,11 +7,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{75E59BA0-618
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E299CA71-F612-46CC-A009-3C0728641FEB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Modules.Twin", "src\Microsoft.Azure.IIoT.OpcUa.Modules.Twin.csproj", "{264C9251-7505-43BE-B5B8-905E3BDA9A81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Twin", "src\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj", "{264C9251-7505-43BE-B5B8-905E3BDA9A81}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Tests", "tests\Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Tests.csproj", "{1A0449E9-5FE5-4FD8-A5F3-54C800E81309}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests", "tests\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests.csproj", "{1A0449E9-5FE5-4FD8-A5F3-54C800E81309}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli", "cli\Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Cli.csproj", "{2D912A2D-3523-4C9C-B71F-ADBEB4E9DFFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli", "cli\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli.csproj", "{2D912A2D-3523-4C9C-B71F-ADBEB4E9DFFC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

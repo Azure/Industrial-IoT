@@ -3,9 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System;
 
     /// <summary>
     /// Service result
@@ -22,6 +24,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public ServiceResultApiModel(ServiceResultModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             Diagnostics = model.Diagnostics;
             ErrorMessage = model.ErrorMessage;
             StatusCode = model.StatusCode;
@@ -42,16 +47,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <summary>
         /// Error code - if null operation succeeded.
         /// </summary>
+        [JsonProperty(PropertyName = "StatusCode",
+            NullValueHandling = NullValueHandling.Ignore)]
         public uint? StatusCode { get; set; }
 
         /// <summary>
         /// Error message in case of error or null.
         /// </summary>
+        [JsonProperty(PropertyName = "ErrorMessage",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string ErrorMessage { get; set; }
 
         /// <summary>
         /// Additional diagnostics information
         /// </summary>
-        public JToken Diagnostics{ get; set; }
+        [JsonProperty(PropertyName = "Diagnostics",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public JToken Diagnostics { get; set; }
     }
 }

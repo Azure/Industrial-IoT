@@ -3,17 +3,17 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Runtime {
-    using Microsoft.Azure.IIoT.Diagnostics;
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
 
     /// <summary>
     /// Wraps a configuration root
     /// </summary>
-    public class Config : LogConfig, IModuleConfig {
+    public class Config : ConfigBase, IModuleConfig {
 
         /// <summary>
         /// Module configuration
@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public Config(IConfigurationRoot configuration) :
-            base(Uptime.ProcessId, configuration) {
+            base(configuration) {
         }
     }
 }

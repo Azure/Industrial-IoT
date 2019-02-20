@@ -3,9 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System;
 
     /// <summary>
     /// Method argument metadata model
@@ -22,6 +24,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public MethodMetadataArgumentApiModel(MethodMetadataArgumentModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             DefaultValue = model.DefaultValue;
             Type = model.Type == null ? null :
                 new NodeApiModel(model.Type);
@@ -49,31 +54,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <summary>
         /// Argument name
         /// </summary>
+        [JsonProperty(PropertyName = "Name")]
         public string Name { get; set; }
 
         /// <summary>
         /// Optional description
         /// </summary>
+        [JsonProperty(PropertyName = "Description",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string Description { get; set; }
 
         /// <summary>
         /// Data type node of the argument
         /// </summary>
+        [JsonProperty(PropertyName = "Type")]
         public NodeApiModel Type { get; set; }
 
         /// <summary>
-        /// Default value for the argument
+        /// Default value
         /// </summary>
+        [JsonProperty(PropertyName = "DefaultValue",
+            NullValueHandling = NullValueHandling.Ignore)]
         public JToken DefaultValue { get; set; }
 
         /// <summary>
         /// Optional, scalar if not set
         /// </summary>
+        [JsonProperty(PropertyName = "ValueRank",
+            NullValueHandling = NullValueHandling.Ignore)]
         public NodeValueRank? ValueRank { get; set; }
 
         /// <summary>
         /// Optional, array dimension
         /// </summary>
+        [JsonProperty(PropertyName = "ArrayDimensions",
+            NullValueHandling = NullValueHandling.Ignore)]
         public uint[] ArrayDimensions { get; set; }
     }
 }

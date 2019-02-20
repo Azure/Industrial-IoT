@@ -3,9 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System;
 
     /// <summary>
     /// Value write request model for module
@@ -22,14 +24,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public ValueWriteRequestApiModel(ValueWriteRequestModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             NodeId = model.NodeId;
+            BrowsePath = model.BrowsePath;
             DataType = model.DataType;
             IndexRange = model.IndexRange;
             Value = model.Value;
-            Elevation = model.Elevation == null ? null :
-                new CredentialApiModel(model.Elevation);
-            Diagnostics = model.Diagnostics == null ? null :
-               new DiagnosticsApiModel(model.Diagnostics);
+            Header = model.Header == null ? null :
+                new RequestHeaderApiModel(model.Header);
         }
 
         /// <summary>
@@ -39,42 +43,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         public ValueWriteRequestModel ToServiceModel() {
             return new ValueWriteRequestModel {
                 NodeId = NodeId,
+                BrowsePath = BrowsePath,
                 DataType = DataType,
                 IndexRange = IndexRange,
-                Diagnostics = Diagnostics?.ToServiceModel(),
-                Elevation = Elevation?.ToServiceModel(),
-                Value = Value
+                Value = Value,
+                Header = Header?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Node id to to write value to - from browse.
+        /// Node id to to write value to.
         /// </summary>
+        [JsonProperty(PropertyName = "NodeId")]
         public string NodeId { get; set; }
 
         /// <summary>
-        /// Value to write
+        /// An optional path from NodeId instance to
+        /// the actual node.
         /// </summary>
+        [JsonProperty(PropertyName = "BrowsePath",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string[] BrowsePath { get; set; }
+
+        /// <summary>
+        /// Value to write. The system tries to convert
+        /// the value according to the data type value,
+        /// e.g. convert comma seperated value strings
+        /// into arrays.  (Mandatory)
+        /// </summary>
+        [JsonProperty(PropertyName = "Value")]
         public JToken Value { get; set; }
 
         /// <summary>
-        /// A built in datatype for the value to write.
+        /// A built in datatype for the value. This can
+        /// be a data type from browse, or a built in
+        /// type.
+        /// (default: best effort)
         /// </summary>
+        [JsonProperty(PropertyName = "DataType",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string DataType { get; set; }
 
         /// <summary>
         /// Index range to write
         /// </summary>
+        [JsonProperty(PropertyName = "IndexRange",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string IndexRange { get; set; }
 
         /// <summary>
-        /// Optional User elevation
+        /// Optional request header
         /// </summary>
-        public CredentialApiModel Elevation { get; set; }
-
-        /// <summary>
-        /// Optional diagnostics configuration
-        /// </summary>
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "Header",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public RequestHeaderApiModel Header { get; set; }
     }
 }

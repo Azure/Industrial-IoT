@@ -3,9 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System;
 
     /// <summary>
     /// method arg model
@@ -22,6 +24,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public MethodCallArgumentApiModel(MethodCallArgumentModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             Value = model.Value;
             DataType = model.DataType;
         }
@@ -40,11 +45,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <summary>
         /// Initial value or value to use
         /// </summary>
+        [JsonProperty(PropertyName = "Value")]
         public JToken Value { get; set; }
 
         /// <summary>
         /// Data type Id of the value (from meta data)
         /// </summary>
+        [JsonProperty(PropertyName = "DataType")]
         public string DataType { get; set; }
     }
 }

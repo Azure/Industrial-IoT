@@ -3,8 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
+    using System;
 
     /// <summary>
     /// Attribute to read
@@ -21,6 +23,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// </summary>
         /// <param name="model"></param>
         public AttributeReadRequestApiModel(AttributeReadRequestModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
             NodeId = model.NodeId;
             Attribute = model.Attribute;
         }
@@ -39,11 +44,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Modules.Twin.v1.Models {
         /// <summary>
         /// Node to read from or write to (mandatory)
         /// </summary>
+        [JsonProperty(PropertyName = "NodeId")]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Attribute to read or write
         /// </summary>
+        [JsonProperty(PropertyName = "Attribute")]
         public NodeAttribute Attribute { get; set; }
     }
 }
