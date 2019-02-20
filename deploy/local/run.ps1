@@ -5,8 +5,11 @@
  .DESCRIPTION
     Deploys an Azure Resource Manager template of choice
 
+ .PARAMETER applicationName
+    The name of the application. 
+
  .PARAMETER resourceGroupName
-    The resource group where the template will be deployed.
+    The resource group where the template will be deployed. 
 
  .PARAMETER aadConfig
     The AAD configuration the template will be configured with.
@@ -16,6 +19,7 @@
 #>
 
 param(
+    [Parameter(Mandatory=$True)] [string] $applicationName,
     [Parameter(Mandatory=$True)] [string] $resourceGroupName,
     $aadConfig = $null,
     $interactive = $true
@@ -40,6 +44,8 @@ Function GetEnvironmentVariables() {
     $EVENTHUB_CONNSTRING = $deployment.Outputs["eventhub-connstring"].Value
     $EVENTHUB_NAME = $deployment.Outputs["eventhub-name"].Value
 
+    Write-Output `
+        "_HUB_CS=$IOTHUB_CONNSTRING"
     Write-Output `
         "PCS_IOTHUB_CONNSTRING=$IOTHUB_CONNSTRING"
     Write-Output `
@@ -75,6 +81,8 @@ Function GetEnvironmentVariables() {
 
     if (!$aadConfig) {
     Write-Output `
+        "PCS_AUTH_HTTPSREDIRECTPORT=0"
+    Write-Output `
         "PCS_AUTH_REQUIRED=false"
     Write-Output `
         "REACT_APP_PCS_AUTH_REQUIRED=false"
@@ -86,6 +94,8 @@ Function GetEnvironmentVariables() {
     $AUTH_AAD_TENANT = $aadConfig.TenantId
     $AUTH_AAD_AUTHORITY = $aadConfig.Instance
 
+    Write-Output `
+        "PCS_AUTH_HTTPSREDIRECTPORT=0"
     Write-Output `
         "PCS_AUTH_REQUIRED=true"
     Write-Output `
@@ -134,11 +144,19 @@ while ($True) {
     $rootDir = Split-Path $rootDir
 }
 
+$templateParameters = @{}
+# Configure auth
+if ($aadConfig) {
+    if (![string]::IsNullOrEmpty($aadConfig.TenantId)) { 
+        $templateParameters.Add("aadTenantId", $aadConfig.TenantId)
+    }
+}
+
 # Start the deployment
 $templateFilePath = Join-Path $ScriptDir "template.json"
 Write-Host "Starting deployment..."
-$deployment = New-AzureRmResourceGroupDeployment `
-    -ResourceGroupName $resourceGroupName -TemplateFile $templateFilePath
+$deployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName `
+    -TemplateFile $templateFilePath -TemplateParameterObject $templateParameters
 
 if ($aadConfig -and $aadConfig.ClientObjectId) {
     # 
@@ -183,12 +201,6 @@ if ($writeFile) {
     Write-Warning "!The file contains security keys to your Azure resources!"
     Write-Warning "! Safeguard the contents of this file, or delete it now !"
     Write-Warning "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    Write-Host
-    Write-Host "Ensure you have docker-compose installed. "
-    Write-Host "Then start the solution by running:"
-    Write-Host
-    Write-Host "cd $rootDir"
-    Write-Host "docker-compose up"
     Write-Host
 }
 else {

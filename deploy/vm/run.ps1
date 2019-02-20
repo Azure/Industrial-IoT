@@ -5,6 +5,9 @@
  .DESCRIPTION
     Deploys an Azure Resource Manager template of choice
 
+ .PARAMETER applicationName
+    The name of the application. 
+
  .PARAMETER resourceGroupName
     The resource group where the template will be deployed. 
 
@@ -16,10 +19,88 @@
 #>
 
 param(
+    [Parameter(Mandatory=$True)] [string] $applicationName,
     [Parameter(Mandatory=$True)] [string] $resourceGroupName,
     $aadConfig = $null,
     $interactive = $true
 )
+
+#******************************************************************************
+# Get env file content from deployment
+#******************************************************************************
+Function GetEnvironmentVariables() {
+    Param(
+        $deployment
+    )
+
+    $IOTHUB_NAME = $deployment.Outputs["iothub-name"].Value
+    $IOTHUB_ENDPOINT = $deployment.Outputs["iothub-endpoint"].Value
+    $IOTHUB_CONNSTRING = $deployment.Outputs["iothub-connstring"].Value
+    $AZURE_WEBSITE = $deployment.Outputs["azureWebsite"].Value
+
+    Write-Output `
+        "_HUB_CS=$IOTHUB_CONNSTRING"
+    Write-Output `
+        "PCS_IOTHUB_CONNSTRING=$IOTHUB_CONNSTRING"
+    Write-Output `
+        "PCS_IOTHUBREACT_ACCESS_CONNSTRING=$IOTHUB_CONNSTRING"
+    Write-Output `
+        "PCS_IOTHUBREACT_HUB_NAME=$IOTHUB_NAME"
+    Write-Output `
+        "PCS_IOTHUBREACT_HUB_ENDPOINT=$IOTHUB_ENDPOINT"
+        
+    Write-Output `
+        "PCS_TWIN_REGISTRY_URL=$AZURE_WEBSITE/registry"
+    Write-Output `
+        "PCS_TWIN_SERVICE_URL=$AZURE_WEBSITE/twin"
+    Write-Output `
+        "REACT_APP_PCS_TWIN_REGISTRY_URL=$AZURE_WEBSITE/registry"
+    Write-Output `
+        "REACT_APP_PCS_TWIN_SERVICE_URL=$AZURE_WEBSITE/twin"
+
+    if (!$aadConfig) {
+    Write-Output `
+        "PCS_AUTH_HTTPSREDIRECTPORT=443"
+    Write-Output `
+        "PCS_AUTH_REQUIRED=false"
+    Write-Output `
+        "REACT_APP_PCS_AUTH_REQUIRED=false"
+        return;
+    }
+
+    $AUTH_AUDIENCE = $aadConfig.Audience
+    $AUTH_AAD_APPID = $aadConfig.ClientId
+    $AUTH_AAD_TENANT = $aadConfig.TenantId
+    $AUTH_AAD_AUTHORITY = $aadConfig.Instance
+
+    Write-Output `
+        "PCS_AUTH_HTTPSREDIRECTPORT=443"
+    Write-Output `
+        "PCS_AUTH_REQUIRED=true"
+    Write-Output `
+        "PCS_AUTH_AUDIENCE=$AUTH_AUDIENCE"
+    Write-Output `
+        "PCS_AUTH_ISSUER=https://sts.windows.net/$AUTH_AAD_TENANT/"
+    Write-Output `
+        "PCS_WEBUI_AUTH_AAD_APPID=$AUTH_AAD_APPID"
+    Write-Output `
+        "PCS_WEBUI_AUTH_AAD_AUTHORITY=$AUTH_AAD_AUTHORITY"
+    Write-Output `
+        "PCS_WEBUI_AUTH_AAD_TENANT=$AUTH_AAD_TENANT"
+
+    Write-Output `
+        "REACT_APP_PCS_AUTH_REQUIRED=true"
+    Write-Output `
+        "REACT_APP_PCS_AUTH_AUDIENCE=$AUTH_AUDIENCE"
+    Write-Output `
+        "REACT_APP_PCS_AUTH_ISSUER=https://sts.windows.net/$AUTH_AAD_TENANT/"
+    Write-Output `
+        "REACT_APP_PCS_WEBUI_AUTH_AAD_APPID=$AUTH_AAD_APPID"
+    Write-Output `
+        "REACT_APP_PCS_WEBUI_AUTH_AAD_AUTHORITY=$AUTH_AAD_AUTHORITY"
+    Write-Output `
+        "REACT_APP_PCS_WEBUI_AUTH_AAD_TENANT=$AUTH_AAD_TENANT"
+}
 
 #******************************************************************************
 # Generate a random password
@@ -51,14 +132,31 @@ Function CreateRandomPassword() {
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 
+# find the parent folder with docker-compose.yml in it
+$rootDir = $ScriptDir
+while ($True) {
+    if ([string]::IsNullOrEmpty($rootDir)) {
+        $rootDir = $ScriptDir
+        break
+    }
+    $test = Join-Path $rootDir "docker-compose.yml"
+    if (Test-Path $test) {
+        break
+    }
+    $rootDir = Split-Path $rootDir
+}
+
 # Register RPs
 Register-AzureRmResourceProvider -ProviderNamespace "microsoft.web" | Out-Null
 Register-AzureRmResourceProvider -ProviderNamespace "microsoft.compute" | Out-Null
 
-# Set admin password
+# Set admin user and password
 $adminPassword = CreateRandomPassword
+$adminUser = "azureuser"
 $templateParameters = @{ 
     adminPassword = $adminPassword
+    adminUsername = $adminUser
+    azureWebsiteName = $script:applicationName
 }
 
 try {
@@ -88,15 +186,6 @@ if ($aadConfig) {
     }
 }
 
-
-# Set website name
-if ($interactive) {
-    $azureWebsiteName = Read-Host "Please specify a website name"
-    if (![string]::IsNullOrEmpty($azureWebsiteName)) { 
-        $templateParameters.Add("azureWebsiteName", $azureWebsiteName)
-    }
-}
-
 # Create ssl cert 
 $cert = New-SelfSignedCertificate -DnsName "opctwin.services.net" `
     -KeyExportPolicy Exportable -CertStoreLocation "Cert:\CurrentUser\My"
@@ -113,38 +202,70 @@ if ($cert) {
     }
 }
 
+Write-Host "Starting deployment..."
+Write-Host 
+Write-Host "To trouble shoot use the following User and Password to log onto your VM:"
+Write-Host 
+Write-Host $adminUser
+Write-Host $adminPassword
+Write-Host 
+
 # Start the deployment
 $templateFilePath = Join-Path $ScriptDir "template.json"
-Write-Host "Starting deployment..."
 $deployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName `
     -TemplateFile $templateFilePath -TemplateParameterObject $templateParameters
 
 $website = $deployment.Outputs["azureWebsite"].Value
 $iothub = $deployment.Outputs["iothub-connstring"].Value
-$adminUser = $deployment.Outputs["adminUsername"].Value
 
 if ($aadConfig -and $aadConfig.ClientObjectId) {
     # 
-    # Update client application to add reply urls required permissions.
+    # Update client application to add reply urls 
     #
     $replyUrls = New-Object System.Collections.Generic.List[System.String]
     $replyUrls.Add($website)
-    $replyUrls.Add($website + "/twins/oauth2-redirect.html")
+    $replyUrls.Add($website + "/twin/oauth2-redirect.html")
     $replyUrls.Add($website + "/registry/oauth2-redirect.html")
     $replyUrls.Add($website + "/vault/oauth2-redirect.html")
     # still connected
     Set-AzureADApplication -ObjectId $aadConfig.ClientObjectId -ReplyUrls $replyUrls
 }
 
+$writeFile = $false
+if ($script:interactive) {
+    $prompt = "Save environment as $ENVVARS? [y/n]"
+    $reply = Read-Host -Prompt $prompt
+    if ($reply -match "[yY]") {
+        $writeFile = $true
+    }
+    if ($writeFile) {
+        $ENVVARS = Join-Path $rootDir ".env"
+        if (Test-Path $ENVVARS) {
+            $prompt = "Overwrite existing .env file in $rootDir? [y/n]"
+            if ( $reply -match "[yY]" ) {
+                Remove-Item $ENVVARS -Force
+            }
+            else {
+                $writeFile = $false
+            }
+        }
+    }
+}
+if ($writeFile) {
+    GetEnvironmentVariables $deployment | Out-File -Encoding ascii `
+        -FilePath $ENVVARS
+
+    Write-Host
+    Write-Host ".env file created in $rootDir."
+    Write-Host
+    Write-Warning "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    Write-Warning "!The file contains security keys to your Azure resources!"
+    Write-Warning "! Safeguard the contents of this file, or delete it now !"
+    Write-Warning "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    Write-Host
+}
+
 Write-Host
-Write-Host "In your webbrowser go to:"
+Write-Host "Your services can be accessed at:"
 Write-Host $website
-Write-Host
-Write-Host "To connect your own servers you might also need the iothubowner connection string:"
-Write-Host ("PCS_IOTHUB_CONNSTRING=" + $iothub)
-Write-Host 
-Write-Host "Use the following User and Password to log onto your VM:"
-Write-Host 
-Write-Host $adminUser
-Write-Host $adminPassword
 Write-Host 

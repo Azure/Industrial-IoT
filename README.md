@@ -1,104 +1,56 @@
 # Azure Industrial IoT Services
 
-The micro services contained in this repository provide a REST like API on top of our Azure Industrial IoT components, for example our [OPC UA components](https://github.com/Azure/azure-iiot-opc-ua).  Services include:
+## Overview
 
-* The **OPC UA device registry micro service** provides access to registered OPC UA applications and their endpoints.  Operators and administrators can register and unregister new OPC UA applications and browse the existing ones, including their endpoints.  
-  In addition to application and endpoint management, the registry service also catalogues registered [OPC Device Twin IoT Edge modules](https://github.com/Azure/azure-iiot-opc-twin-module).  The service API gives you control of edge module functionality, e.g. starting or stopping Server discovery (Scanning services), or activating new 'Endpoint twins' that can be accessed using the OPC Twin micro service.
-* The **OPC Device Twin micro service** facilitates communication with factory floor edge OPC UA server devices via a [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module) and exposes OPC UA services (Browse, Read, Write, and Execute) via its REST API.  
-* The **OPC UA device onboarding agent** is a worker role that processes OPC UA server discovery events sent by the [OPC Twin IoT Edge module](https://github.com/Azure/azure-iiot-opc-twin-module) when in discovery (or scan) mode.  The discovery events result in application registration and updates in the OPC UA device registry.
+Azure IoT Industrial IoT Services consists of several microservices that use Azure IoT Hub and other Azure Platform services to connect your factory to Azure.  
 
-The Industrial IoT micro services are part of our suite of [Azure Industrial IoT components](#Other-Azure-Industrial-IoT-components).
+- **[OPC Unified Architecture (OPC UA) Device Management](docs/twin/readme.md)** services provide discovery, registration, and remote control of industrial devices through REST APIs.  
+- **OPC Unified Architecture (OPC UA) Certificate Management** services enable secure communication among OPC UA enabled devices and the cloud.  (COMING SOON)
 
-## Getting started
+These services and components enable you to build application that
 
-Clone this repository.
+### Discover, register and manage your OPC UA Assets in Azure
 
-### Install any tools and depdendencies
+OPC UA Device Management services allow plant operators to discover OPC UA servers in a factory network and register them in Azure IoT Hub.  
 
-* [Install .NET Core 2.1+][dotnet-install] if you want to build the services locally.
-* Install [Docker][docker-url] if you want to build and run the services using docker-compose.
-* Install Powershell to deploy dependent services in Azure using the deployment scripts.
-* Install any recent edition of Visual Studio (Windows/MacOS) or Visual Studio Code (Windows/MacOS/Linux).
-   * If you already have Visual Studio installed, then ensure you have [.NET Core Tools for Visual Studio 2017][dotnetcore-tools-url] installed (Windows only).
-   * If you already have VS Code installed, then ensure you have the [C# for Visual Studio Code (powered by OmniSharp)][omnisharp-url] extension installed. 
+### Analyze, react to events, and control equipment from anywhere
 
-### Deploy required Azure Services
+OPC UA Device Management allows operations personnel to subscribe to and react to events on the factory floor from anywhere in the world.  The services' REST APIs mirror the OPC UA services edge-side and are secured using OAUTH authentication and authorization backed by Azure Active Directory (AAD).  This enables your cloud applications to browse server address spaces or read/write variables and execute methods using HTTPS and simple OPC UA JSON payloads.  
 
-This service has at a minimum a dependency on the following Azure resources:
+### Provision communication certificates and trust groups in your factory
 
-* [Azure IoT Hub][iothub-docs-url]
-* [Azure Storage][storage-docs-url]
+OPC UA Certificate Management enables OT and IT to manage OPC UA Application Certificates and Trust Lists.  Certificates secure client to server communication. Trust Lists determine which client is allowed to talk to which server.  Certificates and private keys can be issued and continuously renewed to keep your OPC UA server endpoints secure.  OPC UA Certificate Management  is built on Azure Key Vault which guards your private keys in a secure hardware location.
 
-If you have [PowerShell](#Install-any-tools-and-depdendencies) installed on your machine you can deploy them using the ./deploy.ps1 script contained in the deploy folder of this repo.  Run `./deploy.ps1 -type local` and choose to save the resulting .env file for use with docker-compose.
+### Simple developer experience
 
-### Setup Environment variables
+The [REST API](api/readme.md) can be used with any programming language through its exposed Open API specification (Swagger).  This means when integrating OPC UA into cloud management solutions, developers are free to choose technology that matches their skills, interests, and architecture choices.  For example, a full stack web developer who develops an application for an alarm and event dashboard can write logic to respond to events in JavaScript or TypeScript without ramping up on a OPC UA SDK, C, C++, Java or C#. 
 
-In order to run the services, some environment variables need to be created at least once. More information on environment variables [below](#Configuration-And-Environment-Variables).  
+## Next steps
 
-If you deploy all dependencies using [PowerShell](#Deploy-required-Azure-Services), the resulting `.env` file or script output shows all the variables the services expect.  This file is used directly when starting the services using docker-compose and must be in the same folder as your `docker-compose.yml` file (e.g. the one in the root of this repo).
+### Learn more
 
-If you want to run the services locally, you need to export these environment variables into your environment, e.g. by including them in your shell init script.  On Wndows you can also use the `setenv.bat` file in the `scripts` folder to read the `.env` file and set the variables in your system.
+This repository contains micro services, documentation, and deployment scripts for the [OPC UA device management micro services and components](docs/twin/readme.md).  
 
-## Build and Run
-
-### Running all services using docker
-
-If you have [Docker](#Install-any-tools-and-depdendencies) installed, you can start all services by changing into the repo root and running `docker-compose up`.  This requires a `.env` file generated by the deployment script.
-
-> To start the OPC Device Twin module which is the OPC UA Twin service's control plane at the edge, follow the instructions [here](https://github.com/Azure/azure-iiot-opc-twin-module). For real world usage, also run one or more OPC UA servers in the same network that the module deployment is part of.
-
-### Build and run the service with Visual Studio or VS Code
-
-1. Make sure the [Prerequisites](#Install-any-tools-and-depdendencies) are set up.
-1. Open the solution in Visual Studio or VS Code
-1. Configure the solution properties.  Set the start up projects to be all projects matching `Microsoft.Azure.IIoT.OpcUa.Services.*`.  Set them to "Start".
-1. Start debugging by pressing the "Start" button or hitting F5.
-1. Open a browser to `http://localhost:9041/` and `http://localhost:9042/` and test the each REST API using the services' Swagger UI or the [OPC UA CLI](https://github.com/Azure/azure-iiot-services-api).
-
-### Configuration and Environment variables
-
-Each service can be configured in its [appsettings.json](src/appsettings.json) file.  Alternatively, all configuration can be overridden on the command line, or through environment variables.  If you have deployed the dependent services using [PowerShell](#Install-any-tools-and-depdendencies), make sure the environment variables shown at the end of deployment are all persisted in your environment.
-
-* [This page][windows-envvars-howto-url] describes how to setup env vars in Windows.
-* For Linux and MacOS, we suggest to create a shell script to set up the environment variables each time before starting the service host (e.g. VS Code or docker). Depending on OS and terminal, there are ways to persist values globally, for more information [this](https://stackoverflow.com/questions/13046624/how-to-permanently-export-a-variable-in-linux), [this](https://help.ubuntu.com/community/EnvironmentVariables), or [this](https://stackoverflow.com/questions/135688/setting-environment-variables-in-os-x) page should help.
-
-> Make sure to restart your editor or IDE after setting your environment variables to ensure they are picked up.
-
-## Other Azure Industrial IoT components
+Other Azure Industrial IoT components can be found here:
 
 * [Azure Industrial IoT OPC UA components](https://github.com/Azure/azure-iiot-opc-ua)
 * [Azure Industrial IoT Service API](https://github.com/Azure/azure-iiot-services-api)
 * Azure Industrial IoT Edge Modules
   * [OPC Publisher module](https://github.com/Azure/iot-edge-opc-publisher)
   * [OPC Proxy module](https://github.com/Azure/iot-edge-opc-proxy)
-  * [OPC Device Twin module](https://github.com/Azure/azure-iiot-opc-twin-module)
+  * [OPC Twin module](https://github.com/Azure/azure-iiot-opc-twin-module)
 
-## Contributing
+### Give Feedback
 
-Refer to our [contribution guidelines](CONTRIBUTING.md).
+Please enter issues, bugs, or suggestions for any of the components and services as GitHub Issues [here](https://github.com/Azure/azure-iiot-services/issues).
 
-## Feedback
+### Contribute
 
-Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-services/issues).
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct).  For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft.com/) (Contribution License Agreement) and follow the project 's [code submission guidelines](docs/contributing.md). A friendly bot will remind you about it when you submit a pull-request. ​ 
 
 ## License
 
 Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the [MIT](LICENSE) License.
-
-[run-with-docker-url]: https://docs.microsoft.com/azure/iot-suite/iot-suite-remote-monitoring-deploy-local#run-the-microservices-in-docker
-[rm-arch-url]: https://docs.microsoft.com/azure/iot-suite/iot-suite-remote-monitoring-sample-walkthrough
-[postman-url]: https://www.getpostman.com
-[iotedge-url]: https://github.com/Azure/iotedge
-[iothub-docs-url]: https://docs.microsoft.com/azure/iot-hub/
-[storage-docs-url]: https://docs.microsoft.com/en-us/azure/storage/
-[docker-url]: https://www.docker.com/
-[dotnet-install]: https://www.microsoft.com/net/learn/get-started
-[vs-install-url]: https://www.visualstudio.com/downloads
-[dotnetcore-tools-url]: https://www.microsoft.com/net/core#windowsvs2017
-[omnisharp-url]: https://github.com/OmniSharp/omnisharp-vscode
-[windows-envvars-howto-url]: https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10
-[iothub-connstring-blog]: https://blogs.msdn.microsoft.com/iotdev/2017/05/09/understand-different-connection-strings-in-azure-iot-hub/
-[deploy-rm]: https://docs.microsoft.com/azure/iot-suite/iot-suite-remote-monitoring-deploy
-[deploy-local]: https://docs.microsoft.com/azure/iot-suite/iot-suite-remote-monitoring-deploy-local#deploy-the-azure-services
-[disable-auth]: https://github.com/Azure/azure-iot-pcs-remote-monitoring-dotnet/wiki/Developer-Reference-Guide#disable-authentication
+Licensed under the [MIT](LICENSE) License.  

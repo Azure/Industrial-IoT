@@ -15,13 +15,21 @@ startall() {
   nohup docker-compose up > /dev/null 2>&1&
 
   # assume http -> https redirect in place.
-  ISUP=$(curl -ks https://localhost/ | grep -i "html" | wc -l)
+    echo "Waiting for registry service to start..."
+  ISUP=$(curl -ks https://localhost/registry/v1/status | grep -i "Alive and well" | wc -l)
   while [[ "$ISUP" == "0" ]]; do
-    echo "Waiting for web site to start..."
+    echo "Waiting for registry service to start..."
     sleep 3
-    ISUP=$(curl -ks https://localhost/ | grep -i "html" | wc -l)
+    ISUP=$(curl -ks https://localhost/registry/v1/status | grep -i "Alive and well" | wc -l)
   done
-  echo "Web site started!"
+    echo "Waiting for twin service to start..."
+  ISUP=$(curl -ks https://localhost/twin/v1/status | grep -i "Alive and well" | wc -l)
+  while [[ "$ISUP" == "0" ]]; do
+    echo "Waiting for twin service to start..."
+    sleep 3
+    ISUP=$(curl -ks https://localhost/twin/v1/status | grep -i "Alive and well" | wc -l)
+  done
+  echo "Services started!"
 }
 
   if [[ "$1" == "--stop" ]]; then

@@ -2,6 +2,13 @@
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "aadTenantId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The AAD tenant identifier (GUID)"
+            }
+        },
         "solutionName": {
             "type": "string",
             "defaultValue": "iiotservices",

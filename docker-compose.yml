@@ -13,7 +13,7 @@ services:
   registryservice:
     build: 
       context: .
-      dockerfile: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Registry/docker/Dockerfile
+      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Registry/docker/Dockerfile
     ports:
       - "9042:9042"
     restart: always
@@ -30,7 +30,7 @@ services:
   onboardingservice:
     build: 
       context: .
-      dockerfile: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Onboarding/docker/Dockerfile
+      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Onboarding/docker/Dockerfile
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
@@ -41,10 +41,20 @@ services:
       - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+  graphservice:
+    build: 
+      context: .
+      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Graph/docker/Dockerfile
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+      - PCS_IOTHUBREACT_AZUREBLOB_KEY
+      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
   twinservice:
     build: 
       context: .
-      dockerfile: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Twin/docker/Dockerfile
+      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Twin/docker/Dockerfile
     restart: always
     ports:
       - "9041:9041"
@@ -61,7 +71,7 @@ services:
   gatewayservice:
     build: 
       context: .
-      dockerfile: ./src/Microsoft.Azure.IIoT.OpcUa.Services.Gateway/docker/Dockerfile
+      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Gateway/docker/Dockerfile
     ports:
       - "9040:9040"
       - "51111:51111"

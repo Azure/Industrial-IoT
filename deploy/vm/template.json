@@ -829,7 +829,8 @@
                     "fileUris": [
                         "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/deploy/vm/setup.sh')]",
                         "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/deploy/vm/ctrl.sh')]",
-                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/deploy/vm/docker-compose.yml')]"
+                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/deploy/vm/docker-compose.yml')]",
+                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/deploy/vm/nginx.conf')]"
                     ]
                 },
                 "protectedSettings": {
@@ -842,6 +843,14 @@
         "iothub-connstring": {
             "type": "string",
             "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey)]"
+        },
+        "iothub-name": {
+            "type": "string",
+            "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.path]"
+        },
+        "iothub-endpoint": {
+            "type": "string",
+            "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint]"
         },
         "azureWebsite": {
             "type": "string",

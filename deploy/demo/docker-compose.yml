@@ -1,0 +1,112 @@
+version: '3'
+services:
+  reverseproxy:
+    image: nginx:1.13
+    restart: always
+    entrypoint: 
+      - nginx 
+      - -c 
+      - /app/nginx.conf
+    ports:
+      - "443:10443"
+    depends_on:
+      - registryservice
+      - onboardingservice
+      - gatewayservice
+      - twinservice
+      - twinwebui
+      - twinmodule
+    volumes:
+      - /app:/app:ro
+      - /logs:/logs:rw
+  registryservice:
+    image: mcr.microsoft.com/iot/opc-registry-service:latest
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_AUTH_HTTPSREDIRECTPORT
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
+      - PCS_CORS_WHITELIST
+  onboardingservice:
+    image: mcr.microsoft.com/iot/opc-onboarding-service:latest
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_HUB_ENDPOINT
+      - PCS_IOTHUBREACT_HUB_PARTITIONS
+      - PCS_IOTHUBREACT_HUB_NAME
+      - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
+      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+      - PCS_IOTHUBREACT_AZUREBLOB_KEY
+      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+  twinservice:
+    image: mcr.microsoft.com/iot/opc-twin-service:latest
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_AUTH_HTTPSREDIRECTPORT
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
+      - PCS_CORS_WHITELIST
+  gatewayservice:
+    image: mcr.microsoft.com/iot/opc-gateway-service:latest
+    ports:
+      - "4840:51111"
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_AUTH_HTTPSREDIRECTPORT
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
+      - PCS_CORS_WHITELIST
+  twinwebui:
+    image: marcschier/azure-iiot-opc-twin-webui:latest
+    restart: always
+    command: npm start
+    environment:
+      - REACT_APP_PCS_AUTH_REQUIRED
+      - REACT_APP_PCS_AUTH_ISSUER
+      - REACT_APP_PCS_AUTH_AUDIENCE
+      - REACT_APP_PCS_WEBUI_AUTH_AAD_APPID
+      - REACT_APP_PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - REACT_APP_PCS_WEBUI_AUTH_AAD_TENANT
+      - REACT_APP_PCS_TWIN_REGISTRY_URL=/registry/
+      - REACT_APP_PCS_TWIN_SERVICE_URL=/twin/
+  twinmodule:
+    image: marcschier/azure-iiot-opc-twin-module:latest
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+    command: demo demo
+  opcserver0:
+    image: marcschier/azure-iiot-opc-ua:latest
+    hostname: opcserver0
+    restart: always
+    command: --sample -p 51210
+  opcserver1:
+    image: marcschier/azure-iiot-opc-ua:latest
+    hostname: opcserver1
+    restart: always
+    command: --sample -p 51211
+  opcserver2:
+    image: marcschier/azure-iiot-opc-ua:latest
+    hostname: opcserver2
+    restart: always
+    command: --sample -p 51212
+      

@@ -8,8 +8,11 @@
  .PARAMETER type
     The type of deployment (vm, local)
 
+ .PARAMETER applicationName
+    The name of the solution. 
+
  .PARAMETER resourceGroupName
-    Can be the name of an existing or a new resource group.
+    Can be the name of an existing or a new resource group - defaults to $applicationName. 
 
  .PARAMETER subscriptionId
     Optional, the subscription id where resources will be deployed.
@@ -20,8 +23,8 @@
  .PARAMETER resourceGroupLocation
     Optional, a resource group location. If specified, will try to create a new resource group in this location.
 
- .PARAMETER withAuthentication
-    Whether to enable authentication - defaults to $true.
+ .PARAMETER aadApplicationName
+    The AAD application name to register - defaults to $applicationName. 
 
  .PARAMETER tenantId
     AD tenant to use. 
@@ -32,6 +35,7 @@
 
 param(
     [string] $type = "vm",
+    [string] $applicationName,
     [string] $resourceGroupName,
     [string] $resourceGroupLocation,
     [string] $subscriptionName,
@@ -39,7 +43,7 @@ param(
     [string] $accountName,
     $credentials,
     [string] $tenantId,
-    [bool] $withAuthentication = $true,
+    [string] $aadApplicationName,
     [ValidateSet("AzureCloud")] [string] $environmentName = "AzureCloud"
 )
 
@@ -52,7 +56,7 @@ Function SelectEnvironment() {
     switch ($script:environmentName) {
         "AzureCloud" {
             if ((Get-AzureRMEnvironment AzureCloud) -eq $null) {
-                Add-AzureRMEnvironment –Name AzureCloud -EnableAdfsAuthentication $False `
+                Add-AzureRMEnvironment -Name AzureCloud -EnableAdfsAuthentication $False `
                     -ActiveDirectoryServiceEndpointResourceId https://management.core.windows.net/  `
                     -GalleryUrl https://gallery.azure.com/ `
                     -ServiceManagementUrl https://management.core.windows.net/ `
@@ -101,6 +105,9 @@ Function SelectAccount() {
             $account = Add-AzureAccount -Environment $script:environmentName
         }
         else {
+            if (!$script:interactive) {
+                throw new "Provide account name to use for non-interactive mode using -accountName."
+            }
             Write-Host "Select Azure account to use"
             $script:optionIndex = 1
             Write-Host
@@ -159,6 +166,7 @@ Function Login() {
         }
         if ($rmProfileLoaded) {
             $script:accountName = $rmProfile.Context.Account.Id
+            $script:profileFile = $profileFile;
         }
     }
     if (!$rmProfileLoaded) {
@@ -174,6 +182,7 @@ Function Login() {
         $reply = Read-Host -Prompt "Save user profile in $profileFile? [y/n]"
         if ($reply -match "[yY]") { 
             Save-AzureRmContext -Path "$profileFile"
+            $script:profileFile = $profileFile;
         }
     }
 }
@@ -183,17 +192,21 @@ Function Login() {
 #*******************************************************************************************************
 Function SelectSubscription() {
     $subscriptions = Get-AzureRMSubscription
-    if ($script:subscriptionName -ne $null -and $script:subscriptionName -ne "") {
-        $subscriptionId = Get-AzureRmSubscription -SubscriptionName $script:subscriptionName
-    }
-    else {
-        $subscriptionId = $script:subscriptionId
+    $subscriptionId = $script:subscriptionId
+    if (![string]::IsNullOrEmpty($script:subscriptionName)) {
+        $subscription = Get-AzureRmSubscription -SubscriptionName $script:subscriptionName
+        if ($subscription) {
+            $subscriptionId = $subscription.Id
+        }
     }
 
     if (![string]::IsNullOrEmpty($subscriptionId)) {
         if (!$subscriptions.Id.Contains($subscriptionId)) {
-            Write-Error ("Invalid subscription id {0}" -f $subscriptionId)
-            $subscriptionId = ""
+            if (!$script:interactive) {
+                throw new "Invalid subscription provided with -subscriptionId or -subscriptionName"
+            }
+            Write-Error "Invalid subscription provided"
+            $subscriptionId = $null
         }
     }
 
@@ -202,6 +215,9 @@ Function SelectSubscription() {
             $subscriptionId = $subscriptions[0].Id
         }
         else {
+            if (!$script:interactive) {
+                throw new "Provide a subscription to use using -subscriptionId or -subscriptionName"
+            }
             Write-Output "Select an Azure subscription to use... "
             $script:optionIndex = 1
             Write-Host
@@ -238,6 +254,9 @@ Function SelectSubscription() {
 # Called if no Azure location is configured for the deployment to let the user choose a location.
 #*******************************************************************************************************
 Function SelectLocation() {
+    if (!$script:interactive) {
+        throw new "Provide a location to use for non-interactive mode"
+    }
     $locations = @()
     $index = 1
     foreach ($location in $script:locations) {
@@ -332,13 +351,31 @@ Function AcquireToken() {
 #*******************************************************************************************************
 Function SelectAzureADTenantId() {
     $tenants = Get-AzureRmTenant
-    if ($tenants.Count -eq 0) {
-        throw ("No Active Directory domains found for '{0}'" -f $script:accountName)
-    }
-    if ($tenants.Count -eq 1) {
-        $tenantId = $tenants[0].Id
+    $tenantId = $script:tenantId
+    if ([string]::IsNullOrEmpty($tenantId)) {
+        if ($tenants.Count -eq 0) {
+            throw ("No Active Directory tenants found for '{0}'" -f $script:accountName)
+        }
+        if ($tenants.Count -eq 1) {
+            $tenantId = $tenants[0].Id
+        }
+        else {
+            if (!$script:interactive) {
+                throw new "Provide a valid AAD tenantId to use for non-interactive mode using -tenantId"
+            }
+        }
     }
     else {
+        # Test id is valid
+        if (!$tenants.Id.Contains($tenantId)) {
+            if (!$script:interactive) {
+                throw new "Invalid AAD tenant id provided with -tenantId"
+            }
+            Write-Error "Invalid tenant id provided"
+        }
+    }
+    $tenantId = $null
+    while ([string]::IsNullOrEmpty($tenantId)) {
         # List Active directories associated with account
         $directories = @()
         $index = 1
@@ -387,20 +424,14 @@ Function SelectAzureADTenantId() {
 #*******************************************************************************************************
 Function ConnectToAzureADTenant() {
     if ($script:interactive) {
-        # Interactive
+        # Interactive selecting tenant to connect to
         if (!$script:tenantId) {
-            if (!$script:withAuthentication) {
-                $reply = Read-Host -Prompt "Enable authentication? [y/n]"
-                if ( $reply -notmatch "[yY]" ) { 
-                    return $null
-                }
-            }
             $script:tenantId = SelectAzureADTenantId
         }
     }
     if (!$script:credentials) {
         if (!$script:tenantId) {
-            throw "No tenant selected for AAD connect."
+            throw "No tenant selected for AAD connect - provide a tenant id if not using interactive mode."
         }
         else {
             # Make sure we get token from token cache instead of interactive logon
@@ -461,17 +492,25 @@ Function GetRequiredPermissions() {
     Param(
         [string] $applicationDisplayName,
         [string] $requiredDelegatedPermissions, 
-        [string] $requiredApplicationPermissions, 
+        [string] $requiredApplicationPermissions,
+        [string] $appId,
+        [string] $servicePrincipalName,
         $servicePrincipal
     )
 
-    # If we are passed the service principal we use it directly, otherwise we find it from 
-    # the display name (which might not be unique)
     if ($servicePrincipal) {
         $sp = $servicePrincipal
     }
     else {
-        $sp = Get-AzureADServicePrincipal -Filter "DisplayName eq '$applicationDisplayName'"
+        if ($servicePrincipalName) {
+            $sp = Get-AzureADServicePrincipal -Filter "ServicePrincipalNames eq '$servicePrincipalName'"
+        }
+        if ($appId) {
+            $sp = Get-AzureADServicePrincipal -Filter "AppId eq '$appId'"
+        }
+        if ($applicationDisplayName) {
+            $sp = Get-AzureADServicePrincipal -Filter "DisplayName eq '$applicationDisplayName'"
+        }
     }
 
     $appid = $sp.AppId
@@ -488,6 +527,7 @@ Function GetRequiredPermissions() {
         AddResourcePermission $requiredAccess -exposedPermissions $sp.AppRoles `
             -requiredAccesses $requiredApplicationPermissions -permissionType "Role"
     }
+
     return $requiredAccess
 }
 
@@ -519,8 +559,6 @@ Function CreateAppRole() {
 # Get configuration object for service and client applications
 #*******************************************************************************************************
 Function GetAzureADApplicationConfig() {
-    $serviceDisplayName = "azure-iiot-services"
-    $clientDisplayName = "azure-iiot-clients"
     try {
         $creds = ConnectToAzureADTenant
         if (!$creds) {
@@ -530,6 +568,24 @@ Function GetAzureADApplicationConfig() {
         if (!$script:tenantId) {
             return $null
         }
+        
+        $aadApplicationName = $script:aadApplicationName
+        if ([string]::IsNullOrEmpty($aadApplicationName)) {
+            if ($script:interactive) {
+                Write-Host
+                Write-Host "Please provide a name for the AAD application to register."
+                $aadApplicationName = Read-Host "(Hit enter to use '$script:applicationName')"
+                if ([string]::IsNullOrEmpty($aadApplicationName)) {
+                    Write-Host "Registering '$script:applicationName' in AAD."
+                    $aadApplicationName = $script:applicationName
+                }
+            }
+            else {
+                $aadApplicationName = $script:applicationName
+            }
+        }
+        $serviceDisplayName = $aadApplicationName + "-services"
+        $clientDisplayName = $aadApplicationName + "-clients"
 
         $tenant = Get-AzureADTenantDetail
         $tenantName =  ($tenant.VerifiedDomains | Where { $_._Default -eq $True }).Name
@@ -541,7 +597,7 @@ Function GetAzureADApplicationConfig() {
             $serviceAadApplication = New-AzureADApplication -DisplayName $serviceDisplayName `
                 -PublicClient $False -HomePage "https://localhost" `
                 -IdentifierUris "https://$tenantName/$serviceDisplayName"
-            Write-Host "Created new AAD service application."
+            Write-Host "Created new AAD service application '$($serviceDisplayName)'."
         }
         $serviceServicePrincipal=Get-AzureADServicePrincipal `
              -Filter "AppId eq '$($serviceAadApplication.AppId)'"
@@ -556,7 +612,7 @@ Function GetAzureADApplicationConfig() {
         if (!$clientAadApplication) {
             $clientAadApplication = New-AzureADApplication -DisplayName $clientDisplayName `
                 -PublicClient $True
-            Write-Host "Created new AAD client application."
+            Write-Host "Created new AAD client application '$($clientDisplayName)'."
         }
 
         # Find client principal
@@ -603,15 +659,43 @@ Function GetAzureADApplicationConfig() {
         $knownApplications.Add($clientAadApplication.AppId)
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
-        $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Azure Key Vault" `
-            -requiredDelegatedPermissions "user_impersonation" 
+        $requiredPermissions = GetRequiredPermissions -appId "cfa8b339-82a2-471a-a3c9-0fc0be7a4093" `
+            -requiredDelegatedPermissions "user_impersonation"
         $requiredResourcesAccess.Add($requiredPermissions)
         $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Microsoft Graph" `
             -requiredDelegatedPermissions "User.Read" 
         $requiredResourcesAccess.Add($requiredPermissions)
         Set-AzureADApplication -ObjectId $serviceAadApplication.ObjectId `
-            -RequiredResourceAccess $requiredResourcesAccess `
-            -KnownClientApplications $knownApplications -AppRoles $appRoles
+            -KnownClientApplications $knownApplications -AppRoles $appRoles `
+            -RequiredResourceAccess $requiredResourcesAccess
+        Write-Host "'$($serviceDisplayName)' updated with required resource access, app roles and known applications."  
+
+        # read updated app roles for service principal
+        $serviceServicePrincipal=Get-AzureADServicePrincipal `
+             -Filter "AppId eq '$($serviceAadApplication.AppId)'"
+
+        #
+        # Add current user as Writer, Approver and Administrator
+        #
+        try {
+            $app_role_name = "Writer"
+            $app_role = $serviceServicePrincipal.AppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
+            New-AzureADUserAppRoleAssignment -ObjectId $user.ObjectId -PrincipalId $user.ObjectId `
+                -ResourceId $serviceServicePrincipal.ObjectId -Id $app_role.Id
+
+            $app_role_name = "Approver"
+            $app_role = $serviceServicePrincipal.AppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
+            New-AzureADUserAppRoleAssignment -ObjectId $user.ObjectId -PrincipalId $user.ObjectId `
+                -ResourceId $serviceServicePrincipal.ObjectId -Id $app_role.Id
+
+            $app_role_name = "Administrator"
+            $app_role = $serviceServicePrincipal.AppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
+            New-AzureADUserAppRoleAssignment -ObjectId $user.ObjectId -PrincipalId $user.ObjectId `
+                -ResourceId $serviceServicePrincipal.ObjectId -Id $app_role.Id
+        }
+        catch {
+            Write-Host "User already has all app roles assigned."
+        }
 
         # 
         # Update client application to add reply urls required permissions.
@@ -634,8 +718,10 @@ Function GetAzureADApplicationConfig() {
             TenantId = $tenantId
             Instance = $script:environment.ActiveDirectoryAuthority
             Audience = $serviceAadApplication.IdentifierUris[0].ToString()
+            AppName = $aadApplicationName
             AppId = $serviceAadApplication.AppId
             AppObjectId = $serviceAadApplication.ObjectId
+            AppDisplayName = $serviceDisplayName
             ClientId = $clientAadApplication.AppId
             ClientObjectId = $clientAadApplication.ObjectId
         }
@@ -650,10 +736,11 @@ Function GetAzureADApplicationConfig() {
         Write-Host "1) Run Powershell as an administrator" 
         Write-Host "2) in the PowerShell window, type: Install-Module AzureAD" 
         Write-Host
-
-        $reply = Read-Host -Prompt "Continue without authentication? [y/n]"
-        if ($reply -match "[yY]") { 
-            return $null
+        if ($script:interactive) {
+            $reply = Read-Host -Prompt "Continue without authentication? [y/n]"
+            if ($reply -match "[yY]") { 
+                return $null
+            }
         }
         throw $ex
     }
@@ -669,14 +756,36 @@ Function GetOrCreateResourceGroup() {
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.documentdb" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.eventhub" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.storage" | Out-Null
+    Register-AzureRmResourceProvider -ProviderNamespace "microsoft.keyvault" | Out-Null
+    Register-AzureRmResourceProvider -ProviderNamespace "microsoft.authorization" | Out-Null
 
-    while ([string]::IsNullOrEmpty($script:resourceGroupName)) {
-        Write-Host
-        $script:resourceGroupName = Read-Host "Please provide a name for the resource group"
+    if ([string]::IsNullOrEmpty($script:resourceGroupName)) {
+        if ($script:interactive) {
+            Write-Host
+            Write-Host "Please provide a name for the resource group."
+            $script:resourceGroupName = Read-Host "(Hit enter to use '$script:applicationName')"
+            if ([string]::IsNullOrEmpty($script:resourceGroupName)) {
+                Write-Host "Using '$script:applicationName' as resource group name."
+                $script:resourceGroupName = $script:applicationName
+            }
+        }
+        else {
+            $script:resourceGroupName = $script:applicationName
+        }
     }
 
     # Create or check for existing resource group
-    Select-AzureRmSubscription -SubscriptionId $script:subscriptionId -Force | Out-Host
+    if ((Get-AzureRmContext).Subscription.Id -ne $script:subscriptionId) {
+        Add-AzureRmAccount -SubscriptionId $script:subscriptionId 
+        Set-AzureRmContext -SubscriptionId $script:subscriptionId -Force | Out-Host
+        # context change required a new logon and the saved context needs to be updated
+        if ($script:profileFile) {
+            Save-AzureRmContext -Path "$script:profileFile"
+        }
+    }
+    else {
+        Select-AzureRmSubscription -SubscriptionId $script:subscriptionId -Force | Out-Host
+    }
     $resourceGroup = Get-AzureRmResourceGroup -Name $script:resourceGroupName `
         -ErrorAction SilentlyContinue
     if(!$resourceGroup) {
@@ -702,34 +811,52 @@ $script:ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 
 $deploymentScript = Join-Path $script:ScriptDir $script:type
 $deploymentScript = Join-Path $deploymentScript "run.ps1"
-if(![System.IO.File]::Exists($deploymentScript)) {
+if (![System.IO.File]::Exists($deploymentScript)) {
     throw "Invalid deployment type '$type' specified."
 }
 
 $script:interactive = $($script:credential -eq $null)
-$script:subscriptionId = $null
+while ([string]::IsNullOrEmpty($script:applicationName)) {
+    if (!$script:interactive) {
+        throw "No application name specified which is mandatory for non-interactive script use."
+    }
+    $script:applicationName = Read-Host "Please specify a name for your application"
+}
 
 SelectEnvironment
 Login
 SelectSubscription
 
-$aadConfig = GetAzureADApplicationConfig
 $deleteOnErrorPrompt = GetOrCreateResourceGroup
-
+$aadConfig = GetAzureADApplicationConfig
 try {
     Write-Host "Almost done..."
-    & ($deploymentScript) -resourceGroupName $script:resourceGroupName `
-        -interactive $script:interactive -aadConfig $aadConfig
+    & ($deploymentScript) `
+        -applicationName $script:applicationName `
+        -resourceGroupName $script:resourceGroupName `
+        -interactive $script:interactive `
+        -aadConfig $aadConfig
     Write-Host "Deployment succeeded."
 }
 catch {
-    Write-Host "Deployment failed."
     $ex = $_.Exception
+    Write-Host $_.Exception.Message
+    Write-Host "Deployment failed."
     if ($deleteOnErrorPrompt) {
         $reply = Read-Host -Prompt "Delete resource group? [y/n]"
         if ($reply -match "[yY]") { 
             try {
+                Write-Host "Remove resource group "$script:resourceGroupName
                 Remove-AzureRmResourceGroup -Name $script:resourceGroupName -Force
+            }
+            catch {
+                Write-Host $_.Exception.Message
+            }
+            try {
+                Write-Host "Delete AD App "$aadConfig.AppDisplayName
+                Remove-AzureADApplication -ObjectId $aadConfig.AppId
+                Write-Host "Delete AD App "$aadConfig.ClientDisplayName
+                Remove-AzureADApplication -ObjectId $aadConfig.ClientObjectId
             }
             catch {
                 Write-Host $_.Exception.Message

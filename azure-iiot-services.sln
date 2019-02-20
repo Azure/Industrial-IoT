@@ -7,21 +7,25 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{75E59BA0-618
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E299CA71-F612-46CC-A009-3C0728641FEB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Twin", "src\Microsoft.Azure.IIoT.OpcUa.Services.Twin\src\Microsoft.Azure.IIoT.OpcUa.Services.Twin.csproj", "{70936BDF-973F-4B25-9952-7D220954DC80}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Twin", "src\Microsoft.Azure.IIoT.Services.OpcUa.Twin\src\Microsoft.Azure.IIoT.Services.OpcUa.Twin.csproj", "{70936BDF-973F-4B25-9952-7D220954DC80}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Twin.Tests", "src\Microsoft.Azure.IIoT.OpcUa.Services.Twin\tests\Microsoft.Azure.IIoT.OpcUa.Services.Twin.Tests.csproj", "{F6D8E386-7C84-4457-951A-C2D7439B0621}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Twin.Tests", "src\Microsoft.Azure.IIoT.Services.OpcUa.Twin\tests\Microsoft.Azure.IIoT.Services.OpcUa.Twin.Tests.csproj", "{F6D8E386-7C84-4457-951A-C2D7439B0621}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Gateway", "src\Microsoft.Azure.IIoT.OpcUa.Services.Gateway\src\Microsoft.Azure.IIoT.OpcUa.Services.Gateway.csproj", "{DE3A13D8-B98E-4D27-B159-9DC5B460B16E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Gateway", "src\Microsoft.Azure.IIoT.Services.OpcUa.Gateway\src\Microsoft.Azure.IIoT.Services.OpcUa.Gateway.csproj", "{DE3A13D8-B98E-4D27-B159-9DC5B460B16E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Gateway.Tests", "src\Microsoft.Azure.IIoT.OpcUa.Services.Gateway\tests\Microsoft.Azure.IIoT.OpcUa.Services.Gateway.Tests.csproj", "{986CFD6D-0EC2-433E-9A24-4053F64342B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Gateway.Tests", "src\Microsoft.Azure.IIoT.Services.OpcUa.Gateway\tests\Microsoft.Azure.IIoT.Services.OpcUa.Gateway.Tests.csproj", "{986CFD6D-0EC2-433E-9A24-4053F64342B1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Onboarding", "src\Microsoft.Azure.IIoT.OpcUa.Services.Onboarding\src\Microsoft.Azure.IIoT.OpcUa.Services.Onboarding.csproj", "{E5EA1145-A38C-4877-91A3-83A18937EC7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Onboarding", "src\Microsoft.Azure.IIoT.Services.OpcUa.Onboarding\src\Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.csproj", "{E5EA1145-A38C-4877-91A3-83A18937EC7C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Onboarding.Tests", "src\Microsoft.Azure.IIoT.OpcUa.Services.Onboarding\tests\Microsoft.Azure.IIoT.OpcUa.Services.Onboarding.Tests.csproj", "{32591C64-8569-4223-B1A7-A8E0A983188F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.Tests", "src\Microsoft.Azure.IIoT.Services.OpcUa.Onboarding\tests\Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.Tests.csproj", "{32591C64-8569-4223-B1A7-A8E0A983188F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Registry", "src\Microsoft.Azure.IIoT.OpcUa.Services.Registry\src\Microsoft.Azure.IIoT.OpcUa.Services.Registry.csproj", "{DE5AD076-F383-498B-8C60-DE3287FA375F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Registry", "src\Microsoft.Azure.IIoT.Services.OpcUa.Registry\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.csproj", "{DE5AD076-F383-498B-8C60-DE3287FA375F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Services.Registry.Tests", "src\Microsoft.Azure.IIoT.OpcUa.Services.Registry\tests\Microsoft.Azure.IIoT.OpcUa.Services.Registry.Tests.csproj", "{B6D242DD-77E1-4FD7-8727-63B7604B8902}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Tests", "src\Microsoft.Azure.IIoT.Services.OpcUa.Registry\tests\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Tests.csproj", "{B6D242DD-77E1-4FD7-8727-63B7604B8902}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Graph", "src\Microsoft.Azure.IIoT.Services.OpcUa.Graph\src\Microsoft.Azure.IIoT.Services.OpcUa.Graph.csproj", "{71203BC5-A7A0-4E15-8D8E-4FF5A3D8C636}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Graph.Tests", "src\Microsoft.Azure.IIoT.Services.OpcUa.Graph\tests\Microsoft.Azure.IIoT.Services.OpcUa.Graph.Tests.csproj", "{CF3FB94F-D4AF-484E-86C5-89651C592D17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,6 +65,14 @@ Global
 		{B6D242DD-77E1-4FD7-8727-63B7604B8902}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6D242DD-77E1-4FD7-8727-63B7604B8902}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B6D242DD-77E1-4FD7-8727-63B7604B8902}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71203BC5-A7A0-4E15-8D8E-4FF5A3D8C636}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71203BC5-A7A0-4E15-8D8E-4FF5A3D8C636}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71203BC5-A7A0-4E15-8D8E-4FF5A3D8C636}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71203BC5-A7A0-4E15-8D8E-4FF5A3D8C636}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF3FB94F-D4AF-484E-86C5-89651C592D17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF3FB94F-D4AF-484E-86C5-89651C592D17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF3FB94F-D4AF-484E-86C5-89651C592D17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF3FB94F-D4AF-484E-86C5-89651C592D17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -74,6 +86,8 @@ Global
 		{32591C64-8569-4223-B1A7-A8E0A983188F} = {E299CA71-F612-46CC-A009-3C0728641FEB}
 		{DE5AD076-F383-498B-8C60-DE3287FA375F} = {75E59BA0-618A-4154-9FCE-D2D23CCE97A6}
 		{B6D242DD-77E1-4FD7-8727-63B7604B8902} = {E299CA71-F612-46CC-A009-3C0728641FEB}
+		{71203BC5-A7A0-4E15-8D8E-4FF5A3D8C636} = {75E59BA0-618A-4154-9FCE-D2D23CCE97A6}
+		{CF3FB94F-D4AF-484E-86C5-89651C592D17} = {E299CA71-F612-46CC-A009-3C0728641FEB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}
