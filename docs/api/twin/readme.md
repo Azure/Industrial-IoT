@@ -60,8 +60,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[BrowseResponseApiModel](definitions.md#browseresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -75,13 +73,6 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -107,14 +98,17 @@ and server must trust each other.
   "maxReferencesToReturn" : 0,
   "targetNodesOnly" : true,
   "readVariableValues" : true,
-  "elevation" : {
-    "type" : "string",
-    "value" : "object"
-  },
-  "diagnostics" : {
-    "level" : "string",
-    "auditId" : "string",
-    "timeStamp" : "string"
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
   }
 }
 ```
@@ -128,10 +122,9 @@ and server must trust each other.
   "node" : {
     "nodeClass" : "string",
     "displayName" : "string",
-    "id" : "string",
+    "nodeId" : "string",
     "description" : "string",
-    "children" : true,
-    "name" : "string",
+    "browseName" : "string",
     "accessRestrictions" : "string",
     "writeMask" : 0,
     "userWriteMask" : 0,
@@ -158,20 +151,19 @@ and server must trust each other.
     "userRolePermissions" : [ {
       "roleId" : "string",
       "permissions" : "string"
-    } ]
+    } ],
+    "typeDefinitionId" : "string",
+    "children" : true
   },
   "references" : [ {
-    "typeId" : "string",
-    "browseName" : "string",
+    "referenceTypeId" : "string",
     "direction" : "string",
-    "displayName" : "string",
     "target" : {
       "nodeClass" : "string",
       "displayName" : "string",
-      "id" : "string",
+      "nodeId" : "string",
       "description" : "string",
-      "children" : true,
-      "name" : "string",
+      "browseName" : "string",
       "accessRestrictions" : "string",
       "writeMask" : 0,
       "userWriteMask" : 0,
@@ -198,9 +190,10 @@ and server must trust each other.
       "userRolePermissions" : [ {
         "roleId" : "string",
         "permissions" : "string"
-      } ]
-    },
-    "typeDefinition" : "string"
+      } ],
+      "typeDefinitionId" : "string",
+      "children" : true
+    }
   } ],
   "continuationToken" : "string",
   "errorInfo" : {
@@ -235,7 +228,7 @@ and the targetNodesOnly flag set to true.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Query**|**nodeId**  <br>*optional*|The node to browse or omit to browse object root|string|
+|**Query**|**nodeId**  <br>*optional*|The node to browse or omit to browse the root node (i=84)|string|
 
 
 ##### Responses
@@ -243,20 +236,11 @@ and the targetNodesOnly flag set to true.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[BrowseResponseApiModel](definitions.md#browseresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -275,10 +259,9 @@ and the targetNodesOnly flag set to true.
   "node" : {
     "nodeClass" : "string",
     "displayName" : "string",
-    "id" : "string",
+    "nodeId" : "string",
     "description" : "string",
-    "children" : true,
-    "name" : "string",
+    "browseName" : "string",
     "accessRestrictions" : "string",
     "writeMask" : 0,
     "userWriteMask" : 0,
@@ -305,20 +288,19 @@ and the targetNodesOnly flag set to true.
     "userRolePermissions" : [ {
       "roleId" : "string",
       "permissions" : "string"
-    } ]
+    } ],
+    "typeDefinitionId" : "string",
+    "children" : true
   },
   "references" : [ {
-    "typeId" : "string",
-    "browseName" : "string",
+    "referenceTypeId" : "string",
     "direction" : "string",
-    "displayName" : "string",
     "target" : {
       "nodeClass" : "string",
       "displayName" : "string",
-      "id" : "string",
+      "nodeId" : "string",
       "description" : "string",
-      "children" : true,
-      "name" : "string",
+      "browseName" : "string",
       "accessRestrictions" : "string",
       "writeMask" : 0,
       "userWriteMask" : 0,
@@ -345,9 +327,10 @@ and the targetNodesOnly flag set to true.
       "userRolePermissions" : [ {
         "roleId" : "string",
         "permissions" : "string"
-      } ]
-    },
-    "typeDefinition" : "string"
+      } ],
+      "typeDefinitionId" : "string",
+      "children" : true
+    }
   } ],
   "continuationToken" : "string",
   "errorInfo" : {
@@ -385,8 +368,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[BrowseNextResponseApiModel](definitions.md#browsenextresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -400,13 +381,6 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -424,14 +398,17 @@ and server must trust each other.
   "abort" : true,
   "targetNodesOnly" : true,
   "readVariableValues" : true,
-  "elevation" : {
-    "type" : "string",
-    "value" : "object"
-  },
-  "diagnostics" : {
-    "level" : "string",
-    "auditId" : "string",
-    "timeStamp" : "string"
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
   }
 }
 ```
@@ -443,17 +420,14 @@ and server must trust each other.
 ```json
 {
   "references" : [ {
-    "typeId" : "string",
-    "browseName" : "string",
+    "referenceTypeId" : "string",
     "direction" : "string",
-    "displayName" : "string",
     "target" : {
       "nodeClass" : "string",
       "displayName" : "string",
-      "id" : "string",
+      "nodeId" : "string",
       "description" : "string",
-      "children" : true,
-      "name" : "string",
+      "browseName" : "string",
       "accessRestrictions" : "string",
       "writeMask" : 0,
       "userWriteMask" : 0,
@@ -480,9 +454,10 @@ and server must trust each other.
       "userRolePermissions" : [ {
         "roleId" : "string",
         "permissions" : "string"
-      } ]
-    },
-    "typeDefinition" : "string"
+      } ],
+      "typeDefinitionId" : "string",
+      "children" : true
+    }
   } ],
   "continuationToken" : "string",
   "errorInfo" : {
@@ -523,20 +498,11 @@ the continuation token and the targetNodesOnly flag set to true.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[BrowseNextResponseApiModel](definitions.md#browsenextresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -553,17 +519,14 @@ the continuation token and the targetNodesOnly flag set to true.
 ```json
 {
   "references" : [ {
-    "typeId" : "string",
-    "browseName" : "string",
+    "referenceTypeId" : "string",
     "direction" : "string",
-    "displayName" : "string",
     "target" : {
       "nodeClass" : "string",
       "displayName" : "string",
-      "id" : "string",
+      "nodeId" : "string",
       "description" : "string",
-      "children" : true,
-      "name" : "string",
+      "browseName" : "string",
       "accessRestrictions" : "string",
       "writeMask" : 0,
       "userWriteMask" : 0,
@@ -590,9 +553,10 @@ the continuation token and the targetNodesOnly flag set to true.
       "userRolePermissions" : [ {
         "roleId" : "string",
         "permissions" : "string"
-      } ]
-    },
-    "typeDefinition" : "string"
+      } ],
+      "typeDefinitionId" : "string",
+      "children" : true
+    }
   } ],
   "continuationToken" : "string",
   "errorInfo" : {
@@ -631,8 +595,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[BrowsePathResponseApiModel](definitions.md#browsepathresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -646,13 +608,6 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -669,14 +624,17 @@ and server must trust each other.
   "nodeId" : "string",
   "pathElements" : [ "string" ],
   "readVariableValues" : true,
-  "elevation" : {
-    "type" : "string",
-    "value" : "object"
-  },
-  "diagnostics" : {
-    "level" : "string",
-    "auditId" : "string",
-    "timeStamp" : "string"
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
   }
 }
 ```
@@ -691,10 +649,9 @@ and server must trust each other.
     "target" : {
       "nodeClass" : "string",
       "displayName" : "string",
-      "id" : "string",
+      "nodeId" : "string",
       "description" : "string",
-      "children" : true,
-      "name" : "string",
+      "browseName" : "string",
       "accessRestrictions" : "string",
       "writeMask" : 0,
       "userWriteMask" : 0,
@@ -721,7 +678,9 @@ and server must trust each other.
       "userRolePermissions" : [ {
         "roleId" : "string",
         "permissions" : "string"
-      } ]
+      } ],
+      "typeDefinitionId" : "string",
+      "children" : true
     },
     "remainingPathIndex" : 0
   } ],
@@ -765,8 +724,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[MethodCallResponseApiModel](definitions.md#methodcallresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -780,13 +737,6 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -806,14 +756,19 @@ and server must trust each other.
     "value" : "object",
     "dataType" : "string"
   } ],
-  "elevation" : {
-    "type" : "string",
-    "value" : "object"
-  },
-  "diagnostics" : {
-    "level" : "string",
-    "auditId" : "string",
-    "timeStamp" : "string"
+  "methodBrowsePath" : [ "string" ],
+  "objectBrowsePath" : [ "string" ],
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
   }
 }
 ```
@@ -864,8 +819,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[MethodMetadataResponseApiModel](definitions.md#methodmetadataresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -881,13 +834,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 ##### Example HTTP request
 
 ###### Request path
@@ -900,14 +846,18 @@ and server must trust each other.
 ```json
 {
   "methodId" : "string",
-  "elevation" : {
-    "type" : "string",
-    "value" : "object"
-  },
-  "diagnostics" : {
-    "level" : "string",
-    "auditId" : "string",
-    "timeStamp" : "string"
+  "methodBrowsePath" : [ "string" ],
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
   }
 }
 ```
@@ -925,10 +875,9 @@ and server must trust each other.
     "type" : {
       "nodeClass" : "string",
       "displayName" : "string",
-      "id" : "string",
+      "nodeId" : "string",
       "description" : "string",
-      "children" : true,
-      "name" : "string",
+      "browseName" : "string",
       "accessRestrictions" : "string",
       "writeMask" : 0,
       "userWriteMask" : 0,
@@ -955,7 +904,9 @@ and server must trust each other.
       "userRolePermissions" : [ {
         "roleId" : "string",
         "permissions" : "string"
-      } ]
+      } ],
+      "typeDefinitionId" : "string",
+      "children" : true
     },
     "defaultValue" : "object",
     "valueRank" : "string",
@@ -967,10 +918,9 @@ and server must trust each other.
     "type" : {
       "nodeClass" : "string",
       "displayName" : "string",
-      "id" : "string",
+      "nodeId" : "string",
       "description" : "string",
-      "children" : true,
-      "name" : "string",
+      "browseName" : "string",
       "accessRestrictions" : "string",
       "writeMask" : 0,
       "userWriteMask" : 0,
@@ -997,7 +947,9 @@ and server must trust each other.
       "userRolePermissions" : [ {
         "roleId" : "string",
         "permissions" : "string"
-      } ]
+      } ],
+      "typeDefinitionId" : "string",
+      "children" : true
     },
     "defaultValue" : "object",
     "valueRank" : "string",
@@ -1043,8 +995,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[PublishedItemListResponseApiModel](definitions.md#publisheditemlistresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1058,13 +1008,6 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1090,6 +1033,7 @@ and server must trust each other.
 {
   "items" : [ {
     "nodeId" : "string",
+    "browsePath" : [ "string" ],
     "nodeAttribute" : "string",
     "publishingInterval" : 0,
     "samplingInterval" : 0
@@ -1125,20 +1069,11 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[PublishedItemListResponseApiModel](definitions.md#publisheditemlistresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1156,6 +1091,7 @@ and server must trust each other.
 {
   "items" : [ {
     "nodeId" : "string",
+    "browsePath" : [ "string" ],
     "nodeAttribute" : "string",
     "publishingInterval" : 0,
     "samplingInterval" : 0
@@ -1191,8 +1127,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[PublishStartResponseApiModel](definitions.md#publishstartresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1208,13 +1142,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 ##### Example HTTP request
 
 ###### Request path
@@ -1228,14 +1155,22 @@ and server must trust each other.
 {
   "item" : {
     "nodeId" : "string",
+    "browsePath" : [ "string" ],
     "nodeAttribute" : "string",
     "publishingInterval" : 0,
     "samplingInterval" : 0
   },
-  "diagnostics" : {
-    "level" : "string",
-    "auditId" : "string",
-    "timeStamp" : "string"
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
   }
 }
 ```
@@ -1281,8 +1216,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[PublishStopResponseApiModel](definitions.md#publishstopresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1298,13 +1231,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 ##### Example HTTP request
 
 ###### Request path
@@ -1317,6 +1243,7 @@ and server must trust each other.
 ```json
 {
   "nodeId" : "string",
+  "browsePath" : [ "string" ],
   "nodeAttribute" : "string",
   "diagnostics" : {
     "level" : "string",
@@ -1372,8 +1299,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ValueReadResponseApiModel](definitions.md#valuereadresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1389,13 +1314,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 ##### Example HTTP request
 
 ###### Request path
@@ -1408,15 +1326,19 @@ and server must trust each other.
 ```json
 {
   "nodeId" : "string",
+  "browsePath" : [ "string" ],
   "indexRange" : "string",
-  "elevation" : {
-    "type" : "string",
-    "value" : "object"
-  },
-  "diagnostics" : {
-    "level" : "string",
-    "auditId" : "string",
-    "timeStamp" : "string"
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
   }
 }
 ```
@@ -1468,20 +1390,11 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ValueReadResponseApiModel](definitions.md#valuereadresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1538,8 +1451,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ReadResponseApiModel](definitions.md#readresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1553,13 +1464,6 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1577,14 +1481,17 @@ and server must trust each other.
     "nodeId" : "string",
     "attribute" : "string"
   } ],
-  "elevation" : {
-    "type" : "string",
-    "value" : "object"
-  },
-  "diagnostics" : {
-    "level" : "string",
-    "auditId" : "string",
-    "timeStamp" : "string"
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
   }
 }
 ```
@@ -1633,8 +1540,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadResponseApiModel](definitions.md#historyreadresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1650,13 +1555,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 ##### Example HTTP request
 
 ###### Request path
@@ -1669,16 +1567,20 @@ and server must trust each other.
 ```json
 {
   "nodeId" : "string",
+  "browsePath" : [ "string" ],
   "request" : "object",
   "indexRange" : "string",
-  "elevation" : {
-    "type" : "string",
-    "value" : "object"
-  },
-  "diagnostics" : {
-    "level" : "string",
-    "auditId" : "string",
-    "timeStamp" : "string"
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
   }
 }
 ```
@@ -1726,8 +1628,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadNextResponseApiModel](definitions.md#historyreadnextresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1743,13 +1643,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 ##### Example HTTP request
 
 ###### Request path
@@ -1763,14 +1656,17 @@ and server must trust each other.
 {
   "continuationToken" : "string",
   "abort" : true,
-  "elevation" : {
-    "type" : "string",
-    "value" : "object"
-  },
-  "diagnostics" : {
-    "level" : "string",
-    "auditId" : "string",
-    "timeStamp" : "string"
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
   }
 }
 ```
@@ -1879,8 +1775,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ValueWriteResponseApiModel](definitions.md#valuewriteresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1896,13 +1790,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 ##### Example HTTP request
 
 ###### Request path
@@ -1915,17 +1802,21 @@ and server must trust each other.
 ```json
 {
   "nodeId" : "string",
+  "browsePath" : [ "string" ],
   "value" : "object",
   "dataType" : "string",
   "indexRange" : "string",
-  "elevation" : {
-    "type" : "string",
-    "value" : "object"
-  },
-  "diagnostics" : {
-    "level" : "string",
-    "auditId" : "string",
-    "timeStamp" : "string"
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
   }
 }
 ```
@@ -1971,8 +1862,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[WriteResponseApiModel](definitions.md#writeresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1986,13 +1875,6 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -2011,14 +1893,17 @@ and server must trust each other.
     "attribute" : "string",
     "value" : "object"
   } ],
-  "elevation" : {
-    "type" : "string",
-    "value" : "object"
-  },
-  "diagnostics" : {
-    "level" : "string",
-    "auditId" : "string",
-    "timeStamp" : "string"
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
   }
 }
 ```
@@ -2066,8 +1951,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -2083,13 +1966,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 ##### Example HTTP request
 
 ###### Request path
@@ -2102,14 +1978,17 @@ and server must trust each other.
 ```json
 {
   "request" : "object",
-  "elevation" : {
-    "type" : "string",
-    "value" : "object"
-  },
-  "diagnostics" : {
-    "level" : "string",
-    "auditId" : "string",
-    "timeStamp" : "string"
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
   }
 }
 ```

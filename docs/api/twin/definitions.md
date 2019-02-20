@@ -55,8 +55,7 @@ Request node browsing continuation
 |---|---|---|
 |**abort**  <br>*optional*|Whether to abort browse and release.<br>(default: false)  <br>**Default** : `false`  <br>**Example** : `true`|boolean|
 |**continuationToken**  <br>*required*|Continuation token from previews browse request.<br>(mandatory)  <br>**Example** : `"string"`|string|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
-|**elevation**  <br>*optional*|Optional User elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)  <br>**Default** : `false`  <br>**Example** : `true`|boolean|
 |**targetNodesOnly**  <br>*optional*|Whether to collapse all references into a set of<br>unique target nodes and not show reference<br>information.<br>(default is false)  <br>**Default** : `false`  <br>**Example** : `true`|boolean|
 
@@ -80,8 +79,7 @@ Browse nodes by path
 
 |Name|Description|Schema|
 |---|---|---|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
-|**elevation**  <br>*optional*|Optional User elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**nodeId**  <br>*optional*|Node to browse.<br>(default: RootFolder).  <br>**Example** : `"string"`|string|
 |**pathElements**  <br>*required*|The path elements of the path to browse from node.<br>(mandatory)  <br>**Example** : `[ "string" ]`|< string > array|
 |**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)  <br>**Default** : `false`  <br>**Example** : `true`|boolean|
@@ -105,9 +103,8 @@ Browse request model
 
 |Name|Description|Schema|
 |---|---|---|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
 |**direction**  <br>*optional*|Direction to browse in<br>(default: forward)  <br>**Example** : `"string"`|enum (Forward, Backward, Both)|
-|**elevation**  <br>*optional*|Optional User elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**maxReferencesToReturn**  <br>*optional*|Max number of references to return. There might<br>be less returned as this is up to the client<br>restrictions.  Set to 0 to return no references<br>or target nodes.<br>(default is decided by client e.g. 60)  <br>**Example** : `0`|integer (int32)|
 |**noSubtypes**  <br>*optional*|Whether to include subtypes of the reference type.<br>(default is false)  <br>**Default** : `false`  <br>**Example** : `true`|boolean|
 |**nodeId**  <br>*optional*|Node to browse.<br>(default: RootFolder).  <br>**Example** : `"string"`|string|
@@ -174,8 +171,7 @@ Request node history read continuation
 |---|---|---|
 |**abort**  <br>*optional*|Abort reading after this read  <br>**Default** : `false`  <br>**Example** : `true`|boolean|
 |**continuationToken**  <br>*required*|Continuation token to continue reading more<br>results.  <br>**Example** : `"string"`|string|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
-|**elevation**  <br>*optional*|Optional User elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 
 
 <a name="historyreadnextresponseapimodel"></a>
@@ -197,8 +193,8 @@ Request node history read
 
 |Name|Description|Schema|
 |---|---|---|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
-|**elevation**  <br>*optional*|Optional User elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.  <br>**Example** : `"string"`|string|
 |**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Example** : `"string"`|string|
 |**request**  <br>*required*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.  <br>**Example** : `"object"`|object|
@@ -223,8 +219,7 @@ Request node history update
 
 |Name|Description|Schema|
 |---|---|---|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
-|**elevation**  <br>*optional*|Optional User elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**request**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded in json and containing the tunneled<br>update request for the Historian server.  <br>**Example** : `"object"`|object|
 
 
@@ -258,10 +253,11 @@ Call request model
 |Name|Description|Schema|
 |---|---|---|
 |**arguments**  <br>*optional*|Arguments for the method - null means no args  <br>**Example** : `[ "[methodcallargumentapimodel](#methodcallargumentapimodel)" ]`|< [MethodCallArgumentApiModel](definitions.md#methodcallargumentapimodel) > array|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
-|**elevation**  <br>*optional*|Optional User elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
-|**methodId**  <br>*required*|Method id of method to call  <br>**Example** : `"string"`|string|
-|**objectId**  <br>*optional*|If not global (= null), object or type scope  <br>**Example** : `"string"`|string|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**methodBrowsePath**  <br>*optional*|An optional component path from the node identified by<br>MethodId or from a resolved objectId to the actual<br>method node.  <br>**Example** : `[ "string" ]`|< string > array|
+|**methodId**  <br>*optional*|Method id of method to call.  <br>**Example** : `"string"`|string|
+|**objectBrowsePath**  <br>*optional*|An optional component path from the node identified by<br>ObjectId to the actual object or objectType node.<br>If ObjectId is null, the root node (i=84) is used.  <br>**Example** : `[ "string" ]`|< string > array|
+|**objectId**  <br>*optional*|Context of the method, i.e. an object or object type<br>node.  <br>**Example** : `"string"`|string|
 
 
 <a name="methodcallresponseapimodel"></a>
@@ -297,14 +293,14 @@ Method metadata request model
 
 |Name|Description|Schema|
 |---|---|---|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
-|**elevation**  <br>*optional*|Optional User elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
-|**methodId**  <br>*required*|Count of input arguments  <br>**Example** : `"string"`|string|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**methodBrowsePath**  <br>*optional*|An optional component path from the node identified by<br>MethodId to the actual method node.  <br>**Example** : `[ "string" ]`|< string > array|
+|**methodId**  <br>*required*|Method id of method to call.<br>(Required)  <br>**Example** : `"string"`|string|
 
 
 <a name="methodmetadataresponseapimodel"></a>
 ### MethodMetadataResponseApiModel
-method metadata query model
+Method metadata query model
 
 
 |Name|Description|Schema|
@@ -317,7 +313,7 @@ method metadata query model
 
 <a name="nodeapimodel"></a>
 ### NodeApiModel
-node model
+Node model
 
 
 |Name|Description|Schema|
@@ -325,6 +321,7 @@ node model
 |**accessLevel**  <br>*optional*|Default access level for variable node.<br>(default: 0)  <br>**Example** : `"string"`|enum (CurrentRead, CurrentWrite, HistoryRead, HistoryWrite, SemanticChange, StatusWrite, TimestampWrite, NonatomicRead, NonatomicWrite, WriteFullArrayOnly)|
 |**accessRestrictions**  <br>*optional*|Node access restrictions if any.<br>(default: none)  <br>**Example** : `"string"`|enum (SigningRequired, EncryptionRequired, SessionRequired)|
 |**arrayDimensions**  <br>*optional*|Array dimensions of variable or variable type.<br>(default: empty array)  <br>**Example** : `[ 0 ]`|< integer (int32) > array|
+|**browseName**  <br>*optional*|Browse name  <br>**Example** : `"string"`|string|
 |**children**  <br>*optional*|Whether node has children which are defined as<br>any forward hierarchical references.<br>(default: unknown)  <br>**Example** : `true`|boolean|
 |**containsNoLoops**  <br>*optional*|Whether a view contains loops. Null if<br>not a view.  <br>**Example** : `true`|boolean|
 |**dataType**  <br>*optional*|If variable the datatype of the variable.<br>(default: null)  <br>**Example** : `"string"`|string|
@@ -334,14 +331,14 @@ node model
 |**eventNotifier**  <br>*optional*|If object or view and eventing, event notifier<br>to subscribe to.<br>(default: no events supported)  <br>**Example** : `"string"`|enum (SubscribeToEvents, HistoryRead, HistoryWrite)|
 |**executable**  <br>*optional*|If method node class, whether method can<br>be called.  <br>**Example** : `true`|boolean|
 |**historizing**  <br>*optional*|Whether the value of a variable is historizing.<br>(default: false)  <br>**Example** : `true`|boolean|
-|**id**  <br>*required*|Id of node.<br>(Mandatory).  <br>**Example** : `"string"`|string|
 |**inverseName**  <br>*optional*|Inverse name of the reference if the node is<br>a reference type, otherwise null.  <br>**Example** : `"string"`|string|
 |**isAbstract**  <br>*optional*|Whether type is abstract, if type can<br>be abstract.  Null if not type node.<br>(default: false)  <br>**Example** : `true`|boolean|
 |**minimumSamplingInterval**  <br>*optional*|Minimum sampling interval for the variable<br>value, otherwise null if not a variable node.<br>(default: null)  <br>**Example** : `0.0`|number (double)|
-|**name**  <br>*optional*|Browse name  <br>**Example** : `"string"`|string|
 |**nodeClass**  <br>*optional*|Type of node  <br>**Example** : `"string"`|enum (Object, Variable, Method, ObjectType, VariableType, ReferenceType, DataType, View)|
+|**nodeId**  <br>*required*|Id of node.<br>(Mandatory).  <br>**Example** : `"string"`|string|
 |**rolePermissions**  <br>*optional*|Role permissions  <br>**Example** : `[ "[rolepermissionapimodel](#rolepermissionapimodel)" ]`|< [RolePermissionApiModel](definitions.md#rolepermissionapimodel) > array|
 |**symmetric**  <br>*optional*|Whether the reference is symmetric in case<br>the node is a reference type, otherwise<br>null.  <br>**Example** : `true`|boolean|
+|**typeDefinitionId**  <br>*optional*|Optional type definition of the node  <br>**Example** : `"string"`|string|
 |**userAccessLevel**  <br>*optional*|User access level for variable node or null.<br>(default: 0)  <br>**Example** : `"string"`|enum (CurrentRead, CurrentWrite, HistoryRead, HistoryWrite, SemanticChange, StatusWrite, TimestampWrite, NonatomicRead, NonatomicWrite, WriteFullArrayOnly)|
 |**userExecutable**  <br>*optional*|If method node class, whether method can<br>be called by current user.<br>(default: false if not executable)  <br>**Example** : `true`|boolean|
 |**userRolePermissions**  <br>*optional*|User Role permissions  <br>**Example** : `[ "[rolepermissionapimodel](#rolepermissionapimodel)" ]`|< [RolePermissionApiModel](definitions.md#rolepermissionapimodel) > array|
@@ -369,12 +366,9 @@ reference model
 
 |Name|Description|Schema|
 |---|---|---|
-|**browseName**  <br>*optional*|Browse name of reference  <br>**Example** : `"string"`|string|
 |**direction**  <br>*optional*|Browse direction of reference  <br>**Example** : `"string"`|enum (Forward, Backward, Both)|
-|**displayName**  <br>*optional*|Display name of reference  <br>**Example** : `"string"`|string|
+|**referenceTypeId**  <br>*optional*|Reference Type identifier  <br>**Example** : `"string"`|string|
 |**target**  <br>*required*|Target node  <br>**Example** : `"[nodeapimodel](#nodeapimodel)"`|[NodeApiModel](definitions.md#nodeapimodel)|
-|**typeDefinition**  <br>*optional*|Optional type definition of the reference  <br>**Example** : `"string"`|string|
-|**typeId**  <br>*optional*|Reference Type identifier  <br>**Example** : `"string"`|string|
 
 
 <a name="publishstartrequestapimodel"></a>
@@ -384,7 +378,7 @@ Publish request
 
 |Name|Description|Schema|
 |---|---|---|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**item**  <br>*required*|Item to publish  <br>**Example** : `"[publisheditemapimodel](#publisheditemapimodel)"`|[PublishedItemApiModel](definitions.md#publisheditemapimodel)|
 
 
@@ -405,14 +399,15 @@ Unpublish request
 
 |Name|Description|Schema|
 |---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
 |**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
 |**nodeAttribute**  <br>*optional*|Attribute of item to unpublish  <br>**Example** : `"string"`|enum (NodeClass, BrowseName, DisplayName, Description, WriteMask, UserWriteMask, IsAbstract, Symmetric, InverseName, ContainsNoLoops, EventNotifier, Value, DataType, ValueRank, ArrayDimensions, AccessLevel, UserAccessLevel, MinimumSamplingInterval, Historizing, Executable, UserExecutable, DataTypeDefinition, RolePermissions, UserRolePermissions, AccessRestrictions)|
-|**nodeId**  <br>*required*|Node of item to unpublish  <br>**Example** : `"string"`|string|
+|**nodeId**  <br>*required*|Node of published item to unpublish  <br>**Example** : `"string"`|string|
 
 
 <a name="publishstopresponseapimodel"></a>
 ### PublishStopResponseApiModel
-Result of publish stop request
+Result of unpublish request
 
 
 |Name|Description|Schema|
@@ -427,6 +422,7 @@ A monitored and published item
 
 |Name|Description|Schema|
 |---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
 |**nodeAttribute**  <br>*optional*|Attribute to monitor  <br>**Example** : `"string"`|enum (NodeClass, BrowseName, DisplayName, Description, WriteMask, UserWriteMask, IsAbstract, Symmetric, InverseName, ContainsNoLoops, EventNotifier, Value, DataType, ValueRank, ArrayDimensions, AccessLevel, UserAccessLevel, MinimumSamplingInterval, Historizing, Executable, UserExecutable, DataTypeDefinition, RolePermissions, UserRolePermissions, AccessRestrictions)|
 |**nodeId**  <br>*required*|Node to monitor  <br>**Example** : `"string"`|string|
 |**publishingInterval**  <br>*optional*|Publishing interval to use  <br>**Example** : `0`|integer (int32)|
@@ -462,8 +458,7 @@ Request node attribute read
 |Name|Description|Schema|
 |---|---|---|
 |**attributes**  <br>*required*|Attributes to read  <br>**Example** : `[ "[attributereadrequestapimodel](#attributereadrequestapimodel)" ]`|< [AttributeReadRequestApiModel](definitions.md#attributereadrequestapimodel) > array|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
-|**elevation**  <br>*optional*|Optional User Elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 
 
 <a name="readresponseapimodel"></a>
@@ -474,6 +469,18 @@ Result of attribute reads
 |Name|Description|Schema|
 |---|---|---|
 |**results**  <br>*optional*|All results of attribute reads  <br>**Example** : `[ "[attributereadresponseapimodel](#attributereadresponseapimodel)" ]`|< [AttributeReadResponseApiModel](definitions.md#attributereadresponseapimodel) > array|
+
+
+<a name="requestheaderapimodel"></a>
+### RequestHeaderApiModel
+Request header model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
+|**elevation**  <br>*optional*|Optional User elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**locales**  <br>*optional*|Optional list of locales in preference order.  <br>**Example** : `[ "string" ]`|< string > array|
 
 
 <a name="rolepermissionapimodel"></a>
@@ -524,8 +531,8 @@ Node value read request webservice api model
 
 |Name|Description|Schema|
 |---|---|---|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
-|**elevation**  <br>*optional*|Optional User elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.  <br>**Example** : `"string"`|string|
 |**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Example** : `"string"`|string|
 
@@ -553,11 +560,11 @@ Value write request model
 
 |Name|Description|Schema|
 |---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
 |**dataType**  <br>*optional*|A built in datatype for the value. This can<br>be a data type from browse, or a built in<br>type.<br>(default: best effort)  <br>**Example** : `"string"`|string|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
-|**elevation**  <br>*optional*|Optional User elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**indexRange**  <br>*optional*|Index range to write  <br>**Example** : `"string"`|string|
-|**nodeId**  <br>*required*|Node id to to write value to. (Mandatory)  <br>**Example** : `"string"`|string|
+|**nodeId**  <br>*required*|Node id to to write value to.  <br>**Example** : `"string"`|string|
 |**value**  <br>*required*|Value to write. The system tries to convert<br>the value according to the data type value,<br>e.g. convert comma seperated value strings<br>into arrays.  (Mandatory)  <br>**Example** : `"object"`|object|
 
 
@@ -579,8 +586,7 @@ Request node attribute write
 |Name|Description|Schema|
 |---|---|---|
 |**attributes**  <br>*required*|Attributes to update  <br>**Example** : `[ "[attributewriterequestapimodel](#attributewriterequestapimodel)" ]`|< [AttributeWriteRequestApiModel](definitions.md#attributewriterequestapimodel) > array|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
-|**elevation**  <br>*optional*|Optional User Elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 
 
 <a name="writeresponseapimodel"></a>

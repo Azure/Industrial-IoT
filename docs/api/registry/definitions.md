@@ -4,7 +4,7 @@
 
 <a name="applicationinfoapimodel"></a>
 ### ApplicationInfoApiModel
-Application model
+Application info model
 
 
 |Name|Description|Schema|
@@ -128,7 +128,7 @@ Authentication Method model
 |---|---|---|
 |**configuration**  <br>*optional*|Method specific configuration  <br>**Example** : `"object"`|object|
 |**credentialType**  <br>*optional*|Type of credential  <br>**Default** : `"None"`  <br>**Example** : `"string"`|enum (None, UserName, X509Certificate, JwtToken)|
-|**id**  <br>*required*|Method identifier  <br>**Example** : `"string"`|string|
+|**id**  <br>*required*|Method id  <br>**Example** : `"string"`|string|
 |**securityPolicy**  <br>*optional*|Security policy to use when passing credential.  <br>**Example** : `"string"`|string|
 
 
@@ -140,7 +140,7 @@ A registered callback
 |Name|Description|Schema|
 |---|---|---|
 |**authenticationHeader**  <br>*optional*|Authentication header to add or null if not needed  <br>**Example** : `"string"`|string|
-|**method**  <br>*optional*|Method to use for callback  <br>**Example** : `"string"`|enum (Get, Post, Put, Delete)|
+|**method**  <br>*optional*|Http Method to use for callback  <br>**Example** : `"string"`|enum (Get, Post, Put, Delete)|
 |**uri**  <br>*optional*|Uri to call - should use https scheme in which<br>case security is enforced.  <br>**Example** : `"string"`|string|
 
 
@@ -171,7 +171,7 @@ Discovery configuration
 |**maxNetworkProbes**  <br>*optional*|Max network probes that should ever run.  <br>**Example** : `0`|integer (int32)|
 |**maxPortProbes**  <br>*optional*|Max port probes that should ever run.  <br>**Example** : `0`|integer (int32)|
 |**minPortProbesPercent**  <br>*optional*|Probes that must always be there as percent of max.  <br>**Example** : `0`|integer (int32)|
-|**networkProbeTimeoutMs**  <br>*optional*|Networking probe timeout  <br>**Example** : `0`|integer (int32)|
+|**networkProbeTimeoutMs**  <br>*optional*|Network probe timeout  <br>**Example** : `0`|integer (int32)|
 |**portProbeTimeoutMs**  <br>*optional*|Port probe timeout  <br>**Example** : `0`|integer (int32)|
 |**portRangesToScan**  <br>*optional*|Port ranges to scan (null == all unassigned)  <br>**Example** : `"string"`|string|
 
@@ -200,6 +200,17 @@ Endpoint Activation Filter model
 |**trustLists**  <br>*optional*|Certificate trust list identifiers to use for<br>activation, if null, all certificates are<br>trusted.  If empty list, no certificates are<br>trusted which is equal to no filter.  <br>**Example** : `[ "string" ]`|< string > array|
 
 
+<a name="endpointactivationstatusapimodel"></a>
+### EndpointActivationStatusApiModel
+Endpoint Activation status model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**activationState**  <br>*optional*|Activation state  <br>**Example** : `"string"`|enum (Deactivated, Activated, ActivatedAndConnected)|
+|**id**  <br>*required*|Identifier of the endoint  <br>**Example** : `"string"`|string|
+
+
 <a name="endpointapimodel"></a>
 ### EndpointApiModel
 Endpoint model
@@ -221,9 +232,9 @@ Endpoint registration model
 
 |Name|Description|Schema|
 |---|---|---|
-|**activated**  <br>*optional*|Whether endpoint is activated on this registration  <br>**Example** : `true`|boolean|
+|**activationState**  <br>*optional*|Activation state of endpoint  <br>**Example** : `"string"`|enum (Deactivated, Activated, ActivatedAndConnected)|
 |**applicationId**  <br>*required*|Application id endpoint is registered under.  <br>**Example** : `"string"`|string|
-|**connected**  <br>*optional*|Whether endpoint is connected on this registration  <br>**Example** : `true`|boolean|
+|**endpointState**  <br>*optional*|Last state of the activated endpoint  <br>**Example** : `"string"`|enum (Connecting, NotReachable, Busy, NoTrust, CertificateInvalid, Ready, Error)|
 |**notSeenSince**  <br>*optional*|Last time endpoint was seen  <br>**Example** : `"string"`|string (date-time)|
 |**outOfSync**  <br>*optional*|Whether the registration is out of sync  <br>**Example** : `true`|boolean|
 |**registration**  <br>*required*|Endpoint registration  <br>**Example** : `"[endpointregistrationapimodel](#endpointregistrationapimodel)"`|[EndpointRegistrationApiModel](definitions.md#endpointregistrationapimodel)|
@@ -247,7 +258,7 @@ Endpoint registration model
 
 |Name|Description|Schema|
 |---|---|---|
-|**authenticationMethods**  <br>*optional*|Supported authentication methods for the endpoint.  <br>**Example** : `[ "[authenticationmethodapimodel](#authenticationmethodapimodel)" ]`|< [AuthenticationMethodApiModel](definitions.md#authenticationmethodapimodel) > array|
+|**authenticationMethods**  <br>*optional*|Supported authentication methods that can be selected to<br>obtain a credential and used to interact with the endpoint.  <br>**Example** : `[ "[authenticationmethodapimodel](#authenticationmethodapimodel)" ]`|< [AuthenticationMethodApiModel](definitions.md#authenticationmethodapimodel) > array|
 |**certificate**  <br>*optional*|Endpoint cert that was registered.  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`  <br>**Example** : `"string"`|string (byte)|
 |**endpoint**  <br>*required*|Endpoint information of the registration  <br>**Example** : `"[endpointapimodel](#endpointapimodel)"`|[EndpointApiModel](definitions.md#endpointapimodel)|
 |**id**  <br>*required*|Registered identifier of the endpoint  <br>**Example** : `"string"`|string|
@@ -350,6 +361,19 @@ Supervisor registration query
 |**connected**  <br>*optional*|Included connected or disconnected  <br>**Example** : `true`|boolean|
 |**discovery**  <br>*optional*|Discovery mode of supervisor  <br>**Example** : `"string"`|enum (Off, Local, Network, Fast, Scan)|
 |**siteId**  <br>*optional*|Site of the supervisor  <br>**Example** : `"string"`|string|
+
+
+<a name="supervisorstatusapimodel"></a>
+### SupervisorStatusApiModel
+Supervisor runtime status
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**deviceId**  <br>*required*|Edge device id  <br>**Example** : `"string"`|string|
+|**endpoints**  <br>*optional*|Endpoint activation status  <br>**Example** : `[ "[endpointactivationstatusapimodel](#endpointactivationstatusapimodel)" ]`|< [EndpointActivationStatusApiModel](definitions.md#endpointactivationstatusapimodel) > array|
+|**moduleId**  <br>*optional*|Module id  <br>**Example** : `"string"`|string|
+|**siteId**  <br>*optional*|Site id  <br>**Example** : `"string"`|string|
 
 
 <a name="supervisorupdateapimodel"></a>

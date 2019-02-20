@@ -57,8 +57,6 @@ located by a supervisor in its network using the discovery url.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -72,13 +70,6 @@ located by a supervisor in its network using the discovery url.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -135,20 +126,11 @@ Call this operation again using the token to retrieve more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationInfoListApiModel](definitions.md#applicationinfolistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -211,8 +193,6 @@ in a network not reachable through a Twin module.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationRegistrationResponseApiModel](definitions.md#applicationregistrationresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -226,13 +206,6 @@ in a network not reachable through a Twin module.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -291,20 +264,11 @@ Purges all applications that have not been seen for a specified amount of time.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -339,8 +303,6 @@ network. Requires that the onboarding agent service is running.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -354,13 +316,6 @@ network. Requires that the onboarding agent service is running.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -430,8 +385,6 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationInfoListApiModel](definitions.md#applicationinfolistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -445,13 +398,6 @@ more results.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -531,8 +477,6 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationInfoListApiModel](definitions.md#applicationinfolistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -546,13 +490,6 @@ more results.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -628,20 +565,11 @@ List all sites applications are registered in.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationSiteListApiModel](definitions.md#applicationsitelistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -682,20 +610,11 @@ GET /v1/applications/{applicationId}
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationRegistrationApiModel](definitions.md#applicationregistrationapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -777,20 +696,11 @@ Unregisters and deletes application and all its associated endpoints.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -827,8 +737,6 @@ during a discovery run (recurring or one-time).
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -842,13 +750,6 @@ during a discovery run (recurring or one-time).
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -906,20 +807,11 @@ Call this operation again using the token to retrieve more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[EndpointInfoListApiModel](definitions.md#endpointinfolistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -959,8 +851,8 @@ Call this operation again using the token to retrieve more results.
       } ]
     },
     "applicationId" : "string",
-    "activated" : true,
-    "connected" : true,
+    "activationState" : "string",
+    "endpointState" : "string",
     "outOfSync" : true,
     "notSeenSince" : "string"
   } ],
@@ -998,8 +890,6 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[EndpointInfoListApiModel](definitions.md#endpointinfolistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1013,13 +903,6 @@ more results.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1074,8 +957,8 @@ more results.
       } ]
     },
     "applicationId" : "string",
-    "activated" : true,
-    "connected" : true,
+    "activationState" : "string",
+    "endpointState" : "string",
     "outOfSync" : true,
     "notSeenSince" : "string"
   } ],
@@ -1120,20 +1003,11 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[EndpointInfoListApiModel](definitions.md#endpointinfolistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1173,8 +1047,8 @@ more results.
       } ]
     },
     "applicationId" : "string",
-    "activated" : true,
-    "connected" : true,
+    "activationState" : "string",
+    "endpointState" : "string",
     "outOfSync" : true,
     "notSeenSince" : "string"
   } ],
@@ -1207,20 +1081,11 @@ Gets information about an endpoint.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[EndpointInfoApiModel](definitions.md#endpointinfoapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1259,8 +1124,8 @@ Gets information about an endpoint.
     } ]
   },
   "applicationId" : "string",
-  "activated" : true,
-  "connected" : true,
+  "activationState" : "string",
+  "endpointState" : "string",
   "outOfSync" : true,
   "notSeenSince" : "string"
 }
@@ -1287,8 +1152,6 @@ PATCH /v1/endpoints/{endpointId}
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1302,13 +1165,6 @@ PATCH /v1/endpoints/{endpointId}
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1355,20 +1211,11 @@ activation filter during application registration or discovery.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1402,20 +1249,11 @@ Deactivates the endpoint and disable access through twin service.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1515,20 +1353,11 @@ Call this operation again using the token to retrieve more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorListApiModel](definitions.md#supervisorlistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1608,8 +1437,6 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorListApiModel](definitions.md#supervisorlistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1623,13 +1450,6 @@ more results.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1721,20 +1541,11 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorListApiModel](definitions.md#supervisorlistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1810,20 +1621,11 @@ A supervisor id corresponds to the twin modules module identity.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorApiModel](definitions.md#supervisorapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1896,8 +1698,6 @@ identified by the supervisor id or update site information.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1911,13 +1711,6 @@ identified by the supervisor id or update site information.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 ##### Example HTTP request
@@ -1961,6 +1754,99 @@ identified by the supervisor id or update site information.
     "authenticationHeader" : "string"
   } ],
   "removeDiscoveryCallbacks" : true
+}
+```
+
+
+<a name="resetsupervisor"></a>
+#### Reset supervisor
+```
+POST /v1/supervisors/{supervisorId}/reset
+```
+
+
+##### Description
+Allows a caller to reset the twin module using its supervisor
+identity identifier.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**supervisorId**  <br>*required*|supervisor identifier|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+##### Produces
+
+* `application/json`
+
+
+##### Example HTTP request
+
+###### Request path
+```
+/v1/supervisors/string/reset
+```
+
+
+<a name="getsupervisorstatus"></a>
+#### Get runtime status of supervisor
+```
+GET /v1/supervisors/{supervisorId}/status
+```
+
+
+##### Description
+Allows a caller to get runtime status for a supervisor.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**supervisorId**  <br>*required*|supervisor identifier|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[SupervisorStatusApiModel](definitions.md#supervisorstatusapimodel)|
+
+
+##### Produces
+
+* `application/json`
+
+
+##### Example HTTP request
+
+###### Request path
+```
+/v1/supervisors/string/status
+```
+
+
+##### Example HTTP response
+
+###### Response 200
+```json
+{
+  "deviceId" : "string",
+  "moduleId" : "string",
+  "siteId" : "string",
+  "endpoints" : [ {
+    "id" : "string",
+    "activationState" : "string"
+  } ]
 }
 ```
 
