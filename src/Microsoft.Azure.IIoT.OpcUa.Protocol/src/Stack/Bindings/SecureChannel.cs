@@ -10,8 +10,7 @@ namespace Opc.Ua.Bindings {
     /// <summary>
     /// Manages the server side of a UA TCP channel.
     /// </summary>
-    internal class SecureChannel : TcpServerChannel {
-        private EndpointDescriptionCollection _endpoints;
+    sealed class SecureChannel : TcpServerChannel {
 
         /// <summary>
         /// Create channel
@@ -77,5 +76,7 @@ namespace Opc.Ua.Bindings {
             }
             return base.SetEndpointUrl(endpointUrl);
         }
+		
+        private readonly EndpointDescriptionCollection _endpoints;
     }
 }

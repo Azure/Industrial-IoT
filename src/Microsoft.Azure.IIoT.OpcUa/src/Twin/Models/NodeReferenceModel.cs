@@ -11,14 +11,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     public class NodeReferenceModel {
 
         /// <summary>
-        /// Reference Type id
+        /// Reference Type identifier
         /// </summary>
-        public string Id { get; set; }
-
-        /// <summary>
-        /// Browse name of reference
-        /// </summary>
-        public string BrowseName { get; set; }
+        public string ReferenceTypeId { get; set; }
 
         /// <summary>
         /// Browse direction of reference
@@ -26,18 +21,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public BrowseDirection? Direction { get; set; }
 
         /// <summary>
-        /// Display name of reference
-        /// </summary>
-        public string DisplayName { get; set; }
-
-        /// <summary>
         /// Target node
         /// </summary>
         public NodeModel Target { get; set; }
-
-        /// <summary>
-        /// Optional type definition of the reference
-        /// </summary>
-        public string TypeDefinition { get; set; }
     }
 }

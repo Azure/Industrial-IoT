@@ -47,8 +47,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Update supervisor, e.g. set discovery mode
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
         Task UpdateSupervisorAsync(
-            SupervisorUpdateModel request);
+            string id, SupervisorUpdateModel request);
     }
 }

@@ -20,7 +20,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public static T GetValueOrDefault<T>(this DataValue dataValue,
-            T defaultValue = default(T)) {
+            T defaultValue = default) {
             if (dataValue == null) {
                 return defaultValue;
             }

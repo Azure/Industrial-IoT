@@ -31,5 +31,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models {
         [JsonProperty(PropertyName = "OpcSamplingInterval",
             NullValueHandling = NullValueHandling.Include)]
         public int? OpcSamplingInterval { get; set; }
+
+        /// <summary>
+        /// Display name to use
+        /// </summary>
+        [JsonProperty(PropertyName = "DisplayName",
+            NullValueHandling = NullValueHandling.Include)]
+        public string DisplayName { get; set; }
     }
 }

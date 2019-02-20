@@ -435,5 +435,133 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal(expected, variant);
             Assert.Equal(new JArray((sbyte)-123, (sbyte)-124, (sbyte)-125), encoded);
         }
+
+        [Fact]
+        public void DecodeEncodeSByteMatrixFromStringJsonTypeSByte() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new sbyte[,,] {
+                { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.SByte, null);
+            var expected = new Variant(new sbyte[,,] {
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeSByteMatrixFromVariantJsonTypeVariant() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                type = "SByte",
+                body = new sbyte[,,] {
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var expected = new Variant(new sbyte[,,] {
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeSByteMatrixFromVariantJsonTokenTypeVariantMsftEncoding() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                dataType = "SByte",
+                value = new sbyte[,,] {
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var expected = new Variant(new sbyte[,,] {
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeSByteMatrixFromVariantJsonTypeNull() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                type = "SByte",
+                body = new sbyte[,,] {
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var expected = new Variant(new sbyte[,,] {
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeSByteMatrixFromVariantJsonTokenTypeNullMsftEncoding() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                dataType = "SByte",
+                value = new sbyte[,,] {
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var expected = new Variant(new sbyte[,,] {
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } },
+                    { { 123, -124, -125 }, { 123, -124, -125 }, { 123, -124, -125 } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
     }
 }

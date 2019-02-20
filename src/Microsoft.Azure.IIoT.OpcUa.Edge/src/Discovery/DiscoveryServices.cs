@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Net.Scanner;
     using Microsoft.Azure.IIoT.Net.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Exceptions;
@@ -26,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Serilog;
 
     /// <summary>
     /// Provides discovery services for the supervisor
@@ -174,7 +174,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 
             if (delay != null) {
                 try {
-                    _logger.Debug($"Delaying for {delay}...");
+                    _logger.Debug("Delaying for {delay}...", delay);
                     await Task.Delay((TimeSpan)delay, ct);
                 }
                 catch (OperationCanceledException) {
@@ -183,7 +183,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 }
             }
 
-            _logger.Info("Starting discovery...");
+            _logger.Information("Starting discovery...");
 
             // Run scans until cancelled
             while (!ct.IsCancellationRequested) {
@@ -216,8 +216,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     break;
                 }
                 catch (Exception ex) {
-                    _logger.Error("Error during discovery run - continue...",
-                        () => ex);
+                    _logger.Error(ex, "Error during discovery run - continue...");
                 }
 
                 //
@@ -229,7 +228,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                         var idle = request.Configuration.IdleTimeBetweenScans ??
                             TimeSpan.FromMinutes(3);
                         if (idle.Ticks != 0) {
-                            _logger.Debug($"Idle for {idle}...");
+                            _logger.Debug("Idle for {idle}...", idle);
                             await Task.Delay(idle, ct);
                         }
                     }
@@ -239,7 +238,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 }
             }
 
-            _logger.Info("Cancelled discovery.");
+            _logger.Information("Cancelled discovery.");
         }
 
         /// <summary>
@@ -257,7 +256,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     request.Configuration.Locales, ct);
             }
 
-            _logger.Info("Start discovery run...");
+            _logger.Information("Start {mode} discovery run...", request.Mode);
             var watch = Stopwatch.StartNew();
 
             //
@@ -269,7 +268,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 #endif
             var addresses = new List<IPAddress>();
             using (var netscanner = new NetworkScanner(_logger, reply => {
-                _logger.Verbose($"{reply.Address} found.");
+                _logger.Verbose("{address} found.", reply.Address);
                 addresses.Add(reply.Address);
             }, local, local ? null : request.AddressRanges, request.NetworkClass,
                 request.Configuration.MaxNetworkProbes,
@@ -285,8 +284,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             }
             ct.ThrowIfCancellationRequested();
 
-            _logger.Info(
-                $"Finding {addresses.Count} addresses took {watch.Elapsed}...");
+            _logger.Information("Found {count} addresses took {elapsed}...",
+                addresses.Count, watch.Elapsed);
             if (addresses.Count == 0) {
                 return new List<ApplicationRegistrationModel>();
             }
@@ -313,8 +312,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 }
             }
             ct.ThrowIfCancellationRequested();
-            _logger.Info(
-                $"Finding {ports.Count} ports on servers (elapsed:{watch.Elapsed})...");
+            _logger.Information("Found {count} ports on servers took {elapsed}...",
+                ports.Count, watch.Elapsed);
             if (ports.Count == 0) {
                 return new List<ApplicationRegistrationModel>();
             }
@@ -335,8 +334,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             //
             var discovered = await DiscoverServersAsync(discoveryUrls,
                 request.Configuration.Locales, ct);
-            _logger.Info($"Discovery took {watch.Elapsed} and found " +
-                $"{discovered.Count} servers.");
+            _logger.Information("Discovery took {elapsed} and found {count} servers.",
+                watch.Elapsed, discovered.Count);
             return discovered;
         }
 
@@ -359,7 +358,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 if (!eps.Any()) {
                     continue;
                 }
-                _logger.Info($"Found {eps.Count()} endpoints on {url.Host}:{url.Port}.");
+                _logger.Information("Found {count} endpoints on {host}:{port}.",
+                    eps.Count(), url.Host, url.Port);
                 // Merge results...
                 foreach (var ep in eps) {
                     discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),
@@ -382,7 +382,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     .Select(GetHostEntryAsync)
                     .ToArray());
                 return results
-                    .Where(a => a != null)
+                    .Where(a => a.Item2 != null)
                     .ToDictionary(k => k.Item1, v => v.Item2);
             }
             return new Dictionary<IPEndPoint, Uri>();
@@ -393,7 +393,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        private Task<Tuple<IPEndPoint, Uri>> GetHostEntryAsync(
+        private Task<(IPEndPoint, Uri)> GetHostEntryAsync(
             Uri discoveryUrl) {
             return Try.Async(async () => {
                 var entry = await Dns.GetHostEntryAsync(discoveryUrl.DnsSafeHost);
@@ -401,11 +401,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     var reply = await new Ping().SendPingAsync(address);
                     if (reply.Status == IPStatus.Success) {
                         var port = discoveryUrl.Port;
-                        return Tuple.Create(new IPEndPoint(address,
+                        return (new IPEndPoint(address,
                             port == 0 ? 4840 : port), discoveryUrl);
                     }
                 }
-                return null;
+                return (null, null);
             });
         }
 
@@ -421,7 +421,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         private async Task UploadResultsAsync(DiscoveryRequest request,
             List<ApplicationRegistrationModel> discovered, DateTime timestamp,
             object diagnostics, CancellationToken ct) {
-            _logger.Info($"Uploading {discovered.Count} results...");
+            _logger.Information("Uploading {count} results...", discovered.Count);
             var messages = discovered
                 .SelectMany(server => server.Endpoints
                     .Select(registration => new DiscoveryEventModel {
@@ -448,7 +448,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     JsonConvertEx.SerializeObject(discovery)));
             await Task.Run(() => _events.SendAsync(
                 messages, ContentTypes.DiscoveryEvent), ct);
-            _logger.Info($"{discovered.Count} results uploaded.");
+            _logger.Information("{count} results uploaded.", discovered.Count);
         }
 
         /// <summary>
@@ -457,21 +457,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// <param name="message"></param>
         private void ProgressTimer(Func<string> message) {
             if ((_counter % 3) == 0) {
-                _logger.Info($"GC Mem: {GC.GetTotalMemory(false) / 1024} kb, Working set /" +
-                    $" Private Mem: {Process.GetCurrentProcess().WorkingSet64 / 1024} kb / " +
-                    $"{Process.GetCurrentProcess().PrivateMemorySize64 / 1024} kb, Handles:" +
+                _logger.Information("GC Mem: {gcmem} kb, Working set / Private Mem: " +
+                    "{privmem} kb / {privmemsize} kb, Handles: {handles}",
+                    GC.GetTotalMemory(false) / 1024,
+                    Process.GetCurrentProcess().WorkingSet64 / 1024,
+                    Process.GetCurrentProcess().PrivateMemorySize64 / 1024,
                     Process.GetCurrentProcess().HandleCount);
             }
             ++_counter;
 #if !NO_SCHEDULER_DUMP
             if ((_counter % 200) == 0) {
-                _processor.Scheduler.Dump(_logger);
+                _logger.Debug("Dumping tasks...");
+                _logger.Debug("-------------------------");
+                _processor.Scheduler.Dump(task => _logger.Debug("{Task}", task));
+                _logger.Debug("-------------------------");
+                _logger.Debug("... completed");
                 if (_counter >= 2000) {
                     throw new ThreadStateException("Stuck");
                 }
             }
 #endif
-            _logger.Info(message());
+            _logger.Information(message());
         }
 
 #if !NO_SCHEDULER_DUMP

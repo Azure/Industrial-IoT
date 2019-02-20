@@ -13,6 +13,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface IVariantEncoder {
 
         /// <summary>
+        /// Encoder scoped context
+        /// </summary>
+        ServiceMessageContext Context { get; }
+
+        /// <summary>
         /// Format variant as string
         /// </summary>
         /// <param name="value"></param>

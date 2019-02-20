@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json;
     using System;
@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     /// <summary>
     /// Processor implementation
     /// </summary>
-    public class DiscoveryEventHandler : IEventHandler {
+    public sealed class DiscoveryEventHandler : IDeviceEventHandler {
 
         /// <inheritdoc/>
         public string ContentType => ContentTypes.DiscoveryEvent;
@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                 discovery = JsonConvertEx.DeserializeObject<DiscoveryEventModel>(json);
             }
             catch (Exception ex) {
-                _logger.Error("Failed to convert discovery json", () => new { json, ex });
+                _logger.Error(ex, "Failed to convert discovery {json}", json);
                 return;
             }
             try {
@@ -53,8 +53,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                     discovery, checkpoint);
             }
             catch (Exception ex) {
-                _logger.Error($"Handling discovery event failed with exception - skip",
-                    () => ex);
+                _logger.Error(ex, "Handling discovery event failed with exception - skip");
             }
         }
 
@@ -124,9 +123,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                             queue.Result, queue.Events, false);
                     }
                     catch (Exception ex) {
-                        _logger.Error(
-                            "Failure during discovery processing in registry. Skip.",
-                            () => ex);
+                        _logger.Error(ex,
+                            "Failure during discovery processing in registry. Skip.");
                     }
 
                     backlog.Remove(model.TimeStamp);

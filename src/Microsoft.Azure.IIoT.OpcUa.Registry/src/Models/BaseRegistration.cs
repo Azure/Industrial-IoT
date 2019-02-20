@@ -167,7 +167,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             var type = twin.Tags.GetValueOrDefault<string>(nameof(DeviceType), null);
             if (string.IsNullOrEmpty(type) && twin.Properties.Reported != null) {
-                type = twin.Properties.Reported.GetValueOrDefault<string>(kTypeProp, null);
+                type = twin.Properties.Reported.GetValueOrDefault<string>(TwinProperty.kType, null);
             }
             switch (type?.ToLowerInvariant() ?? "") {
                 case "endpoint":
@@ -224,12 +224,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 EqualityComparer<string>.Default.GetHashCode(Thumbprint);
             return hashCode;
         }
-
-        /// <summary>Connected property name constant</summary>
-        public const string kConnectedProp = "__connected__";
-        /// <summary>Type property name constant</summary>
-        public const string kTypeProp = "__type__";
-        /// <summary>Site id property name constant</summary>
-        public const string kSiteIdProp = "__siteid__";
     }
 }

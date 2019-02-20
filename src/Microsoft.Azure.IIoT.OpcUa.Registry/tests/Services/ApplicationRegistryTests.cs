@@ -25,9 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Devices = devices
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -46,9 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var first = apps.First();
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Devices = devices
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -67,9 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Devices = devices
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -85,9 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Devices = devices
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -103,9 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Devices = devices
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -123,9 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Devices = devices
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -143,9 +131,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Devices = devices
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -163,9 +149,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices, true);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Devices = devices
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -184,9 +168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Devices = devices
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -204,9 +186,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Devices = devices
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -225,9 +205,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Devices = devices
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -245,9 +223,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Devices = devices
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -269,7 +245,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="apps"></param>
         /// <param name="devices"></param>
         private static void CreateAppFixtures(out string site, out string super,
-            out List<ApplicationInfoModel> apps, out List<IoTHubDeviceModel> devices,
+            out List<ApplicationInfoModel> apps, out List<(DeviceTwinModel, DeviceModel)> devices,
             bool noSite = false) {
             var fix = new Fixture();
             fix.Customizations.Add(new TypeRelay(typeof(JToken), typeof(JObject)));
@@ -286,12 +262,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             devices = apps
                 .Select(a => ApplicationRegistration.FromServiceModel(a))
                 .Select(a => ApplicationRegistration.Patch(null, a))
-                .Select(t => new IoTHubDeviceModel {
-                    Twin = t,
-                    Device = new DeviceModel {
-                        Id = t.Id
-                    }
-                })
+                .Select(t => (t, new DeviceModel { Id = t.Id }))
                 .ToList();
         }
     }

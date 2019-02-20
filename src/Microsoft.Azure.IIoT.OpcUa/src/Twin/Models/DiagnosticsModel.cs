@@ -29,4 +29,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// </summary>
         public DateTime? TimeStamp { get; set; }
     }
+
 }

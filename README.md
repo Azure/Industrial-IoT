@@ -2,7 +2,8 @@
 
 This repo contains the core business logic for the Azure Industrial IoT OPC UA services and modules and consists of the following packages:
 
-* [Microsoft.Azure.IIoT.OpcUa](src/Microsoft.Azure.IIoT.OpcUa/src) contains OPC UA stack and protocol as well as shared and common code among...
+* [Microsoft.Azure.IIoT.OpcUa](src/Microsoft.Azure.IIoT.OpcUa/src) contains shared and common code among...
+  * [Microsoft.Azure.IIoT.OpcUa.Protocol](src/Microsoft.Azure.IIoT.OpcUa.Protocol/src) contains the OPC UA stack and protocol used in the Gateway and Edge.
   * [Microsoft.Azure.IIoT.OpcUa.Edge](src/Microsoft.Azure.IIoT.OpcUa.Edge/src) contains the services hosted by the [OPC Device Twin module](https://github.com/Azure/azure-iiot-opc-twin-module).
   * [Microsoft.Azure.IIoT.OpcUa.Twin](src/Microsoft.Azure.IIoT.OpcUa.Twin/src) contains services hosted by the [OPC Device Twin service](https://github.com/Azure/azure-iiot-services).
   * [Microsoft.Azure.IIoT.OpcUa.Registry](src/Microsoft.Azure.IIoT.OpcUa.Registry/src) contains the [OPC UA Device Registry](https://github.com/Azure/azure-iiot-services) micro service business logic.

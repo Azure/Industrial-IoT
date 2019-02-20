@@ -162,6 +162,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         [Fact]
+        public void EncodeDecodeLocalizedText() {
+            var codec = new JsonVariantEncoder();
+            var expected = new Variant(new LocalizedText("en-US", "text"));
+            var encoded = codec.Encode(expected);
+            var variant = codec.Decode(encoded, BuiltInType.LocalizedText, null);
+            Assert.Equal(expected, variant);
+        }
+
+        [Fact]
+        public void EncodeDecodeLocalizedTextFromString1() {
+            var codec = new JsonVariantEncoder();
+            var str = "text@en-US";
+            var expected = new Variant(new LocalizedText("en-US", "text"));
+            var variant = codec.Decode(str, BuiltInType.LocalizedText, null);
+            var encoded = codec.Encode(expected);
+            Assert.Equal(expected, variant);
+        }
+
+        [Fact]
+        public void EncodeDecodeLocalizedTextFromString2() {
+            var codec = new JsonVariantEncoder();
+            var str = "text";
+            var expected = new Variant(new LocalizedText("text"));
+            var variant = codec.Decode(str, BuiltInType.LocalizedText, null);
+            var encoded = codec.Encode(expected);
+            Assert.Equal(expected, variant);
+        }
+
+        [Fact]
         public void EncodeDecodeNodeId() {
             var codec = new JsonVariantEncoder();
 

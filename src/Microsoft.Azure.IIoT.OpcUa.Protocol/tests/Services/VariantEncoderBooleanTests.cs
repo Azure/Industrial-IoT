@@ -365,5 +365,155 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal(expected, variant);
             Assert.Equal(new JArray(true, true, false), encoded);
         }
+
+        [Fact]
+        public void DecodeEncodeBooleanMatrixFromStringJsonTypeNull() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new bool[,,] {
+                { { true, false, true }, { true, false, true }, { true, false, true } },
+                { { true, false, true }, { true, false, true }, { true, false, true } },
+                { { true, false, true }, { true, false, true }, { true, false, true } },
+                { { true, false, true }, { true, false, true }, { true, false, true } }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var expected = new Variant(new bool[,,] {
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeBooleanMatrixFromStringJsonTypeBoolean() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new bool[,,] {
+                { { true, false, true }, { true, false, true }, { true, false, true } },
+                { { true, false, true }, { true, false, true }, { true, false, true } },
+                { { true, false, true }, { true, false, true }, { true, false, true } },
+                { { true, false, true }, { true, false, true }, { true, false, true } }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Boolean, null);
+            var expected = new Variant(new bool[,,] {
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeBooleanMatrixFromVariantJsonTypeVariant() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                type = "Boolean",
+                body = new bool[,,] {
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var expected = new Variant(new bool[,,] {
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeBooleanMatrixFromVariantJsonTokenTypeVariantMsftEncoding() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                dataType = "Boolean",
+                value = new bool[,,] {
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var expected = new Variant(new bool[,,] {
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeBooleanMatrixFromVariantJsonTypeNull() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                type = "Boolean",
+                body = new bool[,,] {
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var expected = new Variant(new bool[,,] {
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeBooleanMatrixFromVariantJsonTokenTypeNullMsftEncoding() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                dataType = "Boolean",
+                value = new bool[,,] {
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var expected = new Variant(new bool[,,] {
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } },
+                    { { true, false, true }, { true, false, true }, { true, false, true } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
     }
 }

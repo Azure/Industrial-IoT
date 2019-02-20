@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     using Newtonsoft.Json.Linq;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Node model
@@ -25,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// Id of node.
         /// (Mandatory).
         /// </summary>
-        public string Id { get; set; }
+        public string NodeId { get; set; }
 
         /// <summary>
         /// Description if any
@@ -33,16 +34,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public string Description { get; set; }
 
         /// <summary>
-        /// Whether node has children which are defined as
-        /// any forward hierarchical references.
-        /// (default: unknown)
-        /// </summary>
-        public bool? HasChildren { get; set; }
-
-        /// <summary>
         /// Browse name
         /// </summary>
-        public string Name { get; set; }
+        public string BrowseName { get; set; }
 
         /// <summary>
         /// Node access restrictions if any.
@@ -166,5 +160,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// null.
         /// </summary>
         public bool? Symmetric { get; set; }
+
+        /// <summary>
+        /// Role permissions
+        /// </summary>
+        public List<RolePermissionModel> RolePermissions { get; set; }
+
+        /// <summary>
+        /// User Role permissions
+        /// </summary>
+        public List<RolePermissionModel> UserRolePermissions { get; set; }
+
+        /// <summary>
+        /// Optional type definition of the node
+        /// </summary>
+        public string TypeDefinitionId { get; set; }
+
+        /// <summary>
+        /// Whether node has children which are defined as
+        /// any forward hierarchical references.
+        /// (default: unknown)
+        /// </summary>
+        public bool? HasChildren { get; set; }
     }
 }

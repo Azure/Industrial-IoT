@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Opc.Ua.Client;
     using System;
     using System.Security.Cryptography.X509Certificates;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -40,13 +41,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Try schedule operation on the session
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="serviceCall"></param>
-        /// <param name="handler"></param>
         /// <param name="elevation"></param>
+        /// <param name="priority"></param>
+        /// <param name="serviceCall"></param>
+        /// <param name="timeout"></param>
+        /// <param name="ct"></param>
+        /// <param name="handler"></param>
         /// <param name="completion"></param>
         /// <returns></returns>
-        bool TryScheduleServiceCall<T>(Func<Session, Task<T>> serviceCall,
-            Func<Exception, bool> handler, CredentialModel elevation,
-            out Task<T> completion);
+        bool TryScheduleServiceCall<T>(CredentialModel elevation, int priority,
+            Func<Session, Task<T>> serviceCall, Func<Exception, bool> handler,
+            TimeSpan? timeout, CancellationToken? ct, out Task<T> completion);
     }
 }

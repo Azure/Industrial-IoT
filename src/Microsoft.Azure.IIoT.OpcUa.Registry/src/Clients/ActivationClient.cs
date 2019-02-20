@@ -7,11 +7,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Newtonsoft.Json;
     using System;
     using System.Threading.Tasks;
     using System.Diagnostics;
+    using Serilog;
 
     /// <summary>
     /// Client for Activation services in supervisor
@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             if (!secret.IsBase64()) {
                 throw new ArgumentException("not base64", nameof(secret));
             }
-            await CallServiceOnSupervisor("ActivateEndpoint_V1", registration, new {
+            await CallServiceOnSupervisor("ActivateEndpoint_V1", registration.SupervisorId, new {
                 registration.Id,
                 Secret = secret
             });
@@ -63,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             if (string.IsNullOrEmpty(registration.Id)) {
                 throw new ArgumentNullException(nameof(registration.Id));
             }
-            await CallServiceOnSupervisor("DeactivateEndpoint_V1", registration,
+            await CallServiceOnSupervisor("DeactivateEndpoint_V1", registration.SupervisorId,
                 registration.Id);
         }
 
@@ -71,18 +71,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         /// Helper to invoke service
         /// </summary>
         /// <param name="service"></param>
-        /// <param name="registration"></param>
+        /// <param name="supervisorId"></param>
         /// <param name="payload"></param>
         /// <returns></returns>
-        private async Task CallServiceOnSupervisor(string service,
-            EndpointRegistrationModel registration, object payload) {
+        private async Task CallServiceOnSupervisor(string service, string supervisorId,
+            object payload) {
             var sw = Stopwatch.StartNew();
-            var deviceId = SupervisorModelEx.ParseDeviceId(registration.SupervisorId,
+            var deviceId = SupervisorModelEx.ParseDeviceId(supervisorId,
                 out var moduleId);
             var result = await _client.CallMethodAsync(deviceId, moduleId, service,
-                JsonConvertEx.SerializeObject(payload) );
-            _logger.Debug($"Calling supervisor service '{service}' on " +
-                $"{deviceId}/{moduleId} took {sw.ElapsedMilliseconds} ms.");
+                JsonConvertEx.SerializeObject(payload));
+            _logger.Debug("Calling supervisor service '{service}' on " +
+                "{deviceId}/{moduleId} took {elapsed} ms.", service, deviceId,
+                moduleId, sw.ElapsedMilliseconds);
         }
 
         private readonly IMethodClient _client;

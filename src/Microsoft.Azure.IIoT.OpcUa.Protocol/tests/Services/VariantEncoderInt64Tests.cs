@@ -435,5 +435,156 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal(expected, variant);
             Assert.Equal(new JArray(-123L, -124L, -125L), encoded);
         }
+
+        [Fact]
+        public void DecodeEncodeInt64MatrixFromStringJsonTypeNull() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new long[,,] {
+                { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var expected = new Variant(new long[,,] {
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeInt64MatrixFromStringJsonTypeInt64() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new long[,,] {
+                { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Int64, null);
+            var expected = new Variant(new long[,,] {
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeInt64MatrixFromVariantJsonTypeVariant() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                type = "Int64",
+                body = new long[,,] {
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var expected = new Variant(new long[,,] {
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeInt64MatrixFromVariantJsonTokenTypeVariantMsftEncoding() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                dataType = "Int64",
+                value = new long[,,] {
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var expected = new Variant(new long[,,] {
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeInt64MatrixFromVariantJsonTypeNull() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                type = "Int64",
+                body = new long[,,] {
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var expected = new Variant(new long[,,] {
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeInt64MatrixFromVariantJsonTokenTypeNullMsftEncoding() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                dataType = "Int64",
+                value = new long[,,] {
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var expected = new Variant(new long[,,] {
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
     }
 }

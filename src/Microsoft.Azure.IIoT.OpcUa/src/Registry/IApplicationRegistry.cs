@@ -37,9 +37,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Update an existing application, e.g. server
         /// certificate, or additional capabilities.
         /// </summary>
+        /// <param name="applicationId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task UpdateApplicationAsync(
+        Task UpdateApplicationAsync(string applicationId,
             ApplicationRegistrationUpdateModel request);
 
         /// <summary>

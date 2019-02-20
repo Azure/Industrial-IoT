@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge {
     using Autofac;
+    using System;
 
     /// <summary>
     /// Create Autofac container
@@ -15,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge {
         /// Create container for twin
         /// </summary>
         /// <returns></returns>
-        IContainer Create();
+        IContainer Create(Action<ContainerBuilder> configure);
     }
 }
 

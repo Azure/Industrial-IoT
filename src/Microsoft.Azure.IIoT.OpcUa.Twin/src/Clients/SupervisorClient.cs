@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Newtonsoft.Json;
     using System;
     using System.Threading.Tasks;
@@ -40,9 +40,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request.Item == null) {
                 throw new ArgumentNullException(nameof(request.Item));
             }
-            if (string.IsNullOrEmpty(request.Item.NodeId)) {
-                throw new ArgumentNullException(nameof(request.Item.NodeId));
-            }
             var result = await CallServiceOnSupervisor<PublishStartRequestModel, PublishStartResultModel>(
                 "PublishStart_V1", registration, request);
             return result;
@@ -53,9 +50,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             EndpointRegistrationModel registration, PublishStopRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
-            }
-            if (string.IsNullOrEmpty(request.NodeId)) {
-                throw new ArgumentNullException(nameof(request.NodeId));
             }
             var result = await CallServiceOnSupervisor<PublishStopRequestModel, PublishStopResultModel>(
                 "PublishStop_V1", registration, request);
@@ -109,9 +103,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(request.NodeId)) {
-                throw new ArgumentException(nameof(request.NodeId));
-            }
             return await CallServiceOnSupervisor<ValueReadRequestModel, ValueReadResultModel>(
                 "ValueRead_V1", registration, request);
         }
@@ -125,9 +116,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request.Value == null) {
                 throw new ArgumentNullException(nameof(request.Value));
             }
-            if (string.IsNullOrEmpty(request.NodeId)) {
-                throw new ArgumentException(nameof(request.NodeId));
-            }
             return await CallServiceOnSupervisor<ValueWriteRequestModel, ValueWriteResultModel>(
                 "ValueWrite_V1", registration, request);
         }
@@ -138,9 +126,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(request.MethodId)) {
-                throw new ArgumentNullException(nameof(request.MethodId));
-            }
             return await CallServiceOnSupervisor<MethodMetadataRequestModel, MethodMetadataResultModel>(
                 "MethodMetadata_V1", registration, request);
         }
@@ -150,9 +135,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             EndpointRegistrationModel registration, MethodCallRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
-            }
-            if (string.IsNullOrEmpty(request.MethodId)) {
-                throw new ArgumentNullException(nameof(request.MethodId));
             }
             return await CallServiceOnSupervisor<MethodCallRequestModel, MethodCallResultModel>(
                 "MethodCall_V1", registration, request);
@@ -195,9 +177,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             EndpointRegistrationModel registration, HistoryReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
-            }
-            if (string.IsNullOrEmpty(request.NodeId)) {
-                throw new ArgumentNullException(nameof(request.NodeId));
             }
             return await CallServiceOnSupervisor<HistoryReadRequestModel, HistoryReadResultModel>(
                 "HistoryRead_V1", registration, request);
@@ -258,8 +237,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
                     endpoint = registration.Endpoint,
                     request
                 }));
-            _logger.Debug($"Calling supervisor service '{service}' on {deviceId}/{moduleId} " +
-                $"took {sw.ElapsedMilliseconds} ms and returned {result}!");
+            _logger.Debug("Calling supervisor service '{service}' on {deviceId}/{moduleId} " +
+                "took {elapsed} ms and returned {result}!", service, deviceId, moduleId,
+                sw.ElapsedMilliseconds, result);
             return JsonConvertEx.DeserializeObject<R>(result);
         }
 

@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Opc.Ua;
     using Opc.Ua.Configuration;
     using Opc.Ua.Extensions;
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
     /// <summary>
     /// Gateway server controller implementation
     /// </summary>
-    public class GatewayServer : SessionServerBase, IServer {
+    public sealed class GatewayServer : SessionServerBase, IServer {
 
         /// <inheritdoc/>
         public ITransportListenerCallback Callback => new SessionEndpoint(this);
@@ -176,6 +176,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 }
 
                 serverEndpoints = GetEndpointsAsync(endpointUrl).Result;
+                if (!serverEndpoints.Any()) {
+                    throw new ServiceResultException(StatusCodes.BadNotConnected);
+                }
                 // Get our currently invoked endpoint
                 var endpoint = context.ChannelContext.EndpointDescription;
                 endpoint = serverEndpoints.FirstOrDefault(e =>
@@ -228,13 +231,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 else {
                     serverSignature = null;
                 }
-                _logger.Info($"Session {sessionId} created. ");
+                _logger.Information("Session {sessionId} created.", sessionId);
 
                 maxRequestMessageSize = (uint)MessageContext.MaxMessageSize;
                 return CreateResponse(requestHeader, StatusCodes.Good);
             }
             catch (ServiceResultException e) {
-                _logger.Error("Creating session failed.", e);
+                _logger.Error(e, "Creating session failed.");
                 lock (_lock) {
                     ServerDiagnostics.RejectedSessionCount++;
                     ServerDiagnostics.RejectedRequestsCount++;
@@ -268,15 +271,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     requestHeader.AuthenticationToken, clientSignature, clientCertificates,
                     userIdentityToken, userTokenSignature, localeIds, out serverNonce);
                 if (identityChanged) {
-                    _logger.Info($"Session {context.Session.Id} activated - identity changed.");
+                    _logger.Information("Session {SessionId} activated - identity changed.",
+                        context.Session.Id);
                 }
                 else {
-                    _logger.Debug($"Session {context.Session.Id} activated.");
+                    _logger.Debug("Session {SessionId} activated.", context.Session.Id);
                 }
                 return CreateResponse(requestHeader, StatusCodes.Good);
             }
             catch (ServiceResultException e) {
-                _logger.Error("Failed activating session.", e);
+                _logger.Error(e, "Failed activating session.");
                 lock (_lock) {
                     ServerDiagnostics.RejectedRequestsCount++;
                     if (StatusCodeEx.IsSecurityError(e.StatusCode)) {
@@ -299,11 +303,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     throw new ServiceResultException(StatusCodes.BadSessionIdInvalid);
                 }
                 Sessions.CloseSession(context.Session.Id);
-                _logger.Info($"Session {context.Session.Id} closed. ");
+                _logger.Information("Session {SessionId} closed.", context.Session.Id);
                 return CreateResponse(requestHeader, context.StringTable);
             }
             catch (ServiceResultException e) {
-                _logger.Error("Closing session failed.", e);
+                _logger.Error(e, "Closing session failed.");
                 lock (_lock) {
                     ServerDiagnostics.RejectedRequestsCount++;
                     if (StatusCodeEx.IsSecurityError(e.StatusCode)) {
@@ -326,7 +330,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 return CreateResponse(requestHeader, context.StringTable);
             }
             catch (ServiceResultException e) {
-                _logger.Error("Cancelling request failed.", e);
+                _logger.Error(e, "Cancelling request failed.");
                 lock (_lock) {
                     ServerDiagnostics.RejectedRequestsCount++;
                     if (StatusCodeEx.IsSecurityError(e.StatusCode)) {
@@ -351,9 +355,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 if (nodesToBrowse == null || nodesToBrowse.Count == 0) {
                     throw new ServiceResultException(StatusCodes.BadNothingToDo);
                 }
-                results = new BrowseResultCollection(EnumerableEx.Repeat(
+                results = new BrowseResultCollection(LinqEx.Repeat(
                     () => (BrowseResult)null, nodesToBrowse.Count));
-                diagnosticInfos = new DiagnosticInfoCollection(EnumerableEx.Repeat(
+                diagnosticInfos = new DiagnosticInfoCollection(LinqEx.Repeat(
                     () => (DiagnosticInfo)null, nodesToBrowse.Count));
                 BrowseAsync(context, requestHeader, view, requestedMaxReferencesPerNode,
                     nodesToBrowse, results, diagnosticInfos).Wait();
@@ -361,7 +365,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 return CreateResponse(requestHeader, context.StringTable);
             }
             catch (ServiceResultException e) {
-                _logger.Error("Browse failed.", e);
+                _logger.Error(e, "Browse failed.");
                 lock (_lock) {
                     ServerDiagnostics.RejectedRequestsCount++;
                     if (StatusCodeEx.IsSecurityError(e.StatusCode)) {
@@ -385,9 +389,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 if (continuationPoints == null || continuationPoints.Count == 0) {
                     throw new ServiceResultException(StatusCodes.BadNothingToDo);
                 }
-                results = new BrowseResultCollection(EnumerableEx.Repeat(
+                results = new BrowseResultCollection(LinqEx.Repeat(
                     () => (BrowseResult)null, continuationPoints.Count));
-                diagnosticInfos = new DiagnosticInfoCollection(EnumerableEx.Repeat(
+                diagnosticInfos = new DiagnosticInfoCollection(LinqEx.Repeat(
                     () => (DiagnosticInfo)null, continuationPoints.Count));
                 BrowseNextAsync(context, requestHeader, releaseContinuationPoints,
                     continuationPoints, results, diagnosticInfos).Wait();
@@ -395,7 +399,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 return CreateResponse(requestHeader, context.StringTable);
             }
             catch (ServiceResultException e) {
-                _logger.Error("Browse Next failed.", e);
+                _logger.Error(e, "Browse Next failed.");
                 lock (_lock) {
                     ServerDiagnostics.RejectedRequestsCount++;
                     if (StatusCodeEx.IsSecurityError(e.StatusCode)) {
@@ -425,9 +429,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 if (browsePaths == null || browsePaths.Count == 0) {
                     throw new ServiceResultException(StatusCodes.BadNothingToDo);
                 }
-                results = new BrowsePathResultCollection(EnumerableEx.Repeat(
+                results = new BrowsePathResultCollection(LinqEx.Repeat(
                     () => (BrowsePathResult)null, browsePaths.Count));
-                diagnosticInfos = new DiagnosticInfoCollection(EnumerableEx.Repeat(
+                diagnosticInfos = new DiagnosticInfoCollection(LinqEx.Repeat(
                     () => (DiagnosticInfo)null, browsePaths.Count));
                 BrowsePathAsync(context, requestHeader, browsePaths,
                     results, diagnosticInfos).Wait();
@@ -435,7 +439,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 return CreateResponse(requestHeader, context.StringTable);
             }
             catch (ServiceResultException e) {
-                _logger.Error("Translate Browse Paths failed.", e);
+                _logger.Error(e, "Translate Browse Paths failed.");
                 lock (_lock) {
                     ServerDiagnostics.RejectedRequestsCount++;
                     if (StatusCodeEx.IsSecurityError(e.StatusCode)) {
@@ -460,9 +464,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 if (nodesToRead == null || nodesToRead.Count == 0) {
                     throw new ServiceResultException(StatusCodes.BadNothingToDo);
                 }
-                results = new DataValueCollection(EnumerableEx.Repeat(
+                results = new DataValueCollection(LinqEx.Repeat(
                     () => (DataValue)null, nodesToRead.Count));
-                diagnosticInfos = new DiagnosticInfoCollection(EnumerableEx.Repeat(
+                diagnosticInfos = new DiagnosticInfoCollection(LinqEx.Repeat(
                     () => (DiagnosticInfo)null, nodesToRead.Count));
                 ReadAsync(context, requestHeader, maxAge, nodesToRead, results,
                     diagnosticInfos).Wait();
@@ -470,7 +474,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 return CreateResponse(requestHeader, context.StringTable);
             }
             catch (ServiceResultException e) {
-                _logger.Error("Read failed.", e);
+                _logger.Error(e, "Read failed.");
                 lock (_lock) {
                     ServerDiagnostics.RejectedRequestsCount++;
                     if (StatusCodeEx.IsSecurityError(e.StatusCode)) {
@@ -495,9 +499,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     throw new ServiceResultException(StatusCodes.BadNothingToDo);
                 }
 
-                results = new StatusCodeCollection(EnumerableEx.Repeat(
+                results = new StatusCodeCollection(LinqEx.Repeat(
                     () => (StatusCode)StatusCodes.Good, nodesToWrite.Count));
-                diagnosticInfos = new DiagnosticInfoCollection(EnumerableEx.Repeat(
+                diagnosticInfos = new DiagnosticInfoCollection(LinqEx.Repeat(
                     () => (DiagnosticInfo)null, nodesToWrite.Count));
                 WriteAsync(context, requestHeader, nodesToWrite, results,
                     diagnosticInfos).Wait();
@@ -505,7 +509,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 return CreateResponse(requestHeader, context.StringTable);
             }
             catch (ServiceResultException e) {
-                _logger.Error("Write failed.", e);
+                _logger.Error(e, "Write failed.");
                 lock (_lock) {
                     ServerDiagnostics.RejectedRequestsCount++;
                     if (StatusCodeEx.IsSecurityError(e.StatusCode)) {
@@ -530,9 +534,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     throw new ServiceResultException(StatusCodes.BadNothingToDo);
                 }
 
-                results = new CallMethodResultCollection(EnumerableEx.Repeat(
+                results = new CallMethodResultCollection(LinqEx.Repeat(
                     () => (CallMethodResult)null, methodsToCall.Count));
-                diagnosticInfos = new DiagnosticInfoCollection(EnumerableEx.Repeat(
+                diagnosticInfos = new DiagnosticInfoCollection(LinqEx.Repeat(
                     () => (DiagnosticInfo)null, methodsToCall.Count));
                 CallAsync(context, requestHeader, methodsToCall, results,
                     diagnosticInfos).Wait();
@@ -540,7 +544,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 return CreateResponse(requestHeader, context.StringTable);
             }
             catch (ServiceResultException e) {
-                _logger.Error("Call failed.", e);
+                _logger.Error(e, "Call failed.");
                 lock (_lock) {
                     ServerDiagnostics.RejectedRequestsCount++;
                     if (StatusCodeEx.IsSecurityError(e.StatusCode)) {
@@ -564,9 +568,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 if (nodesToRead == null || nodesToRead.Count == 0) {
                     throw new ServiceResultException(StatusCodes.BadNothingToDo);
                 }
-                results = new HistoryReadResultCollection(EnumerableEx.Repeat(
+                results = new HistoryReadResultCollection(LinqEx.Repeat(
                     () => (HistoryReadResult)null, nodesToRead.Count));
-                diagnosticInfos = new DiagnosticInfoCollection(EnumerableEx.Repeat(
+                diagnosticInfos = new DiagnosticInfoCollection(LinqEx.Repeat(
                     () => (DiagnosticInfo)null, nodesToRead.Count));
                 HistoryReadAsync(context, requestHeader, historyReadDetails,
                     releaseContinuationPoints, nodesToRead, results,
@@ -575,7 +579,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 return CreateResponse(requestHeader, context.StringTable);
             }
             catch (ServiceResultException e) {
-                _logger.Error("History Read failed.", e);
+                _logger.Error(e, "History Read failed.");
                 lock (_lock) {
                     ServerDiagnostics.RejectedRequestsCount++;
                     if (StatusCodeEx.IsSecurityError(e.StatusCode)) {
@@ -599,9 +603,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 if (historyUpdateDetails == null || historyUpdateDetails.Count == 0) {
                     throw new ServiceResultException(StatusCodes.BadNothingToDo);
                 }
-                results = new HistoryUpdateResultCollection(EnumerableEx.Repeat(
+                results = new HistoryUpdateResultCollection(LinqEx.Repeat(
                     () => (HistoryUpdateResult)null, historyUpdateDetails.Count));
-                diagnosticInfos = new DiagnosticInfoCollection(EnumerableEx.Repeat(
+                diagnosticInfos = new DiagnosticInfoCollection(LinqEx.Repeat(
                     () => (DiagnosticInfo)null, historyUpdateDetails.Count));
                 HistoryUpdateAsync(context, requestHeader, historyUpdateDetails,
                     results, diagnosticInfos).Wait();
@@ -609,7 +613,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 return CreateResponse(requestHeader, context.StringTable);
             }
             catch (ServiceResultException e) {
-                _logger.Error("History update failed.", e);
+                _logger.Error(e, "History update failed.");
                 lock (_lock) {
                     ServerDiagnostics.RejectedRequestsCount++;
                     if (StatusCodeEx.IsSecurityError(e.StatusCode)) {
@@ -686,7 +690,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <param name="endpointUrl"></param>
         /// <param name="serverUris"></param>
         /// <returns></returns>
-        protected async Task<ApplicationDescriptionCollection> FindServersAsync(
+        internal async Task<ApplicationDescriptionCollection> FindServersAsync(
             string endpointUrl, StringCollection serverUris) {
             IEnumerable<ApplicationInfoModel> applications;
             var url = Utils.ParseUri(endpointUrl);
@@ -717,7 +721,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <param name="discoveryUrl"></param>
         /// <param name="profileUris"></param>
         /// <returns></returns>
-        protected async Task<EndpointDescriptionCollection> GetEndpointsAsync(
+        internal async Task<EndpointDescriptionCollection> GetEndpointsAsync(
             string discoveryUrl, StringCollection profileUris = null) {
             ParseUri(discoveryUrl, out var applicationId, out var endpointId);
             if (string.IsNullOrEmpty(applicationId)) {
@@ -759,7 +763,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <param name="results"></param>
         /// <param name="diagnosticInfos"></param>
         /// <returns></returns>
-        protected async Task BrowseAsync(RequestContextModel context,
+        internal async Task BrowseAsync(RequestContextModel context,
             RequestHeader requestHeader, ViewDescription view,
             uint requestedMaxReferencesPerNode, BrowseDescriptionCollection nodesToBrowse,
             BrowseResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
@@ -773,7 +777,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         new BrowseRequestModel {
                             NodeId = nodesToBrowse[i].NodeId
                                 .AsString(context.Session.MessageContext),
-                            Diagnostics = diagnostics,
                             Direction = nodesToBrowse[i].BrowseDirection
                                 .ToServiceType(),
                             MaxReferencesToReturn = requestedMaxReferencesPerNode,
@@ -784,7 +787,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                                 context.Session.MessageContext),
                             NodeClassFilter = ((Opc.Ua.NodeClass)nodesToBrowse[i].NodeClassMask)
                                 .ToServiceMask(),
-                            Elevation = elevation
+                            NodeIdsOnly = true,
+                            Header = new RequestHeaderModel {
+                                Diagnostics = diagnostics,
+                                Elevation = elevation
+                            }
                         });
 
                     // Update results
@@ -794,15 +801,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     // Get references
                     var references = response.References?
                         .Select(r => new ReferenceDescription {
-                            NodeId = r.Target.Id
+                            NodeId = r.Target.NodeId
                                 .ToNodeId(context.Session.MessageContext),
-                            BrowseName = r.BrowseName
+                            BrowseName = r.Target.BrowseName
                                 .ToQualifiedName(context.Session.MessageContext),
-                            DisplayName = r.DisplayName,
+                            DisplayName = r.Target.DisplayName.ToLocalizedText(),
                             IsForward = r.Direction == Twin.Models.BrowseDirection.Forward,
-                            ReferenceTypeId = r.Id
+                            ReferenceTypeId = r.ReferenceTypeId
                                 .ToNodeId(context.Session.MessageContext),
-                            TypeDefinition = r.TypeDefinition
+                            TypeDefinition = r.Target.TypeDefinitionId
                                 .ToNodeId(context.Session.MessageContext),
                             NodeClass = r.Target.NodeClass?.ToStackType() ??
                                 Opc.Ua.NodeClass.Unspecified
@@ -836,7 +843,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <param name="results"></param>
         /// <param name="diagnosticInfos"></param>
         /// <returns></returns>
-        protected async Task BrowseNextAsync(RequestContextModel context,
+        internal async Task BrowseNextAsync(RequestContextModel context,
             RequestHeader requestHeader, bool releaseContinuationPoints,
             ByteStringCollection continuationPoints, BrowseResultCollection results,
             DiagnosticInfoCollection diagnosticInfos) {
@@ -850,9 +857,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         new BrowseNextRequestModel {
                             ContinuationToken =
                                 continuationPoints[i]?.ToBase64String(),
-                            Diagnostics = diagnostics,
                             Abort = releaseContinuationPoints,
-                            Elevation = elevation
+                            Header = new RequestHeaderModel {
+                                Diagnostics = diagnostics,
+                                Elevation = elevation
+                            }
                         });
 
                     // Update results
@@ -862,15 +871,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     // Get references
                     var references = response.References?
                         .Select(r => new ReferenceDescription {
-                            NodeId = r.Target.Id
+                            NodeId = r.Target.NodeId
                                 .ToNodeId(context.Session.MessageContext),
-                            BrowseName = r.BrowseName
+                            BrowseName = r.Target.BrowseName
                                 .ToQualifiedName(context.Session.MessageContext),
-                            DisplayName = r.DisplayName,
+                            DisplayName = r.Target.DisplayName.ToLocalizedText(),
                             IsForward = r.Direction == Twin.Models.BrowseDirection.Forward,
-                            ReferenceTypeId = r.Id
+                            ReferenceTypeId = r.ReferenceTypeId
                                 .ToNodeId(context.Session.MessageContext),
-                            TypeDefinition = r.TypeDefinition
+                            TypeDefinition = r.Target.TypeDefinitionId
                                 .ToNodeId(context.Session.MessageContext),
                             NodeClass = r.Target.NodeClass?.ToStackType() ??
                                 Opc.Ua.NodeClass.Unspecified
@@ -903,7 +912,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <param name="results"></param>
         /// <param name="diagnosticInfos"></param>
         /// <returns></returns>
-        protected async Task BrowsePathAsync(RequestContextModel context,
+        internal async Task BrowsePathAsync(RequestContextModel context,
             RequestHeader requestHeader, BrowsePathCollection browsePaths,
             BrowsePathResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
@@ -918,9 +927,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                                 .AsString(context.Session.MessageContext),
                             PathElements = browsePaths[i].RelativePath
                                 .AsString(context.Session.MessageContext),
-                            Diagnostics = diagnostics,
                             ReadVariableValues = false,
-                            Elevation = elevation
+                            Header = new RequestHeaderModel {
+                                Diagnostics = diagnostics,
+                                Elevation = elevation
+                            }
                         });
 
                     // Update results
@@ -931,7 +942,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     var targets = response.Targets
                         .Select(r => new BrowsePathTarget {
                             RemainingPathIndex = (uint)(r.RemainingPathIndex ?? 0),
-                            TargetId = r.Target.Id
+                            TargetId = r.Target.NodeId
                                 .ToExpandedNodeId(context.Session.MessageContext)
                         });
                     results[i] = new BrowsePathResult {
@@ -960,7 +971,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <param name="results"></param>
         /// <param name="diagnosticInfos"></param>
         /// <returns></returns>
-        protected async Task CallAsync(RequestContextModel context,
+        internal async Task CallAsync(RequestContextModel context,
             RequestHeader requestHeader, CallMethodRequestCollection methodsToCall,
             CallMethodResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
@@ -984,9 +995,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                                 context.Session.MessageContext),
                             ObjectId = methodsToCall[i].ObjectId.AsString(
                                 context.Session.MessageContext),
-                            Diagnostics = diagnostics,
                             Arguments = inputs,
-                            Elevation = elevation
+                            Header = new RequestHeaderModel {
+                                Diagnostics = diagnostics,
+                                Elevation = elevation
+                            }
                         });
 
                     // Update results
@@ -1025,7 +1038,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <param name="results"></param>
         /// <param name="diagnosticInfos"></param>
         /// <returns></returns>
-        protected async Task ReadAsync(RequestContextModel context,
+        internal async Task ReadAsync(RequestContextModel context,
             RequestHeader requestHeader, double maxAge,
             ReadValueIdCollection nodesToRead, DataValueCollection results,
             DiagnosticInfoCollection diagnosticInfos) {
@@ -1034,9 +1047,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             var elevation = GetRemoteCredentialsFromContext(context);
 
             var batch = new ReadRequestModel {
-                Diagnostics = diagnostics,
                 Attributes = new List<AttributeReadRequestModel>(),
-                Elevation = elevation
+                Header = new RequestHeaderModel {
+                    Diagnostics = diagnostics,
+                    Elevation = elevation
+                }
             };
             for (var i = 0; i < nodesToRead.Count; i++) {
                 if (nodesToRead[i].AttributeId == Attributes.Value) {
@@ -1049,9 +1064,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                                 IndexRange = nodesToRead[i].IndexRange,
                                 NodeId = nodesToRead[i].NodeId.AsString(
                                     context.Session.MessageContext),
-                                Diagnostics = diagnostics,
                                 MaxAge = TimeSpan.FromMilliseconds(maxAge),
-                                Elevation = elevation
+                                Header = new RequestHeaderModel {
+                                    Diagnostics = diagnostics,
+                                    Elevation = elevation
+                                }
                             });
 
                         // Update results
@@ -1068,7 +1085,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         };
                     }
                     catch (Exception ex) {
-                        _logger.Error("Node value read failed.", ex);
+                        _logger.Error(ex, "Node value read failed.");
 
                         // nodesToRead[i].Processed = false;
 
@@ -1106,7 +1123,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                             diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
                                 diagnostics, context.Session.MessageContext, out var statusCode);
                             var value = _codec.Decode(response.Value,
-                                Attributes.GetBuiltInType(nodesToRead[i].AttributeId),
+                                AttributeMap.GetBuiltInType(nodesToRead[i].AttributeId),
                                 context.Session.MessageContext);
                             results[i] = new DataValue(value, statusCode, DateTime.MinValue,
                                 DateTime.UtcNow);
@@ -1114,7 +1131,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     }
                 }
                 catch (Exception ex) {
-                    _logger.Error("Node read as batch failed.", ex);
+                    _logger.Error(ex, "Node read as batch failed.");
                     for (var i = 0; i < nodesToRead.Count; i++) {
                         if (results[i] != null) {
                             // Only fill in what wasnt yet given a value.
@@ -1138,7 +1155,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <param name="results"></param>
         /// <param name="diagnosticInfos"></param>
         /// <returns></returns>
-        protected async Task WriteAsync(RequestContextModel context,
+        internal async Task WriteAsync(RequestContextModel context,
             RequestHeader requestHeader, WriteValueCollection nodesToWrite,
             StatusCodeCollection results, DiagnosticInfoCollection diagnosticInfos) {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
@@ -1146,9 +1163,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             var elevation = GetRemoteCredentialsFromContext(context);
 
             var batch = new WriteRequestModel {
-                Diagnostics = diagnostics,
                 Attributes = new List<AttributeWriteRequestModel>(),
-                Elevation = elevation
+                Header = new RequestHeaderModel {
+                    Diagnostics = diagnostics,
+                    Elevation = elevation
+                }
             };
             for (var i = 0; i < nodesToWrite.Count; i++) {
                 if (nodesToWrite[i].AttributeId == Attributes.Value) {
@@ -1161,13 +1180,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                                 IndexRange = nodesToWrite[i].IndexRange,
                                 NodeId = nodesToWrite[i].NodeId.AsString(
                                     context.Session.MessageContext),
-                                Diagnostics = diagnostics,
                                 DataType = nodesToWrite[i].TypeId.AsString(
                                     context.Session.MessageContext),
                                 Value = _codec.Encode(
                                     nodesToWrite[i].Value.WrappedValue, out var type,
                                     context.Session.MessageContext),
-                                Elevation = elevation
+                                Header = new RequestHeaderModel {
+                                    Diagnostics = diagnostics,
+                                    Elevation = elevation
+                                }
                             });
 
                         // Update results
@@ -1176,7 +1197,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         results[i] = statusCode;
                     }
                     catch (Exception ex) {
-                        _logger.Error("Node value write failed.", ex);
+                        _logger.Error(ex, "Node value write failed.");
 
                         // nodesToWrite[i].Processed = false;
 
@@ -1220,7 +1241,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     }
                 }
                 catch (Exception ex) {
-                    _logger.Error("Node write as batch failed.", ex);
+                    _logger.Error(ex, "Node write as batch failed.");
                     for (var i = 0; i < nodesToWrite.Count; i++) {
                         if (nodesToWrite[i].Processed) {
                             continue;
@@ -1245,7 +1266,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <param name="results"></param>
         /// <param name="diagnosticInfos"></param>
         /// <returns></returns>
-        protected async Task HistoryReadAsync(RequestContextModel context,
+        internal async Task HistoryReadAsync(RequestContextModel context,
             RequestHeader requestHeader, ExtensionObject historyReadDetails,
             bool releaseContinuationPoints, HistoryReadValueIdCollection nodesToRead,
             HistoryReadResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
@@ -1264,8 +1285,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                                 Request = historyReadDetails == null ? null :
                                     _codec.Encode(new Variant(historyReadDetails), out var tmp,
                                         context.Session.MessageContext),
-                                Diagnostics = diagnostics,
-                                Elevation = elevation
+                                Header = new RequestHeaderModel {
+                                    Diagnostics = diagnostics,
+                                    Elevation = elevation
+                                }
                             });
 
                         // Update results
@@ -1288,8 +1311,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                                 ContinuationToken = nodesToRead[i].ContinuationPoint
                                     .ToBase64String(),
                                 Abort = !releaseContinuationPoints ? (bool?)null : true,
-                                Diagnostics = diagnostics,
-                                Elevation = elevation
+                                Header = new RequestHeaderModel {
+                                    Diagnostics = diagnostics,
+                                    Elevation = elevation
+                                }
                             });
 
                         // Update results
@@ -1326,7 +1351,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <param name="results"></param>
         /// <param name="diagnosticInfos"></param>
         /// <returns></returns>
-        protected async Task HistoryUpdateAsync(RequestContextModel context,
+        internal async Task HistoryUpdateAsync(RequestContextModel context,
             RequestHeader requestHeader, ExtensionObjectCollection historyUpdateDetails,
             HistoryUpdateResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
@@ -1340,9 +1365,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                             Request = historyUpdateDetails == null ? null :
                                 _codec.Encode(new Variant(historyUpdateDetails), out var tmp,
                                     context.Session.MessageContext),
-                            Diagnostics = diagnostics,
-                            Elevation = elevation
-                        });
+Header = new RequestHeaderModel {
+                                Diagnostics = diagnostics,
+                                Elevation = elevation
+                            }                        });
 
                     // Update results
                     diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
@@ -1526,13 +1552,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <param name="requestHeader">The request header.</param>
         /// <param name="requestType">Type of the request.</param>
         /// <returns></returns>
-        protected RequestContextModel OnRequestBegin(RequestHeader requestHeader,
+        internal RequestContextModel OnRequestBegin(RequestHeader requestHeader,
             RequestType requestType) {
             ValidateRequest(requestHeader);
 
             // Get operation context from session manager
             var context = Sessions.GetContext(requestHeader, requestType);
-            _logger.Debug($"{context.RequestType} {context.RequestId} validated.");
+            _logger.Debug("{type} {id} validated.", context.RequestType, context.RequestId);
 
             // Pass to request manager
             lock (_lock) {
@@ -1548,7 +1574,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// Completes the request
         /// </summary>
         /// <param name="context">The operation context.</param>
-        protected virtual void OnRequestComplete(RequestContextModel context) {
+        internal void OnRequestComplete(RequestContextModel context) {
             lock (_lock) {
                 if (_requestState == null) {
                     throw new ServiceResultException(StatusCodes.BadServerHalted);
@@ -1644,7 +1670,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 }
             };
 
-            _logger.Info("Starting server...");
+            _logger.Information("Starting server...");
             ApplicationInstance.MessageDlg = new DummyDialog();
 
             config = ApplicationInstance.FixupAppConfig(config);
@@ -1653,8 +1679,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 if (e.Error.StatusCode ==
                     StatusCodes.BadCertificateUntrusted) {
                     e.Accept = true; // TODO
-                    _logger.Info((e.Accept ? "Accepted" : "Rejected") +
-                        $" Certificate {e.Certificate.Subject}");
+                    _logger.Information((e.Accept ? "Accepted" : "Rejected") +
+                        " Certificate {Subject}", e.Certificate.Subject);
                 }
             };
 
@@ -1864,7 +1890,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         // Replaced gateway auth token through policy id
                         newIdentities.Add(args.CurrentIdentities[1]);
                     }
-                    else if (args.Token is AnonymousIdentityToken) {
+                    else if (args.Token is AnonymousIdentityToken &&
+                        args.CurrentIdentities.Count != 0) {
                         // Drop down to 0 to reauth to gateway
                         args.NewIdentities = new List<IUserIdentity>();
                     }
@@ -1883,13 +1910,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 var batchResponse = _nodes.NodeReadAsync(ToEndpointId(session.Endpoint),
                     new ReadRequestModel {
                         Attributes = new List<AttributeReadRequestModel> {
-                        new AttributeReadRequestModel {
-                            Attribute = NodeAttribute.NodeClass,
-                            NodeId = "i=85"
+                            new AttributeReadRequestModel {
+                                Attribute = NodeAttribute.NodeClass,
+                                NodeId = "i=85"
+                            }
+                        },
+                        Header = new RequestHeaderModel {
+                            Elevation = args.Token.ToServiceModel()
                         }
-                    },
-                    Elevation = args.Token.ToServiceModel(),
-                }).Result;
+                    }).Result;
                 if ((batchResponse.Results?.Count ?? 0) != 1) {
                     // Batch response is missing results
                     args.ValidationException = ServiceResultException.Create(

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using System.Collections.Generic;
 
     /// <summary>
     /// Application information
@@ -37,9 +36,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string Locale { get; set; }
 
         /// <summary>
-        /// Application capabilities
+        /// Application capability to query
         /// </summary>
-        public HashSet<string> Capabilities { get; set; }
+        public string Capability { get; set; }
 
         /// <summary>
         /// Supervisor or site the application belongs to.

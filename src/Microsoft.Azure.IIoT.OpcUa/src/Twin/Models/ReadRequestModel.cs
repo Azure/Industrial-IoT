@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -18,13 +17,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public List<AttributeReadRequestModel> Attributes { get; set; }
 
         /// <summary>
-        /// Optional User Elevation
+        /// Optional header
         /// </summary>
-        public CredentialModel Elevation { get; set; }
-
-        /// <summary>
-        /// Optional diagnostics configuration
-        /// </summary>
-        public DiagnosticsModel Diagnostics { get; set; }
+        public RequestHeaderModel Header { get; set; }
     }
 }

@@ -249,7 +249,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
 
             if (update?.SiteId != existing?.SiteId) {
-                twin.Properties.Desired.Add(kSiteIdProp, update?.SiteId);
+                twin.Properties.Desired.Add(TwinProperty.kSiteId, update?.SiteId);
             }
 
             twin.Tags.Add(nameof(DeviceType), update?.DeviceType);
@@ -325,11 +325,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     properties.GetValueOrDefault<Dictionary<string, string>>(nameof(Locales), null),
 
                 SiteId =
-                    properties.GetValueOrDefault<string>(kSiteIdProp, null),
+                    properties.GetValueOrDefault<string>(TwinProperty.kSiteId, null),
                 Connected = connected ??
-                    properties.GetValueOrDefault(kConnectedProp, false),
+                    properties.GetValueOrDefault(TwinProperty.kConnected, false),
                 Type =
-                    properties.GetValueOrDefault<string>(kTypeProp, null)
+                    properties.GetValueOrDefault<string>(TwinProperty.kType, null)
             };
             return registration;
         }
@@ -341,7 +341,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
         public static SupervisorRegistration FromTwin(DeviceTwinModel twin,
-            bool onlyServerState) => FromTwin(twin, onlyServerState, out var tmp);
+            bool onlyServerState) {
+            return FromTwin(twin, onlyServerState, out var tmp);
+        }
 
         /// <summary>
         /// Make sure to get the registration information from the right place.
@@ -487,12 +489,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
         /// <inheritdoc/>
         public static bool operator ==(SupervisorRegistration r1,
-            SupervisorRegistration r2) =>
-            EqualityComparer<SupervisorRegistration>.Default.Equals(r1, r2);
+            SupervisorRegistration r2) {
+            return EqualityComparer<SupervisorRegistration>.Default.Equals(r1, r2);
+        }
 
         /// <inheritdoc/>
         public static bool operator !=(SupervisorRegistration r1,
-            SupervisorRegistration r2) => !(r1 == r2);
+            SupervisorRegistration r2) {
+            return !(r1 == r2);
+        }
 
         /// <inheritdoc/>
         public override int GetHashCode() {
@@ -613,9 +618,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     other.Locales.DecodeAsList());
         }
 
-        internal bool IsInSync() => _isInSync;
+        internal bool IsInSync() {
+            return _isInSync;
+        }
 
-        internal bool IsConnected() => Connected;
+        internal bool IsConnected() {
+            return Connected;
+        }
 
         private bool _isInSync;
     }

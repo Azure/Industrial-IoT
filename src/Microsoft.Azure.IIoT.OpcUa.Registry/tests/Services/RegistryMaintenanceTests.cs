@@ -27,20 +27,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var device = fix.Create<string>();
             var module = fix.Create<string>();
             var super = SupervisorModelEx.CreateSupervisorId(device, module);
-            var supervisor = new IoTHubDeviceModel {
-                Device = new DeviceModel {
-                    Id = device,
-                    ModuleId = module
-                },
-                Twin = SupervisorRegistration.Patch(null,
-                    SupervisorRegistration.FromServiceModel(new SupervisorModel {
-                        Id = super
-                    }))
+            var deviceModel = new DeviceModel {
+                Id = device,
+                ModuleId = module
             };
+            var twinModel = SupervisorRegistration.Patch(null,
+                SupervisorRegistration.FromServiceModel(new SupervisorModel {
+                    Id = super
+                }));
 
-            var registry = new IoTHubDeviceRegistry {
-                Modules = supervisor.YieldReturn().ToList()
-            };
+            var registry = new IoTHubServices((twinModel, deviceModel).YieldReturn());
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -76,8 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         [Fact]
         public void ProcessDiscoveryWithNoExistingApplications() {
             CreateFixtures(out var site, out var super, out var created,
-                out var found, out var registry);
-            registry.Devices.Clear();
+                out var found, out var registry, 0);
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -116,9 +111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         [Fact]
         public void ProcessDiscoveryWithOneExistingApplication() {
             CreateFixtures(out var site, out var super, out var created,
-                out var found, out var registry);
-
-            registry.Devices = registry.Devices.First().YieldReturn().ToList();
+                out var found, out var registry, 1);
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -140,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Readjust existing to be reported from different supervisor...
             CreateFixtures(out var site, out var super, out var existing,
-                out var found, out var registry, x => {
+                out var found, out var registry, -1, x => {
                     x.Application.SupervisorId = super2;
                     x.Endpoints.ForEach(e => e.SupervisorId = super2);
                     return x;
@@ -168,7 +161,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Readjust existing to be reported from different supervisor...
             CreateFixtures(out var site, out var super, out var existing,
-                out var found, out var registry, x => {
+                out var found, out var registry, -1, x => {
                     x.Application.SupervisorId = super2;
                     x.Endpoints.ForEach(e => e.SupervisorId = super2);
                     return x;
@@ -198,14 +191,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Readjust existing to be reported from different supervisor...
             CreateFixtures(out var site, out var super, out var existing,
-                out var found, out var registry, x => {
+                out var found, out var registry, -1, x => {
                     x.Application.SupervisorId = super2;
                     x.Endpoints.ForEach(e => e.SupervisorId = super2);
                     return x;
                 }, true);
 
             // Assert disabled items are now enabled
-            var count = registry.Devices.Count;
+            var count = registry.Devices.Count();
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -218,7 +211,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // Assert
                 var inreg = ApplicationsIn(registry);
                 Assert.False(inreg.IsSameAs(existing));
-                Assert.Equal(count, registry.Devices.Count);
+                Assert.Equal(count, registry.Devices.Count());
                 Assert.All(inreg, a => Assert.Equal(super, a.Application.SupervisorId));
                 Assert.All(inreg, a => Assert.Null(a.Application.NotSeenSince));
                 Assert.All(inreg, a => Assert.All(a.Endpoints, e => Assert.Equal(super, e.SupervisorId)));
@@ -232,7 +225,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Readjust existing to be reported from different supervisor...
             CreateFixtures(out var site, out var super, out var existing,
-                out var found, out var registry, x => {
+                out var found, out var registry, -1, x => {
                     x.Application.SupervisorId = super2;
                     x.Endpoints.ForEach(e => e.SupervisorId = super2);
                     return x;
@@ -240,7 +233,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Found one app and endpoint
             found = new List<DiscoveryEventModel> { found.First() };
-            var count = registry.Devices.Count;
+            var count = registry.Devices.Count();
             // Assert disabled items are now enabled
 
             using (var mock = AutoMock.GetLoose()) {
@@ -253,7 +246,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
                 // Assert
                 var inreg = ApplicationsIn(registry);
-                Assert.Equal(count, registry.Devices.Count);
+                Assert.Equal(count, registry.Devices.Count());
                 Assert.False(inreg.IsSameAs(existing));
                 Assert.Equal(super, inreg.First().Application.SupervisorId);
                 Assert.Null(inreg.First().Application.NotSeenSince);
@@ -268,7 +261,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Readjust existing to be reported from different supervisor...
             CreateFixtures(out var site, out var super, out var existing,
-                out var found, out var registry, x => {
+                out var found, out var registry, -1, x => {
                     x.Application.SupervisorId = super2;
                     x.Endpoints.ForEach(e => e.SupervisorId = super2);
                     return x;
@@ -299,7 +292,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Found nothing
             found = new List<DiscoveryEventModel>();
-            var count = registry.Devices.Count;
+            var count = registry.Devices.Count();
             // Assert there is still the same content as originally but now disabled
 
             using (var mock = AutoMock.GetLoose()) {
@@ -313,7 +306,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // Assert
                 var inreg = ApplicationsIn(registry);
                 Assert.True(inreg.IsSameAs(existing));
-                Assert.Equal(count, registry.Devices.Count);
+                Assert.Equal(count, registry.Devices.Count());
                 Assert.All(inreg, a => Assert.NotNull(a.Application.NotSeenSince));
             }
         }
@@ -327,7 +320,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             found = found
                 .GroupBy(a => a.Application.ApplicationId)
                 .Select(x => x.First()).ToList();
-            var count = registry.Devices.Count;
+            var count = registry.Devices.Count();
 
             // All applications, but only one endpoint each is enabled
 
@@ -342,7 +335,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // Assert
                 var inreg = ApplicationsIn(registry);
                 Assert.True(inreg.IsSameAs(existing));
-                Assert.Equal(count, registry.Devices.Count);
+                Assert.Equal(count, registry.Devices.Count());
                 var disabled = registry.Devices.Count(d => (bool?)d.Twin.Tags["IsDisabled"] == true);
                 Assert.Equal(count - (inreg.Count * 2), disabled);
             }
@@ -355,7 +348,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Found nothing
             found = new List<DiscoveryEventModel>();
-            var count = registry.Devices.Count;
+            var count = registry.Devices.Count();
             // Assert there is still the same content as originally but now disabled
 
             using (var mock = AutoMock.GetLoose()) {
@@ -376,7 +369,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// </summary>
         /// <param name="registry"></param>
         /// <returns></returns>
-        private static List<ApplicationRegistrationModel> ApplicationsIn(IoTHubDeviceRegistry registry) {
+        private static List<ApplicationRegistrationModel> ApplicationsIn(IoTHubServices registry) {
             var registrations = registry.Devices
                 .Select(d => d.Twin)
                 .Select(t => BaseRegistration.ToRegistration(t))
@@ -404,9 +397,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="super"></param>
         /// <param name="existing"></param>
         /// <param name="found"></param>
+        /// <param name="registry"></param>
+        /// <param name="countDevices"></param>
+        /// <param name="fixup"></param>
+        /// <param name="disable"></param>
         private static void CreateFixtures(out string site, out string super,
             out List<ApplicationRegistrationModel> existing, out List<DiscoveryEventModel> found,
-            out IoTHubDeviceRegistry registry,
+            out IoTHubServices registry, int countDevices = -1,
             Func<ApplicationRegistrationModel, ApplicationRegistrationModel> fixup = null,
             bool disable = false) {
             var fix = new Fixture();
@@ -419,17 +416,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var device = fix.Create<string>();
             var superx = super = SupervisorModelEx.CreateSupervisorId(device, module);
 
-            var supervisor = new IoTHubDeviceModel {
-                Device = new DeviceModel {
-                    Id = device,
-                    ModuleId = module
-                },
-                Twin = SupervisorRegistration.Patch(null,
+            var supervisor = (
+                SupervisorRegistration.Patch(null,
                     SupervisorRegistration.FromServiceModel(new SupervisorModel {
                         SiteId = site,
                         Id = superx
-                    }))
-            };
+                    })), new DeviceModel { Id = device, ModuleId = module });
 
             var template = fix
                 .Build<ApplicationRegistrationModel>()
@@ -475,12 +467,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var appdevices = existing
                 .Select(a => ApplicationRegistration.FromServiceModel(a.Application, disable))
                 .Select(a => ApplicationRegistration.Patch(null, a))
-                .Select(d => new IoTHubDeviceModel {
-                    Device = new DeviceModel {
-                        Id = d.Id
-                    },
-                    Twin = d
-                });
+                .Select(d => (d, new DeviceModel { Id = d.Id }));
             var epdevices = existing
                 .SelectMany(a => a.Endpoints
                     .Select(e => EndpointRegistration.FromServiceModel(
@@ -489,16 +476,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             Registration = e
                         }, disable)))
                 .Select(e => EndpointRegistration.Patch(null, e))
-                .Select(d => new IoTHubDeviceModel {
-                    Device = new DeviceModel {
-                        Id = d.Id
-                    },
-                    Twin = d
-                });
-            registry = new IoTHubDeviceRegistry {
-                Devices = appdevices.Concat(epdevices).ToList(),
-                Modules = supervisor.YieldReturn().ToList()
-            };
+                .Select(d => (d, new DeviceModel { Id = d.Id }));
+            appdevices = appdevices.Concat(epdevices);
+            if (countDevices != -1) {
+                appdevices = appdevices.Take(countDevices);
+            }
+            registry = new IoTHubServices(appdevices.Concat(supervisor.YieldReturn()));
         }
     }
 }

@@ -4,14 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Models {
-    using Opc.Ua.Encoders;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using Newtonsoft.Json.Linq;
-    using System.IO;
-    using System.Text;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System.Collections.Generic;
     using System.Linq;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
 
     /// <summary>
     /// diagnostics info extensions
@@ -32,8 +28,8 @@ namespace Opc.Ua.Models {
             if (code == StatusCodes.Good) {
                 return null;
             }
-            return new List<OperationResult> {
-                new OperationResult {
+            return new List<OperationResultModel> {
+                new OperationResultModel {
                     DiagnosticsInfo = diagnostics,
                     Operation = operation,
                     StatusCode = code

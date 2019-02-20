@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.AspNetCore.Http;
     using Opc.Ua;
     using Opc.Ua.Bindings;
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
             }
             channel.Reconnect(socket, requestId, sequenceNumber, clientCertificate,
                 token, request);
-            _logger.Info($"Channel {channelId} reconnected");
+            _logger.Information("Channel {channelId} reconnected", channelId);
             return true;
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         public void ChannelClosed(uint channelId) {
             if (_channels.TryRemove(channelId, out var channel)) {
                 Utils.SilentDispose(channel);
-                _logger.Info($"Channel {channelId} closed");
+                _logger.Information("Channel {channelId} closed", channelId);
             }
         }
 
@@ -126,10 +126,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                     channel.Attach(channelId, socket);
 
                     _channels.TryAdd(channelId, channel);
-                    _logger.Debug($"Started channel {channelId} on {socket.Handle}...");
+                    _logger.Debug("Started channel {channelId} on {socket.Handle}...",
+                        channelId, socket.Handle);
                 }
                 catch (Exception ex) {
-                    _logger.Error("Unexpected error accepting a new connection.", ex);
+                    _logger.Error(ex, "Unexpected error accepting a new connection.");
                 }
             }
         }
@@ -149,8 +150,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                             channel, requestId, request
                     });
             }
-            catch (Exception e) {
-                _logger.Error("Unexpected error processing request.", e);
+            catch (Exception ex) {
+                _logger.Error(ex, "Unexpected error processing request.");
             }
         }
 
@@ -165,8 +166,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                 var response = _controller.Callback.EndProcessRequest(result);
                 channel.SendResponse((uint)args[1], response);
             }
-            catch (Exception e) {
-                _logger.Error("Unexpected error sending result.", e);
+            catch (Exception ex) {
+                _logger.Error(ex, "Unexpected error sending result.");
             }
         }
 

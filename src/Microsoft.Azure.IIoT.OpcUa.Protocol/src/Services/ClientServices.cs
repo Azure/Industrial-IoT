@@ -7,9 +7,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
-    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
@@ -29,13 +28,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public X509Certificate2 Certificate { get; private set; }
-
-        /// <inheritdoc/>
-        public Task UpdateClientCertificate(X509Certificate2 certificate) {
-            Certificate = certificate ??
-                throw new ArgumentNullException(nameof(certificate));
-            return Task.CompletedTask;
-        }
 
         /// <summary>
         /// Create client host services
@@ -59,10 +51,56 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
+        public Task UpdateClientCertificate(X509Certificate2 certificate) {
+            Certificate = certificate ??
+                throw new ArgumentNullException(nameof(certificate));
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public Task Register(EndpointModel endpoint,
+            Func<EndpointConnectivityState, Task> callback) {
+            if (endpoint == null) {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+            if (callback == null) {
+                throw new ArgumentNullException(nameof(callback));
+            }
+
+            var id = new EndpointIdentifier(endpoint);
+            if (!_callbacks.TryAdd(id, callback)) {
+                _callbacks.AddOrUpdate(id, callback, (k, v) => callback);
+            }
+            // Create persistent session
+            GetOrCreateSession(id, true);
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public Task Unregister(EndpointModel endpoint) {
+            if (endpoint == null) {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+
+            var id = new EndpointIdentifier(endpoint);
+            _callbacks.TryRemove(id, out _);
+            // Remove persistent session
+            if (_clients.TryRemove(id, out var client)) {
+                return Try.Async(client.CloseAsync);
+            }
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
         public void Dispose() {
             if (!_cts.IsCancellationRequested) {
                 _cts.Cancel();
                 _timer.Dispose();
+
+                foreach (var client in _clients.Values) {
+                    Try.Op(client.Dispose);
+                }
+                _clients.Clear();
             }
         }
 
@@ -82,7 +120,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var nextServer = queue.Dequeue();
                 discoveryUrl = nextServer.Item1;
                 var sw = Stopwatch.StartNew();
-                _logger.Verbose($"Discover endpoints at {discoveryUrl}...");
+                _logger.Verbose("Discover endpoints at {discoveryUrl}...", discoveryUrl);
                 try {
                     await Retry.Do(_logger, ct, () => DiscoverAsync(discoveryUrl,
                             localeIds, nextServer.Item2, 60000, visitedUris,
@@ -91,42 +129,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         kMaxDiscoveryAttempts - 1).ConfigureAwait(false);
                 }
                 catch (Exception ex) {
-                    _logger.Error($"Error at {discoveryUrl} (after {sw.Elapsed}).",
-                        () => ex);
+                    _logger.Error(ex, "Error at {discoveryUrl} (after {elapsed}).",
+                        discoveryUrl, sw.Elapsed);
                     return new HashSet<DiscoveredEndpointModel>();
                 }
                 ct.ThrowIfCancellationRequested();
-                _logger.Verbose($"Discovery at {discoveryUrl} completed in {sw.Elapsed}.");
+                _logger.Verbose("Discovery at {discoveryUrl} completed in {elapsed}.",
+                    discoveryUrl, sw.Elapsed);
             }
             return results;
         }
 
         /// <inheritdoc/>
         public Task<T> ExecuteServiceAsync<T>(EndpointModel endpoint,
-            CredentialModel elevation, Func<Session, Task<T>> service,
-            Func<Exception, bool> handler) {
+            CredentialModel elevation, int priority, Func<Session, Task<T>> service,
+            TimeSpan timeout, CancellationToken ct, Func<Exception, bool> handler) {
             if (endpoint == null) {
                 throw new ArgumentNullException(nameof(endpoint));
             }
             if (string.IsNullOrEmpty(endpoint.Url)) {
                 throw new ArgumentNullException(nameof(endpoint.Url));
             }
-
-            var key = new EndpointKey(endpoint);
+            var key = new EndpointIdentifier(endpoint);
             while (!_cts.IsCancellationRequested) {
-                var client = _clients.GetOrAdd(key, k => new ClientSession(
-                    CreateApplicationConfiguration(
-                        TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(5)),
-                    k.Endpoint, () => Certificate, _logger));
-
-                var scheduled = client.TryScheduleServiceCall(service, handler,
-                    elevation, out var result);
-                if (scheduled) {
-                    // Session is owning the task to completion now.
-                    return result;
+                var client = GetOrCreateSession(key, false);
+                if (!client.Inactive) {
+                    var scheduled = client.TryScheduleServiceCall(elevation, priority,
+                        service, handler, timeout, ct, out var result);
+                    if (scheduled) {
+                        // Session is owning the task to completion now.
+                        return result;
+                    }
                 }
                 // Create new session next go around
                 _clients.TryRemove(key, out client);
+                client.Dispose();
             }
             return Task.FromCanceled<T>(_cts.Token);
         }
@@ -155,10 +192,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     client.Endpoint.EndpointUrl, localeIds, null);
                 // ReplaceLocalHostWithRemoteHost(endpoints, discoveryUrl);
                 if (!(endpoints?.Endpoints?.Any() ?? false)) {
-                    _logger.Debug($"No endpoints at {discoveryUrl}...");
+                    _logger.Debug("No endpoints at {discoveryUrl}...", discoveryUrl);
                     return;
                 }
-                _logger.Debug($"Found endpoints at {discoveryUrl}...");
+                _logger.Debug("Found endpoints at {discoveryUrl}...", discoveryUrl);
 
                 foreach (var ep in endpoints.Endpoints.Where(ep =>
                     ep.Server.ApplicationType != Opc.Ua.ApplicationType.DiscoveryServer)) {
@@ -188,7 +225,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 catch {
                     // Old lds, just continue...
-                    _logger.Debug($"{discoveryUrl} does not support ME extension...");
+                    _logger.Debug("{discoveryUrl} does not support ME extension...", discoveryUrl);
                 }
 
                 //
@@ -208,6 +245,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Create session
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="persistent"></param>
+        /// <returns></returns>
+        internal IClientSession GetOrCreateSession(EndpointIdentifier id, bool persistent) {
+            return _clients.GetOrAdd(id, k => new ClientSession(
+                CreateApplicationConfiguration(
+                    TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(5)),
+                k.Endpoint, () => Certificate, _logger, NotifyStateChangeAsync, persistent));
         }
 
         /// <summary>
@@ -249,16 +299,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 TransportConfigurations = new TransportConfigurationCollection(),
                 TransportQuotas = new TransportQuotas {
                     OperationTimeout = (int)operationTimeout.TotalMilliseconds,
-                    MaxStringLength = ushort.MaxValue,
-                    MaxByteStringLength = ushort.MaxValue * 16,
-                    MaxArrayLength = ushort.MaxValue,
-                    MaxMessageSize = ushort.MaxValue * 32
+                    MaxStringLength = ushort.MaxValue * 32,
+                    MaxByteStringLength = ushort.MaxValue * 32,
+                    MaxArrayLength = ushort.MaxValue * 32,
+                    MaxMessageSize = ushort.MaxValue * 64
                 },
                 ClientConfiguration = new ClientConfiguration {
                     DefaultSessionTimeout = (int)sessionTimeout.TotalMilliseconds
-                },
-                TraceConfiguration = new TraceConfiguration {
-                    TraceMasks = 1
                 }
             };
         }
@@ -280,6 +327,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <summary>
+        /// Notify about session/endpoint state changes
+        /// </summary>
+        /// <param name="ep"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        private Task NotifyStateChangeAsync(EndpointModel ep, EndpointConnectivityState state) {
+            var id = new EndpointIdentifier(ep);
+            if (_callbacks.TryGetValue(id, out var cb)) {
+                return cb(state);
+            }
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
         /// Called when timer fired evicting inactive / timedout sessions
         /// </summary>
         /// <returns></returns>
@@ -295,7 +356,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
             catch (Exception ex) {
-                _logger.Error("Error managing session clients...", ex);
+                _logger.Error(ex, "Error managing session clients...");
             }
             try {
                 // Re-arm
@@ -306,63 +367,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
         }
 
-        /// <summary>
-        /// Lookup key for client
-        /// </summary>
-        private sealed class EndpointKey {
-
-            /// <summary>
-            /// Create new key
-            /// </summary>
-            /// <param name="endpoint"></param>
-            public EndpointKey(EndpointModel endpoint) {
-                Endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
-            }
-
-            /// <summary>
-            /// The endpoint wrapped as key
-            /// </summary>
-            public EndpointModel Endpoint { get; }
-
-            /// <inheritdoc/>
-            public override bool Equals(object obj) {
-                return obj is EndpointKey key &&
-                    key != null &&
-                    Endpoint.Url == key.Endpoint.Url &&
-                    (Endpoint.User?.Type ?? CredentialType.None) ==
-                        (key.Endpoint.User?.Type ?? CredentialType.None) &&
-                    (Endpoint.SecurityMode ?? SecurityMode.Best) ==
-                        (key.Endpoint.SecurityMode ?? SecurityMode.Best) &&
-                    Endpoint.SecurityPolicy == key.Endpoint.SecurityPolicy &&
-                    JToken.DeepEquals(Endpoint.User?.Value,
-                        key.Endpoint.User?.Value);
-            }
-
-            /// <inheritdoc/>
-            public override int GetHashCode() {
-                var hashCode = -1971667340;
-                hashCode = hashCode * -1521134295 +
-                    EqualityComparer<string>.Default.GetHashCode(Endpoint.SecurityPolicy);
-                hashCode = hashCode * -1521134295 +
-                    EqualityComparer<string>.Default.GetHashCode(Endpoint.Url);
-                hashCode = hashCode * -1521134295 +
-                    EqualityComparer<CredentialType?>.Default.GetHashCode(
-                        Endpoint.User?.Type ?? CredentialType.None);
-                hashCode = hashCode * -1521134295 +
-                   EqualityComparer<SecurityMode?>.Default.GetHashCode(
-                       Endpoint.SecurityMode ?? SecurityMode.Best);
-                hashCode = hashCode * -1521134295 +
-                    JToken.EqualityComparer.GetHashCode(Endpoint.User?.Value);
-                return hashCode;
-            }
-        }
-
         private static readonly TimeSpan kEvictionCheck = TimeSpan.FromSeconds(10);
         private const int kMaxDiscoveryAttempts = 3;
         private readonly ILogger _logger;
         private readonly ApplicationConfiguration _config;
-        private readonly ConcurrentDictionary<EndpointKey, IClientSession> _clients =
-            new ConcurrentDictionary<EndpointKey, IClientSession>();
+        private readonly ConcurrentDictionary<EndpointIdentifier, IClientSession> _clients =
+            new ConcurrentDictionary<EndpointIdentifier, IClientSession>();
+        private readonly ConcurrentDictionary<EndpointIdentifier, Func<EndpointConnectivityState, Task>> _callbacks =
+            new ConcurrentDictionary<EndpointIdentifier, Func<EndpointConnectivityState, Task>>();
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();
         private readonly Timer _timer;

@@ -22,9 +22,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models {
         /// <summary>
         /// Nodes to publish
         /// </summary>
-        [JsonProperty(PropertyName = "Nodes",
+        [JsonProperty(PropertyName = "OpcNodes",
            NullValueHandling = NullValueHandling.Include)]
-        public List<PublisherNodeModel> Nodes { get; set; }
+        public List<PublisherNodeModel> OpcNodes { get; set; }
 
         /// <summary>
         /// Whether to use secure connectivity

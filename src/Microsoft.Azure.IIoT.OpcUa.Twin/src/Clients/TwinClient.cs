@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Newtonsoft.Json;
     using System;
     using System.Linq;
@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     /// the OPC twin module receiving service requests via device method calls.
     /// </summary>
     public sealed class TwinClient : IBrowseServices<string>,
-        INodeServices<string>, IPublishServices<string> {
+        INodeServices<string>, IPublishServices<string>, IUploadServices<string> {
 
         /// <summary>
         /// Create service
@@ -37,12 +37,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Item == null) {
-                throw new ArgumentNullException(nameof(request.Item));
-            }
-            if (string.IsNullOrEmpty(request.Item.NodeId)) {
-                throw new ArgumentNullException(nameof(request.Item.NodeId));
-            }
             var result = await CallServiceOnTwin<PublishStartRequestModel, PublishStartResultModel>(
                 "PublishStart_V1", endpointId, request);
             return result;
@@ -54,9 +48,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(request.NodeId)) {
-                throw new ArgumentNullException(nameof(request.NodeId));
-            }
             var result = await CallServiceOnTwin<PublishStopRequestModel, PublishStopResultModel>(
                 "PublishStop_V1", endpointId, request);
             return result;
@@ -67,6 +58,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             string endpointId, PublishedItemListRequestModel request) {
             var result = await CallServiceOnTwin<PublishedItemListRequestModel, PublishedItemListResultModel>(
                 "PublishList_V1", endpointId, request);
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public async Task<ModelUploadStartResultModel> ModelUploadStartAsync(
+            string endpointId, ModelUploadStartRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await CallServiceOnTwin<ModelUploadStartRequestModel, ModelUploadStartResultModel>(
+                "ModelUploadStart_V1", endpointId, request);
             return result;
         }
 
@@ -109,9 +111,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(request.NodeId)) {
-                throw new ArgumentException(nameof(request.NodeId));
-            }
             return await CallServiceOnTwin<ValueReadRequestModel, ValueReadResultModel>(
                 "ValueRead_V1", endpointId, request);
         }
@@ -125,9 +124,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request.Value == null) {
                 throw new ArgumentNullException(nameof(request.Value));
             }
-            if (string.IsNullOrEmpty(request.NodeId)) {
-                throw new ArgumentException(nameof(request.NodeId));
-            }
             return await CallServiceOnTwin<ValueWriteRequestModel, ValueWriteResultModel>(
                 "ValueWrite_V1", endpointId, request);
         }
@@ -138,9 +134,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(request.MethodId)) {
-                throw new ArgumentNullException(nameof(request.MethodId));
-            }
             return await CallServiceOnTwin<MethodMetadataRequestModel, MethodMetadataResultModel>(
                 "MethodMetadata_V1", endpointId, request);
         }
@@ -150,9 +143,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             string endpointId, MethodCallRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
-            }
-            if (string.IsNullOrEmpty(request.MethodId)) {
-                throw new ArgumentNullException(nameof(request.MethodId));
             }
             return await CallServiceOnTwin<MethodCallRequestModel, MethodCallResultModel>(
                 "MethodCall_V1", endpointId, request);
@@ -195,9 +185,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             string endpointId, HistoryReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
-            }
-            if (string.IsNullOrEmpty(request.NodeId)) {
-                throw new ArgumentNullException(nameof(request.NodeId));
             }
             return await CallServiceOnTwin<HistoryReadRequestModel, HistoryReadResultModel>(
                 "HistoryRead_V1", endpointId, request);
@@ -246,7 +233,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             var sw = Stopwatch.StartNew();
             var result = await _client.CallMethodAsync(endpointId, null, service,
                 JsonConvertEx.SerializeObject(request));
-            _logger.Debug($"Twin call '{service}' took {sw.ElapsedMilliseconds} ms)!");
+            _logger.Debug("Twin call '{service}' took {elapsed} ms)!",
+                service, sw.ElapsedMilliseconds);
             return JsonConvertEx.DeserializeObject<R>(result);
         }
 

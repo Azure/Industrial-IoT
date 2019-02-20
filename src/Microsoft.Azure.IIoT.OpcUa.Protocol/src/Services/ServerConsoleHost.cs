@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Opc.Ua;
     using Opc.Ua.Configuration;
     using System;
@@ -36,22 +36,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 try {
                     await _lock.WaitAsync();
                     if (_server != null) {
-                        _logger.Info($"Stopping server.");
+                        _logger.Information("Stopping server.");
                         try {
                             _server.Stop();
                         }
                         catch (OperationCanceledException) { }
                         catch (Exception se) {
-                            _logger.Error("Server not cleanly stopped.",
-                                () => se);
+                            _logger.Error(se, "Server not cleanly stopped.");
                         }
                         _server.Dispose();
                     }
-                    _logger.Info($"Server stopped.");
+                    _logger.Information("Server stopped.");
                 }
                 catch (Exception ce) {
-                    _logger.Error("Stopping server caused exception.",
-                        () => ce);
+                    _logger.Error(ce, "Stopping server caused exception.");
                 }
                 finally {
                     _server = null;
@@ -91,7 +89,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="ports"></param>
         /// <returns></returns>
         private async Task StartServerInternal(IEnumerable<int> ports) {
-            _logger.Info("Starting server...");
+            _logger.Information("Starting server...");
             ApplicationInstance.MessageDlg = new DummyDialog();
 
             var config = _factory.CreateServer(ports, out _server);
@@ -102,8 +100,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (e.Error.StatusCode ==
                     StatusCodes.BadCertificateUntrusted) {
                     e.Accept = AutoAccept;
-                    _logger.Info((e.Accept ? "Accepted" : "Rejected") +
-                        $" Certificate {e.Certificate.Subject}");
+                    _logger.Information((e.Accept ? "Accepted" : "Rejected") +
+                        " Certificate {subject}", e.Certificate.Subject);
                 }
             };
 
@@ -144,9 +142,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             await application.Start(_server);
 
             foreach (var ep in config.ServerConfiguration.BaseAddresses) {
-                _logger.Info($"Listening on {ep}");
+                _logger.Information("Listening on {ep}", ep);
             }
-            _logger.Info("Server started.");
+            _logger.Information("Server started.");
         }
 
         /// <inheritdoc/>

@@ -5,7 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework;
@@ -21,9 +22,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Supervisor service
+    /// Supervisor services
     /// </summary>
-    public class SupervisorServices : IActivationServices<string>, IDisposable {
+    public class SupervisorServices : IActivationServices<string>,
+        ISupervisorServices, IDisposable {
 
         /// <summary>
         /// Create supervisor creating and managing twin instances
@@ -31,53 +33,44 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         /// <param name="factory"></param>
         /// <param name="config"></param>
         /// <param name="events"></param>
+        /// <param name="process"></param>
         /// <param name="logger"></param>
         public SupervisorServices(IContainerFactory factory, IModuleConfig config,
-            IEventEmitter events, ILogger logger) {
+            IEventEmitter events, IProcessControl process, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _events = events ?? throw new ArgumentNullException(nameof(events));
+            _process = process ?? throw new ArgumentNullException(nameof(process));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
-            _container = _factory.Create();
         }
 
-        /// <summary>
-        /// Start twin with endpoint id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="secret"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task ActivateEndpointAsync(string id, string secret) {
             try {
                 await _lock.WaitAsync();
                 if (_twinHosts.TryGetValue(id, out var twin) && twin.Running) {
-                    _logger.Debug($"{id} twin already running.");
+                    _logger.Debug("{id} twin already running.", id);
                     return;
                 }
-                _logger.Debug($"{id} twin starting...");
-
+                _logger.Debug("{id} twin starting...", id);
                 _twinHosts.Remove(id);
-                _twinHosts.Add(id, new TwinHost(this,
-                    new TwinConfig(_config, id, secret)));
-
-                _logger.Info($"{id} twin started.");
+                var host = new TwinHost(this, _config, id, secret);
+                _twinHosts.Add(id, host);
+                await host.Started;
+                _logger.Information("{id} twin started.", id);
             }
             finally {
                 _lock.Release();
             }
         }
 
-        /// <summary>
-        /// Stop twin by endpoint id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task DeactivateEndpointAsync(string id) {
             TwinHost twin;
             try {
                 await _lock.WaitAsync();
                 if (!_twinHosts.TryGetValue(id, out twin)) {
-                    _logger.Debug($"{id} twin not running.");
+                    _logger.Debug("{id} twin not running.", id);
                     return;
                 }
                 _twinHosts.Remove(id);
@@ -89,13 +82,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         }
 
         /// <inheritdoc/>
+        public async Task<SupervisorStatusModel> GetStatusAsync() {
+            try {
+                await _lock.WaitAsync();
+                var endpoints = _twinHosts
+                    .Select(h => new EndpointActivationStatusModel {
+                        Id = h.Key,
+                        ActivationState = h.Value.Status
+                    });
+                return new SupervisorStatusModel {
+                    Endpoints = endpoints.ToList(),
+                    DeviceId = _events.DeviceId,
+                    ModuleId = _events.ModuleId,
+                    SiteId = _events.SiteId
+                };
+            }
+            finally {
+                _lock.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public Task ResetAsync() {
+            _process.Reset();
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
         public void Dispose() {
             try {
                 StopAllTwinsAsync().Wait();
-                _container.Dispose();
             }
             catch (Exception e) {
-                _logger.Error("Failure in supervisor disposing.", e);
+                _logger.Error(e, "Failure in supervisor disposing.");
             }
         }
 
@@ -106,7 +125,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         /// <param name="twin"></param>
         /// <returns></returns>
         private async Task StopOneTwinAsync(string id, TwinHost twin) {
-            _logger.Debug($"{id} twin is stopped...");
+            _logger.Debug("{id} twin is stopped...", id);
             try {
                 // Stop host async
                 await twin.StopAsync();
@@ -115,13 +134,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
                 // BUGBUG: IoT Hub client SDK throws general exceptions independent
                 // of what actually happened.  Instead of parsing the message,
                 // just continue.
-                _logger.Debug($"{id} twin stopping raised exception, continue...",
-                    () => ex);
+                _logger.Debug(ex,
+                    "{id} twin stopping raised exception, continue...", id);
             }
             finally {
                 twin.Dispose();
             }
-            _logger.Info($"{id} twin stopped.");
+            _logger.Information("{id} twin stopped.", id);
         }
 
         /// <summary>
@@ -146,7 +165,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         /// <summary>
         /// Runs a twin device connected to transparent gateway
         /// </summary>
-        private class TwinHost : IDisposable {
+        private class TwinHost : IDisposable, IProcessControl, IModuleConfig {
 
             /// <summary>
             /// Whether the host is running
@@ -154,30 +173,66 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
             public bool Running => !(_runner?.IsCompleted ?? true);
 
             /// <summary>
+            /// Activation state
+            /// </summary>
+            public EndpointActivationState Status { get; private set; }
+
+            /// <summary>
+            /// Wait until running
+            /// </summary>
+            public Task Started => _started.Task;
+
+            /// <inheritdoc/>
+            public string EdgeHubConnectionString { get; }
+            /// <inheritdoc/>
+            public bool BypassCertVerification { get; }
+            /// <inheritdoc/>
+            public TransportOption Transport { get; }
+
+            /// <summary>
             /// Create runner
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="config"></param>
-            public TwinHost(SupervisorServices outer, IModuleConfig config) {
+            /// <param name="endpointId"></param>
+            /// <param name="secret"></param>
+            public TwinHost(SupervisorServices outer,
+                IModuleConfig config, string endpointId, string secret) {
                 _outer = outer;
+
+                BypassCertVerification = config.BypassCertVerification;
+                Transport = config.Transport;
+                EdgeHubConnectionString = GetEdgeHubConnectionString(config,
+                    endpointId, secret);
+
                 // Create twin scoped component context for the host
-                _scope = outer._container.BeginLifetimeScope(builder => {
-                    builder.RegisterInstance(config)
+                _container = outer._factory.Create(builder => {
+                    builder.RegisterInstance(this)
                         .AsImplementedInterfaces().SingleInstance();
                 });
+
                 _cts = new CancellationTokenSource();
+                _reset = new TaskCompletionSource<bool>();
+                _started = new TaskCompletionSource<bool>();
+                Status = EndpointActivationState.Activated;
                 _runner = Task.Run(RunAsync);
             }
 
             /// <inheritdoc/>
             public void Dispose() => StopAsync().Wait();
 
+            /// <inheritdoc/>
+            public void Reset() => _reset?.TrySetResult(true);
+
+            /// <inheritdoc/>
+            public void Exit(int exitCode) => _cts.Cancel();
+
             /// <summary>
             /// Shutdown twin host
             /// </summary>
             /// <returns></returns>
             public async Task StopAsync() {
-                if (_scope != null) {
+                if (_container != null) {
                     try {
                         // Cancel runner
                         _cts.Cancel();
@@ -185,8 +240,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
                     }
                     catch (OperationCanceledException) { }
                     finally {
-                        _scope.Dispose();
-                        _scope = null;
+                        _container.Dispose();
+                        _container = null;
                     }
                 }
             }
@@ -196,36 +251,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
             /// </summary>
             /// <returns></returns>
             private async Task RunAsync() {
-                var host = _scope.Resolve<IModuleHost>();
+                var host = _container.Resolve<IModuleHost>();
 
                 var retryCount = 0;
                 var cancel = new TaskCompletionSource<bool>();
                 _cts.Token.Register(() => cancel.TrySetResult(true));
                 while (!_cts.Token.IsCancellationRequested) {
                     // Wait until the module unloads or is cancelled
-                    var reset = new TaskCompletionSource<bool>();
                     try {
                         await host.StartAsync("twin", _outer._events.SiteId,
-                            "OpcTwin", () => reset.TrySetResult(true));
-
+                            "OpcTwin", this);
+                        Status = EndpointActivationState.ActivatedAndConnected;
+                        _started.TrySetResult(true);
                         // Reset retry counter on success
                         retryCount = 0;
-                        await Task.WhenAny(cancel.Task, reset.Task);
+                        await Task.WhenAny(cancel.Task, _reset.Task);
+                        _reset = new TaskCompletionSource<bool>();
                     }
                     catch (Exception ex) {
-                        var logger = _scope.Resolve<ILogger>();
+                        Status = EndpointActivationState.Activated;
+                        var logger = _container.Resolve<ILogger>();
 
                         var notFound = ex.GetFirstOf<DeviceNotFoundException>();
                         if (notFound != null) {
-                            logger.Info("Twin was deleted - exit host...",
-                                notFound);
-                            throw notFound;
+                            logger.Information(notFound,
+                                "Twin was deleted - exit host...");
+                            _started.TrySetException(notFound);
+                            return;
                         }
                         var auth = ex.GetFirstOf<UnauthorizedException>();
                         if (auth != null) {
-                            logger.Info("Twin not authorized using given " +
-                                "secret - exit host...", auth);
-                            throw auth;
+                            logger.Information(auth,
+                                "Twin not authorized using given secret - exit host...");
+                            _started.TrySetException(auth);
+                            return;
                         }
 
                         // Linearly delay on exception since we get these when
@@ -237,52 +296,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
                             break;
                         }
                         if (retryCount++ > kMaxRetryCount) {
-                            logger.Error($"Error #{retryCount} in twin host - " +
-                                $"exit host...", ex);
-                            throw ex;
+                            logger.Error(ex,
+                                "Error #{retryCount} in twin host - exit host...",
+                                retryCount);
+                            return;
                         }
-                        logger.Error($"Error #{retryCount} in twin host - " +
-                            $"restarting...", ex);
+                        logger.Error(ex,
+                            "Error #{retryCount} in twin host - restarting...",
+                            retryCount);
                     }
                     finally {
+                        Status = EndpointActivationState.Activated;
                         await host.StopAsync();
+                        _started.TrySetResult(false); // Cancelled
                     }
                 }
             }
-
-            private const int kMaxRetryCount = 30;
-            private const int kRetryDelayMs = 5000;
-
-            private ILifetimeScope _scope;
-            private readonly SupervisorServices _outer;
-            private readonly CancellationTokenSource _cts;
-            private readonly Task _runner;
-        }
-
-        /// <summary>
-        /// Endpoint twin host configuration wrapper
-        /// </summary>
-        private class TwinConfig : IModuleConfig {
-
-            /// <summary>
-            /// Create twin configuration
-            /// </summary>
-            /// <param name="config"></param>
-            /// <param name="endpointId"></param>
-            /// <param name="secret"></param>
-            public TwinConfig(IModuleConfig config, string endpointId, string secret) {
-                BypassCertVerification = config.BypassCertVerification;
-                Transport = config.Transport;
-                EdgeHubConnectionString = GetEdgeHubConnectionString(config,
-                    endpointId, secret);
-            }
-
-            /// <summary>
-            /// Endpoint twin configuration
-            /// </summary>
-            public string EdgeHubConnectionString { get; }
-            public bool BypassCertVerification { get; }
-            public TransportOption Transport { get; }
 
             /// <summary>
             /// Create new connection string from existing EdgeHubConnectionString.
@@ -327,13 +356,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
                 }
                 return cs;
             }
+
+            private const int kMaxRetryCount = 30;
+            private const int kRetryDelayMs = 5000;
+
+            private TaskCompletionSource<bool> _reset;
+            private readonly TaskCompletionSource<bool> _started;
+            private ILifetimeScope _container;
+            private readonly SupervisorServices _outer;
+            private readonly CancellationTokenSource _cts;
+            private readonly Task _runner;
         }
 
         private readonly ILogger _logger;
         private readonly IModuleConfig _config;
         private readonly IEventEmitter _events;
+        private readonly IProcessControl _process;
         private readonly IContainerFactory _factory;
-        private readonly IContainer _container;
 
         private readonly SemaphoreSlim _lock =
             new SemaphoreSlim(1);

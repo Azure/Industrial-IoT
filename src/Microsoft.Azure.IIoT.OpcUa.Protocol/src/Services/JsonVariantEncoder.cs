@@ -20,6 +20,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     public class JsonVariantEncoder : IVariantEncoder {
 
         /// <inheritdoc/>
+        public ServiceMessageContext Context { get; } = new ServiceMessageContext();
+
+        /// <inheritdoc/>
         public JToken Encode(Variant value, out BuiltInType builtinType,
             ServiceMessageContext context) {
             if (value == Variant.Null) {
@@ -27,9 +30,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return JValue.CreateNull();
             }
             using (var stream = new MemoryStream()) {
-                using (var encoder = new JsonEncoderEx(context ?? _context,
-                    stream) {
-                    UseMicrosoftVariant = true
+                using (var encoder = new JsonEncoderEx(stream,
+                    context ?? Context) {
+                    UseAdvancedEncoding = true
                 }) {
                     encoder.WriteVariant(nameof(value), value);
                 }
@@ -82,7 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             //
             // Decode json to a real variant
             //
-            using (var decoder = new JsonDecoderEx(context ?? _context, json)) {
+            using (var decoder = new JsonDecoderEx(json, context ?? Context)) {
                 return decoder.ReadVariant(nameof(value));
             }
         }
@@ -184,8 +187,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             return value;
         }
-
-        private readonly ServiceMessageContext _context =
-            new ServiceMessageContext();
     }
 }

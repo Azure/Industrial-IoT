@@ -23,9 +23,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             "application/x-discovery-event-v1-json";
 
         /// <summary>
-        /// Message contains publish event
+        /// Content is a nodeset
         /// </summary>
-        public const string PublishEvent =
-            "application/x-publish-event-v1-json";
+        public const string NodeSet =
+            "application/x-node-set-v1";
     }
 }

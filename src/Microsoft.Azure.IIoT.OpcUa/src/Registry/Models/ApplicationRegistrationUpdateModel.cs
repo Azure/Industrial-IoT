@@ -12,11 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public class ApplicationRegistrationUpdateModel {
 
         /// <summary>
-        /// Identifier of the application to patch
-        /// </summary>
-        public string Id { get; set; }
-
-        /// <summary>
         /// Product uri
         /// </summary>
         public string ProductUri { get; set; }

@@ -22,25 +22,11 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="contentType"></param>
         /// <param name="callback"></param>
-        /// <param name="stream"></param>
-        public ModelEncoder(Stream stream, string contentType,
-            Action<ExpandedNodeId> callback) :
-            this(stream, new ServiceMessageContext {
-                NamespaceUris = new NamespaceTable(),
-                ServerUris = new StringTable(),
-                Factory = new EncodeableFactory(true)
-            }, contentType, callback) {
-        }
-
-        /// <summary>
-        /// Create wrapper
-        /// </summary>
-        /// <param name="contentType"></param>
-        /// <param name="callback"></param>
         /// <param name="context"></param>
         /// <param name="stream"></param>
-        public ModelEncoder(Stream stream, ServiceMessageContext context,
-            string contentType, Action<ExpandedNodeId> callback) :
+        public ModelEncoder(Stream stream, string contentType,
+            Action<ExpandedNodeId> callback = null,
+            ServiceMessageContext context = null) :
             this(CreateEncoder(contentType, stream, context), callback) {
         }
 
@@ -49,7 +35,8 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="wrapped"></param>
         /// <param name="callback"></param>
-        public ModelEncoder(IEncoder wrapped, Action<ExpandedNodeId> callback) {
+        public ModelEncoder(IEncoder wrapped,
+            Action<ExpandedNodeId> callback = null) {
             _wrapped = wrapped ?? throw new ArgumentNullException(nameof(wrapped));
             _callback = callback;
         }
@@ -104,7 +91,7 @@ namespace Opc.Ua.Encoders {
         public void WriteEncodeableArray(string fieldName, IList<IEncodeable> values,
             Type systemType) => _wrapped.WriteEncodeableArray(fieldName, values
                 .Select(s => (IEncodeable)new EncodableWrapper(this, s))
-                .ToList(), systemType);
+                .ToArray(), systemType);
 
         /// <inheritdoc />
         public void PushNamespace(string namespaceUri) =>
@@ -314,9 +301,7 @@ namespace Opc.Ua.Encoders {
         public void WriteEnumeratedArray(string fieldName, Array values,
             Type systemType) => _wrapped.WriteEnumeratedArray(fieldName, values, systemType);
 
-        /// <summary>
-        /// Dispose
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose() {
             if (_wrapped is IDisposable disposable) {
                 disposable.Dispose();
@@ -336,14 +321,20 @@ namespace Opc.Ua.Encoders {
                 throw new ArgumentNullException(nameof(stream));
             }
             switch (contentType.ToLowerInvariant()) {
+                case ContentEncodings.MimeTypeJson:
                 case ContentEncodings.MimeTypeUaJson:
-                    return new JsonEncoderEx(context, new StreamWriter(stream));
+                    return new JsonEncoderEx(new StreamWriter(stream),
+                        context ?? new ServiceMessageContext(),
+                        JsonEncoderEx.JsonEncoding.Array) {
+                        UseAdvancedEncoding = true,
+                        IgnoreDefaultValues = true
+                    };
                 case ContentEncodings.MimeTypeUaBinary:
                     return new BinaryEncoder(stream,
-                        context);
+                        context ?? new ServiceMessageContext());
                 case ContentEncodings.MimeTypeUaXml:
                     return new XmlEncoder((Type)null, XmlWriter.Create(stream),
-                        context);
+                        context ?? new ServiceMessageContext());
                 default:
                     throw new ArgumentException(nameof(contentType));
             }

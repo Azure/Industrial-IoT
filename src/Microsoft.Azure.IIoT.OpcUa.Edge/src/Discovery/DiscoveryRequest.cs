@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
     /// <summary>
     /// Discovery request wrapper
     /// </summary>
-    internal class DiscoveryRequest {
+    sealed class DiscoveryRequest {
 
         /// <summary>
         /// Original discovery request model

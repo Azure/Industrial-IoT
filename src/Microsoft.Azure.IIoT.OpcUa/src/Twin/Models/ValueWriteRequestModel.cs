@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Newtonsoft.Json.Linq;
 
     /// <summary>
@@ -16,6 +15,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// Node id to write to - from browse.
         /// </summary>
         public string NodeId { get; set; }
+
+        /// <summary>
+        /// An optional path from NodeId instance to
+        /// an actual node.
+        /// </summary>
+        public string[] BrowsePath { get; set; }
 
         /// <summary>
         /// The data type of the value - from browse.
@@ -33,13 +38,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public JToken Value { get; set; }
 
         /// <summary>
-        /// Elevation
+        /// Optional header
         /// </summary>
-        public CredentialModel Elevation { get; set; }
-
-        /// <summary>
-        /// Optional diagnostics configuration
-        /// </summary>
-        public DiagnosticsModel Diagnostics { get; set; }
+        public RequestHeaderModel Header { get; set; }
     }
 }

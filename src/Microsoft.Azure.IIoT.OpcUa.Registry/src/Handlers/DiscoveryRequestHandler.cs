@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Tasks;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json;
     using System;
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     /// <see cref="OnboardingClient"/> instance and pushes them
     /// to the supervisor module.
     /// </summary>
-    public class DiscoveryRequestHandler : IEventHandler {
+    public sealed class DiscoveryRequestHandler : IDeviceEventHandler {
 
         /// <inheritdoc/>
         public string ContentType => ContentTypes.DiscoveryRequest;
@@ -49,8 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                     _processor.TrySchedule(() => _discovery.DiscoverAsync(request), checkpoint);
                 }
                 catch (Exception ex) {
-                    _logger.Error("Failed to convert registration json",
-                        () => new { json, ex });
+                    _logger.Error(ex, "Failed to convert registration {json}", json);
                 }
             }
             return Task.CompletedTask;

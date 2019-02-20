@@ -435,5 +435,132 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal(expected, variant);
             Assert.Equal(new JArray((ushort)123, (ushort)124, (ushort)125), encoded);
         }
+
+        [Fact]
+        public void DecodeEncodeUInt16MatrixFromStringJsonStringTypeUInt16() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new ushort[,,] {
+                { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.UInt16, null);
+            var expected = new Variant(new ushort[,,] {
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeUInt16MatrixFromVariantJsonStringTypeVariant() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                type = "UInt16",
+                body = new ushort[,,] {
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var expected = new Variant(new ushort[,,] {
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeUInt16MatrixFromVariantJsonTokenTypeVariantMsftEncoding() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                dataType = "UInt16",
+                value = new ushort[,,] {
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var expected = new Variant(new ushort[,,] {
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeUInt16MatrixFromVariantJsonStringTypeNull() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                type = "UInt16",
+                body = new ushort[,,] {
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var expected = new Variant(new ushort[,,] {
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeUInt16MatrixFromVariantJsonTokenTypeNullMsftEncoding() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                dataType = "UInt16",
+                value = new ushort[,,] {
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var expected = new Variant(new ushort[,,] {
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
+                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
     }
 }

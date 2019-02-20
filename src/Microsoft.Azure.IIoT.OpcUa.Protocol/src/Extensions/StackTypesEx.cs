@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
     using UaTokenType = Opc.Ua.UserTokenType;
     using UaNodeClass = Opc.Ua.NodeClass;
+    using UaPermissionType = Opc.Ua.PermissionType;
     using UaDiagnosticsLevel = Opc.Ua.DiagnosticsMasks;
     using System.Collections.Generic;
 
@@ -165,6 +166,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
+        /// Convert Permissions
+        /// </summary>
+        /// <param name="permissions"></param>
+        /// <returns></returns>
+        public static UaPermissionType ToStackType(this RolePermissions? permissions) {
+            if (permissions == null) {
+                return UaPermissionType.None;
+            }
+            return (UaPermissionType)permissions;
+        }
+
+        /// <summary>
+        /// Convert permissions
+        /// </summary>
+        /// <param name="permissions"></param>
+        /// <returns></returns>
+        public static RolePermissions? ToServiceType(this UaPermissionType permissions) {
+            if (permissions == UaPermissionType.None) {
+                return null;
+            }
+            return (RolePermissions)permissions;
+        }
+
+        /// <summary>
         /// Convert security mode
         /// </summary>
         /// <param name="mode"></param>
@@ -211,7 +236,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     return CredentialType.X509Certificate;
                 case UaTokenType.UserName:
                 case UaTokenType.IssuedToken:
-                    return CredentialType.UserNamePassword;
+                    return CredentialType.UserName;
                 default:
                     return null;
             }

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Net;
     using Opc.Ua;
     using Opc.Ua.Bindings;
@@ -83,8 +83,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 ok = false;
                 timeout = _timeout;
                 if (arg.SocketError != SocketError.Success) {
-                    _logger.Debug($"Probe {index} : {_socket?.RemoteEndPoint} found no opc server.",
-                        () => arg.SocketError);
+                    _logger.Debug("Probe {index} : {remoteEp} found no opc server. {error}",
+                        index, _socket?.RemoteEndPoint, arg.SocketError);
                     _state = State.BeginProbe;
                     return true;
                 }
@@ -92,7 +92,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     switch (_state) {
                         case State.BeginProbe:
                             if (arg.ConnectSocket == null) {
-                                _logger.Error($"Probe {index} : Called without connected socket!");
+                                _logger.Error("Probe {index} : Called without connected socket!",
+                                    index);
                                 return true;
                             }
                             _socket = arg.ConnectSocket;
@@ -116,7 +117,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                             _buffer[7] = (byte)((_size & 0xFF000000) >> 24);
                             arg.SetBuffer(_buffer, 0, _size);
                             _len = 0;
-                            _logger.Debug($"Probe {index} : {ep} ({_socket.RemoteEndPoint})...");
+                            _logger.Debug("Probe {index} : {ep} ({remoteEp})...", index, ep,
+                                _socket.RemoteEndPoint);
                             _state = State.SendHello;
                             if (!_socket.SendAsync(arg)) {
                                 break;
@@ -146,15 +148,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                             if (_len >= _size) {
                                 var type = BitConverter.ToUInt32(_buffer, 0);
                                 if (type != TcpMessageType.Acknowledge) {
-                                    _logger.Verbose($"Probe {index} : {_socket.RemoteEndPoint} " +
-                                        $"returned invalid message type {type}.");
+                                    _logger.Verbose("Probe {index} : {remoteEp} " +
+                                        "returned invalid message type {type}.",
+                                        index, _socket.RemoteEndPoint, type);
                                     _state = State.BeginProbe;
                                     return true;
                                 }
                                 _size = (int)BitConverter.ToUInt32(_buffer, 4);
                                 if (_size > _buffer.Length) {
-                                    _logger.Debug($"Probe {index} : {_socket.RemoteEndPoint} " +
-                                        $"returned invalid message length {_size}.");
+                                    _logger.Debug("Probe {index} : {remoteEp} " +
+                                        "returned invalid message length {size}.",
+                                        index, _socket.RemoteEndPoint, _size);
                                     _state = State.BeginProbe;
                                     return true;
                                 }
@@ -182,14 +186,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                                     var maxMessageSize = (int)decoder.ReadUInt32(null);
                                     var maxChunkCount = (int)decoder.ReadUInt32(null);
 
-                                    _logger.Info($"Probe {index} : {_socket.RemoteEndPoint} " +
-                                        $"found opc server (protocol:{protocolVersion}) ...");
+                                    _logger.Information("Probe {index} : {remoteEp} " +
+                                        "found opc server (protocol:{protocolVersion}) ...",
+                                        index, _socket.RemoteEndPoint, protocolVersion);
 
                                     if (sendBufferSize < TcpMessageLimits.MinBufferSize ||
                                         receiveBufferSize < TcpMessageLimits.MinBufferSize) {
-                                        _logger.Warn($"Probe {index} : Bad size value read " +
-                                            $"{sendBufferSize} or {receiveBufferSize} from " +
-                                            $"opc server at {_socket.RemoteEndPoint}.");
+                                        _logger.Warning("Probe {index} : Bad size value read " +
+                                            "{sendBufferSize} or {receiveBufferSize} from opc " +
+                                            "server at {_socket.RemoteEndPoint}.", index,
+                                        sendBufferSize, receiveBufferSize, _socket.RemoteEndPoint);
                                     }
                                 }
                                 ok = true;

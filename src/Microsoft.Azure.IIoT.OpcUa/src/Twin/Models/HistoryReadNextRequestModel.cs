@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-
     /// <summary>
     /// Request node history read continuation
     /// </summary>
@@ -23,13 +21,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public bool? Abort { get; set; }
 
         /// <summary>
-        /// Optional User Elevation
+        /// Optional header
         /// </summary>
-        public CredentialModel Elevation { get; set; }
-
-        /// <summary>
-        /// Optional diagnostics configuration
-        /// </summary>
-        public DiagnosticsModel Diagnostics { get; set; }
+        public RequestHeaderModel Header { get; set; }
     }
 }

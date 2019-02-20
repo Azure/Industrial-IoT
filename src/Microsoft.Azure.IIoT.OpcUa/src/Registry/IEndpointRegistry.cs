@@ -60,9 +60,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Id and url field in request must not be null and
         /// endpoint registration must exist.
         /// </summary>
+        /// <param name="id"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task UpdateEndpointAsync(EndpointRegistrationUpdateModel request);
+        Task UpdateEndpointAsync(string id,
+            EndpointRegistrationUpdateModel request);
 
         /// <summary>
         /// Set the endpoint state to deactivated

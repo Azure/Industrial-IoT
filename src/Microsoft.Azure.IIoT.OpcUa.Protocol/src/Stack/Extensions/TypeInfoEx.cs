@@ -63,7 +63,7 @@ namespace Opc.Ua {
                     Array.Copy(boxed, array, boxed.Length);
                     value = array;
                 }
-                if (typeInfo.ValueRank > 2) {
+                if (typeInfo.ValueRank >= 2) {
                     systemType = typeof(Matrix);
                 }
                 var constructor = typeof(Variant).GetConstructor(new Type[] {

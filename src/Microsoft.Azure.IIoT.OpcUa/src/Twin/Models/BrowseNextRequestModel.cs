@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-
     /// <summary>
     /// Request node browsing continuation
     /// </summary>
@@ -38,13 +36,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public bool? ReadVariableValues { get; set; }
 
         /// <summary>
-        /// Optional elevation
+        /// Whether to only return the raw node id
+        /// information and not read the target node.
+        /// (default is false)
         /// </summary>
-        public CredentialModel Elevation { get; set; }
+        public bool? NodeIdsOnly { get; set; }
 
         /// <summary>
-        /// Optional diagnostics configuration
+        /// Optional header
         /// </summary>
-        public DiagnosticsModel Diagnostics { get; set; }
+        public RequestHeaderModel Header { get; set; }
     }
 }

@@ -1,0 +1,14 @@
+<xs:schema
+  xmlns:s1="http://opcfoundation.org/UA/Engineering"
+  xmlns:s2="http://opcfoundation.org/UA/Operations"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:ua="http://opcfoundation.org/UA/2008/02/Types.xsd"
+  xmlns:tns="http://opcfoundation.org/UA/Views"
+  targetNamespace="http://opcfoundation.org/UA/Views"
+  elementFormDefault="qualified"
+>
+  <xs:import namespace="http://opcfoundation.org/UA/2008/02/Types.xsd" />
+  <xs:import namespace="http://opcfoundation.org/UA/Engineering" />
+  <xs:import namespace="http://opcfoundation.org/UA/Operations" />
+
+</xs:schema>

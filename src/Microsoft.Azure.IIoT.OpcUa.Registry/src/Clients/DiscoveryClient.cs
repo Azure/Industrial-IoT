@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json;
@@ -60,8 +60,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
                 out var moduleId);
             var result = await _client.CallMethodAsync(deviceId, moduleId, service,
                 JsonConvertEx.SerializeObject(request));
-            _logger.Debug($"Calling supervisor service '{service}' on " +
-                $"{deviceId}/{moduleId} took {sw.ElapsedMilliseconds} ms.");
+            _logger.Debug("Calling supervisor service '{service}' on " +
+                "{deviceId}/{moduleId} took {elapsed} ms.", service,
+                deviceId, moduleId, sw.ElapsedMilliseconds);
         }
 
         private readonly IMethodClient _client;

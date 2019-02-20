@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Newtonsoft.Json.Linq;
 
     /// <summary>
@@ -20,13 +19,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public JToken Request { get; set; }
 
         /// <summary>
-        /// Optional User Elevation
+        /// Optional header
         /// </summary>
-        public CredentialModel Elevation { get; set; }
-
-        /// <summary>
-        /// Optional diagnostics configuration
-        /// </summary>
-        public DiagnosticsModel Diagnostics { get; set; }
+        public RequestHeaderModel Header { get; set; }
     }
 }

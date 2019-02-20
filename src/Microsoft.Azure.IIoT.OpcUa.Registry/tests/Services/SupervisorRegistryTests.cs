@@ -25,9 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Modules = modules
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(modules));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -45,9 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Modules = modules
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(modules));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -63,9 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Modules = modules
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(modules));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -81,9 +75,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Modules = modules
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(modules));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -99,9 +91,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Modules = modules
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(modules));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -119,9 +109,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Modules = modules
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(modules));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -139,9 +127,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules, true);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubDeviceRegistry {
-                    Modules = modules
-                });
+                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(modules));
                 var service = mock.Create<RegistryServices>();
 
                 // Run
@@ -162,7 +148,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="supervisors"></param>
         /// <param name="modules"></param>
         private static void CreateSupervisorFixtures(out string site,
-            out List<SupervisorModel> supervisors, out List<IoTHubDeviceModel> modules,
+            out List<SupervisorModel> supervisors, out List<(DeviceTwinModel, DeviceModel)> modules,
             bool noSite = false) {
             var fix = new Fixture();
             fix.Customizations.Add(new TypeRelay(typeof(JToken), typeof(JObject)));
@@ -181,17 +167,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 .Select(a => SupervisorRegistration.Patch(null, a))
                 .Select(t => {
                     t.Properties.Reported = new Dictionary<string, JToken> {
-                        [BaseRegistration.kTypeProp] = "supervisor"
+                        [TwinProperty.kType] = "supervisor"
                     };
                     return t;
                 })
-                .Select(t => new IoTHubDeviceModel {
-                    Twin = t,
-                    Device = new DeviceModel {
-                        Id = t.Id,
-                        ModuleId = t.ModuleId
-                    }
-                })
+                .Select(t => (t, new DeviceModel { Id = t.Id, ModuleId = t.ModuleId }))
                 .ToList();
         }
     }

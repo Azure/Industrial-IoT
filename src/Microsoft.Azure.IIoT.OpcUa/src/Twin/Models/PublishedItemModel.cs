@@ -16,6 +16,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public string NodeId { get; set; }
 
         /// <summary>
+        /// An optional path from NodeId instance to
+        /// an actual node.
+        /// </summary>
+        public string[] BrowsePath { get; set; }
+
+        /// <summary>
         /// Attribute to monitor
         /// </summary>
         public NodeAttribute? NodeAttribute { get; set; }

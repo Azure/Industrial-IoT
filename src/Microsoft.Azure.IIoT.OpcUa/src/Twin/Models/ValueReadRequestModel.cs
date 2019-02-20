@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using System;
 
     /// <summary>
@@ -16,6 +15,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// Node to read from (mandatory)
         /// </summary>
         public string NodeId { get; set; }
+
+        /// <summary>
+        /// An optional path from NodeId instance to
+        /// an actual node.
+        /// </summary>
+        public string[] BrowsePath { get; set; }
 
         /// <summary>
         /// Index range to read, e.g. 1:2,0:1 for 2 slices
@@ -31,13 +36,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public TimeSpan? MaxAge { get; set; }
 
         /// <summary>
-        /// Optional User Elevation
+        /// Optional header
         /// </summary>
-        public CredentialModel Elevation { get; set; }
-
-        /// <summary>
-        /// Optional diagnostics configuration
-        /// </summary>
-        public DiagnosticsModel Diagnostics { get; set; }
+        public RequestHeaderModel Header { get; set; }
     }
 }

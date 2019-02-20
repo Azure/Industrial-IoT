@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT;
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         /// <param name="events"></param>
         /// <param name="logger"></param>
         public OnboardingClient(IIoTHubTwinServices iothub,
-            IIoTHubMessagingServices events, ILogger logger) {
+            IIoTHubTelemetryServices events, ILogger logger) {
 
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _events = events ?? throw new ArgumentNullException(nameof(events));
@@ -63,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _events.SendAsync(OnboardingHelper.kId, new DeviceMessageModel {
+            await _events.SendAsync(OnboardingHelper.kId, new EventModel {
                 Properties = new Dictionary<string, string> {
                     ["ContentType"] = ContentTypes.DiscoveryRequest,
                     ["ContentEncoding"] = ContentEncodings.MimeTypeJson,
@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         }
 
         private readonly IIoTHubTwinServices _iothub;
-        private readonly IIoTHubMessagingServices _events;
+        private readonly IIoTHubTelemetryServices _events;
         private readonly ILogger _logger;
     }
 }

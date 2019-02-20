@@ -18,8 +18,9 @@ namespace Opc.Ua.Encoders {
     using System.Xml;
     using System.IO;
     using System.Globalization;
-    using Newtonsoft.Json;
     using System.Linq;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Writes objects to a json
@@ -50,7 +51,7 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Encode using microsoft variant
         /// </summary>
-        public bool UseMicrosoftVariant { get; set; } = false;
+        public bool UseAdvancedEncoding { get; set; } = false;
 
         /// <summary>
         /// Ignore null values
@@ -58,30 +59,83 @@ namespace Opc.Ua.Encoders {
         public bool IgnoreNullValues { get; set; } = false;
 
         /// <summary>
-        /// Create encoder
+        /// Ignore default primitive values
         /// </summary>
-        public JsonEncoderEx(ServiceMessageContext context, Stream stream) :
-            this (context, new StreamWriter(stream, new UTF8Encoding(false))) {
+        public bool IgnoreDefaultValues { get; set; } = false;
+
+        /// <summary>
+        /// State of the writer
+        /// </summary>
+        public enum JsonEncoding {
+
+            /// <summary>
+            /// Start writing object (default)
+            /// </summary>
+            Object,
+
+            /// <summary>
+            /// Start writing array
+            /// </summary>
+            Array,
+
+            /// <summary>
+            /// Assume object or array already written
+            /// </summary>
+            Token
         }
 
         /// <summary>
         /// Create encoder
         /// </summary>
-        public JsonEncoderEx(ServiceMessageContext context, TextWriter writer) :
-            this(context, new JsonTextWriter(writer) {
+        /// <param name="stream"></param>
+        /// <param name="context"></param>
+        /// <param name="encoding"></param>
+        /// <param name="formatting"></param>
+        public JsonEncoderEx(Stream stream,
+            ServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object,
+            Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None) :
+            this(new StreamWriter(stream, new UTF8Encoding(false)),
+                context, encoding, formatting) {
+        }
+
+        /// <summary>
+        /// Create encoder
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="context"></param>
+        /// <param name="encoding"></param>
+        /// <param name="formatting"></param>
+        public JsonEncoderEx(TextWriter writer,
+            ServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object,
+            Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None) :
+            this(new JsonTextWriter(writer) {
                 AutoCompleteOnClose = true,
-                DateFormatHandling = DateFormatHandling.IsoDateFormat
-            }) {
+                DateFormatHandling = DateFormatHandling.IsoDateFormat,
+                FloatFormatHandling = FloatFormatHandling.String,
+                Formatting = formatting
+            }, context, encoding) {
         }
 
         /// <summary>
         /// Create encoder
         /// </summary>
-        public JsonEncoderEx(ServiceMessageContext context, JsonWriter writer) {
+        /// <param name="writer"></param>
+        /// <param name="context"></param>
+        /// <param name="encoding"></param>
+        public JsonEncoderEx(JsonWriter writer,
+            ServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object) {
             _namespaces = new Stack<string>();
-            Context = context;
+            Context = context ?? new ServiceMessageContext();
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
-            _writer.WriteStartObject();
+            _encoding = encoding;
+            switch (encoding) {
+                case JsonEncoding.Object:
+                    _writer.WriteStartObject();
+                    break;
+                case JsonEncoding.Array:
+                    _writer.WriteStartArray();
+                    break;
+            }
         }
 
         /// <summary>
@@ -89,8 +143,16 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         public void Close() {
             if (_writer != null) {
-                _writer.WriteEndObject();
-                _writer.Close();
+                switch (_encoding) {
+                    case JsonEncoding.Object:
+                        _writer.WriteEndObject();
+                        _writer.Close();
+                        break;
+                    case JsonEncoding.Array:
+                        _writer.WriteEndArray();
+                        _writer.Close();
+                        break;
+                }
                 _writer = null;
             }
         }
@@ -123,115 +185,105 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public void WriteSByte(string property, sbyte value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
+            if (PreWriteValue(property, value)) {
+                _writer.WriteValue(value);
             }
-            _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
         public void WriteByte(string property, byte value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
+            if (PreWriteValue(property, value)) {
+                _writer.WriteValue(value);
             }
-            _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
         public void WriteInt16(string property, short value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
+            if (PreWriteValue(property, value)) {
+                _writer.WriteValue(value);
             }
-            _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
         public void WriteUInt16(string property, ushort value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
+            if (PreWriteValue(property, value)) {
+                _writer.WriteValue(value);
             }
-            _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
         public void WriteInt32(string property, int value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
+            if (PreWriteValue(property, value)) {
+                _writer.WriteValue(value);
             }
-            _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
         public void WriteUInt32(string property, uint value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
+            if (PreWriteValue(property, value)) {
+                _writer.WriteValue(value);
             }
-            _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
         public void WriteInt64(string property, long value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
+            if (PreWriteValue(property, value)) {
+                _writer.WriteValue(value);
             }
-            _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
         public void WriteUInt64(string property, ulong value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
+            if (PreWriteValue(property, value)) {
+                _writer.WriteValue(value);
             }
-            _writer.WriteValue(value);
-        }
-
-        /// <inheritdoc/>
-        public void WriteString(string property, string value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
-            }
-            _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
         public void WriteBoolean(string property, bool value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
+            if (PreWriteValue(property, value)) {
+                _writer.WriteValue(value);
             }
-            _writer.WriteValue(value);
+        }
+
+        /// <inheritdoc/>
+        public void WriteString(string property, string value) {
+            if (value == null) {
+                WriteNull(property);
+            }
+            else {
+                if (!string.IsNullOrEmpty(property)) {
+                    _writer.WritePropertyName(property);
+                }
+                _writer.WriteValue(value);
+            }
         }
 
         /// <inheritdoc/>
         public void WriteFloat(string property, float value) {
             if (!string.IsNullOrEmpty(property)) {
+                if (IgnoreDefaultValues && Math.Abs(value) < float.Epsilon) {
+                    return;
+                }
                 _writer.WritePropertyName(property);
             }
-            if (float.IsNaN(value) || float.IsPositiveInfinity(value) ||
-                float.IsNegativeInfinity(value)) {
-                _writer.WriteValue("NaN");
-            }
-            else {
-                _writer.WriteValue(value);
-            }
+            _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
         public void WriteDouble(string property, double value) {
             if (!string.IsNullOrEmpty(property)) {
+                if (IgnoreDefaultValues && Math.Abs(value) < double.Epsilon) {
+                    return;
+                }
                 _writer.WritePropertyName(property);
             }
-            if (double.IsNaN(value) || double.IsPositiveInfinity(value) ||
-                double.IsNegativeInfinity(value)) {
-                _writer.WriteValue("NaN");
-            }
-            else {
-                _writer.WriteValue(value);
-            }
+            _writer.WriteValue(value);
         }
 
         /// <inheritdoc/>
         public void WriteDateTime(string property, DateTime value) {
-            if (value == DateTime.MinValue) {
+            if (value == default) {
                 WriteNull(property);
             }
             else {
@@ -245,7 +297,7 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public void WriteGuid(string property, Uuid value) {
-            if (value == Uuid.Empty) {
+            if (value == default) {
                 WriteNull(property);
             }
             else {
@@ -258,7 +310,7 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public void WriteGuid(string property, Guid value) {
-            if (value == Guid.Empty) {
+            if (value == default) {
                 WriteNull(property);
             }
             else {
@@ -296,7 +348,7 @@ namespace Opc.Ua.Encoders {
                 if (!string.IsNullOrEmpty(property)) {
                     _writer.WritePropertyName(property);
                 }
-                if (PerformXmlSerialization || UseMicrosoftVariant) {
+                if (PerformXmlSerialization || UseAdvancedEncoding) {
                     var json = JsonConvertEx.SerializeObject(value);
                     _writer.WriteRawValue(json);
                 }
@@ -314,7 +366,7 @@ namespace Opc.Ua.Encoders {
                 WriteNull(property);
             }
             else if (UseReversibleEncoding) {
-                if (UseUriEncoding || UseMicrosoftVariant) {
+                if (UseUriEncoding || UseAdvancedEncoding) {
                     WriteString(property, value.AsString(Context));
                 }
                 else {
@@ -337,7 +389,7 @@ namespace Opc.Ua.Encoders {
                 WriteNull(property);
             }
             else if (UseReversibleEncoding) {
-                if (UseUriEncoding || UseMicrosoftVariant) {
+                if (UseUriEncoding || UseAdvancedEncoding) {
                     WriteString(property, value.AsString(Context));
                 }
                 else {
@@ -362,7 +414,7 @@ namespace Opc.Ua.Encoders {
             }
             else {
                 var symbol = string.Empty;
-                if (!UseReversibleEncoding || UseMicrosoftVariant) {
+                if (!UseReversibleEncoding || UseAdvancedEncoding) {
                     symbol = StatusCode.LookupSymbolicId(value.CodeBits);
                 }
                 if (!UseReversibleEncoding || !string.IsNullOrEmpty(symbol)) {
@@ -415,7 +467,7 @@ namespace Opc.Ua.Encoders {
                 WriteNull(property);
             }
             else if (UseReversibleEncoding) {
-                if (UseUriEncoding || UseMicrosoftVariant) {
+                if (UseUriEncoding || UseAdvancedEncoding) {
                     WriteString(property, value.AsString(Context));
                 }
                 else {
@@ -458,23 +510,27 @@ namespace Opc.Ua.Encoders {
         public void WriteVariant(string property, Variant value) {
 
             var variant = value;
-            if (UseMicrosoftVariant &&
+            if (UseAdvancedEncoding &&
                 value.Value is Variant[] vararray &&
                 value.TypeInfo.ValueRank == 1 &&
                 vararray.Length > 0) {
 
-                var type = vararray[0].TypeInfo.BuiltInType;
-                if (vararray.All(v => v.TypeInfo.BuiltInType == type)) {
+                var type = vararray[0].TypeInfo?.BuiltInType;
+                if (vararray.All(v => v.TypeInfo?.BuiltInType == type)) {
                     // Demote and encode as simple array
-                    variant = new TypeInfo(type, 1).CreateVariant(vararray
-                        .Select(v => v.Value)
-                        .ToArray());
+                    variant = new TypeInfo(type ?? BuiltInType.Null, 1)
+                        .CreateVariant(vararray
+                            .Select(v => v.Value)
+                            .ToArray());
                 }
             }
 
+            var valueRank = variant.TypeInfo?.ValueRank ?? -1;
+            var builtInType = variant.TypeInfo?.BuiltInType ?? BuiltInType.Null;
+
             if (UseReversibleEncoding) {
                 PushObject(property);
-                WriteBuiltInType("Type", variant.TypeInfo.BuiltInType);
+                WriteBuiltInType("Type", builtInType);
                 property = "Body";
             }
 
@@ -482,12 +538,9 @@ namespace Opc.Ua.Encoders {
                 _writer.WritePropertyName(property);
             }
 
-            WriteVariantContents(variant.Value, variant.TypeInfo);
+            WriteVariantContents(variant.Value, valueRank, builtInType);
 
             if (UseReversibleEncoding) {
-                if (variant.Value is Matrix matrix) {
-                    WriteInt32Array("Dimensions", matrix.Dimensions);
-                }
                 PopObject();
             }
         }
@@ -527,7 +580,7 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public void WriteExtensionObject(string property, ExtensionObject value) {
-            if (value == null || value.Encoding == ExtensionObjectEncoding.None) {
+            if (value == null) {
                 WriteNull(property);
                 return;
             }
@@ -537,21 +590,30 @@ namespace Opc.Ua.Encoders {
             var body = value.Body;
 
             if (body is IEncodeable encodeable) {
+                if (NodeId.IsNull(typeId)) {
+                    typeId = encodeable.TypeId;
+                    value.TypeId = typeId; // Also fix the extension object
+                }
                 if (!UseReversibleEncoding) {
                     PushObject(property);
                     encodeable.Encode(this);
                     PopObject();
                     return;
                 }
+                if (UseAdvancedEncoding) {
+                    encoding = ExtensionObjectEncoding.Json;
+                }
                 switch (encoding) {
                     case ExtensionObjectEncoding.Binary:
                         body = encodeable.AsBinary(Context);
                         break;
                     case ExtensionObjectEncoding.Json:
-                        // TODO:
+                        body = encodeable; // Encode as json down below.
+                        break;
                     case ExtensionObjectEncoding.EncodeableObject:
                     case ExtensionObjectEncoding.None:
                     case ExtensionObjectEncoding.Xml:
+                        // Force xml
                         encoding = ExtensionObjectEncoding.Xml;
                         body = encodeable.AsXmlElement(Context);
                         break;
@@ -559,7 +621,14 @@ namespace Opc.Ua.Encoders {
                         throw ServiceResultException.Create(
                             StatusCodes.BadEncodingError,
                             "Unexpected encoding encountered while " +
-                            $"encoding ExtensionObject:{value.Encoding}");
+                                $"encoding ExtensionObject:{value.Encoding}");
+                }
+            }
+            else {
+                if (NodeId.IsNull(typeId) && !UseAdvancedEncoding) {
+                    throw ServiceResultException.Create(
+                        StatusCodes.BadEncodingError,
+                        "Cannot encode extension object without type id.");
                 }
             }
 
@@ -573,13 +642,35 @@ namespace Opc.Ua.Encoders {
                         break;
                     case ExtensionObjectEncoding.Json:
                         WriteEncoding("Encoding", encoding);
-                        if (body is string json) {
-                            _writer.WriteRaw(json);
+                        if (body is EncodeableJToken jt) {
+                            // Write encodeable token as json raw
+                            body = jt.JToken; 
                         }
-                        if (body is byte[] buffer) {
-                            json = Encoding.UTF8.GetString(buffer);
-                            _writer.WriteRaw(json);
+                        else if (body is IEncodeable o) {
+                            PushObject("Body");
+                            o.Encode(this);
+                            PopObject();
+                            break;
                         }
+                        PushObject("Body");
+                        _writer.WritePropertyName(nameof(EncodeableJToken.JToken));
+                        switch (body) {
+                            case JToken token:
+                                _writer.WriteRaw(token.ToString());
+                                break;
+                            case string json:
+                                _writer.WriteRaw(json);
+                                break;
+                            case byte[] buffer:
+                                _writer.WriteValue(buffer);
+                                break;
+                            default:
+                                throw ServiceResultException.Create(
+                                    StatusCodes.BadEncodingError,
+                                    "Unexpected value encountered while " +
+                                        $"encoding body:{body}");
+                        }
+                        PopObject();
                         break;
                     case ExtensionObjectEncoding.Binary:
                         WriteByteString("Body", body as byte[]);
@@ -605,15 +696,19 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public void WriteEnumerated(string property, Enum value) {
-            if (!string.IsNullOrEmpty(property)) {
-                _writer.WritePropertyName(property);
-            }
-            var numeric = Convert.ToInt32(value, CultureInfo.InvariantCulture);
-            if (UseReversibleEncoding) {
-                _writer.WriteValue(numeric);
+            if (value == null) {
+                WriteNull(property);
             }
             else {
-                _writer.WriteValue($"{value}_{numeric}");
+                var numeric = Convert.ToInt32(value, CultureInfo.InvariantCulture);
+                if (UseReversibleEncoding) {
+                    if (PreWriteValue(property, numeric)) {
+                        _writer.WriteValue(numeric);
+                    }
+                }
+                else {
+                    _writer.WriteValue($"{value}_{numeric}");
+                }
             }
         }
 
@@ -731,8 +826,8 @@ namespace Opc.Ua.Encoders {
         public void WriteObjectArray(string property, IList<object> values) {
             PushArray(property, values?.Count ?? 0);
             if (values != null) {
-                for (var ii = 0; ii < values.Count; ii++) {
-                    WriteVariant("Variant", new Variant(values[ii]));
+                foreach (var value in values) {
+                    WriteVariant("Variant", new Variant(value));
                 }
             }
             PopArray();
@@ -756,10 +851,15 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Writes the contents of an Variant to the stream.
         /// </summary>
-        private void WriteVariantContents(object value, TypeInfo typeInfo) {
+        /// <param name="value"></param>
+        /// <param name="valueRank"></param>
+        /// <param name="builtInType"></param>
+        private void WriteVariantContents(object value, int valueRank,
+            BuiltInType builtInType) {
+
             // write scalar.
-            if (typeInfo.ValueRank < 0) {
-                switch (typeInfo.BuiltInType) {
+            if (valueRank < 0) {
+                switch (builtInType) {
                     case BuiltInType.Null:
                         WriteNull(null);
                         return;
@@ -846,8 +946,8 @@ namespace Opc.Ua.Encoders {
             }
 
             // write array.
-            else if (typeInfo.ValueRank <= 1) {
-                switch (typeInfo.BuiltInType) {
+            else if (valueRank <= 1) {
+                switch (builtInType) {
                     case BuiltInType.Null:
                         WriteNull(null);
                         return;
@@ -924,11 +1024,11 @@ namespace Opc.Ua.Encoders {
                         var enums = value as Enum[];
                         var values = new string[enums.Length];
 
-                        for (var ii = 0; ii < enums.Length; ii++) {
-                            var text = enums[ii].ToString();
+                        for (var index = 0; index < enums.Length; index++) {
+                            var text = enums[index].ToString();
                             text += "_";
-                            text += ((int)(object)enums[ii]).ToString(CultureInfo.InvariantCulture);
-                            values[ii] = text;
+                            text += ((int)(object)enums[index]).ToString(CultureInfo.InvariantCulture);
+                            values[index] = text;
                         }
 
                         WriteStringArray(null, values);
@@ -951,31 +1051,48 @@ namespace Opc.Ua.Encoders {
                 }
             }
 
-            // write matrix.
-            else if (typeInfo.ValueRank > 1) {
+            else {
                 if (value == null) {
                     WriteNull(null);
+                    return;
                 }
-                else {
-                    WriteMatrix(null, (Matrix)value);
+                if (value is Matrix matrix) {
+                    var index = 0;
+                    WriteMatrix(matrix, 0, ref index, builtInType);
+                    return;
                 }
-                return;
             }
-
             // oops - should never happen.
             throw new ServiceResultException(StatusCodes.BadEncodingError,
                 $"Type '{value.GetType().FullName}' is not allowed in an Variant.");
         }
 
         /// <summary>
-        /// Writes an DataValue array to the stream.
+        /// Write multi dimensional array
         /// </summary>
-        private void WriteMatrix(string property, Matrix value) {
-            PushObject(property);
-            WriteVariant("Matrix", new Variant(value.Elements,
-                new TypeInfo(value.TypeInfo.BuiltInType, ValueRanks.OneDimension)));
-            WriteInt32Array("Dimensions", value.Dimensions);
-            PopObject();
+        /// <param name="matrix"></param>
+        /// <param name="dim"></param>
+        /// <param name="index"></param>
+        /// <param name="builtInType"></param>
+        private void WriteMatrix(Matrix matrix, int dim, ref int index,
+            BuiltInType builtInType) {
+            var arrayLen = matrix.Dimensions[dim];
+            if (dim == matrix.Dimensions.Length - 1) {
+                // Create a slice of values for the top dimension
+                var copy = Array.CreateInstance(
+                    matrix.Elements.GetType().GetElementType(), arrayLen);
+                Array.Copy(matrix.Elements, index, copy, 0, arrayLen);
+                // Write slice as value rank
+                WriteVariantContents(copy, 1, builtInType);
+                index += arrayLen;
+            }
+            else {
+                PushArray(null, arrayLen);
+                for (var i = 0; i < arrayLen; i++) {
+                    WriteMatrix(matrix, dim + 1, ref index, builtInType);
+                }
+                PopArray();
+            }
         }
 
         /// <summary>
@@ -984,7 +1101,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="property"></param>
         /// <param name="type"></param>
         private void WriteBuiltInType(string property, BuiltInType type) {
-            if (UseMicrosoftVariant) {
+            if (UseAdvancedEncoding) {
                 WriteString(property, type.ToString());
             }
             else {
@@ -998,7 +1115,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="property"></param>
         /// <param name="type"></param>
         private void WriteEncoding(string property, ExtensionObjectEncoding type) {
-            if (UseMicrosoftVariant) {
+            if (UseAdvancedEncoding) {
                 WriteString(property, type.ToString());
             }
             else {
@@ -1060,6 +1177,9 @@ namespace Opc.Ua.Encoders {
             if (values == null) {
                 WriteNull(property);
             }
+            else if (values.Count == 0 && IgnoreDefaultValues) {
+                WriteNull(property);
+            }
             else {
                 PushArray(property, values.Count);
                 foreach (var value in values) {
@@ -1070,12 +1190,30 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <summary>
+        /// Check whether to write the simple value.  If so
+        /// andthis is not called in the context of array
+        /// write (property is null) write property.
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="value"></param>
+        /// <returns>true if should write value.</returns>
+        private bool PreWriteValue<T>(string property, T value) where T : struct {
+            if (!string.IsNullOrEmpty(property)) {
+                if (IgnoreDefaultValues && EqualityComparer<T>.Default.Equals(value, default)) {
+                    return false;
+                }
+                _writer.WritePropertyName(property);
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Write null
         /// </summary>
         /// <param name="property"></param>
         private void WriteNull(string property) {
             if (!string.IsNullOrEmpty(property)) {
-                if (IgnoreNullValues) {
+                if (IgnoreNullValues || IgnoreDefaultValues) {
                     // only skip null if not in array context.
                     return;
                 }
@@ -1131,6 +1269,7 @@ namespace Opc.Ua.Encoders {
         }
 
         private JsonWriter _writer;
+        private readonly JsonEncoding _encoding;
         private readonly Stack<string> _namespaces;
         private ushort[] _namespaceMappings;
         private ushort[] _serverMappings;

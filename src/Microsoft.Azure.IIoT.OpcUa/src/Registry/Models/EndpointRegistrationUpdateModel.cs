@@ -11,11 +11,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public class EndpointRegistrationUpdateModel {
 
         /// <summary>
-        /// Identifier of the endpoint to update
-        /// </summary>
-        public string Id { get; set; }
-
-        /// <summary>
         /// User authentication to change on the endpoint.
         /// </summary>
         public CredentialModel User { get; set; }

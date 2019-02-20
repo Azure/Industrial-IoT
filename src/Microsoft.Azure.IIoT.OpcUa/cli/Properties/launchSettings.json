@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Services.Client": {
-      "commandName": "Project",
-      "commandLineArgs": "--stress -d 10.7.0.0/24"
-    }
-  }
-}

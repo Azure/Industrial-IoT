@@ -20,5 +20,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// Monitored items
         /// </summary>
         public List<PublishedItemModel> Items { get; set; }
+
+        /// <summary>
+        /// Service result in case of error
+        /// </summary>
+        public ServiceResultModel ErrorInfo { get; set; }
     }
 }

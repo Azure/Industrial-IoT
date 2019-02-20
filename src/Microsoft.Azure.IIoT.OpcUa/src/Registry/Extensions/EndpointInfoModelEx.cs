@@ -87,6 +87,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         }
 
         /// <summary>
+        /// Is activated
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static bool IsTwinActivated(this EndpointInfoModel model) {
+            if (model == null) {
+                return false;
+            }
+            return
+                model.ActivationState == EndpointActivationState.Activated ||
+                model.ActivationState == EndpointActivationState.ActivatedAndConnected;
+        }
+
+        /// <summary>
+        /// Is connected
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static bool IsTwinConnected(this EndpointInfoModel model) {
+            if (model == null) {
+                return false;
+            }
+            return
+                model.ActivationState == EndpointActivationState.ActivatedAndConnected;
+        }
+
+        /// <summary>
         /// Deep clone
         /// </summary>
         /// <param name="model"></param>

@@ -20,7 +20,7 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="context"></param>
         public TypeSerializer(ServiceMessageContext context = null) {
-            _context = context ?? ServiceMessageContext.ThreadContext;
+            _context = context ?? ServiceMessageContext.GlobalContext;
         }
 
         /// <inheritdoc/>
@@ -71,6 +71,10 @@ namespace Opc.Ua.Encoders {
         /// <returns></returns>
         private IDecoder CreateDecoder(string contentType, Stream stream) {
             switch (contentType.ToLowerInvariant()) {
+                case ContentEncodings.MimeTypeUaJson:
+                case ContentEncodings.MimeTypeUaNonReversibleJson:
+                case ContentEncodings.MimeTypeUaNonReversibleJsonReference:
+                    return new JsonDecoderEx(stream, _context);
                 case ContentEncodings.MimeTypeUaBinary:
                     return new BinaryDecoder(stream, _context);
                 case ContentEncodings.MimeTypeUaXml:
@@ -78,11 +82,6 @@ namespace Opc.Ua.Encoders {
                 case ContentEncodings.MimeTypeUaJsonReference:
                     return new JsonDecoder(null, new JsonTextReader(
                         new StreamReader(stream)), _context);
-                case ContentEncodings.MimeTypeUaJson:
-                case ContentEncodings.MimeTypeUaNonReversibleJson:
-                case ContentEncodings.MimeTypeUaNonReversibleJsonReference:
-                    return new JsonDecoderEx(_context, new JsonTextReader(
-                        new StreamReader(stream)));
                 default:
                     throw new ArgumentException(nameof(contentType));
             }
@@ -97,9 +96,9 @@ namespace Opc.Ua.Encoders {
         private IEncoder CreateEncoder(string contentType, Stream stream) {
             switch (contentType.ToLowerInvariant()) {
                 case ContentEncodings.MimeTypeUaJson:
-                    return new JsonEncoderEx(_context, new StreamWriter(stream));
+                    return new JsonEncoderEx(stream, _context);
                 case ContentEncodings.MimeTypeUaNonReversibleJson:
-                    return new JsonEncoderEx(_context, new StreamWriter(stream)) {
+                    return new JsonEncoderEx(stream, _context) {
                         UseReversibleEncoding = false
                     };
                 case ContentEncodings.MimeTypeUaJsonReference:

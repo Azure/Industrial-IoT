@@ -27,6 +27,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <returns></returns>
         public static RequestHeader ToStackModel(this DiagnosticsModel diagnostics,
             uint timeoutHint = 0) {
+            if (diagnostics == null && timeoutHint == 0) {
+                return null;
+            }
             return new RequestHeader {
                 AuditEntryId = diagnostics?.AuditId ?? Guid.NewGuid().ToString(),
                 ReturnDiagnostics =
@@ -93,6 +96,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
+        /// Convert service model to role permission type
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static RolePermissionType ToStackModel(this RolePermissionModel model,
+            ServiceMessageContext context) {
+            if (model == null) {
+                return null;
+            }
+            return new RolePermissionType {
+                RoleId = model.RoleId.ToNodeId(context),
+                Permissions = /*(uint)*/ model.Permissions.ToStackType()
+            };
+        }
+
+        /// <summary>
+        /// Convert role permission type to service model
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static RolePermissionModel ToServiceModel(this RolePermissionType type,
+            ServiceMessageContext context) {
+            if (type == null) {
+                return null;
+            }
+            return new RolePermissionModel {
+                RoleId = type.RoleId.AsString(context),
+                Permissions = ((PermissionType)type.Permissions).ToServiceType()
+            };
+        }
+
+        /// <summary>
         /// Convert user token policies to service model
         /// </summary>
         /// <param name="policies"></param>
@@ -153,7 +190,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     result.CredentialType = CredentialType.None;
                     break;
                 case UserTokenType.UserName:
-                    result.CredentialType = CredentialType.UserNamePassword;
+                    result.CredentialType = CredentialType.UserName;
                     break;
                 case UserTokenType.Certificate:
                     result.CredentialType = CredentialType.X509Certificate;
@@ -201,7 +238,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 case CredentialType.None:
                     result.TokenType = UserTokenType.Anonymous;
                     break;
-                case CredentialType.UserNamePassword:
+                case CredentialType.UserName:
                     result.TokenType = UserTokenType.UserName;
                     break;
                 case CredentialType.X509Certificate:
@@ -225,7 +262,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <returns></returns>
         public static IUserIdentity ToStackModel(this CredentialModel authentication) {
             switch (authentication?.Type ?? CredentialType.None) {
-                case CredentialType.UserNamePassword:
+                case CredentialType.UserName:
                     if (authentication.Value is JObject o &&
                         o.TryGetValue("user", StringComparison.InvariantCultureIgnoreCase,
                             out var user) && user.Type == JTokenType.String &&
@@ -257,7 +294,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <returns></returns>
         public static UserIdentityToken ToUserIdentityToken(this CredentialModel authentication) {
             switch (authentication?.Type ?? CredentialType.None) {
-                case CredentialType.UserNamePassword:
+                case CredentialType.UserName:
                     if (authentication.Value is JObject o &&
                         o.TryGetValue("user", StringComparison.InvariantCultureIgnoreCase,
                             out var user) && user.Type == JTokenType.String &&
@@ -323,7 +360,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     return null;
                 case UserNameIdentityToken un:
                     return new CredentialModel {
-                        Type = CredentialType.UserNamePassword,
+                        Type = CredentialType.UserName,
                         Value = JToken.FromObject(new {
                             user = un.UserName,
                             password = un.DecryptedPassword

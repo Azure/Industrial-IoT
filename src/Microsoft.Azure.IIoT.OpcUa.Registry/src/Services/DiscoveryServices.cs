@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -54,8 +54,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     await _client.DiscoverAsync(id, request);
                 }
                 catch (Exception ex) {
-                    _logger.Debug($"Failed to call discover on {id}. Continue...",
-                        () => ex);
+                    _logger.Debug(ex, "Failed to call discover on {id}. Continue...",
+                        id);
                 }
             }
         }
@@ -78,8 +78,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }
             }
             catch (Exception ex) {
-                _logger.Error("Failed to refresh supervisor list, try again...",
-                    () => ex);
+                _logger.Error(ex, "Failed to refresh supervisor list, try again...");
                 try {
                     _timer.Change((int)kSupervisorErrorTimer.TotalMilliseconds, 0);
                 }

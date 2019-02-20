@@ -15,7 +15,6 @@ namespace Opc.Ua.Encoders {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -36,52 +35,63 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Create decoder
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="json"></param>
-        public JsonDecoderEx(ServiceMessageContext context, string json) :
-            this(context, new JsonTextReader(new StringReader(json))) {
+        /// <param name="context"></param>
+        public JsonDecoderEx(string json, ServiceMessageContext context = null) :
+            this(new JsonTextReader(new StringReader(json)) {
+                FloatParseHandling = FloatParseHandling.Double
+            }, context) {
         }
 
         /// <summary>
         /// Create decoder
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="stream"></param>
-        public JsonDecoderEx(ServiceMessageContext context, Stream stream) :
-            this(context, new JsonTextReader(new StreamReader(stream))) {
+        /// <param name="context"></param>
+        public JsonDecoderEx(Stream stream, ServiceMessageContext context = null) :
+            this(new JsonTextReader(new StreamReader(stream)) {
+                FloatParseHandling = FloatParseHandling.Double
+            }, context) {
         }
 
         /// <summary>
         /// Create decoder
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="reader"></param>
-        public JsonDecoderEx(ServiceMessageContext context, JsonReader reader) {
-            Context = context;
-            using (var loader = new JsonLoader(reader)) {
-                var root = JToken.ReadFrom(loader,
-                    new JsonLoadSettings {
-                        CommentHandling = CommentHandling.Ignore,
-                        LineInfoHandling = LineInfoHandling.Ignore
-                    });
-                // Need to parse the entire document - TODO: Handle arrays
-                _stack.Push(root as JObject ?? throw new ArgumentException(nameof(reader)));
-            }
+        /// <param name="context"></param>
+        public JsonDecoderEx(JsonReader reader, ServiceMessageContext context = null) :
+            this (reader, context, false) {
         }
 
         /// <summary>
         /// Create decoder
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="root"></param>
-        public JsonDecoderEx(ServiceMessageContext context, JObject root) {
-            Context = context;
+        /// <param name="context"></param>
+        public JsonDecoderEx(JObject root, ServiceMessageContext context = null) {
+            Context = context ?? new ServiceMessageContext();
+            _reader = null;
             _stack.Push(root ?? throw new ArgumentException(nameof(root)));
+        }
+
+        /// <summary>
+        /// Create decoder
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="context"></param>
+        /// <param name="useReaderAsIs"></param>
+        internal JsonDecoderEx(JsonReader reader, ServiceMessageContext context,
+            bool useReaderAsIs) {
+            Context = context ?? new ServiceMessageContext();
+            _reader = useReaderAsIs ? reader : new JsonLoader(
+                reader ?? throw new ArgumentException(nameof(reader)));
         }
 
         /// <inheritdoc/>
         public void Dispose() {
-            // No op
+            if (_reader is JsonLoader loader) {
+                loader.Dispose();
+            }
         }
 
         /// <inheritdoc/>
@@ -162,7 +172,10 @@ namespace Opc.Ua.Encoders {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
-            return (string)token;
+            if (token.Type == JTokenType.String) {
+                return (string)token;
+            }
+            return token.ToString(); // Return json string of token.
         }
 
         /// <inheritdoc/>
@@ -385,10 +398,9 @@ namespace Opc.Ua.Encoders {
                 return new LocalizedText(locale, text);
             }
             if (token.Type == JTokenType.String) {
-                // Non reversible or locale was null
                 var text = (string)token;
                 if (!string.IsNullOrEmpty(text)) {
-                    return new LocalizedText(text);
+                    return text.ToLocalizedText();
                 }
             }
             return null;
@@ -410,7 +422,8 @@ namespace Opc.Ua.Encoders {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
-            if (token is JObject o && o.ContainsKey("Value")) {
+            if (token is JObject o && HasAnyOf(o,
+                "Value", "StatusCode", "SourceTimestamp", "ServerTimestamp")) {
                 _stack.Push(o);
                 var dv = new DataValue {
                     WrappedValue = ReadVariant("Value"),
@@ -435,7 +448,7 @@ namespace Opc.Ua.Encoders {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
-            if (token is JObject o && o.ContainsKey("Body")) {
+            if (token is JObject o && HasAnyOf(o, "Body", "TypeId")) {
                 ExtensionObject extensionObject = null;
                 _stack.Push(o);
 
@@ -709,7 +722,7 @@ namespace Opc.Ua.Encoders {
             var builtInType = number.TypeInfo.BuiltInType;
             if ((builtInType >= BuiltInType.Byte &&
                  builtInType <= BuiltInType.UInt64) ||
-                builtInType == BuiltInType.UInteger) {
+                 builtInType == BuiltInType.UInteger) {
                 return number;
             }
             else {
@@ -775,8 +788,14 @@ namespace Opc.Ua.Encoders {
                             }
                             return new ExtensionObject(typeId, encodeable);
                         }
-                        return new ExtensionObject(typeId, body.ToString());
-                            // TODO Should be Jtoken
+                        //
+                        // TODO:
+                        // Need a wrapper for now. Remove once stack supports
+                        // json extension objects.
+                        //
+                        var wrapper = new EncodeableJToken(body);
+                        return new ExtensionObject(NodeId.IsNull(typeId) ?
+                            wrapper.TypeId : typeId, wrapper);
                     case ExtensionObjectEncoding.Binary:
                         var bytes = ReadByteString(property);
                         if (bytes == null) {
@@ -789,7 +808,8 @@ namespace Opc.Ua.Encoders {
                             }
                             return new ExtensionObject(typeId, encodeable);
                         }
-                        return new ExtensionObject(typeId, bytes);
+                        return new ExtensionObject(NodeId.IsNull(typeId) ?
+                            DataTypeIds.ByteString : typeId, bytes);
                     default:
                         nextEncoding = ExtensionObjectEncoding.Xml;
                         if (body.Type != JTokenType.Object) {
@@ -812,7 +832,8 @@ namespace Opc.Ua.Encoders {
                             }
                             return new ExtensionObject(typeId, encodeable);
                         }
-                        return new ExtensionObject(typeId, xml);
+                        return new ExtensionObject(NodeId.IsNull(typeId) ?
+                            DataTypeIds.XmlElement : typeId, xml);
                 }
                 if (encoding == nextEncoding) {
                     // Honor defined encoding
@@ -829,7 +850,6 @@ namespace Opc.Ua.Encoders {
                         break;
                     default:
                         // Give up
-
                         // TODO Log or throw for bad type
                         return null;
                 }
@@ -900,9 +920,39 @@ namespace Opc.Ua.Encoders {
             }
 
             // Try to decode non reversible encoding first.
-            var type = array[0].Type;
-            if (type != JTokenType.Object &&
-                array.All(j => j.Type == type)) {
+            var dimensions = array.GetDimensions(out var type);
+            if (dimensions.Length > 1) {
+                var builtInType = BuiltInType.Variant;
+                switch (type) {
+                    case JTokenType.Integer:
+                        builtInType = BuiltInType.Int64;
+                        break;
+                    case JTokenType.Boolean:
+                        builtInType = BuiltInType.Boolean;
+                        break;
+                    case JTokenType.Bytes:
+                        builtInType = BuiltInType.ByteString;
+                        break;
+                    case JTokenType.Date:
+                        builtInType = BuiltInType.DateTime;
+                        break;
+                    case JTokenType.TimeSpan:
+                        builtInType = BuiltInType.DateTime;
+                        break;
+                    case JTokenType.Float:
+                        builtInType = BuiltInType.Double;
+                        break;
+                    case JTokenType.Guid:
+                        builtInType = BuiltInType.Guid;
+                        break;
+                    case JTokenType.String:
+                        builtInType = BuiltInType.String;
+                        break;
+                }
+                return ReadVariantMatrixBody(array, dimensions, builtInType);
+            }
+
+            if (type != JTokenType.Object && array.All(j => j.Type == type)) {
                 try {
                     switch (array[0].Type) {
                         case JTokenType.Integer:
@@ -983,6 +1033,18 @@ namespace Opc.Ua.Encoders {
             return variant;
         }
 
+        private static int[] GetDimensions(JArray array) {
+            var dimensions = new List<int>();
+            while (true) {
+                if (array == null || array.Count == 0) {
+                    break;
+                }
+                dimensions.Add(array.Count);
+                array = array[0] as JArray;
+            }
+            return dimensions.ToArray();
+        }
+
         /// <summary>
         /// Read variant body
         /// </summary>
@@ -993,23 +1055,22 @@ namespace Opc.Ua.Encoders {
             if (!TryGetToken(property, out var token)) {
                 return Variant.Null;
             }
-            if (token is JArray ||
-                ((token.Type == JTokenType.Bytes || token.Type == JTokenType.String) &&
-                 (type == BuiltInType.Byte || type == BuiltInType.SByte))) {
-
-                // Body is array - read object dimensions if any
-                var dimensions = ReadInt32Array("Dimensions");
-
-                // Read body as array
-                var array = ReadVariantArrayBody(property, type);
-
-                if (array.Value is ICollection && dimensions != null &&
-                    dimensions.Count > 1) {
-                    array = new Variant(new Matrix((Array)array.Value,
-                        type, dimensions.ToArray()));
+            if (token is JArray jarray) {
+                // Check array dimensions
+                var dimensions = jarray.GetDimensions(out _);
+                if (dimensions.Length > 1) {
+                    return ReadVariantMatrixBody(jarray, dimensions, type);
                 }
-                return array;
+                // Read body as array
+                return ReadVariantArrayBody(property, type);
             }
+
+            if ((token.Type == JTokenType.Bytes || token.Type == JTokenType.String) &&
+                (type == BuiltInType.Byte || type == BuiltInType.SByte)) {
+                // Read body as array
+                return ReadVariantArrayBody(property, type);
+            }
+
             switch (type) {
                 case BuiltInType.Boolean:
                     return new Variant(ReadBoolean(property),
@@ -1085,6 +1146,139 @@ namespace Opc.Ua.Encoders {
                     return ReadVariant(property);
                 default:
                     return Variant.Null;
+            }
+        }
+
+        /// <summary>
+        /// Read variant matrix
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="dimensions"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private Variant ReadVariantMatrixBody(JArray array, int[] dimensions,
+            BuiltInType type) {
+            var length = 1;
+            foreach (var dim in dimensions) {
+                length *= dim;
+            }
+            var flatArray = TypeInfo.CreateArray(type, length);
+            var index = 0;
+            CopyToMatrixFlatArray(array, flatArray, ref index, type);
+            if (index < length) {
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    "Read matrix is smaller than array dimensions.");
+            }
+            return new Variant(new Matrix(flatArray, type, dimensions));
+        }
+
+        /// <summary>
+        /// Copy from array to flat matrix array
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="target"></param>
+        /// <param name="index"></param>
+        /// <param name="type"></param>
+        private void CopyToMatrixFlatArray(JArray array, Array target, ref int index,
+            BuiltInType type) {
+            foreach (var item in array) {
+                if (item is JArray next) {
+                    // Recurse into inner array until we hit individual items
+                    CopyToMatrixFlatArray(next, target, ref index, type);
+                }
+                else if (index < target.GetLength(0)) {
+                    // Read item at top of stack
+                    _stack.Push(item);
+                    switch (type) {
+                        case BuiltInType.Boolean:
+                            target.SetValue(ReadBoolean(null), index++);
+                            break;
+                        case BuiltInType.SByte:
+                            target.SetValue(ReadSByte(null), index++);
+                            break;
+                        case BuiltInType.Byte:
+                            target.SetValue(ReadByte(null), index++);
+                            break;
+                        case BuiltInType.Int16:
+                            target.SetValue(ReadInt16(null), index++);
+                            break;
+                        case BuiltInType.UInt16:
+                            target.SetValue(ReadUInt16(null), index++);
+                            break;
+                        case BuiltInType.Enumeration:
+                        case BuiltInType.Int32:
+                            target.SetValue(ReadInt32(null), index++);
+                            break;
+                        case BuiltInType.UInt32:
+                            target.SetValue(ReadUInt32(null), index++);
+                            break;
+                        case BuiltInType.Int64:
+                            target.SetValue(ReadInt64(null), index++);
+                            break;
+                        case BuiltInType.UInt64:
+                            target.SetValue(ReadUInt64(null), index++);
+                            break;
+                        case BuiltInType.Float:
+                            target.SetValue(ReadFloat(null), index++);
+                            break;
+                        case BuiltInType.Double:
+                            target.SetValue(ReadDouble(null), index++);
+                            break;
+                        case BuiltInType.String:
+                            target.SetValue(ReadString(null), index++);
+                            break;
+                        case BuiltInType.ByteString:
+                            target.SetValue(ReadByteString(null), index++);
+                            break;
+                        case BuiltInType.DateTime:
+                            target.SetValue(ReadDateTime(null), index++);
+                            break;
+                        case BuiltInType.Guid:
+                            target.SetValue(ReadGuid(null), index++);
+                            break;
+                        case BuiltInType.NodeId:
+                            target.SetValue(ReadNodeId(null), index++);
+                            break;
+                        case BuiltInType.ExpandedNodeId:
+                            target.SetValue(ReadExpandedNodeId(null), index++);
+                            break;
+                        case BuiltInType.QualifiedName:
+                            target.SetValue(ReadQualifiedName(null), index++);
+                            break;
+                        case BuiltInType.LocalizedText:
+                            target.SetValue(ReadLocalizedText(null), index++);
+                            break;
+                        case BuiltInType.StatusCode:
+                            target.SetValue(ReadStatusCode(null), index++);
+                            break;
+                        case BuiltInType.XmlElement:
+                            target.SetValue(ReadXmlElement(null), index++);
+                            break;
+                        case BuiltInType.ExtensionObject:
+                            target.SetValue(ReadExtensionObject(null), index++);
+                            break;
+                        case BuiltInType.UInteger:
+                            target.SetValue(ReadUInteger(null), index++);
+                            break;
+                        case BuiltInType.Integer:
+                            target.SetValue(ReadInteger(null), index++);
+                            break;
+                        case BuiltInType.Number:
+                            target.SetValue(ReadNumber(null), index++);
+                            break;
+                        case BuiltInType.Variant:
+                            target.SetValue(ReadVariant(null), index++);
+                            break;
+                        default:
+                            target.SetValue(null, index++);
+                            break;
+                    }
+                    _stack.Pop();
+                }
+                else {
+                    throw new ServiceResultException(StatusCodes.BadDecodingError,
+                        "Read matrix is larger than array dimensions.");
+                }
             }
         }
 
@@ -1189,13 +1383,13 @@ namespace Opc.Ua.Encoders {
         /// <returns></returns>
         private T ReadValue<T>(string property, Func<T, T> check) {
             if (!TryGetToken(property, out var token)) {
-                return default(T);
+                return default;
             }
             try {
                 return check(token.ToObject<T>());
             }
             catch {
-                return default(T);
+                return default;
             }
         }
 
@@ -1209,7 +1403,7 @@ namespace Opc.Ua.Encoders {
         private T TryReadValue<T>(string property, Func<JToken, T> fallback)
             where T : class {
             if (!TryGetToken(property, out var token)) {
-                return default(T);
+                return default;
             }
             try {
                 var value = token.ToObject<T>();
@@ -1219,7 +1413,7 @@ namespace Opc.Ua.Encoders {
                 return fallback(token);
             }
             catch {
-                return default(T);
+                return default;
             }
         }
 
@@ -1301,21 +1495,60 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <summary>
+        /// Test whether the object contains any of the the properties
+        /// </summary>
+        /// <param name="o"></param>
+        /// <param name="properties"></param>
+        /// <returns></returns>
+        private bool HasAnyOf(JObject o, params string[] properties) {
+            foreach (var property in properties) {
+                if (o.TryGetValue(property,
+                    StringComparison.InvariantCultureIgnoreCase, out _)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Try get top token or named token from object
         /// </summary>
         /// <param name="property"></param>
         /// <param name="token"></param>
         /// <returns></returns>
         private bool TryGetToken(string property, out JToken token) {
-            var top = _stack.Peek();
+            JToken top;
+            if (_stack.Count == 0) {
+                top = ReadNextToken();
+                //
+                // Check whether we read a property from the top object.
+                // If so, push the top object for reading.  Otherwise, we
+                // are reading from an array of object so we do not push
+                // which means our stack will reset to 0.
+                //
+                if (top != null && (property != null || !(_reader is JsonLoader))) {
+                    _stack.Push(top);
+                }
+            }
+            else {
+                top = _stack.Peek();
+            }
+            if (top == null) {
+                // Hit end of file.
+                token = null;
+                return false;
+            }
             if (property == null) {
+                // Read top token
                 token = top;
                 return true;
             }
             if (top is JObject o) {
-                if (!o.TryGetValue(property,
-                    StringComparison.InvariantCultureIgnoreCase, out token)) {
-                    return false;
+                if (!o.TryGetValue(property, out token)) {
+                    if (!o.TryGetValue(property,
+                        StringComparison.InvariantCultureIgnoreCase, out token)) {
+                        return false;
+                    }
                 }
                 switch (token.Type) {
                     case JTokenType.Comment:
@@ -1334,6 +1567,25 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <summary>
+        /// Read next root token from reader
+        /// </summary>
+        /// <returns></returns>
+        private JToken ReadNextToken() {
+            if (_reader == null) {
+                return null;
+            }
+            if (_reader is JsonLoader loader) {
+                loader.Reset();
+            }
+            var root = JToken.ReadFrom(_reader,
+                new JsonLoadSettings {
+                    CommentHandling = CommentHandling.Ignore,
+                    LineInfoHandling = LineInfoHandling.Ignore
+                });
+            return root as JObject;
+        }
+
+        /// <summary>
         /// Works around missing object endings, etc.
         /// </summary>
         private class JsonLoader : JsonReader, IDisposable {
@@ -1345,12 +1597,33 @@ namespace Opc.Ua.Encoders {
             public override object Value => _reader.Value;
 
             /// <inheritdoc/>
-            public override JsonToken TokenType =>
-               _eofDepth >= 0 ? JsonToken.EndObject : _reader.TokenType;
+            public override JsonToken TokenType {
+                get {
+                    if (_eofDepth >= 0) {
+                        return JsonToken.EndObject;
+                    }
+                    if (_eos) {
+                        return JsonToken.Null;
+                    }
+                    if (_reset) {
+                        return JsonToken.None;
+                    }
+                    return _reader.TokenType;
+                }
+            }
 
             /// <inheritdoc/>
-            public override int Depth =>
-                _eofDepth >= 0 ? --_eofDepth : _reader.Depth;
+            public override int Depth {
+                get {
+                    if (_eofDepth >= 0) {
+                        return --_eofDepth;
+                    }
+                    if (_reader.Depth > 0 && _inArray) {
+                        return _reader.Depth - 1;
+                    }
+                    return _reader.Depth;
+                }
+            }
 
             /// <summary>
             /// Create loader
@@ -1367,18 +1640,40 @@ namespace Opc.Ua.Encoders {
                     _eofDepth = Depth;
                     return true;
                 }
+
+                // Handle streaming
+                if (_reader.Depth == 0 &&
+                   ((_inArray && _reader.TokenType == JsonToken.EndArray) ||
+                   (!_inArray && _reader.TokenType == JsonToken.StartArray))) {
+                    _inArray = !_inArray;
+                    _eos |= !_inArray && _reset;
+                    // Skip to start object
+                    _reader.Read();
+                }
+
+                // Next token is start of object
+                _reset = false;
                 return true;
             }
 
             /// <inheritdoc/>
             public void Dispose() => _reader.Close();
 
+            /// <summary>
+            /// Reset loader
+            /// </summary>
+            public void Reset() => _reset = true;
+
             private readonly JsonReader _reader;
             private int _eofDepth;
+            private bool _inArray;
+            private bool _reset;
+            private bool _eos;
         }
 
         private ushort[] _namespaceMappings;
         private ushort[] _serverMappings;
+        private readonly JsonReader _reader;
         private readonly Stack<JToken> _stack = new Stack<JToken>();
     }
 }

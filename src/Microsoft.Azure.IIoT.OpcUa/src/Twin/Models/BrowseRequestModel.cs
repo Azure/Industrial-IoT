@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -60,10 +59,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public bool? TargetNodesOnly { get; set; }
 
         /// <summary>
-        /// Whether to read variable values on target nodes.
+        /// Whether to read variable values of target nodes.
         /// (default is false)
         /// </summary>
         public bool? ReadVariableValues { get; set; }
+
+        /// <summary>
+        /// Whether to only return the raw node id
+        /// information and not read the target node.
+        /// (default is false)
+        /// </summary>
+        public bool? NodeIdsOnly { get; set; }
 
         /// <summary>
         /// Filter returned target nodes by only returning
@@ -73,13 +79,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public List<NodeClass> NodeClassFilter { get; set; }
 
         /// <summary>
-        /// Optional elevation.
+        /// Optional header
         /// </summary>
-        public CredentialModel Elevation { get; set; }
-
-        /// <summary>
-        /// Optional diagnostics configuration
-        /// </summary>
-        public DiagnosticsModel Diagnostics { get; set; }
+        public RequestHeaderModel Header { get; set; }
     }
 }

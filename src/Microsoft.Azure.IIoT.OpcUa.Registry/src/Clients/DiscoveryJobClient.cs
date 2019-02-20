@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             var job = await _jobs.CreateAsync(new JobModel {
                 JobId = jobId,
                 QueryCondition = "FROM devices.modules WHERE " +
-                    $"properties.reported.{kTypeProp} = 'supervisor'",
+                    $"properties.reported.{TwinProperty.kType} = 'supervisor'",
                 Type = JobType.ScheduleDeviceMethod,
                 MaxExecutionTimeInSeconds = timeout.Seconds,
                 MethodParameter = new MethodParameterModel {
@@ -66,7 +66,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
                     JsonPayload = JsonConvertEx.SerializeObject(request)
                 }
             });
-            _logger.Info($"Job {jobId} created...", () => job.Status);
+            _logger.Information("Job {jobId} created ({status})...", jobId,
+                job.Status);
             var cts = new CancellationTokenSource(timeout + timeout);
             while (true) {
                 if (!string.IsNullOrEmpty(job.FailureReason)) {
@@ -80,16 +81,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
                 }
                 await Task.Delay(TimeSpan.FromSeconds(30), cts.Token);
                 job = await _jobs.RefreshAsync(jobId);
-                _logger.Info($"Job {jobId} polled ({job.Status})...",
-                    () => job.StatusMessage);
+                _logger.Information("Job {jobId} polled ({status} - {msg})...",
+                    jobId, job.Status, job.StatusMessage);
                 // Poll to completion
             }
             throw new TimeoutException(
                 $"No response received for job {jobId}.  Failing.");
         }
-
-        /// <summary>Type property name constant</summary>
-        public const string kTypeProp = "__type__"; // TODO: Consolidate as common constant
 
         private readonly IIoTHubJobServices _jobs;
         private readonly ILogger _logger;

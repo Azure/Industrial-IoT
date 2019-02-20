@@ -227,7 +227,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 // Tags
 
                 IsDisabled =
-                    tags.GetValueOrDefault<bool>(nameof(IsDisabled), twin.IsDisabled()),
+                    tags.GetValueOrDefault(nameof(IsDisabled), twin.IsDisabled()),
                 NotSeenSince =
                     tags.GetValueOrDefault<DateTime>(nameof(NotSeenSince), null),
                 SiteId =

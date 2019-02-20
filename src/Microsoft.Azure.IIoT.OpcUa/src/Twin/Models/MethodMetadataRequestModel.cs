@@ -4,26 +4,26 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-
     /// <summary>
     /// Requests method metadata
     /// </summary>
     public class MethodMetadataRequestModel {
 
         /// <summary>
-        /// Method id to request meta data for
+        /// Method id of method to call.
+        /// (Required)
         /// </summary>
         public string MethodId { get; set; }
 
         /// <summary>
-        /// Optional Elevation
+        /// An optional component path from the node identified by
+        /// MethodId to the actual method node.  
         /// </summary>
-        public CredentialModel Elevation { get; set; }
+        public string[] MethodBrowsePath { get; set; }
 
         /// <summary>
-        /// Optional diagnostics configuration
+        /// Optional header
         /// </summary>
-        public DiagnosticsModel Diagnostics { get; set; }
+        public RequestHeaderModel Header { get; set; }
     }
 }

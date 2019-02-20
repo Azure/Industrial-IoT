@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Opc.Ua;
+    using Opc.Ua.Extensions;
     using Opc.Ua.Encoders;
     using Opc.Ua.Client;
     using Newtonsoft.Json.Linq;
@@ -26,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="config"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static List<OperationResult> ToOperationResults(this ServiceResultModel result,
+        public static List<OperationResultModel> ToOperationResults(this ServiceResultModel result,
             DiagnosticsModel config, ServiceMessageContext context) {
 
             if (result?.Diagnostics == null) {
@@ -36,9 +37,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             switch (config?.Level ?? Twin.Models.DiagnosticsLevel.Status) {
                 case Twin.Models.DiagnosticsLevel.Diagnostics:
                 case Twin.Models.DiagnosticsLevel.Verbose:
-                    using (var decoder = new JsonDecoderEx(context, result.Diagnostics.CreateReader())) {
-                        var array = decoder.ReadEncodeableArray(root, typeof(OperationResult));
-                        var results = array.OfType<OperationResult>().ToList();
+                    using (var decoder = new JsonDecoderEx(result.Diagnostics.CreateReader(), context)) {
+                        var results = decoder.ReadEncodeableArray<OperationResultModel>(root).ToList();
                         if (results.Count == 0) {
                             return null;
                         }
@@ -63,16 +63,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="config"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static ServiceResultModel ToServiceModel(this List<OperationResult> diagnostics,
+        public static ServiceResultModel ToServiceModel(this List<OperationResultModel> diagnostics,
             DiagnosticsModel config, ServiceMessageContext context) {
             if ((diagnostics?.Count ?? 0) == 0) {
                 return null; // All well
             }
+            var result = diagnostics.LastOrDefault(d => !d.TraceOnly);
+            var statusCode = result?.StatusCode;
             return new ServiceResultModel {
                 // The last operation result is the one that caused the service to fail.
-                StatusCode = diagnostics.Last().StatusCode.Code,
-                ErrorMessage = diagnostics.Last().DiagnosticsInfo?.AdditionalInfo ??
-                    StatusCode.LookupSymbolicId(diagnostics.Last().StatusCode.CodeBits),
+                StatusCode = statusCode?.Code,
+                ErrorMessage = result?.DiagnosticsInfo?.AdditionalInfo ?? (statusCode == null ?
+                    null : StatusCode.LookupSymbolicId(statusCode.Value.CodeBits)),
                 Diagnostics = diagnostics.ToJson(config, context)
             };
         }
@@ -84,10 +86,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="operations"></param>
         /// <param name="results"></param>
         /// <param name="diagnostics"></param>
+        /// <param name="traceOnly"></param>
         public static void Validate(string operation,
-            List<OperationResult> operations, IEnumerable<StatusCode> results,
-            DiagnosticInfoCollection diagnostics) {
-            Validate<object>(operation, operations, results, diagnostics, null);
+            List<OperationResultModel> operations, IEnumerable<StatusCode> results,
+            DiagnosticInfoCollection diagnostics, bool traceOnly) {
+            Validate<object>(operation, operations, results, diagnostics, null, traceOnly);
         }
 
         /// <summary>
@@ -99,29 +102,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="diagnostics"></param>
         /// <param name="requested"></param>
         /// <param name="operations"></param>
+        /// <param name="traceOnly"></param>
         public static void Validate<T>(string operation,
-            List<OperationResult> operations, IEnumerable<StatusCode> results,
-            DiagnosticInfoCollection diagnostics, IEnumerable<T> requested) {
+            List<OperationResultModel> operations, IEnumerable<StatusCode> results,
+            DiagnosticInfoCollection diagnostics, IEnumerable<T> requested, bool traceOnly) {
             if (operations == null) {
                 SessionClientEx.Validate(results, diagnostics, requested);
                 return;
             }
-            var statusCodes = results?.ToList();
-            if (statusCodes == null || (statusCodes.Count == 0 && diagnostics.Count == 0)) {
+            if (diagnostics == null) {
+                diagnostics = new DiagnosticInfoCollection();
+            }
+            var resultsWithStatus = results?.ToList();
+            if (resultsWithStatus == null || (resultsWithStatus.Count == 0 &&
+                diagnostics.Count == 0)) {
                 throw new ServiceResultException(StatusCodes.BadUnexpectedError,
                     "The server returned no results or diagnostics information.");
             }
             // Add diagnostics
             var ids = requested?.ToArray() ?? new T[0];
-            for (var index = statusCodes.Count; index < diagnostics.Count; index++) {
-                statusCodes.Add(diagnostics[index] == null ?
+            for (var index = resultsWithStatus.Count; index < diagnostics.Count; index++) {
+                resultsWithStatus.Add(diagnostics[index] == null ?
                     StatusCodes.Good : StatusCodes.BadUnexpectedError);
             }
             operations.AddRange(results
-                .Select((status, index) => new OperationResult {
+                .Select((status, index) => new OperationResultModel {
                     Operation = index < ids.Length ? $"{operation}_{ids[index]}" : operation,
                     DiagnosticsInfo = index < diagnostics.Count ? diagnostics[index] : null,
-                    StatusCode = status
+                    StatusCode = status,
+                    TraceOnly = traceOnly
                 })
                 .Where(o => o.StatusCode != StatusCodes.Good || o.DiagnosticsInfo != null));
         }
@@ -133,7 +142,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="config"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        private static JToken ToJson(this List<OperationResult> results, DiagnosticsModel config,
+        private static JToken ToJson(this List<OperationResultModel> results, DiagnosticsModel config,
             ServiceMessageContext context) {
             var level = config?.Level ?? Twin.Models.DiagnosticsLevel.Status;
             if (level == Twin.Models.DiagnosticsLevel.None) {
@@ -141,16 +150,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             }
             using (var stream = new MemoryStream()) {
                 var root = kDiagnosticsProperty;
-                using (var encoder = new JsonEncoderEx(context, stream) {
-                    UseMicrosoftVariant = true,
-                    IgnoreNullValues = true
+                using (var encoder = new JsonEncoderEx(stream, context) {
+                    UseAdvancedEncoding = true,
+                    IgnoreDefaultValues = true
                 }) {
                     switch (level) {
                         case Twin.Models.DiagnosticsLevel.Diagnostics:
                         case Twin.Models.DiagnosticsLevel.Verbose:
-                            encoder.WriteEncodeableArray(root,
-                                results.Cast<IEncodeable>().ToList(),
-                                    typeof(OperationResult));
+                            encoder.WriteEncodeableArray(root, results);
                             break;
                         case Twin.Models.DiagnosticsLevel.Operations:
                             var codes = results

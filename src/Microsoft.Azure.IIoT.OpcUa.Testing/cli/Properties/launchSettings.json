@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Microsoft.Azure.IIoT.OpcUa.Servers.Cli": {
+      "commandName": "Project",
+      "commandLineArgs": "-s"
+    }
+  }
+}

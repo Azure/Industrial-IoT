@@ -29,12 +29,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Whether endpoint is activated in the twin module
         /// </summary>
-        public bool? Activated { get; set; }
+        public EndpointActivationState? ActivationState { get; set; }
 
         /// <summary>
-        /// Whether endpoint is connected through the twin module
+        /// The last state of the the activated endpoint
         /// </summary>
-        public bool? Connected { get; set; }
+        public EndpointConnectivityState? EndpointState { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between

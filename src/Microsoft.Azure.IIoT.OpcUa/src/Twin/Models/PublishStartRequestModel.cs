@@ -16,8 +16,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public PublishedItemModel Item { get; set; }
 
         /// <summary>
-        /// Optional diagnostics configuration
+        /// Optional request header
         /// </summary>
-        public DiagnosticsModel Diagnostics { get; set; }
+        public RequestHeaderModel Header { get; set; }
     }
 }

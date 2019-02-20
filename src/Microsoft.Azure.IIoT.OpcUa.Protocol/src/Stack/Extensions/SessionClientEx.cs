@@ -809,7 +809,8 @@ namespace Opc.Ua.Client {
         /// </summary>
         /// <param name="results"></param>
         /// <param name="diagnostics"></param>
-        public static void Validate<T>(IEnumerable<T> results, DiagnosticInfoCollection diagnostics) {
+        public static void Validate<T>(IEnumerable<T> results,
+            DiagnosticInfoCollection diagnostics) {
             Validate<T, object>(results, diagnostics, null);
         }
 
@@ -823,14 +824,15 @@ namespace Opc.Ua.Client {
         /// <param name="requested"></param>
         public static void Validate<T, R>(IEnumerable<T> results,
             DiagnosticInfoCollection diagnostics, IEnumerable<R> requested) {
-            var statusCodes = results?.ToList();
-            if (statusCodes == null || (statusCodes.Count == 0 && diagnostics.Count == 0)) {
+            var resultsWithStatus = results?.ToList();
+            if (resultsWithStatus == null || (resultsWithStatus.Count == 0 &&
+                diagnostics.Count == 0)) {
                 throw new ServiceResultException(StatusCodes.BadUnexpectedError,
                     "The server returned no results or diagnostics information.");
             }
             // Throw on bad responses.
             var expected = requested?.Count() ?? 1;
-            if (statusCodes.Count != expected) {
+            if (resultsWithStatus.Count != expected) {
                 throw new ServiceResultException(StatusCodes.BadUnexpectedError,
                     "The server returned a list without the expected number of elements.");
             }

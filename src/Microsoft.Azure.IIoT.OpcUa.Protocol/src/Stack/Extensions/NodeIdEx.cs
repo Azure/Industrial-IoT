@@ -4,11 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Extensions {
+    using Opc.Ua.Models;
+    using Opc.Ua;
     using System;
     using System.Globalization;
     using System.Linq;
     using System.Text;
-    using Opc.Ua;
 
     /// <summary>
     /// Node id extensions
@@ -84,35 +85,15 @@ namespace Opc.Ua.Extensions {
         /// </summary>
         /// <param name="nodeId"></param>
         /// <param name="context"></param>
+        /// <param name="noRelativeUriAllowed"></param>
         /// <returns></returns>
-        public static string AsString(this NodeId nodeId, ServiceMessageContext context) {
-            if (nodeId == null) {
-                nodeId = NodeId.Null;
+        public static string AsString(this NodeId nodeId, ServiceMessageContext context,
+            bool noRelativeUriAllowed = false) {
+            if (NodeId.IsNull(nodeId)) {
+                return null;
             }
-            return nodeId.ToExpandedNodeId(context?.NamespaceUris).AsString(context);
-        }
-
-        /// <summary>
-        /// Returns a uri that identifies the qualified name uniquely.
-        /// </summary>
-        /// <param name="qn"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static string AsString(this QualifiedName qn, ServiceMessageContext context) {
-            if (qn == null) {
-                return string.Empty;
-            }
-            var buffer = new StringBuilder();
-            if (qn.NamespaceIndex != 0) {
-                var nsUri = context.NamespaceUris.GetString(qn.NamespaceIndex);
-                if (!string.IsNullOrEmpty(nsUri)) {
-                    buffer.Append(nsUri);
-                    // Append node id as fragment
-                    buffer.Append("#");
-                }
-            }
-            buffer.Append(qn.Name ?? string.Empty);
-            return buffer.ToString();
+            return nodeId.ToExpandedNodeId(context?.NamespaceUris).AsString(context,
+                noRelativeUriAllowed);
         }
 
         /// <summary>
@@ -120,13 +101,15 @@ namespace Opc.Ua.Extensions {
         /// </summary>
         /// <param name="nodeId"></param>
         /// <param name="context"></param>
+        /// <param name="noRelativeUriAllowed"></param>
         /// <returns></returns>
-        public static string AsString(this ExpandedNodeId nodeId, ServiceMessageContext context) {
-            if (nodeId == null) {
-                nodeId = ExpandedNodeId.Null;
+        public static string AsString(this ExpandedNodeId nodeId, ServiceMessageContext context,
+            bool noRelativeUriAllowed = false) {
+            if (NodeId.IsNull(nodeId)) {
+                return null;
             }
             var nsUri = nodeId.NamespaceUri;
-            if (string.IsNullOrEmpty(nsUri) && nodeId.NamespaceIndex != 0) {
+            if (string.IsNullOrEmpty(nsUri) && (nodeId.NamespaceIndex != 0 || noRelativeUriAllowed)) {
                 nsUri = context.NamespaceUris.GetString(nodeId.NamespaceIndex);
                 if (string.IsNullOrEmpty(nsUri)) {
                     nsUri = null;
@@ -143,72 +126,6 @@ namespace Opc.Ua.Extensions {
         }
 
         /// <summary>
-        /// Returns a qualified name from a string
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static QualifiedName ToQualifiedName(this string value, ServiceMessageContext context) {
-            if (value == null) {
-                return QualifiedName.Null;
-            }
-            try {
-                var uri = new Uri(value);
-                if (string.IsNullOrEmpty(uri.Fragment)) {
-                    value = string.Empty;
-                }
-                else {
-                    value = uri.Fragment.TrimStart('#');
-                }
-                var nsUri = uri.NoQueryAndFragment().AbsoluteUri;
-                return new QualifiedName(value, context.NamespaceUris.GetIndexOrAppend(nsUri));
-            }
-            catch {
-                try {
-                    return QualifiedName.Parse(value);
-                }
-                catch {
-                    // Give up
-                    return new QualifiedName(value);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Convert to path object
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static RelativePath ToRelativePath(this string[] path,
-            ServiceMessageContext context) {
-            if (path == null) {
-                return new RelativePath();
-            }
-            return new RelativePath {
-                Elements = new RelativePathElementCollection(path
-                    .Where(p => !string.IsNullOrEmpty(p))
-                    .Select(p => ParsePathElement(p, context)))
-            };
-        }
-
-        /// <summary>
-        /// Convert a relative path to path strings
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static string[] AsString(this RelativePath path,
-            ServiceMessageContext context) {
-            if (path == null) {
-                return null;
-            }
-            return path.Elements
-                .Select(p => FormatRelativePathElement(p, context))
-                .ToArray();
-        }
-
-        /// <summary>
         /// Returns a node from a string
         /// </summary>
         /// <param name="value"></param>
@@ -221,6 +138,9 @@ namespace Opc.Ua.Extensions {
             var parts = value.Split(';');
             if (parts.Any(s => s.StartsWith("ns=", StringComparison.CurrentCulture))) {
                 return NodeId.Parse(value);
+            }
+            if (parts.Any(s => s.StartsWith("nsu=", StringComparison.CurrentCulture))) {
+                return ExpandedNodeId.Parse(value).ToNodeId(context.NamespaceUris);
             }
             var identifier = ParseNodeIdUri(value, out var nsUri, out var srvUri);
             return new NodeId(identifier, context.NamespaceUris.GetIndexOrAppend(nsUri));
@@ -237,7 +157,9 @@ namespace Opc.Ua.Extensions {
                 return ExpandedNodeId.Null;
             }
             var parts = value.Split(';');
-            if (parts.Any(s => s.StartsWith("ns=", StringComparison.CurrentCulture))) {
+            if (parts.Any(s =>
+                s.StartsWith("ns=", StringComparison.CurrentCulture) ||
+                s.StartsWith("nsu=", StringComparison.CurrentCulture))) {
                 return ExpandedNodeId.Parse(value);
             }
             var identifier = ParseNodeIdUri(value, out var nsUri, out var srvUri);
@@ -275,7 +197,7 @@ namespace Opc.Ua.Extensions {
             switch (idType) {
                 case IdType.Numeric:
                     if (srvUri == null && nsUri == null &&
-                        GetDataTypeName(identifier, out var typeName)) {
+                        TryGetDataTypeName(identifier, out var typeName)) {
                         // For readability use data type name here if possible
                         return typeName;
                     }
@@ -300,7 +222,7 @@ namespace Opc.Ua.Extensions {
                         buffer.Append(Guid.Empty); // null
                         break;
                     }
-                    buffer.Append(((Guid)identifier).ToString("D"));
+                    buffer.Append(((Guid)identifier).ToString("D").UrlEncode());
                     break;
                 case IdType.Opaque:
                     buffer.Append("b=");
@@ -308,7 +230,7 @@ namespace Opc.Ua.Extensions {
                         break; // null
                     }
                     buffer.AppendFormat(CultureInfo.InvariantCulture,
-                        "{0}", ((byte[])identifier).ToBase64String());
+                        "{0}", ((byte[])identifier).ToBase64String().UrlEncode());
                     break;
                 default:
                     throw new FormatException($"Nod id type {idType} is unknown!");
@@ -333,17 +255,16 @@ namespace Opc.Ua.Extensions {
         /// <returns></returns>
         private static object ParseNodeIdUri(string value, out string nsUri, out string srvUri) {
             // Get resource uri
-            try {
-                var uri = new Uri(value);
+            if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)) {
+                // Not a absolute uri, must be default namesapce
+                nsUri = Namespaces.OpcUa;
+            }
+            else {
                 if (string.IsNullOrEmpty(uri.Fragment)) {
                     throw new FormatException($"Bad fragment - should contain identifier.");
                 }
                 nsUri = uri.NoQueryAndFragment().AbsoluteUri;
                 value = uri.Fragment.TrimStart('#');
-            }
-            catch {
-                // Not a uri
-                nsUri = Namespaces.OpcUa;
             }
 
             var and = value?.IndexOf('&') ?? -1;
@@ -380,7 +301,10 @@ namespace Opc.Ua.Extensions {
                 }
             }
             // Try to retrieve data type identifier from text
-            return GetDataTypeId(text);
+            if (TryGetDataTypeId(text, out var id)) {
+                return id;
+            }
+            return null;
         }
 
         /// <summary>
@@ -392,174 +316,48 @@ namespace Opc.Ua.Extensions {
         private static object ParseIdentifier(char type, string text) {
             switch (type) {
                 case 'i':
-                    return Convert.ToUInt32(text, CultureInfo.InvariantCulture);
+                    try {
+                        return Convert.ToUInt32(text.UrlDecode(),
+                            CultureInfo.InvariantCulture);
+                    }
+                    catch {
+                        return Convert.ToUInt32(text,
+                            CultureInfo.InvariantCulture);
+                    }
                 case 'b':
-                    return text.DecodeAsBase64();
+                    try {
+                        return text.UrlDecode().DecodeAsBase64();
+                    }
+                    catch {
+                        return text.DecodeAsBase64();
+                    }
                 case 'g':
-                    return Guid.Parse(text);
+                    if (!Guid.TryParse(text.UrlDecode(), out var guid)) {
+                        return Guid.Parse(text);
+                    }
+                    return guid;
                 case 's':
                     return text.UrlDecode();
             }
             throw new FormatException($"{type} is not a known node id type");
         }
 
-        /// <summary>
-        /// Convert to path element object
-        /// </summary>
-        /// <param name="element"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        private static RelativePathElement ParsePathElement(string element,
-            ServiceMessageContext context) {
-            if (string.IsNullOrEmpty(element)) {
-                throw new ArgumentNullException(nameof(element));
-            }
-
-            var pathElement = new RelativePathElement {
-                IncludeSubtypes = true,
-                IsInverse = false
-            };
-            //
-            // Parse relative path reference information
-            // This should allow
-            // - "targeturi" == "/targeturi"
-            // - ".targeturi"
-            // - "!.parenturi"
-            // - "!/parenturi"
-            // - "<!#uri>parenturi"
-            //
-            var index = 0;
-            var exit = false;
-            var parseReference = false;
-            while (index < element.Length && !exit) {
-                switch (element[index]) {
-                    case '<':
-                        if (pathElement.ReferenceTypeId == null) {
-                            parseReference = true;
-                            break;
-                        }
-                        throw new FormatException("Reference type set.");
-                    case '!':
-                        pathElement.IsInverse = true;
-                        break;
-                    case '#':
-                        pathElement.IncludeSubtypes = false;
-                        break;
-                    case '/':
-                        if (pathElement.ReferenceTypeId == null &&
-                            !parseReference) {
-                            pathElement.ReferenceTypeId =
-                                ReferenceTypeIds.HierarchicalReferences;
-                            break;
-                        }
-                        throw new FormatException("Reference type set.");
-                    case '.':
-                        if (pathElement.ReferenceTypeId == null &&
-                            !parseReference) {
-                            pathElement.ReferenceTypeId =
-                                ReferenceTypeIds.Aggregates;
-                            break;
-                        }
-                        throw new FormatException("Reference type set.");
-                    default:
-                        if (element[index] == '&') {
-                            index++;
-                        }
-                        if (pathElement.ReferenceTypeId == null &&
-                            !parseReference) {
-                            // Set to all references
-                            pathElement.ReferenceTypeId =
-                                ReferenceTypeIds.References;
-                        }
-                        exit = true;
-                        break;
-                }
-                index++;
-            }
-            index--;
-            if (parseReference) {
-                var to = index;
-                while (to < element.Length) {
-                    if (element[to] == '>' && element[to - 1] != '&') {
-                        break;
-                    }
-                    to++;
-                    if (to == element.Length) {
-                        throw new FormatException(
-                            "Reference path starts in < but does not end in >");
-                    }
-                }
-                var reference = element.Substring(index, to - index);
-                // TODO: Deescape &<, &>, &/, &., &:, &&
-                index = to + 1;
-                pathElement.ReferenceTypeId = reference.ToNodeId(context);
-                if (NodeId.IsNull(pathElement.ReferenceTypeId)) {
-                    pathElement.ReferenceTypeId = ReferenceTypes.GetIdentifier(reference);
-                }
-            }
-            var target = element.Substring(index);
-            // TODO: Deescape &<, &>, &/, &., &:, &&
-            if (string.IsNullOrEmpty(target)) {
-                throw new FormatException("Bad target name is empty");
-            }
-            pathElement.TargetName = target.ToQualifiedName(context);
-            return pathElement;
-        }
-
-        /// <summary>
-        /// Format relative path element information
-        /// </summary>
-        /// <param name="element"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        private static string FormatRelativePathElement(RelativePathElement element,
-            ServiceMessageContext context) {
-            var value = "";
-            var writeReference = false;
-            if (element.ReferenceTypeId == ReferenceTypeIds.HierarchicalReferences) {
-                value += "/";
-            }
-            else if (element.ReferenceTypeId == ReferenceTypeIds.Aggregates) {
-                value += ".";
-            }
-            else if (element.ReferenceTypeId != ReferenceTypeIds.References) {
-                value += "<";
-                writeReference = true;
-            }
-            if (element.IsInverse) {
-                value += "!";
-            }
-            if (!element.IncludeSubtypes) {
-                value += "#";
-            }
-            if (writeReference) {
-                string reference = null;
-                if (element.ReferenceTypeId.NamespaceIndex == 0 &&
-                    element.ReferenceTypeId.Identifier is uint id) {
-                    reference = ReferenceTypes.GetBrowseName(id);
-                }
-                if (string.IsNullOrEmpty(reference)) {
-                    reference = element.ReferenceTypeId.AsString(context);
-                }
-                // TODO: Escape <,>,/,:,&,.
-                value += reference + ">";
-            }
-            var target = element.TargetName.AsString(context);
-            // TODO: Escape <,>,/,:,&,.
-            value += target;
-            return value;
-        }
 
         /// <summary>
         /// Returns a data type id for the name
         /// </summary>
         /// <param name="text"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
-        private static uint GetDataTypeId(string text) {
-            if (Enum.TryParse<BuiltInType>(text, true, out var id)) {
-                return (uint)id;
+        private static bool TryGetDataTypeId(string text, out uint id) {
+            if (Enum.TryParse<BuiltInType>(text, true, out var type)) {
+                id = (uint)type;
+                return true;
             }
-            return DataTypes.GetIdentifier(text);
+            if (TypeMaps.DataTypes.Value.TryGetIdentifier(text, out id)) {
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -568,22 +366,32 @@ namespace Opc.Ua.Extensions {
         /// <param name="identifier"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        private static bool GetDataTypeName(object identifier, out string name) {
+        private static bool TryGetDataTypeName(object identifier, out string name) {
+            name = null;
             try {
-                var id = Convert.ToInt32(identifier);
-                if (Enum.IsDefined(typeof(BuiltInType), id)) {
-                    name = Enum.GetName(typeof(BuiltInType), id);
+                if (!(identifier is uint uid)) {
+                    return false;
                 }
-                else {
-                    name = DataTypes.GetBrowseName(id);
+                if (uid <= int.MaxValue) {
+                    var id = (int)uid;
+                    if (Enum.IsDefined(typeof(BuiltInType), id)) {
+                        name = Enum.GetName(typeof(BuiltInType), id);
+                        if (name.EqualsIgnoreCase(nameof(BuiltInType.Null))) {
+                            name = null;
+                        }
+                    }
                 }
-                if (name.EqualsIgnoreCase("Null")) {
-                    name = null;
+                if (!string.IsNullOrEmpty(name)) {
+                    return true;
+                }
+                if (TypeMaps.DataTypes.Value.TryGetBrowseName(uid, out name)) {
+                    if (name.EqualsIgnoreCase(nameof(BuiltInType.Null))) {
+                        name = null;
+                    }
                 }
                 return !string.IsNullOrEmpty(name);
             }
             catch {
-                name = null;
                 return false;
             }
         }

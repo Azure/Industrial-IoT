@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Models {
+    using Opc.Ua.Extensions;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -21,6 +22,155 @@ namespace Opc.Ua.Models {
         const int ReferenceType = 5;
         const int DataType = 6;
         const int View = 7;
+
+        /// <summary>
+        /// Get built in type of attribute
+        /// </summary>
+        /// <param name="attributeId"></param>
+        /// <returns></returns>
+        public static BuiltInType GetBuiltInType(uint attributeId) {
+            switch (attributeId) {
+                case Attributes.Value:
+                    return BuiltInType.Variant;
+                case Attributes.DisplayName:
+                    return BuiltInType.LocalizedText;
+                case Attributes.Description:
+                    return BuiltInType.LocalizedText;
+                case Attributes.WriteMask:
+                    return BuiltInType.UInt32;
+                case Attributes.UserWriteMask:
+                    return BuiltInType.UInt32;
+                case Attributes.NodeId:
+                    return BuiltInType.NodeId;
+                case Attributes.NodeClass:
+                    return BuiltInType.Int32;
+                case Attributes.BrowseName:
+                    return BuiltInType.QualifiedName;
+                case Attributes.IsAbstract:
+                    return BuiltInType.Boolean;
+                case Attributes.Symmetric:
+                    return BuiltInType.Boolean;
+                case Attributes.InverseName:
+                    return BuiltInType.LocalizedText;
+                case Attributes.ContainsNoLoops:
+                    return BuiltInType.Boolean;
+                case Attributes.EventNotifier:
+                    return BuiltInType.Byte;
+                case Attributes.DataType:
+                    return BuiltInType.NodeId;
+                case Attributes.ValueRank:
+                    return BuiltInType.Int32;
+                case Attributes.AccessLevel:
+                    return BuiltInType.Byte;
+                case Attributes.UserAccessLevel:
+                    return BuiltInType.Byte;
+                case Attributes.MinimumSamplingInterval:
+                    return BuiltInType.Double;
+                case Attributes.Historizing:
+                    return BuiltInType.Boolean;
+                case Attributes.Executable:
+                    return BuiltInType.Boolean;
+                case Attributes.UserExecutable:
+                    return BuiltInType.Boolean;
+                case Attributes.ArrayDimensions:
+                    return BuiltInType.UInt32;
+                case Attributes.DataTypeDefinition:
+                    return BuiltInType.ExtensionObject;
+                case Attributes.AccessLevelEx:
+                    return BuiltInType.UInt32;
+                case Attributes.AccessRestrictions:
+                    return BuiltInType.UInt16;
+                case Attributes.RolePermissions:
+                    return BuiltInType.ExtensionObject;
+                case Attributes.UserRolePermissions:
+                    return BuiltInType.ExtensionObject;
+                default:
+                    System.Diagnostics.Debug.Assert(false, "Unknown attribute");
+                    return BuiltInType.Null;
+            }
+        }
+
+        /// <summary>
+        /// Returns the data type id for the attribute.
+        /// </summary>
+        /// <param name="attributeId"></param>
+        /// <returns></returns>
+        public static NodeId GetDataTypeId(uint attributeId) {
+            switch (attributeId) {
+                case Attributes.Value:
+                    return DataTypes.BaseDataType;
+                case Attributes.DisplayName:
+                    return DataTypes.LocalizedText;
+                case Attributes.Description:
+                    return DataTypes.LocalizedText;
+                case Attributes.WriteMask:
+                    return DataTypes.UInt32;
+                case Attributes.UserWriteMask:
+                    return DataTypes.UInt32;
+                case Attributes.NodeId:
+                    return DataTypes.NodeId;
+                case Attributes.NodeClass:
+                    return DataTypes.Enumeration;
+                case Attributes.BrowseName:
+                    return DataTypes.QualifiedName;
+                case Attributes.IsAbstract:
+                    return DataTypes.Boolean;
+                case Attributes.Symmetric:
+                    return DataTypes.Boolean;
+                case Attributes.InverseName:
+                    return DataTypes.LocalizedText;
+                case Attributes.ContainsNoLoops:
+                    return DataTypes.Boolean;
+                case Attributes.EventNotifier:
+                    return DataTypes.Byte;
+                case Attributes.DataType:
+                    return DataTypes.NodeId;
+                case Attributes.ValueRank:
+                    return DataTypes.Int32;
+                case Attributes.AccessLevel:
+                    return DataTypes.Byte;
+                case Attributes.UserAccessLevel:
+                    return DataTypes.Byte;
+                case Attributes.MinimumSamplingInterval:
+                    return DataTypes.Duration;
+                case Attributes.Historizing:
+                    return DataTypes.Boolean;
+                case Attributes.Executable:
+                    return DataTypes.Boolean;
+                case Attributes.UserExecutable:
+                    return DataTypes.Boolean;
+                case Attributes.ArrayDimensions:
+                    return DataTypes.UInt32;
+                case Attributes.DataTypeDefinition:
+                    return DataTypes.StructureDefinition;
+                case Attributes.AccessLevelEx:
+                    return DataTypes.UInt32;
+                case Attributes.AccessRestrictions:
+                    return DataTypes.UInt16;
+                case Attributes.RolePermissions:
+                    return DataTypes.RolePermissionType;
+                case Attributes.UserRolePermissions:
+                    return DataTypes.RolePermissionType;
+                default:
+                    System.Diagnostics.Debug.Assert(false, "Unknown attribute");
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Get browse name of attribute - speedier than in stack which uses
+        /// reflection.
+        /// </summary>
+        /// <param name="attributeId"></param>
+        /// <returns></returns>
+        public static string GetBrowseName(uint attributeId) {
+            if (TypeMaps.Attributes.Value.TryGetBrowseName(attributeId,
+                out var value)) {
+                return value;
+            }
+            System.Diagnostics.Debug.Assert(false, "Unknown attribute");
+            return attributeId.ToString();
+        }
 
         /// <summary>
         /// Get all valid attributes for the node class
@@ -74,7 +224,7 @@ namespace Opc.Ua.Models {
         public object Decode(IDecoder decoder, uint attributeId) {
             decoder.PushNamespace(Namespaces.OpcUa);
             try {
-                var field = Attributes.GetBrowseName(attributeId);
+                var field = GetBrowseName(attributeId);
                 switch (attributeId) {
                     case Attributes.DisplayName:
                     case Attributes.InverseName:
@@ -96,7 +246,7 @@ namespace Opc.Ua.Models {
                         }
                         break;
                     case Attributes.NodeClass:
-                        return decoder.ReadEnumerated(field, typeof(NodeClass));
+                        return decoder.ReadEnumerated<NodeClass>(field);
                     case Attributes.ValueRank:
                         var int32Value = decoder.ReadInt32(field);
                         if (int32Value != 0) {
@@ -148,10 +298,9 @@ namespace Opc.Ua.Models {
                         break;
                     case Attributes.RolePermissions:
                     case Attributes.UserRolePermissions:
-                        var encodableArray = decoder.ReadEncodeableArray(field,
-                            typeof(RolePermissionType));
-                        if (encodableArray != null && encodableArray.Length > 0) {
-                            return encodableArray;
+                        var extensionObjects = decoder.ReadExtensionObjectArray(field);
+                        if (extensionObjects != null && extensionObjects.Count > 0) {
+                            return extensionObjects;
                         }
                         break;
                     case Attributes.DataTypeDefinition:
@@ -184,7 +333,7 @@ namespace Opc.Ua.Models {
         public void Encode(IEncoder encoder, uint attribute, object value) {
             encoder.PushNamespace(Namespaces.OpcUa);
             try {
-                var field = Attributes.GetBrowseName(attribute);
+                var field = GetBrowseName(attribute);
                 switch (attribute) {
                     case Attributes.DisplayName:
                     case Attributes.InverseName:
@@ -234,8 +383,7 @@ namespace Opc.Ua.Models {
                     case Attributes.RolePermissions:
                     case Attributes.UserRolePermissions:
                         // Always optional
-                        encoder.WriteEncodeableArray(field, (IEncodeable[])value,
-                            typeof(RolePermissionType));
+                        encoder.WriteExtensionObjectArray(field, (ExtensionObject[])value);
                         break;
                     case Attributes.DataTypeDefinition:
                         // Always optional
@@ -246,7 +394,8 @@ namespace Opc.Ua.Models {
                             encoder.WriteVariant(field, v);
                         }
                         else {
-                            encoder.WriteVariant(field, new Variant(value));
+                            encoder.WriteVariant(field,
+                                value == null ? Variant.Null : new Variant(value));
                         }
                         break;
                     default:
@@ -271,7 +420,7 @@ namespace Opc.Ua.Models {
             _map[Variable, Attributes.BrowseName] = new
                 MapEntry(QualifiedName.Null);
             _map[Variable, Attributes.DataType] = new
-                MapEntry(Opc.Ua.NodeId.Null);
+                MapEntry(NodeId.Null);
             _map[Variable, Attributes.Description] = new
                 MapEntry(LocalizedText.Null, true);
             _map[Variable, Attributes.DisplayName] = new
@@ -291,9 +440,9 @@ namespace Opc.Ua.Models {
             _map[Variable, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[Variable, Attributes.RolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[Variable, Attributes.UserRolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[Variable, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[Variable, Attributes.Value] = new
@@ -308,7 +457,7 @@ namespace Opc.Ua.Models {
             _map[VariableType, Attributes.BrowseName] =
                 new MapEntry(QualifiedName.Null);
             _map[VariableType, Attributes.DataType] =
-                new MapEntry(Opc.Ua.NodeId.Null);
+                new MapEntry(NodeId.Null);
             _map[VariableType, Attributes.Description] =
                 new MapEntry(LocalizedText.Null, true);
             _map[VariableType, Attributes.DisplayName] =
@@ -322,9 +471,9 @@ namespace Opc.Ua.Models {
             _map[VariableType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[VariableType, Attributes.RolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[VariableType, Attributes.UserRolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[VariableType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[VariableType, Attributes.Value] =
@@ -349,9 +498,9 @@ namespace Opc.Ua.Models {
             _map[Object, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[Object, Attributes.RolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[Object, Attributes.UserRolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[Object, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[Object, Attributes.WriteMask] =
@@ -372,9 +521,9 @@ namespace Opc.Ua.Models {
             _map[ObjectType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[ObjectType, Attributes.RolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[ObjectType, Attributes.UserRolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[ObjectType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[ObjectType, Attributes.WriteMask] =
@@ -399,9 +548,9 @@ namespace Opc.Ua.Models {
             _map[ReferenceType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[ReferenceType, Attributes.RolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[ReferenceType, Attributes.UserRolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[ReferenceType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[ReferenceType, Attributes.WriteMask] =
@@ -424,9 +573,9 @@ namespace Opc.Ua.Models {
             _map[DataType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[DataType, Attributes.RolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[DataType, Attributes.UserRolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[DataType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[DataType, Attributes.WriteMask] =
@@ -449,9 +598,9 @@ namespace Opc.Ua.Models {
             _map[Method, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[Method, Attributes.RolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[Method, Attributes.UserRolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[Method, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[Method, Attributes.WriteMask] =
@@ -474,9 +623,9 @@ namespace Opc.Ua.Models {
             _map[View, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[View, Attributes.RolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[View, Attributes.UserRolePermissions] =
-                new MapEntry(new RolePermissionType[0], true);
+                new MapEntry(new ExtensionObject[0], true);
             _map[View, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[View, Attributes.WriteMask] =

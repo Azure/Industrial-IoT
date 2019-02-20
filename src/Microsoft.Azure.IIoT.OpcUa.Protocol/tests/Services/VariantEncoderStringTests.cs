@@ -412,5 +412,156 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal(expected, variant);
             Assert.Equal(new JArray("", "", ""), encoded);
         }
+
+        [Fact]
+        public void DecodeEncodeStringMatrixFromStringJsonTypeNull() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new string[,,] {
+                { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var expected = new Variant(new string[,,] {
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeStringMatrixFromStringJsonTypeString() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new string[,,] {
+                { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.String, null);
+            var expected = new Variant(new string[,,] {
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeStringMatrixFromVariantJsonTypeVariant() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                type = "String",
+                body = new string[,,] {
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var expected = new Variant(new string[,,] {
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeStringMatrixFromVariantJsonTokenTypeVariantMsftEncoding() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                dataType = "String",
+                value = new string[,,] {
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var expected = new Variant(new string[,,] {
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeStringMatrixFromVariantJsonTypeNull() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                type = "String",
+                body = new string[,,] {
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var expected = new Variant(new string[,,] {
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
+        [Fact]
+        public void DecodeEncodeStringMatrixFromVariantJsonTokenTypeNullMsftEncoding() {
+            var codec = new JsonVariantEncoder();
+            var str = JToken.FromObject(new {
+                dataType = "String",
+                value = new string[,,] {
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
+                }
+            }).ToString();
+            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var expected = new Variant(new string[,,] {
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
+                    { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
+                });
+            var encoded = codec.Encode(variant);
+            Assert.True(expected.Value is Matrix);
+            Assert.True(variant.Value is Matrix);
+            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
+            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
+        }
+
     }
 }

@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Twin (endpoint) registration persisted and comparable
@@ -92,6 +92,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         public Dictionary<string, string> ClientCertificate { get; set; }
 
+        /// <summary>
+        /// Endpoint connectivity status
+        /// </summary>
+        public EndpointConnectivityState State { get; set; }
+
         #endregion Twin Properties
 
         /// <summary>
@@ -99,6 +104,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         public string Id => EndpointInfoModelEx.CreateEndpointId(
             ApplicationId, EndpointUrl, SecurityMode, SecurityPolicy);
+
+        /// <summary>
+        /// Activation state
+        /// </summary>
+        /// <returns></returns>
+        public EndpointActivationState? ActivationState {
+            get {
+                if (Activated == true) {
+                    if (Connected) {
+                        return EndpointActivationState.ActivatedAndConnected;
+                    }
+                    return EndpointActivationState.Activated;
+                }
+                return EndpointActivationState.Deactivated;
+            }
+            set {
+                if (value == EndpointActivationState.Activated ||
+                    value == EndpointActivationState.ActivatedAndConnected) {
+                    Activated = true;
+                }
+#pragma warning disable RECS0093 // Convert 'if' to '&&' expression
+                else if (value == EndpointActivationState.Deactivated) {
+#pragma warning restore RECS0093 // Convert 'if' to '&&' expression
+                    Activated = false;
+                }
+            }
+        }
 
         /// <summary>
         /// Create patch twin model to upload
@@ -257,11 +289,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 // Properties
 
                 Connected = connected ??
-                    properties.GetValueOrDefault(kConnectedProp, false),
+                    properties.GetValueOrDefault(TwinProperty.kConnected, false),
                 Type =
-                    properties.GetValueOrDefault<string>(kTypeProp, null),
+                    properties.GetValueOrDefault<string>(TwinProperty.kType, null),
+                State =
+                    properties.GetValueOrDefault(nameof(State), EndpointConnectivityState.Connecting),
                 SiteId =
-                    properties.GetValueOrDefault(kSiteIdProp, tags.GetValueOrDefault<string>(nameof(SiteId), null)),
+                    properties.GetValueOrDefault(TwinProperty.kSiteId,
+                        tags.GetValueOrDefault<string>(nameof(SiteId), null)),
                 EndpointUrl =
                     properties.GetValueOrDefault<string>(nameof(EndpointUrl), null),
                 Credential =
@@ -348,9 +383,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                         ServerThumbprint = ServerThumbprint.DecodeAsByteArray()
                     }
                 },
-                Connected = Connected ? true : (bool?)null,
-                Activated = Activated == true ? true : (bool?)null,
+                ActivationState = ActivationState,
                 NotSeenSince = NotSeenSince,
+                EndpointState = ActivationState== EndpointActivationState.ActivatedAndConnected ?
+                    State : (EndpointConnectivityState?)null,
                 OutOfSync = Connected && !_isInSync ? true : (bool?)null
             };
         }
@@ -366,7 +402,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Matches(model.Registration?.Endpoint) &&
                 NotSeenSince == model.NotSeenSince &&
                 ApplicationId == model.ApplicationId &&
-                (Activated ?? false) == (model.Activated ?? false) &&
+                (ActivationState ?? EndpointActivationState.Deactivated) ==
+                    (model.ActivationState ?? EndpointActivationState.Deactivated) &&
                 Certificate.DecodeAsByteArray().SequenceEqualsSafe(
                     model.Registration?.Certificate);
         }
@@ -404,8 +441,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     .ServerThumbprint.EncodeAsDictionary(),
                 ClientCertificate = model.Registration?.Endpoint?
                     .ClientCertificate.EncodeAsDictionary(),
-                Activated = model.Activated,
-                Connected = model.Connected ?? false
+                ActivationState = model.ActivationState
             };
         }
 
@@ -455,6 +491,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 EndpointUrlLC == registration.EndpointUrlLC &&
                 SupervisorId == registration.SupervisorId &&
                 JToken.DeepEquals(Credential, registration.Credential) &&
+                State == registration.State &&
                 CredentialType == registration.CredentialType &&
                 SecurityLevel == registration.SecurityLevel &&
                 SecurityPolicy == registration.SecurityPolicy &&
@@ -491,6 +528,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 EqualityComparer<int?>.Default.GetHashCode(SecurityLevel);
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<CredentialType?>.Default.GetHashCode(CredentialType);
+            hashCode = hashCode * -1521134295 +
+                EqualityComparer<EndpointConnectivityState?>.Default.GetHashCode(State);
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<SecurityMode?>.Default.GetHashCode(SecurityMode);
             hashCode = hashCode * -1521134295 +

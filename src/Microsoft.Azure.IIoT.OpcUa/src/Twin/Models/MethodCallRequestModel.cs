@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -13,14 +12,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     public class MethodCallRequestModel {
 
         /// <summary>
-        /// Object scope of the method
-        /// </summary>
-        public string ObjectId { get; set; }
-
-        /// <summary>
-        /// Method to call
+        /// Method id of method to call.
         /// </summary>
         public string MethodId { get; set; }
+
+        /// <summary>
+        /// Context of the method, i.e. an object or object type
+        /// node.  If null then the method is called in the context
+        /// of the inverse HasComponent reference of the MethodId
+        /// if it exists.
+        /// </summary>
+        public string ObjectId { get; set; }
 
         /// <summary>
         /// Input Arguments
@@ -28,13 +30,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public List<MethodCallArgumentModel> Arguments { get; set; }
 
         /// <summary>
-        /// Elevation
+        /// An optional component path from the node identified by
+        /// MethodId or from a resolved objectId to the actual
+        /// method node.  
         /// </summary>
-        public CredentialModel Elevation { get; set; }
+        public string[] MethodBrowsePath { get; set; }
 
         /// <summary>
-        /// Optional diagnostics configuration
+        /// An optional component path from the node identified by
+        /// ObjectId to the actual object or objectType node.
+        /// If ObjectId is null, the root node (i=84) is used
         /// </summary>
-        public DiagnosticsModel Diagnostics { get; set; }
+        public string[] ObjectBrowsePath { get; set; }
+
+        /// <summary>
+        /// Optional header
+        /// </summary>
+        public RequestHeaderModel Header { get; set; }
     }
 }

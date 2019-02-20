@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Opc.Ua.Client;
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -20,10 +21,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <typeparam name="T"></typeparam>
         /// <param name="endpoint"></param>
         /// <param name="elevation"></param>
-        /// <param name="service">callback providing a session to use</param>
-        /// <param name="exception">exception handler</param>
+        /// <param name="priority"></param>
+        /// <param name="service"></param>
+        /// <param name="timeout"></param>
+        /// <param name="ct"></param>
+        /// <param name="exceptionHandler"></param>
         /// <returns></returns>
-        Task<T> ExecuteServiceAsync<T>(EndpointModel endpoint, CredentialModel elevation,
-            Func<Session, Task<T>> service, Func<Exception, bool> exception);
+        Task<T> ExecuteServiceAsync<T>(EndpointModel endpoint,
+            CredentialModel elevation, int priority, Func<Session,
+            Task<T>> service, TimeSpan timeout, CancellationToken ct,
+            Func<Exception, bool> exceptionHandler);
     }
 }

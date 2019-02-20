@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
