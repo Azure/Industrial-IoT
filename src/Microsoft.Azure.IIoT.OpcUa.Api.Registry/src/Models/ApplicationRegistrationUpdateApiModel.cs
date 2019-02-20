@@ -13,12 +13,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     public class ApplicationRegistrationUpdateApiModel {
 
         /// <summary>
-        /// Identifier of the application to patch
-        /// </summary>
-        [JsonProperty(PropertyName = "id")]
-        public string Id { get; set; }
-
-        /// <summary>
         /// Product uri
         /// </summary>
         [JsonProperty(PropertyName = "productUri",

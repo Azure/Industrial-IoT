@@ -19,6 +19,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public string NodeId { get; set; }
 
         /// <summary>
+        /// An optional path from NodeId instance to
+        /// the actual node.
+        /// </summary>
+        [JsonProperty(PropertyName = "browsePath",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string[] BrowsePath { get; set; }
+
+        /// <summary>
         /// The HistoryReadDetailsType extension object
         /// encoded in json and containing the tunneled
         /// Historian reader request.
@@ -37,17 +45,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public string IndexRange { get; set; }
 
         /// <summary>
-        /// Optional User elevation
+        /// Optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "elevation",
+        [JsonProperty(PropertyName = "header",
             NullValueHandling = NullValueHandling.Ignore)]
-        public CredentialApiModel Elevation { get; set; }
-
-        /// <summary>
-        /// Optional diagnostics configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "diagnostics",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        public RequestHeaderApiModel Header { get; set; }
     }
 }

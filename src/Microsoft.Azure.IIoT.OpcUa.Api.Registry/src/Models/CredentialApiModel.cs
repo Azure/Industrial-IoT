@@ -15,14 +15,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     public enum CredentialType {
 
         /// <summary>
-        /// No token
+        /// No credentials
         /// </summary>
         None,
 
         /// <summary>
-        /// User name password
+        /// User name with secret
         /// </summary>
-        UserNamePassword,
+        UserName,
 
         /// <summary>
         /// Certificate

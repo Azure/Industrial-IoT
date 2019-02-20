@@ -13,12 +13,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     public class SupervisorUpdateApiModel {
 
         /// <summary>
-        /// Supervisor id
-        /// </summary>
-        [JsonProperty(PropertyName = "id")]
-        public string Id { get; set; }
-
-        /// <summary>
         /// Site the supervisor is part of
         /// </summary>
         [JsonProperty(PropertyName = "siteId",

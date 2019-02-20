@@ -5,16 +5,15 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Http;
-    using Newtonsoft.Json;
     using System;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Implementation of v1 registry service api.
     /// </summary>
-    public class RegistryServiceClient : IRegistryServiceApi {
+    public sealed class RegistryServiceClient : IRegistryServiceApi {
 
         /// <summary>
         /// Create service client
@@ -52,8 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             var request = _httpClient.NewRequest($"{_serviceUri}/v1/status", _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<StatusResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<StatusResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -72,8 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             }
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<SupervisorListApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<SupervisorListApiModel>();
         }
 
         /// <inheritdoc/>
@@ -90,8 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             request.SetContent(query);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<SupervisorListApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<SupervisorListApiModel>();
         }
 
         /// <inheritdoc/>
@@ -107,16 +103,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<SupervisorApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<SupervisorApiModel>();
         }
 
         /// <inheritdoc/>
-        public async Task UpdateSupervisorAsync(SupervisorUpdateApiModel content) {
+        public async Task<SupervisorStatusApiModel> GetSupervisorStatusAsync(
+            string supervisorId) {
+            if (string.IsNullOrEmpty(supervisorId)) {
+                throw new ArgumentNullException(nameof(supervisorId));
+            }
+            var uri = new UriBuilder($"{_serviceUri}/v1/supervisors/{supervisorId}/status");
+            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
+            response.Validate();
+            return response.GetContent<SupervisorStatusApiModel>();
+        }
+
+        /// <inheritdoc/>
+        public async Task ResetSupervisorAsync(string supervisorId) {
+            if (string.IsNullOrEmpty(supervisorId)) {
+                throw new ArgumentNullException(nameof(supervisorId));
+            }
+            var uri = new UriBuilder($"{_serviceUri}/v1/supervisors/{supervisorId}/reset");
+            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
+            response.Validate();
+        }
+
+        /// <inheritdoc/>
+        public async Task UpdateSupervisorAsync(string supervisorId,
+            SupervisorUpdateApiModel content) {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/supervisors",
+            if (string.IsNullOrEmpty(supervisorId)) {
+                throw new ArgumentNullException(nameof(supervisorId));
+            }
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/supervisors/{supervisorId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PatchAsync(request).ConfigureAwait(false);
@@ -166,16 +189,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             request.SetContent(content);
             var response = await _httpClient.PutAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<ApplicationRegistrationResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<ApplicationRegistrationResponseApiModel>();
         }
 
         /// <inheritdoc/>
-        public async Task UpdateApplicationAsync(ApplicationRegistrationUpdateApiModel content) {
+        public async Task UpdateApplicationAsync(string applicationId,
+            ApplicationRegistrationUpdateApiModel content) {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications",
+            if (string.IsNullOrEmpty(applicationId)) {
+                throw new ArgumentNullException(nameof(applicationId));
+            }
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications/{applicationId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PatchAsync(request).ConfigureAwait(false);
@@ -189,8 +215,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<ApplicationRegistrationApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<ApplicationRegistrationApiModel>();
         }
 
         /// <inheritdoc/>
@@ -204,8 +229,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             request.SetContent(query);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<ApplicationInfoListApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<ApplicationInfoListApiModel>();
         }
 
         /// <inheritdoc/>
@@ -221,8 +245,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             }
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<ApplicationInfoListApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<ApplicationInfoListApiModel>();
         }
 
         /// <inheritdoc/>
@@ -238,8 +261,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             }
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<ApplicationSiteListApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<ApplicationSiteListApiModel>();
         }
 
         /// <inheritdoc/>
@@ -277,8 +299,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             }
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<EndpointInfoListApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<EndpointInfoListApiModel>();
         }
 
         /// <inheritdoc/>
@@ -295,8 +316,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             request.SetContent(query);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<EndpointInfoListApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<EndpointInfoListApiModel>();
         }
 
         /// <inheritdoc/>
@@ -312,16 +332,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<EndpointInfoApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<EndpointInfoApiModel>();
         }
 
         /// <inheritdoc/>
-        public async Task UpdateEndpointAsync(EndpointRegistrationUpdateApiModel content) {
+        public async Task UpdateEndpointAsync(string endpointId,
+            EndpointRegistrationUpdateApiModel content) {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/endpoints",
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/endpoints/{endpointId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PatchAsync(request).ConfigureAwait(false);

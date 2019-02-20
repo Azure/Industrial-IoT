@@ -50,11 +50,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             string applicationId);
 
         /// <summary>
-        /// Register new application and all endpoints with it.
+        /// Update an application' properties.
         /// </summary>
+        /// <param name="applicationId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task UpdateApplicationAsync(
+        Task UpdateApplicationAsync(string applicationId,
             ApplicationRegistrationUpdateApiModel request);
 
         /// <summary>
@@ -114,24 +115,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <summary>
         /// Set endpoint activation state to activated
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpointId"></param>
         /// <returns></returns>
-        Task ActivateEndpointAsync(string id);
+        Task ActivateEndpointAsync(string endpointId);
 
         /// <summary>
         /// Update endpoint registration
         /// </summary>
+        /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task UpdateEndpointAsync(
+        Task UpdateEndpointAsync(string endpointId,
             EndpointRegistrationUpdateApiModel request);
 
         /// <summary>
         /// Set endpoint activation state to deactivated
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpointId"></param>
         /// <returns></returns>
-        Task DeactivateEndpointAsync(string id);
+        Task DeactivateEndpointAsync(string endpointId);
 
         /// <summary>
         /// List all endpoints
@@ -167,11 +169,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             string supervisorId, bool? onlyServerState = null);
 
         /// <summary>
+        /// Get supervisor runtime status
+        /// </summary>
+        /// <param name="supervisorId"></param>
+        /// <returns>Supervisor diagnostics</returns>
+        Task<SupervisorStatusApiModel> GetSupervisorStatusAsync(
+            string supervisorId);
+
+        /// <summary>
+        /// Reset and restart supervisor
+        /// </summary>
+        /// <param name="supervisorId"></param>
+        Task ResetSupervisorAsync(string supervisorId);
+
+        /// <summary>
         /// Update supervisor including config updates.
         /// </summary>
+        /// <param name="supervisorId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task UpdateSupervisorAsync(SupervisorUpdateApiModel request);
+        Task UpdateSupervisorAsync(string supervisorId,
+            SupervisorUpdateApiModel request);
 
         /// <summary>
         /// List all supervisors

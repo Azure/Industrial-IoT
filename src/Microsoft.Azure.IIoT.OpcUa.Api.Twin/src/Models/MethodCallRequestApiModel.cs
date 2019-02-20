@@ -10,16 +10,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     /// <summary>
     /// Call request model
     /// </summary>
+    /// <remarks>
+    /// A method call request can specify the targets in several ways:
+    /// <ul>
+    /// <li>Specify methodId and objectId node ids and leave the browse
+    /// paths null.</li>
+    /// <li>Specify an objectBrowsePath to a real object node from
+    /// the node specified with objectId.  If objectId is null, the
+    /// root node (i=84) is used. </li>
+    /// <li>Specify a methodBrowsePath from the above object node
+    /// to the actual method node to call on the object.  methodId
+    /// remains null.</li>
+    /// <li>Like previously, but specify methodId and method browse
+    /// path from it to a real method node.</li>
+    /// </ul>
+    /// </remarks>
     public class MethodCallRequestApiModel {
 
         /// <summary>
-        /// Method id of method to call
+        /// Method id of method to call. 
         /// </summary>
-        [JsonProperty(PropertyName = "methodId")]
+        [JsonProperty(PropertyName = "methodId",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string MethodId { get; set; }
 
         /// <summary>
-        /// If not global (= null), object or type scope
+        /// Context of the method, i.e. an object or object type
+        /// node. 
         /// </summary>
         [JsonProperty(PropertyName = "objectId",
             NullValueHandling = NullValueHandling.Ignore)]
@@ -33,17 +50,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public List<MethodCallArgumentApiModel> Arguments { get; set; }
 
         /// <summary>
-        /// Optional User elevation
+        /// An optional component path from the node identified by
+        /// MethodId or from a resolved objectId to the actual
+        /// method node.  
         /// </summary>
-        [JsonProperty(PropertyName = "elevation",
+        [JsonProperty(PropertyName = "methodBrowsePath",
             NullValueHandling = NullValueHandling.Ignore)]
-        public CredentialApiModel Elevation { get; set; }
+        public string[] MethodBrowsePath { get; set; }
 
         /// <summary>
-        /// Optional diagnostics configuration
+        /// An optional component path from the node identified by
+        /// ObjectId to the actual object or objectType node.
+        /// If ObjectId is null, the root node (i=84) is used.
         /// </summary>
-        [JsonProperty(PropertyName = "diagnostics",
+        [JsonProperty(PropertyName = "objectBrowsePath",
             NullValueHandling = NullValueHandling.Ignore)]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        public string[] ObjectBrowsePath { get; set; }
+
+        /// <summary>
+        /// Optional request header
+        /// </summary>
+        [JsonProperty(PropertyName = "header",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public RequestHeaderApiModel Header { get; set; }
     }
 }

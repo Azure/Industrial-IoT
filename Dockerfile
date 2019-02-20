@@ -19,4 +19,5 @@ RUN dotnet publish Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
+ENV _HOST=host.docker.internal
 ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.OpcUa.Api.Cli.dll"]

@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
+    using System;
 
     /// <summary>
     /// reference model
@@ -14,16 +15,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Reference Type id
         /// </summary>
-        [JsonProperty(PropertyName = "id",
+        [JsonProperty(PropertyName = "referenceTypeId",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string Id { get; set; }
-
-        /// <summary>
-        /// Browse name of reference
-        /// </summary>
-        [JsonProperty(PropertyName = "browseName",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string BrowseName { get; set; }
+        public string ReferenceTypeId { get; set; }
 
         /// <summary>
         /// Browse direction of reference
@@ -33,23 +27,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public BrowseDirection? Direction { get; set; }
 
         /// <summary>
-        /// Display name of reference
-        /// </summary>
-        [JsonProperty(PropertyName = "displayName",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string DisplayName { get; set; }
-
-        /// <summary>
         /// Target node
         /// </summary>
         [JsonProperty(PropertyName = "target")]
         public NodeApiModel Target { get; set; }
 
-        /// <summary>
-        /// Optional type definition of the reference
-        /// </summary>
-        [JsonProperty(PropertyName = "typeDefinition",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string TypeDefinition { get; set; }
+        // Legacy
+
+        /// <ignore/>
+        [JsonIgnore]
+        [Obsolete]
+        public string TypeId => ReferenceTypeId;
+
+        /// <ignore/>
+        [JsonIgnore]
+        [Obsolete]
+        public string BrowseName => Target?.BrowseName;
+
+        /// <ignore/>
+        [JsonIgnore]
+        [Obsolete]
+        public string DisplayName => Target?.DisplayName;
+
+        /// <ignore/>
+        [JsonIgnore]
+        [Obsolete]
+        public string TypeDefinition => Target?.TypeDefinitionId;
     }
 }

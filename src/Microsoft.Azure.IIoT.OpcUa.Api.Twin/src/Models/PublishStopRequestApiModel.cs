@@ -18,6 +18,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public string NodeId { get; set; }
 
         /// <summary>
+        /// An optional path from NodeId instance to
+        /// the actual node.
+        /// </summary>
+        [JsonProperty(PropertyName = "browsePath",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string[] BrowsePath { get; set; }
+
+        /// <summary>
         /// Attribute of item to unpublish
         /// </summary>
         [JsonProperty(PropertyName = "nodeAttribute",

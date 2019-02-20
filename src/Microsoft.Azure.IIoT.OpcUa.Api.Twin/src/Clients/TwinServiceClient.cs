@@ -5,16 +5,15 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Http;
-    using Newtonsoft.Json;
     using System;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Implementation of v1 twin service api.
     /// </summary>
-    public class TwinServiceClient : ITwinServiceApi {
+    public sealed class TwinServiceClient : ITwinServiceApi {
 
         /// <summary>
         /// Create service client
@@ -53,8 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
                 _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<StatusResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<StatusResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -68,8 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<BrowseResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<BrowseResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -89,8 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<BrowseNextResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<BrowseNextResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -110,8 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<BrowsePathResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<BrowsePathResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -131,8 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<PublishStartResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<PublishStartResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -146,8 +140,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<PublishedItemListResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<PublishedItemListResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -167,8 +160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<PublishStopResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<PublishStopResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -188,8 +180,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<ReadResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<ReadResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -209,8 +200,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<WriteResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<WriteResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -230,8 +220,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<ValueReadResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<ValueReadResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -254,8 +243,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<ValueWriteResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<ValueWriteResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -270,13 +258,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (string.IsNullOrEmpty(content.MethodId)) {
                 throw new ArgumentNullException(nameof(content.MethodId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/call/{endpointId}/$metadata",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v1/call/{endpointId}/metadata",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<MethodMetadataResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<MethodMetadataResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -296,8 +283,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<MethodCallResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<MethodCallResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -320,8 +306,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<HistoryReadResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<HistoryReadResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -341,8 +326,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<HistoryReadNextResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<HistoryReadNextResponseApiModel>();
         }
 
         /// <inheritdoc/>
@@ -362,8 +346,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
-            return JsonConvertEx.DeserializeObject<HistoryUpdateResponseApiModel>(
-                response.GetContentAsString());
+            return response.GetContent<HistoryUpdateResponseApiModel>();
         }
 
         private const string kContinuationTokenHeaderKey = "x-ms-continuation";

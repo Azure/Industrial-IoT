@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using System;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
     /// Registry services adapter to run dependent services outside of cloud.
     /// </summary>
     public sealed class RegistryAdapter : IEndpointRegistry, ISupervisorRegistry,
-        IApplicationRegistry, IDiscoveryServices {
+        IApplicationRegistry, IDiscoveryServices, ISupervisorDiagnostics {
 
         /// <summary>
         /// Create registry services
@@ -60,8 +60,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         }
 
         /// <inheritdoc/>
-        public Task UpdateEndpointAsync(EndpointRegistrationUpdateModel request) {
-            return _client.UpdateEndpointAsync(
+        public Task UpdateEndpointAsync(string endpointId,
+            EndpointRegistrationUpdateModel request) {
+            return _client.UpdateEndpointAsync(endpointId,
                 Map<EndpointRegistrationUpdateApiModel>(request));
         }
 
@@ -96,8 +97,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         }
 
         /// <inheritdoc/>
-        public Task UpdateSupervisorAsync(SupervisorUpdateModel request) {
-            return _client.UpdateSupervisorAsync(
+        public async Task<SupervisorStatusModel> GetSupervisorStatusAsync(string id) {
+            var result = await _client.GetSupervisorStatusAsync(id);
+            return Map<SupervisorStatusModel>(result);
+        }
+
+        /// <inheritdoc/>
+        public Task ResetSupervisorAsync(string id) {
+            return _client.ResetSupervisorAsync(id);
+        }
+
+        /// <inheritdoc/>
+        public Task UpdateSupervisorAsync(string supervisorId,
+            SupervisorUpdateModel request) {
+            return _client.UpdateSupervisorAsync(supervisorId,
                 Map<SupervisorUpdateApiModel>(request));
         }
 
@@ -118,8 +131,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         }
 
         /// <inheritdoc/>
-        public Task UpdateApplicationAsync(ApplicationRegistrationUpdateModel request) {
-            return _client.UpdateApplicationAsync(
+        public Task UpdateApplicationAsync(string applicationId,
+            ApplicationRegistrationUpdateModel request) {
+            return _client.UpdateApplicationAsync(applicationId,
                 Map<ApplicationRegistrationUpdateApiModel>(request));
         }
 

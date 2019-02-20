@@ -18,6 +18,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public string NodeId { get; set; }
 
         /// <summary>
+        /// An optional path from NodeId instance to
+        /// the actual node.
+        /// </summary>
+        [JsonProperty(PropertyName = "browsePath",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string[] BrowsePath { get; set; }
+
+        /// <summary>
         /// Index range to read, e.g. 1:2,0:1 for 2 slices
         /// out of a matrix or 0:1 for the first item in
         /// an array, string or bytestring.
@@ -29,17 +37,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public string IndexRange { get; set; }
 
         /// <summary>
-        /// Optional User elevation
+        /// Optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "elevation",
+        [JsonProperty(PropertyName = "header",
             NullValueHandling = NullValueHandling.Ignore)]
-        public CredentialApiModel Elevation { get; set; }
-
-        /// <summary>
-        /// Optional diagnostics configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "diagnostics",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        public RequestHeaderApiModel Header { get; set; }
     }
 }

@@ -12,23 +12,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     public class MethodMetadataRequestApiModel {
 
         /// <summary>
-        /// Method to retrieve metadata for
+        /// Method id of method to call.
+        /// (Required)
         /// </summary>
         [JsonProperty(PropertyName = "methodId")]
         public string MethodId { get; set; }
 
         /// <summary>
-        /// Optional User elevation
+        /// An optional component path from the node identified by
+        /// MethodId to the actual method node.  
         /// </summary>
-        [JsonProperty(PropertyName = "elevation",
+        [JsonProperty(PropertyName = "methodBrowsePath",
             NullValueHandling = NullValueHandling.Ignore)]
-        public CredentialApiModel Elevation { get; set; }
+        public string[] MethodBrowsePath { get; set; }
 
         /// <summary>
-        /// Optional diagnostics configuration
+        /// Optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "diagnostics",
+        [JsonProperty(PropertyName = "header",
             NullValueHandling = NullValueHandling.Ignore)]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        public RequestHeaderApiModel Header { get; set; }
     }
 }

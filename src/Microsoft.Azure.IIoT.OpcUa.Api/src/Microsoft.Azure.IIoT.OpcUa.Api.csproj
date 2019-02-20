@@ -6,11 +6,13 @@
     <Description>Azure Industrial IoT OPC API</Description>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Registry\src\Microsoft.Azure.IIoT.OpcUa.Api.Registry.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Twin\src\Microsoft.Azure.IIoT.OpcUa.Api.Twin.csproj" />
+    <Compile Remove="Twin\Extensions\**" />
+    <EmbeddedResource Remove="Twin\Extensions\**" />
+    <None Remove="Twin\Extensions\**" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Twin\Extensions\" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Registry\src\Microsoft.Azure.IIoT.OpcUa.Api.Registry.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Twin\src\Microsoft.Azure.IIoT.OpcUa.Api.Twin.csproj" />
   </ItemGroup>
   <Choose>
     <When Condition="Exists('..\..\..\..\opc-ua')">
@@ -20,7 +22,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa" Version="1.1.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa" Version="2.0.0" />
       </ItemGroup>
     </Otherwise>
   </Choose>

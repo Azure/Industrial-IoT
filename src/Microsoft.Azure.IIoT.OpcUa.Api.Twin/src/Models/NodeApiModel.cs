@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Linq;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Node class
@@ -229,8 +230,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Id of node (Mandatory).
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
-        public string Id { get; set; }
+        [JsonProperty(PropertyName = "nodeId")]
+        public string NodeId { get; set; }
 
         /// <summary>
         /// Description if any
@@ -240,20 +241,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public string Description { get; set; }
 
         /// <summary>
-        /// Whether node has children which are defined as
-        /// any forward hierarchical references.
-        /// (default: unknown)
-        /// </summary>
-        [JsonProperty(PropertyName = "children",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public bool? HasChildren { get; set; }
-
-        /// <summary>
         /// Browse name
         /// </summary>
-        [JsonProperty(PropertyName = "name",
+        [JsonProperty(PropertyName = "browseName",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string Name { get; set; }
+        public string BrowseName { get; set; }
 
         /// <summary>
         /// Node access restrictions if any.
@@ -414,5 +406,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         [JsonProperty(PropertyName = "symmetric",
             NullValueHandling = NullValueHandling.Ignore)]
         public bool? Symmetric { get; set; }
+
+        /// <summary>
+        /// Role permissions
+        /// </summary>
+        [JsonProperty(PropertyName = "rolePermissions",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<RolePermissionApiModel> RolePermissions { get; set; }
+
+        /// <summary>
+        /// User Role permissions
+        /// </summary>
+        [JsonProperty(PropertyName = "userRolePermissions",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<RolePermissionApiModel> UserRolePermissions { get; set; }
+
+        /// <summary>
+        /// Optional type definition of the node
+        /// </summary>
+        [JsonProperty(PropertyName = "typeDefinitionId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string TypeDefinitionId { get; set; }
+
+        /// <summary>
+        /// Whether node has children which are defined as
+        /// any forward hierarchical references.
+        /// (default: unknown)
+        /// </summary>
+        [JsonProperty(PropertyName = "children",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public bool? HasChildren { get; set; }
+
+
+        // Legacy
+
+        /// <ignore/>
+        [JsonIgnore]
+        [Obsolete]
+        public string Id => NodeId;
+
+        /// <ignore/>
+        [JsonIgnore]
+        [Obsolete]
+        public string Name => BrowseName;
     }
 }

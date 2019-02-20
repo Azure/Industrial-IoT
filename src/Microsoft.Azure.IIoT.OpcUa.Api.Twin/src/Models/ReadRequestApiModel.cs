@@ -19,17 +19,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public List<AttributeReadRequestApiModel> Attributes { get; set; }
 
         /// <summary>
-        /// Optional User Elevation
+        /// Optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "elevation",
+        [JsonProperty(PropertyName = "header",
             NullValueHandling = NullValueHandling.Ignore)]
-        public CredentialApiModel Elevation { get; set; }
-
-        /// <summary>
-        /// Optional diagnostics configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "diagnostics",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        public RequestHeaderApiModel Header { get; set; }
     }
 }

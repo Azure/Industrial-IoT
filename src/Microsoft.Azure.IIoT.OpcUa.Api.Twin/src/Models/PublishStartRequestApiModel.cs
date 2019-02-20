@@ -18,10 +18,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public PublishedItemApiModel Item { get; set; }
 
         /// <summary>
-        /// Optional diagnostics configuration
+        /// Optional header 
         /// </summary>
-        [JsonProperty(PropertyName = "diagnostics",
+        [JsonProperty(PropertyName = "header",
             NullValueHandling = NullValueHandling.Ignore)]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        public RequestHeaderApiModel Header { get; set; }
     }
 }

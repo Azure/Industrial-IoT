@@ -14,18 +14,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Auth;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Autofac;
+    using AutofacSerilogIntegration;
     using System;
     using System.IO;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Linq;
     using System.Diagnostics;
+    using Serilog;
 
     /// <summary>
     /// Api command line interface
@@ -42,8 +43,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             // Register configuration interfaces and logger
             builder.RegisterInstance(new ApiConfig(configuration))
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<TraceLogger>()
-                .AsImplementedInterfaces().SingleInstance();
+
+            // Register logger
+            builder.RegisterLogger(LogEx.Trace());
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
@@ -113,7 +115,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                             break;
                         case "status":
                             options = new CliOptions(args);
-                            await GetStatusAsync(service, registry, options);
+                            await GetStatusAsync(context, service, registry, options);
                             break;
                         case "apps":
                             if (args.Length < 2) {
@@ -207,8 +209,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                 case "get":
                                     await GetSupervisorAsync(registry, options);
                                     break;
+                                case "status":
+                                    await GetSupervisorStatusAsync(registry, options);
+                                    break;
                                 case "update":
                                     await UpdateSupervisorAsync(registry, options);
+                                    break;
+                                case "reset":
+                                    await ResetSupervisorAsync(registry, options);
                                     break;
                                 case "list":
                                     await ListSupervisorsAsync(registry, options);
@@ -416,13 +424,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     // Do recursive browse
                     if (recursive) {
                         foreach (var r in result.References) {
-                            if (!visited.Contains(r.Id)) {
-                                nodes.Add(r.Id);
+                            if (!visited.Contains(r.ReferenceTypeId)) {
+                                nodes.Add(r.ReferenceTypeId);
                             }
-                            if (!visited.Contains(r.Target.Id)) {
-                                nodes.Add(r.Target.Id);
+                            if (!visited.Contains(r.Target.NodeId)) {
+                                nodes.Add(r.Target.NodeId);
                             }
-                            if (nodesRead.Contains(r.Target.Id)) {
+                            if (nodesRead.Contains(r.Target.NodeId)) {
                                 continue; // We have read this one already
                             }
                             if (!r.Target.NodeClass.HasValue ||
@@ -430,20 +438,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                 continue;
                             }
                             if (!silent) {
-                                Console.WriteLine($"Reading {r.Target.Id}");
+                                Console.WriteLine($"Reading {r.Target.NodeId}");
                             }
                             try {
-                                nodesRead.Add(r.Target.Id);
+                                nodesRead.Add(r.Target.NodeId);
                                 var read = await service.NodeValueReadAsync(id,
                                     new ValueReadRequestApiModel {
-                                        NodeId = r.Target.Id
+                                        NodeId = r.Target.NodeId
                                     });
                                 if (!silent) {
                                     PrintResult(options, read);
                                 }
                             }
                             catch (Exception ex) {
-                                Console.WriteLine($"Reading {r.Target.Id} resulted in {ex}");
+                                Console.WriteLine($"Reading {r.Target.NodeId} resulted in {ex}");
                                 errors++;
                             }
                         }
@@ -533,6 +541,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         }
 
         /// <summary>
+        /// Get supervisor status
+        /// </summary>
+        private static async Task GetSupervisorStatusAsync(IRegistryServiceApi service,
+            CliOptions options) {
+            var result = await service.GetSupervisorStatusAsync(
+                options.GetValue<string>("-i", "--id"));
+            PrintResult(options, result);
+        }
+
+        /// <summary>
+        /// Reset supervisor
+        /// </summary>
+        private static async Task ResetSupervisorAsync(IRegistryServiceApi service,
+            CliOptions options) {
+            await service.ResetSupervisorAsync(
+                options.GetValue<string>("-i", "--id"));
+        }
+
+        /// <summary>
         /// Update supervisor
         /// </summary>
         private static async Task UpdateSupervisorAsync(IRegistryServiceApi service,
@@ -575,9 +602,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 config.MaxPortProbes = portProbes;
             }
 
-            await service.UpdateSupervisorAsync(
+            await service.UpdateSupervisorAsync(options.GetValue<string>("-i", "--id"),
                 new SupervisorUpdateApiModel {
-                    Id = options.GetValue<string>("-i", "--id"),
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                     Discovery = options.GetValueOrDefault<DiscoveryMode>("-d", "--discovery", null),
                     DiscoveryConfig = config,
@@ -642,9 +668,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task UpdateApplicationAsync(IRegistryServiceApi service,
             CliOptions options) {
-            await service.UpdateApplicationAsync(
+            await service.UpdateApplicationAsync(options.GetValue<string>("-i", "--id"),
                 new ApplicationRegistrationUpdateApiModel {
-                    Id = options.GetValue<string>("-i", "--id"),
                     // ...
                     ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
                     Locale = options.GetValueOrDefault<string>("-l", "--locale", null)
@@ -805,7 +830,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 Activated = false
             });
             foreach (var item in result) {
-                await service.ActivateEndpointAsync(item.Registration.Id);
+                try {
+                    await service.ActivateEndpointAsync(item.Registration.Id);
+                }
+                catch (Exception ex) {
+                    Console.WriteLine($"Failed to activate {item.Registration.Id}: {ex.Message}");
+                }
             }
         }
 
@@ -824,7 +854,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 case Registry.Models.CredentialType.None:
                     user.Value = null;
                     break;
-                case Registry.Models.CredentialType.UserNamePassword:
+                case Registry.Models.CredentialType.UserName:
                     Console.WriteLine("User: ");
                     var name = Console.ReadLine();
                     Console.WriteLine("Password: ");
@@ -842,9 +872,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 default:
                     throw new ArgumentException(nameof(credential));
             }
-            await service.UpdateEndpointAsync(
+            await service.UpdateEndpointAsync(options.GetValue<string>("-i", "--id"),
                 new EndpointRegistrationUpdateApiModel {
-                    Id = options.GetValue<string>("-i", "--id"),
                     User = user
                 });
         }
@@ -867,7 +896,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 Activated = true
             });
             foreach (var item in result) {
-                await service.DeactivateEndpointAsync(item.Registration.Id);
+                try {
+                    await service.DeactivateEndpointAsync(item.Registration.Id);
+                }
+                catch (Exception ex) {
+                    Console.WriteLine($"Failed to deactivate {item.Registration.Id}: {ex.Message}");
+                }
             }
         }
 
@@ -885,10 +919,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Get status
         /// </summary>
-        private static async Task GetStatusAsync(ITwinServiceApi twin,
-            IRegistryServiceApi registry,
+        private static async Task GetStatusAsync(IComponentContext context,
+            ITwinServiceApi twin, IRegistryServiceApi registry,
             CliOptions options) {
             try {
+                var cfg = context.Resolve<ITwinConfig>();
+                Console.WriteLine($"Connecting to {cfg.OpcUaTwinServiceUrl}...");
                 var result = await twin.GetServiceStatusAsync();
                 PrintResult(options, result);
             }
@@ -896,6 +932,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 PrintResult(options, ex);
             }
             try {
+                var cfg = context.Resolve<IRegistryConfig>();
+                Console.WriteLine($"Connecting to {cfg.OpcUaRegistryServiceUrl}...");
                 var result = await registry.GetServiceStatusAsync();
                 PrintResult(options, result);
             }
@@ -930,11 +968,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             /// <summary>OPC twin endpoint url</summary>
             public string OpcUaTwinServiceUrl => GetStringOrDefault(
                 kOpcUaTwinServiceUrlKey, GetStringOrDefault(
-                     "PCS_TWIN_SERVICE_URL", "http://localhost:9041"));
+                     "PCS_TWIN_SERVICE_URL", $"http://{_hostName}:9041"));
             /// <summary>OPC registry endpoint url</summary>
             public string OpcUaRegistryServiceUrl => GetStringOrDefault(
                 kOpcUaRegistryServiceUrlKey, GetStringOrDefault(
-                    "PCS_TWIN_REGISTRY_URL", "http://localhost:9042"));
+                    "PCS_TWIN_REGISTRY_URL", $"http://{_hostName}:9042"));
             /// <summary>OPC twin service audience</summary>
             public string OpcUaTwinServiceResourceId => GetStringOrDefault(
                 kOpcUaTwinServiceIdKey, GetStringOrDefault(
@@ -947,7 +985,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             /// <inheritdoc/>
             public ApiConfig(IConfigurationRoot configuration, string serviceId = "") :
                 base(configuration, serviceId) {
+                _hostName = GetStringOrDefault("_HOST", System.Net.Dns.GetHostName());
             }
+
+            private readonly string _hostName;
         }
 
         /// <summary>
@@ -956,15 +997,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static void PrintHelp() {
             Console.WriteLine(
                 @"
-OpcUaTwinCtrl cli - Allows to script opc service api.
-usage:      OpcUaTwinCtrl command [options]
+aziiotcli - Allows to script Industrial IoT Services api.
+usage:      aziiotcli command [options]
 
 Commands and Options
 
      console     Run in interactive mode. Enter commands after the >
      exit        Exit interactive mode and thus the cli.
      apps        Manage applications
-     endpoints   Manage Endpoints
+     endpoints   Manage endpoints
      supervisors Manage supervisors
      nodes       Call nodes services on endpoint
      status      Print service status
@@ -1061,7 +1102,7 @@ Commands and Options
         private static void PrintEndpointsHelp() {
             Console.WriteLine(
                 @"
-Manage Endpoints in registry.
+Manage endpoints in registry.
 
 Commands and Options
 
@@ -1086,7 +1127,7 @@ Commands and Options
         -A, --all       Return all endpoints (unpaged)
         -F, --format    Json format for result
 
-     activate    Activate endpoints with specified
+     activate    Activate endpoints
         with ...
         -i, --id        Id of endpoint or ...
         -m, --mode      Security mode (default:SignAndEncrypt)
@@ -1103,7 +1144,7 @@ Commands and Options
         -c, --credential
                         Credential type
 
-     deactivate  Deactivate endpoints with specified
+     deactivate  Deactivate endpoints
         with ...
         -i, --id        Id of endpoint or ...
         -m, --mode      Security mode (default:SignAndEncrypt)
@@ -1225,6 +1266,11 @@ Commands and Options
         -i, --id        Id of supervisor to retrieve (mandatory)
         -F, --format    Json format for result
 
+     status      Get supervisor runtime status
+        with ...
+        -i, --id        Id of supervisor to get status of (mandatory)
+        -F, --format    Json format for result
+
      update      Update supervisor
         with ...
         -i, --id        Id of supervisor to update (mandatory)
@@ -1239,6 +1285,10 @@ Commands and Options
                         Max port probes to use.
         -R, --address-probes
                         Max networking probes to use.
+
+     reset       Reset supervisor
+        with ...
+        -i, --id        Id of supervisor to reset (mandatory)
 
      help, -h, -? --help
                 Prints out this help.

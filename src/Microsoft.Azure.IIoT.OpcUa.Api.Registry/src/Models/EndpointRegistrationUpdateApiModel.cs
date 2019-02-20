@@ -12,12 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     public class EndpointRegistrationUpdateApiModel {
 
         /// <summary>
-        /// Identifier of the endpoint to patch
-        /// </summary>
-        [JsonProperty(PropertyName = "id")]
-        public string Id { get; set; }
-
-        /// <summary>
         /// User authentication to use on the endpoint.
         /// </summary>
         [JsonProperty(PropertyName = "user",

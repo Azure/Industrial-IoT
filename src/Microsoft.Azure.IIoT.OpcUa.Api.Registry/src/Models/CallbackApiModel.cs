@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
-    using System;
     using Newtonsoft.Json.Converters;
+    using System;
 
     /// <summary>
     /// Type of callback method to use

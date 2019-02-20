@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Application information
@@ -48,11 +47,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string Locale { get; set; }
 
         /// <summary>
-        /// Application capabilities
+        /// Application capability filter.
         /// </summary>
-        [JsonProperty(PropertyName = "capabilities",
+        [JsonProperty(PropertyName = "capability",
             NullValueHandling = NullValueHandling.Ignore)]
-        public List<string> Capabilities { get; set; }
+        public string Capability { get; set; }
 
         /// <summary>
         /// Supervisor or site the application belongs to.
