@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth.Clients;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Microsoft.AspNetCore.DataProtection;

@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
     /// <summary>
     /// Represents a range of ipv4 addresses
     /// </summary>
-    public class AddressRange {
+    public sealed class AddressRange {
 
         /// <summary>
         /// Name of the Network interface.

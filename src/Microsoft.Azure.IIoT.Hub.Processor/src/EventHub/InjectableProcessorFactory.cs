@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
     /// <summary>
     /// Factory implementation
     /// </summary>
-    public class InjectableProcessorFactory : IEventProcessorFactory {
+    public sealed class InjectableProcessorFactory : IEventProcessorFactory {
 
         /// <summary>
         /// Constructor

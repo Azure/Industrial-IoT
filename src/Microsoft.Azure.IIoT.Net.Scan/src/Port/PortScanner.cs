@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Net.Scanner {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
     /// <summary>
     /// Scans port ranges
     /// </summary>
-    public class PortScanner : IScanner {
+    public sealed class PortScanner : IScanner {
 
         /// <summary>
         /// Number of items scanned
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             _requeued = new ConcurrentQueue<IPEndPoint>();
             _rand = new Random();
 
-            _probePool = EnumerableEx
+            _probePool = LinqEx
                 .Repeat(i => new ConnectProbe(this, i), _maxProbeCount)
                 .ToList();
 

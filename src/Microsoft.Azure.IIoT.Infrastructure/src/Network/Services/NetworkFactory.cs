@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Infrastructure.Network.Services {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Infrastructure.Auth;
     using Microsoft.Azure.IIoT.Infrastructure.Services;
     using Microsoft.Azure.IIoT.Utils;
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network.Services {
                 "net", name);
 
             var region = await resourceGroup.Subscription.GetRegionAsync();
-            _logger.Info($"Trying to create network {name}...");
+            _logger.Information("Trying to create network {name}...", name);
 
             var nsg = await client.NetworkSecurityGroups
                 .Define(name)
@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network.Services {
                     .Attach();
             }
             var network = await networkDefinition.CreateAsync();
-            _logger.Info($"Created network {name}.");
+            _logger.Information("Created network {name}.", name);
             return new NetworkResource(this, resourceGroup, network, _logger);
         }
 
@@ -142,8 +142,8 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network.Services {
                             .ApplyAsync();
                     }
                     catch (Exception ex) {
-                        _logger.Error($"Failed to enable port {port} in {subnet.Key}",
-                            () => ex);
+                        _logger.Error(ex, "Failed to enable port {port} in {subnet}",
+                            port, subnet.Key);
                     }
                 }
             }
@@ -162,17 +162,17 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network.Services {
                             .ApplyAsync();
                     }
                     catch (Exception ex) {
-                        _logger.Error($"Failed to disable port {port} in {subnet.Key}",
-                            () => ex);
+                        _logger.Error(ex, "Failed to disable port {port} in {subnet}",
+                            port, subnet.Key);
                     }
                 }
             }
 
             /// <inheritdoc/>
             public async Task DeleteAsync() {
-                _logger.Info($"Deleting network {_network.Id}...");
+                _logger.Information("Deleting network {network}...", _network.Id);
                 await _manager.TryDeleteNetworkAsync(_resourceGroup, _network.Id);
-                _logger.Info($"Network {_network.Id} deleted.");
+                _logger.Information("Network {network} deleted.", _network.Id);
             }
 
             private readonly IResourceGroupResource _resourceGroup;

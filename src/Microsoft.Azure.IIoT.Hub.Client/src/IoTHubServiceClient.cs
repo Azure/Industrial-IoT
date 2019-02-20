@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Clients {
+namespace Microsoft.Azure.IIoT.Hub.Client {
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Azure.Devices.Shared;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
     /// <summary>
     /// Implementation of twin and job services using service sdk.
     /// </summary>
-    public class IoTHubServiceClient : IIoTHubTwinServices, IIoTHubJobServices,
+    public sealed class IoTHubServiceClient : IIoTHubTwinServices, IIoTHubJobServices,
         IIoTHubConfigurationServices {
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                     // Expected for update
                 }
                 catch (Exception e) {
-                    _logger.Debug("Create device failed in CreateOrUpdate", () => e);
+                    _logger.Debug(e, "Create device failed in CreateOrUpdate");
                 }
             }
 
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                             // Expected for update
                         }
                         catch (Exception e) {
-                            _logger.Debug("Create module failed in CreateOrUpdate", () => e);
+                            _logger.Debug(e, "Create module failed in CreateOrUpdate");
                         }
                     }
 
@@ -98,7 +98,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                 return update.ToModel();
             }
             catch (Exception e) {
-                _logger.Debug("Create or update failed ", () => e);
+                _logger.Debug(e, "Create or update failed ");
                 throw;
             }
         }
@@ -118,7 +118,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                 };
             }
             catch (Exception e) {
-                _logger.Debug("Call method failed ", () => e);
+                _logger.Debug(e, "Call method failed ");
                 throw e.Rethrow();
             }
         }
@@ -132,7 +132,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                     _registry.UpdateTwinAsync(deviceId, moduleId, properties.ToTwin(), etag));
             }
             catch (Exception e) {
-                _logger.Debug("Update properties failed ", () => e);
+                _logger.Debug(e, "Update properties failed ");
                 throw e.Rethrow();
             }
         }
@@ -145,7 +145,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                     configuration.ToContent());
             }
             catch (Exception e) {
-                _logger.Debug("Apply configuration failed ", () => e);
+                _logger.Debug(e, "Apply configuration failed ");
                 throw e.Rethrow();
             }
         }
@@ -161,7 +161,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                 return module.ToModel();
             }
             catch (Exception e) {
-                _logger.Debug("Get twin failed ", () => e);
+                _logger.Debug(e, "Get twin failed ");
                 throw e.Rethrow();
             }
         }
@@ -177,7 +177,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                 return module.ToModel();
             }
             catch (Exception e) {
-                _logger.Debug("Get registration failed ", () => e);
+                _logger.Debug(e, "Get registration failed ");
                 throw e.Rethrow();
             }
         }
@@ -195,7 +195,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                 };
             }
             catch (Exception e) {
-                _logger.Debug("Query failed ", () => e);
+                _logger.Debug(e, "Query failed ");
                 throw e.Rethrow();
             }
         }
@@ -212,7 +212,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                     }));
             }
             catch (Exception e) {
-                _logger.Debug("Delete failed ", () => e);
+                _logger.Debug(e, "Delete failed ");
                 throw e.Rethrow();
             }
         }
@@ -232,8 +232,8 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                     // Expected for update
                 }
                 catch (Exception e) {
-                    _logger.Debug("Create configuration failed in CreateOrUpdate",
-                        () => e);
+                    _logger.Debug(e,
+                        "Create configuration failed in CreateOrUpdate");
                     // Try patch
                 }
             }
@@ -244,8 +244,8 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                 return result.ToModel();
             }
             catch (Exception e) {
-                _logger.Debug("Update configuration failed in CreateOrUpdate",
-                    () => e);
+                _logger.Debug(e,
+                    "Update configuration failed in CreateOrUpdate");
                 throw e.Rethrow();
             }
         }
@@ -259,7 +259,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                 return configuration.ToModel();
             }
             catch (Exception e) {
-                _logger.Debug("Get configuration failed", () => e);
+                _logger.Debug(e, "Get configuration failed");
                 throw e.Rethrow();
             }
         }
@@ -273,7 +273,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                 return configurations.Select(c => c.ToModel());
             }
             catch (Exception e) {
-                _logger.Debug("List configurations failed", () => e);
+                _logger.Debug(e, "List configurations failed");
                 throw e.Rethrow();
             }
         }
@@ -291,7 +291,7 @@ namespace Microsoft.Azure.IIoT.Hub.Clients {
                 }
             }
             catch (Exception e) {
-                _logger.Debug("Delete configuration failed", () => e);
+                _logger.Debug(e, "Delete configuration failed");
                 throw e.Rethrow();
             }
         }

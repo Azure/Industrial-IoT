@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Net;
     using Microsoft.Azure.IIoT.Net.Ssh;
     using Microsoft.Azure.IIoT.Utils;
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
         /// </summary>
         /// <param name="args">command-line arguments</param>
         public static async Task RunAsync(string[] args) {
-            var sshFactory = new SshShellFactory(new SimpleLogger());
+            var sshFactory = new SshShellFactory(LogEx.ConsoleOut());
             ISecureShell shell = null;
             var run = true;
             do {

@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Model extensions
@@ -36,6 +37,35 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <returns></returns>
         public static bool? IsDisabled(this DeviceTwinModel twin) =>
             twin.Status?.EqualsIgnoreCase("disabled");
+
+        /// <summary>
+        /// Clone twin
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static DeviceTwinModel Clone(this DeviceTwinModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new DeviceTwinModel {
+                Capabilities = model.Capabilities == null ? null :
+                    new DeviceCapabilitiesModel {
+                        IotEdge = model.Capabilities.IotEdge
+                    },
+                ConnectionState = model.ConnectionState,
+                Etag = model.Etag,
+                Id = model.Id,
+                LastActivityTime = model.LastActivityTime,
+                ModuleId = model.ModuleId,
+                Properties = model.Properties.Clone(),
+                Status = model.Status,
+                StatusReason = model.StatusReason,
+                StatusUpdatedTime = model.StatusUpdatedTime,
+                Tags = model.Tags?
+                    .ToDictionary(kv => kv.Key, kv => kv.Value?.DeepClone()),
+                Version = model.Version
+            };
+        }
 
         /// <summary>
         /// Consolidated

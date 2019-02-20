@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Module {
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Module.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json;
     using System;
@@ -89,13 +89,12 @@ namespace Microsoft.Azure.IIoT.Module {
             public TestServer(int size,
                 Func<string, byte[], string, byte[]> handler) {
                 MaxMethodPayloadCharacterCount = size;
-                _logger = new ConsoleLogger();
                 _handler = handler;
-                _server = new ChunkMethodServer(this, _logger);
+                _server = new ChunkMethodServer(this, LogEx.Trace());
             }
 
             public IMethodClient CreateClient() {
-                return new ChunkMethodClient(this, _logger);
+                return new ChunkMethodClient(this, LogEx.Trace());
             }
 
             public int MaxMethodPayloadCharacterCount { get; }
@@ -111,7 +110,6 @@ namespace Microsoft.Azure.IIoT.Module {
                 return Task.FromResult(_handler.Invoke(method, payload, contentType));
             }
 
-            private readonly ConsoleLogger _logger;
             private readonly ChunkMethodServer _server;
             private readonly Func<string, byte[], string, byte[]> _handler;
         }

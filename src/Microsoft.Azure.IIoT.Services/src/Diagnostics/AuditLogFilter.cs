@@ -4,33 +4,34 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Diagnostics {
-    using Microsoft.Azure.IIoT.Storage.Models;
-    using Microsoft.Azure.IIoT.Storage;
+    using Microsoft.Azure.IIoT.Diagnostics.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Filters;
+    using Serilog;
     using System;
     using System.Threading.Tasks;
-    using System.Linq;
 
     /// <summary>
     /// Create audit log entries for every action invocation
     /// </summary>
-    public class AuditLogFilter : IAsyncActionFilter {
+    public sealed class AuditLogFilter : IAsyncActionFilter {
 
         /// <summary>
         /// Create filter
         /// </summary>
-        /// <param name="auditor"></param>
         /// <param name="logger"></param>
-        public AuditLogFilter(IAuditLogWriter auditor = null, ILogger logger = null) {
-            _logger = logger ?? new SimpleLogger();
-            _auditor = auditor ?? new AuditLogLogger(_logger);
+        /// <param name="auditor"></param>
+        public AuditLogFilter(ILogger logger, IAuditLog auditor = null) {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _auditor = auditor;
             if (auditor == null) {
-                _logger.Error("No audit log registered, output audit log " +
-                    "to passed in logger. Register an audit log service.");
+                _logger.Information("No audit log registered, will log audit events " +
+                    "to application log.");
+                _auditor = new AuditLogLogger(_logger);
             }
+            _writer = _auditor.OpenAsync(null).Result; // TODO
         }
 
         /// <inheritdoc/>
@@ -51,8 +52,6 @@ namespace Microsoft.Azure.IIoT.Services.Diagnostics {
             var entry = new AuditLogEntryModel {
                 Id = context.HttpContext.TraceIdentifier,
                 User = context.HttpContext.User?.Identity?.Name,
-                Claims = context.HttpContext.User?.Claims?
-                    .ToDictionary(c => c.Type, c => c.Value),
                 SessionId = sessionId,
                 OperationId = context.ActionDescriptor.Id,
                 OperationName =
@@ -86,15 +85,19 @@ namespace Microsoft.Azure.IIoT.Services.Diagnostics {
                         entry.Result = null;
                         break;
                     default:
-                        _logger.Error(
-                            $"Unknown result type {result.Result.GetType()}");
+                        _logger.Error("Unknown result type {type}",
+                            result.Result.GetType());
                         entry.Result = result.Result;
                         break;
                 }
             }
             entry.Completed = DateTime.UtcNow;
-            await _auditor.WriteAsync(entry);
-
+            try {
+                await _writer.WriteAsync(entry);
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to write audit log for activity {id}", id);
+            }
             // Let user know of the activity / audit id and return session id
             context.HttpContext.Response.Headers.Add(HttpHeader.ActivityId, id);
             if (sessionId != null) {
@@ -103,7 +106,8 @@ namespace Microsoft.Azure.IIoT.Services.Diagnostics {
             }
         }
 
-        private readonly IAuditLogWriter _auditor;
+        private readonly IAuditLog _auditor;
         private readonly ILogger _logger;
+        private readonly IAuditLogWriter _writer;
     }
 }

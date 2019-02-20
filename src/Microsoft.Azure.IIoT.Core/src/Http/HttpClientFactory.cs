@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Default {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Net.Http;
@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// of the the one implemented in asp.net core and uses a handler builder
     /// instead of the asp.net builder.
     /// </summary>
-    public class HttpClientFactory : IHttpClientFactory {
+    public sealed class HttpClientFactory : IHttpClientFactory {
 
         /// <summary>
         /// Create factory
@@ -184,8 +184,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                                 entry.Dispose();
                             }
                             catch (Exception ex) {
-                                _logger.Error($"Failed to cleanup handler {entry.Name}",
-                                    () => ex);
+                                _logger.Error(ex, "Failed to cleanup handler {name}",
+                                    entry.Name);
                             }
                         }
                         else {

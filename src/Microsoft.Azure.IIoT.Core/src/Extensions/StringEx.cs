@@ -113,6 +113,23 @@ namespace System {
         }
 
         /// <summary>
+        /// Convert to camel case
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string ToCamelCase(this string value) {
+            if (value == null || value.Length <= 1) {
+                return value;
+            }
+            var words = value.Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
+            var result = words[0].Substring(0, 1).ToLower() + words[0].Substring(1);
+            for (var i = 1; i < words.Length; i++) {
+                result += words[i].Substring(0, 1).ToUpper() + words[i].Substring(1);
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Extract data between the end of the first occurence of findStart
         /// and the start of findEnd.
         /// </summary>

@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Net.Scanner {
     using Microsoft.Azure.IIoT.Net.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
     /// <summary>
     /// Scans network using icmp and finds all machines in it.
     /// </summary>
-    public class NetworkScanner : IScanner {
+    public sealed class NetworkScanner : IScanner {
 
         /// <summary>
         /// Number of items scanned
@@ -108,8 +108,8 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             _pings = CreatePings(local ? _addresses.Count + 1 :
                 maxProbeCount ?? kDefaultMaxProbeCount);
             // Start initial pings
-            _logger.Info("Start scanning...",
-                () => _addresses.Select(a => a.ToString()));
+            _logger.Information("Start scanning {addresses}...",
+                _addresses.Select(a => a.ToString()));
             foreach (var ping in _pings.ToList()) {
                 OnNextPing(ping);
             }

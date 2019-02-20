@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// <summary>
         /// Auth configuration
         /// </summary>
+        private const string kAuth_HttpsRedirectPortKey = "Auth:HttpsRedirectPort";
         private const string kAuth_RequiredKey = "Auth:Required";
         private const string kAuth_TrustedIssuerKey = "Auth:TrustedIssuer";
         private const string kAuth_AllowedClockSkewKey = "Auth:AllowedClockSkewSeconds";
@@ -23,7 +24,9 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// <summary>Whether required</summary>
         public bool AuthRequired => GetBoolOrDefault(kAuth_RequiredKey,
             GetBoolOrDefault("PCS_AUTH_REQUIRED", !string.IsNullOrEmpty(Audience)));
-
+        /// <summary>Https enforced</summary>
+        public int HttpsRedirectPort => GetIntOrDefault(kAuth_HttpsRedirectPortKey,
+            GetIntOrDefault("PCS_AUTH_HTTPSREDIRECTPORT", 0));
         /// <summary>Trusted issuer</summary>
         public string TrustedIssuer => GetStringOrDefault(kAuth_TrustedIssuerKey,
             GetStringOrDefault("PCS_AUTH_ISSUER", "https://sts.windows.net/"));

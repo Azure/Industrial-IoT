@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Infrastructure.ServiceBus.Services {
     using Microsoft.Azure.IIoT.Infrastructure.Auth;
     using Microsoft.Azure.IIoT.Infrastructure.Services;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.Management.Fluent;
     using Microsoft.Azure.Management.ServiceBus.Fluent;
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.ServiceBus.Services {
             name = await client.ServiceBusNamespaces.SelectResourceNameAsync(
                 resourceGroup.Name, "sb", name);
 
-            _logger.Info($"Trying to create namespace {name}...");
+            _logger.Information("Trying to create namespace {name}...", name);
             var region = await resourceGroup.Subscription.GetRegionAsync();
             var nameSpace = await client.ServiceBusNamespaces
                 .Define(name)
@@ -72,7 +72,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.ServiceBus.Services {
                     .WithNewSendRule("send")
                     .CreateAsync();
 
-            _logger.Info($"Created namespace {name}.");
+            _logger.Information("Created namespace {name}.", name);
 
             var keys = await ReadKeysFromNamespace(nameSpace);
             return new ServiceBusResource(this, resourceGroup, nameSpace, keys, _logger);
@@ -177,9 +177,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.ServiceBus.Services {
 
             /// <inheritdoc/>
             public async Task DeleteAsync() {
-                _logger.Info($"Deleting namespace {_nameSpace.Id}...");
+                _logger.Information("Deleting namespace {nameSpace}...", _nameSpace.Id);
                 await _manager.TryDeleteServiceBusAsync(_resourceGroup, _nameSpace.Id);
-                _logger.Info($"Namespace {_nameSpace.Id} deleted.");
+                _logger.Information("Namespace {nameSpace} deleted.", _nameSpace.Id);
             }
 
 

@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json;
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     /// <summary>
     /// Edgelet client providing discovery and in the future other services
     /// </summary>
-    public class EdgeletClient : IModuleDiscovery, ISecureElement {
+    public sealed class EdgeletClient : IModuleDiscovery, ISecureElement {
 
         /// <summary>
         /// Create client
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     Status = m.Status?.RuntimeStatus?.Status
                 }).ToList();
             }
-            _logger.Warn("Not running in iotedge context - no modules in scope.");
+            _logger.Warning("Not running in iotedge context - no modules in scope.");
             return new List<DiscoveredModuleModel>();
         }
 
@@ -94,7 +94,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var response = await _client.PostAsync(request);
                 response.Validate();
                 return JObject.Parse(response.GetContentAsString())?
-                    .GetValueOrDefault<byte[]>("ciphertext", null);
+                    .GetValueOrDefault<byte[]>("ciphertext");
             });
         }
 
@@ -109,7 +109,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var response = await _client.PostAsync(request);
                 response.Validate();
                 return JObject.Parse(response.GetContentAsString())?
-                    .GetValueOrDefault<byte[]>("plaintext", null);
+                    .GetValueOrDefault<byte[]>("plaintext");
             });
         }
 

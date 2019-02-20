@@ -56,6 +56,38 @@ namespace Microsoft.Azure.IIoT.Hub {
         }
 
         /// <summary>
+        /// Returns device or module primary key
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
+        /// <returns></returns>
+        public static async Task<string> GetPrimaryKeyAsync(
+            this IIoTHubTwinServices service, string deviceId, string moduleId = null) {
+            var model = await service.GetRegistrationAsync(deviceId, moduleId);
+            if (model == null) {
+                throw new ResourceNotFoundException("Could not find " + deviceId);
+            }
+            return model.Authentication.PrimaryKey;
+        }
+
+        /// <summary>
+        /// Returns device or module secondary key
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
+        /// <returns></returns>
+        public static async Task<string> GetSecondaryKeyAsync(
+            this IIoTHubTwinServices service, string deviceId, string moduleId = null) {
+            var model = await service.GetRegistrationAsync(deviceId, moduleId);
+            if (model == null) {
+                throw new ResourceNotFoundException("Could not find " + deviceId);
+            }
+            return model.Authentication.SecondaryKey;
+        }
+
+        /// <summary>
         /// Returns devices matching a query string
         /// </summary>
         /// <param name="service"></param>

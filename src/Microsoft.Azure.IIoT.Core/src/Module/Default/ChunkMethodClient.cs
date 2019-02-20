@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Newtonsoft.Json;
     using System;
@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     /// <summary>
     /// Chunked method provide reliable any size send/receive
     /// </summary>
-    public class ChunkMethodClient : IMethodClient {
+    public sealed class ChunkMethodClient : IMethodClient {
 
         /// <summary>
         /// Create client wrapping a json method client
@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 throw new ArgumentNullException(nameof(method));
             }
             if (payload == null) {
-                throw new ArgumentNullException(nameof(payload));
+                payload = new byte[] { (byte)' ' }; 
             }
             if (contentType == null) {
                 contentType = ContentEncodings.MimeTypeJson;

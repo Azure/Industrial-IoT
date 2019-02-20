@@ -45,6 +45,22 @@ namespace System.IO {
         }
 
         /// <summary>
+        /// Load type from xml stream
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static T DeserializeFromXml<T>(this Stream stream) {
+            var reader = new StreamReader(stream);
+            try {
+                var serializer = new Xml.Serialization.XmlSerializer(typeof(T));
+                return (T)serializer.Deserialize(reader);
+            }
+            finally {
+                reader.Close();
+            }
+        }
+
+        /// <summary>
         /// Helper extension to convert an entire stream into a string...
         /// </summary>
         /// <param name="stream"></param>

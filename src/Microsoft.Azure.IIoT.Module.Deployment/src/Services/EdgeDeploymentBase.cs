@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Module.Deployment {
     using Microsoft.Azure.IIoT.Module.Deployment.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Hub.Models;
     using System;
     using System.Collections.Generic;

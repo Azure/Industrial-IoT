@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Module.Default {
     using Microsoft.Azure.IIoT.Module.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using System;
     using System.Collections.Concurrent;
@@ -13,12 +13,11 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Net;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Chunked method provide reliable any size send/receive
     /// </summary>
-    public class ChunkMethodServer : IChunkMethodServer {
+    public sealed class ChunkMethodServer : IChunkMethodServer {
 
         /// <summary>
         /// Create server
@@ -151,8 +150,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     catch (Exception ex) {
                         // Unexpected
                         status = (int)HttpStatusCode.InternalServerError;
-                        _outer._logger.Error(
-                            "Processing message resulted in unexpected error", ex);
+                        _outer._logger.Error(ex,
+                            "Processing message resulted in unexpected error");
                     }
                     _sent = 0;
                 }

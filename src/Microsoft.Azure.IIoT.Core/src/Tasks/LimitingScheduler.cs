@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Tasks.Default {
-    using Microsoft.Azure.IIoT.Diagnostics;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -15,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
     /// Provides a task scheduler that ensures a maximum concurrency level
     /// while running on top of the ThreadPool.
     /// </summary>
-    public class LimitingScheduler : ITaskScheduler {
+    public sealed class LimitingScheduler : ITaskScheduler {
 
         /// <inheritdoc/>
         public TaskFactory Factory => _factory;
@@ -32,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         }
 
         /// <inheritdoc/>
-        public void Dump(ILogger logger) => _scheduler?.Dump(logger);
+        public void Dump(Action<Task> logger) => _scheduler?.Dump(logger);
 
         /// <summary>
         /// Scheduler implementation
@@ -174,14 +173,10 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             /// Dump scheduler
             /// </summary>
             /// <param name="logger"></param>
-            internal void Dump(ILogger logger) {
-                logger.Debug("Dumping tasks...");
-                logger.Debug("-------------------------");
+            internal void Dump(Action<Task> logger) {
                 foreach (var task in GetScheduledTasks()) {
-                    logger.Debug(task.ToString(), () => task);
+                    logger(task);
                 }
-                logger.Debug("-------------------------");
-                logger.Debug("... completed");
             }
 
             // Whether the current thread is processing work items.

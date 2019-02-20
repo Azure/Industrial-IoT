@@ -12,7 +12,7 @@ namespace System.Collections.Generic {
         [Fact]
         public void SequenceEqualsReturnsFalseWhenListSubjectNull() {
             List<string> test1 = null;
-            List<string> test2 = new List<string> { "serf", "sated" };
+            var test2 = new List<string> { "serf", "sated" };
 
             var result = test1.SequenceEqualsSafe(test2);
             Assert.False(result);
@@ -21,7 +21,7 @@ namespace System.Collections.Generic {
 
         [Fact]
         public void SequenceEqualsReturnsFalseWhenListObjectNull() {
-            List<string> test1 = new List<string> { "serf", "sated" };
+            var test1 = new List<string> { "serf", "sated" };
             List<string> test2 = null;
 
             var result = test1.SequenceEqualsSafe(test2);
@@ -84,8 +84,8 @@ namespace System.Collections.Generic {
 
         [Fact]
         public void SequenceEqualsReturnsTrueWhenSequenceSame() {
-            List<string> test1 = new List<string> { "serf", "sated" };
-            List<string> test2 = new List<string> { "serf", "sated" };
+            var test1 = new List<string> { "serf", "sated" };
+            var test2 = new List<string> { "serf", "sated" };
 
             var result = test1.SequenceEqualsSafe(test2);
             Assert.True(result);
@@ -93,8 +93,8 @@ namespace System.Collections.Generic {
 
         [Fact]
         public void SequenceEqualsReturnsFalseWhenSequenceNotSame1() {
-            List<string> test1 = new List<string> { "serf", "sated" };
-            List<string> test2 = new List<string> { "serf", "sated", "data" };
+            var test1 = new List<string> { "serf", "sated" };
+            var test2 = new List<string> { "serf", "sated", "data" };
 
             var result = test1.SequenceEqualsSafe(test2);
             Assert.False(result);
@@ -102,8 +102,8 @@ namespace System.Collections.Generic {
 
         [Fact]
         public void SequenceEqualsReturnsFalseWhenSequenceNotSame2() {
-            List<string> test1 = new List<string> { "serf", "sated" };
-            List<string> test2 = new List<string> { "sated", "serf" };
+            var test1 = new List<string> { "serf", "sated" };
+            var test2 = new List<string> { "sated", "serf" };
 
             var result = test1.SequenceEqualsSafe(test2);
             Assert.False(result);

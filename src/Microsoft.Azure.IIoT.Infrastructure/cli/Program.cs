@@ -12,12 +12,13 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Cli {
     using Microsoft.Azure.IIoT.Infrastructure.Runtime;
     using Microsoft.Azure.IIoT.Infrastructure.Services;
     using Microsoft.Azure.IIoT.Infrastructure;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json;
     using Autofac;
+    using AutofacSerilogIntegration;
     using System;
     using System.Threading.Tasks;
+    using Serilog;
 
     /// <summary>
     /// Api command line interface
@@ -177,8 +178,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Cli {
             var builder = new ContainerBuilder();
 
             // Register logger
-            builder.RegisterType<SimpleLogger>()
-                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterLogger(LogEx.ConsoleOut());
 
             // Register infrastructure code
             builder.RegisterType<ResourceGroupFactory>()

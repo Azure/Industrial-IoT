@@ -4,12 +4,24 @@
 // ------------------------------------------------------------
 
 namespace System {
+    using System.Collections.Generic;
     using System.ComponentModel;
 
     /// <summary>
     /// Base object extensions
     /// </summary>
     public static class ObjectEx {
+
+        /// <summary>
+        /// Make nullable version
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="nil"></param>
+        /// <returns></returns>
+        public static T? ToNullable<T>(this T value, T nil) where T : struct {
+            return EqualityComparer<T>.Default.Equals(value, nil) ? (T?)null : value;
+        }
 
         /// <summary>
         /// Safe equals
@@ -25,6 +37,26 @@ namespace System {
                 return false;
             }
             return obj.Equals(that);
+        }
+
+        /// <summary>
+        /// Get default hash code for object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static int GetHashSafe<T>(this T obj) {
+            return EqualityComparer<T>.Default.GetHashCode(obj);
+        }
+
+        /// <summary>
+        /// Get default hash code for object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static int GetHashSafe<T>(this T? obj) where T : struct {
+            return obj == null ? 0 : obj.GetHashCode();
         }
 
         /// <summary>

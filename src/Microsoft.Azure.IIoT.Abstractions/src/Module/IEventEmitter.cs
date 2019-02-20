@@ -4,30 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module {
+    using Microsoft.Azure.IIoT.Hub;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Send telemetry events
+    /// Send telemetry events and property update events as
+    /// module or device identity
     /// </summary>
-    public interface IEventEmitter : IIdentity {
-
-        /// <summary>
-        /// Send event
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="contentType"></param>
-        /// <returns></returns>
-        Task SendAsync(byte[] data, string contentType);
-
-        /// <summary>
-        /// Send batch of events
-        /// </summary>
-        /// <param name="batch"></param>
-        /// <param name="contentType"></param>
-        /// <returns></returns>
-        Task SendAsync(IEnumerable<byte[]> batch,
-            string contentType);
+    public interface IEventEmitter : IIdentity, IEventClient {
 
         /// <summary>
         /// Send property changed notification

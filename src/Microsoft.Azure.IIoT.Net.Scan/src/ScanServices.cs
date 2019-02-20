@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Net.Scanner {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Net.Models;
     using System;
     using System.Collections.Generic;
@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
     /// <summary>
     /// Scanner services
     /// </summary>
-    public class ScanServices : IScanServices {
+    public sealed class ScanServices : IScanServices {
 
         /// <summary>
         /// Create scanner

@@ -18,6 +18,15 @@ namespace Microsoft.Azure.IIoT.Auth.Server {
         bool AuthRequired { get; }
 
         /// <summary>
+        /// null value allows http. Should always be set to
+        /// the https port except for local development.
+        /// JWT tokens are not encrypted and if not sent over
+        /// HTTPS will allow an attacker to get the same
+        /// authorization.
+        /// </summary>
+        int HttpsRedirectPort { get; }
+
+        /// <summary>
         /// Our service's id or url that was registered and
         /// that we must validate to be the audience of the
         /// token so to ensure the token was actually issued

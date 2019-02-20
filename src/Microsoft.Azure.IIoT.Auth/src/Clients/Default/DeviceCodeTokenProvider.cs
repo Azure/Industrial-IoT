@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Microsoft.Azure.IIoT.Auth.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using System;
     using System.Collections.Generic;
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
 
             if (string.IsNullOrEmpty(_config.AppId)) {
                 _logger.Error("Device code token provider was not configured with " +
-                    "a client id.  No tokens will be obtained. ");
+                    "a client id.  No tokens will be obtained.");
             }
         }
 

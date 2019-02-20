@@ -10,7 +10,7 @@ namespace System.Collections.Generic {
     /// Lambda comparer
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class FuncCompare<T> : IEqualityComparer<T> {
+    public sealed class FuncCompare<T> : IEqualityComparer<T> {
 
         /// <summary>
         /// Create comparer

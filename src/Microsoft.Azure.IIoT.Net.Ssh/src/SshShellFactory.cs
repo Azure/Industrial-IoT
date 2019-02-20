@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Net.Ssh {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
     using System.Net;
     using System.Threading;
@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
     /// <summary>
     /// Secure shell factory
     /// </summary>
-    public class SshShellFactory : IShellFactory {
+    public sealed class SshShellFactory : IShellFactory {
 
         /// <summary>
         /// Create factory

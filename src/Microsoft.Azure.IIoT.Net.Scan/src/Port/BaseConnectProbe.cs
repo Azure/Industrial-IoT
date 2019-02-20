@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Net.Scanner {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using System;
     using System.Net;
     using System.Net.Sockets;
@@ -114,8 +114,8 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                         continue;
                     }
                     catch (Exception ex) {
-                        _logger.Error($"Error getting endpoint for probe {_index}",
-                            () => ex);
+                        _logger.Error(ex, "Error getting endpoint for probe {index}",
+                            _index);
                         exit = true;
                         break;
                     }
@@ -154,16 +154,15 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                                 // Otherwise retry...
                             }
                             else {
-                                _logger.Error(
-                                    $"{sex.SocketErrorCode} in connect of probe {_index}...",
-                                        () => sex);
+                                _logger.Error(sex, "{code} in connect of probe {index}...",
+                                    sex.SocketErrorCode, _index);
                             }
                         }
                         catch (Exception ex) {
                             // Unexpected - shut probe down
-                            _logger.Error(
-                                $"Probe {_index} has unexpected exception during connect.",
-                                () => ex);
+                            _logger.Error(ex,
+                                "Probe {index} has unexpected exception during connect.",
+                                _index);
                             exit = true;
                             break;
                         }
@@ -317,8 +316,8 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                     _timer.Change(Timeout.Infinite, Timeout.Infinite);
                 }
                 catch (Exception ex) {
-                    _outer._logger.Debug($"Error during completion of probe {_outer._index}",
-                        () => ex);
+                    _outer._logger.Debug(ex, "Error during completion of probe {index}",
+                        _outer._index);
                 }
                 finally {
                     _lock.Release();
@@ -417,8 +416,8 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                             _arg.SocketError = SocketError.TimedOut;
                             return;
                         case State.Probe:
-                            _outer._logger.Debug(
-                                $"Probe {_outer._index} {_arg.RemoteEndPoint} timed out...");
+                            _outer._logger.Debug("Probe {index} {remoteEp} timed out...",
+                                _outer._index, _arg.RemoteEndPoint);
                             _arg.SocketError = SocketError.TimedOut;
                             _state = State.Timeout;
                             if (_outer._probe.Reset()) {
@@ -430,16 +429,17 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                             // Since connect socket is connected, go to begin state
                             // This will close the socket and reconnect a new one.
                             //
-                            _outer._logger.Info(
-                                $"Probe {_outer._index} not cancelled - try restart...");
+                            _outer._logger.Information(
+                                "Probe {index} not cancelled - try restart...",
+                                _outer._index);
                             _state = State.Begin;
                             _outer.OnBegin();
                             return;
                     }
                 }
                 catch (Exception ex) {
-                    _outer._logger.Debug($"Error during timeout of probe {_outer._index}",
-                        () => ex);
+                    _outer._logger.Debug(ex,
+                        "Error during timeout of probe {index}", _outer._index);
                 }
                 finally {
                     _lock.Release();

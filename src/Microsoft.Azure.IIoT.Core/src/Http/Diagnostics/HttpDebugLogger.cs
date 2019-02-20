@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Diagnostics {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using System.Net;
@@ -35,11 +35,8 @@ namespace Microsoft.Azure.IIoT.Http.Diagnostics {
         /// <returns></returns>
         public override Task OnRequestAsync(string resourceId,
             HttpRequestHeaders headers, HttpContent content, CancellationToken ct) {
-            _logger.Debug($"REQUEST:", () => new {
-                resourceId,
-                headers,
-                content
-            });
+            _logger.Debug("REQUEST: {resourceId} {@resourceId} {@content}",
+                resourceId, headers, content);
             return Task.CompletedTask;
         }
 
@@ -54,12 +51,8 @@ namespace Microsoft.Azure.IIoT.Http.Diagnostics {
         /// <returns></returns>
         public override Task OnResponseAsync(string resourceId, HttpStatusCode statusCode,
             HttpResponseHeaders headers, HttpContent content, CancellationToken ct) {
-            _logger.Debug($"RESPONSE:", () => new {
-                resourceId,
-                statusCode,
-                headers,
-                content
-            });
+            _logger.Debug("RESPONSE: {resourceId} {statusCode} {@resourceId} {@content}",
+                resourceId, statusCode, headers, content);
             return Task.CompletedTask;
         }
 

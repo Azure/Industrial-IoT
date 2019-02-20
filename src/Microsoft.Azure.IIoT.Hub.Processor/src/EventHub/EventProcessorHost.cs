@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.EventHubs;
     using Microsoft.Azure.EventHubs.Processor;
@@ -17,31 +17,35 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
     /// Implementation of event processor host interface to host event
     /// processors.
     /// </summary>
-    public class EventProcessorHost : IStartable, IDisposable, IEventProcessorHost {
+    public sealed class EventProcessorHost : IStartable, IDisposable,
+        IEventProcessorHost {
 
         /// <summary>
         /// Create host wrapper
         /// </summary>
         /// <param name="factory"></param>
+        /// <param name="hub"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public EventProcessorHost(IEventProcessorFactory factory,
+        public EventProcessorHost(IEventProcessorFactory factory, IEventHubConfig hub,
             IEventProcessorConfig config, ILogger logger) :
-            this (factory, config, null, null, logger) {
+            this (factory, hub, config, null, null, logger) {
         }
 
         /// <summary>
         /// Create host wrapper
         /// </summary>
         /// <param name="factory"></param>
+        /// <param name="hub"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
         /// <param name="checkpoint"></param>
         /// <param name="lease"></param>
-        public EventProcessorHost(IEventProcessorFactory factory,
+        public EventProcessorHost(IEventProcessorFactory factory, IEventHubConfig hub,
             IEventProcessorConfig config, ICheckpointManager checkpoint,
             ILeaseManager lease, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _hub = hub ?? throw new ArgumentNullException(nameof(hub));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _lease = lease;
@@ -60,20 +64,20 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                     return;
                 }
 
-                var consumerGroup = _config.ConsumerGroup;
+                var consumerGroup = _hub.ConsumerGroup;
                 if (string.IsNullOrEmpty(consumerGroup)) {
                     consumerGroup = "$default";
                 }
                 if (_lease != null && _checkpoint != null) {
                     _host = new EventHubs.Processor.EventProcessorHost(
-                        $"host-{Guid.NewGuid()}", _config.EventHubPath, consumerGroup,
+                        $"host-{Guid.NewGuid()}", _hub.EventHubPath, consumerGroup,
                         GetEventHubConnectionString(), _checkpoint, _lease);
                 }
-                else if (_config.BlobStorageConnString != null &&
-                    _config.LeaseContainerName != null) {
+                else if (_config.BlobStorageConnString != null) {
                     _host = new EventHubs.Processor.EventProcessorHost(
-                        _config.EventHubPath, consumerGroup, GetEventHubConnectionString(),
-                        _config.BlobStorageConnString, _config.LeaseContainerName);
+                        _hub.EventHubPath, consumerGroup, GetEventHubConnectionString(),
+                        _config.BlobStorageConnString,
+                        _config.LeaseContainerName ?? _hub.EventHubPath.ToSha1Hash());
                 }
                 else {
                     _logger.Error("No checkpointing storage configured or checkpoint " +
@@ -91,7 +95,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                     });
             }
             catch (Exception ex) {
-                _logger.Error("Error starting event processor host", () => ex);
+                _logger.Error(ex, "Error starting event processor host");
                 _host = null;
                 throw ex;
             }
@@ -127,13 +131,13 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         /// Helper to get connection string and validate configuration
         /// </summary>
         private string GetEventHubConnectionString() {
-            if (!string.IsNullOrEmpty(_config.EventHubConnString)) {
+            if (!string.IsNullOrEmpty(_hub.EventHubConnString)) {
                 try {
                     var csb = new EventHubsConnectionStringBuilder(
-                        _config.EventHubConnString);
+                        _hub.EventHubConnString);
                     if (!string.IsNullOrEmpty(csb.EntityPath) ||
-                        !string.IsNullOrEmpty(_config.EventHubPath)) {
-                        if (_config.UseWebsockets) {
+                        !string.IsNullOrEmpty(_hub.EventHubPath)) {
+                        if (_hub.UseWebsockets) {
                             csb.TransportType = TransportType.AmqpWebSockets;
                         }
                         return csb.ToString();
@@ -142,7 +146,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                 catch {
                     throw new InvalidConfigurationException(
                         "Invalid Event hub connection string " +
-                        $"{_config.EventHubConnString} configured.");
+                        $"{_hub.EventHubConnString} configured.");
                 }
             }
             throw new InvalidConfigurationException(
@@ -151,6 +155,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
 
         private readonly SemaphoreSlim _lock;
         private readonly ILogger _logger;
+        private readonly IEventHubConfig _hub;
         private readonly IEventProcessorConfig _config;
         private readonly IEventProcessorFactory _factory;
         private readonly ILeaseManager _lease;

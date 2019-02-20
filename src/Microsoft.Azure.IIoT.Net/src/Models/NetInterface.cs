@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
     /// <summary>
     /// Network interface model
     /// </summary>
-    public class NetInterface {
+    public sealed class NetInterface {
 
         /// <summary>
         /// Network interface name

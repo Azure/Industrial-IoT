@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Net.Cli {
     using Microsoft.Azure.IIoT.Net;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Net.Scanner;
     using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Extensions.Configuration;
@@ -35,7 +35,10 @@ namespace Microsoft.Azure.IIoT.Net.Cli {
             var op = Op.None;
             var host = Dns.GetHostName();
 
-            var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
+            var configuration = new ConfigurationBuilder()
+                .AddFromDotEnvFile()
+                .AddEnvironmentVariables()
+                .Build();
             try {
                 for (var i = 0; i < args.Length; i++) {
                     switch (args[i]) {
@@ -123,7 +126,7 @@ Operations (Mutually exclusive):
         /// <param name="host"></param>
         /// <returns></returns>
         private static async Task TestPortScanner(string host) {
-            var logger = new ConsoleLogger("test", LogLevel.Debug);
+            var logger = LogEx.ConsoleOut();
             var addresses = await Dns.GetHostAddressesAsync(host);
             var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var watch = Stopwatch.StartNew();
@@ -144,7 +147,7 @@ Operations (Mutually exclusive):
         /// </summary>
         /// <returns></returns>
         private static async Task TestNetworkScanner() {
-            var logger = new ConsoleLogger("test", LogLevel.Debug);
+            var logger = LogEx.ConsoleOut();
             var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var watch = Stopwatch.StartNew();
             var scanning = new ScanServices(logger);

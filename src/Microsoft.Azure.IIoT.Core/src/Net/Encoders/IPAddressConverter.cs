@@ -10,35 +10,26 @@ namespace Newtonsoft.Json {
     /// <summary>
     /// Writes and reads address from json
     /// </summary>
-    internal class IPAddressConverter : JsonConverter<IPAddress> {
+    sealed class IPAddressConverter : JsonConverter<IPAddress> {
 
-        /// <summary>
-        /// Can read
-        /// </summary>
-        /// <param name="reader"></param>
-        /// <param name="objectType"></param>
-        /// <param name="hasExistingValue"></param>
-        /// <param name="existingValue"></param>
-        /// <param name="serializer"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override IPAddress ReadJson(JsonReader reader, Type objectType,
             IPAddress existingValue, bool hasExistingValue, JsonSerializer serializer) {
-            var str = reader.ReadAsString();
-            if (string.IsNullOrEmpty(str)) {
-                return IPAddress.Any;
+            if (reader.TokenType != JsonToken.String) {
+                return null;
             }
-            return IPAddress.Parse(str);
+            return IPAddress.Parse((string)reader.Value);
         }
 
-        /// <summary>
-        /// Can write
-        /// </summary>
-        /// <param name="writer"></param>
-        /// <param name="value"></param>
-        /// <param name="serializer"></param>
+        /// <inheritdoc/>
         public override void WriteJson(JsonWriter writer, IPAddress value,
             JsonSerializer serializer) {
-            writer.WriteToken(JsonToken.String, value?.ToString() ?? string.Empty);
+            if (value == null) {
+                writer.WriteNull();
+            }
+            else {
+                writer.WriteToken(JsonToken.String, value.ToString());
+            }
         }
     }
 }

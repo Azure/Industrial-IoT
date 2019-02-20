@@ -18,8 +18,8 @@ namespace System.Collections.Generic {
         /// <typeparam name="T"></typeparam>
         /// <param name="seq"></param>
         /// <returns></returns>
-        public static int GetHashCodeSafe<T>(this IEnumerable<T> seq) =>
-            GetHashCodeSafe(seq, EqualityComparer<T>.Default.GetHashCode);
+        public static int SequenceGetHashSafe<T>(this IEnumerable<T> seq) =>
+            SequenceGetHashSafe(seq, EqualityComparer<T>.Default.GetHashCode);
 
         /// <summary>
         /// Safe hash
@@ -28,11 +28,26 @@ namespace System.Collections.Generic {
         /// <param name="seq"></param>
         /// <param name="hash"></param>
         /// <returns></returns>
-        public static int GetHashCodeSafe<T>(this IEnumerable<T> seq, Func<T, int> hash) {
+        public static int SequenceGetHashSafe<T>(this IEnumerable<T> seq, Func<T, int> hash) {
             var hashCode = -932366343;
             if (seq != null) {
                 foreach (var item in seq) {
                     hashCode = hashCode * -1521134295 + hash(item);
+                }
+            }
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Safe hash over untyped enumeration
+        /// </summary>
+        /// <param name="seq"></param>
+        /// <returns></returns>
+        public static int SequenceGetHashSafe(this IEnumerable seq) {
+            var hashCode = -932366343;
+            if (seq != null) {
+                foreach (var item in seq) {
+                    hashCode = hashCode * -1521134295 + item.GetHashSafe();
                 }
             }
             return hashCode;
@@ -51,6 +66,9 @@ namespace System.Collections.Generic {
                 return true;
             }
             if (seq == null || that == null) {
+                if (!(that?.Any() ?? false)) {
+                    return !(seq?.Any() ?? false);
+                }
                 return false;
             }
             return seq.SequenceEqual(that);

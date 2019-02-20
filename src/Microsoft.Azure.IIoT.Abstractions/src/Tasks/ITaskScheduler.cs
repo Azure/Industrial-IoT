@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Tasks {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using System;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -20,6 +20,6 @@ namespace Microsoft.Azure.IIoT.Tasks {
         /// <summary>
         /// Create debug dump
         /// </summary>
-        void Dump(ILogger logger);
+        void Dump(Action<Task> logger);
     }
 }

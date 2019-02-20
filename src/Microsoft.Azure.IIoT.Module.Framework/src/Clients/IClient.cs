@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties);
 
         /// <summary>
-        /// Upload to blob is not supported
+        /// Upload to blob
         /// </summary>
         /// <param name="blobName"></param>
         /// <param name="source"></param>
@@ -129,7 +129,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
-            MethodRequest methodRequest, CancellationToken cancellationToken);
+            MethodRequest methodRequest,
+            CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Interactively invokes a method on a device.
@@ -139,7 +140,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<MethodResponse> InvokeMethodAsync(string deviceId,
-            MethodRequest methodRequest, CancellationToken cancellationToken);
+            MethodRequest methodRequest,
+            CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Create a new stream
@@ -151,7 +153,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// </param>
         /// <returns></returns>
         Task<Stream> CreateStreamAsync(string streamName, string hostName,
-            ushort port, CancellationToken cancellationToken);
+            ushort port,
+            CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Close the DeviceClient instance

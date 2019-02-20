@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Utils {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using System;
     using System.Threading.Tasks;
@@ -271,7 +271,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <returns></returns>
         public static Task WithExponentialBackoff(ILogger logger, CancellationToken ct,
             Func<Task> work, Func<Exception, bool> cont) =>
-             Do(logger, ct, work, cont, Exponential, MaxRetryCount);
+            Do(logger, ct, work, cont, Exponential, MaxRetryCount);
 
         /// <summary>
         /// Retry with exponential backoff
@@ -532,6 +532,96 @@ namespace Microsoft.Azure.IIoT.Utils {
             WithExponentialBackoff(logger, CancellationToken.None, work, cont);
 
         /// <summary>
+        /// Retry without delay
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="ct"></param>
+        /// <param name="work"></param>
+        /// <param name="cont"></param>
+        /// <returns></returns>
+        public static Task WithoutDelay(ILogger logger, CancellationToken ct,
+            Action work, Func<Exception, bool> cont) =>
+                Do(logger, ct, work, cont, NoBackoff, MaxRetryCount);
+
+        /// <summary>
+        /// Retry without delay
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="ct"></param>
+        /// <param name="work"></param>
+        /// <returns></returns>
+        public static Task WithoutDelay(ILogger logger, CancellationToken ct,
+            Action work) =>
+            WithoutDelay(logger, ct, work, ex => ex is ITransientException);
+
+        /// <summary>
+        /// Retry without delay
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="work"></param>
+        /// <returns></returns>
+        public static Task WithoutDelay(ILogger logger, Action work) =>
+            WithoutDelay(logger, CancellationToken.None, work);
+
+        /// <summary>
+        /// Retry without delay
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="cont"></param>
+        /// <param name="work"></param>
+        /// <returns></returns>
+        public static Task WithoutDelay(ILogger logger,
+            Action work, Func<Exception, bool> cont) =>
+            WithoutDelay(logger, CancellationToken.None, work, cont);
+
+        /// <summary>
+        /// Retry without delay
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
+        /// <param name="ct"></param>
+        /// <param name="work"></param>
+        /// <param name="cont"></param>
+        /// <returns></returns>
+        public static Task<T> WithoutDelay<T>(ILogger logger, CancellationToken ct,
+            Func<T> work, Func<Exception, bool> cont) =>
+            Do(logger, ct, work, cont, NoBackoff, MaxRetryCount);
+
+        /// <summary>
+        /// Retry without delay
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
+        /// <param name="ct"></param>
+        /// <param name="work"></param>
+        /// <returns></returns>
+        public static Task<T> WithoutDelay<T>(ILogger logger, CancellationToken ct,
+            Func<T> work) =>
+            WithoutDelay(logger, ct, work, (ex) => ex is ITransientException);
+
+        /// <summary>
+        /// Retry with linear backoff
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
+        /// <param name="work"></param>
+        /// <returns></returns>
+        public static Task<T> WithoutDelay<T>(ILogger logger, Func<T> work) =>
+            WithoutDelay(logger, CancellationToken.None, work);
+
+        /// <summary>
+        /// Retry without delay
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="logger"></param>
+        /// <param name="cont"></param>
+        /// <param name="work"></param>
+        /// <returns></returns>
+        public static Task<T> WithoutDelay<T>(ILogger logger,
+            Func<T> work, Func<Exception, bool> cont) =>
+            WithoutDelay(logger, CancellationToken.None, work, cont);
+
+        /// <summary>
         /// Helper to run the delay policy and output additional information.
         /// </summary>
         /// <param name="logger"></param>
@@ -546,13 +636,38 @@ namespace Microsoft.Azure.IIoT.Utils {
             Func<int, Exception, int> policy, int maxRetry, int k, Exception ex,
             CancellationToken ct) {
             if ((k > maxRetry || !cont(ex)) && !(ex is ITransientException)) {
-                logger?.Info($"Give up after {k}", () => ex);
+                logger?.Verbose(ex, "Give up after {k}", k);
                 throw ex;
             }
-            logger?.Debug($"Retry {k}..", () => ex);
-            var delay = policy(k, ex);
-            if (delay != 0) {
+            if (ex is TemporarilyBusyException tbx && tbx.RetryAfter != null) {
+                var delay = tbx.RetryAfter.Value;
+                Log(logger, k, (int)delay.TotalMilliseconds, ex);
                 await Task.Delay(delay, ct);
+            }
+            else {
+                var delay = policy(k, ex);
+                Log(logger, k, delay, ex);
+                if (delay != 0) {
+                    await Task.Delay(delay, ct);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Log
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="retry"></param>
+        /// <param name="delay"></param>
+        /// <param name="ex"></param>
+        private static void Log(ILogger logger, int retry, int delay, Exception ex) {
+            if (logger != null) {
+                if (logger.IsEnabled(Serilog.Events.LogEventLevel.Verbose)) {
+                    logger.Verbose(ex, "Retry {k} in {delay} ms...", retry, delay);
+                }
+                else {
+                    logger.Debug("  ... Retry {k} in {delay} ms...", retry, delay);
+                }
             }
         }
     }

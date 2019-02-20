@@ -9,6 +9,7 @@ namespace Swashbuckle.AspNetCore.Swagger {
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.Azure.IIoT.Auth.Clients;
+    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Services.Swagger;
     using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +18,8 @@ namespace Swashbuckle.AspNetCore.Swagger {
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using Microsoft.Azure.IIoT.Auth.Server;
+    using System.Reflection;
+    using System.Net;
 
     /// <summary>
     /// Configure swagger
@@ -52,6 +54,9 @@ namespace Swashbuckle.AspNetCore.Swagger {
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory,
                     config.GetType().Assembly.GetName().Name + ".xml"), true);
 
+                // Add autorest extensions
+                options.SchemaFilter<AutoRestSchemaExtensions>();
+
                 // If auth enabled, need to have bearer token to access any api
                 if (config.WithAuth) {
                     var resource = config as IClientConfig;
@@ -62,20 +67,23 @@ namespace Swashbuckle.AspNetCore.Swagger {
                             Name = "Authorization",
                             In = "header"
                         });
+                        options.OperationFilter<AutoRestOperationExtensions>();
                     }
                     else {
                         options.AddSecurityDefinition("oauth2", new OAuth2Scheme {
                             Type = "oauth2",
+                            Description = "Implicit oauth2 token flow.",
                             Flow = "implicit",
                             AuthorizationUrl = resource.GetAuthorityUrl() +
                                 "/oauth2/authorize",
                             Scopes = services.GetRequiredScopes()
-                                .ToDictionary(k => k, k => $"Access {k} operations"),
-                            TokenUrl = resource.GetAuthorityUrl() +
-                                "/oauth2/token"
+                                .ToDictionary(k => k, k => $"Access {k} operations")
                         });
                         options.OperationFilter<SecurityRequirementsOperationFilter>();
                     }
+                }
+                else {
+                    options.OperationFilter<AutoRestOperationExtensions>();
                 }
             });
         }
@@ -103,7 +111,10 @@ namespace Swashbuckle.AspNetCore.Swagger {
                             out var values) && values.Count > 0) {
                         doc.BasePath = "/" + values[0];
                     }
-                    doc.Schemes = new List<string> { "http", "https" };
+                    doc.Schemes = new List<string> { "https" };
+                    if (config.WithHttpScheme) {
+                        doc.Schemes.Add("http");
+                    }
                 });
                 options.RouteTemplate = "{documentName}/swagger.json";
             });
@@ -131,9 +142,93 @@ namespace Swashbuckle.AspNetCore.Swagger {
         }
 
         /// <summary>
+        /// Add extensions for autorest to schemas
+        /// </summary>
+        private class AutoRestSchemaExtensions : ISchemaFilter, IParameterFilter {
+
+            /// <inheritdoc/>
+            public void Apply(Schema model, SchemaFilterContext context) =>
+                AddExtension(context.SystemType, model.Extensions);
+
+            /// <inheritdoc/>
+            public void Apply(IParameter parameter, ParameterFilterContext context) =>
+                AddExtension(context.ParameterInfo.ParameterType, parameter.Extensions);
+
+            /// <summary>
+            /// Add enum extension
+            /// </summary>
+            /// <param name="paramType"></param>
+            /// <param name="extensions"></param>
+            /// <returns></returns>
+            private static void AddExtension(Type paramType,
+                Dictionary<string, object> extensions) {
+                if (paramType.IsGenericType &&
+                    paramType.GetGenericTypeDefinition() == typeof(Nullable<>)) {
+                    // Most of the model enums are nullable
+                    paramType = paramType.GetGenericArguments()[0];
+                }
+                if (paramType.IsEnum) {
+                    extensions.Add("x-ms-enum", new {
+                        name = paramType.Name,
+                        modelAsString = false,
+                        values = paramType
+                            .GetFields(BindingFlags.Static | BindingFlags.Public)
+                            .Select(field => new {
+                                name = field.Name,
+                                value = field.Name,
+                            })
+                    });
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Add autorest operation extensions
+        /// </summary>
+        private class AutoRestOperationExtensions : IOperationFilter {
+
+            /// <inheritdoc/>
+            public virtual void Apply(Operation operation, OperationFilterContext context) {
+                var name = context.MethodInfo.Name;
+                if (name.EndsWith("Async", StringComparison.InvariantCultureIgnoreCase)) {
+                    operation.OperationId = name.Substring(0, name.Length - 5);
+                }
+                if (operation.OperationId.Contains("CreateOrUpdate") &&
+                    context.ApiDescription.HttpMethod.EqualsIgnoreCase("PATCH")) {
+                    operation.OperationId = operation.OperationId.Replace("CreateOrUpdate", "Update");
+                }
+                var attribute = context.MethodInfo
+                    .GetCustomAttributes<AutoRestExtensionAttribute>().FirstOrDefault();
+                if (attribute != null) {
+                    if (attribute.LongRunning) {
+                        operation.Extensions.Add("x-ms-long-running-operation", true);
+                    }
+                    if (!string.IsNullOrEmpty(attribute.ContinuationTokenLinkName)) {
+                        operation.Extensions.Add("x-ms-pageable",
+                            new Dictionary<string, string> {
+                                { "nextLinkName", attribute.ContinuationTokenLinkName }
+                            });
+                    }
+                    if (attribute.ResponseTypeIsFileStream) {
+                        operation.Responses = operation.Responses ??
+                            new Dictionary<string, Response>();
+                        operation.Responses.AddOrUpdate(HttpStatusCode.OK.ToString(),
+                            new Response {
+                                Description = "OK",
+                                Schema = new Schema {
+                                    Type = "file"
+                                }
+                            });
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Gather security operations
         /// </summary>
-        private class SecurityRequirementsOperationFilter : IOperationFilter {
+        private class SecurityRequirementsOperationFilter : AutoRestOperationExtensions {
 
             /// <summary>
             /// Create filter using injected and configured authorization options
@@ -143,12 +238,9 @@ namespace Swashbuckle.AspNetCore.Swagger {
                 _options = options;
             }
 
-            /// <summary>
-            /// Process operation
-            /// </summary>
-            /// <param name="operation"></param>
-            /// <param name="context"></param>
-            public void Apply(Operation operation, OperationFilterContext context) {
+            /// <inheritdoc/>
+            public override void Apply(Operation operation, OperationFilterContext context) {
+                base.Apply(operation, context);
                 var descriptor = context.ApiDescription.ActionDescriptor as
                     ControllerActionDescriptor;
                 var claims = descriptor.GetRequiredPolicyGlaims(_options.Value);
@@ -171,3 +263,4 @@ namespace Swashbuckle.AspNetCore.Swagger {
         }
     }
 }
+

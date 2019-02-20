@@ -23,6 +23,9 @@ namespace System.Collections.Generic {
                 return true;
             }
             if (seq == null || that == null) {
+                if (!(that?.Any() ?? false)) {
+                    return (seq?.Count ?? 0) == 0;
+                }
                 return false;
             }
             return seq.SetEquals(that);

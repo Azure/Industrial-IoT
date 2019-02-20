@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.Devices.Client;
     using Newtonsoft.Json;
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     /// <summary>
     /// Provides request routing to module controllers
     /// </summary>
-    public class MethodRouter : IMethodRouter, IMethodHandler {
+    public sealed class MethodRouter : IMethodRouter, IMethodHandler {
 
         /// <summary>
         /// Property Di to prevent circular dependency between host and controller
@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var result = await InvokeAsync(request.Name, request.Data,
                     ContentEncodings.MimeTypeJson);
                 if (result.Length > kMaxMessageSize) {
-                    _logger.Error($"Result (Payload too large => {result.Length}");
+                    _logger.Error("Result (Payload too large => {Length}", result.Length);
                     return new MethodResponse((int)HttpStatusCode.RequestEntityTooLarge);
                 }
                 return new MethodResponse(result, 200);
@@ -97,8 +97,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
                 var tArgs = methodInfo.ReturnParameter.ParameterType
                     .GetGenericArguments();
-                if (tArgs.Length != 1) {
-                    // must have exactly one (serializable) type to return
+                if (tArgs.Length > 1) {
+                    // must have exactly 0 or one (serializable) type to return
                     continue;
                 }
                 var name = methodInfo.Name;
@@ -185,8 +185,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="controller"></param>
             /// <param name="controllerMethod"></param>
             public void Add(object controller, MethodInfo controllerMethod) {
-                _logger.Verbose($"Adding {controller.GetType().Name}.{controllerMethod.Name}" +
-                    " method to invoker...");
+                _logger.Verbose("Adding {controller}.{method} method to invoker...",
+                    controller.GetType().Name, controllerMethod.Name);
                 _invokers.Add(new JsonMethodInvoker(controller, controllerMethod, _logger));
             }
 
@@ -202,7 +202,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         e = ex;
                     }
                 }
-                _logger.Verbose($"Exception during method invocation.", e);
+                _logger.Verbose(e, "Exception during method invocation.");
                 throw e;
             }
 
@@ -247,9 +247,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 _ef = _controllerMethod.GetCustomAttribute<ExceptionFilterAttribute>(true) ??
                     controller.GetType().GetCustomAttribute<ExceptionFilterAttribute>(true) ??
                     new DefaultFilter();
-                _methodTaskContinuation = _methodResponseAsContinuation.MakeGenericMethod(
-                    _controllerMethod.ReturnParameter.ParameterType
-                        .GetGenericArguments()[0]);
+                var returnArgs = _controllerMethod.ReturnParameter.ParameterType.GetGenericArguments();
+                if (returnArgs.Length > 0) {
+                    _methodTaskContinuation = _methodResponseAsContinuation.MakeGenericMethod(
+                        returnArgs[0]);
+                }
             }
 
             /// <inheritdoc/>
@@ -257,7 +259,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 object task;
                 try {
                     object[] inputs;
-                    if (_methodParams.Length == 1) {
+                    if (_methodParams.Length == 0) {
+                        inputs = new object[0];
+                    }
+                    else if (_methodParams.Length == 1) {
                         var data = JsonConvertEx.DeserializeObject(
                             Encoding.UTF8.GetString(payload), _methodParams[0].ParameterType);
                         inputs = new[] { data };
@@ -276,6 +281,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
                 catch (Exception e) {
                     task = Task.FromException(e);
+                }
+                if (_methodTaskContinuation == null) {
+                    return VoidContinuation((Task)task);
                 }
                 return (Task<byte[]>)_methodTaskContinuation.Invoke(this, new[] {
                     task
@@ -302,10 +310,32 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         _logger.Verbose($"Method call error", ex);
                         ex = _ef.Filter(ex, out var status);
                         throw new MethodCallStatusException(ex != null ?
-                            Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(ex)) : null, status);
+                            Encoding.UTF8.GetBytes(JsonConvertEx.SerializeObject(ex)) : null, status);
                     }
                     return Encoding.UTF8.GetBytes(
                         JsonConvertEx.SerializeObject(tr.Result));
+                });
+            }
+
+            /// <summary>
+            /// Helper to convert a void response to buffer or throw appropriate
+            /// exception as continuation.
+            /// </summary>
+            /// <param name="task"></param>
+            /// <returns></returns>
+            public Task<byte[]> VoidContinuation(Task task) {
+                return task.ContinueWith(tr => {
+                    if (tr.IsFaulted || tr.IsCanceled) {
+                        var ex = tr.Exception?.Flatten().InnerExceptions.FirstOrDefault();
+                        if (ex == null) {
+                            ex = new TaskCanceledException();
+                        }
+                        _logger.Verbose($"Method call error", ex);
+                        ex = _ef.Filter(ex, out var status);
+                        throw new MethodCallStatusException(ex != null ?
+                            Encoding.UTF8.GetBytes(JsonConvertEx.SerializeObject(ex)) : null, status);
+                    }
+                    return new byte[0];
                 });
             }
 

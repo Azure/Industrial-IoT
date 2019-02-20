@@ -5,31 +5,26 @@
 
 namespace Microsoft.Azure.IIoT.Hub {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Handles events from source
+    /// Handles events
     /// </summary>
     public interface IEventHandler {
 
         /// <summary>
-        /// Event content type
+        /// Handle message
         /// </summary>
-        string ContentType { get; }
-
-        /// <summary>
-        /// Handle event
-        /// </summary>
-        /// <param name="moduleId"></param>
-        /// <param name="deviceId"></param>
-        /// <param name="payload"></param>
+        /// <param name="eventData"></param>
+        /// <param name="properties"></param>
         /// <param name="checkpoint"></param>
         /// <returns></returns>
-        Task HandleAsync(string deviceId, string moduleId,
-            byte[] payload, Func<Task> checkpoint);
+        Task HandleAsync(byte[] eventData,
+            IDictionary<string, string> properties, Func<Task> checkpoint);
 
         /// <summary>
-        /// Called when batch is completed
+        /// Message batch completed
         /// </summary>
         /// <returns></returns>
         Task OnBatchCompleteAsync();

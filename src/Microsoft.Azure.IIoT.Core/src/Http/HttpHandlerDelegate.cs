@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Default {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                     root.Proxy = proxy;
                 }
                 else {
-                    _logger.Warn("Proxy configuration provided, but " +
+                    _logger.Warning("Proxy configuration provided, but " +
                         "underlying handler does not support proxy " +
                         "configuration.  Skipping proxy.");
                 }

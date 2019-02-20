@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Module {
     public interface IMethodHandler {
 
         /// <summary>
-        /// Chunk method handler
+        /// Method handler
         /// </summary>
         /// <param name="method"></param>
         /// <param name="payload"></param>

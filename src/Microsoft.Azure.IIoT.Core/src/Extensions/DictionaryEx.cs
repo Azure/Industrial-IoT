@@ -68,6 +68,24 @@ namespace System.Collections.Generic {
         }
 
         /// <summary>
+        /// Get or add item
+        /// </summary>
+        /// <typeparam name="K"></typeparam>
+        /// <typeparam name="V"></typeparam>
+        /// <param name="dict"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public static V GetOrAdd<K, V>(this IDictionary<K, V> dict,
+            K key, V value) {
+            if (dict.TryGetValue(key, out var result)) {
+                return result;
+            }
+            dict.Add(key, value);
+            return value;
+        }
+
+
+        /// <summary>
         /// Get or create new item
         /// </summary>
         /// <typeparam name="K"></typeparam>

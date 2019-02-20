@@ -4,8 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.EventHubs;
     using Microsoft.Azure.EventHubs.Processor;
@@ -13,24 +12,22 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Collections;
 
     /// <summary>
-    /// Default iot hub event processor factory implementation
+    /// Default event hub event processor factory.
     /// </summary>
-    public class EventProcessorFactory : IEventProcessorFactory {
+    public sealed class EventProcessorFactory : IEventProcessorFactory {
 
         /// <summary>
         /// Create processor factory
         /// </summary>
-        /// <param name="handlers"></param>
+        /// <param name="handler"></param>
         /// <param name="logger"></param>
-        public EventProcessorFactory(IEnumerable<IEventHandler> handlers,
+        public EventProcessorFactory(IEventHandler handler,
             ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            if (handlers == null) {
-                throw new ArgumentNullException(nameof(handlers));
-            }
-            _handlers = handlers.ToDictionary(h => h.ContentType, h => h);
+            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
         }
 
         /// <inheritdoc/>
@@ -51,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
                 _factory = factory ?? throw new ArgumentNullException(nameof(factory));
                 _processorId = Guid.NewGuid().ToString();
-                logger.Info("EventProcessor created", () => new { _processorId });
+                logger.Information("EventProcessor {id} created", _processorId );
             }
 
             /// <inheritdoc/>
@@ -60,67 +57,151 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 if (messages == null || !messages.Any()) {
                     return;
                 }
-
-                var used = new HashSet<IEventHandler>();
                 foreach (var eventData in messages) {
-                    if (!eventData.Properties.TryGetValue(CommonProperties.kDeviceId,
-                            out var deviceId) &&
-                        !eventData.SystemProperties.TryGetValue(
-                            SystemProperties.ConnectionDeviceId, out deviceId)) {
-                        // Not our content to process
-                        continue;
-                    }
-
-                    if (!eventData.Properties.TryGetValue(CommonProperties.kContentType,
-                            out var contentType) &&
-                        !eventData.Properties.TryGetValue(EventProperties.kContentType,
-                            out contentType) &&
-                        !eventData.SystemProperties.TryGetValue(
-                            SystemProperties.ContentType, out contentType)) {
-                        // Not our content to process
-                        continue;
-                    }
-
-                    if (deviceId == null || contentType == null) {
-                        // Not our content to process
-                        continue;
-                    }
-
-                    eventData.Properties.TryGetValue(CommonProperties.kModuleId,
-                        out var moduleId);
-                    if (moduleId == null) {
-                        // TODO:  Try get from system properties
-                    }
-
-                    if (_factory._handlers.TryGetValue(contentType.ToString().ToLowerInvariant(),
-                        out var handler)) {
-                        await handler.HandleAsync(deviceId.ToString(),
-                            moduleId?.ToString(), eventData.Body.Array,
-                                () => Try.Async(() => context.CheckpointAsync(eventData)));
-                        used.Add(handler);
-                    }
+                    var properties = new EventProperties(eventData.SystemProperties,
+                        eventData.Properties);
+                    await _factory._handler.HandleAsync(eventData.Body.Array, properties,
+                        () => Try.Async(() => context.CheckpointAsync(eventData)));
                 }
-                foreach (var handler in used) {
-                    await Try.Async(handler.OnBatchCompleteAsync);
-                }
+                await Try.Async(_factory._handler.OnBatchCompleteAsync);
             }
 
             /// <inheritdoc/>
             public Task OpenAsync(PartitionContext context) {
-                _logger.Info("Partition opened", () => new { _processorId, context });
+                _logger.Information("Partition for {id} opened", _processorId);
                 return Task.CompletedTask;
             }
 
             /// <inheritdoc/>
             public Task ProcessErrorAsync(PartitionContext context, Exception error) {
-                _logger.Warn("Processor error", () => new { _processorId, context, error });
+                _logger.Warning(error, "Processor {id} error",  _processorId);
                 return Task.CompletedTask;
             }
 
             /// <inheritdoc/>
             public Task CloseAsync(PartitionContext context, CloseReason reason) {
-                _logger.Info("Partition closed", () => new { _processorId, context, reason });
+                _logger.Information("Partition {id} closed ({reason})",  _processorId, reason);
                 return Task.CompletedTask;
+            }
+
+            /// <summary>
+            /// Wraps the properties into a string dictionary
+            /// </summary>
+            private class EventProperties : IDictionary<string, string> {
+
+                /// <summary>
+                /// Create properties wrapper
+                /// </summary>
+                /// <param name="system"></param>
+                /// <param name="user"></param>
+                internal EventProperties(IDictionary<string, object> system,
+                    IDictionary<string, object> user) {
+                    _system = system ?? new Dictionary<string, object>();
+                    _user = user ?? new Dictionary<string, object>();
+                }
+
+                /// <inheritdoc/>
+                public ICollection<string> Keys => _user.Keys
+                    .Concat(_system.Keys).ToList();
+
+                /// <inheritdoc/>
+                public ICollection<string> Values => _user.Values
+                    .Select(v => v.ToString())
+                    .Concat(_system.Values
+                        .Select(v => v.ToString()))
+                    .ToList();
+
+                /// <inheritdoc/>
+                public int Count =>
+                    _system.Count + _user.Count;
+
+                /// <inheritdoc/>
+                public bool IsReadOnly => true;
+
+                /// <inheritdoc/>
+                public string this[string key] {
+                    get {
+                        if (!_user.TryGetValue(key, out var result)) {
+                            result = _system[key];
+                        }
+                        return result.ToString();
+                    }
+                    set => _user[key] = value;
+                }
+
+                /// <inheritdoc/>
+                public void Add(string key, string value) =>
+                    _user.Add(key, value);
+
+                /// <inheritdoc/>
+                public bool ContainsKey(string key) =>
+                    _user.ContainsKey(key) || _system.ContainsKey(key);
+
+                /// <inheritdoc/>
+                public bool Remove(string key) =>
+                    _user.Remove(key) || _system.Remove(key);
+
+                /// <inheritdoc/>
+                public bool TryGetValue(string key, out string value) {
+                    if (_user.TryGetValue(key, out var result) ||
+                        _system.TryGetValue(key, out result)) {
+                        value = result.ToString();
+                        return true;
+                    }
+                    value = null;
+                    return false;
+                }
+
+                /// <inheritdoc/>
+                public void Add(KeyValuePair<string, string> item) =>
+                    _user.Add(new KeyValuePair<string, object>(item.Key, item.Value));
+
+                /// <inheritdoc/>
+                public void Clear() {
+                    _user.Clear();
+                    _system.Clear();
+                }
+
+                /// <inheritdoc/>
+                public bool Contains(KeyValuePair<string, string> item) {
+                    if (TryGetValue(item.Key, out var value)) {
+                        return value == item.Value.ToString();
+                    }
+                    return false;
+                }
+
+                /// <inheritdoc/>
+                public void CopyTo(KeyValuePair<string, string>[] array, int arrayIndex) {
+                    var index = arrayIndex;
+                    foreach (var item in this) {
+                        if (index >= array.Length) {
+                            return;
+                        }
+                        array[index++] = item;
+                    } 
+                }
+
+                /// <inheritdoc/>
+                public bool Remove(KeyValuePair<string, string> item) {
+                    if (Contains(item)) {
+                        return Remove(item.Key);
+                    }
+                    return false;
+                }
+
+                /// <inheritdoc/>
+                public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => _user
+                    .Select(v => new KeyValuePair<string, string>(v.Key, v.Value.ToString()))
+                    .Concat(_system
+                        .Select(v => new KeyValuePair<string, string>(v.Key, v.Value.ToString())))
+                    .GetEnumerator();
+
+                /// <inheritdoc/>
+                IEnumerator IEnumerable.GetEnumerator() =>
+                    _user.Concat(_system).GetEnumerator();
+
+                private readonly IDictionary<string, object> _system;
+                private readonly IDictionary<string, object> _user;
             }
 
             private readonly ILogger _logger;
@@ -129,6 +210,6 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
         }
 
         private readonly ILogger _logger;
-        private readonly Dictionary<string, IEventHandler> _handlers;
+        private readonly IEventHandler _handler;
     }
 }

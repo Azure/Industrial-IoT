@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// <summary>
     /// Injected module framework module
     /// </summary>
-    public class HttpClientModule : Module {
+    public sealed class HttpClientModule : Module {
 
         /// <summary>
         /// Load the module

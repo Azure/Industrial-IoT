@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
     /// <summary>
     /// A port range
     /// </summary>
-    public class PortRange {
+    public sealed class PortRange {
 
         /// <summary>
         /// Number of ports in range
@@ -138,6 +138,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             get {
                 yield return new PortRange(4840, 4841);
                 yield return new PortRange(48000, 48100);
+                yield return new PortRange(50000);
                 yield return new PortRange(51200, 51300);
                 yield return new PortRange(62222);
                 // TODO

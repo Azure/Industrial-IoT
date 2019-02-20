@@ -10,7 +10,7 @@ namespace Newtonsoft.Json {
     /// <summary>
     /// Writes address as json
     /// </summary>
-    internal class PhysicalAddressConverter : JsonConverter<PhysicalAddress> {
+    sealed class PhysicalAddressConverter : JsonConverter<PhysicalAddress> {
 
         /// <summary>
         /// Read
@@ -23,11 +23,10 @@ namespace Newtonsoft.Json {
         /// <returns></returns>
         public override PhysicalAddress ReadJson(JsonReader reader, Type objectType,
             PhysicalAddress existingValue, bool hasExistingValue, JsonSerializer serializer) {
-            var str = reader.ReadAsString();
-            if (string.IsNullOrEmpty(str)) {
-                return PhysicalAddress.None;
+            if (reader.TokenType != JsonToken.String) { 
+                return null;
             }
-            return PhysicalAddress.Parse(str);
+            return PhysicalAddress.Parse((string)reader.Value);
         }
 
         /// <summary>
@@ -38,8 +37,12 @@ namespace Newtonsoft.Json {
         /// <param name="serializer"></param>
         public override void WriteJson(JsonWriter writer, PhysicalAddress value,
             JsonSerializer serializer) {
-            writer.WriteToken(JsonToken.String, value?.ToString() ??
-                string.Empty);
+            if (value == null) {
+                writer.WriteNull();
+            }
+            else {
+                writer.WriteToken(JsonToken.String, value.ToString());
+            }
         }
     }
 }

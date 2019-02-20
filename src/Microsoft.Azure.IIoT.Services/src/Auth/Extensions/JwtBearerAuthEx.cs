@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
     using System.IdentityModel.Tokens.Jwt;
     using System.Security.Claims;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Builder;
 
     /// <summary>
     /// Configure JWT bearer authentication
@@ -27,6 +28,18 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
         /// <param name="inDevelopment"></param>
         public static void AddJwtBearerAuthentication(this IServiceCollection services,
             IAuthConfig config, bool inDevelopment) {
+
+            if (config.HttpsRedirectPort > 0) {
+                services.AddHsts(options => {
+                    options.Preload = true;
+                    options.IncludeSubDomains = true;
+                    options.MaxAge = TimeSpan.FromDays(60);
+                });
+                services.AddHttpsRedirection(options => {
+                    options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+                    options.HttpsPort = config.HttpsRedirectPort;
+                });
+            }
 
             // Allow access to context from within token providers and other client auth
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();

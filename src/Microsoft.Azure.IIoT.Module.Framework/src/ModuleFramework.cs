@@ -9,13 +9,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Tasks;
-    using Microsoft.Azure.IIoT.Http;
     using Autofac;
 
     /// <summary>
     /// Injected module framework module
     /// </summary>
-    public class ModuleFramework : Module {
+    public sealed class ModuleFramework : Module {
 
         /// <summary>
         /// Load the module
@@ -41,7 +40,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
 
             // If not already registered, register task scheduler
 #if USE_DEFAULT_FACTORY
-            builder.RegisterType<TaskScheduler>()
+            builder.RegisterType<DefaultScheduler>()
                 .AsImplementedInterfaces().SingleInstance()
                 .IfNotRegistered(typeof(ITaskScheduler));
 #else

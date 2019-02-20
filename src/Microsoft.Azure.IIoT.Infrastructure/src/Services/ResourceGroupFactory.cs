@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Infrastructure.Services {
     using Microsoft.Azure.IIoT.Infrastructure.Auth;
     using Microsoft.Azure.IIoT.Infrastructure.Runtime;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.Management.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
@@ -82,11 +82,12 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Services {
             }
 
             var region = await subscription.GetRegionAsync();
-            _logger.Info($"Creating simulation group {resourceGroup} in {region}...");
+            _logger.Information("Creating simulation group {resourceGroup} in {region}...",
+                resourceGroup, region);
             var rg = await client.ResourceGroups.Define(resourceGroup)
                 .WithRegion(region)
                 .CreateAsync();
-            _logger.Info($"Created resource group {rg.Name}.");
+            _logger.Information("Created resource group {resourceGroup}.", rg.Name);
             return new ResourceGroupResource(this, rg, deleteOnDispose, subscription, _logger);
         }
 
@@ -121,10 +122,12 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Services {
 
             /// <inheritdoc/>
             public async Task DeleteAsync() {
-                _logger.Info($"Deleting resource group {_group.Name}...");
+                _logger.Information("Deleting resource group {resourceGroup}...",
+                    _group.Name);
                 var client = await _manager.CreateClientAsync(Subscription);
                 await client.ResourceGroups.DeleteByNameAsync(_group.Name);
-                _logger.Info($"Resource group {_group.Name} deleted.");
+                _logger.Information("Resource group {resourceGroup} deleted.",
+                    _group.Name);
             }
 
             /// <inheritdoc/>

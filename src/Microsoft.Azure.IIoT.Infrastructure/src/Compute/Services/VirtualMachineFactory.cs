@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Infrastructure.Auth;
     using Microsoft.Azure.IIoT.Infrastructure.Network;
@@ -174,7 +174,8 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                                .WithAdminPassword(pw);
                     }
 
-                    _logger.Info($"Trying to create vm {name} on {vmSize}...");
+                    _logger.Information("Trying to create vm {name} on {vmSize}...",
+                        name, vmSize);
 
                     IVirtualMachine vm = null;
                     if (!string.IsNullOrEmpty(customData)) {
@@ -182,21 +183,21 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                                 .WithCustomData(customData)
                                 .WithSize(vmSize)
                             .CreateAsync();
-                        _logger.Info($"Starting vm {name} ...");
+                        _logger.Information("Starting vm {name} ...", name);
                         // Restart for changes to go into effect
                         await vm.RestartAsync();
                     }
                     else {
                         vm = await machine.WithSize(vmSize).CreateAsync();
                     }
-                    _logger.Info($"Created vm {name}.");
+                    _logger.Information("Created vm {name}.", name);
                     return new VirtualMachineResource(this, resourceGroup, vm,
                         user, pw, _logger);
                 }
                 catch (Exception ex) {
-                    _logger.Info(
-                        $"#{attempt} failed creating VM {name} as {vmSize}...",
-                            () => ex);
+                    _logger.Information(ex,
+                        "#{attempt} failed creating VM {name} as {vmSize}...",
+                            attempt, name, vmSize);
                     await TryDeleteResourcesAsync(resourceGroup, name);
                     if (++attempt == 3) {
                         throw ex;
@@ -260,7 +261,8 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                 await _vm.GetPrimaryNetworkInterface().Update()
                     .WithNewPrimaryPublicIPAddress(publicIP)
                     .ApplyAsync();
-                _logger.Info($"Added public IP {PublicIPAddress} to {_vm.Name}...");
+                _logger.Information("Added public IP {address} to {name}...",
+                    PublicIPAddress, _vm.Name);
             }
 
             /// <inheritdoc/>
@@ -271,7 +273,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                 await _vm.GetPrimaryNetworkInterface().Update()
                     .WithoutPrimaryPublicIPAddress()
                     .ApplyAsync();
-                _logger.Info($"Removed public IP from {_vm.Name}...");
+                _logger.Information("Removed public IP from {name}...", _vm.Name);
             }
 
             /// <inheritdoc/>
@@ -279,7 +281,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                 CancellationToken ct) {
                 if (_manager._shell != null) {
                     while (!ct.IsCancellationRequested) {
-                        await Try.Async(() => AddPublicIPAddressAsync());
+                        await Try.Async(AddPublicIPAddressAsync);
                         await Try.Async(() => EnableInboundPortAsync(port));
                         return await Try.Async(() => _manager._shell.OpenSecureShellAsync(
                                PublicIPAddress, port, User, Password, ct));
@@ -291,9 +293,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
 
             /// <inheritdoc/>
             public async Task DeleteAsync() {
-                _logger.Info($"Deleting VM {_vm.Id}...");
+                _logger.Information("Deleting VM {vm}...", _vm.Id);
                 await _manager.TryDeleteResourcesAsync(_resourceGroup, _vm.Id);
-                _logger.Info($"VM {_vm.Id} deleted.");
+                _logger.Information("VM {vm} deleted.", _vm.Id);
             }
 
 
@@ -325,7 +327,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                         .WithExistingNetworkSecurityGroup(nsg).ApplyAsync();
                 }
                 catch (Exception ex) {
-                    _logger.Error($"Failed to enable port {port}", () => ex);
+                    _logger.Error(ex, "Failed to enable port {port}", port);
                 }
             }
 
@@ -349,7 +351,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                         .WithExistingNetworkSecurityGroup(nsg).ApplyAsync();
                 }
                 catch (Exception ex) {
-                    _logger.Error($"Failed to disable port {port}", () => ex);
+                    _logger.Error(ex, "Failed to disable port {port}", port);
                 }
             }
 

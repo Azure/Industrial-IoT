@@ -68,5 +68,17 @@ namespace System {
             }
             return assemblyVersion;
         }
+
+
+        /// <summary>
+        /// Loads from resource
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="resourceId"></param>
+        /// <returns></returns>
+        public static T DeserializeFromXmlManifestResource<T>(this Assembly assembly,
+            string resourceId) {
+            return assembly.GetManifestResourceStream(resourceId).DeserializeFromXml<T>();
+        }
     }
 }

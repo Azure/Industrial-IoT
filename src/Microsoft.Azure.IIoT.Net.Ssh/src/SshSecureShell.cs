@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Net.Ssh {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
     using Renci.SshNet;
     using System;
@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
     /// <summary>
     /// Secure shell implementation
     /// </summary>
-    public class SshSecureShell : ISecureShell {
+    public sealed class SshSecureShell : ISecureShell {
 
         /// <summary>
         /// Creates SSHShell.
@@ -93,7 +93,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
             return Task.Run(() => {
                 using (var command = _sshClient.CreateCommand(commandToExecute)) {
                     var result = command.Execute();
-                    _logger.Debug($"SSH> {commandToExecute}\n{result}");
+                    _logger.Debug("SSH> {command}\n{result}", commandToExecute, result);
                     return result;
                 }
             }, ct);
@@ -115,7 +115,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
                 using (var mstream = new MemoryStream()) {
                     var target = path + "/" + fileName;
                     _scpClient.Download(target, mstream);
-                    _logger.Debug($"SCP> {target} downloaded.");
+                    _logger.Debug("SCP> {target} downloaded.", target);
                     mstream.Position = 0;
                     return new StreamReader(mstream).ReadToEnd();
                 }
@@ -141,7 +141,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
                     if (mstream.Position >= maxCount) {
                         return -1;
                     }
-                    _logger.Debug($"SCP> {target} downloaded.");
+                    _logger.Debug("SCP> {target} downloaded.", target);
                     mstream.Position = 0;
                     return mstream.Read(destBuff, 0, maxCount);
                 }
@@ -162,7 +162,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
 
             return Task.Run(() => {
                 _scpClient.Download(path, new DirectoryInfo(toPath));
-                _logger.Debug($"SCP> {path} downloaded to {toPath}.");
+                _logger.Debug("SCP> {path} downloaded to {toPath}.", path, toPath);
             }, ct);
         }
 
@@ -188,7 +188,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
                 // Create the file containing the uploaded data
                 using (var mstream = new MemoryStream(data)) {
                     _scpClient.Upload(mstream, target);
-                    _logger.Debug($"SCP> {target} uploaded.");
+                    _logger.Debug("SCP> {target} uploaded.", target);
                 }
 
                 if (string.IsNullOrEmpty(mode)) {
@@ -273,7 +273,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
                     break;
                 }
                 catch (Exception ex) {
-                    _logger.Error("input error", () => ex);
+                    _logger.Error(ex, "input error");
                     continue;
                 }
             }

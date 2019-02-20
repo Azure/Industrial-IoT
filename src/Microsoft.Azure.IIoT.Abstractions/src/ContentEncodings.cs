@@ -21,6 +21,11 @@ namespace Microsoft.Azure.IIoT {
         public const string MimeTypeJson =
             "application/json";
         /// <summary>
+        /// Bson encoding
+        /// </summary>
+        public const string MimeTypeBson =
+            "application/bson";
+        /// <summary>
         /// Message pack encoding
         /// </summary>
         public const string MimeTypeMsgPack =
@@ -31,6 +36,11 @@ namespace Microsoft.Azure.IIoT {
         /// </summary>
         public const string MimeTypeUaJson =
             "application/ua+json";
+        /// <summary>
+        /// OPC UA bson encoding
+        /// </summary>
+        public const string MimeTypeUaBson =
+            "application/ua+bson";
         /// <summary>
         /// OPC UA json encoding but non reversible
         /// </summary>
@@ -47,6 +57,11 @@ namespace Microsoft.Azure.IIoT {
         /// </summary>
         public const string MimeTypeUaXml =
             "application/ua+xml";
+        /// <summary>
+        /// OPC UA nodset xml encoding
+        /// </summary>
+        public const string MimeTypeUaNodesetXml =
+            "application/ua-nodeset+xml";
 
         /// <summary>
         /// (For testing) Reference encoder

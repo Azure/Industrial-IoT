@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Tasks.Default {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Concurrent;
@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
     /// A task (or job) processor build on top of an in memory
     /// BlockingCollection
     /// </summary>
-    public class TaskProcessor : ITaskProcessor, IDisposable {
+    public sealed class TaskProcessor : ITaskProcessor, IDisposable {
 
         /// <summary>
         /// The processors task scheduler
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         public void Dispose() => Try.Op(() =>
             Task.WaitAll(_processors.Select(p => p.CloseAsync()).ToArray()));
 
-        private class ProcessorWorker {
+        sealed class ProcessorWorker {
 
             internal BlockingCollection<Work> Queue { get; }
 
@@ -124,12 +124,10 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
                     catch (Exception ex) {
                         if (item.Retries == 0) {
                             // Give up.
-                            _processor._logger.Error("Exception thrown, give up on task!",
-                                () => ex);
+                            _processor._logger.Error(ex, "Exception thrown, give up on task!");
                             return;
                         }
-                        _processor._logger.Error($"Processing task failed with exception.",
-                            () => ex);
+                        _processor._logger.Error(ex, "Processing task failed with exception.");
                         item.Retries--;
                         _processor.TrySchedule(item);
                     }
@@ -137,7 +135,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
                 }
             }
 
-            internal class Work {
+            internal sealed class Work {
 
                 /// <summary>
                 /// Number of retries
@@ -159,7 +157,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             private readonly Task _worker;
         }
 
-        internal class DefaultConfig : ITaskProcessorConfig {
+        internal sealed class DefaultConfig : ITaskProcessorConfig {
             public int MaxInstances => 1;
             public int MaxQueueSize => 1000;
         }

@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
     /// <summary>
     /// IPV4 address
     /// </summary>
-    public class IPv4Address : IPAddress, IComparable<IPv4Address>,
+    public sealed class IPv4Address : IPAddress, IComparable<IPv4Address>,
         IComparable<IPAddress> {
 
         /// <summary>

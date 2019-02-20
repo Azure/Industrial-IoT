@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.Devices.Client;
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// <summary>
     /// Injectable factory that creates clients from device sdk
     /// </summary>
-    public class IoTSdkFactory : IClientFactory {
+    public sealed class IoTSdkFactory : IClientFactory {
 
         /// <inheritdoc />
         public string DeviceId { get; }
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     "EdgeAgent, or manually set the 'EdgeHubConnectionString' " +
                     "environment variable or configure the connection string " +
                     "value in your 'appsettings.json' configuration file.", e);
-                _logger.Error("Bad configuration", () => ex);
+                _logger.Error(ex, "Bad configuration");
                 throw ex;
             }
 
@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc/>
-        public async Task<IClient> CreateAsync(string product, Action onError) {
+        public async Task<IClient> CreateAsync(string product, IProcessControl ctrl) {
 
             // Configure transport settings
             var transportSettings = new List<ITransportSettings>();
@@ -130,10 +130,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             if (transportSettings.Count != 0) {
                 return await Try.Options(transportSettings
                     .Select<ITransportSettings, Func<Task<IClient>>>(t =>
-                         () => CreateAdapterAsync(product, onError, t))
+                         () => CreateAdapterAsync(product, () => ctrl?.Reset(), t))
                     .ToArray());
             }
-            return await CreateAdapterAsync(product, onError);
+            return await CreateAdapterAsync(product, () => ctrl?.Reset());
         }
 
         /// <summary>
@@ -194,8 +194,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
                 client.SetConnectionStatusChangesHandler((s, r) => {
-                    logger.Info($"Module {cs.DeviceId}_{cs.ModuleId} connection status " +
-                        $"changed to {s} due to {r}.");
+                    logger.Information("Module {deviceId}_{moduleId} connection status " +
+                        "changed to {s} due to {r}.", cs.DeviceId, cs.ModuleId, s, r);
                     if (r == ConnectionStatusChangeReason.Client_Close && !adapter.IsClosed) {
                         adapter.IsClosed = true;
                         onConnectionLost?.Invoke();
@@ -345,8 +345,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
                 client.SetConnectionStatusChangesHandler((s, r) => {
-                    logger.Info(
-                        $"Device {cs.DeviceId} connection status changed to {s} due to {r}.");
+                    logger.Information(
+                        "Device {deviceId} connection status changed to {s} due to {r}.",
+                        cs.DeviceId, s, r);
 
                     if (r == ConnectionStatusChangeReason.Client_Close && !adapter.IsClosed) {
                         adapter.IsClosed = true;
@@ -462,14 +463,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         private void InstallCert(string certPath) {
             if (!File.Exists(certPath)) {
                 // We cannot proceed further without a proper cert file
-                _logger.Error($"Missing certificate file: {certPath}");
+                _logger.Error("Missing certificate file: {certPath}", certPath);
                 throw new InvalidOperationException("Missing certificate file.");
             }
 
             var store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadWrite);
             store.Add(new X509Certificate2(X509Certificate.CreateFromCertFile(certPath)));
-            _logger.Info("Added Cert: " + certPath);
+            _logger.Information("Added Cert: {certPath}", certPath);
             store.Close();
         }
 

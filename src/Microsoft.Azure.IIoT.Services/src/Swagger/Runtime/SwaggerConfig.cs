@@ -21,12 +21,17 @@ namespace Microsoft.Azure.IIoT.Services.Swagger.Runtime {
         private const string kSwagger_AppIdKey = "Swagger:AppId";
         private const string kSwagger_AppSecretKey = "Swagger:AppSecret";
         private const string kAuth_RequiredKey = "Auth:Required";
+        private const string kAuth_HttpsRedirectPortKey = "Auth:HttpsRedirectPort";
+
         /// <summary>Enabled</summary>
         public bool UIEnabled => GetBoolOrDefault(kSwagger_EnabledKey,
             !WithAuth || !string.IsNullOrEmpty(SwaggerAppId)); // Disable with auth but no appid
         /// <summary>Auth enabled</summary>
         public bool WithAuth => GetBoolOrDefault(kAuth_RequiredKey,
-            !string.IsNullOrEmpty(SwaggerAppId));
+            GetBoolOrDefault("PCS_AUTH_REQUIRED", !string.IsNullOrEmpty(SwaggerAppId)));
+        /// <summary>Https enforced</summary>
+        public bool WithHttpScheme => 0 == GetIntOrDefault(kAuth_HttpsRedirectPortKey,
+            GetIntOrDefault("PCS_AUTH_HTTPSREDIRECTPORT", 0));
         /// <summary>Application id</summary>
         public string SwaggerAppId => GetStringOrDefault(kSwagger_AppIdKey,
             GetStringOrDefault(_serviceId + "_SWAGGER_APP_ID", AppId)).Trim();

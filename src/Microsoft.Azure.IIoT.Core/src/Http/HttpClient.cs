@@ -4,20 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Default {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using System;
     using System.Diagnostics;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using System.Net;
+    using System.Text;
 
     /// <summary>
     /// Http client wrapping http client factory created http clients and
     /// abstracting away all the http client factory and handler noise
     /// for easy injection.
     /// </summary>
-    public class HttpClient : IHttpClient {
+    public sealed class HttpClient : IHttpClient {
 
         /// <summary>
         /// Create client
@@ -93,7 +94,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 HttpHandlerFactory.kDefaultResourceId)) {
                 client.Timeout = TimeSpan.FromMilliseconds(httpRequest.Options.Timeout);
                 var sw = Stopwatch.StartNew();
-                _logger.Verbose($"Sending {httpMethod} request to {httpRequest.Uri}...");
+                _logger.Verbose("Sending {method} request to {uri}...", httpMethod,
+                    httpRequest.Uri);
                 try {
                     wrapper.Request.Method = httpMethod;
                     using (var response = await client.SendAsync(wrapper.Request)) {
@@ -104,13 +106,13 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                             Content = await response.Content.ReadAsByteArrayAsync()
                         };
                         if (result.IsError()) {
-                            _logger.Error($"{httpMethod} to {httpRequest.Uri} returned " +
-                                 $"{response.StatusCode} (took {sw.Elapsed}).",
-                                 () => result.GetContentAsString());
+                            _logger.Error("{method} to {uri} returned {code} (took {elapsed}).",
+                                httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed,
+                                 result.GetContentAsString(Encoding.UTF8));
                         }
                         else {
-                            _logger.Verbose($"... {httpMethod} to {httpRequest.Uri} returned " +
-                                 $"{response.StatusCode} (took {sw.Elapsed}).");
+                            _logger.Verbose("{method} to {uri} returned {code} (took {elapsed}).",
+                                httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed);
                         }
                         return result;
                     }
@@ -120,14 +122,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                     if (e.InnerException != null) {
                         errorMessage += " - " + e.InnerException.Message;
                     }
-                    _logger.Error(
-                        $"... {httpMethod} to {httpRequest.Uri} failed (after {sw.Elapsed})!",
-                        () => new {
-                            ExceptionMessage = e.Message,
-                            InnerExceptionType = e.InnerException?.GetType().FullName ?? "",
-                            InnerExceptionMessage = e.InnerException?.Message ?? "",
-                            errorMessage
-                        });
+                    _logger.Error(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
+                        httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
                     throw new HttpRequestException(errorMessage, e);
                 }
             }
@@ -136,7 +132,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <summary>
         /// Request object
         /// </summary>
-        public class HttpRequest : IHttpRequest {
+        public sealed class HttpRequest : IHttpRequest {
 
             /// <summary>
             /// Constructor
@@ -182,7 +178,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <summary>
         /// Response object
         /// </summary>
-        public class HttpResponse : IHttpResponse {
+        public sealed class HttpResponse : IHttpResponse {
 
             /// <inheritdoc/>
             public string ResourceId { get; internal set; }

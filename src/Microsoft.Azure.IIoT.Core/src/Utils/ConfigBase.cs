@@ -24,13 +24,13 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="configuration"></param>
         protected ConfigBase(IConfigurationRoot configuration) {
-            Configuration = configuration;
-
             if (configuration == null) {
-                var builder = new ConfigurationBuilder();
-                builder.AddEnvironmentVariables();
-                configuration = builder.Build();
+                configuration = new ConfigurationBuilder()
+                    .AddFromDotEnvFile()
+                    .AddEnvironmentVariables()
+                    .Build();
             }
+            Configuration = configuration;
         }
 
         /// <summary>

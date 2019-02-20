@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
     using Microsoft.Azure.IIoT.Infrastructure.Auth;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.Management.IotHub;
@@ -112,8 +112,8 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
                     }
                 });
 
-            _logger.Info($"Created iot hub {hubName} in resource " +
-                $"group {resourceGroup.Name}...");
+            _logger.Information("Created iot hub {hubName} in resource " +
+                "group {resourceGroup}...", hubName, resourceGroup.Name);
 
             var keys = await client.IotHubResource.GetKeysForKeyNameAsync(
                 resourceGroup.Name, hubName, kIoTHubOwner);
@@ -181,8 +181,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
                         StringComparison.OrdinalIgnoreCase));
                 }
                 catch (Exception ex) {
-                    _manager._logger.Error("Exception during health check",
-                        () => ex);
+                    _manager._logger.Error(ex, "Exception during health check");
                     return false;
                 }
             }
@@ -190,15 +189,13 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
             /// <inheritdoc/>
             public async Task DeleteAsync() {
                 try {
-                    _logger.Info($"Deleting iot hub {Name}...");
+                    _logger.Information("Deleting iot hub {Name}...", Name);
                     var client = await _manager.CreateIoTHubClientAsync(_resourceGroup);
-                    await client.IotHubResource.DeleteAsync(_resourceGroup.Name,
-                        Name);
-                    _logger.Info($"iot hub {Name} deleted.");
+                    await client.IotHubResource.DeleteAsync(_resourceGroup.Name, Name);
+                    _logger.Information("iot hub {Name} deleted.", Name);
                 }
                 catch (Exception ex) {
-                    _manager._logger.Error("Exception during delete of iot hub",
-                        () => ex);
+                    _manager._logger.Error(ex, "Exception during delete of iot hub");
                 }
             }
 

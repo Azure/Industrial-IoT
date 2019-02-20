@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// <summary>
     /// Simple Command line options helper
     /// </summary>
-    public class CliOptions {
+    public sealed class CliOptions {
 
         /// <summary>
         /// Helper to collect options
