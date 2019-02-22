@@ -1,3 +1,5 @@
+# Azure Industrial IoT Services
+
 # How to run the Certificate Management Service securely
 
 This article explains how to manage the OPC UA Certificate Management Service securely in Azure and other guidelines to consider.
@@ -14,20 +16,20 @@ This task requires manual assignment of roles and services in the Azure AD Enter
 
 ### Certificate Management Service Roles
 
-The service defines the following roles:
+The microservice defines the following roles:
 
 - **Reader**: By default any authenticated user in the tenant has read access. 
   - Read access to applications and certificate requests. Can list and query for applications and certificate requests. Also device discovery information and public certificates are accessible with read access.
-- **Writer**: The writer role is assigned to a user to add write permissions for certain tasks. 
+- **Writer**: The Writer role is assigned to a user to add write permissions for certain tasks. 
   - Read/Write access to applications and certificate requests. Can register, update and unregister applications. Can create certificate requests and obtain approved private keys and certificates. Can also delete private keys.
-- **Approver**: The approver role is assigned to a user to approve or reject certificate requests. The role does not include any other role.
-  - In addition to the Approver role to access the OPC Vault microservice Api the user must also have signing rights in Key Vault to be able to sign the certificates.
+- **Approver**: The Approver role is assigned to a user to approve or reject certificate requests. The role does not include any other role.
+  - In addition to the Approver role to access the OPC Vault microservice Api the user must also have the key signing permission in Key Vault to be able to sign the certificates.
   - The Writer and Approver role should be assigned to different users.
   - The main role of the Approver is the Approval of the generation and rejection of certificate requests.
-- **Administrator**: The administrator role is assigned to a user to manage the certificate groups. The role does not support the Approver role, but includes the Writer role.
+- **Administrator**: The Administrator role is assigned to a user to manage the certificate groups. The role does not support the Approver role, but includes the Writer role.
   - The administrator can manage the certificate groups, change the configuration and revoke application certificates by issueing a new CRL.
-  - Ideally, Writer, Approver and Administrator role are assigned to different users. For additional security, a user with Approver or Administrator role needs also Key Signing rights in KeyVault to issue certificates or to renew an Issuer CA certificate.
-  - In addition to the service role, the role includes also but is not limited to:
+  - Ideally, Writer, Approver and Administrator roles are assigned to different users. For additional security, a user with Approver or Administrator role needs also key signing permission in KeyVault to issue certificates or to renew an Issuer CA certificate.
+  - In addition to the microservice role, the role includes also but is not limited to:
     - Responsible for administering the implementation of the CA’s security practices.
     - Management of the generation, revocation, and suspension of certificates. 
     - Cryptographic key life cycle management (e.g. the renewal of the Issuer CA keys).
@@ -213,7 +215,7 @@ The OPC Vault microservice SOP is described in the [Overview](opcvault-services-
 
 ### Document and maintain standard operational PKI practices for certificate revocation
 
-The certificate revokation process is described in the [Overview](opcvault-services-overview.md) and the [How to use](howto-use-cert-services.md) documents.
+The certificate revokation process is described in the [Overview](opcvault-services-overview.md) and the [How to manage](howto-manage-cert-services.md) documents.
 	
 ### Document Certification Authority key generation ceremony 
 

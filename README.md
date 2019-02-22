@@ -4,9 +4,21 @@
 
 The certificate management service for OPC UA includes the **OPC Vault Microservice** to implement the CA certificate cloud service, a ASP.Net Core **Sample Certificate Management Web Application** front end and a **OPC Vault Edge Module** to implement a OPC UA GDS server for local connectivity.
 
-#### A detailed overview of the OPC UA Certificate Management Service is [here](docs/opcvault-services-overview.md).
+## Documentation
 
-### This repository contains the following:
+### [OPC UA Certificate Management Service Overview](docs/opcvault-services-overview.md) 
+
+### [How to run a Secure Certificate Service](docs/howto-secureca-services.md)
+
+### [How to Build and Deploy the service to Azure](docs/howto-deploy-services.md) 
+
+### [How to get signed certificates with the Web Sample Application](docs/howto-use-cert-services.md)
+
+### [How to manage the Certificate Service](docs/howto-manage-cert-services.md)
+
+### [How to Build, Run and Debug the services locally](docs/howto-develop-locally.md) 
+
+## This repository contains the following:
 
 This repo contains all components required to run a CA in the Azure cloud for your OPC UA environment:
 
@@ -16,7 +28,14 @@ This repo contains all components required to run a CA in the Azure cloud for yo
 
 A Powershell deployment script automatically builds and deploys the services to your subscription. By default, security is configured for a production system. 
 
-[![Build status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/ci-azure-iiot-opc-vault-service)](https://msazure.visualstudio.com/One/_build/latest?definitionId=44197)
+### Build status
+Due to security considerations, build logs are not publicly available.
+
+| Branch | Status                                                       |
+| ------ | ------------------------------------------------------------ |
+| master | [![Build status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/ci-azure-iiot-opc-vault-service)](https://msazure.visualstudio.com/One/_build/latest?definitionId=44197) |
+
+## Features
 
 ### OPC Vault Microservice Features
 - Production ready certificate microservice based on C# with ASP.Net Core 2.1.
@@ -45,9 +64,9 @@ A Powershell deployment script automatically builds and deploys the services to 
 - Upload CSR for signing requests as file or base64 PEM format.
 - Binary and base64 download of certificates and keys as PFX, PEM and DER.
 - Issues consolidated CRL updates for multiple unregistered applications in a single step, e.g. for weekly updates.
-- Accesses the OPC Vault microservice on behalf of the user to be able to execute protected functions in Azure Key Vault (e.g. signing rights for Approver).
+- Accesses the OPC Vault microservice on behalf of the user to be able to execute protected functions in Azure Key Vault (e.g. signing permissions for Approver, create certificate for Administrator).
 
-### On premise OPC Vault Edge Module as OPC UA Global Discovery Server (GDS) with cloud integration
+### On premises OPC Vault Edge Module as OPC UA Global Discovery Server (GDS) with cloud integration
 - Based on the GDS server common library of the [OPC UA .NetStandard][opc-netstandard] Nuget packages.
 - Implements the OPC UA Discovery and Certificate Management profile by connecting to the OPC Vault microservice.
 - Executes in a docker container or as a .Net Core 2.0 application on Windows or Linux.
@@ -55,18 +74,6 @@ A Powershell deployment script automatically builds and deploys the services to 
 
   **Known limitations:** At this time the GDS can only act in a reader role with limited functionality due to the lack of user OAuth2 authentication support in the OPC UA .NetStandard SDK. For development purposes and testing, the Azure AD registration can be enabled for a 'Writer' role to allow to create certificate requests and to update applications, 
   but this configuration is not recommended for use in production deployments.
-
-## Documentation
-
-### [OPC UA Certificate Management Service Overview](docs/opcvault-services-overview.md) 
-
-### [How to Build and Deploy the service to Azure](docs/howto-deploy-services.md) 
-
-### [How to Build, Run and Debug the services locally](docs/howto-develop-locally.md) 
-
-### [How to Manage certificates with the Web Sample Application](docs/howto-use-cert-services.md)
-
-### [How to run a Secure Certificate Service](docs/howto-secureca-services.md)
 
 ## Contributing
 

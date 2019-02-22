@@ -1,8 +1,8 @@
 # Azure Industrial IoT Services
 
-## How to use the Azure Industrial IoT OPC UA Certificate Management Service
+# How to use the OPC UA Certificate Management Service
 
-This article explains how to manage the OPC UA Certificate Management Service in Azure, how to register applications and how to issue signed application certificates for your OPC UA devices.
+This article explains how to register applications and how to issue signed application certificates for your OPC UA devices.
 
 ## Prerequisites
 
@@ -11,22 +11,11 @@ This article explains how to manage the OPC UA Certificate Management Service in
 First of all, the service needs to be deployed to the Azure cloud.
 Please find an article describing how to deploy the Certificate Management Service [here](howto-deploy-services.md).
 
-### Create the root CA certificate
+### Create the Issuer CA certificate
 
-This is a mandatory step after deployment. Without a valid Issuer CA certificate no application certificates can be signed and issued.<br>
-**Important Note:** The 'Administrator' role is required to create or renew the Issuer CA certificate.
+If you have not done so yet, create the Issuer CA certificate.
 
-1. Open your certificate service at `https://myResourceGroup-app.azurewebsites.net` and login.
-2. Navigate to the `Certificate Groups` page.
-3. There is one `Default` Certificate Group listed. Click on `Edit`.
-4. In `Edit Certificate Group Details` you can modify the Subject Name and Lifetime of your CA and application certificates.
-5. Enter a valid Subject in the valid, e.g. `CN=My CA Root, O=MyCompany, OU=MyDepartment`.
-6. Click on the `Save` button.
-7. If you hit a 'forbidden' error at this point, the user you are logged in with doesn't have the rights to modify or create a new root cert. By default the user who deployed the service has management and signing roles with the service, other users need to be added to the 'Approver', 'Writer' or 'Administrator' roles as appropriate in the AzureAD application registration.
-8. Click on the `Details` button. The `View Certificate Group Details` should display the updated information.
-9. Click on the `Renew CA Certificate` button to issue your first root CA certificate. Press `Ok` to proceed.
-10. After a few seconds the `Certificate Details` are shown. Press `Issuer` or `Crl` to download the latest CA certificate and CRL for distribution to your OPC UA applications.
-11. Now the OPC UA Certificate Management Service is ready to issue certificates for OPC UA applications.
+Please find an article describing how to create and manage the Issuer certificate [here](howto-manage-cert-services.md).
 
 ## Secure OPC UA applications
 
@@ -68,7 +57,7 @@ In general, the CSR method is recommended, because it doesn't require a private 
 
 ![Approve Certificate](ApproveReject.png "Approve Certificate")
 
-5. The approval step requires a user with 'Approver' role and with signing rights in Azure Key Vault. In the typical workflow the Approver and Requester role should be assigned to different users.
+5. The approval step requires a user with 'Approver' role and with signing permissions in Azure Key Vault. In the typical workflow the Approver and Requester role should be assigned to different users.
 6. Approve or Reject the certificate request to start or cancel the actual creation of the key pair and the signing operation. The new key pair is created and stored securely in Azure Key Vault until downloaded by the certificate requester. The resulting certificate with public key is signed by the CA. These operations may take a few seconds to finish.
 
 ![View Key Pair](ViewKeyPair.png "View Key Pair")
@@ -93,7 +82,7 @@ In general, the CSR method is recommended, because it doesn't require a private 
 
 ![Approve CSR](ApproveRejectCSR.png "Approve CSR")
 
-5. The approval step requires a user with 'Approver' role and with signing rights in Azure Key Vault. Approve or Reject the certificate request to start or cancel the actual signing operation. The resulting certificate with public key is signed by the CA. This operation may take a few seconds to finish.
+5. The approval step requires a user with 'Approver' role and with signing permissions in Azure Key Vault. Approve or Reject the certificate request to start or cancel the actual signing operation. The resulting certificate with public key is signed by the CA. This operation may take a few seconds to finish.
 
 ![View Certificate](ViewCertCSR.png "View Certificate")
 

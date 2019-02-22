@@ -1,6 +1,6 @@
 # Azure Industrial IoT Services
 
-## Build and Deploy the OPC UA Certificate Management Service and dependencies
+# Build and Deploy the OPC UA Certificate Management Service and dependencies
 
 This article explains how to deploy the OPC UA Certificate Management Service in Azure.
 
@@ -57,7 +57,7 @@ To start the local dotnet GDS server:
 ```
 In case you run into issues please follow the steps [below](#Troubleshooting-deployment-failures).
 
-8. Open your favorite browser and open the application page: `https://myResourceGroup-app.azurewebsites.net`
+8. Open your favorite browser and open the application page: `https://myResourceGroup.azurewebsites.net`
 8. Give the web app and the OPC Vault microservice a few minutes to warm up after deployment. The web home page may hang on first use for up to a minute until you get the first responses.
 11. To take a look at the Swagger Api open: `https://myResourceGroup-service.azurewebsites.net`
 13. To start a local GDS server with dotnet start `.\myResourceGroup-gds.cmd` or with docker start `.\myResourceGroup-dockergds.cmd`.
@@ -94,7 +94,7 @@ Other names of services are built by the combination of short name hashes and ar
 ### Azure Active Directory (AAD) Registration 
 
 The deployment script tries to register 3 AAD applications in Azure Active Directory.  
-Depending on your rights to the selected AAD tenant, this operation might fail.   There are 2 options:
+Depending on your permissions in the selected AAD tenant, this operation might fail.   There are 2 options:
 
 1. If you chose a AAD tenant from a list of tenants, restart the script and choose a different one from the list.
 2. Alternatively, deploy a private AAD tenant in another subscription, restart the script and select to use it.

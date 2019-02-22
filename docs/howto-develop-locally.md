@@ -1,6 +1,6 @@
 # Azure Industrial IoT Services
 
-## How to build, run and debug the services locally.
+# How to build, run and debug the services locally.
 
 
 
@@ -14,7 +14,7 @@ All the tools you need for .Net Standard come with the .Net Core tools. See [her
 
 1. [Install .NET Core 2.1+][dotnet-install].
 2. [Install Docker][docker-url] (optional, only if the local OPC Vault Edge module docker container is required).
-3. Install Visual Studio 2017 with support for C# and ASP.NET Core.
+3. [Install Visual Studio 2017][vs-install-url] with support for C# and ASP.NET Core.
 
 ### Clone the repository
 
@@ -49,7 +49,7 @@ During deployment, the user who deploys the service is added with read access to
 
 ### Configure the OPC Vault microservice
 
-To configure the microservice locally, create a copy of `appsettings.json` in the `/src` project folder and call it `appsettings.development.json`.  The configuration values then need to be filled in the template. The values are found in the Azure portal within the Azure AD application configuration for the microservice and the application.<br>For simplicity, the configuration values are also saved during deployment in a file called: `resourcegroupname-service.appsettings.Development.json`. The configuration values can be either copied and pasted one by one or the file itself can be copied to the `/src` folder and be renamed to `appsettings.Development.json`.
+To configure the microservice locally, create a copy of `appsettings.json` in the `/src` project folder and call it `appsettings.Development.json`.  The configuration values then need to be filled in the template. The values are found in the Azure portal within the Azure AD application configuration for the microservice and the application.<br>For simplicity, the configuration values are also saved during deployment in a file called: `resourcegroupname-service.appsettings.Development.json`. The configuration values can be either copied and pasted one by one or the file itself can be copied to the `/src` folder and be renamed to `appsettings.Development.json`.
 
 ### Configure the Web Sample Application
 
@@ -62,14 +62,14 @@ The OPC Vault edge module uses a different configuration mechanism than the ASP.
 The startup batch files with the module configurations are created during deployment. In addition, the `/deploy` folder contains a `resourcegroup.module.config` file which contains the command line parameters  needed to start the module in Visual Studio. Copy the following command line parameters from the config file:
 
 ```
---vault="https://resourcegroup-service.azurewebsites.net" 
---resource="1234d010-0345-0201-1234-3dc9008ddea0" 
---clientid="1234b294-738b-0102-1234-2d3cdd49b307" 
---secret="1234JjxLw3g2Av70+TWfE9PQfj56787DNC51Kbrr+uY=" 
---tenantid="12341234-5678-431c-8b2e-1234f2121da5"
+--vault="url of the microservice" 
+--resource="app id guid of the microservice" 
+--clientid="app id guid of the module" 
+--secret="app secret of the module" 
+--tenantid="tenant id guid of the microservice"
 ```
 
- (sample id Values above are only placeholders)
+ (sample id values must be real guids, urls and secrets)
 
 Right click the project and select `Properties`, then `Debug`. Paste the arguments in the `Application Arguments` field. This will start the OPC Vault edge module with correct parameters to connect to the cloud service. To connect to the OPC Vault microservice running locally replace the `--vault` parameter with the service address at the localhost as below <br>`--vault="http://localhost:58801`.
 
@@ -77,7 +77,7 @@ Right click the project and select `Properties`, then `Debug`. Paste the argumen
 
 Steps using Visual Studio 2017:
 
-1. Open the solution using `azure-iiot-opc-vault-service.sln`.
+1. Open the solution using `azure-iiot-opc-vault-service.sln`. *Note: `azure-iiot-opc-vault-service-develop.sln` allows to debug with source instead of nuget packages of the azure-iiot-solutions and the OPC UA.NetStandard stack.*
 2. When the solution is loaded, right click on the solution node,
    select `Properties` and go to the `Startup Project` section.
 3. Choose `Multiple Startup Projects`. The OPC Vault microservice  project `...Services.Vault` is always required. The application project `...Services.Vault.App` and/or the OPC Vault edge module `...Modules.Vault` are optional to debug the application and the edge module. Set projects to `Start` for debugging.
@@ -98,8 +98,7 @@ To deploy the services for each from Visual Studio:
 6. Depending on the selected project, navigate to the `/deploy`  folder and chose the matching `yourresourcegroup.publishsettings` file for the app or `yourresourcegroup-service.publishsettings`  for the microservice and import it.
 7. Now the app or the microservice can be deployed with a right click on `Publish`.
 
-
-
-
-
-1. 
+[docker-url]: https://www.docker.com/
+[dotnet-install]: https://www.microsoft.com/net/learn/get-started
+[vs-install-url]: https://www.visualstudio.com/downloads
+[dotnetcore-tools-url]: https://www.microsoft.com/net/core#windowsvs2017

@@ -40,7 +40,7 @@ OPC Vault provides a microservice to host a company specific CA in a secure
 cloud, backed by Azure AD secured services with Azure Key Vault with HSM, 
 Cosmos DB and optionally also IoT Hub as application store.
 
-The OPC Vault micro service is designed to support role based workflow where OT 
+The OPC Vault microservice is designed to support role based workflow where OT 
 personal requests signed application certificates and where security 
 administrators and approvers with signing rights in Azure Key Vault 
 approve or reject these requests.
@@ -118,7 +118,7 @@ execute as a local .Net Core application or can be started in a docker image.
 Due to a lack of Auth2 authentication support in the current OPC UA .Net Standard stack, 
 the functionality of the OPC Vault edge module is limited to a Reader role, because a user cannot be 
 impersonated from the edge module to the micro service using the OPC UA GDS standard interface. 
-Only operations which do not require the Write, Manage or Sign role are permitted at this point[(*)](#Yet-Unsupported-features). 
+Only operations which do not require the Writer, Administrator or Approver role are permitted at this point[(*)](#Yet-Unsupported-features). 
 
 ## Yet Unsupported features
 
