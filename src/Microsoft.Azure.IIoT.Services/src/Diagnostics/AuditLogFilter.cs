@@ -27,8 +27,6 @@ namespace Microsoft.Azure.IIoT.Services.Diagnostics {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _auditor = auditor;
             if (auditor == null) {
-                _logger.Information("No audit log registered, will log audit events " +
-                    "to application log.");
                 _auditor = new AuditLogLogger(_logger);
             }
             _writer = _auditor.OpenAsync(null).Result; // TODO

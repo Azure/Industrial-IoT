@@ -18,12 +18,12 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// </summary>
         /// <param name="logger"></param>
         public AuditLogLogger(ILogger logger = null) {
-            _logger = logger ?? Log.Logger;
+            _logger = logger ?? Log.ForContext<AuditLogLogger>();
         }
 
         /// <inheritdoc/>
         public Task WriteAsync(AuditLogEntryModel entry) {
-            _logger.Debug("[OPERATION COMPLETED]", entry);
+            _logger?.Verbose("{@auditEntry}", entry);
             return Task.CompletedTask;
         }
 
