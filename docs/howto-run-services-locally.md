@@ -46,8 +46,9 @@ The easiest way to start all services is to use the `docker-compose.yml` file lo
 
 After starting open a browser window to
 
-- http://localhost:9042 for OPC Registry
-- http://localhost:9041 for OPC Twin
+- http://localhost:9042 for OPC Registry Service
+- http://localhost:9041 for OPC Twin Service
+- http://localhost:9043 for OPC Historic Access Service
 
 which will show you the each Service's swagger UI.  If the services exit immediately after start, check that the `.env` file exists in the root.  
 
@@ -57,7 +58,8 @@ Pre-built container images for all services can be downloaded from Microsoft's c
 
 ```bash
 docker pull mcr.microsoft.com/iot/opc-twin-service:latest
-docker pull mcr.microsoft.com/iot/opc-registry-service:latest  
+docker pull mcr.microsoft.com/iot/opc-registry-service:latest
+docker pull mcr.microsoft.com/iot/opc-history-service:latest  
 docker pull mcr.microsoft.com/iot/opc-onboarding-service:latest  
 docker pull mcr.microsoft.com/iot/opc-gateway-service:latest 
 ```

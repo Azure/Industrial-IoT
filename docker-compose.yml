@@ -68,6 +68,23 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
+  historyservice:
+    build: 
+      context: .
+      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.History/docker/Dockerfile
+    restart: always
+    ports:
+      - "9043:9043"
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
+      - PCS_CORS_WHITELIST
   gatewayservice:
     build: 
       context: .

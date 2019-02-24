@@ -75,28 +75,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v1.Controllers {
             return new WriteResponseApiModel(writeResult);
         }
 
-        /// <summary>
-        /// Update node history
-        /// </summary>
-        /// <remarks>
-        /// Update node history using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// </remarks>
-        /// <param name="endpointId">The identifier of the activated endpoint.</param>
-        /// <param name="request">The history read request</param>
-        /// <returns>The history read response</returns>
-        [HttpPost("{endpointId}/history")]
-        public async Task<HistoryUpdateResponseApiModel> WriteHistoryAsync(
-            string endpointId, [FromBody] [Required] HistoryUpdateRequestApiModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            var writeResult = await _nodes.NodeHistoryUpdateAsync(
-                endpointId, request.ToServiceModel());
-            return new HistoryUpdateResponseApiModel(writeResult);
-        }
-
         private readonly INodeServices<string> _nodes;
     }
 }

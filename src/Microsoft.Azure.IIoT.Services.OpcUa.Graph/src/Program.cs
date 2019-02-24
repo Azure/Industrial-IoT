@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// File event processor
+    /// Graph import processor
     /// </summary>
     public class Program {
 

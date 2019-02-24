@@ -5,6 +5,12 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="OPC Foundation\**" />
+    <Content Remove="OPC Foundation\**" />
+    <EmbeddedResource Remove="OPC Foundation\**" />
+    <None Remove="OPC Foundation\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.3.1" />
     <PackageReference Include="Microsoft.AspNetCore.AzureKeyVault.HostingStartup" Version="2.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />

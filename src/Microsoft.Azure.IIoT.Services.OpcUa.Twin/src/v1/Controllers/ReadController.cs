@@ -76,50 +76,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v1.Controllers {
         }
 
         /// <summary>
-        /// Read node history
-        /// </summary>
-        /// <remarks>
-        /// Read node history if available using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// </remarks>
-        /// <param name="endpointId">The identifier of the activated endpoint.</param>
-        /// <param name="request">The history read request</param>
-        /// <returns>The history read response</returns>
-        [HttpPost("{endpointId}/history")]
-        public async Task<HistoryReadResponseApiModel> ReadHistoryAsync(
-            string endpointId, [FromBody] [Required] HistoryReadRequestApiModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            var readresult = await _nodes.NodeHistoryReadAsync(
-                endpointId, request.ToServiceModel());
-            return new HistoryReadResponseApiModel(readresult);
-        }
-
-        /// <summary>
-        /// Read next batch of node history
-        /// </summary>
-        /// <remarks>
-        /// Read next batch of node history values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// </remarks>
-        /// <param name="endpointId">The identifier of the activated endpoint.</param>
-        /// <param name="request">The history read next request</param>
-        /// <returns>The history read response</returns>
-        [HttpPost("{endpointId}/history/next")]
-        public async Task<HistoryReadNextResponseApiModel> ReadHistoryNextAsync(
-            string endpointId, [FromBody] [Required] HistoryReadNextRequestApiModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            var readresult = await _nodes.NodeHistoryReadNextAsync(
-                endpointId, request.ToServiceModel());
-            return new HistoryReadNextResponseApiModel(readresult);
-        }
-
-        /// <summary>
         /// Get variable value
         /// </summary>
         /// <remarks>

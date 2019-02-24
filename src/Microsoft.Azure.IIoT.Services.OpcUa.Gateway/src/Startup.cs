@@ -96,8 +96,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
                 .AddControllersAsServices();
 
             // Prepare DI container
-            ApplicationContainer = ConfigureContainer(services);
-            // Create the IServiceProvider based on the container
+            var builder = new ContainerBuilder();
+            builder.Populate(services);
+            ConfigureContainer(builder);
+            ApplicationContainer = builder.Build();
             return new AutofacServiceProvider(ApplicationContainer);
         }
 
@@ -135,11 +137,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
         /// <summary>
         /// Autofac configuration.
         /// </summary>
-        public IContainer ConfigureContainer(IServiceCollection services) {
-            var builder = new ContainerBuilder();
-
-            // Populate from services di
-            builder.Populate(services);
+        /// <param name="builder"></param>
+        public virtual void ConfigureContainer(ContainerBuilder builder) {
 
             // Register configuration interfaces
             builder.RegisterInstance(Config)
@@ -152,13 +151,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
             builder.RegisterType<AuditLogFilter>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // ... audit log to cosmos db
-#if ENABLE_AUDIT_LOG
-            if (Config.DbConnectionString != null) {
-                builder.RegisterType<CosmosDbAuditLogWriter>()
-                    .AsImplementedInterfaces().SingleInstance();
-            }
-#endif
             // CORS setup
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -222,8 +214,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<GatewayServer>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            return builder.Build();
         }
     }
 }
