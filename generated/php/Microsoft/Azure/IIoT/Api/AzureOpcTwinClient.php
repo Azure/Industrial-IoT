@@ -29,12 +29,9 @@ final class AzureOpcTwinClient
         $this->_GetValue_operation = $_client->createOperation('GetValue');
         $this->_ReadValue_operation = $_client->createOperation('ReadValue');
         $this->_ReadAttributes_operation = $_client->createOperation('ReadAttributes');
-        $this->_ReadHistory_operation = $_client->createOperation('ReadHistory');
-        $this->_ReadHistoryNext_operation = $_client->createOperation('ReadHistoryNext');
         $this->_GetStatus_operation = $_client->createOperation('GetStatus');
         $this->_WriteValue_operation = $_client->createOperation('WriteValue');
         $this->_WriteAttributes_operation = $_client->createOperation('WriteAttributes');
-        $this->_WriteHistory_operation = $_client->createOperation('WriteHistory');
     }
     /**
      * Browse the set of unique hierarchically referenced target nodes on the endpoint.
@@ -299,42 +296,6 @@ and server must trust each other.
         ]);
     }
     /**
-     * Read node history if available using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-     * @param string $endpointId
-     * @param array $request
-     * @return array
-     */
-    public function readHistory(
-        $endpointId,
-        array $request
-    )
-    {
-        return $this->_ReadHistory_operation->call([
-            'endpointId' => $endpointId,
-            'request' => $request
-        ]);
-    }
-    /**
-     * Read next batch of node history values using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-     * @param string $endpointId
-     * @param array $request
-     * @return array
-     */
-    public function readHistoryNext(
-        $endpointId,
-        array $request
-    )
-    {
-        return $this->_ReadHistoryNext_operation->call([
-            'endpointId' => $endpointId,
-            'request' => $request
-        ]);
-    }
-    /**
      * @return array
      */
     public function getStatus()
@@ -373,24 +334,6 @@ and server must trust each other.
     )
     {
         return $this->_WriteAttributes_operation->call([
-            'endpointId' => $endpointId,
-            'request' => $request
-        ]);
-    }
-    /**
-     * Update node history using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-     * @param string $endpointId
-     * @param array $request
-     * @return array
-     */
-    public function writeHistory(
-        $endpointId,
-        array $request
-    )
-    {
-        return $this->_WriteHistory_operation->call([
             'endpointId' => $endpointId,
             'request' => $request
         ]);
@@ -454,14 +397,6 @@ and server must trust each other.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_ReadHistory_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_ReadHistoryNext_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
     private $_GetStatus_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
@@ -471,10 +406,6 @@ and server must trust each other.
      * @var \Microsoft\Rest\OperationInterface
      */
     private $_WriteAttributes_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_WriteHistory_operation;
     const _SWAGGER_OBJECT_DATA = [
         'host' => 'localhost',
         'paths' => [
@@ -738,42 +669,6 @@ and server must trust each other.
                 ],
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ReadResponseApiModel']]]
             ]],
-            '/v1/read/{endpointId}/history' => ['post' => [
-                'operationId' => 'ReadHistory',
-                'parameters' => [
-                    [
-                        'name' => 'endpointId',
-                        'in' => 'path',
-                        'required' => TRUE,
-                        'type' => 'string'
-                    ],
-                    [
-                        'name' => 'request',
-                        'in' => 'body',
-                        'required' => TRUE,
-                        'schema' => ['$ref' => '#/definitions/HistoryReadRequestApiModel']
-                    ]
-                ],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryReadResponseApiModel']]]
-            ]],
-            '/v1/read/{endpointId}/history/next' => ['post' => [
-                'operationId' => 'ReadHistoryNext',
-                'parameters' => [
-                    [
-                        'name' => 'endpointId',
-                        'in' => 'path',
-                        'required' => TRUE,
-                        'type' => 'string'
-                    ],
-                    [
-                        'name' => 'request',
-                        'in' => 'body',
-                        'required' => TRUE,
-                        'schema' => ['$ref' => '#/definitions/HistoryReadNextRequestApiModel']
-                    ]
-                ],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryReadNextResponseApiModel']]]
-            ]],
             '/v1/status' => ['get' => [
                 'operationId' => 'GetStatus',
                 'parameters' => [],
@@ -814,24 +709,6 @@ and server must trust each other.
                     ]
                 ],
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/WriteResponseApiModel']]]
-            ]],
-            '/v1/write/{endpointId}/history' => ['post' => [
-                'operationId' => 'WriteHistory',
-                'parameters' => [
-                    [
-                        'name' => 'endpointId',
-                        'in' => 'path',
-                        'required' => TRUE,
-                        'type' => 'string'
-                    ],
-                    [
-                        'name' => 'request',
-                        'in' => 'body',
-                        'required' => TRUE,
-                        'schema' => ['$ref' => '#/definitions/HistoryUpdateRequestApiModel']
-                    ]
-                ],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryUpdateResponseApiModel']]]
             ]]
         ],
         'definitions' => [
@@ -1497,50 +1374,6 @@ and server must trust each other.
                 'additionalProperties' => FALSE,
                 'required' => []
             ],
-            'HistoryReadRequestApiModel' => [
-                'properties' => [
-                    'nodeId' => ['type' => 'string'],
-                    'browsePath' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'request' => ['type' => 'object'],
-                    'indexRange' => ['type' => 'string'],
-                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => [
-                    'nodeId',
-                    'request'
-                ]
-            ],
-            'HistoryReadResponseApiModel' => [
-                'properties' => [
-                    'history' => ['type' => 'object'],
-                    'continuationToken' => ['type' => 'string'],
-                    'errorInfo' => ['$ref' => '#/definitions/ServiceResultApiModel']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'HistoryReadNextRequestApiModel' => [
-                'properties' => [
-                    'continuationToken' => ['type' => 'string'],
-                    'abort' => ['type' => 'boolean'],
-                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['continuationToken']
-            ],
-            'HistoryReadNextResponseApiModel' => [
-                'properties' => [
-                    'history' => ['type' => 'object'],
-                    'continuationToken' => ['type' => 'string'],
-                    'errorInfo' => ['$ref' => '#/definitions/ServiceResultApiModel']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
             'StatusResponseApiModel' => [
                 'properties' => [
                     'name' => ['type' => 'string'],
@@ -1654,25 +1487,6 @@ and server must trust each other.
                     'type' => 'array',
                     'items' => ['$ref' => '#/definitions/AttributeWriteResponseApiModel']
                 ]],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'HistoryUpdateRequestApiModel' => [
-                'properties' => [
-                    'request' => ['type' => 'object'],
-                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['request']
-            ],
-            'HistoryUpdateResponseApiModel' => [
-                'properties' => [
-                    'results' => [
-                        'type' => 'array',
-                        'items' => ['$ref' => '#/definitions/ServiceResultApiModel']
-                    ],
-                    'errorInfo' => ['$ref' => '#/definitions/ServiceResultApiModel']
-                ],
                 'additionalProperties' => FALSE,
                 'required' => []
             ]

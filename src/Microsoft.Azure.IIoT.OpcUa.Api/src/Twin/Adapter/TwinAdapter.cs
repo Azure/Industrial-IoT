@@ -101,30 +101,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadResultModel> NodeHistoryReadAsync(
-            string endpoint, HistoryReadRequestModel request) {
-            var result = await _client.NodeHistoryReadAsync(endpoint,
-                Map<HistoryReadRequestApiModel>(request));
-            return Map<HistoryReadResultModel>(result);
-        }
-
-        /// <inheritdoc/>
-        public async Task<HistoryReadNextResultModel> NodeHistoryReadNextAsync(
-            string endpoint, HistoryReadNextRequestModel request) {
-            var result = await _client.NodeHistoryReadNextAsync(endpoint,
-                Map<HistoryReadNextRequestApiModel>(request));
-            return Map<HistoryReadNextResultModel>(result);
-        }
-
-        /// <inheritdoc/>
-        public async Task<HistoryUpdateResultModel> NodeHistoryUpdateAsync(
-            string endpoint, HistoryUpdateRequestModel request) {
-            var result = await _client.NodeHistoryUpdateAsync(endpoint,
-                Map<HistoryUpdateRequestApiModel>(request));
-            return Map<HistoryUpdateResultModel>(result);
-        }
-
-        /// <inheritdoc/>
         public async Task<PublishStartResultModel> NodePublishStartAsync(
             string endpoint, PublishStartRequestModel request) {
             var result = await _client.NodePublishStartAsync(endpoint,

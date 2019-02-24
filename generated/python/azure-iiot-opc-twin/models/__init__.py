@@ -43,10 +43,6 @@ from .attribute_read_request_api_model import AttributeReadRequestApiModel
 from .read_request_api_model import ReadRequestApiModel
 from .attribute_read_response_api_model import AttributeReadResponseApiModel
 from .read_response_api_model import ReadResponseApiModel
-from .history_read_request_api_model import HistoryReadRequestApiModel
-from .history_read_response_api_model import HistoryReadResponseApiModel
-from .history_read_next_request_api_model import HistoryReadNextRequestApiModel
-from .history_read_next_response_api_model import HistoryReadNextResponseApiModel
 from .status_response_api_model import StatusResponseApiModel
 from .value_write_request_api_model import ValueWriteRequestApiModel
 from .value_write_response_api_model import ValueWriteResponseApiModel
@@ -54,8 +50,6 @@ from .attribute_write_request_api_model import AttributeWriteRequestApiModel
 from .write_request_api_model import WriteRequestApiModel
 from .attribute_write_response_api_model import AttributeWriteResponseApiModel
 from .write_response_api_model import WriteResponseApiModel
-from .history_update_request_api_model import HistoryUpdateRequestApiModel
-from .history_update_response_api_model import HistoryUpdateResponseApiModel
 from .azure_opc_twin_client_enums import (
     BrowseDirection,
     CredentialType,
@@ -104,10 +98,6 @@ __all__ = [
     'ReadRequestApiModel',
     'AttributeReadResponseApiModel',
     'ReadResponseApiModel',
-    'HistoryReadRequestApiModel',
-    'HistoryReadResponseApiModel',
-    'HistoryReadNextRequestApiModel',
-    'HistoryReadNextResponseApiModel',
     'StatusResponseApiModel',
     'ValueWriteRequestApiModel',
     'ValueWriteResponseApiModel',
@@ -115,8 +105,6 @@ __all__ = [
     'WriteRequestApiModel',
     'AttributeWriteResponseApiModel',
     'WriteResponseApiModel',
-    'HistoryUpdateRequestApiModel',
-    'HistoryUpdateResponseApiModel',
     'BrowseDirection',
     'CredentialType',
     'DiagnosticsLevel',

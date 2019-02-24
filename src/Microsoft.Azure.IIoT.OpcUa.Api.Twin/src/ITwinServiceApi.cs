@@ -125,32 +125,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// <returns></returns>
         Task<PublishedItemListResponseApiModel> NodePublishListAsync(
             string endpointId, PublishedItemListRequestApiModel request);
-
-        /// <summary>
-        /// Read node history
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        Task<HistoryReadResponseApiModel> NodeHistoryReadAsync(
-            string endpointId, HistoryReadRequestApiModel request);
-
-        /// <summary>
-        /// Read node history continuation
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        Task<HistoryReadNextResponseApiModel> NodeHistoryReadNextAsync(
-            string endpointId, HistoryReadNextRequestApiModel request);
-
-        /// <summary>
-        /// Update node history
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        Task<HistoryUpdateResponseApiModel> NodeHistoryUpdateAsync(
-            string endpointId, HistoryUpdateRequestApiModel request);
     }
 }

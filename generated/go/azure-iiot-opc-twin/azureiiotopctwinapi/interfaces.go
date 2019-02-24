@@ -27,13 +27,10 @@ import (
             GetStatus(ctx context.Context) (result azureiiotopctwin.StatusResponseAPIModel, err error)
             GetValue(ctx context.Context, endpointID string, nodeID string) (result azureiiotopctwin.ValueReadResponseAPIModel, err error)
             ReadAttributes(ctx context.Context, endpointID string, request azureiiotopctwin.ReadRequestAPIModel) (result azureiiotopctwin.ReadResponseAPIModel, err error)
-            ReadHistory(ctx context.Context, endpointID string, request azureiiotopctwin.HistoryReadRequestAPIModel) (result azureiiotopctwin.HistoryReadResponseAPIModel, err error)
-            ReadHistoryNext(ctx context.Context, endpointID string, request azureiiotopctwin.HistoryReadNextRequestAPIModel) (result azureiiotopctwin.HistoryReadNextResponseAPIModel, err error)
             ReadValue(ctx context.Context, endpointID string, request azureiiotopctwin.ValueReadRequestAPIModel) (result azureiiotopctwin.ValueReadResponseAPIModel, err error)
             StartPublishingValues(ctx context.Context, endpointID string, request azureiiotopctwin.PublishStartRequestAPIModel) (result azureiiotopctwin.PublishStartResponseAPIModel, err error)
             StopPublishingValues(ctx context.Context, endpointID string, request azureiiotopctwin.PublishStopRequestAPIModel) (result azureiiotopctwin.PublishStopResponseAPIModel, err error)
             WriteAttributes(ctx context.Context, endpointID string, request azureiiotopctwin.WriteRequestAPIModel) (result azureiiotopctwin.WriteResponseAPIModel, err error)
-            WriteHistory(ctx context.Context, endpointID string, request azureiiotopctwin.HistoryUpdateRequestAPIModel) (result azureiiotopctwin.HistoryUpdateResponseAPIModel, err error)
             WriteValue(ctx context.Context, endpointID string, request azureiiotopctwin.ValueWriteRequestAPIModel) (result azureiiotopctwin.ValueWriteResponseAPIModel, err error)
         }
 

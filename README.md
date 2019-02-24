@@ -2,11 +2,9 @@
 
 This repository contains:
 
-1. The handcrafted C# API for both [OPC UA Registry and Device Twin Services](https://github.com/Azure/azure-iiot-services).
+1. A handcrafted C# API for [OPC UA Registry as well as Device Twin and History Services](https://github.com/Azure/azure-iiot-services).
 1. A sample command line interface (CLI) that allows you to exercise this API.
-1. (Coming soon) A set of AutoREST generated libraries that enable access to the above services using a wider variety of languages.
-
-The API and dependent services are part of our [Azure Industrial IoT (IIoT) components](#Other-Azure-Industrial-IoT-components) suite.
+1. A set of AutoREST generated libraries that enable access to the above services using a wider variety of languages.
 
 ## Using the API
 
@@ -34,6 +32,7 @@ Unless you are running the above services on your local machine (localhost), the
 
 * `PCS_TWIN_SERVICE_URL` = {http|https}://{hostname}:9041
 * `PCS_TWIN_REGISTRY_URL` = {http|https}://{hostname}:9042
+* `PCS_TWIN_HISTORY_URL` = {http|https}://{hostname}:9043
 
 ### Building and running the CLI with Visual Studio or VS Code
 

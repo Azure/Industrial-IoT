@@ -22,12 +22,6 @@ import com.microsoft.azure.iiot.opc.twin.models.BrowsePathRequestApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.BrowsePathResponseApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.BrowseRequestApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.BrowseResponseApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.HistoryReadNextRequestApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.HistoryReadNextResponseApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.HistoryReadRequestApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.HistoryReadResponseApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.HistoryUpdateRequestApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.HistoryUpdateResponseApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.MethodCallRequestApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.MethodCallResponseApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.MethodMetadataRequestApiModel;
@@ -192,14 +186,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
         @POST("v1/read/{endpointId}/attributes")
         Observable<Response<ResponseBody>> readAttributes(@Path("endpointId") String endpointId, @Body ReadRequestApiModel request);
 
-        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient readHistory" })
-        @POST("v1/read/{endpointId}/history")
-        Observable<Response<ResponseBody>> readHistory(@Path("endpointId") String endpointId, @Body HistoryReadRequestApiModel request);
-
-        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient readHistoryNext" })
-        @POST("v1/read/{endpointId}/history/next")
-        Observable<Response<ResponseBody>> readHistoryNext(@Path("endpointId") String endpointId, @Body HistoryReadNextRequestApiModel request);
-
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient getStatus" })
         @GET("v1/status")
         Observable<Response<ResponseBody>> getStatus();
@@ -211,10 +197,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient writeAttributes" })
         @POST("v1/write/{endpointId}/attributes")
         Observable<Response<ResponseBody>> writeAttributes(@Path("endpointId") String endpointId, @Body WriteRequestApiModel request);
-
-        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient writeHistory" })
-        @POST("v1/write/{endpointId}/history")
-        Observable<Response<ResponseBody>> writeHistory(@Path("endpointId") String endpointId, @Body HistoryUpdateRequestApiModel request);
 
     }
 
@@ -1639,190 +1621,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     }
 
     /**
-     * Read node history.
-     * Read node history if available using historic access.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The history read request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the HistoryReadResponseApiModel object if successful.
-     */
-    public HistoryReadResponseApiModel readHistory(String endpointId, HistoryReadRequestApiModel request) {
-        return readHistoryWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
-    }
-
-    /**
-     * Read node history.
-     * Read node history if available using historic access.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The history read request
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<HistoryReadResponseApiModel> readHistoryAsync(String endpointId, HistoryReadRequestApiModel request, final ServiceCallback<HistoryReadResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(readHistoryWithServiceResponseAsync(endpointId, request), serviceCallback);
-    }
-
-    /**
-     * Read node history.
-     * Read node history if available using historic access.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The history read request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the HistoryReadResponseApiModel object
-     */
-    public Observable<HistoryReadResponseApiModel> readHistoryAsync(String endpointId, HistoryReadRequestApiModel request) {
-        return readHistoryWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<HistoryReadResponseApiModel>, HistoryReadResponseApiModel>() {
-            @Override
-            public HistoryReadResponseApiModel call(ServiceResponse<HistoryReadResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Read node history.
-     * Read node history if available using historic access.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The history read request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the HistoryReadResponseApiModel object
-     */
-    public Observable<ServiceResponse<HistoryReadResponseApiModel>> readHistoryWithServiceResponseAsync(String endpointId, HistoryReadRequestApiModel request) {
-        if (endpointId == null) {
-            throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
-        }
-        Validator.validate(request);
-        return service.readHistory(endpointId, request)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<HistoryReadResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<HistoryReadResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<HistoryReadResponseApiModel> clientResponse = readHistoryDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<HistoryReadResponseApiModel> readHistoryDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
-        return this.restClient().responseBuilderFactory().<HistoryReadResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<HistoryReadResponseApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
-     * Read next batch of node history.
-     * Read next batch of node history values using historic access.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The history read next request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the HistoryReadNextResponseApiModel object if successful.
-     */
-    public HistoryReadNextResponseApiModel readHistoryNext(String endpointId, HistoryReadNextRequestApiModel request) {
-        return readHistoryNextWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
-    }
-
-    /**
-     * Read next batch of node history.
-     * Read next batch of node history values using historic access.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The history read next request
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<HistoryReadNextResponseApiModel> readHistoryNextAsync(String endpointId, HistoryReadNextRequestApiModel request, final ServiceCallback<HistoryReadNextResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(readHistoryNextWithServiceResponseAsync(endpointId, request), serviceCallback);
-    }
-
-    /**
-     * Read next batch of node history.
-     * Read next batch of node history values using historic access.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The history read next request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the HistoryReadNextResponseApiModel object
-     */
-    public Observable<HistoryReadNextResponseApiModel> readHistoryNextAsync(String endpointId, HistoryReadNextRequestApiModel request) {
-        return readHistoryNextWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<HistoryReadNextResponseApiModel>, HistoryReadNextResponseApiModel>() {
-            @Override
-            public HistoryReadNextResponseApiModel call(ServiceResponse<HistoryReadNextResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Read next batch of node history.
-     * Read next batch of node history values using historic access.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The history read next request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the HistoryReadNextResponseApiModel object
-     */
-    public Observable<ServiceResponse<HistoryReadNextResponseApiModel>> readHistoryNextWithServiceResponseAsync(String endpointId, HistoryReadNextRequestApiModel request) {
-        if (endpointId == null) {
-            throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
-        }
-        Validator.validate(request);
-        return service.readHistoryNext(endpointId, request)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<HistoryReadNextResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<HistoryReadNextResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<HistoryReadNextResponseApiModel> clientResponse = readHistoryNextDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<HistoryReadNextResponseApiModel> readHistoryNextDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
-        return this.restClient().responseBuilderFactory().<HistoryReadNextResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<HistoryReadNextResponseApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
      * Return the service status in the form of the service status
      api model.
      *
@@ -2072,98 +1870,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<WriteResponseApiModel> writeAttributesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<WriteResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<WriteResponseApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
-     * Update node history.
-     * Update node history using historic access.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The history read request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the HistoryUpdateResponseApiModel object if successful.
-     */
-    public HistoryUpdateResponseApiModel writeHistory(String endpointId, HistoryUpdateRequestApiModel request) {
-        return writeHistoryWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
-    }
-
-    /**
-     * Update node history.
-     * Update node history using historic access.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The history read request
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<HistoryUpdateResponseApiModel> writeHistoryAsync(String endpointId, HistoryUpdateRequestApiModel request, final ServiceCallback<HistoryUpdateResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(writeHistoryWithServiceResponseAsync(endpointId, request), serviceCallback);
-    }
-
-    /**
-     * Update node history.
-     * Update node history using historic access.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The history read request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the HistoryUpdateResponseApiModel object
-     */
-    public Observable<HistoryUpdateResponseApiModel> writeHistoryAsync(String endpointId, HistoryUpdateRequestApiModel request) {
-        return writeHistoryWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<HistoryUpdateResponseApiModel>, HistoryUpdateResponseApiModel>() {
-            @Override
-            public HistoryUpdateResponseApiModel call(ServiceResponse<HistoryUpdateResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Update node history.
-     * Update node history using historic access.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The history read request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the HistoryUpdateResponseApiModel object
-     */
-    public Observable<ServiceResponse<HistoryUpdateResponseApiModel>> writeHistoryWithServiceResponseAsync(String endpointId, HistoryUpdateRequestApiModel request) {
-        if (endpointId == null) {
-            throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
-        }
-        Validator.validate(request);
-        return service.writeHistory(endpointId, request)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<HistoryUpdateResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<HistoryUpdateResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<HistoryUpdateResponseApiModel> clientResponse = writeHistoryDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<HistoryUpdateResponseApiModel> writeHistoryDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
-        return this.restClient().responseBuilderFactory().<HistoryUpdateResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<HistoryUpdateResponseApiModel>() { }.getType())
                 .build(response);
     }
 

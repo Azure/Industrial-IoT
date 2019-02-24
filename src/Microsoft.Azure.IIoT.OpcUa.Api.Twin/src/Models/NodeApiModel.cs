@@ -435,7 +435,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "children",
             NullValueHandling = NullValueHandling.Ignore)]
-        public bool? HasChildren { get; set; }
+        public bool? Children { get; set; }
 
 
         // Legacy
@@ -444,7 +444,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         [JsonIgnore]
         [Obsolete]
         public string Id => NodeId;
-
+        /// <ignore/>
+        [JsonIgnore]
+        [Obsolete]
+        public bool? HasChildren => Children;
         /// <ignore/>
         [JsonIgnore]
         [Obsolete]

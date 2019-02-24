@@ -1011,112 +1011,6 @@ export interface ReadResponseApiModel {
 
 /**
  * @interface
- * An interface representing HistoryReadRequestApiModel.
- * Request node history read
- *
- */
-export interface HistoryReadRequestApiModel {
-  /**
-   * @member {string} nodeId Node to read from (mandatory)
-   */
-  nodeId: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {any} request The HistoryReadDetailsType extension object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
-   */
-  request: any;
-  /**
-   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
-   * slices
-   * out of a matrix or 0:1 for the first item in
-   * an array, string or bytestring.
-   * See 7.22 of part 4: NumericRange.
-   */
-  indexRange?: string;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryReadResponseApiModel.
- * History read results
- *
- */
-export interface HistoryReadResponseApiModel {
-  /**
-   * @member {any} [history] History as json encoded extension object
-   */
-  history?: any;
-  /**
-   * @member {string} [continuationToken] Continuation token if more results
-   * pending.
-   */
-  continuationToken?: string;
-  /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
-   */
-  errorInfo?: ServiceResultApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryReadNextRequestApiModel.
- * Request node history read continuation
- *
- */
-export interface HistoryReadNextRequestApiModel {
-  /**
-   * @member {string} continuationToken Continuation token to continue reading
-   * more
-   * results.
-   */
-  continuationToken: string;
-  /**
-   * @member {boolean} [abort] Abort reading after this read. Default value:
-   * false .
-   */
-  abort?: boolean;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryReadNextResponseApiModel.
- * History read continuation result
- *
- */
-export interface HistoryReadNextResponseApiModel {
-  /**
-   * @member {any} [history] History as json encoded extension object
-   */
-  history?: any;
-  /**
-   * @member {string} [continuationToken] Continuation token if more results
-   * pending.
-   */
-  continuationToken?: string;
-  /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
-   */
-  errorInfo?: ServiceResultApiModel;
-}
-
-/**
- * @interface
  * An interface representing StatusResponseApiModel.
  * Status response model
  *
@@ -1307,44 +1201,6 @@ export interface WriteResponseApiModel {
    * attribute writes
    */
   results?: AttributeWriteResponseApiModel[];
-}
-
-/**
- * @interface
- * An interface representing HistoryUpdateRequestApiModel.
- * Request node history update
- *
- */
-export interface HistoryUpdateRequestApiModel {
-  /**
-   * @member {any} request The HistoryUpdateDetailsType extension object
-   * encoded in json and containing the tunneled
-   * update request for the Historian server.
-   */
-  request: any;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryUpdateResponseApiModel.
- * History update results
- *
- */
-export interface HistoryUpdateResponseApiModel {
-  /**
-   * @member {ServiceResultApiModel[]} [results] List of results from the
-   * update operation
-   */
-  results?: ServiceResultApiModel[];
-  /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * service call error
-   */
-  errorInfo?: ServiceResultApiModel;
 }
 
 /**
@@ -1732,44 +1588,6 @@ export type ReadAttributesResponse = ReadResponseApiModel & {
 };
 
 /**
- * Contains response data for the readHistory operation.
- */
-export type ReadHistoryResponse = HistoryReadResponseApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: HistoryReadResponseApiModel;
-    };
-};
-
-/**
- * Contains response data for the readHistoryNext operation.
- */
-export type ReadHistoryNextResponse = HistoryReadNextResponseApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: HistoryReadNextResponseApiModel;
-    };
-};
-
-/**
  * Contains response data for the getStatus operation.
  */
 export type GetStatusResponse = StatusResponseApiModel & {
@@ -1823,24 +1641,5 @@ export type WriteAttributesResponse = WriteResponseApiModel & {
        * The response body as parsed JSON or XML
        */
       parsedBody: WriteResponseApiModel;
-    };
-};
-
-/**
- * Contains response data for the writeHistory operation.
- */
-export type WriteHistoryResponse = HistoryUpdateResponseApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: HistoryUpdateResponseApiModel;
     };
 };

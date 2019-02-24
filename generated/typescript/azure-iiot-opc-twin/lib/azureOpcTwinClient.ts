@@ -521,76 +521,6 @@ class AzureOpcTwinClient extends AzureOpcTwinClientContext {
   }
 
   /**
-   * Read node history if available using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * @summary Read node history
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The history read request
-   * @param [options] The optional parameters
-   * @returns Promise<Models.ReadHistoryResponse>
-   */
-  readHistory(endpointId: string, request: Models.HistoryReadRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.ReadHistoryResponse>;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The history read request
-   * @param callback The callback
-   */
-  readHistory(endpointId: string, request: Models.HistoryReadRequestApiModel, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModel>): void;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The history read request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  readHistory(endpointId: string, request: Models.HistoryReadRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModel>): void;
-  readHistory(endpointId: string, request: Models.HistoryReadRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryReadResponseApiModel>, callback?: msRest.ServiceCallback<Models.HistoryReadResponseApiModel>): Promise<Models.ReadHistoryResponse> {
-    return this.sendOperationRequest(
-      {
-        endpointId,
-        request,
-        options
-      },
-      readHistoryOperationSpec,
-      callback) as Promise<Models.ReadHistoryResponse>;
-  }
-
-  /**
-   * Read next batch of node history values using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * @summary Read next batch of node history
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The history read next request
-   * @param [options] The optional parameters
-   * @returns Promise<Models.ReadHistoryNextResponse>
-   */
-  readHistoryNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.ReadHistoryNextResponse>;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The history read next request
-   * @param callback The callback
-   */
-  readHistoryNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, callback: msRest.ServiceCallback<Models.HistoryReadNextResponseApiModel>): void;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The history read next request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  readHistoryNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryReadNextResponseApiModel>): void;
-  readHistoryNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryReadNextResponseApiModel>, callback?: msRest.ServiceCallback<Models.HistoryReadNextResponseApiModel>): Promise<Models.ReadHistoryNextResponse> {
-    return this.sendOperationRequest(
-      {
-        endpointId,
-        request,
-        options
-      },
-      readHistoryNextOperationSpec,
-      callback) as Promise<Models.ReadHistoryNextResponse>;
-  }
-
-  /**
    * @summary Return the service status in the form of the service status
    * api model.
    * @param [options] The optional parameters
@@ -683,41 +613,6 @@ class AzureOpcTwinClient extends AzureOpcTwinClientContext {
       },
       writeAttributesOperationSpec,
       callback) as Promise<Models.WriteAttributesResponse>;
-  }
-
-  /**
-   * Update node history using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * @summary Update node history
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The history read request
-   * @param [options] The optional parameters
-   * @returns Promise<Models.WriteHistoryResponse>
-   */
-  writeHistory(endpointId: string, request: Models.HistoryUpdateRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.WriteHistoryResponse>;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The history read request
-   * @param callback The callback
-   */
-  writeHistory(endpointId: string, request: Models.HistoryUpdateRequestApiModel, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The history read request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  writeHistory(endpointId: string, request: Models.HistoryUpdateRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
-  writeHistory(endpointId: string, request: Models.HistoryUpdateRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>, callback?: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): Promise<Models.WriteHistoryResponse> {
-    return this.sendOperationRequest(
-      {
-        endpointId,
-        request,
-        options
-      },
-      writeHistoryOperationSpec,
-      callback) as Promise<Models.WriteHistoryResponse>;
   }
 }
 
@@ -1019,50 +914,6 @@ const readAttributesOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
-const readHistoryOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v1/read/{endpointId}/history",
-  urlParameters: [
-    Parameters.endpointId
-  ],
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.HistoryReadRequestApiModel,
-      required: true
-    }
-  },
-  responses: {
-    200: {
-      bodyMapper: Mappers.HistoryReadResponseApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const readHistoryNextOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v1/read/{endpointId}/history/next",
-  urlParameters: [
-    Parameters.endpointId
-  ],
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.HistoryReadNextRequestApiModel,
-      required: true
-    }
-  },
-  responses: {
-    200: {
-      bodyMapper: Mappers.HistoryReadNextResponseApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
 const getStatusOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
   path: "v1/status",
@@ -1114,28 +965,6 @@ const writeAttributesOperationSpec: msRest.OperationSpec = {
   responses: {
     200: {
       bodyMapper: Mappers.WriteResponseApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const writeHistoryOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v1/write/{endpointId}/history",
-  urlParameters: [
-    Parameters.endpointId
-  ],
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.HistoryUpdateRequestApiModel,
-      required: true
-    }
-  },
-  responses: {
-    200: {
-      bodyMapper: Mappers.HistoryUpdateResponseApiModel
     },
     default: {}
   },

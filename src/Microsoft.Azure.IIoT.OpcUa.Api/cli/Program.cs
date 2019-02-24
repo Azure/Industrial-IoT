@@ -654,7 +654,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             await service.DiscoverAsync(
                 new DiscoveryRequestApiModel {
                     Id = Guid.NewGuid().ToString(),
-                    Discovery = options.GetValueOrDefault<DiscoveryMode>("-d", "--discovery", null),
+                    Discovery = options.GetValueOrDefault("-d", "--discovery", DiscoveryMode.Fast),
                     Configuration = new DiscoveryConfigApiModel {
                         ActivationFilter = !activate ? null : new EndpointActivationFilterApiModel {
                             SecurityMode = SecurityMode.None

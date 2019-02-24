@@ -8,7 +8,7 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.Registry.Models
+namespace Microsoft.Azure.IIoT.Opc.History.Models
 {
     using Newtonsoft.Json;
     using System.Collections;

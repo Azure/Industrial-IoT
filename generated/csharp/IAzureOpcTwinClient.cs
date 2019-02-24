@@ -372,50 +372,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         Task<HttpOperationResponse<ReadResponseApiModel>> ReadAttributesWithHttpMessagesAsync(string endpointId, ReadRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Read node history
-        /// </summary>
-        /// <remarks>
-        /// Read node history if available using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// </remarks>
-        /// <param name='endpointId'>
-        /// The identifier of the activated endpoint.
-        /// </param>
-        /// <param name='request'>
-        /// The history read request
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<HistoryReadResponseApiModel>> ReadHistoryWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Read next batch of node history
-        /// </summary>
-        /// <remarks>
-        /// Read next batch of node history values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// </remarks>
-        /// <param name='endpointId'>
-        /// The identifier of the activated endpoint.
-        /// </param>
-        /// <param name='request'>
-        /// The history read next request
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<HistoryReadNextResponseApiModel>> ReadHistoryNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
         /// Return the service status in the form of the service status
         /// api model.
         /// </summary>
@@ -470,28 +426,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// The cancellation token.
         /// </param>
         Task<HttpOperationResponse<WriteResponseApiModel>> WriteAttributesWithHttpMessagesAsync(string endpointId, WriteRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Update node history
-        /// </summary>
-        /// <remarks>
-        /// Update node history using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// </remarks>
-        /// <param name='endpointId'>
-        /// The identifier of the activated endpoint.
-        /// </param>
-        /// <param name='request'>
-        /// The history read request
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> WriteHistoryWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
     }
 }

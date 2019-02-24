@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
         /// <param name="logger"></param>
         public TwinServiceClient(IHttpClient httpClient, string serviceUri,
             string resourceId, ILogger logger) {
-            if (string.IsNullOrEmpty(serviceUri)) {
+            if (serviceUri == null) {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the endpoint micro service.");
             }
@@ -152,9 +152,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (content.NodeId == null) {
-                throw new ArgumentNullException(nameof(content.NodeId));
-            }
             var request = _httpClient.NewRequest($"{_serviceUri}/v1/publish/{endpointId}/stop",
                 _resourceId);
             request.SetContent(content);
@@ -212,9 +209,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (string.IsNullOrEmpty(content.NodeId)) {
-                throw new ArgumentException(nameof(content.NodeId));
-            }
             var request = _httpClient.NewRequest($"{_serviceUri}/v1/read/{endpointId}",
                 _resourceId);
             request.SetContent(content);
@@ -235,9 +229,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (content.Value == null) {
                 throw new ArgumentNullException(nameof(content.Value));
             }
-            if (string.IsNullOrEmpty(content.NodeId)) {
-                throw new ArgumentException(nameof(content.NodeId));
-            }
             var request = _httpClient.NewRequest($"{_serviceUri}/v1/write/{endpointId}",
                 _resourceId);
             request.SetContent(content);
@@ -254,9 +245,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             }
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
-            }
-            if (string.IsNullOrEmpty(content.MethodId)) {
-                throw new ArgumentNullException(nameof(content.MethodId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v1/call/{endpointId}/metadata",
                 _resourceId);
@@ -275,78 +263,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (string.IsNullOrEmpty(content.MethodId)) {
-                throw new ArgumentNullException(nameof(content.MethodId));
-            }
             var request = _httpClient.NewRequest($"{_serviceUri}/v1/call/{endpointId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
             return response.GetContent<MethodCallResponseApiModel>();
-        }
-
-        /// <inheritdoc/>
-        public async Task<HistoryReadResponseApiModel> NodeHistoryReadAsync(
-            string endpointId, HistoryReadRequestApiModel content) {
-            if (string.IsNullOrEmpty(endpointId)) {
-                throw new ArgumentNullException(nameof(endpointId));
-            }
-            if (content == null) {
-                throw new ArgumentNullException(nameof(content));
-            }
-            if (content.Request == null) {
-                throw new ArgumentNullException(nameof(content.Request));
-            }
-            if (string.IsNullOrEmpty(content.NodeId)) {
-                throw new ArgumentNullException(nameof(content.NodeId));
-            }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/read/{endpointId}/history", _resourceId);
-            request.SetContent(content);
-            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
-            response.Validate();
-            return response.GetContent<HistoryReadResponseApiModel>();
-        }
-
-        /// <inheritdoc/>
-        public async Task<HistoryReadNextResponseApiModel> NodeHistoryReadNextAsync(
-            string endpointId, HistoryReadNextRequestApiModel content) {
-            if (string.IsNullOrEmpty(endpointId)) {
-                throw new ArgumentNullException(nameof(endpointId));
-            }
-            if (content == null) {
-                throw new ArgumentNullException(nameof(content));
-            }
-            if (string.IsNullOrEmpty(content.ContinuationToken)) {
-                throw new ArgumentNullException(nameof(content.ContinuationToken));
-            }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/read/{endpointId}/history/next", _resourceId);
-            request.SetContent(content);
-            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
-            response.Validate();
-            return response.GetContent<HistoryReadNextResponseApiModel>();
-        }
-
-        /// <inheritdoc/>
-        public async Task<HistoryUpdateResponseApiModel> NodeHistoryUpdateAsync(
-            string endpointId, HistoryUpdateRequestApiModel content) {
-            if (string.IsNullOrEmpty(endpointId)) {
-                throw new ArgumentNullException(nameof(endpointId));
-            }
-            if (content == null) {
-                throw new ArgumentNullException(nameof(content));
-            }
-            if (content.Request == null) {
-                throw new ArgumentNullException(nameof(content.Request));
-            }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/write/{endpointId}/history", _resourceId);
-            request.SetContent(content);
-            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
-            response.Validate();
-            return response.GetContent<HistoryUpdateResponseApiModel>();
         }
 
         private const string kContinuationTokenHeaderKey = "x-ms-continuation";
