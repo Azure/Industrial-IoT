@@ -3,22 +3,17 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
+namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// History update results
+    /// The events to delete
     /// </summary>
-    public class HistoryUpdateResultModel {
-
+    public class DeleteEventsDetailsModel {
+        
         /// <summary>
-        /// List of results from the update operation
+        /// Events to delete
         /// </summary>
-        public List<ServiceResultModel> Results { get; set; }
-
-        /// <summary>
-        /// Service result in case of service call error
-        /// </summary>
-        public ServiceResultModel ErrorInfo { get; set; }
+        public List<byte[]> EventIds { get; set; }
     }
 }

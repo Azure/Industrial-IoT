@@ -181,6 +181,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// any forward hierarchical references.
         /// (default: unknown)
         /// </summary>
-        public bool? HasChildren { get; set; }
+        public bool? Children { get; set; }
     }
 }

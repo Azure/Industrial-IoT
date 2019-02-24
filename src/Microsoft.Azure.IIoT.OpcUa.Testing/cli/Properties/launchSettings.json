@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Microsoft.Azure.IIoT.OpcUa.Servers.Cli": {
+    "Microsoft.Azure.IIoT.OpcUa.Testing.Cli": {
       "commandName": "Project",
       "commandLineArgs": "-s"
     }

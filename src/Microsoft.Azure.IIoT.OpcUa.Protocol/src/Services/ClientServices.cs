@@ -123,7 +123,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger.Verbose("Discover endpoints at {discoveryUrl}...", discoveryUrl);
                 try {
                     await Retry.Do(_logger, ct, () => DiscoverAsync(discoveryUrl,
-                            localeIds, nextServer.Item2, 60000, visitedUris,
+                            localeIds, nextServer.Item2, 20000, visitedUris,
                             queue, results),
                         _ => !ct.IsCancellationRequested, Retry.NoBackoff,
                         kMaxDiscoveryAttempts - 1).ConfigureAwait(false);

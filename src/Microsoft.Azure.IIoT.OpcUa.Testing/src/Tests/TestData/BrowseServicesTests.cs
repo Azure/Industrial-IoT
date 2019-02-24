@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             // Assert
             Assert.Equal("i=84", results.Node.NodeId);
             Assert.Equal("Root", results.Node.DisplayName);
-            Assert.Equal(true, results.Node.HasChildren);
+            Assert.Equal(true, results.Node.Children);
             Assert.NotNull(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Objects", reference.Target.BrowseName);
                     Assert.Equal("Objects", reference.Target.DisplayName);
                     Assert.Equal("i=85", reference.Target.NodeId);
-                    Assert.True(reference.Target.HasChildren);
+                    Assert.True(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("i=35", reference.ReferenceTypeId);
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Types", reference.Target.BrowseName);
                     Assert.Equal("Types", reference.Target.DisplayName);
                     Assert.Equal("i=86", reference.Target.NodeId);
-                    Assert.True(reference.Target.HasChildren);
+                    Assert.True(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("i=35", reference.ReferenceTypeId);
@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Views", reference.Target.BrowseName);
                     Assert.Equal("Views", reference.Target.DisplayName);
                     Assert.Equal("i=87", reference.Target.NodeId);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 });
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             // Assert
             Assert.Equal("i=84", results.Node.NodeId);
             Assert.Equal("Root", results.Node.DisplayName);
-            Assert.Equal(true, results.Node.HasChildren);
+            Assert.Equal(true, results.Node.Children);
             Assert.NotNull(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
 
@@ -94,7 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                   Assert.Equal("Objects", reference.Target.BrowseName);
                   Assert.Equal("Objects", reference.Target.DisplayName);
                   Assert.Equal("i=85", reference.Target.NodeId);
-                  Assert.True(reference.Target.HasChildren);
+                  Assert.True(reference.Target.Children);
               });
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             // Assert
             Assert.Equal("i=84", results.Node.NodeId);
             Assert.Equal("Root", results.Node.DisplayName);
-            Assert.Equal(true, results.Node.HasChildren);
+            Assert.Equal(true, results.Node.Children);
             Assert.NotNull(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
 
@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                   Assert.Equal("Objects", reference.Target.BrowseName);
                   Assert.Equal("Objects", reference.Target.DisplayName);
                   Assert.Equal("i=85", reference.Target.NodeId);
-                  Assert.True(reference.Target.HasChildren);
+                  Assert.True(reference.Target.Children);
               },
             reference => {
                 Assert.Equal("i=35", reference.ReferenceTypeId);
@@ -134,7 +134,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 Assert.Equal("Types", reference.Target.BrowseName);
                 Assert.Equal("Types", reference.Target.DisplayName);
                 Assert.Equal("i=86", reference.Target.NodeId);
-                Assert.True(reference.Target.HasChildren);
+                Assert.True(reference.Target.Children);
             });
         }
 
@@ -153,7 +153,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             // Assert
             Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", results.Node.NodeId);
             Assert.Equal("Boilers", results.Node.DisplayName);
-            Assert.Equal(true, results.Node.HasChildren);
+            Assert.Equal(true, results.Node.Children);
             Assert.Equal(NodeEventNotifier.SubscribeToEvents, results.Node.EventNotifier);
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
@@ -167,7 +167,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
                         reference.Target.NodeId);
-                    Assert.True(reference.Target.HasChildren);
+                    Assert.True(reference.Target.Children);
                 },
                 reference => {
                     Assert.Null(reference.ReferenceTypeId);
@@ -177,7 +177,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
                         reference.Target.NodeId);
-                    Assert.True(reference.Target.HasChildren);
+                    Assert.True(reference.Target.Children);
                 });
         }
 
@@ -198,7 +198,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
 
             Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", results.Node.NodeId);
             Assert.Equal("Boilers", results.Node.DisplayName);
-            Assert.Equal(true, results.Node.HasChildren);
+            Assert.Equal(true, results.Node.Children);
             Assert.Equal(NodeEventNotifier.SubscribeToEvents, results.Node.EventNotifier);
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
@@ -214,7 +214,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
                         reference.Target.NodeId);
-                    Assert.True(reference.Target.HasChildren);
+                    Assert.True(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("i=35", reference.ReferenceTypeId);
@@ -226,7 +226,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
                         reference.Target.NodeId);
-                    Assert.True(reference.Target.HasChildren);
+                    Assert.True(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("i=48", reference.ReferenceTypeId);
@@ -238,7 +238,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
                         reference.Target.NodeId);
-                    Assert.True(reference.Target.HasChildren);
+                    Assert.True(reference.Target.Children);
                 });
         }
 
@@ -259,7 +259,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("http://test.org/UA/Data/#i=10159", results.Node.NodeId);
             Assert.Equal("Scalar", results.Node.DisplayName);
             Assert.Equal(NodeClass.Object, results.Node.NodeClass);
-            Assert.True(results.Node.HasChildren);
+            Assert.True(results.Node.Children);
             Assert.Collection(results.References,
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10216",
@@ -272,7 +272,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10217",
@@ -285,7 +285,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10218",
@@ -298,7 +298,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10219",
@@ -311,7 +311,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                     Assert.False(reference.Target.HasChildren);
+                     Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10220",
@@ -324,7 +324,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10221",
@@ -337,7 +337,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10222",
@@ -350,7 +350,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10223",
@@ -363,7 +363,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10224",
@@ -376,7 +376,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10225",
@@ -389,7 +389,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10226",
@@ -402,7 +402,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10227",
@@ -415,7 +415,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10228",
@@ -428,7 +428,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10229",
@@ -441,7 +441,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10230",
@@ -454,7 +454,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10231", reference.Target.NodeId);
@@ -466,7 +466,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10232", reference.Target.NodeId);
@@ -478,7 +478,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10233",
@@ -491,7 +491,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10234",
@@ -504,7 +504,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10235",
@@ -517,7 +517,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10236",
@@ -530,7 +530,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10237",
@@ -543,7 +543,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10238",
@@ -556,7 +556,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10239",
@@ -569,7 +569,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 }
                 , reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10240",
@@ -582,7 +582,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10241",
@@ -595,7 +595,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10242",
@@ -608,7 +608,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10160",
@@ -621,7 +621,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10161",
@@ -630,7 +630,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeClass.Method, reference.Target.NodeClass);
                     Assert.True(reference.Target.Executable);
                     Assert.True(reference.Target.UserExecutable);
-                    Assert.True(reference.Target.HasChildren);
+                    Assert.True(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10163",
@@ -639,7 +639,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
                     Assert.Null(reference.Target.Executable);
                     Assert.Null(reference.Target.UserExecutable);
-                    Assert.True(reference.Target.HasChildren);
+                    Assert.True(reference.Target.Children);
                 });
         }
 
@@ -660,7 +660,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("http://test.org/UA/Data/#i=10243", results.Node.NodeId);
             Assert.Equal("Array", results.Node.DisplayName);
             Assert.Equal(NodeClass.Object, results.Node.NodeClass);
-            Assert.True(results.Node.HasChildren);
+            Assert.True(results.Node.Children);
             Assert.Collection(results.References,
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -674,7 +674,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -688,7 +688,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -702,7 +702,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -716,7 +716,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -730,7 +730,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -744,7 +744,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -758,7 +758,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -772,7 +772,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -786,7 +786,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -800,7 +800,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -814,7 +814,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -828,7 +828,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -842,7 +842,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -856,7 +856,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -870,7 +870,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -884,7 +884,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -898,7 +898,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -912,7 +912,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -926,7 +926,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -940,7 +940,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -954,7 +954,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -968,7 +968,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -982,7 +982,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -996,7 +996,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -1010,7 +1010,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -1024,7 +1024,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -1038,7 +1038,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -1052,7 +1052,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
                     Assert.Null(reference.Target.ArrayDimensions);
-                    Assert.False(reference.Target.HasChildren);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Method, reference.Target.NodeClass);
@@ -1061,7 +1061,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("GenerateValues", reference.Target.DisplayName);
                     Assert.True(reference.Target.Executable);
                     Assert.True(reference.Target.UserExecutable);
-                    Assert.True(reference.Target.HasChildren);
+                    Assert.True(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
@@ -1070,7 +1070,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("CycleComplete", reference.Target.DisplayName);
                     Assert.Null(reference.Target.Executable);
                     Assert.Null(reference.Target.UserExecutable);
-                    Assert.True(reference.Target.HasChildren);
+                    Assert.True(reference.Target.Children);
                 });
         }
 
@@ -1092,7 +1092,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("http://test.org/UA/Data/#i=10243", results.Node.NodeId);
             Assert.Equal("Array", results.Node.DisplayName);
             Assert.Equal(NodeClass.Object, results.Node.NodeClass);
-            Assert.True(results.Node.HasChildren);
+            Assert.True(results.Node.Children);
             Assert.Collection(results.References,
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -1376,11 +1376,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            var test = JsonConvertEx.SerializeObjectPretty(results);
-
             Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", results.Node.NodeId);
             Assert.Null(results.Node.DisplayName);
-            Assert.Null(results.Node.HasChildren);
+            Assert.Null(results.Node.Children);
             Assert.Null(results.Node.EventNotifier);
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
@@ -1397,7 +1395,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Null(reference.Target.DataType);
                     Assert.Null(reference.Target.Description);
                     Assert.Null(reference.Target.Value);
-                    Assert.Null(reference.Target.HasChildren);
+                    Assert.Null(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("i=35", reference.ReferenceTypeId);
@@ -1411,7 +1409,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Null(reference.Target.DataType);
                     Assert.Null(reference.Target.Description);
                     Assert.Null(reference.Target.Value);
-                    Assert.Null(reference.Target.HasChildren);
+                    Assert.Null(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("i=48", reference.ReferenceTypeId);
@@ -1424,7 +1422,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Null(reference.Target.DataType);
                     Assert.Null(reference.Target.Description);
                     Assert.Null(reference.Target.Value);
-                    Assert.Null(reference.Target.HasChildren);
+                    Assert.Null(reference.Target.Children);
                 });
         }
 
@@ -1457,7 +1455,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 Assert.Equal("http://test.org/UA/Data/#ScalarMethod3", target.Target.BrowseName);
                 Assert.Equal("ScalarMethod3", target.Target.DisplayName);
                 Assert.Equal("http://test.org/UA/Data/#i=10762", target.Target.NodeId);
-                Assert.Equal(false, target.Target.HasChildren);
+                Assert.Equal(false, target.Target.Children);
                 Assert.Equal(-1, target.RemainingPathIndex);
             });
         }
@@ -1491,7 +1489,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 Assert.Equal("http://test.org/UA/Data/#ScalarMethod3", target.Target.BrowseName);
                 Assert.Equal("ScalarMethod3", target.Target.DisplayName);
                 Assert.Equal("http://test.org/UA/Data/#i=10762", target.Target.NodeId);
-                Assert.Equal(false, target.Target.HasChildren);
+                Assert.Equal(false, target.Target.Children);
                 Assert.Equal(-1, target.RemainingPathIndex);
             });
         }
@@ -1525,7 +1523,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 Assert.Equal("http://test.org/UA/Data/#ScalarMethod3", target.Target.BrowseName);
                 Assert.Equal("ScalarMethod3", target.Target.DisplayName);
                 Assert.Equal("http://test.org/UA/Data/#i=10762", target.Target.NodeId);
-                Assert.Equal(false, target.Target.HasChildren);
+                Assert.Equal(false, target.Target.Children);
                 Assert.Equal(-1, target.RemainingPathIndex);
             });
         }

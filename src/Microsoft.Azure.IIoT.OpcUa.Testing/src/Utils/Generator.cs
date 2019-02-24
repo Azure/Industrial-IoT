@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Utils {
     using System.Runtime.CompilerServices;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.OpcUa.History.Models;
 
     internal static class Generator {
 
@@ -32,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Utils {
             Assert.Equal(NodeEventNotifier.{results.Node.EventNotifier}, results.Node.EventNotifier);
             Assert.{(results.Node.Executable ?? false ? "True" : "False")}(results.Node.Executable);
             Assert.{(results.Node.UserExecutable ?? false ? "True" : "False")}(results.Node.UserExecutable);
-            Assert.{(results.Node.HasChildren ?? false ? "True" : "False")}(results.Node.HasChildren);
+            Assert.{(results.Node.Children ?? false ? "True" : "False")}(results.Node.HasChildren);
             Assert.Collection(results.References, ";
             foreach (var reference in results.References) {
                 references +=
@@ -55,13 +56,35 @@ $@"                reference => {{
                     Assert.Equal(NodeEventNotifier.{reference.Target.EventNotifier}, reference.Target.EventNotifier);
                     Assert.{(reference.Target.Executable ?? false ? "True" : "False")}(reference.Target.Executable);
                     Assert.{(reference.Target.UserExecutable ?? false ? "True" : "False")}(reference.Target.UserExecutable);
-                    Assert.{(reference.Target.HasChildren ?? false ? "True" : "False")}(reference.Target.HasChildren);
+                    Assert.{(reference.Target.Children ?? false ? "True" : "False")}(reference.Target.HasChildren);
                 }},";
             }
             references.TrimEnd().TrimEnd(',');
             references += ");";
 
             System.Diagnostics.Trace.WriteLine(references);
+        }
+
+        internal static void Write(HistoricValueModel[] history, [CallerMemberName] string methodname = null) {
+            var test = JsonConvert.SerializeObject(history, Formatting.Indented,
+                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+
+            var args = $@"
+            Assert.Collection(results.History, ";
+            foreach (var arg in history) {
+                args += $@"
+                arg => {{
+                    Assert.Equal({arg.StatusCode}, arg.StatusCode);
+                    Assert.Equal({arg.Value}, arg.Value);
+                }},";
+            }
+            args = args.TrimEnd().TrimEnd(',');
+
+
+            System.Diagnostics.Trace.WriteLine(methodname);
+            System.Diagnostics.Trace.WriteLine("");
+            System.Diagnostics.Trace.WriteLine(args);
+            System.Diagnostics.Trace.WriteLine("");
         }
 
         internal static void WriteResponse(MethodMetadataResultModel results, [CallerMemberName] string methodname = null) {

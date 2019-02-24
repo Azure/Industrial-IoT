@@ -3,26 +3,27 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
+namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
+    using System;
+
     /// <summary>
-    /// Request node history read continuation
+    /// Modification information
     /// </summary>
-    public class HistoryReadNextRequestModel {
+    public class ModificationInfoModel {
 
         /// <summary>
-        /// Continuation token to continue reading more
-        /// results.
+        /// Modification time
         /// </summary>
-        public string ContinuationToken { get; set; }
+        public DateTime? ModificationTime { get; set; }
 
         /// <summary>
-        /// Abort reading after this read
+        /// Operation
         /// </summary>
-        public bool? Abort { get; set; }
+        public HistoryUpdateOperation? UpdateType { get; set; }
 
         /// <summary>
-        /// Optional header
+        /// User who made the change
         /// </summary>
-        public RequestHeaderModel Header { get; set; }
+        public string UserName { get; set; }
     }
 }

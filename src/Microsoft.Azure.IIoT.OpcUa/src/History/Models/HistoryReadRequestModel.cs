@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Newtonsoft.Json.Linq;
+namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
 
     /// <summary>
     /// Request node history read
     /// </summary>
-    public class HistoryReadRequestModel {
+    public class HistoryReadRequestModel<T> {
 
         /// <summary>
         /// Node to read from (mandatory)
@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
 
         /// <summary>
         /// An optional path from NodeId instance to
-        /// an actual node.
+        /// the actual node.
         /// </summary>
         public string[] BrowsePath { get; set; }
 
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// encoded in json and containing the tunneled
         /// Historian reader request.
         /// </summary>
-        public JToken Request { get; set; }
+        public T Details { get; set; }
 
         /// <summary>
         /// Index range to read, e.g. 1:2,0:1 for 2 slices
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public string IndexRange { get; set; }
 
         /// <summary>
-        /// Optional header
+        /// Optional request header
         /// </summary>
         public RequestHeaderModel Header { get; set; }
     }

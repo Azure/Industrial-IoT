@@ -3,27 +3,27 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Newtonsoft.Json.Linq;
+namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
+    using System;
 
     /// <summary>
-    /// History read results
+    /// Read modified data
     /// </summary>
-    public class HistoryReadResultModel {
+    public class ReadModifiedValuesDetailsModel {
 
         /// <summary>
-        /// History as json encoded extension object
+        /// The start time to read from
         /// </summary>
-        public JToken History { get; set; }
+        public DateTime? StartTime { get; set; }
 
         /// <summary>
-        /// Continuation token if more results pending.
+        /// The end time to read to
         /// </summary>
-        public string ContinuationToken { get; set; }
+        public DateTime? EndTime { get; set; }
 
         /// <summary>
-        /// Service result in case of error
+        /// The number of values to read
         /// </summary>
-        public ServiceResultModel ErrorInfo { get; set; }
+        public uint? NumValues { get; set; }
     }
 }

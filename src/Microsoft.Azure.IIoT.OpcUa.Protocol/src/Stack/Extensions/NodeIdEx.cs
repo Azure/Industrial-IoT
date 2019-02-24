@@ -290,7 +290,10 @@ namespace Opc.Ua.Extensions {
         /// <param name="text"></param>
         /// <returns></returns>
         private static object ParseIdentifier(string text) {
-            if (text != null && text.Length > 1) {
+            if (text == null) {
+                return null;
+            }
+            if (text.Length > 1) {
                 if (text[1] == '=' ||
                     text[1] == '_') {
                     try {

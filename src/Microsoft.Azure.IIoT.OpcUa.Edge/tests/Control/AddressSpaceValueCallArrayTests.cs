@@ -30,6 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         }
 
         private readonly TestServerFixture _server;
+
         [Fact]
         public async Task NodeMethodMetadataStaticArrayMethod1Test() {
             await GetTests().NodeMethodMetadataStaticArrayMethod1Test();
