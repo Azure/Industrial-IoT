@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
-    using Serilog;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Hub;
+    using Serilog;
     using System;
     using System.Threading.Tasks;
     using System.Collections.Generic;

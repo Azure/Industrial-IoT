@@ -6,12 +6,13 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Filters;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models;
+    using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.History;
     using Serilog;
-    using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.Module;
     using System;
     using System.Threading.Tasks;
 
@@ -27,16 +28,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
         /// </summary>
         /// <param name="browse"></param>
         /// <param name="nodes"></param>
+        /// <param name="historian"></param>
         /// <param name="publisher"></param>
         /// <param name="export"></param>
         /// <param name="twin"></param>
         /// <param name="events"></param>
         /// <param name="logger"></param>
         public EndpointMethodsController(IBrowseServices<EndpointModel> browse,
-            INodeServices<EndpointModel> nodes, IPublishServices<EndpointModel> publisher,
-            IUploadServices<EndpointModel> export, ITwinServices twin,
-            IEventEmitter events, ILogger logger) {
+            INodeServices<EndpointModel> nodes, IHistoricAccessServices<EndpointModel> historian,
+            IPublishServices<EndpointModel> publisher, IUploadServices<EndpointModel> export,
+            ITwinServices twin, IEventEmitter events, ILogger logger) {
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
+            _historian = historian ?? throw new ArgumentNullException(nameof(historian));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
@@ -257,7 +260,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.NodeHistoryReadAsync(
+            var result = await _historian.HistoryReadAsync(
                _twin.Endpoint, request.ToServiceModel());
             return new HistoryReadResponseApiModel(result);
         }
@@ -272,7 +275,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.NodeHistoryReadNextAsync(
+            var result = await _historian.HistoryReadNextAsync(
                _twin.Endpoint, request.ToServiceModel());
             return new HistoryReadNextResponseApiModel(result);
         }
@@ -287,12 +290,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.NodeHistoryUpdateAsync(
+            var result = await _historian.HistoryUpdateAsync(
                _twin.Endpoint, request.ToServiceModel());
             return new HistoryUpdateResponseApiModel(result);
         }
 
         private readonly IBrowseServices<EndpointModel> _browse;
+        private readonly IHistoricAccessServices<EndpointModel> _historian;
         private readonly INodeServices<EndpointModel> _nodes;
         private readonly ITwinServices _twin;
         private readonly IPublishServices<EndpointModel> _publisher;

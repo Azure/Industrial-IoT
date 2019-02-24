@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
+    using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -23,14 +24,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public HistoryReadRequestApiModel(HistoryReadRequestModel model) {
+        public HistoryReadRequestApiModel(HistoryReadRequestModel<JToken> model) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
             NodeId = model.NodeId;
             BrowsePath = model.BrowsePath;
             IndexRange = model.IndexRange;
-            Request = model.Request;
+            Details = model.Details;
             Header = model.Header == null ? null :
                 new RequestHeaderApiModel(model.Header);
         }
@@ -39,12 +40,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public HistoryReadRequestModel ToServiceModel() {
-            return new HistoryReadRequestModel {
+        public HistoryReadRequestModel<JToken> ToServiceModel() {
+            return new HistoryReadRequestModel<JToken> {
                 NodeId = NodeId,
                 BrowsePath = BrowsePath,
                 IndexRange = IndexRange,
-                Request = Request,
+                Details = Details,
                 Header = Header?.ToServiceModel()
             };
         }
@@ -68,8 +69,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
         /// encoded in json and containing the tunneled
         /// Historian reader request.
         /// </summary>
-        [JsonProperty(PropertyName = "Request")]
-        public JToken Request { get; set; }
+        [JsonProperty(PropertyName = "Details")]
+        public JToken Details { get; set; }
 
         /// <summary>
         /// Index range to read, e.g. 1:2,0:1 for 2 slices

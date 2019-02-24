@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
                 throw new ArgumentNullException(nameof(model));
             }
             NodeId = model.NodeId;
-            HasChildren = model.HasChildren;
+            Children = model.Children;
             BrowseName = model.BrowseName;
             DisplayName = model.DisplayName;
             Description = model.Description;
@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
         public NodeModel ToServiceModel() {
             return new NodeModel {
                 NodeId = NodeId,
-                HasChildren = HasChildren,
+                Children = Children,
                 BrowseName = BrowseName,
                 DisplayName = DisplayName,
                 Description = Description,
@@ -325,8 +325,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
         /// any forward hierarchical references.
         /// (default: unknown)
         /// </summary>
-        [JsonProperty(PropertyName = "HasChildren",
+        [JsonProperty(PropertyName = "Children",
             NullValueHandling = NullValueHandling.Ignore)]
-        public bool? HasChildren { get; set; }
+        public bool? Children { get; set; }
     }
 }

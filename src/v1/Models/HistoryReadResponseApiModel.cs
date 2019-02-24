@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
+    using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -23,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public HistoryReadResponseApiModel(HistoryReadResultModel model) {
+        public HistoryReadResponseApiModel(HistoryReadResultModel<JToken> model) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }

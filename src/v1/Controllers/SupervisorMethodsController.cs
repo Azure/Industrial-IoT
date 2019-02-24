@@ -6,14 +6,15 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Filters;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Edge;
+    using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.History;
     using Serilog;
-    using Microsoft.Azure.IIoT.Module.Framework;
     using System;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.OpcUa.Edge;
 
     /// <summary>
     /// Supervisor method controller
@@ -30,15 +31,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
         /// <param name="discover"></param>
         /// <param name="activator"></param>
         /// <param name="nodes"></param>
+        /// <param name="historian"></param>
         /// <param name="publisher"></param>
         /// <param name="logger"></param>
         public SupervisorMethodsController(ISupervisorServices supervisor,
-            IDiscoveryServices discover, IBrowseServices<EndpointModel> browse,
-            IActivationServices<string> activator, INodeServices<EndpointModel> nodes,
-            IPublishServices<EndpointModel> publisher, ILogger logger) {
+            IDiscoveryServices discover, IActivationServices<string> activator,
+            INodeServices<EndpointModel> nodes, IHistoricAccessServices<EndpointModel> historian,
+            IBrowseServices<EndpointModel> browse, IPublishServices<EndpointModel> publisher,
+            ILogger logger) {
 
             _supervisor = supervisor ?? throw new ArgumentNullException(nameof(supervisor));
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
+            _historian = historian ?? throw new ArgumentNullException(nameof(historian));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             _discover = discover ?? throw new ArgumentNullException(nameof(discover));
@@ -301,7 +305,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.NodeHistoryReadAsync(
+            var result = await _historian.HistoryReadAsync(
                endpoint.ToServiceModel(), request.ToServiceModel());
             return new HistoryReadResponseApiModel(result);
         }
@@ -317,7 +321,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.NodeHistoryReadNextAsync(
+            var result = await _historian.HistoryReadNextAsync(
                endpoint.ToServiceModel(), request.ToServiceModel());
             return new HistoryReadNextResponseApiModel(result);
         }
@@ -333,7 +337,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.NodeHistoryUpdateAsync(
+            var result = await _historian.HistoryUpdateAsync(
                endpoint.ToServiceModel(), request.ToServiceModel());
             return new HistoryUpdateResponseApiModel(result);
         }
@@ -375,6 +379,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor {
         private readonly IActivationServices<string> _activator;
         private readonly ISupervisorServices _supervisor;
         private readonly IBrowseServices<EndpointModel> _browse;
+        private readonly IHistoricAccessServices<EndpointModel> _historian;
         private readonly INodeServices<EndpointModel> _nodes;
         private readonly IPublishServices<EndpointModel> _publisher;
         private readonly IDiscoveryServices _discover;

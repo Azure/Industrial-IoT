@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;

@@ -11,7 +11,9 @@ The OPC Device Twin module can be deployed in an [IoT Edge][iotedge-url] gateway
 ## Using the module
 
 A pre-built image exits in Microsoft's container registry and can be obtained by running `docker pull mcr.microsoft.com/iotedge/opc-twin:latest`.  
+
 To use it follow the instructions on how to deploy the module to [IoT Edge][iotedge-docs-url]:
+
   * Instructions on how to [deploy](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-portal) a module to one or a set of IoT Edge targets.
   * Instructions on how to install IoT Edge [on Linux](https://docs.microsoft.com/en-us/azure/iot-edge/quickstart-linux) and [on Windows](https://docs.microsoft.com/en-us/azure/iot-edge/quickstart).
 
@@ -44,7 +46,8 @@ Follow the instructions [here](https://github.com/Azure/azure-iiot-services) to 
 ### Build, run and deploy the module to IoT Edge (Production)
 
 1. To build your own module container image and deploy it make sure the [Prerequisites](#Install-any-tools-and-depdendencies) are set up.
-1. Change into the repo root and run `docker build -f docker/linux/amd64/Dockerfile -t azure-iiot-opc-twin-module .`. 
+1. Change into the repo root and run 
+   `docker build -f docker/linux/amd64/Dockerfile -t azure-iiot-opc-twin-module .`
 1. Then push the module to an accessible registry, e.g. Azure Container Registry, or [dockerhub][dockerhub-url].
 1. Follow the instructions on how to deploy the module to IoT Edge [here][#Using-the-module].
 
