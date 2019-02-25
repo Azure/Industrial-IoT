@@ -59,6 +59,18 @@ An example for the format of the configuration file is:
           }
         ]
 
+If you want to publish node values even they have not changed after a certain amount of time (with this you can also publish static node values regularily), then you can add the `HeartbeatInterval` key to a node configuration. This specifies a value in seconds
+ where the last value should be resent, even it has not changed:
+
+                "HeartbeatInterval": 3600,
+
+To prevent sending the value of a node at startup, you can add the `SkipFirst` key to a node configuration:
+
+                "SkipFirst": true,
+
+Both configurations settings can be enabled for all nodes in your configuration file via command line options as well.
+
+
 ### Configuration via OPC UA method calls
 OPC Publisher has an OPC UA Server integrated, which can be accessed on port 62222. If the hostname is `publisher`, then the URI of the endpoint is: `opc.tcp://publisher:62222/UA/Publisher`
 This endpoint exposes five methods:
