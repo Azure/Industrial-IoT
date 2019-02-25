@@ -29,6 +29,7 @@ namespace OpcPublisher
                 if (_iotHubClient == null)
                 {
                     _edgeHubClient.ProductInfo = value;
+                    return;
                 }
                 _iotHubClient.ProductInfo = value;
             }
