@@ -756,6 +756,18 @@ That means if you specify the following mapping in the `HostConfig`, then the co
                 ]
             }
 
+If you need to connect to an OPC UA server using the hostname of the OPC UA server and have no DNS configured, you can enable resolving 
+the hostname by adding an `ExtraHosts` configuration to the `HostConfig` object:
+
+            "HostConfig": {
+                "ExtraHosts": [
+                    "opctestsvr:192.168.178.26"
+                ]
+            }
+
+This setting will allow OPC Publisher running in the IoT Edge module to resolve the hostname `opctestsvr` to the IP Address `192.168.178.26`. 
+This is equivilant as using `--add-host opctestsvr:192.168.178.26` as parameter to the `docker run` command.
+
 
 ## OPC UA X.509 certificates
 As you know, OPC UA is using X.509 certificates to authenticate OPC UA client and server during establishment of a connection and 
