@@ -23,6 +23,9 @@ using ApplicationsDatabaseBase = Opc.Ua.Gds.Server.Database.ApplicationsDatabase
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
+    /// <summary>
+    /// Helper to create app darabase for unit tests.
+    /// </summary>
     public static class CosmosDBApplicationsDatabaseFactory
     {
         public static IApplicationsDatabase Create(
@@ -35,6 +38,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         }
     }
 
+    /// <summary>
+    /// The CosmosDB implementation of the application database.
+    /// </summary>
     internal sealed class CosmosDBApplicationsDatabase : IApplicationsDatabase
     {
         const int _defaultRecordsPerQuery = 10;
@@ -80,7 +86,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             application.ID = _appIdCounter++;
             application.ApplicationState = ApplicationState.New;
             application.CreateTime = DateTime.UtcNow;
-            //
+
+            // depending on use case, new applications can be auto approved.
             if (_autoApprove)
             {
                 application.ApplicationState = ApplicationState.Approved;
@@ -685,15 +692,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 }
             }
 
-            // TODO check type
-            //if (application.ApplicationId == Guid.Empty)
-            //{
-            //    throw new ArgumentException("The ApplicationId has invalid type {0}", application.ApplicationId.ToString());
-            //}
-
             return application.ApplicationId;
         }
 
+        /// <summary>
+        /// Returns server capabilities as comma separated string.
+        /// </summary>
+        /// <param name="application">The application record.</param>
         public static string ServerCapabilities(Application application)
         {
             if ((int)application.ApplicationType != (int)ApplicationType.Client)
@@ -728,6 +733,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             return capabilities.ToString();
         }
 
+        /// <summary>
+        /// Convert the application Id string to Guid.
+        /// Throws on invalid guid.
+        /// </summary>
+        /// <param name="applicationId"></param>
         private Guid ToGuidAndVerify(string applicationId)
         {
             try
@@ -749,6 +759,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             }
         }
 
+        /// <summary>
+        /// Returns the next free, largest, application ID value.
+        /// This is the ID value used for sorting in GDS queries.
+        /// </summary>
         private async Task<int> GetMaxAppIDAsync()
         {
             try

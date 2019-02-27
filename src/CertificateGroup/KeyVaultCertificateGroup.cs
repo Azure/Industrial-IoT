@@ -21,7 +21,9 @@ using Opc.Ua;
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The Key Vault implementation of the Certificate Group.
+    /// </summary>
     public sealed class KeyVaultCertificateGroup : ICertificateGroup
     {
         private readonly IServicesConfig _servicesConfig;
