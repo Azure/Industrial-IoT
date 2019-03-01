@@ -52,7 +52,7 @@ Function SelectEnvironment() {
     switch ($script:environmentName) {
         "AzureCloud" {
             if ((Get-AzureRMEnvironment AzureCloud) -eq $null) {
-                Add-AzureRMEnvironment –Name AzureCloud -EnableAdfsAuthentication $False `
+                Add-AzureRMEnvironment â€“Name AzureCloud -EnableAdfsAuthentication $False `
                     -ActiveDirectoryServiceEndpointResourceId https://management.core.windows.net/  `
                     -GalleryUrl https://gallery.azure.com/ `
                     -ServiceManagementUrl https://management.core.windows.net/ `
@@ -694,6 +694,49 @@ Function GetOrCreateResourceGroup() {
     }
 }
 
+#******************************************************************************
+# Get an access token
+#******************************************************************************
+Function GetAzureToken() {
+
+    try {
+        $context = Get-AzureRmContext
+        $tenantId = $context.Tenant.Id
+        $refreshToken = @($context.TokenCache.ReadItems() | where {$_.tenantId -eq $tenantId -and $_.ExpiresOn -gt (Get-Date)})[0].RefreshToken
+        $body = "grant_type=refresh_token&refresh_token=$($refreshToken)&resource=74658136-14ec-4630-ad9b-26e160ff0fc6"
+        $apiToken = Invoke-RestMethod "https://login.windows.net/$tenantId/oauth2/token" -Method POST -Body $body -ContentType "application/x-www-form-urlencoded"
+        return $apiToken.access_token
+    }
+    catch {
+        Write-Host "An error occurred: $($_.Exception.Message)"
+    }
+}
+
+#******************************************************************************
+# Grant permission to to the app with id = $azureAppId
+#******************************************************************************
+Function GrantPermission() {
+    
+    Param(
+        [string] $azureAppId
+    )
+
+    try { 
+        $token = GetAzureToken
+        $header = @{
+            "Authorization"          = "Bearer " + $token
+            "X-Requested-With"       = "XMLHttpRequest"
+            "x-ms-client-request-id" = [guid]::NewGuid()
+            "x-ms-correlation-id"    = [guid]::NewGuid()
+        } 
+        $url = "https://main.iam.ad.ext.azure.com/api/RegisteredApplications/" + $azureAppId + "/Consent?onBehalfOfAll=true"
+        Invoke-RestMethod -Uri $url -Method Post -Headers $header
+    }
+    catch {
+        Write-Host "An error occurred: $($_.Exception.Message)"
+    }
+}
+
 #*******************************************************************************************************
 # Script body
 #*******************************************************************************************************
@@ -716,10 +759,15 @@ SelectSubscription
 $aadConfig = GetAzureADApplicationConfig
 $deleteOnErrorPrompt = GetOrCreateResourceGroup
 
+GrantPermission -azureAppId $aadConfig.ClientObjectId
+
 try {
     Write-Host "Almost done..."
     & ($deploymentScript) -resourceGroupName $script:resourceGroupName `
         -interactive $script:interactive -aadConfig $aadConfig
+
+    Write-Host "Grant permissions"
+    GrantPermission -azureAppId $aadConfig.ClientId   
     Write-Host "Deployment succeeded."
 }
 catch {
