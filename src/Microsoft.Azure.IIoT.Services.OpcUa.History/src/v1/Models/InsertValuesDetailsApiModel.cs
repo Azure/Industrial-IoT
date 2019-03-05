@@ -12,25 +12,24 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Update historic data
+    /// Insert historic data
     /// </summary>
-    public class UpdateValuesDetailsApiModel {
+    public class InsertValuesDetailsApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public UpdateValuesDetailsApiModel() { }
+        public InsertValuesDetailsApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public UpdateValuesDetailsApiModel(UpdateValuesDetailsModel model) {
+        public InsertValuesDetailsApiModel(InsertValuesDetailsModel model) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
-            PerformInsertReplace = model.PerformInsertReplace;
-            UpdateValues = model.UpdateValues?
+            Values = model.Values?
                 .Select(v => v == null ? null : new HistoricValueApiModel(v))
                 .ToList();
         }
@@ -38,25 +37,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Models {
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public UpdateValuesDetailsModel ToServiceModel() {
-            return new UpdateValuesDetailsModel {
-                PerformInsertReplace = PerformInsertReplace,
-                UpdateValues = UpdateValues?.Select(v => v?.ToServiceModel()).ToList()
+        public InsertValuesDetailsModel ToServiceModel() {
+            return new InsertValuesDetailsModel {
+                Values = Values?.Select(v => v?.ToServiceModel()).ToList()
             };
         }
 
         /// <summary>
-        /// Whether to perform an insert or replacement
+        /// Values to insert
         /// </summary>
-        [JsonProperty(PropertyName = "performInsertReplace")]
+        [JsonProperty(PropertyName = "values")]
         [Required]
-        public HistoryUpdateOperation PerformInsertReplace { get; set; }
-
-        /// <summary>
-        /// Values to insert or replace
-        /// </summary>
-        [JsonProperty(PropertyName = "updateValues")]
-        [Required]
-        public List<HistoricValueApiModel> UpdateValues { get; set; }
+        public List<HistoricValueApiModel> Values { get; set; }
     }
 }

@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.OpcUa.Api.History;
     using Microsoft.Azure.IIoT.OpcUa.Api.History.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Control;
     using Microsoft.Azure.IIoT.OpcUa.History.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
@@ -33,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
             var log = _factory.Resolve<ILogger>();
             return new HistoryReadValuesTests<string>(() => // Create an adapter over the api
                 new HistoricAccessAdapter<string>(
-                    new HistoryAdapter(
+                    new HistoryRawAdapter(
                         new HistoryServiceClient(
                            new HttpClient(_factory, log), new TestConfig(client.BaseAddress), log),
                                 log), new JsonVariantEncoder(), log), "fakeid");

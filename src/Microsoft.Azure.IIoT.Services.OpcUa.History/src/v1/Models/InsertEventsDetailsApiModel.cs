@@ -13,26 +13,25 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Models {
     using System.Linq;
 
     /// <summary>
-    /// Update historic events
+    /// Insert historic events
     /// </summary>
-    public class UpdateEventsDetailsApiModel {
+    public class InsertEventsDetailsApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public UpdateEventsDetailsApiModel() { }
+        public InsertEventsDetailsApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public UpdateEventsDetailsApiModel(UpdateEventsDetailsModel model) {
+        public InsertEventsDetailsApiModel(InsertEventsDetailsModel model) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
-            PerformInsertReplace = model.PerformInsertReplace;
             Filter = model.Filter;
-            EventData = model.EventData?
+            Events = model.Events?
                 .Select(v => v == null ? null : new HistoricEventApiModel(v))
                 .ToList();
         }
@@ -40,19 +39,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Models {
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public UpdateEventsDetailsModel ToServiceModel() {
-            return new UpdateEventsDetailsModel {
-                PerformInsertReplace = PerformInsertReplace,
-                EventData = EventData?.Select(v => v?.ToServiceModel()).ToList()
+        public InsertEventsDetailsModel ToServiceModel() {
+            return new InsertEventsDetailsModel {
+                Filter = Filter,
+                Events = Events?.Select(v => v?.ToServiceModel()).ToList()
             };
         }
-
-        /// <summary>
-        /// Whether to perform insert or replacement
-        /// </summary>
-        [JsonProperty(PropertyName = "performInsertReplace")]
-        [Required]
-        public HistoryUpdateOperation PerformInsertReplace { get; set; }
 
         /// <summary>
         /// The filter to use to select the events
@@ -62,10 +54,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Models {
         public JToken Filter { get; set; }
 
         /// <summary>
-        /// The new events to insert or replace
+        /// The new events to insert
         /// </summary>
-        [JsonProperty(PropertyName = "eventData")]
+        [JsonProperty(PropertyName = "events")]
         [Required]
-        public List<HistoricEventApiModel> EventData { get; set; }
+        public List<HistoricEventApiModel> Events { get; set; }
     }
 }

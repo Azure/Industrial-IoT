@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway.v1.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Gateway.v1.Models;
-    using Microsoft.AspNetCore.Mvc.Testing;
     using Newtonsoft.Json;
     using System.Threading.Tasks;
     using Xunit;

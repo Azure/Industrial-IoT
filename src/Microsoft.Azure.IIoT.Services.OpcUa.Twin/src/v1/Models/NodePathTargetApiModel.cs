@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
     using System;
-    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Node path target
@@ -27,16 +26,22 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v1.Models {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
+            BrowsePath = model.BrowsePath;
             RemainingPathIndex = model.RemainingPathIndex;
             Target = model.Target == null ? null :
                 new NodeApiModel(model.Target);
         }
 
         /// <summary>
+        /// The target browse path
+        /// </summary>
+        [JsonProperty(PropertyName = "browsePath")]
+        public string[] BrowsePath { get; set; }
+
+        /// <summary>
         /// Target node
         /// </summary>
         [JsonProperty(PropertyName = "target")]
-        [Required]
         public NodeApiModel Target { get; set; }
 
         /// <summary>

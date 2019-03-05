@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
 
@@ -29,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v1.Models {
                 throw new ArgumentNullException(nameof(model));
             }
             NodeId = model.NodeId;
-            PathElements = model.PathElements;
+            BrowsePaths = model.BrowsePaths;
             ReadVariableValues = model.ReadVariableValues;
             Header = model.Header == null ? null :
                 new RequestHeaderApiModel(model.Header);
@@ -42,26 +43,26 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v1.Models {
         public BrowsePathRequestModel ToServiceModel() {
             return new BrowsePathRequestModel {
                 NodeId = NodeId,
-                PathElements = PathElements,
+                BrowsePaths = BrowsePaths,
                 ReadVariableValues = ReadVariableValues,
                 Header = Header?.ToServiceModel()
             };
         }
 
         /// <summary>
-        /// Node to browse.
+        /// Node to browse from.
         /// (default: RootFolder).
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
         public string NodeId { get; set; }
 
         /// <summary>
-        /// The path elements of the path to browse from node.
+        /// The paths to browse from node.
         /// (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "pathElements")]
+        [JsonProperty(PropertyName = "browsePaths")]
         [Required]
-        public string[] PathElements { get; set; }
+        public List<string[]> BrowsePaths { get; set; }
 
         /// <summary>
         /// Whether to read variable values on target nodes.

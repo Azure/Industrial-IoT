@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Models {
         }
 
         /// <summary>
-        /// Node to update 
+        /// Node to update
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
         public string NodeId { get; set; }

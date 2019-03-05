@@ -104,6 +104,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v1.Controllers {
         }
 
         [Fact]
+        public async Task NodeBrowsePathStaticScalarMethodsTest() {
+            await GetTests().NodeBrowsePathStaticScalarMethodsTest();
+        }
+
+        [Fact]
         public async Task NodeBrowseDiagnosticsNoneTest() {
             await GetTests().NodeBrowseDiagnosticsNoneTest();
         }

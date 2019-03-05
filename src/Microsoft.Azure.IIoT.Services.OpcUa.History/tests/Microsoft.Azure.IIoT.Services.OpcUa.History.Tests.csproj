@@ -22,11 +22,11 @@
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.Services.OpcUa.History.csproj" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\..\opc-ua')">
+    <When Condition="Exists('..\..\..\..\components\opc-ua')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\..\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Testing\src\Microsoft.Azure.IIoT.OpcUa.Testing.csproj" />
-        <ProjectReference Include="..\..\..\..\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.History\src\Microsoft.Azure.IIoT.OpcUa.History.csproj" />
-        <ProjectReference Include="..\..\..\..\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge\src\Microsoft.Azure.IIoT.OpcUa.Edge.csproj" />
+        <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Testing\src\Microsoft.Azure.IIoT.OpcUa.Testing.csproj" />
+        <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.History\src\Microsoft.Azure.IIoT.OpcUa.History.csproj" />
+        <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge\src\Microsoft.Azure.IIoT.OpcUa.Edge.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>

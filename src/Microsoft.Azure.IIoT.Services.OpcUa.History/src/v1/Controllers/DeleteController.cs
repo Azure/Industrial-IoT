@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history update request</param>
         /// <returns>The history delete result</returns>
-        [HttpPost("{endpointId}/values/pick")]
+        [HttpPost("values/{endpointId}/pick")]
         public async Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAtTimesAsync(
             string endpointId,
             [FromBody] [Required] HistoryUpdateRequestApiModel<DeleteValuesAtTimesDetailsApiModel> request) {
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history update request</param>
         /// <returns>The history delete result</returns>
-        [HttpPost("{endpointId}/values")]
+        [HttpPost("values/{endpointId}")]
         public async Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAsync(
             string endpointId,
             [FromBody] [Required] HistoryUpdateRequestApiModel<DeleteValuesDetailsApiModel> request) {
@@ -88,7 +88,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history update request</param>
         /// <returns>The history delete result</returns>
-        [HttpPost("{endpointId}/values/modified")]
+        [HttpPost("values/{endpointId}/modified")]
         public async Task<HistoryUpdateResponseApiModel> HistoryDeleteModifiedValuesAsync(
             string endpointId,
             [FromBody] [Required] HistoryUpdateRequestApiModel<DeleteModifiedValuesDetailsApiModel> request) {
@@ -111,7 +111,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history update request</param>
         /// <returns>The history delete result</returns>
-        [HttpPost("{endpointId}/events")]
+        [HttpPost("events/{endpointId}")]
         public async Task<HistoryUpdateResponseApiModel> HistoryDeleteEventsAsync(
             string endpointId,
             [FromBody] [Required] HistoryUpdateRequestApiModel<DeleteEventsDetailsApiModel> request) {

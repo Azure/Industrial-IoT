@@ -33,9 +33,9 @@
     </Otherwise>
   </Choose>
   <Choose>
-    <When Condition="Exists('..\..\..\..\opc-ua')">
+    <When Condition="Exists('..\..\..\..\components\opc-ua')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\..\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Registry\src\Microsoft.Azure.IIoT.OpcUa.Registry.csproj" />
+        <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Registry\src\Microsoft.Azure.IIoT.OpcUa.Registry.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>

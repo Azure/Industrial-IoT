@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph {
     using Microsoft.Azure.IIoT.OpcUa.Graph.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Tasks.Default;
-    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -18,6 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph {
     using Microsoft.Azure.IIoT.Storage.Blob.Services;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.Extensions.Configuration;
+    using Serilog;
     using Autofac;
     using AutofacSerilogIntegration;
     using System;

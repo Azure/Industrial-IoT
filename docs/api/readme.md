@@ -7,3 +7,8 @@
 ## OPC Twin Service
 
 - [REST API](twin/readme.md)
+
+## OPC Historic Access Service
+
+- [REST API](history/readme.md)
+
