@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Browse nodes by path
@@ -28,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
             }
             NodeIdsOnly = model.NodeIdsOnly;
             NodeId = model.NodeId;
-            PathElements = model.PathElements;
+            BrowsePaths = model.BrowsePaths;
             ReadVariableValues = model.ReadVariableValues;
             Header = model.Header == null ? null :
                 new RequestHeaderApiModel(model.Header);
@@ -42,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
             return new BrowsePathRequestModel {
                 NodeIdsOnly = NodeIdsOnly,
                 NodeId = NodeId,
-                PathElements = PathElements,
+                BrowsePaths = BrowsePaths,
                 ReadVariableValues = ReadVariableValues,
                 Header = Header?.ToServiceModel()
             };
@@ -59,8 +60,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
         /// The path elements of the path to browse from node.
         /// (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "PathElements")]
-        public string[] PathElements { get; set; }
+        [JsonProperty(PropertyName = "BrowsePaths")]
+        public List<string[]> BrowsePaths { get; set; }
 
         /// <summary>
         /// Whether to read variable values on target nodes.

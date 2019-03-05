@@ -140,7 +140,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor.StartStop {
 
         [SkippableFact]
         public async Task NodeBrowsePathStaticScalarMethod3Test2() {
-            Skip.IfNot(_runAll);
+            // Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
                     await GetTests(device, module, services).NodeBrowsePathStaticScalarMethod3Test2();
@@ -154,6 +154,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Supervisor.StartStop {
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
                     await GetTests(device, module, services).NodeBrowsePathStaticScalarMethod3Test3();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowsePathStaticScalarMethodsTest() {
+            // Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(async (device, module, services) => {
+                    await GetTests(device, module, services).NodeBrowsePathStaticScalarMethodsTest();
                 });
             }
         }

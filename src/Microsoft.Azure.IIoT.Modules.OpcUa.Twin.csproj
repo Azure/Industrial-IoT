@@ -19,9 +19,9 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\opc-ua')">
+    <When Condition="Exists('..\..\..\components\opc-ua')">
       <ItemGroup>
-        <ProjectReference Include="..\..\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge\src\Microsoft.Azure.IIoT.OpcUa.Edge.csproj" />
+        <ProjectReference Include="..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge\src\Microsoft.Azure.IIoT.OpcUa.Edge.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>

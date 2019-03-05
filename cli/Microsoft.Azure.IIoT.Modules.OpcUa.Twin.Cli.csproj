@@ -11,9 +11,9 @@
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\common')">
+    <When Condition="Exists('..\..\..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\common\src\Microsoft.Azure.IIoT.Hub\src\Microsoft.Azure.IIoT.Hub.csproj" />
+        <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Hub\src\Microsoft.Azure.IIoT.Hub.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>

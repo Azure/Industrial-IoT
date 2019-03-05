@@ -59,16 +59,6 @@ Follow the instructions [here](https://github.com/Azure/azure-iiot-services) to 
 1. Configure the `Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli` project properties to pass `--host` as command line argument when starting. 
 1. Set the `Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli` as startup project and start debugging (e.g. by pressing F5).
 
-## Other Azure Industrial IoT components
-
-* [Azure Industrial IoT Micro Services](https://github.com/Azure/azure-iiot-services)
-  * OPC UA Certificate Management service (Coming soon)
-* [Azure Industrial IoT OPC UA components](https://github.com/Azure/azure-iiot-opc-ua)
-* [Azure Industrial IoT Service API](https://github.com/Azure/azure-iiot-services-api)
-* Other Azure Industrial IoT Edge Modules
-  * [OPC Publisher module](https://github.com/Azure/iot-edge-opc-publisher)
-  * [OPC Proxy module](https://github.com/Azure/iot-edge-opc-proxy)
-
 ## Contributing
 
 Refer to our [contribution guidelines](CONTRIBUTING.md).

@@ -15,19 +15,20 @@
     <PackageReference Include="Xunit.SkippableFact" Version="1.3.12" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.History\src\Microsoft.Azure.IIoT.OpcUa.History.csproj" />
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\opc-ua')">
+    <When Condition="Exists('..\..\..\components\opc-ua')">
       <ItemGroup>
-        <ProjectReference Include="..\..\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Testing\src\Microsoft.Azure.IIoT.OpcUa.Testing.csproj" />
-        <ProjectReference Include="..\..\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Twin\src\Microsoft.Azure.IIoT.OpcUa.Twin.csproj" />
-        <ProjectReference Include="..\..\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Registry\src\Microsoft.Azure.IIoT.OpcUa.Registry.csproj" />
+        <ProjectReference Include="..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.History\src\Microsoft.Azure.IIoT.OpcUa.History.csproj" />
+        <ProjectReference Include="..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Testing\src\Microsoft.Azure.IIoT.OpcUa.Testing.csproj" />
+        <ProjectReference Include="..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Twin\src\Microsoft.Azure.IIoT.OpcUa.Twin.csproj" />
+        <ProjectReference Include="..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Registry\src\Microsoft.Azure.IIoT.OpcUa.Registry.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.History" Version="2.0.0" />
         <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Twin" Version="2.0.0" />
         <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Registry" Version="2.0.0" />
         <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Testing" Version="2.0.0" />
@@ -35,9 +36,9 @@
     </Otherwise>
   </Choose>
   <Choose>
-    <When Condition="Exists('..\..\common')">
+    <When Condition="Exists('..\..\..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\common\src\Microsoft.Azure.IIoT.Hub\mock\Microsoft.Azure.IIoT.Hub.Mock.csproj" />
+        <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Hub\mock\Microsoft.Azure.IIoT.Hub.Mock.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>

@@ -27,9 +27,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v1.Models {
                 throw new ArgumentNullException(nameof(model));
             }
             RemainingPathIndex = model.RemainingPathIndex;
+            BrowsePath = model.BrowsePath;
             Target = model.Target == null ? null :
                 new NodeApiModel(model.Target);
         }
+
+        /// <summary>
+        /// The target browse path
+        /// </summary>
+        [JsonProperty(PropertyName = "BrowsePath")]
+        public string[] BrowsePath { get; set; }
 
         /// <summary>
         /// Target node
