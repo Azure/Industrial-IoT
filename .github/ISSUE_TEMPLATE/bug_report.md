@@ -1,8 +1,25 @@
+---
+name: Issue report
+about: Report a bug, interoperability or spec issue
+title: ''
+labels: ''
+assignees: ''
+---
+
+
 # Type of issue <!-- [x] in all the boxes that apply -->
 
 - [ ] Bug
-- [ ] New feature
+- [ ] Interoperability
+- [ ] Specification
+- [ ] Deployment
 - [ ] Enhancement
+
+# Project <!-- [x] in all the boxes that apply -->
+
+- [ ] OPC Vault microservice
+- [ ] OPC Vault sample application
+- [ ] OPC Vault edge module
 
 # Description <!-- Please provide a succinct description -->
 
