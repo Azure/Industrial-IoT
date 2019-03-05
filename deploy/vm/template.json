@@ -552,26 +552,6 @@
             ]
         },
         {
-            "type": "Microsoft.KeyVault/vaults",
-            "name": "[parameters('keyVaultName')]",
-            "apiVersion": "[variables('keyVaultVersion')]",
-            "location": "[resourceGroup().location]",
-            "tags": {
-                "displayName": "[parameters('keyVaultDisplayName')]"
-            },
-            "properties": {
-                "enabledForDeployment": true,
-                "enabledForTemplateDeployment": false,
-                "enabledForVolumeEncryption": false,
-                "sku": {
-                    "name": "[parameters('keyVaultSkuName')]",
-                    "family": "A"
-                },
-                "tenantId": "[parameters('aadTenantId')]",
-                "accessPolicies": []
-            }
-        },
-        {
             "comments": "AppService plan to host the Application Gateway Web App",
             "type": "Microsoft.Web/serverfarms",
             "sku": {
