@@ -4,7 +4,7 @@
     <LangVersion>7</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Description>Azure Industrial IoT OPC UA Model Graph business logic</Description>
+    <Description>Azure Industrial IoT OPC UA Graph components</Description>
     <VersionSuffix>prerelease001</VersionSuffix>
   </PropertyGroup>
   <ItemGroup>

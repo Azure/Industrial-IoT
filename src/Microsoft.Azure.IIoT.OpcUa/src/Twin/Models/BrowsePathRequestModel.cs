@@ -4,6 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Browse nodes by path
     /// </summary>
@@ -16,10 +18,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public string NodeId { get; set; }
 
         /// <summary>
-        /// The path elements of the path to browse from node.
+        /// The paths to browse from node.
         /// (mandatory)
         /// </summary>
-        public string[] PathElements { get; set; }
+        public List<string[]> BrowsePaths { get; set; }
 
         /// <summary>
         /// Whether to read variable values on target nodes.

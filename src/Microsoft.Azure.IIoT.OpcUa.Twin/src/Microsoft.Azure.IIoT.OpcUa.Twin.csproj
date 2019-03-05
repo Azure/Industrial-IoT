@@ -4,15 +4,15 @@
     <LangVersion>7</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Description>Azure Industrial IoT OPC UA Twin Control business logic</Description>
+    <Description>Azure Industrial IoT OPC UA Device Twin component</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\..\common')">
+    <When Condition="Exists('..\..\..\..\..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub\src\Microsoft.Azure.IIoT.Hub.csproj" />
+        <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub\src\Microsoft.Azure.IIoT.Hub.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>

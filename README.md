@@ -18,7 +18,7 @@ The consuming services are part of our [Azure Industrial IoT (IIoT) components](
 
 1. [Install .NET Core 2.1+][dotnet-install]
 1. Install any recent edition of Visual Studio (Windows/MacOS) or Visual Studio Code (Windows/MacOS/Linux).
-   * If you already have Visual Studio installed, then ensure you have [.NET Core Tools for Visual Studio 2017] [dotnetcore-tools-url] installed (Windows only).
+   * If you already have Visual Studio installed, then ensure you have [.NET Core Tools for Visual Studio 2017][dotnetcore-tools-url] installed (Windows only).
    * If you already have VS Code installed, then ensure you have the [C# for Visual Studio Code (powered by OmniSharp)][omnisharp-url] extension installed.
 1. Open and build the solution file in Visual Studio or VS Code
 
@@ -29,23 +29,13 @@ The consuming services are part of our [Azure Industrial IoT (IIoT) components](
 1. Run `dotnet build -c Release`
 1. Run `dotnet pack`
 
-## Other Azure Industrial IoT components
-
-* [Azure Industrial IoT Micro Services](https://github.com/Azure/azure-iiot-services)
-  * OPC UA Certificate Management service (Coming soon)
-* [Azure Industrial IoT Service API](https://github.com/Azure/azure-iiot-services-api)
-* Azure Industrial IoT Edge Modules
-  * [OPC Publisher module](https://github.com/Azure/iot-edge-opc-publisher)
-  * [OPC Proxy module](https://github.com/Azure/iot-edge-opc-proxy)
-  * [OPC Device Twin module](https://github.com/Azure/azure-iiot-opc-twin-module)
-
 ## Contributing
 
 Refer to our [contribution guidelines](CONTRIBUTING.md).
 
 ## Feedback
 
-Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-services/issues).
+Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-components/issues).
 
 ## License
 

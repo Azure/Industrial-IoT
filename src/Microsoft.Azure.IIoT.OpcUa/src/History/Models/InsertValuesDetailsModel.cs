@@ -4,21 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
-    using System;
+    using System.Collections.Generic;
 
     /// <summary>
-    /// Read data at specified times
+    /// Insert historic data
     /// </summary>
-    public class ReadValuesAtTimesDetailsModel {
+    public class InsertValuesDetailsModel {
 
         /// <summary>
-        /// Requested datums
+        /// Values to insert
         /// </summary>
-        public DateTime[] ReqTimes { get; set; }
-
-        /// <summary>
-        /// Whether to use simple bounds
-        /// </summary>
-        public bool? UseSimpleBounds { get; set; }
+        public List<HistoricValueModel> Values { get; set; }
     }
 }

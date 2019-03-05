@@ -11,6 +11,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     public class NodePathTargetModel {
 
         /// <summary>
+        /// The target browse path
+        /// </summary>
+        public string[] BrowsePath { get; set; }
+
+        /// <summary>
         /// Target node
         /// </summary>
         public NodeModel Target { get; set; }

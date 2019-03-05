@@ -16,9 +16,9 @@
     </PackageReference>
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\..\common')">
+    <When Condition="Exists('..\..\..\..\..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub\mock\Microsoft.Azure.IIoT.Hub.Mock.csproj" />
+        <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub\mock\Microsoft.Azure.IIoT.Hub.Mock.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>

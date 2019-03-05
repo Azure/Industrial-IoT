@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using System.Threading.Tasks;
 
     /// <summary>

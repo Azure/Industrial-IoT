@@ -4,21 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
+    using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
 
     /// <summary>
-    /// Update historic data
+    /// Replace historic events
     /// </summary>
-    public class UpdateValuesDetailsModel {
-        
-        /// <summary>
-        /// Whether to perform an insert or replacement
-        /// </summary>
-        public HistoryUpdateOperation PerformInsertReplace { get; set; }
+    public class ReplaceEventsDetailsModel {
 
         /// <summary>
-        /// Values to insert or replace
+        /// The filter to use to select the events
         /// </summary>
-        public List<HistoricValueModel> UpdateValues { get; set; }
+        public JToken Filter { get; set; }
+
+        /// <summary>
+        /// The new events to replace
+        /// </summary>
+        public List<HistoricEventModel> Events { get; set; }
     }
 }

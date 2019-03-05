@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.History {
     /// Historic access services
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IHistoricAccessServices<T> { 
+    public interface IHistoricAccessServices<T> {
 
         /// <summary>
         /// Read node history

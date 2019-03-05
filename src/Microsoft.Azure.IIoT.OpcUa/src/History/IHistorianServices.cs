@@ -14,6 +14,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.History {
     public interface IHistorianServices<T> {
 
         /// <summary>
+        /// Replace events
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<HistoryUpdateResultModel> HistoryReplaceEventsAsync(T endpoint,
+            HistoryUpdateRequestModel<ReplaceEventsDetailsModel> request);
+
+        /// <summary>
+        /// Insert events
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<HistoryUpdateResultModel> HistoryInsertEventsAsync(T endpoint,
+            HistoryUpdateRequestModel<InsertEventsDetailsModel> request);
+
+        /// <summary>
         /// Delete events
         /// </summary>
         /// <param name="endpoint"></param>
@@ -50,22 +68,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.History {
             HistoryUpdateRequestModel<DeleteValuesDetailsModel> request);
 
         /// <summary>
-        /// Update events
+        /// Replace values
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResultModel> HistoryUpdateEventsAsync(T endpoint,
-            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request);
+        Task<HistoryUpdateResultModel> HistoryReplaceValuesAsync(T endpoint,
+            HistoryUpdateRequestModel<ReplaceValuesDetailsModel> request);
 
         /// <summary>
-        /// Update values
+        /// Insert values
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResultModel> HistoryUpdateValuesAsync(T endpoint,
-            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request);
+        Task<HistoryUpdateResultModel> HistoryInsertValuesAsync(T endpoint,
+            HistoryUpdateRequestModel<InsertValuesDetailsModel> request);
 
         /// <summary>
         /// Read historic events
@@ -127,7 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.History {
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<HistoryReadNextResultModel<HistoricValueModel[]>> HistoryReadValueNextAsync(
+        Task<HistoryReadNextResultModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
             T endpoint, HistoryReadNextRequestModel request);
     }
 }

@@ -95,8 +95,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.PathElements == null || request.PathElements.Length == 0) {
-                throw new ArgumentNullException(nameof(request.PathElements));
+            if (request.BrowsePaths == null || request.BrowsePaths.Count == 0 ||
+                request.BrowsePaths.Any(p => p == null || p.Length == 0)) {
+                throw new ArgumentNullException(nameof(request.BrowsePaths));
             }
             return await CallServiceOnSupervisor<BrowsePathRequestModel, BrowsePathResultModel>(
                 "BrowsePath_V1", registration, request);

@@ -137,8 +137,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.PathElements == null || request.PathElements.Length == 0) {
-                throw new ArgumentNullException(nameof(request.PathElements));
+            if (request.BrowsePaths == null || request.BrowsePaths.Count == 0 ||
+                request.BrowsePaths.Any(p => p == null || p.Length == 0)) {
+                throw new ArgumentNullException(nameof(request.BrowsePaths));
             }
             return _client.ExecuteServiceAsync(endpoint, request.Header?.Elevation, async session => {
                 var rootId = request?.NodeId.ToNodeId(session.MessageContext);
@@ -149,24 +150,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 var result = new BrowsePathResultModel {
                     Targets = new List<NodePathTargetModel>()
                 };
+                var requests = new BrowsePathCollection(request.BrowsePaths.Select(p =>
+                    new BrowsePath {
+                        StartingNode = rootId,
+                        RelativePath = p.ToRelativePath(session.MessageContext)
+                    }));
                 var response = await session.TranslateBrowsePathsToNodeIdsAsync(
-                    (request.Header?.Diagnostics).ToStackModel(),
-                    new BrowsePathCollection {
-                        new BrowsePath {
-                            StartingNode = rootId,
-                            RelativePath = request.PathElements
-                                .ToRelativePath(session.MessageContext)
-                        }
-                    });
+                    (request.Header?.Diagnostics).ToStackModel(), requests);
                 OperationResultEx.Validate("Translate" + request.NodeId,
                     diagnostics, response.Results.Select(r => r.StatusCode),
-                    response.DiagnosticInfos, false);
-
-                await AddTargetsToBrowseResult(session,
-                    (request.Header?.Diagnostics).ToStackModel(),
-                    request.ReadVariableValues ?? false, request.NodeIdsOnly ?? false,
-                    result.Targets, diagnostics, response.Results[0].Targets);
-
+                    response.DiagnosticInfos, requests, false);
+                for (var index = 0; index < response.Results.Count; index++) {
+                    await AddTargetsToBrowseResult(session,
+                        (request.Header?.Diagnostics).ToStackModel(),
+                        request.ReadVariableValues ?? false, request.NodeIdsOnly ?? false,
+                        result.Targets, diagnostics, response.Results[index].Targets,
+                        request.BrowsePaths[index]);
+                }
                 result.ErrorInfo = diagnostics.ToServiceModel(request.Header?.Diagnostics,
                     session.MessageContext);
                 return result;
@@ -914,10 +914,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         /// <param name="result"></param>
         /// <param name="diagnostics"></param>
         /// <param name="targets"></param>
+        /// <param name="path"></param>
         /// <returns></returns>
         private async Task AddTargetsToBrowseResult(Session session, RequestHeader header,
             bool readValues, bool rawMode, List<NodePathTargetModel> result,
-            List<OperationResultModel> diagnostics, BrowsePathTargetCollection targets) {
+            List<OperationResultModel> diagnostics, BrowsePathTargetCollection targets,
+            string[] path) {
             if (targets != null) {
                 foreach (var target in targets) {
                     try {
@@ -925,6 +927,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         var model = await ReadNodeModelAsync(session, header, nodeId,
                             null, !readValues, rawMode, false, diagnostics, true);
                         result.Add(new NodePathTargetModel {
+                            BrowsePath = path,
                             Target = model,
                             RemainingPathIndex = target.RemainingPathIndex == 0 ?
                                 (int?)null : (int)target.RemainingPathIndex

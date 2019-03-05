@@ -54,14 +54,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Clients {
         }
 
         /// <inheritdoc/>
-        public Task<HistoryUpdateResultModel> HistoryUpdateEventsAsync(
-            T endpoint, HistoryUpdateRequestModel<UpdateEventsDetailsModel> request) {
+        public Task<HistoryUpdateResultModel> HistoryReplaceEventsAsync(
+            T endpoint, HistoryUpdateRequestModel<ReplaceEventsDetailsModel> request) {
             return _client.HistoryUpdateAsync(endpoint, request.ToRawModel(_codec.Encode));
         }
 
         /// <inheritdoc/>
-        public Task<HistoryUpdateResultModel> HistoryUpdateValuesAsync(
-            T endpoint, HistoryUpdateRequestModel<UpdateValuesDetailsModel> request) {
+        public Task<HistoryUpdateResultModel> HistoryReplaceValuesAsync(
+            T endpoint, HistoryUpdateRequestModel<ReplaceValuesDetailsModel> request) {
+            return _client.HistoryUpdateAsync(endpoint, request.ToRawModel(_codec.Encode));
+        }
+
+        /// <inheritdoc/>
+        public Task<HistoryUpdateResultModel> HistoryInsertEventsAsync(
+            T endpoint, HistoryUpdateRequestModel<InsertEventsDetailsModel> request) {
+            return _client.HistoryUpdateAsync(endpoint, request.ToRawModel(_codec.Encode));
+        }
+
+        /// <inheritdoc/>
+        public Task<HistoryUpdateResultModel> HistoryInsertValuesAsync(
+            T endpoint, HistoryUpdateRequestModel<InsertValuesDetailsModel> request) {
             return _client.HistoryUpdateAsync(endpoint, request.ToRawModel(_codec.Encode));
         }
 
@@ -108,7 +120,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadNextResultModel<HistoricValueModel[]>> HistoryReadValueNextAsync(
+        public async Task<HistoryReadNextResultModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
             T endpoint, HistoryReadNextRequestModel request) {
             var results = await _client.HistoryReadNextAsync(endpoint, request);
             return results.ToSpecificModel(_codec.DecodeValues);

@@ -59,6 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
             None,
             RunSampleServer,
             TestOpcUaServerClient,
+            TestOpcUaIop,
             TestOpcUaDiscoveryService,
             TestOpcUaModelBrowseEncoder,
             TestOpcUaModelBrowseFile,
@@ -105,6 +106,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
                             }
                             throw new ArgumentException(
                                 "Missing arguments for port option");
+                        case "--iop":
+                            if (op != Op.None) {
+                                throw new ArgumentException("Operations are mutually exclusive");
+                            }
+                            op = Op.TestOpcUaIop;
+                            break;
                         case "--stress":
                             stress = true;
                             break;
@@ -281,9 +288,10 @@ Options:
 
 Operations (Mutually exclusive):
 
-     -s                     
+     -s
     --sample / -s           Run sample server and wait for cancellation.
 
+    --iop                   Iop discovery and browsing.
     --scan-net              Tests network scanning.
     --scan-ports            Tests port scanning.
     --scan-servers          Tests opc server scanning on single machine.
@@ -332,6 +340,9 @@ Operations (Mutually exclusive):
                         break;
                     case Op.TestOpcUaDiscoveryService:
                         TestOpcUaDiscoveryService(addressRanges, stress).Wait();
+                        break;
+                    case Op.TestOpcUaIop:
+                        TestOpcUaIop().Wait();
                         break;
                     case Op.TestOpcUaModelBrowseEncoder:
                         TestOpcUaModelExportService(endpoint).Wait();
@@ -507,7 +518,7 @@ Operations (Mutually exclusive):
         /// </summary>
         private static async Task TestOpcUaDiscoveryService(string addressRanges,
             bool stress) {
-            var logger = StackLogger.Create(Log.Logger);
+            var logger = StackLogger.Create(LogEx.Console());
             var client = new ClientServices(logger.Logger);
 
             var discovery = new DiscoveryServices(client, new ConsoleEmitter(),
@@ -524,7 +535,7 @@ Operations (Mutually exclusive):
                 await Task.Delay(!stress ? TimeSpan.FromMinutes(10) :
                     TimeSpan.FromMilliseconds(rand.Next(0, 120000)));
                 logger.Logger.Information("Stopping discovery!");
-                discovery.Mode = DiscoveryMode.Scan;
+                discovery.Mode = DiscoveryMode.Off;
                 await discovery.ScanAsync();
                 if (!stress) {
                     break;
@@ -533,10 +544,105 @@ Operations (Mutually exclusive):
         }
 
         /// <summary>
+        /// scan test for iop
+        /// </summary>
+        private static async Task TestOpcUaIop() {
+            var logger = StackLogger.Create(LogEx.RollingFile("iop_log.txt"));
+            var client = new ClientServices(logger.Logger);
+
+            var discovery = new DiscoveryServices(client, new ModelWriter(client, logger.Logger),
+                new TaskProcessor(logger.Logger), logger.Logger);
+
+            var rand = new Random();
+            while (true) {
+                discovery.Configuration = new DiscoveryConfigModel {
+                    IdleTimeBetweenScans = TimeSpan.FromMilliseconds(1),
+                    MaxNetworkProbes = 1000,
+                    MaxPortProbes = 5000
+                };
+                discovery.Mode = DiscoveryMode.Scan;
+                await discovery.ScanAsync();
+                Console.WriteLine("Press key to stop...");
+                Console.ReadKey();
+                discovery.Mode = DiscoveryMode.Off;
+                await discovery.ScanAsync();
+            }
+        }
+
+        /// <inheritdoc/>
+        private class ModelWriter : IEventEmitter {
+
+            public ModelWriter(ClientServices client, ILogger logger) {
+                _logger = logger;
+                _client = client;
+            }
+
+            /// <inheritdoc/>
+            public string DeviceId { get; } = "";
+
+            /// <inheritdoc/>
+            public string ModuleId { get; } = "";
+
+            /// <inheritdoc/>
+            public string SiteId => null;
+
+            /// <inheritdoc/>
+            public async Task SendAsync(byte[] data, string contentType) {
+                var events = JsonConvert.DeserializeObject<IEnumerable<DiscoveryEventModel>>(
+                    Encoding.UTF8.GetString(data));
+                foreach (var ev in events) {
+                    var endpoint = ev.Registration?.Endpoint;
+                    if (endpoint == null) {
+                        continue;
+                    }
+                    try {
+                        _logger.Information("Writing {id}.json for {@ev}", ev.Registration.Id, ev);
+                        using (var writer = File.CreateText($"iop_{ev.Registration.Id}.json"))
+                        using (var json = new JsonTextWriter(writer) {
+                            AutoCompleteOnClose = true,
+                            Formatting = Formatting.Indented,
+                            DateFormatHandling = DateFormatHandling.IsoDateFormat
+                        })
+                        using (var encoder = new JsonEncoderEx(json, null,
+                            JsonEncoderEx.JsonEncoding.Array) {
+                            IgnoreDefaultValues = true,
+                            UseAdvancedEncoding = true
+                        })
+                        using (var browser = new BrowseStreamEncoder(_client, endpoint, encoder,
+                            null, _logger, null)) {
+                            await browser.EncodeAsync(CancellationToken.None);
+                        }
+                    }
+                    catch (Exception ex) {
+                        _logger.Error(ex, "Failed to browse");
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            public Task SendAsync(IEnumerable<byte[]> batch, string contentType) {
+                return Task.CompletedTask;
+            }
+
+            /// <inheritdoc/>
+            public Task SendAsync(string propertyId, dynamic value) {
+                return Task.CompletedTask;
+            }
+
+            /// <inheritdoc/>
+            public Task SendAsync(IEnumerable<KeyValuePair<string, dynamic>> properties) {
+                return Task.CompletedTask;
+            }
+
+            private readonly ILogger _logger;
+            private readonly ClientServices _client;
+        }
+
+        /// <summary>
         /// Test model browse encoder
         /// </summary>
         private static async Task TestOpcUaModelExportService(EndpointModel endpoint) {
-            var logger = StackLogger.Create(Log.Logger);
+            var logger = StackLogger.Create(LogEx.Console());
             using (var client = new ClientServices(logger.Logger))
             using (var server = new ServerWrapper(endpoint, logger))
             using (var stream = Console.OpenStandardOutput())
@@ -561,7 +667,7 @@ Operations (Mutually exclusive):
         /// Test model archiver
         /// </summary>
         private static async Task TestOpcUaModelArchive(EndpointModel endpoint) {
-            var logger = StackLogger.Create(Log.Logger);
+            var logger = StackLogger.Create(LogEx.Console());
             var storage = new ZipArchiveStorage();
 
             var fileName = "tmp.zip";
@@ -584,7 +690,7 @@ Operations (Mutually exclusive):
         /// Test model browse encoder to file
         /// </summary>
         private static async Task TestOpcUaModelExportToFile(EndpointModel endpoint) {
-            var logger = StackLogger.Create(Log.Logger);
+            var logger = StackLogger.Create(LogEx.Console());
 
             // Run both encodings twice to prime server and get realistic timings the
             // second time around
@@ -627,7 +733,7 @@ Operations (Mutually exclusive):
         /// Test model export and import
         /// </summary>
         private static async Task TestOpcUaModelWriter(EndpointModel endpoint) {
-            var logger = StackLogger.Create(Log.Logger);
+            var logger = StackLogger.Create(LogEx.Console());
             var filename = "model.zip";
             using (var server = new ServerWrapper(endpoint, logger)) {
                 using (var client = new ClientServices(logger.Logger)) {
@@ -664,7 +770,7 @@ Operations (Mutually exclusive):
         /// Test client
         /// </summary>
         private static async Task TestOpcUaServerClient(EndpointModel endpoint) {
-            var logger = StackLogger.Create(Log.Logger);
+            var logger = StackLogger.Create(LogEx.Console());
             using (var client = new ClientServices(logger.Logger))
             using (var server = new ServerWrapper(endpoint, logger)) {
                 await client.ExecuteServiceAsync(endpoint, null, session => {
@@ -736,7 +842,7 @@ Operations (Mutually exclusive):
 
                     Console.WriteLine("Getting list of published nodes from publisher...");
                     var publishing = await client.NodePublishListAsync(endpoint, new PublishedItemListRequestModel());
-                    Console.WriteLine(Newtonsoft.Json.JsonConvertEx.SerializeObjectPretty(publishing));
+                    Console.WriteLine(JsonConvertEx.SerializeObjectPretty(publishing));
                     Console.WriteLine("Start publishing...");
                     await client.NodePublishStartAsync(endpoint, new PublishStartRequestModel {
                         Item = new PublishedItemModel { NodeId = "i=2258" }
@@ -747,12 +853,12 @@ Operations (Mutually exclusive):
 
                     Console.WriteLine("Getting list of published nodes from publisher...");
                     publishing = await client.NodePublishListAsync(endpoint, new PublishedItemListRequestModel());
-                    Console.WriteLine(Newtonsoft.Json.JsonConvertEx.SerializeObjectPretty(publishing));
+                    Console.WriteLine(JsonConvertEx.SerializeObjectPretty(publishing));
                     Console.WriteLine("--------- Publishing ---------");
                     await Task.Delay(TimeSpan.FromSeconds(30));
                     Console.WriteLine("Getting list of published nodes from publisher...");
                     publishing = await client.NodePublishListAsync(endpoint, new PublishedItemListRequestModel());
-                    Console.WriteLine(Newtonsoft.Json.JsonConvertEx.SerializeObjectPretty(publishing));
+                    Console.WriteLine(JsonConvertEx.SerializeObjectPretty(publishing));
 
                     Console.WriteLine("Stop publishing...");
                     await client.NodePublishStopAsync(endpoint, new PublishStopRequestModel {
@@ -764,7 +870,7 @@ Operations (Mutually exclusive):
 
                     Console.WriteLine("Getting list of published nodes from publisher...");
                     publishing = await client.NodePublishListAsync(endpoint, new PublishedItemListRequestModel());
-                    Console.WriteLine(Newtonsoft.Json.JsonConvertEx.SerializeObjectPretty(publishing));
+                    Console.WriteLine(JsonConvertEx.SerializeObjectPretty(publishing));
                 }
             }
         }
@@ -799,7 +905,7 @@ Operations (Mutually exclusive):
         /// </summary>
         private static async Task TestBrowseServer(EndpointModel endpoint, bool silent = false) {
 
-            var logger = StackLogger.Create(Log.Logger);
+            var logger = StackLogger.Create(LogEx.Console());
 
             var request = new BrowseRequestModel {
                 TargetNodesOnly = false
@@ -941,7 +1047,7 @@ Operations (Mutually exclusive):
                 var json = Encoding.UTF8.GetString(data);
                 var o = JsonConvert.DeserializeObject(json);
                 Console.WriteLine(contentType);
-                Console.WriteLine(Newtonsoft.Json.JsonConvertEx.SerializeObjectPretty(o));
+                Console.WriteLine(JsonConvertEx.SerializeObjectPretty(o));
                 return Task.CompletedTask;
             }
 
@@ -980,10 +1086,8 @@ Operations (Mutually exclusive):
             public string SiteId { get; } = "";
 
             /// <inheritdoc/>
-            public Task SendFileAsync(string fileName, string contentType) {
-                using (var stream = new FileStream(fileName, FileMode.Open)) {
-                    Console.WriteLine(new StringReader(fileName).ReadToEnd());
-                }
+            public Task SendFileAsync(string fileName, Stream stream, string contentType) {
+                Console.WriteLine(new StreamReader(stream).ReadToEnd());
                 return Task.CompletedTask;
             }
         }

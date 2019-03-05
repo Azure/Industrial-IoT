@@ -100,17 +100,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, UpdateValuesDetailsModel details) {
+        public static JToken Encode(this IVariantEncoder codec, ReplaceValuesDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
-            if (details.UpdateValues == null || details.UpdateValues.Count == 0) {
-                throw new ArgumentException(nameof(details.UpdateValues));
+            if (details.Values == null || details.Values.Count == 0) {
+                throw new ArgumentException(nameof(details.Values));
             }
             return codec.Encode(new ExtensionObject(new UpdateDataDetails {
                 NodeId = NodeId.Null,
-                PerformInsertReplace = (PerformUpdateType)details.PerformInsertReplace,
-                UpdateValues = new DataValueCollection(details.UpdateValues
+                PerformInsertReplace = PerformUpdateType.Replace,
+                UpdateValues = new DataValueCollection(details.Values
+                    .Select(d => new DataValue {
+                        ServerPicoseconds = d.ServerPicoseconds ?? 0,
+                        SourcePicoseconds = d.SourcePicoseconds ?? 0,
+                        ServerTimestamp = d.ServerTimestamp ?? DateTime.MinValue,
+                        SourceTimestamp = d.SourceTimestamp ?? DateTime.MinValue,
+                        StatusCode = d.StatusCode ?? StatusCodes.Good,
+                        Value = new EncodeableJToken(d.Value) // TODO: Validate
+                    }))
+            }));
+        }
+
+        /// <summary>
+        /// Convert update data details
+        /// </summary>
+        /// <param name="codec"></param>
+        /// <param name="details"></param>
+        /// <returns></returns>
+        public static JToken Encode(this IVariantEncoder codec, InsertValuesDetailsModel details) {
+            if (details == null) {
+                throw new ArgumentNullException(nameof(details));
+            }
+            if (details.Values == null || details.Values.Count == 0) {
+                throw new ArgumentException(nameof(details.Values));
+            }
+            return codec.Encode(new ExtensionObject(new UpdateDataDetails {
+                NodeId = NodeId.Null,
+                PerformInsertReplace = PerformUpdateType.Insert,
+                UpdateValues = new DataValueCollection(details.Values
                     .Select(d => new DataValue {
                         ServerPicoseconds = d.ServerPicoseconds ?? 0,
                         SourcePicoseconds = d.SourcePicoseconds ?? 0,
@@ -128,18 +156,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, UpdateEventsDetailsModel details) {
+        public static JToken Encode(this IVariantEncoder codec, ReplaceEventsDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
-            if (details.EventData == null || details.EventData.Count == 0) {
-                throw new ArgumentException(nameof(details.EventData));
+            if (details.Events == null || details.Events.Count == 0) {
+                throw new ArgumentException(nameof(details.Events));
             }
             return codec.Encode(new ExtensionObject(new UpdateEventDetails {
                 NodeId = NodeId.Null,
-                PerformInsertReplace = (PerformUpdateType)details.PerformInsertReplace,
+                PerformInsertReplace = PerformUpdateType.Replace,
                 Filter = details.Filter?.ToObject<EventFilter>() ?? new EventFilter(),
-                EventData = new HistoryEventFieldListCollection(details.EventData
+                EventData = new HistoryEventFieldListCollection(details.Events
+                    .Select(d => new HistoryEventFieldList {
+                        EventFields = new VariantCollection(d.EventFields
+                            .Select(f => new Variant(new EncodeableJToken(f))))
+                    }))
+            }));
+        }
+
+        /// <summary>
+        /// Convert update event details
+        /// </summary>
+        /// <param name="codec"></param>
+        /// <param name="details"></param>
+        /// <returns></returns>
+        public static JToken Encode(this IVariantEncoder codec, InsertEventsDetailsModel details) {
+            if (details == null) {
+                throw new ArgumentNullException(nameof(details));
+            }
+            if (details.Events == null || details.Events.Count == 0) {
+                throw new ArgumentException(nameof(details.Events));
+            }
+            return codec.Encode(new ExtensionObject(new UpdateEventDetails {
+                NodeId = NodeId.Null,
+                PerformInsertReplace = PerformUpdateType.Insert,
+                Filter = details.Filter?.ToObject<EventFilter>() ?? new EventFilter(),
+                EventData = new HistoryEventFieldListCollection(details.Events
                     .Select(d => new HistoryEventFieldList {
                         EventFields = new VariantCollection(d.EventFields
                             .Select(f => new Variant(new EncodeableJToken(f))))

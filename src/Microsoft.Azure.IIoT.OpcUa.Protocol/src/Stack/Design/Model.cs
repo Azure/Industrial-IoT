@@ -128,10 +128,11 @@ namespace Opc.Ua.Design {
         /// </summary>
         /// <returns></returns>
         internal static IModelDesign LoadStandardModel() {
-            var prefix = typeof(ModelDesignFile).Assembly.GetName().Name;
+            var assembly = typeof(ModelDesignFile).Assembly;
+            var prefix = assembly.GetName().Name;
 
             // Load built in types
-            var builtInTypes = Assembly.GetExecutingAssembly()
+            var builtInTypes = assembly
                 .DeserializeFromXmlManifestResource<ModelDesign>(
                     prefix + ".Stack.Design.BuiltIn.BuiltInTypes.xml");
 
@@ -139,7 +140,7 @@ namespace Opc.Ua.Design {
             var typeDictionary = Types.Standard.ToModelDesign();
 
             // Load standard types
-            var standardTypes = Assembly.GetExecutingAssembly()
+            var standardTypes = assembly
                 .DeserializeFromXmlManifestResource<ModelDesign>(
                     prefix + ".Stack.Design.BuiltIn.StandardTypes.xml");
 
@@ -151,7 +152,7 @@ namespace Opc.Ua.Design {
             standardTypes.Items = nodes.ToArray();
             standardTypes.TargetVersion = null; // Allow matching to any version
 
-            var ids = Assembly.GetExecutingAssembly().GetManifestResourceStream(
+            var ids = assembly.GetManifestResourceStream(
                 prefix + ".Stack.Design.BuiltIn.StandardTypes.csv");
             var identifiers = new IdentifierFile(ids,
                 standardTypes.TargetNamespace, standardTypes.TargetVersion);

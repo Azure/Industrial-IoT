@@ -69,11 +69,12 @@ namespace Opc.Ua.Types {
         /// </summary>
         /// <returns></returns>
         private static ITypeDictionary LoadStandardTypes() {
-            var prefix = typeof(DataTypeDictionary).Assembly.GetName().Name;
-            var builtIn = new DataTypeDictionary(Assembly.GetExecutingAssembly()
+            var assembly = typeof(DataTypeDictionary).Assembly;
+            var prefix = assembly.GetName().Name;
+            var builtIn = new DataTypeDictionary(assembly
                 .DeserializeFromXmlManifestResource<Schema.TypeDictionary>(
                     prefix + ".Stack.Types.BuiltIn.BuiltInTypes.xml"), null);
-            return new DataTypeDictionary(Assembly.GetExecutingAssembly()
+            return new DataTypeDictionary(assembly
                 .DeserializeFromXmlManifestResource<Schema.TypeDictionary>(
                     prefix + ".Stack.Types.BuiltIn.UA Core Services.xml"), builtIn);
         }

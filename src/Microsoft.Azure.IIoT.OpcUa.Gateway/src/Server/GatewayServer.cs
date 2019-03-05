@@ -930,8 +930,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         new BrowsePathRequestModel {
                             NodeId = browsePaths[i].StartingNode
                                 .AsString(context.Session.MessageContext),
-                            PathElements = browsePaths[i].RelativePath
-                                .AsString(context.Session.MessageContext),
+                            BrowsePaths = new List<string[]> {
+                                browsePaths[i].RelativePath
+                                    .AsString(context.Session.MessageContext)
+                            },
                             ReadVariableValues = false,
                             Header = new RequestHeaderModel {
                                 Diagnostics = diagnostics,

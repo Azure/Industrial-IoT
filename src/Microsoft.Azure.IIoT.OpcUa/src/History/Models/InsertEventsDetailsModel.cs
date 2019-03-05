@@ -8,14 +8,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Update historic events
+    /// Insert historic events
     /// </summary>
-    public class UpdateEventsDetailsModel {
-
-        /// <summary>
-        /// Whether to perform insert or replacement
-        /// </summary>
-        public HistoryUpdateOperation PerformInsertReplace { get; set; }
+    public class InsertEventsDetailsModel {
 
         /// <summary>
         /// The filter to use to select the events
@@ -23,8 +18,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         public JToken Filter { get; set; }
 
         /// <summary>
-        /// The new events to insert or replace
+        /// The new events to insert
         /// </summary>
-        public List<HistoricEventModel> EventData { get; set; }
+        public List<HistoricEventModel> Events { get; set; }
     }
 }
