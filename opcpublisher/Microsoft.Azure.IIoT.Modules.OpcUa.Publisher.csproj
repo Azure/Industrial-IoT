@@ -48,9 +48,9 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="4.0.0" />
   </ItemGroup>
-
+<!--
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="gitversion $(SolutionDir)  /updateassemblyinfo /ensureassemblyinfo &gt;nul 2&gt;nul&#xD;&#xA;set ERRORLEVEL=0" />
   </Target>
-
+-->
 </Project>

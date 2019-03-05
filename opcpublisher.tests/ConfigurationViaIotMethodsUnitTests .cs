@@ -15,14 +15,25 @@ namespace OpcPublisher
     [Collection("Need PLC and publisher config")]
     public sealed class ConfigurationViaIotMethodUnitTests : IDisposable
     {
-        public ConfigurationViaIotMethodUnitTests(ITestOutputHelper output)
+        public ConfigurationViaIotMethodUnitTests(ITestOutputHelper output, PlcOpcUaServerFixture server)
         {
             // xunit output
             _output = output;
+            _server = server;
 
             // init configuration objects
             TelemetryConfiguration = PublisherTelemetryConfiguration.Instance;
             Diag = PublisherDiagnostics.Instance;
+        }
+
+        private void CheckWhetherToSkip() {
+            Skip.If(_server.Plc == null, "Server not reachable - Ensure docker endpoint is properly configured.");
+            try {
+                Hub = IotHubCommunication.Instance;
+            }
+            catch {
+                Skip.If(true, "IoT Hub not configured.");
+            }
         }
 
         /// <summary>
@@ -49,12 +60,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that OpcPublishingInterval setting is not persisted when not configured via method.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "OpcPublishingInterval")]
         [MemberData(nameof(PnPlcEmptyAndPayloadPublishingIntervalUnset))]
-        public async void OpcPublishingIntervalUnsetAndIsNotPersisted(string testFilename, string payloadFilename)
+        public async Task OpcPublishingIntervalUnsetAndIsNotPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/opcpublishinginterval/{payloadFilename}";
@@ -116,12 +128,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that OpcPublishingInterval setting is persisted when configured via method and is different as default.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "OpcPublishingInterval")]
         [MemberData(nameof(PnPlcEmptyAndPayloadPublishingInterval2000))]
-        public async void OpcPublishingInterval2000AndDifferentAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
+        public async Task OpcPublishingInterval2000AndDifferentAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/opcpublishinginterval/{payloadFilename}";
@@ -183,12 +196,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that OpcPublishingInterval setting is persisted when configured via method and is same as default.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "OpcPublishingInterval")]
         [MemberData(nameof(PnPlcEmptyAndPayloadPublishingInterval2000))]
-        public async void OpcPublishingInterval2000AndSameAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
+        public async Task OpcPublishingInterval2000AndSameAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/opcpublishinginterval/{payloadFilename}";
@@ -251,19 +265,19 @@ namespace OpcPublisher
         /// <summary>
         /// Test that OpcSamplingInterval setting is not persisted when not configured via method.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "OpcSamplingInterval")]
         [MemberData(nameof(PnPlcEmptyAndPayloadSamplingIntervalUnset))]
-        public async void OpcSamplingIntervalUnsetAndIsNotPersisted(string testFilename, string payloadFilename)
-        {
+        public async Task OpcSamplingIntervalUnsetAndIsNotPersisted(string testFilename, string payloadFilename) {
+            CheckWhetherToSkip();
+
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/opcsamplinginterval/{payloadFilename}";
             string fqTestFilename = $"{Directory.GetCurrentDirectory()}/testdata/opcsamplinginterval/{testFilename}";
             fqTempFilename = $"{Directory.GetCurrentDirectory()}/tempdata/{methodName}_{testFilename}";
-            if (File.Exists(fqTempFilename))
-            {
+            if (File.Exists(fqTempFilename)) {
                 File.Delete(fqTempFilename);
             }
             File.Copy(fqTestFilename, fqTempFilename);
@@ -273,8 +287,7 @@ namespace OpcPublisher
 
             UnitTestHelper.SetPublisherDefaults();
 
-            try
-            {
+            try {
                 Hub = IotHubCommunication.Instance;
                 NodeConfiguration = PublisherNodeConfiguration.Instance;
                 Assert.True(NodeConfiguration.OpcSessions.Count == 0, "wrong # of sessions");
@@ -306,8 +319,7 @@ namespace OpcPublisher
                 _output.WriteLine($"items configured {NodeConfiguration.NumberOfOpcMonitoredItemsConfigured}, monitored {NodeConfiguration.NumberOfOpcMonitoredItemsMonitored}, toRemove {NodeConfiguration.NumberOfOpcMonitoredItemsToRemove}");
                 Assert.True(_configurationFileEntries[0].OpcNodes[0].OpcSamplingInterval == null);
             }
-            finally
-            {
+            finally {
                 NodeConfiguration.Dispose();
                 NodeConfiguration = null;
                 Hub.Dispose();
@@ -318,12 +330,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that OpcSamplingInterval setting is persisted when configured via method and is different as default.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "OpcSamplingInterval")]
         [MemberData(nameof(PnPlcEmptyAndPayloadSamplingInterval2000))]
-        public async void OpcSamplingInterval2000AndDifferentAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
+        public async Task OpcSamplingInterval2000AndDifferentAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/opcsamplinginterval/{payloadFilename}";
@@ -385,12 +398,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that OpcSamplingInterval setting is persisted when configured via method and is same as default.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "OpcSamplingInterval")]
         [MemberData(nameof(PnPlcEmptyAndPayloadSamplingInterval2000))]
-        public async void OpcSamplingInterval2000AndSameAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
+        public async Task OpcSamplingInterval2000AndSameAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/opcsamplinginterval/{payloadFilename}";
@@ -453,12 +467,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that SkipFirst setting is not persisted when default is false and not configured via method.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "SkipFirst")]
         [MemberData(nameof(PnPlcEmptyAndPayloadSkipFirstUnset))]
-        public async void SkipFirsUnsetDefaultFalseAndIsNotPersisted(string testFilename, string payloadFilename)
+        public async Task SkipFirstUnsetDefaultFalseAndIsNotPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/skipfirst/{payloadFilename}";
@@ -521,12 +536,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that SkipFirst setting is not persisted when default is true and not configured via method.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "SkipFirst")]
         [MemberData(nameof(PnPlcEmptyAndPayloadSkipFirstUnset))]
-        public async void SkipFirstUnsetDefaultTrueAndIsNotPersisted(string testFilename, string payloadFilename)
+        public async Task SkipFirstUnsetDefaultTrueAndIsNotPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/skipfirst/{payloadFilename}";
@@ -589,12 +605,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that skipFirst setting is persisted when configured true via method and is different as default.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "SkipFirst")]
         [MemberData(nameof(PnPlcEmptyAndPayloadSkipFirstTrue))]
-        public async void SkipFirstTrueAndDifferentAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
+        public async Task SkipFirstTrueAndDifferentAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/skipfirst/{payloadFilename}";
@@ -656,12 +673,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that skipFirst setting is persisted when configured true via method and is save as default.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "SkipFirst")]
         [MemberData(nameof(PnPlcEmptyAndPayloadSkipFirstTrue))]
-        public async void SkipFirstTrueAndSameAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
+        public async Task SkipFirstTrueAndSameAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/skipfirst/{payloadFilename}";
@@ -723,12 +741,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that skipFirst setting is persisted when configured false via method and is different as default.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "SkipFirst")]
         [MemberData(nameof(PnPlcEmptyAndPayloadSkipFirstFalse))]
-        public async void SkipFirstFalseAndDifferentAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
+        public async Task SkipFirstFalseAndDifferentAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/skipfirst/{payloadFilename}";
@@ -790,12 +809,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that skipFirst setting is persisted when configured false via method and is same as default.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "SkipFirst")]
         [MemberData(nameof(PnPlcEmptyAndPayloadSkipFirstFalse))]
-        public async void SkipFirstFalseAndSameAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
+        public async Task SkipFirstFalseAndSameAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/skipfirst/{payloadFilename}";
@@ -857,12 +877,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that HeartbeatInterval setting is not persisted when default is 0 not configured via method.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "HeartbeatInterval")]
         [MemberData(nameof(PnPlcEmptyAndPayloadHeartbeatIntervalUnset))]
-        public async void HeartbeatIntervalUnsetDefaultZeroAndIsNotPersisted(string testFilename, string payloadFilename)
+        public async Task HeartbeatIntervalUnsetDefaultZeroAndIsNotPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/heartbeatinterval/{payloadFilename}";
@@ -925,12 +946,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that HeartbeatInterval setting is not persisted when default is 2 and not configured via method.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "HeartbeatInterval")]
         [MemberData(nameof(PnPlcEmptyAndPayloadHeartbeatIntervalUnset))]
-        public async void HeartbeatIntervalUnsetDefaultNotZeroAndIsNotPersisted(string testFilename, string payloadFilename)
+        public async Task HeartbeatIntervalUnsetDefaultNotZeroAndIsNotPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/heartbeatinterval/{payloadFilename}";
@@ -993,12 +1015,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that HeartbeatInterval setting is persisted when configured 2 via method and is different as default.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "HeartbeatInterval")]
         [MemberData(nameof(PnPlcEmptyAndPayloadHeartbeatInterval2))]
-        public async void HeartbeatInterval2AndDifferentAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
+        public async Task HeartbeatInterval2AndDifferentAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/heartbeatinterval/{payloadFilename}";
@@ -1060,12 +1083,13 @@ namespace OpcPublisher
         /// <summary>
         /// Test that HeartbeatInterval setting is persisted when configured 2 via method and is save as default.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Configuration", "DirectMethod")]
         [Trait("ConfigurationSetting", "HeartbeatInterval")]
         [MemberData(nameof(PnPlcEmptyAndPayloadHeartbeatInterval2))]
-        public async void HeartbeatInterval2AndSameAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
+        public async Task HeartbeatInterval2AndSameAsDefaultAndIsPersisted(string testFilename, string payloadFilename)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqPayloadFilename = $"{Directory.GetCurrentDirectory()}/testdata/heartbeatinterval/{payloadFilename}";
@@ -1224,6 +1248,7 @@ namespace OpcPublisher
             };
 
         private readonly ITestOutputHelper _output;
+        private readonly PlcOpcUaServerFixture _server;
         private static List<PublisherConfigurationFileEntryLegacyModel> _configurationFileEntries;
     }
 }
