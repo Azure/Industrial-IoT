@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+	<HighEntropyVA>true</HighEntropyVA>
+  </PropertyGroup>
+</Project>
