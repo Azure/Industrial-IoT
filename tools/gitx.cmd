@@ -20,7 +20,7 @@ set submodules=%submodules% api
 shift
 echo running "git %*" in all modules and root
 for %%i in (%submodules%) do call :__in_repo %%i "git %*"
-call :__in_root "git %*"
+rem call :__in_root "git %*"
 goto :eof
 
 :__in_root

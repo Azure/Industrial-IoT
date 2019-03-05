@@ -1,18 +1,20 @@
 # Azure Industrial IoT Components
 
-This repository all Azure Industrial IoT pieces including:
+This repository brings together all Azure Industrial IoT components including:
 
-- [Industrial IoT micro services](services/readme.md)
+- [Micro services](services/readme.md)
   - [OPC Unified Architecture (OPC UA) Device Management](docs/twin/readme.md) services provide discovery, registration, and remote control of industrial devices through REST APIs.  
   - [OPC Unified Architecture (OPC UA) Certificate Management](https://github.com/Azure/azure-iiot-opc-vault-service) services enable secure communication among OPC UA enabled devices and the cloud.  
-- Components and protocol stacks for
+- Components and protocol stacks including
   - [OPC Unified Architecture (OPC UA)](protocols/opc-ua/readme.md)
-- [Industrial IoT API](api/readme.md)
-- Industrial IoT Edge modules
+- [API](api/readme.md)
+- IoT Edge modules
   - [OPC Twin module](modules/opc-twin/readme.md)
   - [OPC Publisher module](modules/opc-publisher/readme.md)
 
-These services and components enable you to build application that
+## Overview
+
+These components enable you to build application that
 
 ### Discover, register and manage your OPC UA Assets in Azure
 
