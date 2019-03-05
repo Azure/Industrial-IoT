@@ -8,18 +8,22 @@ namespace Microsoft.Azure.IIoT.Module {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Blob upload service
+    /// Blob upload extensions
     /// </summary>
-    public interface IBlobUpload : IIdentity {
+    public static class BlobUploadEx {
 
         /// <summary>
-        /// Upload blob
+        /// Send from file system file
         /// </summary>
+        /// <param name="upload"></param>
         /// <param name="fileName"></param>
-        /// <param name="stream"></param>
         /// <param name="contentType"></param>
         /// <returns></returns>
-        Task SendFileAsync(string fileName, Stream stream,
-            string contentType);
+        public async static Task SendFileAsync(this IBlobUpload upload,
+            string fileName, string contentType) {
+            using (var file = new FileStream(fileName, FileMode.Open)) {
+                await upload.SendFileAsync(fileName, file, contentType);
+            }
+        }
     }
 }

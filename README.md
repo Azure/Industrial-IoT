@@ -19,17 +19,6 @@ These libraries are used across our [Azure Industrial IoT (IIoT) components](#Ot
 1. Run `dotnet build -c Release`
 1. Run `dotnet pack`
 
-## Other Azure Industrial IoT components
-
-* [Azure Industrial IoT Micro Services](https://github.com/Azure/azure-iiot-services)
-  * OPC UA Certificate Management service (Coming soon)
-* [Azure Industrial IoT OPC UA components](https://github.com/Azure/azure-iiot-opc-ua)
-* [Azure Industrial IoT Service API](https://github.com/Azure/azure-iiot-services-api)
-* Azure Industrial IoT Edge Modules
-  * [OPC Publisher module](https://github.com/Azure/iot-edge-opc-publisher)
-  * [OPC Proxy module](https://github.com/Azure/iot-edge-opc-proxy)
-  * [OPC Device Twin module](https://github.com/Azure/azure-iiot-opc-twin-module)
-  
 ## Contributing
 
 Refer to our [contribution guidelines](CONTRIBUTING.md).

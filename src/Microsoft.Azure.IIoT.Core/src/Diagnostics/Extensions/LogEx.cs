@@ -16,7 +16,7 @@ namespace Serilog {
             "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
 
         /// <summary>
-        /// Create web logger
+        /// Create console logger
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="config"></param>
@@ -43,7 +43,37 @@ namespace Serilog {
             new LoggerConfiguration().Console(null, level).CreateLogger();
 
         /// <summary>
-        /// Create console logger
+        /// Create rolling file logger
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="path"></param>
+        /// <param name="config"></param>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public static LoggerConfiguration RollingFile(this LoggerConfiguration configuration,
+            string path, IConfiguration config = null, LogEventLevel level = LogEventLevel.Debug) {
+            if (config != null) {
+                configuration = configuration.ReadFrom.Configuration(config);
+            }
+            return configuration
+                .Enrich.WithProperty("SourceContext", null)
+                .Enrich.FromLogContext()
+                .WriteTo.Console(outputTemplate: kDefaultTemplate)
+                .WriteTo.File(path, outputTemplate: kDefaultTemplate, rollingInterval: RollingInterval.Day)
+                .MinimumLevel.Is(level);
+        }
+
+        /// <summary>
+        /// Create rolling file logger
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public static ILogger RollingFile(string path, LogEventLevel level = LogEventLevel.Debug) =>
+            new LoggerConfiguration().RollingFile(path, null, level).CreateLogger();
+
+        /// <summary>
+        /// Create simple console out like logger
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="level"></param>

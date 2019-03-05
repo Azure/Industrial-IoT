@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Xunit;
     using Autofac;
     using System.Linq;
-    using Newtonsoft.Json.Linq;
 
     public class MethodRouterTests {
 

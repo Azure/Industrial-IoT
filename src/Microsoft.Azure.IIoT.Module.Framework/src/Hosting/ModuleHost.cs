@@ -237,12 +237,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task SendFileAsync(string fileName, string contentType) {
-            using (var file = new FileStream(fileName, FileMode.Open)) {
-                await _client.UploadToBlobAsync(
-                    $"{contentType.UrlEncode()}/{fileName.UrlEncode().TrimEnd('/')}",
-                        file);
-            }
+        public async Task SendFileAsync(string fileName, Stream stream, string contentType) {
+            await _client.UploadToBlobAsync(
+                $"{contentType.UrlEncode()}/{fileName.UrlEncode().TrimEnd('/')}",
+                    stream);
         }
 
         /// <inheritdoc/>

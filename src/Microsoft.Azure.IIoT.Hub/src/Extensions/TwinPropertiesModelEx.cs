@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
-    using Newtonsoft.Json.Linq;
-    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
