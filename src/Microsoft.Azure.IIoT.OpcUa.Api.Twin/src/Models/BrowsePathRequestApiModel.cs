@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Browse nodes by path
@@ -19,11 +20,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public string NodeId { get; set; }
 
         /// <summary>
-        /// The path elements of the path to browse from node.
+        /// The paths to browse from node.
         /// (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "pathElements")]
-        public string[] PathElements { get; set; }
+        [JsonProperty(PropertyName = "browsePaths")]
+        public List<string[]> BrowsePaths { get; set; }
 
         /// <summary>
         /// Whether to read variable values on target nodes.

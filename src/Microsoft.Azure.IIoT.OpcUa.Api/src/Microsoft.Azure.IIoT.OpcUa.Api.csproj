@@ -6,19 +6,14 @@
     <Description>Azure Industrial IoT OPC API</Description>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Twin\Extensions\**" />
-    <EmbeddedResource Remove="Twin\Extensions\**" />
-    <None Remove="Twin\Extensions\**" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.History\src\Microsoft.Azure.IIoT.OpcUa.Api.History.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Registry\src\Microsoft.Azure.IIoT.OpcUa.Api.Registry.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Twin\src\Microsoft.Azure.IIoT.OpcUa.Api.Twin.csproj" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\..\opc-ua')">
+    <When Condition="Exists('..\..\..\..\components\opc-ua')">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\..\opc-ua\src\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
+        <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>

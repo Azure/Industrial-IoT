@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content.Details));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/read/{endpointId}/raw", _resourceId);
+                $"{_serviceUri}/v1/raw/read/{endpointId}", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -89,7 +89,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content.ContinuationToken));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/read/{endpointId}/raw/next", _resourceId);
+                $"{_serviceUri}/v1/raw/read/{endpointId}/next", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -109,7 +109,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content.Details));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/update/{endpointId}/raw", _resourceId);
+                $"{_serviceUri}/v1/raw/update/{endpointId}", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/read/{endpointId}/values", _resourceId);
+                $"{_serviceUri}/v1/read/values/{endpointId}", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -143,7 +143,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/read/{endpointId}/values/modified", _resourceId);
+                $"{_serviceUri}/v1/read/values/{endpointId}/modified", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -160,7 +160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/read/{endpointId}/values/pick", _resourceId);
+                $"{_serviceUri}/v1/read/values/{endpointId}/pick", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -177,7 +177,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/read/{endpointId}/values/processed", _resourceId);
+                $"{_serviceUri}/v1/read/values/{endpointId}/processed", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -197,7 +197,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content.ContinuationToken));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/read/{endpointId}/values/next", _resourceId);
+                $"{_serviceUri}/v1/read/values/{endpointId}/next", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -214,7 +214,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/read/{endpointId}/events", _resourceId);
+                $"{_serviceUri}/v1/read/events/{endpointId}", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -234,7 +234,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content.ContinuationToken));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/read/{endpointId}/events/next", _resourceId);
+                $"{_serviceUri}/v1/read/events/{endpointId}/next", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -242,8 +242,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryUpdateResponseApiModel> HistoryUpdateValuesAsync(string endpointId,
-            HistoryUpdateRequestApiModel<UpdateValuesDetailsApiModel> content) {
+        public async Task<HistoryUpdateResponseApiModel> HistoryReplaceValuesAsync(string endpointId,
+            HistoryUpdateRequestApiModel<ReplaceValuesDetailsApiModel> content) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
@@ -251,7 +251,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/update/{endpointId}/values", _resourceId);
+                $"{_serviceUri}/v1/replace/values/{endpointId}", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -259,8 +259,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryUpdateResponseApiModel> HistoryUpdateEventsAsync(string endpointId,
-            HistoryUpdateRequestApiModel<UpdateEventsDetailsApiModel> content) {
+        public async Task<HistoryUpdateResponseApiModel> HistoryReplaceEventsAsync(string endpointId,
+            HistoryUpdateRequestApiModel<ReplaceEventsDetailsApiModel> content) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
@@ -268,7 +268,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/update/{endpointId}/events", _resourceId);
+                $"{_serviceUri}/v1/replace/events/{endpointId}", _resourceId);
+            request.SetContent(content);
+            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
+            response.Validate();
+            return response.GetContent<HistoryUpdateResponseApiModel>();
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseApiModel> HistoryInsertValuesAsync(string endpointId,
+            HistoryUpdateRequestApiModel<InsertValuesDetailsApiModel> content) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v1/insert/values/{endpointId}", _resourceId);
+            request.SetContent(content);
+            var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
+            response.Validate();
+            return response.GetContent<HistoryUpdateResponseApiModel>();
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseApiModel> HistoryInsertEventsAsync(string endpointId,
+            HistoryUpdateRequestApiModel<InsertEventsDetailsApiModel> content) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v1/insert/events/{endpointId}", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -285,7 +319,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/delete/{endpointId}/values", _resourceId);
+                $"{_serviceUri}/v1/values/delete/{endpointId}", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -302,7 +336,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/delete/{endpointId}/values/pick", _resourceId);
+                $"{_serviceUri}/v1/values/delete/{endpointId}/pick", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -319,7 +353,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/delete/{endpointId}/values/modified", _resourceId);
+                $"{_serviceUri}/v1/values/delete/{endpointId}/modified", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -336,7 +370,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/delete/{endpointId}/events", _resourceId);
+                $"{_serviceUri}/v1/events/delete/{endpointId}", _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();

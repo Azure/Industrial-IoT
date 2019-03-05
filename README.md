@@ -56,23 +56,13 @@ Unless you are running the above services on your local machine (localhost), the
     dotnet run console
     ```
 
-## Other Azure Industrial IoT components
-
-* [Azure Industrial IoT Micro Services](https://github.com/Azure/azure-iiot-services)
-  * OPC UA Certificate Management service (Coming soon)
-* [Azure Industrial IoT Service API](https://github.com/Azure/azure-iiot-services-api)
-* Azure Industrial IoT Edge Modules
-  * [OPC Publisher module](https://github.com/Azure/iot-edge-opc-publisher)
-  * [OPC Proxy module](https://github.com/Azure/iot-edge-opc-proxy)
-  * [OPC Device Twin module](https://github.com/Azure/azure-iiot-opc-twin-module)
-
 ## Contributing
 
 Refer to our [contribution guidelines](CONTRIBUTING.md).
 
 ## Feedback
 
-Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-services/issues).
+Please enter issues, bugs, or suggestions as GitHub Issues [here](https://github.com/Azure/azure-iiot-components/issues).
 
 ## License
 

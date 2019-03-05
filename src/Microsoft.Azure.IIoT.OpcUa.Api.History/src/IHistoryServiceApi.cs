@@ -64,40 +64,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
             string endpointId, HistoryReadNextRequestApiModel request);
 
         /// <summary>
-        /// Read event history
+        /// Replace historic values
         /// </summary>
         /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<HistoryReadResponseApiModel<HistoricEventApiModel[]>> HistoryReadEventsAsync(
-            string endpointId, HistoryReadRequestApiModel<ReadEventsDetailsApiModel> request);
+        Task<HistoryUpdateResponseApiModel> HistoryReplaceValuesAsync(string endpointId,
+            HistoryUpdateRequestApiModel<ReplaceValuesDetailsApiModel> request);
 
         /// <summary>
-        /// Read next set of historic events
+        /// Insert historic values
         /// </summary>
         /// <param name="endpointId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<HistoryReadNextResponseApiModel<HistoricEventApiModel[]>> HistoryReadEventsNextAsync(
-            string endpointId, HistoryReadNextRequestApiModel request);
-
-        /// <summary>
-        /// Update historic values
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        Task<HistoryUpdateResponseApiModel> HistoryUpdateValuesAsync(string endpointId,
-            HistoryUpdateRequestApiModel<UpdateValuesDetailsApiModel> request);
-
-        /// <summary>
-        /// Update historic events
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        Task<HistoryUpdateResponseApiModel> HistoryUpdateEventsAsync(string endpointId,
-            HistoryUpdateRequestApiModel<UpdateEventsDetailsApiModel> request);
+        Task<HistoryUpdateResponseApiModel> HistoryInsertValuesAsync(string endpointId,
+            HistoryUpdateRequestApiModel<InsertValuesDetailsApiModel> request);
 
         /// <summary>
         /// Delete historic values
@@ -125,6 +107,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         /// <returns></returns>
         Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAtTimesAsync(string endpointId,
             HistoryUpdateRequestApiModel<DeleteValuesAtTimesDetailsApiModel> request);
+
+        /// <summary>
+        /// Read event history
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<HistoryReadResponseApiModel<HistoricEventApiModel[]>> HistoryReadEventsAsync(
+            string endpointId, HistoryReadRequestApiModel<ReadEventsDetailsApiModel> request);
+
+        /// <summary>
+        /// Read next set of historic events
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<HistoryReadNextResponseApiModel<HistoricEventApiModel[]>> HistoryReadEventsNextAsync(
+            string endpointId, HistoryReadNextRequestApiModel request);
+
+        /// <summary>
+        /// Replace historic events
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<HistoryUpdateResponseApiModel> HistoryReplaceEventsAsync(string endpointId,
+            HistoryUpdateRequestApiModel<ReplaceEventsDetailsApiModel> request);
+
+        /// <summary>
+        /// Insert historic events
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<HistoryUpdateResponseApiModel> HistoryInsertEventsAsync(string endpointId,
+            HistoryUpdateRequestApiModel<InsertEventsDetailsApiModel> request);
 
         /// <summary>
         /// Delete event history

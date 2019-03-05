@@ -9,15 +9,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Update historic events
+    /// Insert historic events
     /// </summary>
-    public class UpdateEventsDetailsApiModel {
-
-        /// <summary>
-        /// Whether to perform insert or replacement
-        /// </summary>
-        [JsonProperty(PropertyName = "performInsertReplace")]
-        public HistoryUpdateOperation PerformInsertReplace { get; set; }
+    public class InsertEventsDetailsApiModel {
 
         /// <summary>
         /// The filter to use to select the events
@@ -27,9 +21,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         public JToken Filter { get; set; }
 
         /// <summary>
-        /// The new events to insert or replace
+        /// The new events to insert
         /// </summary>
-        [JsonProperty(PropertyName = "eventData")]
-        public List<HistoricEventApiModel> EventData { get; set; }
+        [JsonProperty(PropertyName = "events")]
+        public List<HistoricEventApiModel> Events { get; set; }
     }
 }

@@ -3,27 +3,27 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
+namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
 
     /// <summary>
-    /// Result of node browse continuation
+    /// Replace historic events
     /// </summary>
-    public class BrowsePathResponseApiModel {
+    public class ReplaceEventsDetailsApiModel {
 
         /// <summary>
-        /// Targets
+        /// The filter to use to select the events
         /// </summary>
-        [JsonProperty(PropertyName = "targets",
+        [JsonProperty(PropertyName = "filter",
             NullValueHandling = NullValueHandling.Ignore)]
-        public List<NodePathTargetApiModel> Targets { get; set; }
+        public JToken Filter { get; set; }
 
         /// <summary>
-        /// Service result in case of error
+        /// The new events to replace existing ones
         /// </summary>
-        [JsonProperty(PropertyName = "errorInfo",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public ServiceResultApiModel ErrorInfo { get; set; }
+        [JsonProperty(PropertyName = "events")]
+        public List<HistoricEventApiModel> Events { get; set; }
     }
 }

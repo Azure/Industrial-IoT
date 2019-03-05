@@ -12,6 +12,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     public class NodePathTargetApiModel {
 
         /// <summary>
+        /// The target browse path
+        /// </summary>
+        [JsonProperty(PropertyName = "browsePath")]
+        public string[] BrowsePath { get; set; }
+
+        /// <summary>
         /// Target node
         /// </summary>
         [JsonProperty(PropertyName = "target")]

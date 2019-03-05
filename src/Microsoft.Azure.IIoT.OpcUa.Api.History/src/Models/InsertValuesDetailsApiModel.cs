@@ -8,20 +8,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Update historic data
+    /// Insert historic data
     /// </summary>
-    public class UpdateValuesDetailsApiModel {
-        
-        /// <summary>
-        /// Whether to perform an insert or replacement
-        /// </summary>
-        [JsonProperty(PropertyName = "performInsertReplace")]
-        public HistoryUpdateOperation PerformInsertReplace { get; set; }
+    public class InsertValuesDetailsApiModel {
 
         /// <summary>
-        /// Values to insert or replace
+        /// Values to insert
         /// </summary>
-        [JsonProperty(PropertyName = "updateValues")]
-        public List<HistoricValueApiModel> UpdateValues { get; set; }
+        [JsonProperty(PropertyName = "values")]
+        public List<HistoricValueApiModel> Values { get; set; }
     }
 }

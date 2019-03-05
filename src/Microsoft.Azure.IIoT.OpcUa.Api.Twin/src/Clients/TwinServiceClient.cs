@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
     using Microsoft.Azure.IIoT.Http;
     using System;
     using System.Threading.Tasks;
+    using System.Linq;
 
     /// <summary>
     /// Implementation of v1 twin service api.
@@ -98,8 +99,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (content.PathElements == null || content.PathElements.Length == 0) {
-                throw new ArgumentNullException(nameof(content.PathElements));
+            if (content.BrowsePaths == null || content.BrowsePaths.Count == 0 ||
+                content.BrowsePaths.Any(p => p == null || p.Length == 0)) {
+                throw new ArgumentNullException(nameof(content.BrowsePaths));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v1/browse/{endpointId}/path",
                 _resourceId);

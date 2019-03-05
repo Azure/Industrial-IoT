@@ -8,48 +8,143 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using Serilog;
     using System;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Implements historic access services as adapter on top of api.
+    /// Implements historian services as adapter on top of api.
     /// </summary>
-    public sealed class HistoryAdapter : IHistoricAccessServices<string> {
+    public sealed class HistoryAdapter : IHistorianServices<string> {
 
         /// <summary>
         /// Create service
         /// </summary>
         /// <param name="client"></param>
         /// <param name="logger"></param>
-        public HistoryAdapter(IHistoryServiceRawApi client, ILogger logger) {
+        public HistoryAdapter(IHistoryServiceApi client, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadResultModel<JToken>> HistoryReadAsync(
-            string endpoint, HistoryReadRequestModel<JToken> request) {
-            var result = await _client.HistoryReadRawAsync(endpoint,
-                Map<HistoryReadRequestApiModel<JToken>>(request));
-            return Map<HistoryReadResultModel<JToken>>(result);
-        }
-
-        /// <inheritdoc/>
-        public async Task<HistoryReadNextResultModel<JToken>> HistoryReadNextAsync(
-            string endpoint, HistoryReadNextRequestModel request) {
-            var result = await _client.HistoryReadRawNextAsync(endpoint,
-                Map<HistoryReadNextRequestApiModel>(request));
-            return Map<HistoryReadNextResultModel<JToken>>(result);
-        }
-
-        /// <inheritdoc/>
-        public async Task<HistoryUpdateResultModel> HistoryUpdateAsync(
-            string endpoint, HistoryUpdateRequestModel<JToken> request) {
-            var result = await _client.HistoryUpdateRawAsync(endpoint,
-                Map<HistoryUpdateRequestApiModel<JToken>>(request));
+        public async Task<HistoryUpdateResultModel> HistoryReplaceEventsAsync(
+            string endpoint, HistoryUpdateRequestModel<ReplaceEventsDetailsModel> request) {
+            var result = await _client.HistoryReplaceEventsAsync(endpoint,
+                Map<HistoryUpdateRequestApiModel<ReplaceEventsDetailsApiModel>>(request));
             return Map<HistoryUpdateResultModel>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResultModel> HistoryInsertEventsAsync(
+            string endpoint, HistoryUpdateRequestModel<InsertEventsDetailsModel> request) {
+            var result = await _client.HistoryInsertEventsAsync(endpoint,
+                Map<HistoryUpdateRequestApiModel<InsertEventsDetailsApiModel>>(request));
+            return Map<HistoryUpdateResultModel>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResultModel> HistoryDeleteEventsAsync(
+            string endpoint, HistoryUpdateRequestModel<DeleteEventsDetailsModel> request) {
+            var result = await _client.HistoryDeleteEventsAsync(endpoint,
+                Map<HistoryUpdateRequestApiModel<DeleteEventsDetailsApiModel>>(request));
+            return Map<HistoryUpdateResultModel>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResultModel> HistoryDeleteValuesAtTimesAsync(
+            string endpoint, HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request) {
+            var result = await _client.HistoryDeleteValuesAtTimesAsync(endpoint,
+                Map<HistoryUpdateRequestApiModel<DeleteValuesAtTimesDetailsApiModel>>(request));
+            return Map<HistoryUpdateResultModel>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResultModel> HistoryDeleteModifiedValuesAsync(
+            string endpoint, HistoryUpdateRequestModel<DeleteModifiedValuesDetailsModel> request) {
+            var result = await _client.HistoryDeleteModifiedValuesAsync(endpoint,
+                Map<HistoryUpdateRequestApiModel<DeleteModifiedValuesDetailsApiModel>>(request));
+            return Map<HistoryUpdateResultModel>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResultModel> HistoryDeleteValuesAsync(
+            string endpoint, HistoryUpdateRequestModel<DeleteValuesDetailsModel> request) {
+            var result = await _client.HistoryDeleteValuesAsync(endpoint,
+                Map<HistoryUpdateRequestApiModel<DeleteValuesDetailsApiModel>>(request));
+            return Map<HistoryUpdateResultModel>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResultModel> HistoryReplaceValuesAsync(
+            string endpoint, HistoryUpdateRequestModel<ReplaceValuesDetailsModel> request) {
+            var result = await _client.HistoryReplaceValuesAsync(endpoint,
+                Map<HistoryUpdateRequestApiModel<ReplaceValuesDetailsApiModel>>(request));
+            return Map<HistoryUpdateResultModel>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResultModel> HistoryInsertValuesAsync(
+            string endpoint, HistoryUpdateRequestModel<InsertValuesDetailsModel> request) {
+            var result = await _client.HistoryInsertValuesAsync(endpoint,
+                Map<HistoryUpdateRequestApiModel<InsertValuesDetailsApiModel>>(request));
+            return Map<HistoryUpdateResultModel>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResultModel<HistoricEventModel[]>> HistoryReadEventsAsync(
+            string endpoint, HistoryReadRequestModel<ReadEventsDetailsModel> request) {
+            var result = await _client.HistoryReadEventsAsync(endpoint,
+                Map<HistoryReadRequestApiModel<ReadEventsDetailsApiModel>>(request));
+            return Map<HistoryReadResultModel<HistoricEventModel[]>>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadNextResultModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
+            string endpoint, HistoryReadNextRequestModel request) {
+            var result = await _client.HistoryReadEventsNextAsync(endpoint,
+                Map<HistoryReadNextRequestApiModel>(request));
+            return Map<HistoryReadNextResultModel<HistoricEventModel[]>>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResultModel<HistoricValueModel[]>> HistoryReadValuesAsync(
+            string endpoint, HistoryReadRequestModel<ReadValuesDetailsModel> request) {
+            var result = await _client.HistoryReadValuesAsync(endpoint,
+                Map<HistoryReadRequestApiModel<ReadValuesDetailsApiModel>>(request));
+            return Map<HistoryReadResultModel<HistoricValueModel[]>>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResultModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
+            string endpoint, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request) {
+            var result = await _client.HistoryReadValuesAtTimesAsync(endpoint,
+                Map<HistoryReadRequestApiModel<ReadValuesAtTimesDetailsApiModel>>(request));
+            return Map<HistoryReadResultModel<HistoricValueModel[]>>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResultModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
+            string endpoint, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request) {
+            var result = await _client.HistoryReadProcessedValuesAsync(endpoint,
+                Map<HistoryReadRequestApiModel<ReadProcessedValuesDetailsApiModel>>(request));
+            return Map<HistoryReadResultModel<HistoricValueModel[]>>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResultModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
+            string endpoint, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request) {
+            var result = await _client.HistoryReadModifiedValuesAsync(endpoint,
+                Map<HistoryReadRequestApiModel<ReadModifiedValuesDetailsApiModel>>(request));
+            return Map<HistoryReadResultModel<HistoricValueModel[]>>(result);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadNextResultModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
+            string endpoint, HistoryReadNextRequestModel request) {
+            var result = await _client.HistoryReadValuesNextAsync(endpoint,
+                Map<HistoryReadNextRequestApiModel>(request));
+            return Map<HistoryReadNextResultModel<HistoricValueModel[]>>(result);
         }
 
         /// <summary>
@@ -63,7 +158,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
                 JsonConvertEx.SerializeObject(model));
         }
 
-        private readonly IHistoryServiceRawApi _client;
+        private readonly IHistoryServiceApi _client;
         private readonly ILogger _logger;
     }
 }
