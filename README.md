@@ -6,7 +6,9 @@ Core of the module is the Supervisor identity.  The supervisor manages endpoint 
 
 The supervisor also provides discovery services which send device discovery events to the [OPC UA Device Onboarding service](https://github.com/Azure/azure-iiot-services) for processing, where these events result in updates to the OPC UA registry.
 
-The OPC Device Twin module can be deployed in an [IoT Edge][iotedge-url] gateway.  For development and testing purposes it can also be run standalone following the instructions [below](#Build-and-Run).  This module is part of our [Azure Industrial IoT (IIoT) components](#Other-Azure-Industrial-IoT-components) suite.
+The OPC Device Twin module can be deployed in an [IoT Edge][iotedge-url] gateway.  For development and testing purposes it can also be run standalone following the instructions [below](#Build-and-Run).  
+
+This module is part of our suite of [Azure IoT Industrial components](https://github.com/Azure/azure-iiot-components).
 
 ## Using the module
 

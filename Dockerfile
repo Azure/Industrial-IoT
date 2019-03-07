@@ -6,6 +6,7 @@ WORKDIR /src
 COPY src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj src/
 COPY cli/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli.csproj cli/
 COPY NuGet.Config NuGet.Config
+COPY *.props /
 RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 cli/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli.csproj
 COPY . .
 WORKDIR /src/cli

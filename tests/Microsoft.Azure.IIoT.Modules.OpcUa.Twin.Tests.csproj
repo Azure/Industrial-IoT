@@ -28,10 +28,10 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.History" Version="2.0.0" />
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Twin" Version="2.0.0" />
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Registry" Version="2.0.0" />
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Testing" Version="2.0.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.History" Version="$(ComponentsOpcUaVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Twin" Version="$(ComponentsOpcUaVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Registry" Version="$(ComponentsOpcUaVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Testing" Version="$(ComponentsOpcUaVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -43,7 +43,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Mock" Version="2.0.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Mock" Version="$(CommonVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>
