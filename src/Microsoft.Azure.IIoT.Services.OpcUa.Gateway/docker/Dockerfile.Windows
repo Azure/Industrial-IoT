@@ -5,6 +5,7 @@ FROM microsoft/dotnet:2.1-sdk-nanoserver-1803 AS build
 WORKDIR /src
 COPY src/Microsoft.Azure.IIoT.Services.OpcUa.Gateway/src/Microsoft.Azure.IIoT.Services.OpcUa.Gateway.csproj src/Microsoft.Azure.IIoT.Services.OpcUa.Gateway/src/
 COPY NuGet.Config NuGet.Config
+COPY *.props /
 RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.Services.OpcUa.Gateway/src/Microsoft.Azure.IIoT.Services.OpcUa.Gateway.csproj
 COPY . .
 WORKDIR /src/src/Microsoft.Azure.IIoT.Services.OpcUa.Gateway/src

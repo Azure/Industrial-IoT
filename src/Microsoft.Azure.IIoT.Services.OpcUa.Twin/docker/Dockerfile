@@ -6,6 +6,7 @@ FROM microsoft/dotnet:2.1-sdk AS build
 WORKDIR /src
 COPY src/Microsoft.Azure.IIoT.Services.OpcUa.Twin/src/Microsoft.Azure.IIoT.Services.OpcUa.Twin.csproj src/Microsoft.Azure.IIoT.Services.OpcUa.Twin/src/
 COPY NuGet.Config NuGet.Config
+COPY *.props /
 RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.Services.OpcUa.Twin/src/Microsoft.Azure.IIoT.Services.OpcUa.Twin.csproj
 COPY . .
 WORKDIR /src/src/Microsoft.Azure.IIoT.Services.OpcUa.Twin/src

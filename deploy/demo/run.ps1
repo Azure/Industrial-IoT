@@ -127,24 +127,37 @@ Function CreateRandomPassword() {
 }
 
 #******************************************************************************
+# find the top most folder with docker-compose.yml in it
+#******************************************************************************
+Function GetRootFolder() {
+    param(
+        $startDir
+    ) 
+    $cur = $startDir
+    while ($True) {
+        if ([string]::IsNullOrEmpty($cur)) {
+            break
+        }
+        $test = Join-Path $cur "docker-compose.yml"
+        if (Test-Path $test) {
+            $found = $cur
+        }
+        else if (![string]::IsNullOrEmpty($found)) {
+            break
+        }
+        $cur = Split-Path $cur
+    }
+    if (![string]::IsNullOrEmpty($found)) {
+        return $found
+    }
+    return $startDir
+}
+
+#******************************************************************************
 # Script body
 #******************************************************************************
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
-
-# find the parent folder with docker-compose.yml in it
-$rootDir = $ScriptDir
-while ($True) {
-    if ([string]::IsNullOrEmpty($rootDir)) {
-        $rootDir = $ScriptDir
-        break
-    }
-    $test = Join-Path $rootDir "docker-compose.yml"
-    if (Test-Path $test) {
-        break
-    }
-    $rootDir = Split-Path $rootDir
-}
 
 # Register RPs
 Register-AzureRmResourceProvider -ProviderNamespace "microsoft.web" | Out-Null
@@ -226,20 +239,24 @@ if ($aadConfig -and $aadConfig.ClientObjectId) {
     $replyUrls.Add($website)
     $replyUrls.Add($website + "/twin/oauth2-redirect.html")
     $replyUrls.Add($website + "/registry/oauth2-redirect.html")
+    $replyUrls.Add($website + "/history/oauth2-redirect.html")
     $replyUrls.Add($website + "/vault/oauth2-redirect.html")
     # still connected
     Set-AzureADApplication -ObjectId $aadConfig.ClientObjectId -ReplyUrls $replyUrls
 }
 
+# find the top most folder with docker-compose.yml in it
+$rootDir = GetRootFolder $ScriptDir
+
 $writeFile = $false
 if ($script:interactive) {
-    $prompt = "Save environment as $ENVVARS? [y/n]"
+    $ENVVARS = Join-Path $rootDir ".env"
+    $prompt = "Save environment as $ENVVARS for local development? [y/n]"
     $reply = Read-Host -Prompt $prompt
     if ($reply -match "[yY]") {
         $writeFile = $true
     }
     if ($writeFile) {
-        $ENVVARS = Join-Path $rootDir ".env"
         if (Test-Path $ENVVARS) {
             $prompt = "Overwrite existing .env file in $rootDir? [y/n]"
             if ( $reply -match "[yY]" ) {

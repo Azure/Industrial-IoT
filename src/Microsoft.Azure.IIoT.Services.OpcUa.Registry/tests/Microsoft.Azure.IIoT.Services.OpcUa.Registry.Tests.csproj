@@ -29,7 +29,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Mock" Version="2.0.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Mock" Version="$(CommonVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -41,7 +41,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Api" Version="2.0.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Api" Version="$(ServicesApiVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

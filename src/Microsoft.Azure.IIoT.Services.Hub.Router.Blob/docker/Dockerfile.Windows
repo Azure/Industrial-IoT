@@ -5,6 +5,7 @@ FROM microsoft/dotnet:2.1-sdk-nanoserver-1803 AS build
 WORKDIR /src
 COPY src/Microsoft.Azure.IIoT.Services.Hub.Router.Blob/src/Microsoft.Azure.IIoT.Services.Hub.Router.Blob.csproj src/Microsoft.Azure.IIoT.Services.Hub.Router.Blob/src/
 COPY NuGet.Config NuGet.Config
+COPY *.props /
 RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.Services.Hub.Router.Blob/src/Microsoft.Azure.IIoT.Services.Hub.Router.Blob.csproj
 COPY . .
 WORKDIR /src/src/Microsoft.Azure.IIoT.Services.Hub.Router.Blob/src
