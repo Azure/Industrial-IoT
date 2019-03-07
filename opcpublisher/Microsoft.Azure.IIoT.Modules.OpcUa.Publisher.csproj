@@ -7,7 +7,7 @@
     <RuntimeFrameworkVersion>2.1</RuntimeFrameworkVersion>
     <DebugType>portable</DebugType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Authors>Microsoft</Authors>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="CertificateStores\**" />
