@@ -9,6 +9,7 @@ COPY src/Microsoft.Azure.IIoT.OpcUa.Api.Registry/src/Microsoft.Azure.IIoT.OpcUa.
 COPY src/Microsoft.Azure.IIoT.OpcUa.Api.Twin/src/Microsoft.Azure.IIoT.OpcUa.Api.Twin.csproj src/Microsoft.Azure.IIoT.OpcUa.Api.Twin/src/
 COPY src/Microsoft.Azure.IIoT.OpcUa.Api.History/src/Microsoft.Azure.IIoT.OpcUa.Api.History.csproj src/Microsoft.Azure.IIoT.OpcUa.Api.History/src/
 COPY NuGet.Config NuGet.Config
+COPY *.props /
 RUN dotnet restore --configfile NuGet.Config src/Microsoft.Azure.IIoT.OpcUa.Api/cli/Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj
 COPY . .
 WORKDIR /src/src/Microsoft.Azure.IIoT.OpcUa.Api/cli

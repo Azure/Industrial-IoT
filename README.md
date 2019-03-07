@@ -4,11 +4,11 @@ This repository contains:
 
 1. A handcrafted C# API for [OPC UA Registry as well as Device Twin and History Services](https://github.com/Azure/azure-iiot-services).
 1. A sample command line interface (CLI) that allows you to exercise this API.
-1. A set of AutoREST generated libraries that enable access to the above services using a wider variety of languages.
+1. A set of AutoREST [generated](generated) libraries that enable access to the above services using a wider variety of languages.
 
 ## Using the API
 
-Prebuilt and signed packages of the API assemblies can be installed from nuget.org.  Use them to build your own applications against the corresponding [services](https://github.com/Azure/azure-iiot-services).
+Prebuilt and signed packages of the API assemblies can be installed from nuget.org.  Use them to build your own applications against the corresponding [services](https://github.com/Azure/azure-iiot-services) in our suite of [Azure IoT Industrial components](https://github.com/Azure/azure-iiot-components).
 
 ## Build and Run
 
@@ -26,9 +26,9 @@ To build and run the sample command line interface for the [services](https://gi
 
 The command line interface (CLI) and APIs depend on the [OPC UA Services](https://github.com/Azure/azure-iiot-services).
 
-Follow the instructions [here](https://github.com/Azure/azure-iiot-services) to deploy all required services for local development.  Copy the resulting `.env` file into this repository's root (or into the parent folder).
+Follow the instructions [here](https://github.com/Azure/azure-iiot-components/docs) to deploy all required services for local development.  Copy the resulting `.env` file into this repository's root (or into the parent folder).
 
-Unless you are running the above services on your local machine (localhost), the following environment variables can be added to your `.env` file to configure the service endpoints:
+Unless you are running the above services on your local machine (localhost), the following environment variables can be added to your `.env` file to configure the remote or cloud service endpoints:
 
 * `PCS_TWIN_SERVICE_URL` = {http|https}://{hostname}:9041
 * `PCS_TWIN_REGISTRY_URL` = {http|https}://{hostname}:9042
