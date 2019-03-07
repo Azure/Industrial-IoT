@@ -211,5 +211,23 @@ namespace Newtonsoft.Json.Linq {
             }
             return dimensions.ToArray();
         }
+
+        /// <summary>
+        /// Returns whether the token is a float type
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static bool IsFloatValue(this JToken token) {
+            if (token?.Type == JTokenType.Float) {
+                return true;
+            }
+            if (token?.Type == JTokenType.String) {
+                var val = (string)token;
+                if (val == "NaN" || val == "Infinity" || val == "-Infinity") {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

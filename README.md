@@ -1,6 +1,6 @@
 # Azure Industrial IoT Common Libraries
 
-These libraries are used across our [Azure Industrial IoT (IIoT) components](#Other-Azure-Industrial-IoT-components) suite and are available as nuget packages on nuget.org.  They are maintained in their own repository to encourage use outside of our components.  We welcome [Community contributions](#Contributing).
+These libraries are used across our suite of [Azure IoT Industrial components](https://github.com/Azure/azure-iiot-components) and are available as nuget packages on nuget.org.  They are maintained in their own repository to encourage use outside of our components.  We welcome [Community contributions](#Contributing).
 
 ## Build
 
