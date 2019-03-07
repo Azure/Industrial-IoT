@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             CancellationToken ct, Func<Session, Task<T>> service,
             Func<Exception, bool> handler) {
             return client.ExecuteServiceAsync(endpoint, elevation, priority, service,
-                Timeout.InfiniteTimeSpan, ct, handler);
+                null, ct, handler);
         }
     }
 }

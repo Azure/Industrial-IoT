@@ -437,7 +437,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 return;
             }
 
-            Assert.Equal(JTokenType.Float, ((JArray)result.Value)[0].Type);
+            Assert.True(((JArray)result.Value)[0].IsFloatValue());
             Assert.Equal("Float", result.DataType);
         }
 
@@ -465,7 +465,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 return;
             }
 
-            Assert.Equal(JTokenType.Float, ((JArray)result.Value)[0].Type);
+            Assert.True(((JArray)result.Value)[0].IsFloatValue());
             Assert.Equal("Double", result.DataType);
         }
 

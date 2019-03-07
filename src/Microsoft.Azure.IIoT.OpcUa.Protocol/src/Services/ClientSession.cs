@@ -47,13 +47,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="timeout">Session timeout</param>
         /// <param name="statusCb">Status callback for reporting</param>
         /// <param name="persistent">Persists until closed</param>
+        /// <param name="maxOpTimeout"></param>
         /// <param name="logger">Logger</param>
         /// <param name="sessionName">Optional session name</param>
         /// <param name="keepAlive">Keep alive interval</param>
         public ClientSession(ApplicationConfiguration config, EndpointModel endpoint,
             Func<X509Certificate2> factory, ILogger logger,
             Func<EndpointModel, EndpointConnectivityState, Task> statusCb,
-            bool persistent, string sessionName = null, TimeSpan? timeout = null,
+            bool persistent, TimeSpan? maxOpTimeout = null,
+            string sessionName = null, TimeSpan? timeout = null,
             TimeSpan? keepAlive = null) {
             _logger = logger ?? Log.Logger;
             _factory = factory;
@@ -68,6 +70,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _lastActivity = DateTime.UtcNow;
             _persistent = persistent;
             _sessionName = sessionName ?? Guid.NewGuid().ToString();
+            _opTimeout = maxOpTimeout ?? TimeSpan.FromMilliseconds(
+                config.TransportQuotas.OperationTimeout * 4);
 
             _queue = new PriorityQueue<int, SessionOperation>();
             _enqueueEvent = new TaskCompletionSource<bool>(
@@ -104,7 +108,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             if (!_cts.IsCancellationRequested) {
                 var op = new ScheduledOperation<T>(serviceCall, handler, elevation,
-                    timeout, ct);
+                    timeout ?? _opTimeout, ct);
                 _queue.Enqueue(priority, op);
                 // Notify of new operation enqueued.
                 _enqueueEvent.TrySetResult(true);
@@ -734,11 +738,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <param name="ct"></param>
             public ScheduledOperation(Func<Session, Task<T>> operation,
                 Func<Exception, bool> handler, CredentialModel elevation,
-                TimeSpan? timeout, CancellationToken? ct) {
+                TimeSpan timeout, CancellationToken? ct) {
                 _operation = operation;
                 _handler = handler;
                 Identity = elevation.ToStackModel();
-                _cts = new CancellationTokenSource(timeout ?? Timeout.InfiniteTimeSpan);
+                _cts = new CancellationTokenSource(timeout);
                 ct?.Register(_cts.Cancel);
                 _cts.Token.Register(OnCancellation);
                 _ct = ct ?? CancellationToken.None;
@@ -797,14 +801,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         private const int kMaxReconnectAttempts = 4;
         private const int kMaxEmptyReconnectAttempts = 2;
-        private const int kMaxRetries = 50;
+        private const int kMaxRetries = 15;
         private const int kMaxReconnectDelay = 5000;
 
         private DateTime _lastActivity;
-        private readonly bool _persistent;
         private X509Certificate2 _cert;
         private Session _session;
         private EndpointConnectivityState _lastState;
+        private readonly bool _persistent;
+        private readonly TimeSpan _opTimeout;
         private readonly string _sessionName;
         private readonly ILogger _logger;
         private readonly Func<X509Certificate2> _factory;

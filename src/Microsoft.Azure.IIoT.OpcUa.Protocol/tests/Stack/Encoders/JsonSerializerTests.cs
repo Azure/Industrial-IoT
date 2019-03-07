@@ -360,7 +360,7 @@ namespace Opc.Ua.Encoders {
             na3.SetAttribute(Attributes.BrowseName, new QualifiedName("Somename6"));
             na3.SetAttribute(Attributes.NodeId, new NodeId(Guid.NewGuid()));
             na3.SetAttribute(Attributes.DisplayName, new LocalizedText("hello world3"));
-            na3.SetAttribute(Attributes.Value, "foobar");
+            na3.SetAttribute(Attributes.Value, "nanananahhh");
             na3.SetAttribute(Attributes.Description, new LocalizedText("test44"));
             na3.SetAttribute(Attributes.DataType, new NodeId(Guid.NewGuid()));
             var expected = new[] { na1, na2, na3 };

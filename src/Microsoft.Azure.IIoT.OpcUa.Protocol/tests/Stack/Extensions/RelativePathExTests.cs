@@ -20,8 +20,8 @@ namespace Opc.Ua.Extensions {
                 "<HasComponent>Test",
                 "/foo",
                 ".bar",
-                "/!#foobar",
-                "!#foobar",
+                "/!#flah",
+                "!#flah",
                 "xxxx",
             };
 
@@ -43,8 +43,8 @@ namespace Opc.Ua.Extensions {
                 "<http://opcfoundation.org/ua#i_33>Test",
                 "#foo",
                 "!.bar",
-                "!#/foobar",
-                "!/#foobar",
+                "!#/flah",
+                "!/#flah",
                 "!xxxx",
             };
 

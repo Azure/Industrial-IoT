@@ -10,7 +10,7 @@ This repo contains the core business logic for the Azure Industrial IoT OPC UA s
   * [Microsoft.Azure.IIoT.OpcUa.Gateway](src/Microsoft.Azure.IIoT.OpcUa.Gateway/src) contains the business logic of the [OPC Device Twin Gateway](https://github.com/Azure/azure-iiot-services).
 * [Microsoft.Azure.IIoT.OpcUa.Servers](src/Microsoft.Azure.IIoT.OpcUa.Servers/src) contains test servers.
 
-The consuming services are part of our [Azure Industrial IoT (IIoT) components](#Other-Azure-Industrial-IoT-components) suite.
+The OPC UA components are part of our suite of [Azure IoT Industrial components](https://github.com/Azure/azure-iiot-components).
 
 ## Build
 

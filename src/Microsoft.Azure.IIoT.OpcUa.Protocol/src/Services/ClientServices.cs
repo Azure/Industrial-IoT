@@ -33,11 +33,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Create client host services
         /// </summary>
         /// <param name="logger"></param>
-        public ClientServices(ILogger logger) {
+        /// <param name="maxOpTimeout"></param>
+        public ClientServices(ILogger logger, TimeSpan? maxOpTimeout = null) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             // Create discovery config and client certificate
-            _config = CreateApplicationConfiguration(TimeSpan.FromMinutes(1),
-                TimeSpan.FromMinutes(1));
+            _maxOpTimeout = maxOpTimeout;
+            _config = CreateApplicationConfiguration(TimeSpan.FromMinutes(2),
+                TimeSpan.FromMinutes(2));
             Certificate = CertificateFactory.CreateCertificate(
                 _config.SecurityConfiguration.ApplicationCertificate.StoreType,
                 _config.SecurityConfiguration.ApplicationCertificate.StorePath, null,
@@ -143,7 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <inheritdoc/>
         public Task<T> ExecuteServiceAsync<T>(EndpointModel endpoint,
             CredentialModel elevation, int priority, Func<Session, Task<T>> service,
-            TimeSpan timeout, CancellationToken ct, Func<Exception, bool> handler) {
+            TimeSpan? timeout, CancellationToken ct, Func<Exception, bool> handler) {
             if (endpoint == null) {
                 throw new ArgumentNullException(nameof(endpoint));
             }
@@ -255,9 +257,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <returns></returns>
         internal IClientSession GetOrCreateSession(EndpointIdentifier id, bool persistent) {
             return _clients.GetOrAdd(id, k => new ClientSession(
-                CreateApplicationConfiguration(
-                    TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(5)),
-                k.Endpoint, () => Certificate, _logger, NotifyStateChangeAsync, persistent));
+                CreateApplicationConfiguration(TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2)),
+                k.Endpoint, () => Certificate, _logger, NotifyStateChangeAsync, persistent,
+                    _maxOpTimeout));
         }
 
         /// <summary>
@@ -370,6 +372,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private static readonly TimeSpan kEvictionCheck = TimeSpan.FromSeconds(10);
         private const int kMaxDiscoveryAttempts = 3;
         private readonly ILogger _logger;
+        private readonly TimeSpan? _maxOpTimeout;
         private readonly ApplicationConfiguration _config;
         private readonly ConcurrentDictionary<EndpointIdentifier, IClientSession> _clients =
             new ConcurrentDictionary<EndpointIdentifier, IClientSession>();

@@ -548,7 +548,7 @@ Operations (Mutually exclusive):
         /// </summary>
         private static async Task TestOpcUaIop() {
             var logger = StackLogger.Create(LogEx.RollingFile("iop_log.txt"));
-            var client = new ClientServices(logger.Logger);
+            var client = new ClientServices(logger.Logger, TimeSpan.FromSeconds(10));
 
             var discovery = new DiscoveryServices(client, new ModelWriter(client, logger.Logger),
                 new TaskProcessor(logger.Logger), logger.Logger);
@@ -588,40 +588,41 @@ Operations (Mutually exclusive):
 
             /// <inheritdoc/>
             public async Task SendAsync(byte[] data, string contentType) {
-                var events = JsonConvert.DeserializeObject<IEnumerable<DiscoveryEventModel>>(
+                var ev = JsonConvert.DeserializeObject<DiscoveryEventModel>(
                     Encoding.UTF8.GetString(data));
-                foreach (var ev in events) {
-                    var endpoint = ev.Registration?.Endpoint;
-                    if (endpoint == null) {
-                        continue;
+                var endpoint = ev.Registration?.Endpoint;
+                if (endpoint == null) {
+                    return;
+                }
+                try {
+                    var id = endpoint.Url.ToSha1Hash();
+                    _logger.Information("Writing {id}.json for {@ev}", id, ev);
+                    using (var writer = File.CreateText($"iop_{id}.json"))
+                    using (var json = new JsonTextWriter(writer) {
+                        AutoCompleteOnClose = true,
+                        Formatting = Formatting.Indented,
+                        DateFormatHandling = DateFormatHandling.IsoDateFormat
+                    })
+                    using (var encoder = new JsonEncoderEx(json, null,
+                        JsonEncoderEx.JsonEncoding.Array) {
+                        IgnoreDefaultValues = true,
+                        UseAdvancedEncoding = true
+                    })
+                    using (var browser = new BrowseStreamEncoder(_client, endpoint, encoder,
+                        null, _logger, null)) {
+                        await browser.EncodeAsync(CancellationToken.None);
                     }
-                    try {
-                        _logger.Information("Writing {id}.json for {@ev}", ev.Registration.Id, ev);
-                        using (var writer = File.CreateText($"iop_{ev.Registration.Id}.json"))
-                        using (var json = new JsonTextWriter(writer) {
-                            AutoCompleteOnClose = true,
-                            Formatting = Formatting.Indented,
-                            DateFormatHandling = DateFormatHandling.IsoDateFormat
-                        })
-                        using (var encoder = new JsonEncoderEx(json, null,
-                            JsonEncoderEx.JsonEncoding.Array) {
-                            IgnoreDefaultValues = true,
-                            UseAdvancedEncoding = true
-                        })
-                        using (var browser = new BrowseStreamEncoder(_client, endpoint, encoder,
-                            null, _logger, null)) {
-                            await browser.EncodeAsync(CancellationToken.None);
-                        }
-                    }
-                    catch (Exception ex) {
-                        _logger.Error(ex, "Failed to browse");
-                    }
+                }
+                catch (Exception ex) {
+                    _logger.Error(ex, "Failed to browse");
                 }
             }
 
             /// <inheritdoc/>
-            public Task SendAsync(IEnumerable<byte[]> batch, string contentType) {
-                return Task.CompletedTask;
+            public async Task SendAsync(IEnumerable<byte[]> batch, string contentType) {
+                foreach (var item in batch) {
+                    await SendAsync(item, contentType);
+                }
             }
 
             /// <inheritdoc/>

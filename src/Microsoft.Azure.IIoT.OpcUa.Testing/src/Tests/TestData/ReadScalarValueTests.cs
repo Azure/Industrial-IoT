@@ -500,7 +500,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.Value);
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
-            Assert.Equal(JTokenType.Float, result.Value.Type);
+            Assert.True(result.Value.IsFloatValue());
             Assert.True(JToken.DeepEquals(expected, result.Value),
                 $"Expected: {expected} != Actual: {result.Value}");
             Assert.Equal("Float", result.DataType);
@@ -524,7 +524,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.Value);
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
-            Assert.Equal(JTokenType.Float, result.Value.Type);
+            Assert.True(result.Value.IsFloatValue());
             Assert.True(JToken.DeepEquals(expected, result.Value),
                 $"Expected: {expected} != Actual: {result.Value}");
             Assert.Equal("Double", result.DataType);

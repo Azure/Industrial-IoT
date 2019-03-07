@@ -12,6 +12,7 @@ COPY src/Microsoft.Azure.IIoT.OpcUa.Registry/src/Microsoft.Azure.IIoT.OpcUa.Regi
 COPY src/Microsoft.Azure.IIoT.OpcUa.Protocol/src/Microsoft.Azure.IIoT.OpcUa.Protocol.csproj src/Microsoft.Azure.IIoT.OpcUa.Protocol/src/
 COPY src/Microsoft.Azure.IIoT.OpcUa/src/Microsoft.Azure.IIoT.OpcUa.csproj src/Microsoft.Azure.IIoT.OpcUa/src/
 COPY NuGet.Config NuGet.Config
+COPY *.props /
 RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.OpcUa.Testing/cli/Microsoft.Azure.IIoT.OpcUa.Testing.Cli.csproj
 COPY . .
 WORKDIR /src/src/Microsoft.Azure.IIoT.OpcUa.Testing/cli

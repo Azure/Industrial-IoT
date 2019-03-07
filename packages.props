@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <CommonVersion>2.0.0</CommonVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <CommonVersion Condition="'$(VersionSuffix)' != ''">$(CommonVersion).*</CommonVersion>
+  </PropertyGroup>
+</Project>

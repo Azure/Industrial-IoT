@@ -1011,7 +1011,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Value = JToken.FromObject(new string[]{
                         "byte",
                         "http://test.org/#i=23534",
-                        "http://foobar.test/#s=35645",
+                        "http://muh.test/#s=35645",
                         "http://test.org/test/#i=354"
                     })
                 },
@@ -1020,7 +1020,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Value = JToken.FromObject(new string[] {
                         "byte",
                         "http://test.org/#i=23534",
-                        "http://foobar.test/#s=35645",
+                        "http://muh.test/#s=35645",
                         "http://test.org/test/#i=354"
                     })
                 },

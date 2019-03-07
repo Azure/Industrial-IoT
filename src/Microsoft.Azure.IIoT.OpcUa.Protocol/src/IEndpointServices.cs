@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <returns></returns>
         Task<T> ExecuteServiceAsync<T>(EndpointModel endpoint,
             CredentialModel elevation, int priority, Func<Session,
-            Task<T>> service, TimeSpan timeout, CancellationToken ct,
+            Task<T>> service, TimeSpan? timeout, CancellationToken ct,
             Func<Exception, bool> exceptionHandler);
     }
 }
