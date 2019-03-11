@@ -26,12 +26,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Graph import processor
+    /// Model import processor - processes uploaded models and inserts 
+    /// them into the opc model graph and eventually CDM.
     /// </summary>
     public class Program {
 
         /// <summary>
-        /// Main entry point for blob file event processor
+        /// Main entry point for model import processor
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args) {
@@ -64,23 +65,23 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph {
                     var tcs = new TaskCompletionSource<bool>();
                     AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
                     try {
-                        logger.Information("Starting blob event processor host...");
+                        logger.Information("Starting model import processor host...");
                         await host.StartAsync();
-                        logger.Information("Blob event processor host started.");
+                        logger.Information("Model import processor host started.");
                         exit = await tcs.Task;
                     }
                     catch (InvalidConfigurationException e) {
                         logger.Error(e,
-                            "Error starting blob event processor host - exit!");
+                            "Error starting model import processor host - exit!");
                         return;
                     }
                     catch (Exception ex) {
                         logger.Error(ex,
-                            "Error running blob event processor host - restarting!");
+                            "Error running model import processor host - restarting!");
                     }
                     finally {
                         await host.StopAsync();
-                        logger.Information("Blob event processor host stopped.");
+                        logger.Information("Model import processor host stopped.");
                     }
                 }
             }
@@ -102,16 +103,18 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph {
             // register logger
             builder.RegisterLogger(LogEx.Console());
 
-            // Now Monitor blob upload notification using ...
+            // Now Monitor model upload notification using ...
             if (!config.UseFileNotificationHost) {
-                // ... event processor for fan out
+                // ... event processor for fan out (requires blob
+                // notification router to be running) ...
                 builder.RegisterType<EventProcessorHost>()
                     .AsImplementedInterfaces();
                 builder.RegisterType<EventProcessorFactory>()
                     .AsImplementedInterfaces().SingleInstance();
             }
             else {
-                // ... or listen for file notifications on hub ...
+                // ... or listen for file notifications on hub
+                // (for simplicity) ...
                 builder.RegisterType<IoTHubFileNotificationHost>()
                     .AsImplementedInterfaces();
             }
@@ -127,6 +130,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<JsonVariantEncoder>()
                 .AsImplementedInterfaces().SingleInstance();
+
             // ... into cosmos db collection with configured name.
             builder.RegisterType<ItemContainerFactory>()
                 .AsImplementedInterfaces();

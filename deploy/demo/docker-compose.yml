@@ -59,6 +59,19 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
+  historyservice:
+    image: mcr.microsoft.com/iot/opc-history-service:latest
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
+      - PCS_CORS_WHITELIST
   gatewayservice:
     image: mcr.microsoft.com/iot/opc-gateway-service:latest
     ports:
@@ -75,8 +88,25 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
+  modelprocessor:
+    image: mcr.microsoft.com/iot/opc-processor-service:latest
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+      - PCS_IOTHUBREACT_AZUREBLOB_KEY
+      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+  blobnotification:
+    image: mcr.microsoft.com/iot/blob-notification-service:latest
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+      - PCS_IOTHUBREACT_AZUREBLOB_KEY
+      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
   twinwebui:
-    image: marcschier/azure-iiot-opc-twin-webui:latest
+    image: mcr.microsoft.com/iot/opc-twin-webui:latest
     restart: always
     command: npm start
     environment:
@@ -89,11 +119,17 @@ services:
       - REACT_APP_PCS_TWIN_REGISTRY_URL=/registry/
       - REACT_APP_PCS_TWIN_SERVICE_URL=/twin/
   twinmodule:
-    image: marcschier/azure-iiot-opc-twin-module:latest
+    image: mcr.microsoft.com/iotedge/opc-twin:host-latest
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
     command: demo demo
+  publishermodule:
+    image: mcr.microsoft.com/iotedge/opc-publisher:latest
+    restart: always
+    environment:
+      - _HUB_CS
+    command: --aa
   opcserver0:
     image: marcschier/azure-iiot-opc-ua:latest
     hostname: opcserver0

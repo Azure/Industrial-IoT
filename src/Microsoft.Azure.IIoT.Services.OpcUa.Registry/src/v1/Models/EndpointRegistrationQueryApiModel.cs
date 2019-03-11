@@ -27,6 +27,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v1.Models {
             UserAuthentication = model.UserAuthentication;
             Connected = model.Connected;
             Activated = model.Activated;
+            EndpointState = model.EndpointState;
             Certificate = model.Certificate;
             SecurityPolicy = model.SecurityPolicy;
             SecurityMode = model.SecurityMode;
@@ -43,6 +44,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v1.Models {
                 UserAuthentication = UserAuthentication,
                 Connected = Connected,
                 Activated = Activated,
+                EndpointState = EndpointState,
                 Certificate = Certificate,
                 SecurityPolicy = SecurityPolicy,
                 SecurityMode = SecurityMode,
@@ -105,6 +107,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v1.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public bool? Connected { get; set; }
+
+        /// <summary>
+        /// The last state of the the activated endpoint
+        /// </summary>
+        [JsonProperty(PropertyName = "endpointState",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public EndpointConnectivityState? EndpointState { get; set; }
 
         /// <summary>
         /// Whether to include endpoints that were soft deleted

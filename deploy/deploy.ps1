@@ -715,18 +715,17 @@ Function GetAzureADApplicationConfig() {
             -Oauth2AllowImplicitFlow $True -Oauth2AllowUrlPathMatching $True
 
         #
-        # Grant permissions
+        # Grant permissions to app
         #
         try {
-            GrantPermission -azureAppId $clientAadApplication.AppId
-            GrantPermission -azureAppId $clientAadApplication.ObjectId
+            GrantPermission -azureAppId $clientAadApplication.AppId -tenantId $creds.Tenant.Id
         }
         catch {
             Write-Host "Failed granting permission to client."
         }
 
         return [pscustomobject] @{ 
-            TenantId = $tenantId
+            TenantId = $creds.Tenant.Id
             Instance = $script:environment.ActiveDirectoryAuthority
             Audience = $serviceAadApplication.IdentifierUris[0].ToString()
             AppName = $aadApplicationName
@@ -761,9 +760,11 @@ Function GetAzureADApplicationConfig() {
 # Get an access token
 #*******************************************************************************************************
 Function GetAzureToken() {
+    Param(
+        [string] $tenantId
+    )
     try {
         $context = Get-AzureRmContext
-        $tenantId = $context.Tenant.Id
         $refreshToken = @($context.TokenCache.ReadItems() | `
             where {$_.tenantId -eq $tenantId -and $_.ExpiresOn -gt (Get-Date)})[0].RefreshToken
         $body = "grant_type=refresh_token&refresh_token=$($refreshToken)&resource=74658136-14ec-4630-ad9b-26e160ff0fc6"
@@ -781,10 +782,11 @@ Function GetAzureToken() {
 #*******************************************************************************************************
 Function GrantPermission() {
     Param(
-        [string] $azureAppId
+        [string] $azureAppId,
+        [string] $tenantId
     )
     try { 
-        $token = GetAzureToken
+        $token = GetAzureToken -tenantId $tenantId
         $header = @{
             "Authorization"          = "Bearer " + $token
             "X-Requested-With"       = "XMLHttpRequest"

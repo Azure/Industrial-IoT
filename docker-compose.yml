@@ -1,7 +1,9 @@
 version: '3'
 services:
   reverseproxy:
-    build: ./reverse-proxy
+    build: 
+      context: .
+      dockerfile: ./reverse-proxy/Dockerfile
     restart: always
     ports:
       - "10080:10080"
@@ -38,16 +40,6 @@ services:
       - PCS_IOTHUBREACT_HUB_PARTITIONS
       - PCS_IOTHUBREACT_HUB_NAME
       - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
-      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
-      - PCS_IOTHUBREACT_AZUREBLOB_KEY
-      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
-  graphservice:
-    build: 
-      context: .
-      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Graph/docker/Dockerfile
-    restart: always
-    environment:
-      - PCS_IOTHUB_CONNSTRING
       - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
@@ -103,3 +95,24 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
+  modelprocessor:
+    build: 
+      context: .
+      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Processor/docker/Dockerfile
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+      - PCS_IOTHUBREACT_AZUREBLOB_KEY
+      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+  blobnotification:
+    build: 
+      context: .
+      dockerfile: ./src/Microsoft.Azure.IIoT.Services.Notification.Blob/docker/Dockerfile
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+      - PCS_IOTHUBREACT_AZUREBLOB_KEY
+      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX

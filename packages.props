@@ -5,8 +5,11 @@
     <ServicesApiVersion>2.0.0</ServicesApiVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <CommonVersion Condition="'$(VersionSuffix)' != ''">$(CommonVersion).*</CommonVersion>
-    <ComponentsOpcUaVersion Condition="'$(VersionSuffix)' != ''">$(ComponentsOpcUaVersion).*</ComponentsOpcUaVersion>
-    <ServicesApiVersion Condition="'$(VersionSuffix)' != ''">$(ServicesApiVersion).*</ServicesApiVersion>
+    <CommonPrereleaseVersion>$(CommonVersion)-*</CommonPrereleaseVersion>
+    <CommonVersion Condition="'$(VersionSuffix)' != ''">$(CommonPrereleaseVersion)</CommonVersion>
+    <ComponentsOpcUaPrereleaseVersion>$(ComponentsOpcUaVersion)-*</ComponentsOpcUaPrereleaseVersion>
+    <ComponentsOpcUaVersion Condition="'$(VersionSuffix)' != ''">$(ComponentsOpcUaPrereleaseVersion)</ComponentsOpcUaVersion>
+    <ServicesApiPrereleaseVersion>$(ServicesApiVersion)-*</ServicesApiPrereleaseVersion>
+    <ServicesApiVersion Condition="'$(VersionSuffix)' != ''">$(ServicesApiPrereleaseVersion)</ServicesApiVersion>
   </PropertyGroup>
 </Project>

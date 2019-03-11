@@ -142,7 +142,7 @@ Function GetRootFolder() {
         if (Test-Path $test) {
             $found = $cur
         }
-        else if (![string]::IsNullOrEmpty($found)) {
+        elseif (![string]::IsNullOrEmpty($found)) {
             break
         }
         $cur = Split-Path $cur
