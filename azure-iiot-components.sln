@@ -149,11 +149,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Storage.Cli", "common\src\Microsoft.Azure.IIoT.Storage\cli\Microsoft.Azure.IIoT.Storage.Cli.csproj", "{0D0A424A-10C8-4968-90B8-3C485C00F7EA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Graph", "services\src\Microsoft.Azure.IIoT.Services.OpcUa.Graph\src\Microsoft.Azure.IIoT.Services.OpcUa.Graph.csproj", "{33EDCABE-3CB6-4475-A9E5-1D669FAA15B7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Processor", "services\src\Microsoft.Azure.IIoT.Services.OpcUa.Processor\src\Microsoft.Azure.IIoT.Services.OpcUa.Processor.csproj", "{33EDCABE-3CB6-4475-A9E5-1D669FAA15B7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Graph.Tests", "services\src\Microsoft.Azure.IIoT.Services.OpcUa.Graph\tests\Microsoft.Azure.IIoT.Services.OpcUa.Graph.Tests.csproj", "{88C6EABF-2EE5-474B-A128-3B40C9475A95}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Processor.Tests", "services\src\Microsoft.Azure.IIoT.Services.OpcUa.Processor\tests\Microsoft.Azure.IIoT.Services.OpcUa.Processor.Tests.csproj", "{88C6EABF-2EE5-474B-A128-3B40C9475A95}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.Hub.Router", "services\src\Microsoft.Azure.IIoT.Services.Hub.Router.Blob\src\Microsoft.Azure.IIoT.Services.Hub.Router.csproj", "{4E12597E-EA7B-464A-A63A-951B0EBC81CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.Notification.Blob", "services\src\Microsoft.Azure.IIoT.Services.Notification.Blob\src\Microsoft.Azure.IIoT.Services.Notification.Blob.csproj", "{4E12597E-EA7B-464A-A63A-951B0EBC81CE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cli", "cli", "{E68AE69D-D585-4FFA-A820-5D1636E9656E}"
 EndProject

@@ -52,8 +52,8 @@ rem
 rem generate docs
 rem 
 :generate_docs
-if not exist %build_root%\services\docs\api mkdir %build_root%\services\docs\api
-pushd %build_root%\services\docs\api
+if not exist %build_root%\docs\api mkdir %build_root%\docs\api
+pushd %build_root%\docs\api
 echo swagger2markup.markupLanguage=MARKDOWN                      > config.properties
 echo swagger2markup.generatedExamplesEnabled=true               >> config.properties
 echo swagger2markup.pathsGroupedBy=TAGS                         >> config.properties
@@ -102,15 +102,15 @@ mkdir %build_root%\api\generated
 pushd %build_root%\api\generated
 
 rem generate twin sdk
-copy %build_root%\services\docs\api\twin\autorest.md readme.md
+copy %build_root%\docs\api\twin\autorest.md readme.md
 set args=--input-file=http://%_hostname%:9041/v1/swagger.json
 docker run --rm --mount type=bind,source=%cd%,target=/opt -w /opt azuresdk/autorest:latest %args%
 rem generate registry sdk
-copy %build_root%\services\docs\api\registry\autorest.md readme.md
+copy %build_root%\docs\api\registry\autorest.md readme.md
 set args=--input-file=http://%_hostname%:9042/v1/swagger.json
 docker run --rm --mount type=bind,source=%cd%,target=/opt -w /opt azuresdk/autorest:latest %args%
 rem generate history sdk
-copy %build_root%\services\docs\api\history\autorest.md readme.md
+copy %build_root%\docs\api\history\autorest.md readme.md
 set args=--input-file=http://%_hostname%:9042/v1/swagger.json
 docker run --rm --mount type=bind,source=%cd%,target=/opt -w /opt azuresdk/autorest:latest %args%
 

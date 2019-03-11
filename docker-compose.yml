@@ -1,7 +1,9 @@
 version: '3'
 services:
   reverseproxy:
-    build: ./services/reverse-proxy
+    build: 
+      context: ./services
+      dockerfile: ./reverse-proxy/Dockerfile
     restart: always
     ports:
       - "10080:10080"
@@ -40,16 +42,6 @@ services:
       - PCS_IOTHUBREACT_HUB_PARTITIONS
       - PCS_IOTHUBREACT_HUB_NAME
       - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
-      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
-      - PCS_IOTHUBREACT_AZUREBLOB_KEY
-      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
-  graphservice:
-    build: 
-      context: ./services
-      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Graph/docker/Dockerfile
-    restart: always
-    environment:
-      - PCS_IOTHUB_CONNSTRING
       - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
@@ -105,6 +97,27 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
+  modelprocessor:
+    build: 
+      context: ./services
+      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Processor/docker/Dockerfile
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+      - PCS_IOTHUBREACT_AZUREBLOB_KEY
+      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+  blobnotification:
+    build: 
+      context: ./services
+      dockerfile: ./src/Microsoft.Azure.IIoT.Services.Notification.Blob/docker/Dockerfile
+    restart: always
+    environment:
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+      - PCS_IOTHUBREACT_AZUREBLOB_KEY
+      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
   twinwebui:
     build: ./samples/opc-twin-webui
     restart: always
@@ -125,12 +138,14 @@ services:
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
-  twinmodule:
-    build: ./modules/opc-publisher
+  publishermodule:
+    build: 
+      context: ./modules/opc-publisher
+      dockerfile: ./docker/linux/amd64/Dockerfile
     restart: always
     environment:
-      - PCS_IOTHUB_CONNSTRING
-    command: demo demo
+      - _HUB_CS
+    command: --aa
   opcserver0:
     build: ./components/opc-ua
     hostname: opcserver0
