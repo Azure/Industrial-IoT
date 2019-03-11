@@ -16,14 +16,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// <summary>
         /// If method node class, whether method can be called.
         /// </summary>
-        [JsonProperty(PropertyName = "executable")]
+        [JsonProperty(PropertyName = "executable",
+            NullValueHandling = NullValueHandling.Ignore)]
         public bool? Executable { get; set; }
 
         /// <summary>
         /// If method node class, whether method can be called
         /// by user.
         /// </summary>
-        [JsonProperty(PropertyName = "userExecutable")]
+        [JsonProperty(PropertyName = "userExecutable",
+            NullValueHandling = NullValueHandling.Ignore)]
         public bool? UserExecutable { get; set; }
     }
 }

@@ -15,37 +15,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// <summary>
         /// Node Class - also a vertex type discriminator
         /// </summary>
-        [JsonProperty(PropertyName = "nodeClass")]
+        [JsonProperty(PropertyName = "nodeClass",
+            NullValueHandling = NullValueHandling.Ignore)]
         public NodeClass? NodeClass { get; set; }
 
         /// <summary>
         /// Modelling rule
         /// </summary>
-        [JsonProperty(PropertyName = "modellingRule")]
+        [JsonProperty(PropertyName = "modellingRule",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string ModellingRule { get; set; }
 
         /// <summary>
         /// Browse name of the node
         /// </summary>
-        [JsonProperty(PropertyName = "browseName")]
+        [JsonProperty(PropertyName = "browseName",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string BrowseName { get; set; }
 
         /// <summary>
         /// Display name .
         /// </summary>
-        [JsonProperty(PropertyName = "displayName")]
+        [JsonProperty(PropertyName = "displayName",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string DisplayName { get; set; }
 
         /// <summary>
         /// Description .
         /// </summary>
-        [JsonProperty(PropertyName = "description")]
+        [JsonProperty(PropertyName = "description",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string Description { get; set; }
 
         /// <summary>
         /// Node access restrictions if any.
         /// </summary>
-        [JsonProperty(PropertyName = "accessRestrictions")]
+        [JsonProperty(PropertyName = "accessRestrictions",
+            NullValueHandling = NullValueHandling.Ignore)]
         public NodeAccessRestrictions? AccessRestrictions { get; set; }
 
         /// <summary>
@@ -74,6 +80,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// Get all backward references
         /// </summary>
         public TargetEdgeModel Backward { get; set; }
-        public string SymbolicName { get; internal set; }
+
+        /// <summary>
+        /// Symbolic name
+        /// </summary>
+        public string SymbolicName { get; set; }
     }
 }

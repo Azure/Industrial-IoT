@@ -184,7 +184,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                 case DataTypeNodeModel dtNode:
                     vertex = new DataTypeNodeVertexModel {
                         IsAbstract = dtNode.IsAbstract,
-                        Definition = dtNode.Definition,
+                        // Definition = dtNode.Definition,
                         Purpose = dtNode.Purpose
                     };
                     break;
@@ -325,8 +325,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                 case DataTypeNodeVertexModel uaDataType:
                     decoded = new DataTypeNodeModel {
                         IsAbstract = uaDataType.IsAbstract,
-                        Definition = uaDataType.Definition,
-                        Purpose = uaDataType.Purpose
+                        // Definition = uaDataType.Definition,
+                        // Purpose = uaDataType.Purpose
                     };
                     break;
                 case ReferenceTypeNodeVertexModel uaReferenceType:
