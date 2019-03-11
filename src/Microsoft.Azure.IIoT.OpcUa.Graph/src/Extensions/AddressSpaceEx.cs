@@ -4,8 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Opc.Ua;
+    using Opc.Ua.Nodeset;
+    using Opc.Ua.Extensions;
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Address space extensions
@@ -89,32 +95,306 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         }
 
         /// <summary>
-        /// Returns the element name for a node class
+        /// Convert node model to vertex
         /// </summary>
-        /// <param name="nodeClass"></param>
+        /// <param name="node"></param>
+        /// <param name="codec"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
-        public static string NodeClassToLabel(NodeClass? nodeClass) {
-            if (nodeClass != null) {
-                switch (nodeClass.Value) {
-                    case NodeClass.DataType:
-                        return AddressSpaceElementNames.DataType;
-                    case NodeClass.Method:
-                        return AddressSpaceElementNames.Method;
-                    case NodeClass.Object:
-                        return AddressSpaceElementNames.Object;
-                    case NodeClass.ObjectType:
-                        return AddressSpaceElementNames.ObjectType;
-                    case NodeClass.ReferenceType:
-                        return AddressSpaceElementNames.ReferenceType;
-                    case NodeClass.Variable:
-                        return AddressSpaceElementNames.Variable;
-                    case NodeClass.VariableType:
-                        return AddressSpaceElementNames.VariableType;
-                    case NodeClass.View:
-                        return AddressSpaceElementNames.View;
+        public static NodeVertexModel ToVertex(this BaseNodeModel node, IVariantEncoder codec,
+            ServiceMessageContext context) {
+            if (node == null) {
+                throw new ArgumentNullException(nameof(node));
+            }
+            if (NodeId.IsNull(node.NodeId)) {
+                throw new ArgumentException(nameof(node));
+            }
+            var builtInType = BuiltInType.Null;
+            NodeVertexModel vertex;
+            switch (node) {
+                case ObjectNodeModel oNode:
+                    vertex = new ObjectNodeVertexModel {
+                        EventNotifier = (NodeEventNotifier?)oNode.EventNotifier
+                    };
+                    break;
+                case PropertyNodeModel vNode:
+                    vertex = new PropertyNodeVertexModel {
+                        ValueRank = (NodeValueRank?)vNode.ValueRank,
+                        ArrayDimensions = vNode.ArrayDimensions,
+                        AccessLevel = (vNode.AccessLevel != null || vNode.AccessLevelEx != null) ?
+                            (NodeAccessLevel?)((vNode.AccessLevel ?? 0) |
+                                (vNode.AccessLevelEx ?? 0)) : null,
+                        MinimumSamplingInterval = vNode.MinimumSamplingInterval,
+                        Historizing = vNode.Historizing,
+                        Value = vNode.Value == null ? null : codec.Encode(vNode.Value.Value,
+                            out builtInType, context),
+                        BuiltInType = builtInType
+                    };
+                    break;
+                case VariableNodeModel vNode:
+                    vertex = new VariableNodeVertexModel {
+                        ValueRank = (NodeValueRank?)vNode.ValueRank,
+                        ArrayDimensions = vNode.ArrayDimensions,
+                        AccessLevel = (vNode.AccessLevel != null || vNode.AccessLevelEx != null) ?
+                            (NodeAccessLevel?)((vNode.AccessLevel ?? 0) |
+                                (vNode.AccessLevelEx ?? 0)) : null,
+                        MinimumSamplingInterval = vNode.MinimumSamplingInterval,
+                        Historizing = vNode.Historizing,
+                        Value = vNode.Value == null ? null : codec.Encode(vNode.Value.Value,
+                            out builtInType, context),
+                        BuiltInType = builtInType
+                    };
+                    break;
+                case MethodNodeModel mNode:
+                    vertex = new MethodNodeVertexModel {
+                        Executable = mNode.Executable.ToNullable(false),
+                        UserExecutable = mNode.UserExecutable.ToNullable(false)
+                    };
+                    break;
+                case ViewNodeModel vNode:
+                    vertex = new ViewNodeVertexModel {
+                        ContainsNoLoops = vNode.ContainsNoLoops
+                    };
+                    break;
+                case ObjectTypeNodeModel otNode:
+                    vertex = new ObjectTypeNodeVertexModel {
+                        IsAbstract = otNode.IsAbstract
+                    };
+                    break;
+                case PropertyTypeNodeModel vtNode:
+                    vertex = new PropertyTypeNodeVertexModel {
+                        IsAbstract = vtNode.IsAbstract ?? false,
+                        ValueRank = (NodeValueRank?)vtNode.ValueRank,
+                        ArrayDimensions = vtNode.ArrayDimensions,
+                        Value = vtNode.Value == null ? null : codec.Encode(vtNode.Value.Value,
+                            out builtInType, context),
+                        BuiltInType = builtInType
+                    };
+                    break;
+                case VariableTypeNodeModel vtNode:
+                    vertex = new VariableTypeNodeVertexModel {
+                        IsAbstract = vtNode.IsAbstract ?? false,
+                        ValueRank = (NodeValueRank?)vtNode.ValueRank,
+                        ArrayDimensions = vtNode.ArrayDimensions,
+                        Value = vtNode.Value == null ? null : codec.Encode(vtNode.Value.Value,
+                            out builtInType, context),
+                        BuiltInType = builtInType
+                    };
+                    break;
+                case DataTypeNodeModel dtNode:
+                    vertex = new DataTypeNodeVertexModel {
+                        IsAbstract = dtNode.IsAbstract,
+                        Definition = dtNode.Definition,
+                        Purpose = dtNode.Purpose
+                    };
+                    break;
+                case ReferenceTypeNodeModel rtNode:
+                    vertex = new ReferenceTypeNodeVertexModel {
+                        IsAbstract = rtNode.IsAbstract,
+                        Symmetric = rtNode.Symmetric,
+                        InverseName = rtNode.InverseName.AsString()
+                    };
+                    break;
+                default:
+                    return null;
+            }
+            vertex.NodeId = node.NodeId.AsString(context);
+            vertex.BrowseName = node.BrowseName.AsString(context);
+            vertex.DisplayName = node.DisplayName.AsString();
+            vertex.Description = node.Description.AsString();
+            vertex.WriteMask = (uint?)node.WriteMask;
+            vertex.UserWriteMask = (uint?)node.UserWriteMask;
+            if (!string.IsNullOrEmpty(node.SymbolicName) && node.SymbolicName != node.BrowseName.Name) {
+                vertex.SymbolicName = node.SymbolicName;
+            }
+#if FALSE
+            // export references.
+            var exportedReferences = new List<Reference>();
+            foreach (var reference in node.GetAllReferences(context)) {
+                if (node.NodeClass == NodeClass.Method) {
+                    if (!reference.IsInverse &&
+                        reference.ReferenceTypeId == ReferenceTypeIds.HasTypeDefinition) {
+                        continue;
+                    }
+                }
+                exportedReferences.Add(new Reference {
+                    ReferenceType = EncodeNodeId(reference.ReferenceTypeId, context),
+                    IsForward = !reference.IsInverse,
+                    Value = EncodeExpandedNodeId(reference.TargetId, context)
+                });
+            }
+            vertex.References = exportedReferences.ToArray();
+#endif
+            return vertex;
+        }
+
+        /// <summary>
+        /// Decode nodeset node to node state
+        /// </summary>
+        /// <param name="vertex"></param>
+        /// <param name="dataTypeId"></param>
+        /// <param name="nodeReferences"></param>
+        /// <param name="rolePermissions"></param>
+        /// <param name="userRolePermissions"></param>
+        /// <param name="codec"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static BaseNodeModel ToNodeModel(this NodeVertexModel vertex,
+            string dataTypeId, IEnumerable<ReferenceNodeVertexModel> nodeReferences,
+            IEnumerable<RolePermissionEdgeModel> rolePermissions,
+            IEnumerable<RolePermissionEdgeModel> userRolePermissions,
+            IVariantEncoder codec, ServiceMessageContext context) {
+            BaseNodeModel decoded;
+            switch (vertex) {
+                case ObjectNodeVertexModel uaObject:
+                    decoded = new ObjectNodeModel(null) {
+                        EventNotifier = (byte?)uaObject.EventNotifier
+                    };
+                    break;
+                case PropertyNodeVertexModel uaProperty:
+                    decoded = new PropertyNodeModel(null) {
+                        DataType = dataTypeId.ToNodeId(context),
+                        ValueRank = (int?)uaProperty.ValueRank,
+                        ArrayDimensions = uaProperty.ArrayDimensions,
+                        AccessLevelEx = (uint?)uaProperty.AccessLevel,
+                        AccessLevel = uaProperty.AccessLevel == null ? (byte?)null :
+                            (byte?)((uint)uaProperty.AccessLevel.Value & 0xff),
+                        UserAccessLevel = uaProperty.UserAccessLevel == null ? (byte?)null :
+                            (byte?)((uint)uaProperty.UserAccessLevel.Value & 0xff),
+                        MinimumSamplingInterval = uaProperty.MinimumSamplingInterval,
+                        Historizing = uaProperty.Historizing,
+                        Value = codec.Decode(uaProperty.Value, uaProperty.BuiltInType,
+                            context),
+                        TypeDefinitionId = null
+                    };
+                    break;
+                case VariableNodeVertexModel uaVariable:
+                    decoded = new DataVariableNodeModel(null) {
+                        DataType = dataTypeId.ToNodeId(context),
+                        ValueRank = (int?)uaVariable.ValueRank,
+                        ArrayDimensions = uaVariable.ArrayDimensions,
+                        AccessLevelEx = (uint?)uaVariable.AccessLevel,
+                        AccessLevel = uaVariable.AccessLevel == null ? (byte?)null :
+                            (byte?)((uint)uaVariable.AccessLevel.Value & 0xFF),
+                        UserAccessLevel = uaVariable.UserAccessLevel == null ? (byte?)null :
+                            (byte?)((uint)uaVariable.UserAccessLevel.Value & 0xff),
+                        MinimumSamplingInterval = uaVariable.MinimumSamplingInterval,
+                        Historizing = uaVariable.Historizing,
+                        Value = codec.Decode(uaVariable.Value, uaVariable.BuiltInType,
+                            context),
+                        TypeDefinitionId = null
+                    };
+                    break;
+                case MethodNodeVertexModel uaMethod:
+                    decoded = new MethodNodeModel(null) {
+                        Executable = uaMethod.Executable ?? false,
+                        UserExecutable = uaMethod.UserExecutable ?? false,
+                        TypeDefinitionId = null
+                    };
+                    break;
+                case ViewNodeVertexModel uaView:
+                    decoded = new ViewNodeModel {
+                        ContainsNoLoops = uaView.ContainsNoLoops
+                    };
+                    break;
+                case ObjectTypeNodeVertexModel uaObjectType:
+                    decoded = new ObjectTypeNodeModel {
+                        IsAbstract = uaObjectType.IsAbstract
+                    };
+                    break;
+                case PropertyTypeNodeVertexModel uaPropertyType:
+                    decoded = new PropertyTypeNodeModel {
+                        IsAbstract = uaPropertyType.IsAbstract,
+                        DataType = dataTypeId.ToNodeId(context),
+                        ValueRank = (int?)uaPropertyType.ValueRank,
+                        ArrayDimensions = uaPropertyType.ArrayDimensions,
+                        Value = codec.Decode(uaPropertyType.Value, uaPropertyType.BuiltInType,
+                            context)
+                    };
+                    break;
+                case VariableTypeNodeVertexModel uaVariableType:
+                    decoded = new DataVariableTypeNodeModel {
+                        IsAbstract = uaVariableType.IsAbstract,
+                        DataType = dataTypeId.ToNodeId(context),
+                        ValueRank = (int?)uaVariableType.ValueRank,
+                        ArrayDimensions = uaVariableType.ArrayDimensions,
+                        Value = codec.Decode(uaVariableType.Value, uaVariableType.BuiltInType,
+                            context)
+                    };
+                    break;
+                case DataTypeNodeVertexModel uaDataType:
+                    decoded = new DataTypeNodeModel {
+                        IsAbstract = uaDataType.IsAbstract,
+                        Definition = uaDataType.Definition,
+                        Purpose = uaDataType.Purpose
+                    };
+                    break;
+                case ReferenceTypeNodeVertexModel uaReferenceType:
+                    decoded = new ReferenceTypeNodeModel {
+                        IsAbstract = uaReferenceType.IsAbstract,
+                        InverseName = uaReferenceType.InverseName.ToLocalizedText(),
+                        Symmetric = uaReferenceType.Symmetric
+                    };
+                    break;
+                default:
+                    return null;
+            }
+            decoded.NodeId = vertex.NodeId;
+            decoded.BrowseName = vertex.BrowseName.ToQualifiedName(context);
+            decoded.DisplayName = vertex.DisplayName.ToLocalizedText();
+            decoded.Description = vertex.Description.ToLocalizedText();
+            decoded.WriteMask = (AttributeWriteMask)vertex.WriteMask;
+            decoded.UserWriteMask = (AttributeWriteMask)vertex.UserWriteMask;
+            decoded.RolePermissions = rolePermissions?
+                .Select(r => new RolePermissionType {
+                    Permissions = (PermissionType)(r.Permissions ?? 0),
+                    RoleId = r.RoleId.ToNodeId(context)
+                })
+                .ToList();
+            decoded.UserRolePermissions = userRolePermissions?
+                .Select(r => new RolePermissionType {
+                    Permissions = (PermissionType)(r.Permissions ?? 0),
+                    RoleId = r.RoleId.ToNodeId(context)
+                })
+                .ToList();
+            if (!string.IsNullOrEmpty(vertex.SymbolicName)) {
+                decoded.SymbolicName = vertex.SymbolicName;
+            }
+            // Decode references
+            var references = new List<IReference>();
+            if (nodeReferences != null) {
+                var instance = decoded as InstanceNodeModel;
+                var type = decoded as TypeNodeModel;
+                foreach (var reference in nodeReferences) {
+                    var referenceTypeId = reference.ReferenceTypeId.ToNodeId(context);
+                    var isInverse = reference.TargetId == vertex.NodeId;
+                    var targetId = isInverse ?
+                        reference.OriginId.ToNodeId(context) :
+                        reference.TargetId.ToNodeId(context);
+                    if (instance != null) {
+                        if (referenceTypeId == ReferenceTypeIds.HasModellingRule && !isInverse) {
+                            instance.ModellingRuleId = ExpandedNodeId.ToNodeId(
+                                targetId, context.NamespaceUris);
+                            continue;
+                        }
+                        if (referenceTypeId == ReferenceTypeIds.HasTypeDefinition && !isInverse) {
+                            instance.TypeDefinitionId = ExpandedNodeId.ToNodeId(
+                                targetId, context.NamespaceUris);
+                            continue;
+                        }
+                    }
+                    if (type != null) {
+                        if (referenceTypeId == ReferenceTypeIds.HasSubtype && isInverse) {
+                            type.SuperTypeId = ExpandedNodeId.ToNodeId(targetId,
+                                context.NamespaceUris);
+                            continue;
+                        }
+                    }
+                    references.Add(new NodeStateReference(referenceTypeId, isInverse, targetId));
                 }
             }
-            return AddressSpaceElementNames.Unknown;
+            decoded.AddReferences(references);
+            return decoded;
         }
     }
 }

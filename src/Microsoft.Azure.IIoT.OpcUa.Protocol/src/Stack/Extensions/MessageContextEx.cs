@@ -73,7 +73,7 @@ namespace Opc.Ua.Extensions {
         /// Convert to message context
         /// </summary>
         /// <param name="context"></param>
-        public static ServiceMessageContext ToSystemContext(this ISystemContext context) {
+        public static ServiceMessageContext ToMessageContext(this ISystemContext context) {
             if (context == null) {
                 return null;
             }

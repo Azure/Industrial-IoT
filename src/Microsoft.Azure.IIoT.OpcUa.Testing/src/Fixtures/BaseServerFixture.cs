@@ -37,6 +37,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
         public ClientServices Client { get; }
 
         /// <summary>
+        /// Start port
+        /// </summary>
+        public static int StartPort { set => _nextPort = value; }
+
+        /// <summary>
         /// Create fixture
         /// </summary>
         protected BaseServerFixture(IEnumerable<INodeManagerFactory> nodes) {
@@ -52,7 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
                 AutoAccept = true
             };
             var port = Interlocked.Increment(ref _nextPort);
-            for (var i = 0; i < 30; i++) { // Retry 30 times
+            for (var i = 0; i < 200; i++) { // Retry 200 times
                 try {
                     _serverHost.StartAsync(new int[] { port }).Wait();
                     Port = port;
@@ -77,7 +82,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
             }
         }
 
-        private static volatile int _nextPort = 58888;
+        private static Random _rand = new Random();
+        private static volatile int _nextPort = _rand.Next(53000, 58000);
         private readonly IServerHost _serverHost;
     }
 }

@@ -291,7 +291,7 @@ Operations (Mutually exclusive):
      -s
     --sample / -s           Run sample server and wait for cancellation.
 
-    --iop                   Iop discovery and browsing.
+    --iop                   Interop test discovery and browsing.
     --scan-net              Tests network scanning.
     --scan-ports            Tests port scanning.
     --scan-servers          Tests opc server scanning on single machine.
@@ -311,7 +311,6 @@ Operations (Mutually exclusive):
     --test-writer           Tests server model import.
     --test-archive          Tests server model archiving to file.
     --test-client           Tests server stuff with passed endpoint url.
-
 "
                     );
                 return;

@@ -37,9 +37,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         public const string Variable = nameof(Variable);
 
         /// <summary>
+        /// Property node vertex
+        /// </summary>
+        public const string Property = nameof(Property);
+
+        /// <summary>
         /// Variable type node vertex
         /// </summary>
         public const string VariableType = nameof(VariableType);
+
+        /// <summary>
+        /// Property type node vertex
+        /// </summary>
+        public const string PropertyType = nameof(PropertyType);
 
         /// <summary>
         /// Object node vertex

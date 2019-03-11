@@ -16,10 +16,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
 
         /// <summary>
         /// Default access level for value in variable
-        /// node or null if not a variable.
+        /// node.
         /// </summary>
         [JsonProperty(PropertyName = "accessLevel")]
         public NodeAccessLevel? AccessLevel { get; set; }
+
+        /// <summary>
+        /// Default user access level for value in variable
+        /// node.
+        /// </summary>
+        [JsonProperty(PropertyName = "userAccessLevel")]
+        public NodeAccessLevel? UserAccessLevel { get; set; }
 
         /// <summary>
         /// Whether the value of a variable is historizing.

@@ -131,6 +131,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         $"OR NOT IS_DEFINED(tags.{nameof(EndpointRegistration.Activated)})) ";
                 }
             }
+            if (model?.EndpointState != null) {
+                query += $"AND properties.reported.{nameof(EndpointRegistration.State)} = " +
+                    $"'{model.EndpointState}' ";
+            }
             var result = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize);
             return new EndpointInfoListModel {
                 ContinuationToken = result.ContinuationToken,

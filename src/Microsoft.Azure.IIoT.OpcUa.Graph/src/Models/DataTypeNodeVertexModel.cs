@@ -7,6 +7,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Gremlin.Net.CosmosDb.Structure;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Opc.Ua;
+    using Opc.Ua.Nodeset.Schema;
 
     /// <summary>
     /// Data type node vertex
@@ -31,5 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// Where it is defining a variable or variable type value
         /// </summary>
         public DataTypeEdgeModel Defines { get; set; }
+        public DataTypeDefinition Definition { get; internal set; }
+        public DataTypePurpose Purpose { get; internal set; }
     }
 }

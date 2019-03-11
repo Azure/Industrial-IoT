@@ -3,6 +3,7 @@
     <CommonVersion>2.0.0</CommonVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <CommonVersion Condition="'$(VersionSuffix)' != ''">$(CommonVersion).*</CommonVersion>
+    <CommonPrereleaseVersion>$(CommonVersion)-*</CommonPrereleaseVersion>
+    <CommonVersion Condition="'$(VersionSuffix)' != ''">$(CommonPrereleaseVersion)</CommonVersion>
   </PropertyGroup>
 </Project>

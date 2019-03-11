@@ -46,6 +46,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public bool? Connected { get; set; }
 
         /// <summary>
+        /// The last state of the the activated endpoint
+        /// </summary>
+        public EndpointConnectivityState? EndpointState { get; set; }
+
+        /// <summary>
         /// Whether to include endpoints that were soft deleted
         /// </summary>
         public bool? IncludeNotSeenSince { get; set; }

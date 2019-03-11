@@ -55,6 +55,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         public uint? WriteMask { get; set; }
 
         /// <summary>
+        /// Default user write mask for the node (default: 0)
+        /// </summary>
+        [JsonProperty(PropertyName = "userWriteMask")]
+        public uint? UserWriteMask { get; set; }
+
+        /// <summary>
         /// Get all role permissions
         /// </summary>
         public RolePermissionEdgeModel RolePermissions { get; set; }
@@ -68,5 +74,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// Get all backward references
         /// </summary>
         public TargetEdgeModel Backward { get; set; }
+        public string SymbolicName { get; internal set; }
     }
 }

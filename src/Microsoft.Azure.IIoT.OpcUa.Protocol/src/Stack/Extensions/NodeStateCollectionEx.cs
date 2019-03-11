@@ -53,7 +53,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="ostrm"></param>
         public static void SaveAsJson(this NodeStateCollection collection, Stream ostrm,
             Newtonsoft.Json.Formatting formatting, ISystemContext context) {
-            using (var encoder = new JsonEncoderEx(ostrm, context.ToSystemContext(),
+            using (var encoder = new JsonEncoderEx(ostrm, context.ToMessageContext(),
                         JsonEncoderEx.JsonEncoding.Array, formatting) {
                 UseAdvancedEncoding = true,
                 IgnoreDefaultValues = true

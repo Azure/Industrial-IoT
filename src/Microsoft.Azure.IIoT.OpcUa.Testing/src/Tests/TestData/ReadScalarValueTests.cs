@@ -787,7 +787,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            Assert.NotNull(result.Value);
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
@@ -818,7 +817,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             // TODO: Assert.Equal("Enumeration", result.DataType);
             Assert.Equal("Int32", result.DataType);
         }
-
 
 
         public async Task NodeReadStaticScalarStructuredValueVariableTest() {

@@ -385,7 +385,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 },
                 ActivationState = ActivationState,
                 NotSeenSince = NotSeenSince,
-                EndpointState = ActivationState== EndpointActivationState.ActivatedAndConnected ?
+                EndpointState = ActivationState == EndpointActivationState.ActivatedAndConnected ?
                     State : (EndpointConnectivityState?)null,
                 OutOfSync = Connected && !_isInSync ? true : (bool?)null
             };

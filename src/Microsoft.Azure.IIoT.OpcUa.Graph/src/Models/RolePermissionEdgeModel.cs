@@ -20,5 +20,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// </summary>
         [JsonProperty(PropertyName = "permissions")]
         public RolePermissions? Permissions { get; set; }
+
+        /// <summary>
+        /// Returns the role id which is the target of the edge
+        /// </summary>
+        [JsonProperty(PropertyName = "roleId")]
+        public string RoleId { get; set; }
     }
 }

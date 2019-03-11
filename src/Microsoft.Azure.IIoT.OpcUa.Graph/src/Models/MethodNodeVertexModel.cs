@@ -18,5 +18,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// </summary>
         [JsonProperty(PropertyName = "executable")]
         public bool? Executable { get; set; }
+
+        /// <summary>
+        /// If method node class, whether method can be called
+        /// by user.
+        /// </summary>
+        [JsonProperty(PropertyName = "userExecutable")]
+        public bool? UserExecutable { get; set; }
     }
 }

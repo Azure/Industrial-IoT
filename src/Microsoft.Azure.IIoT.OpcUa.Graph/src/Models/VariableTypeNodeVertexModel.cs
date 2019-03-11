@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Opc.Ua;
 
     /// <summary>
     /// Variable type node vertex
@@ -40,6 +41,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// </summary>
         [JsonProperty(PropertyName = "value")]
         public JToken Value { get; set; }
+
+        /// <summary>
+        /// Built in type of the value.
+        /// </summary>
+        [JsonProperty(PropertyName = "builtInType")]
+        public BuiltInType BuiltInType { get; set; }
 
         /// <summary>
         /// If variable the datatype of the variable as link to

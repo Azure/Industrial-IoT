@@ -40,21 +40,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// </summary>
         [JsonProperty(PropertyName = "_rev")]
         public long Revision { get; set; }
-
-
-        /// <summary>
-        /// Helper
-        /// </summary>
-        /// <typeparam name="E"></typeparam>
-        /// <param name="sourceId"></param>
-        /// <param name="revision"></param>
-        /// <returns></returns>
-        public static E Create<E>(string sourceId, long revision)
-            where E : AddressSpaceEdgeModel<TOutV, TInV>, new() {
-            return new E {
-                Revision = revision,
-                SourceId = sourceId
-            };
-        }
     }
 }

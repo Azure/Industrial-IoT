@@ -27,18 +27,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         }
 
         /// <summary>
-        /// Convert to variant value
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="encoder"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static JToken ToJToken(this Variant value,
-            IVariantEncoder encoder, ServiceMessageContext context) {
-            return encoder.Encode(value, out var tmp, context);
-        }
-
-        /// <summary>
         /// Convert to text attribute
         /// </summary>
         /// <param name="text"></param>
