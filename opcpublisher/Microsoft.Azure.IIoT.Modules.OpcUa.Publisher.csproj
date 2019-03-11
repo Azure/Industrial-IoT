@@ -7,6 +7,7 @@
     <RuntimeFrameworkVersion>2.1</RuntimeFrameworkVersion>
     <DebugType>portable</DebugType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <HighEntropyVA>true</HighEntropyVA>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
