@@ -624,11 +624,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.True(JToken.DeepEquals(expected, result.Value),
                 $"Expected: {expected} != Actual: {result.Value}");
             Assert.Equal("ByteString", result.DataType);
-            if (JTokenType.Null == result.Value.Type) {
-                return; // Can happen
-            }
             // TODO : Assert.Equal(JTokenType.Bytes, result.Value.Type);
-            Assert.Equal(JTokenType.String, result.Value.Type);
+            // TODO : Assert.Equal(JTokenType.String, result.Value.Type);
         }
 
 
