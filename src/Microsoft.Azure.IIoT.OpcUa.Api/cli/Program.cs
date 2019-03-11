@@ -492,14 +492,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             CliOptions options) {
             if (options.IsSet("-A", "--all")) {
                 var result = await service.ListAllSupervisorsAsync(
-                    options.IsProvidedOrNull("-s", "--server"));
+                    options.IsProvidedOrNull("-S", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
                 var result = await service.ListSupervisorsAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
-                    options.IsProvidedOrNull("-s", "--server"),
+                    options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -517,13 +517,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             };
             if (options.IsSet("-A", "--all")) {
                 var result = await service.QueryAllSupervisorsAsync(query,
-                    options.IsProvidedOrNull("-s", "--server"));
+                    options.IsProvidedOrNull("-S", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
                 var result = await service.QuerySupervisorsAsync(query,
-                    options.IsProvidedOrNull("-s", "--server"),
+                    options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -536,7 +536,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             CliOptions options) {
             var result = await service.GetSupervisorAsync(
                 options.GetValue<string>("-i", "--id"),
-                options.IsProvidedOrNull("-s", "--server"));
+                options.IsProvidedOrNull("-S", "--server"));
             PrintResult(options, result);
         }
 
@@ -772,14 +772,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             CliOptions options) {
             if (options.IsSet("-A", "--all")) {
                 var result = await service.ListAllEndpointsAsync(
-                    options.IsProvidedOrNull("-s", "--server"));
+                    options.IsProvidedOrNull("-S", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
                 var result = await service.ListEndpointsAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
-                    options.IsProvidedOrNull("-s", "--server"),
+                    options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -796,17 +796,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 SecurityPolicy = options.GetValueOrDefault<string>("-l", "--policy", null),
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
                 Activated = options.IsProvidedOrNull("-a", "--activated"),
+                EndpointState = options.GetValueOrDefault<EndpointConnectivityState>(
+                    "-s", "--state", null),
                 IncludeNotSeenSince = options.IsProvidedOrNull("-d", "--deleted")
             };
             if (options.IsSet("-A", "--all")) {
                 var result = await service.QueryAllEndpointsAsync(query,
-                    options.IsProvidedOrNull("-s", "--server"));
+                    options.IsProvidedOrNull("-S", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
                 var result = await service.QueryEndpointsAsync(query,
-                    options.IsProvidedOrNull("-s", "--server"),
+                    options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -912,7 +914,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             CliOptions options) {
             var result = await service.GetEndpointAsync(
                 options.GetValue<string>("-i", "--id"),
-                options.IsProvidedOrNull("-s", "--server"));
+                options.IsProvidedOrNull("-S", "--server"));
             PrintResult(options, result);
         }
 
@@ -1108,7 +1110,7 @@ Commands and Options
 
      list        List endpoints
         with ...
-        -s, --server    Return only server state (default:false)
+        -S, --server    Return only server state (default:false)
         -C, --continuation
                         Continuation from previous result.
         -P, --page-size Size of page
@@ -1116,12 +1118,13 @@ Commands and Options
         -F, --format    Json format for result
 
      query       Find endpoints
-        -s, --server    Return only server state (default:false)
+        -S, --server    Return only server state (default:false)
         -u, --uri       Endpoint uri to seach for
         -m, --mode      Security mode to search for
         -p, --policy    Security policy to match
         -a, --activated Only return activated or deactivated.
         -c, --connected Only return connected or disconnected.
+        -s, --state     Only return endpoints with specified state.
         -d, --deleted   Include soft deleted endpoints.
         -P, --page-size Size of page
         -A, --all       Return all endpoints (unpaged)
@@ -1135,7 +1138,7 @@ Commands and Options
      get         Get endpoint
         with ...
         -i, --id        Id of endpoint to retrieve (mandatory)
-        -s, --server    Return only server state (default:false)
+        -S, --server    Return only server state (default:false)
         -F, --format    Json format for result
 
      update      Update endpoint
@@ -1244,7 +1247,7 @@ Commands and Options
 
      list        List supervisors
         with ...
-        -s, --server    Return only server state (default:false)
+        -S, --server    Return only server state (default:false)
         -C, --continuation
                         Continuation from previous result.
         -P, --page-size Size of page
@@ -1252,7 +1255,7 @@ Commands and Options
         -F, --format    Json format for result
 
      query       Find supervisors
-        -s, --server    Return only server state (default:false)
+        -S, --server    Return only server state (default:false)
         -c, --connected Only return connected or disconnected.
         -d, --discovery Discovery state.
         -s, --siteId    Site of the supervisors.
@@ -1262,7 +1265,7 @@ Commands and Options
 
      get         Get supervisor
         with ...
-        -s, --server    Return only server state (default:false)
+        -S, --server    Return only server state (default:false)
         -i, --id        Id of supervisor to retrieve (mandatory)
         -F, --format    Json format for result
 
