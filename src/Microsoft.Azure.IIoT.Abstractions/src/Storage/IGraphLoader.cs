@@ -39,6 +39,6 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// </summary>
         /// <param name="abort"></param>
         /// <returns></returns>
-        Task CompleteAsync(bool abort= false);
+        Task CompleteAsync(bool abort = false);
     }
 }
