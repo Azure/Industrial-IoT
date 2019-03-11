@@ -4,7 +4,9 @@
     <ComponentsOpcUaVersion>2.0.0</ComponentsOpcUaVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <CommonVersion Condition="'$(VersionSuffix)' != ''">$(CommonVersion).*</CommonVersion>
-    <ComponentsOpcUaVersion Condition="'$(VersionSuffix)' != ''">$(ComponentsOpcUaVersion).*</ComponentsOpcUaVersion>
+    <CommonPrereleaseVersion>$(CommonVersion)-*</CommonPrereleaseVersion>
+    <CommonVersion Condition="'$(VersionSuffix)' != ''">$(CommonPrereleaseVersion)</CommonVersion>
+    <ComponentsOpcUaPrereleaseVersion>$(ComponentsOpcUaVersion)-*</ComponentsOpcUaPrereleaseVersion>
+    <ComponentsOpcUaVersion Condition="'$(VersionSuffix)' != ''">$(ComponentsOpcUaPrereleaseVersion)</ComponentsOpcUaVersion>
   </PropertyGroup>
 </Project>
