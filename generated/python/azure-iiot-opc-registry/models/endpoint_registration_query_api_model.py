@@ -33,6 +33,11 @@ class EndpointRegistrationQueryApiModel(Model):
     :type activated: bool
     :param connected: Whether the endpoint is connected on supervisor.
     :type connected: bool
+    :param endpoint_state: The last state of the the activated endpoint.
+     Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
+     'CertificateInvalid', 'Ready', 'Error'
+    :type endpoint_state: str or
+     ~azure-iiot-opc-registry.models.EndpointConnectivityState
     :param include_not_seen_since: Whether to include endpoints that were soft
      deleted
     :type include_not_seen_since: bool
@@ -46,10 +51,11 @@ class EndpointRegistrationQueryApiModel(Model):
         'security_policy': {'key': 'securityPolicy', 'type': 'str'},
         'activated': {'key': 'activated', 'type': 'bool'},
         'connected': {'key': 'connected', 'type': 'bool'},
+        'endpoint_state': {'key': 'endpointState', 'type': 'EndpointConnectivityState'},
         'include_not_seen_since': {'key': 'includeNotSeenSince', 'type': 'bool'},
     }
 
-    def __init__(self, url=None, user_authentication=None, certificate=None, security_mode=None, security_policy=None, activated=None, connected=None, include_not_seen_since=None):
+    def __init__(self, url=None, user_authentication=None, certificate=None, security_mode=None, security_policy=None, activated=None, connected=None, endpoint_state=None, include_not_seen_since=None):
         super(EndpointRegistrationQueryApiModel, self).__init__()
         self.url = url
         self.user_authentication = user_authentication
@@ -58,4 +64,5 @@ class EndpointRegistrationQueryApiModel(Model):
         self.security_policy = security_policy
         self.activated = activated
         self.connected = connected
+        self.endpoint_state = endpoint_state
         self.include_not_seen_since = include_not_seen_since

@@ -673,6 +673,12 @@ export interface EndpointRegistrationQueryApiModel {
    */
   connected?: boolean;
   /**
+   * @member {EndpointConnectivityState} [endpointState] The last state of the
+   * the activated endpoint. Possible values include: 'Connecting',
+   * 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   */
+  endpointState?: EndpointConnectivityState;
+  /**
    * @member {boolean} [includeNotSeenSince] Whether to include endpoints that
    * were soft deleted
    */
@@ -1083,6 +1089,12 @@ export interface AzureOpcRegistryClientGetFilteredListOfEndpointsOptionalParams 
    */
   connected?: boolean;
   /**
+   * @member {EndpointState} [endpointState] The last state of the the
+   * activated endpoint. Possible values include: 'Connecting', 'NotReachable',
+   * 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   */
+  endpointState?: EndpointState;
+  /**
    * @member {boolean} [includeNotSeenSince] Whether to include endpoints that
    * were soft deleted
    */
@@ -1291,6 +1303,15 @@ export type UserAuthentication = 'None' | 'UserName' | 'X509Certificate' | 'JwtT
  * @enum {string}
  */
 export type SecurityMode1 = 'Best' | 'Sign' | 'SignAndEncrypt' | 'None';
+
+/**
+ * Defines values for EndpointState.
+ * Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
+ * 'Ready', 'Error'
+ * @readonly
+ * @enum {string}
+ */
+export type EndpointState = 'Connecting' | 'NotReachable' | 'Busy' | 'NoTrust' | 'CertificateInvalid' | 'Ready' | 'Error';
 
 /**
  * Defines values for Discovery.

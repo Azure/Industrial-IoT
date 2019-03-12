@@ -2092,6 +2092,10 @@ function _getListOfEndpoints(options, callback) {
  * @param {boolean} [options.connected] Whether the endpoint is connected on
  * supervisor.
  *
+ * @param {string} [options.endpointState] The last state of the the activated
+ * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
+ * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+ *
  * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
  * that were soft deleted
  *
@@ -2136,6 +2140,7 @@ function _getFilteredListOfEndpoints(options, callback) {
   let securityPolicy = (options && options.securityPolicy !== undefined) ? options.securityPolicy : undefined;
   let activated = (options && options.activated !== undefined) ? options.activated : undefined;
   let connected = (options && options.connected !== undefined) ? options.connected : undefined;
+  let endpointState = (options && options.endpointState !== undefined) ? options.endpointState : undefined;
   let includeNotSeenSince = (options && options.includeNotSeenSince !== undefined) ? options.includeNotSeenSince : undefined;
   let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
   let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
@@ -2161,6 +2166,9 @@ function _getFilteredListOfEndpoints(options, callback) {
     }
     if (connected !== null && connected !== undefined && typeof connected !== 'boolean') {
       throw new Error('connected must be of type boolean.');
+    }
+    if (endpointState !== null && endpointState !== undefined && typeof endpointState.valueOf() !== 'string') {
+      throw new Error('endpointState must be of type string.');
     }
     if (includeNotSeenSince !== null && includeNotSeenSince !== undefined && typeof includeNotSeenSince !== 'boolean') {
       throw new Error('includeNotSeenSince must be of type boolean.');
@@ -2199,6 +2207,9 @@ function _getFilteredListOfEndpoints(options, callback) {
   }
   if (connected !== null && connected !== undefined) {
     queryParameters.push('Connected=' + encodeURIComponent(connected.toString()));
+  }
+  if (endpointState !== null && endpointState !== undefined) {
+    queryParameters.push('EndpointState=' + encodeURIComponent(endpointState));
   }
   if (includeNotSeenSince !== null && includeNotSeenSince !== undefined) {
     queryParameters.push('IncludeNotSeenSince=' + encodeURIComponent(includeNotSeenSince.toString()));
@@ -2309,6 +2320,10 @@ function _getFilteredListOfEndpoints(options, callback) {
  *
  * @param {boolean} [query.connected] Whether the endpoint is connected on
  * supervisor.
+ *
+ * @param {string} [query.endpointState] The last state of the the activated
+ * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
+ * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
  *
  * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
  * that were soft deleted
@@ -5496,6 +5511,10 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [options.connected] Whether the endpoint is connected on
    * supervisor.
    *
+   * @param {string} [options.endpointState] The last state of the the activated
+   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
+   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   *
    * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
    *
@@ -5557,6 +5576,10 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {boolean} [options.connected] Whether the endpoint is connected on
    * supervisor.
+   *
+   * @param {string} [options.endpointState] The last state of the the activated
+   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
+   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
    *
    * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
@@ -5643,6 +5666,10 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [query.connected] Whether the endpoint is connected on
    * supervisor.
    *
+   * @param {string} [query.endpointState] The last state of the the activated
+   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
+   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   *
    * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
    *
@@ -5704,6 +5731,10 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {boolean} [query.connected] Whether the endpoint is connected on
    * supervisor.
+   *
+   * @param {string} [query.endpointState] The last state of the the activated
+   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
+   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
    *
    * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted

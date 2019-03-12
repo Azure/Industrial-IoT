@@ -700,14 +700,19 @@ export const BrowsePathRequestApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
-      pathElements: {
+      browsePaths: {
         required: true,
-        serializedName: "pathElements",
+        serializedName: "browsePaths",
         type: {
           name: "Sequence",
           element: {
             type: {
-              name: "String"
+              name: "Sequence",
+              element: {
+                type: {
+                  name: "String"
+                }
+              }
             }
           }
         }
@@ -736,8 +741,18 @@ export const NodePathTargetApiModel: msRest.CompositeMapper = {
     name: "Composite",
     className: "NodePathTargetApiModel",
     modelProperties: {
+      browsePath: {
+        serializedName: "browsePath",
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "String"
+            }
+          }
+        }
+      },
       target: {
-        required: true,
         serializedName: "target",
         type: {
           name: "Composite",

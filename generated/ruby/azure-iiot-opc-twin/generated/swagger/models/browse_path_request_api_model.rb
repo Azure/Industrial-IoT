@@ -13,14 +13,13 @@ module azure.iiot.opc.twin
     # Browse nodes by path
     #
     class BrowsePathRequestApiModel
-      # @return [String] Node to browse.
+      # @return [String] Node to browse from.
       # (default: RootFolder).
       attr_accessor :node_id
 
-      # @return [Array<String>] The path elements of the path to browse from
-      # node.
+      # @return [Array<Array<String>>] The paths to browse from node.
       # (mandatory)
-      attr_accessor :path_elements
+      attr_accessor :browse_paths
 
       # @return [Boolean] Whether to read variable values on target nodes.
       # (default is false). Default value: false .
@@ -51,18 +50,26 @@ module azure.iiot.opc.twin
                   name: 'String'
                 }
               },
-              path_elements: {
+              browse_paths: {
                 client_side_validation: true,
                 required: true,
-                serialized_name: 'pathElements',
+                serialized_name: 'browsePaths',
                 type: {
                   name: 'Sequence',
                   element: {
                       client_side_validation: true,
                       required: false,
-                      serialized_name: 'StringElementType',
+                      serialized_name: 'ArrayElementType',
                       type: {
-                        name: 'String'
+                        name: 'Sequence',
+                        element: {
+                            client_side_validation: true,
+                            required: false,
+                            serialized_name: 'StringElementType',
+                            type: {
+                              name: 'String'
+                            }
+                        }
                       }
                   }
                 }

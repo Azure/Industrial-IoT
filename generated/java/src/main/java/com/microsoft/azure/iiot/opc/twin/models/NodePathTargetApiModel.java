@@ -10,6 +10,7 @@
 
 package com.microsoft.azure.iiot.opc.twin.models;
 
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -17,9 +18,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class NodePathTargetApiModel {
     /**
+     * The target browse path.
+     */
+    @JsonProperty(value = "browsePath")
+    private List<String> browsePath;
+
+    /**
      * Target node.
      */
-    @JsonProperty(value = "target", required = true)
+    @JsonProperty(value = "target")
     private NodeApiModel target;
 
     /**
@@ -27,6 +34,26 @@ public class NodePathTargetApiModel {
      */
     @JsonProperty(value = "remainingPathIndex")
     private Integer remainingPathIndex;
+
+    /**
+     * Get the target browse path.
+     *
+     * @return the browsePath value
+     */
+    public List<String> browsePath() {
+        return this.browsePath;
+    }
+
+    /**
+     * Set the target browse path.
+     *
+     * @param browsePath the browsePath value to set
+     * @return the NodePathTargetApiModel object itself.
+     */
+    public NodePathTargetApiModel withBrowsePath(List<String> browsePath) {
+        this.browsePath = browsePath;
+        return this;
+    }
 
     /**
      * Get target node.

@@ -17,7 +17,8 @@
 class NodePathTargetApiModel {
   /**
    * Create a NodePathTargetApiModel.
-   * @property {object} target Target node
+   * @property {array} [browsePath] The target browse path
+   * @property {object} [target] Target node
    * @property {string} [target.nodeClass] Type of node. Possible values
    * include: 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType',
    * 'ReferenceType', 'DataType', 'View'
@@ -123,8 +124,22 @@ class NodePathTargetApiModel {
         name: 'Composite',
         className: 'NodePathTargetApiModel',
         modelProperties: {
+          browsePath: {
+            required: false,
+            serializedName: 'browsePath',
+            type: {
+              name: 'Sequence',
+              element: {
+                  required: false,
+                  serializedName: 'StringElementType',
+                  type: {
+                    name: 'String'
+                  }
+              }
+            }
+          },
           target: {
-            required: true,
+            required: false,
             serializedName: 'target',
             type: {
               name: 'Composite',

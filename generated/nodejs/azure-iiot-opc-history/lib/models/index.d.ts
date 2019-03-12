@@ -558,6 +558,11 @@ export interface EndpointRegistrationQueryApiModel {
    */
   connected?: boolean;
   /**
+   * The last state of the the activated endpoint. Possible values include: 'Connecting',
+   * 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   */
+  endpointState?: string;
+  /**
    * Whether to include endpoints that were soft deleted
    */
   includeNotSeenSince?: boolean;

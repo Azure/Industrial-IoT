@@ -42,9 +42,12 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// <param name="activated">Whether the endpoint was activated</param>
         /// <param name="connected">Whether the endpoint is connected on
         /// supervisor.</param>
+        /// <param name="endpointState">The last state of the the activated
+        /// endpoint. Possible values include: 'Connecting', 'NotReachable',
+        /// 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'</param>
         /// <param name="includeNotSeenSince">Whether to include endpoints that
         /// were soft deleted</param>
-        public EndpointRegistrationQueryApiModel(string url = default(string), CredentialType? userAuthentication = default(CredentialType?), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), bool? includeNotSeenSince = default(bool?))
+        public EndpointRegistrationQueryApiModel(string url = default(string), CredentialType? userAuthentication = default(CredentialType?), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?))
         {
             Url = url;
             UserAuthentication = userAuthentication;
@@ -53,6 +56,7 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
             SecurityPolicy = securityPolicy;
             Activated = activated;
             Connected = connected;
+            EndpointState = endpointState;
             IncludeNotSeenSince = includeNotSeenSince;
             CustomInit();
         }
@@ -106,6 +110,14 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// </summary>
         [JsonProperty(PropertyName = "connected")]
         public bool? Connected { get; set; }
+
+        /// <summary>
+        /// Gets or sets the last state of the the activated endpoint. Possible
+        /// values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
+        /// 'CertificateInvalid', 'Ready', 'Error'
+        /// </summary>
+        [JsonProperty(PropertyName = "endpointState")]
+        public EndpointConnectivityState? EndpointState { get; set; }
 
         /// <summary>
         /// Gets or sets whether to include endpoints that were soft deleted

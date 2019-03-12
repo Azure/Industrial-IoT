@@ -15,22 +15,22 @@ from msrest.serialization import Model
 class NodePathTargetApiModel(Model):
     """Node path target.
 
+    :param browse_path: The target browse path
+    :type browse_path: list[str]
     :param target: Target node
     :type target: ~azure-iiot-opc-twin.models.NodeApiModel
     :param remaining_path_index: Remaining index in path
     :type remaining_path_index: int
     """
 
-    _validation = {
-        'target': {'required': True},
-    }
-
     _attribute_map = {
+        'browse_path': {'key': 'browsePath', 'type': '[str]'},
         'target': {'key': 'target', 'type': 'NodeApiModel'},
         'remaining_path_index': {'key': 'remainingPathIndex', 'type': 'int'},
     }
 
-    def __init__(self, target, remaining_path_index=None):
+    def __init__(self, browse_path=None, target=None, remaining_path_index=None):
         super(NodePathTargetApiModel, self).__init__()
+        self.browse_path = browse_path
         self.target = target
         self.remaining_path_index = remaining_path_index

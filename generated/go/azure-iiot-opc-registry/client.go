@@ -708,13 +708,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             // securityPolicy - security policy uri
             // activated - whether the endpoint was activated
             // connected - whether the endpoint is connected on supervisor.
+            // endpointState - the last state of the the activated endpoint
             // includeNotSeenSince - whether to include endpoints that were soft
             // deleted
             // onlyServerState - whether to include only server state, or display
             // current client state of the endpoint if available
             // pageSize - optional number of results to
             // return
-    func (client BaseClient) GetFilteredListOfEndpoints(ctx context.Context, URLParameter string, userAuthentication string, certificate []byte, securityMode string, securityPolicy string, activated *bool, connected *bool, includeNotSeenSince *bool, onlyServerState *bool, pageSize *int32) (result EndpointInfoListAPIModel, err error) {
+    func (client BaseClient) GetFilteredListOfEndpoints(ctx context.Context, URLParameter string, userAuthentication string, certificate []byte, securityMode string, securityPolicy string, activated *bool, connected *bool, endpointState string, includeNotSeenSince *bool, onlyServerState *bool, pageSize *int32) (result EndpointInfoListAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetFilteredListOfEndpoints")
             defer func() {
@@ -725,7 +726,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.GetFilteredListOfEndpointsPreparer(ctx, URLParameter, userAuthentication, certificate, securityMode, securityPolicy, activated, connected, includeNotSeenSince, onlyServerState, pageSize)
+            req, err := client.GetFilteredListOfEndpointsPreparer(ctx, URLParameter, userAuthentication, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetFilteredListOfEndpoints", nil , "Failure preparing request")
         return
@@ -747,7 +748,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // GetFilteredListOfEndpointsPreparer prepares the GetFilteredListOfEndpoints request.
-        func (client BaseClient) GetFilteredListOfEndpointsPreparer(ctx context.Context, URLParameter string, userAuthentication string, certificate []byte, securityMode string, securityPolicy string, activated *bool, connected *bool, includeNotSeenSince *bool, onlyServerState *bool, pageSize *int32) (*http.Request, error) {
+        func (client BaseClient) GetFilteredListOfEndpointsPreparer(ctx context.Context, URLParameter string, userAuthentication string, certificate []byte, securityMode string, securityPolicy string, activated *bool, connected *bool, endpointState string, includeNotSeenSince *bool, onlyServerState *bool, pageSize *int32) (*http.Request, error) {
                     queryParameters := map[string]interface{} {
             }
                 if len(URLParameter) > 0 {
@@ -770,6 +771,9 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 }
                 if connected != nil {
                 queryParameters["Connected"] = autorest.Encode("query",*connected)
+                }
+                if len(string(endpointState)) > 0 {
+                queryParameters["EndpointState"] = autorest.Encode("query",endpointState)
                 }
                 if includeNotSeenSince != nil {
                 queryParameters["IncludeNotSeenSince"] = autorest.Encode("query",*includeNotSeenSince)

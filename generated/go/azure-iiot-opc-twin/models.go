@@ -485,12 +485,12 @@ const fqdn = "go/azure-iiot-opc-twin"
 
             // BrowsePathRequestAPIModel browse nodes by path
             type BrowsePathRequestAPIModel struct {
-            // NodeID - Node to browse.
+            // NodeID - Node to browse from.
             // (default: RootFolder).
             NodeID *string `json:"nodeId,omitempty"`
-            // PathElements - The path elements of the path to browse from node.
+            // BrowsePaths - The paths to browse from node.
             // (mandatory)
-            PathElements *[]string `json:"pathElements,omitempty"`
+            BrowsePaths *[][]string `json:"browsePaths,omitempty"`
             // ReadVariableValues - Whether to read variable values on target nodes.
             // (default is false)
             ReadVariableValues *bool `json:"readVariableValues,omitempty"`
@@ -757,6 +757,8 @@ const fqdn = "go/azure-iiot-opc-twin"
 
             // NodePathTargetAPIModel node path target
             type NodePathTargetAPIModel struct {
+            // BrowsePath - The target browse path
+            BrowsePath *[]string `json:"browsePath,omitempty"`
             // Target - Target node
             Target *NodeAPIModel `json:"target,omitempty"`
             // RemainingPathIndex - Remaining index in path

@@ -894,7 +894,7 @@ class AzureOpcHistoryClient(object):
     get_list_of_endpoints.metadata = {'url': '/v1/endpoints'}
 
     def get_filtered_list_of_endpoints(
-            self, url=None, user_authentication=None, certificate=None, security_mode=None, security_policy=None, activated=None, connected=None, include_not_seen_since=None, only_server_state=None, page_size=None, custom_headers=None, raw=False, **operation_config):
+            self, url=None, user_authentication=None, certificate=None, security_mode=None, security_policy=None, activated=None, connected=None, endpoint_state=None, include_not_seen_since=None, only_server_state=None, page_size=None, custom_headers=None, raw=False, **operation_config):
         """Get filtered list of endpoints.
 
         Get a list of endpoints filtered using the specified query parameters.
@@ -920,6 +920,10 @@ class AzureOpcHistoryClient(object):
         :type activated: bool
         :param connected: Whether the endpoint is connected on supervisor.
         :type connected: bool
+        :param endpoint_state: The last state of the the activated endpoint.
+         Possible values include: 'Connecting', 'NotReachable', 'Busy',
+         'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+        :type endpoint_state: str
         :param include_not_seen_since: Whether to include endpoints that were
          soft deleted
         :type include_not_seen_since: bool
@@ -960,6 +964,8 @@ class AzureOpcHistoryClient(object):
             query_parameters['Activated'] = self._serialize.query("activated", activated, 'bool')
         if connected is not None:
             query_parameters['Connected'] = self._serialize.query("connected", connected, 'bool')
+        if endpoint_state is not None:
+            query_parameters['EndpointState'] = self._serialize.query("endpoint_state", endpoint_state, 'str')
         if include_not_seen_since is not None:
             query_parameters['IncludeNotSeenSince'] = self._serialize.query("include_not_seen_since", include_not_seen_since, 'bool')
         if only_server_state is not None:

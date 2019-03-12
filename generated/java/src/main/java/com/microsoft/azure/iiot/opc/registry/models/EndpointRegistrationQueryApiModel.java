@@ -61,6 +61,14 @@ public class EndpointRegistrationQueryApiModel {
     private Boolean connected;
 
     /**
+     * The last state of the the activated endpoint. Possible values include:
+     * 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
+     * 'Ready', 'Error'.
+     */
+    @JsonProperty(value = "endpointState")
+    private EndpointConnectivityState endpointState;
+
+    /**
      * Whether to include endpoints that were soft deleted.
      */
     @JsonProperty(value = "includeNotSeenSince")
@@ -203,6 +211,26 @@ public class EndpointRegistrationQueryApiModel {
      */
     public EndpointRegistrationQueryApiModel withConnected(Boolean connected) {
         this.connected = connected;
+        return this;
+    }
+
+    /**
+     * Get the last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
+     *
+     * @return the endpointState value
+     */
+    public EndpointConnectivityState endpointState() {
+        return this.endpointState;
+    }
+
+    /**
+     * Set the last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
+     *
+     * @param endpointState the endpointState value to set
+     * @return the EndpointRegistrationQueryApiModel object itself.
+     */
+    public EndpointRegistrationQueryApiModel withEndpointState(EndpointConnectivityState endpointState) {
+        this.endpointState = endpointState;
         return this;
     }
 

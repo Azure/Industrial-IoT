@@ -742,6 +742,11 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='connected'>
             /// Whether the endpoint is connected on supervisor.
             /// </param>
+            /// <param name='endpointState'>
+            /// The last state of the the activated endpoint. Possible values include:
+            /// 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
+            /// 'Ready', 'Error'
+            /// </param>
             /// <param name='includeNotSeenSince'>
             /// Whether to include endpoints that were soft deleted
             /// </param>
@@ -753,9 +758,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Optional number of results to
             /// return
             /// </param>
-            public static EndpointInfoListApiModel GetFilteredListOfEndpoints(this IAzureOpcRegistryClient operations, string url = default(string), string userAuthentication = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?))
+            public static EndpointInfoListApiModel GetFilteredListOfEndpoints(this IAzureOpcRegistryClient operations, string url = default(string), string userAuthentication = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), string endpointState = default(string), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?))
             {
-                return operations.GetFilteredListOfEndpointsAsync(url, userAuthentication, certificate, securityMode, securityPolicy, activated, connected, includeNotSeenSince, onlyServerState, pageSize).GetAwaiter().GetResult();
+                return operations.GetFilteredListOfEndpointsAsync(url, userAuthentication, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -794,6 +799,11 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='connected'>
             /// Whether the endpoint is connected on supervisor.
             /// </param>
+            /// <param name='endpointState'>
+            /// The last state of the the activated endpoint. Possible values include:
+            /// 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
+            /// 'Ready', 'Error'
+            /// </param>
             /// <param name='includeNotSeenSince'>
             /// Whether to include endpoints that were soft deleted
             /// </param>
@@ -808,9 +818,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<EndpointInfoListApiModel> GetFilteredListOfEndpointsAsync(this IAzureOpcRegistryClient operations, string url = default(string), string userAuthentication = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<EndpointInfoListApiModel> GetFilteredListOfEndpointsAsync(this IAzureOpcRegistryClient operations, string url = default(string), string userAuthentication = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), string endpointState = default(string), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.GetFilteredListOfEndpointsWithHttpMessagesAsync(url, userAuthentication, certificate, securityMode, securityPolicy, activated, connected, includeNotSeenSince, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.GetFilteredListOfEndpointsWithHttpMessagesAsync(url, userAuthentication, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }

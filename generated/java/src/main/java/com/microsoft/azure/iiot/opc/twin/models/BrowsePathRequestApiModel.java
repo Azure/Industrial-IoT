@@ -18,18 +18,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class BrowsePathRequestApiModel {
     /**
-     * Node to browse.
+     * Node to browse from.
      * (default: RootFolder).
      */
     @JsonProperty(value = "nodeId")
     private String nodeId;
 
     /**
-     * The path elements of the path to browse from node.
+     * The paths to browse from node.
      * (mandatory).
      */
-    @JsonProperty(value = "pathElements", required = true)
-    private List<String> pathElements;
+    @JsonProperty(value = "browsePaths", required = true)
+    private List<List<String>> browsePaths;
 
     /**
      * Whether to read variable values on target nodes.
@@ -45,7 +45,7 @@ public class BrowsePathRequestApiModel {
     private RequestHeaderApiModel headerProperty;
 
     /**
-     * Get node to browse.
+     * Get node to browse from.
      (default: RootFolder).
      *
      * @return the nodeId value
@@ -55,7 +55,7 @@ public class BrowsePathRequestApiModel {
     }
 
     /**
-     * Set node to browse.
+     * Set node to browse from.
      (default: RootFolder).
      *
      * @param nodeId the nodeId value to set
@@ -67,24 +67,24 @@ public class BrowsePathRequestApiModel {
     }
 
     /**
-     * Get the path elements of the path to browse from node.
+     * Get the paths to browse from node.
      (mandatory).
      *
-     * @return the pathElements value
+     * @return the browsePaths value
      */
-    public List<String> pathElements() {
-        return this.pathElements;
+    public List<List<String>> browsePaths() {
+        return this.browsePaths;
     }
 
     /**
-     * Set the path elements of the path to browse from node.
+     * Set the paths to browse from node.
      (mandatory).
      *
-     * @param pathElements the pathElements value to set
+     * @param browsePaths the browsePaths value to set
      * @return the BrowsePathRequestApiModel object itself.
      */
-    public BrowsePathRequestApiModel withPathElements(List<String> pathElements) {
-        this.pathElements = pathElements;
+    public BrowsePathRequestApiModel withBrowsePaths(List<List<String>> browsePaths) {
+        this.browsePaths = browsePaths;
         return this;
     }
 

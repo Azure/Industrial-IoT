@@ -1016,18 +1016,25 @@ and server must trust each other.
             'BrowsePathRequestApiModel' => [
                 'properties' => [
                     'nodeId' => ['type' => 'string'],
-                    'pathElements' => [
+                    'browsePaths' => [
                         'type' => 'array',
-                        'items' => ['type' => 'string']
+                        'items' => [
+                            'type' => 'array',
+                            'items' => ['type' => 'string']
+                        ]
                     ],
                     'readVariableValues' => ['type' => 'boolean'],
                     'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
-                'required' => ['pathElements']
+                'required' => ['browsePaths']
             ],
             'NodePathTargetApiModel' => [
                 'properties' => [
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
                     'target' => ['$ref' => '#/definitions/NodeApiModel'],
                     'remainingPathIndex' => [
                         'type' => 'integer',
@@ -1035,7 +1042,7 @@ and server must trust each other.
                     ]
                 ],
                 'additionalProperties' => FALSE,
-                'required' => ['target']
+                'required' => []
             ],
             'BrowsePathResponseApiModel' => [
                 'properties' => [

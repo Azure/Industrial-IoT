@@ -2512,6 +2512,11 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='connected'>
         /// Whether the endpoint is connected on supervisor.
         /// </param>
+        /// <param name='endpointState'>
+        /// The last state of the the activated endpoint. Possible values include:
+        /// 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
+        /// 'Ready', 'Error'
+        /// </param>
         /// <param name='includeNotSeenSince'>
         /// Whether to include endpoints that were soft deleted
         /// </param>
@@ -2538,7 +2543,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<EndpointInfoListApiModel>> GetFilteredListOfEndpointsWithHttpMessagesAsync(string url = default(string), string userAuthentication = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<EndpointInfoListApiModel>> GetFilteredListOfEndpointsWithHttpMessagesAsync(string url = default(string), string userAuthentication = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), string endpointState = default(string), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2554,6 +2559,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 tracingParameters.Add("securityPolicy", securityPolicy);
                 tracingParameters.Add("activated", activated);
                 tracingParameters.Add("connected", connected);
+                tracingParameters.Add("endpointState", endpointState);
                 tracingParameters.Add("includeNotSeenSince", includeNotSeenSince);
                 tracingParameters.Add("onlyServerState", onlyServerState);
                 tracingParameters.Add("pageSize", pageSize);
@@ -2591,6 +2597,10 @@ namespace Microsoft.Azure.IIoT.Opc.History
             if (connected != null)
             {
                 _queryParameters.Add(string.Format("Connected={0}", System.Uri.EscapeDataString(SafeJsonConvert.SerializeObject(connected, SerializationSettings).Trim('"'))));
+            }
+            if (endpointState != null)
+            {
+                _queryParameters.Add(string.Format("EndpointState={0}", System.Uri.EscapeDataString(SafeJsonConvert.SerializeObject(endpointState, SerializationSettings).Trim('"'))));
             }
             if (includeNotSeenSince != null)
             {

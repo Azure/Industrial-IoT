@@ -1051,6 +1051,21 @@ export const EndpointRegistrationQueryApiModel: msRest.CompositeMapper = {
           name: "Boolean"
         }
       },
+      endpointState: {
+        serializedName: "endpointState",
+        type: {
+          name: "Enum",
+          allowedValues: [
+            "Connecting",
+            "NotReachable",
+            "Busy",
+            "NoTrust",
+            "CertificateInvalid",
+            "Ready",
+            "Error"
+          ]
+        }
+      },
       includeNotSeenSince: {
         serializedName: "includeNotSeenSince",
         type: {

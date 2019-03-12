@@ -1081,6 +1081,7 @@ const getFilteredListOfEndpointsOperationSpec: msRest.OperationSpec = {
     Parameters.securityPolicy,
     Parameters.activated,
     Parameters.connected,
+    Parameters.endpointState,
     Parameters.includeNotSeenSince,
     Parameters.onlyServerState,
     Parameters.pageSize

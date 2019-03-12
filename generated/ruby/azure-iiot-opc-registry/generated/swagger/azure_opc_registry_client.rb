@@ -1494,6 +1494,9 @@ module azure.iiot.opc.registry
     # @param security_policy [String] Security policy uri
     # @param activated [Boolean] Whether the endpoint was activated
     # @param connected [Boolean] Whether the endpoint is connected on supervisor.
+    # @param endpoint_state [Enum] The last state of the the activated endpoint.
+    # Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
+    # 'CertificateInvalid', 'Ready', 'Error'
     # @param include_not_seen_since [Boolean] Whether to include endpoints that
     # were soft deleted
     # @param only_server_state [Boolean] Whether to include only server state, or
@@ -1506,8 +1509,8 @@ module azure.iiot.opc.registry
     #
     # @return [EndpointInfoListApiModel] operation results.
     #
-    def get_filtered_list_of_endpoints(url:nil, user_authentication:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-      response = get_filtered_list_of_endpoints_async(url:url, user_authentication:user_authentication, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, include_not_seen_since:include_not_seen_since, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    def get_filtered_list_of_endpoints(url:nil, user_authentication:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+      response = get_filtered_list_of_endpoints_async(url:url, user_authentication:user_authentication, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, endpoint_state:endpoint_state, include_not_seen_since:include_not_seen_since, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
@@ -1530,6 +1533,9 @@ module azure.iiot.opc.registry
     # @param security_policy [String] Security policy uri
     # @param activated [Boolean] Whether the endpoint was activated
     # @param connected [Boolean] Whether the endpoint is connected on supervisor.
+    # @param endpoint_state [Enum] The last state of the the activated endpoint.
+    # Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
+    # 'CertificateInvalid', 'Ready', 'Error'
     # @param include_not_seen_since [Boolean] Whether to include endpoints that
     # were soft deleted
     # @param only_server_state [Boolean] Whether to include only server state, or
@@ -1542,8 +1548,8 @@ module azure.iiot.opc.registry
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def get_filtered_list_of_endpoints_with_http_info(url:nil, user_authentication:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-      get_filtered_list_of_endpoints_async(url:url, user_authentication:user_authentication, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, include_not_seen_since:include_not_seen_since, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    def get_filtered_list_of_endpoints_with_http_info(url:nil, user_authentication:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+      get_filtered_list_of_endpoints_async(url:url, user_authentication:user_authentication, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, endpoint_state:endpoint_state, include_not_seen_since:include_not_seen_since, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
     end
 
     #
@@ -1565,6 +1571,9 @@ module azure.iiot.opc.registry
     # @param security_policy [String] Security policy uri
     # @param activated [Boolean] Whether the endpoint was activated
     # @param connected [Boolean] Whether the endpoint is connected on supervisor.
+    # @param endpoint_state [Enum] The last state of the the activated endpoint.
+    # Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
+    # 'CertificateInvalid', 'Ready', 'Error'
     # @param include_not_seen_since [Boolean] Whether to include endpoints that
     # were soft deleted
     # @param only_server_state [Boolean] Whether to include only server state, or
@@ -1577,7 +1586,7 @@ module azure.iiot.opc.registry
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def get_filtered_list_of_endpoints_async(url:nil, user_authentication:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+    def get_filtered_list_of_endpoints_async(url:nil, user_authentication:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
 
 
       request_headers = {}
@@ -1588,7 +1597,7 @@ module azure.iiot.opc.registry
 
       options = {
           middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'Url' => url,'UserAuthentication' => user_authentication,'Certificate' => certificate,'SecurityMode' => security_mode,'SecurityPolicy' => security_policy,'Activated' => activated,'Connected' => connected,'IncludeNotSeenSince' => include_not_seen_since,'onlyServerState' => only_server_state,'pageSize' => page_size},
+          query_params: {'Url' => url,'UserAuthentication' => user_authentication,'Certificate' => certificate,'SecurityMode' => security_mode,'SecurityPolicy' => security_policy,'Activated' => activated,'Connected' => connected,'EndpointState' => endpoint_state,'IncludeNotSeenSince' => include_not_seen_since,'onlyServerState' => only_server_state,'pageSize' => page_size},
           headers: request_headers.merge(custom_headers || {}),
           base_url: request_url
       }

@@ -264,6 +264,7 @@ more results.
      * @param string|null $securityPolicy
      * @param boolean|null $activated
      * @param boolean|null $connected
+     * @param string|null $endpointState
      * @param boolean|null $includeNotSeenSince
      * @param boolean|null $onlyServerState
      * @param integer|null $pageSize
@@ -277,6 +278,7 @@ more results.
         $securityPolicy = null,
         $activated = null,
         $connected = null,
+        $endpointState = null,
         $includeNotSeenSince = null,
         $onlyServerState = null,
         $pageSize = null
@@ -290,6 +292,7 @@ more results.
             'SecurityPolicy' => $securityPolicy,
             'Activated' => $activated,
             'Connected' => $connected,
+            'EndpointState' => $endpointState,
             'IncludeNotSeenSince' => $includeNotSeenSince,
             'onlyServerState' => $onlyServerState,
             'pageSize' => $pageSize
@@ -856,6 +859,21 @@ more results.
                             'in' => 'query',
                             'required' => FALSE,
                             'type' => 'boolean'
+                        ],
+                        [
+                            'name' => 'EndpointState',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'string',
+                            'enum' => [
+                                'Connecting',
+                                'NotReachable',
+                                'Busy',
+                                'NoTrust',
+                                'CertificateInvalid',
+                                'Ready',
+                                'Error'
+                            ]
                         ],
                         [
                             'name' => 'IncludeNotSeenSince',
@@ -1508,6 +1526,18 @@ more results.
                     'securityPolicy' => ['type' => 'string'],
                     'activated' => ['type' => 'boolean'],
                     'connected' => ['type' => 'boolean'],
+                    'endpointState' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Connecting',
+                            'NotReachable',
+                            'Busy',
+                            'NoTrust',
+                            'CertificateInvalid',
+                            'Ready',
+                            'Error'
+                        ]
+                    ],
                     'includeNotSeenSince' => ['type' => 'boolean']
                 ],
                 'additionalProperties' => FALSE,

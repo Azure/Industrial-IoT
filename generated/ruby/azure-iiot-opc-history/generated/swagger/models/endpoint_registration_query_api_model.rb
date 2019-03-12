@@ -37,6 +37,11 @@ module azure.iiot.opc.history
       # @return [Boolean] Whether the endpoint is connected on supervisor.
       attr_accessor :connected
 
+      # @return [EndpointConnectivityState] The last state of the the activated
+      # endpoint. Possible values include: 'Connecting', 'NotReachable',
+      # 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+      attr_accessor :endpoint_state
+
       # @return [Boolean] Whether to include endpoints that were soft deleted
       attr_accessor :include_not_seen_since
 
@@ -110,6 +115,15 @@ module azure.iiot.opc.history
                 serialized_name: 'connected',
                 type: {
                   name: 'Boolean'
+                }
+              },
+              endpoint_state: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'endpointState',
+                type: {
+                  name: 'Enum',
+                  module: 'EndpointConnectivityState'
                 }
               },
               include_not_seen_since: {

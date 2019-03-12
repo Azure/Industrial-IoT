@@ -10,8 +10,9 @@
 
 namespace Microsoft.Azure.IIoT.Opc.Twin.Models
 {
-    using Microsoft.Rest;
     using Newtonsoft.Json;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
@@ -30,10 +31,12 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <summary>
         /// Initializes a new instance of the NodePathTargetApiModel class.
         /// </summary>
+        /// <param name="browsePath">The target browse path</param>
         /// <param name="target">Target node</param>
         /// <param name="remainingPathIndex">Remaining index in path</param>
-        public NodePathTargetApiModel(NodeApiModel target, int? remainingPathIndex = default(int?))
+        public NodePathTargetApiModel(IList<string> browsePath = default(IList<string>), NodeApiModel target = default(NodeApiModel), int? remainingPathIndex = default(int?))
         {
+            BrowsePath = browsePath;
             Target = target;
             RemainingPathIndex = remainingPathIndex;
             CustomInit();
@@ -43,6 +46,12 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// An initialization method that performs custom operations like setting defaults
         /// </summary>
         partial void CustomInit();
+
+        /// <summary>
+        /// Gets or sets the target browse path
+        /// </summary>
+        [JsonProperty(PropertyName = "browsePath")]
+        public IList<string> BrowsePath { get; set; }
 
         /// <summary>
         /// Gets or sets target node
@@ -59,15 +68,11 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <summary>
         /// Validate the object.
         /// </summary>
-        /// <exception cref="ValidationException">
+        /// <exception cref="Rest.ValidationException">
         /// Thrown if validation fails
         /// </exception>
         public virtual void Validate()
         {
-            if (Target == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "Target");
-            }
             if (Target != null)
             {
                 Target.Validate();

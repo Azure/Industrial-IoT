@@ -224,7 +224,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
                 if err := validation.Validate([]validation.Validation{
                 { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.PathElements", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                 Constraints: []validation.Constraint{	{Target: "request.BrowsePaths", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopctwin.BaseClient", "BrowseUsingPath", err.Error())
                 }
 

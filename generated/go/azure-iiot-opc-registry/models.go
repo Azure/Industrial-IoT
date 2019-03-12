@@ -859,6 +859,8 @@ const fqdn = "go/azure-iiot-opc-registry"
             Activated *bool `json:"activated,omitempty"`
             // Connected - Whether the endpoint is connected on supervisor.
             Connected *bool `json:"connected,omitempty"`
+            // EndpointState - The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+            EndpointState EndpointConnectivityState `json:"endpointState,omitempty"`
             // IncludeNotSeenSince - Whether to include endpoints that were soft deleted
             IncludeNotSeenSince *bool `json:"includeNotSeenSince,omitempty"`
             }

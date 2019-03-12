@@ -558,11 +558,10 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The browse path request
    *
-   * @param {string} [request.nodeId] Node to browse.
+   * @param {string} [request.nodeId] Node to browse from.
    * (default: RootFolder).
    *
-   * @param {array} request.pathElements The path elements of the path to browse
-   * from node.
+   * @param {array} request.browsePaths The paths to browse from node.
    * (mandatory)
    *
    * @param {boolean} [request.readVariableValues] Whether to read variable
@@ -620,11 +619,10 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The browse path request
    *
-   * @param {string} [request.nodeId] Node to browse.
+   * @param {string} [request.nodeId] Node to browse from.
    * (default: RootFolder).
    *
-   * @param {array} request.pathElements The path elements of the path to browse
-   * from node.
+   * @param {array} request.browsePaths The paths to browse from node.
    * (mandatory)
    *
    * @param {boolean} [request.readVariableValues] Whether to read variable

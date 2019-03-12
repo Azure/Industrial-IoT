@@ -32,19 +32,18 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <summary>
         /// Initializes a new instance of the BrowsePathRequestApiModel class.
         /// </summary>
-        /// <param name="pathElements">The path elements of the path to browse
-        /// from node.
+        /// <param name="browsePaths">The paths to browse from node.
         /// (mandatory)</param>
-        /// <param name="nodeId">Node to browse.
+        /// <param name="nodeId">Node to browse from.
         /// (default: RootFolder).</param>
         /// <param name="readVariableValues">Whether to read variable values on
         /// target nodes.
         /// (default is false)</param>
         /// <param name="header">Optional request header</param>
-        public BrowsePathRequestApiModel(IList<string> pathElements, string nodeId = default(string), bool? readVariableValues = default(bool?), RequestHeaderApiModel header = default(RequestHeaderApiModel))
+        public BrowsePathRequestApiModel(IList<IList<string>> browsePaths, string nodeId = default(string), bool? readVariableValues = default(bool?), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             NodeId = nodeId;
-            PathElements = pathElements;
+            BrowsePaths = browsePaths;
             ReadVariableValues = readVariableValues;
             Header = header;
             CustomInit();
@@ -56,18 +55,18 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets node to browse.
+        /// Gets or sets node to browse from.
         /// (default: RootFolder).
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
         public string NodeId { get; set; }
 
         /// <summary>
-        /// Gets or sets the path elements of the path to browse from node.
+        /// Gets or sets the paths to browse from node.
         /// (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "pathElements")]
-        public IList<string> PathElements { get; set; }
+        [JsonProperty(PropertyName = "browsePaths")]
+        public IList<IList<string>> BrowsePaths { get; set; }
 
         /// <summary>
         /// Gets or sets whether to read variable values on target nodes.
@@ -90,9 +89,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// </exception>
         public virtual void Validate()
         {
-            if (PathElements == null)
+            if (BrowsePaths == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "PathElements");
+                throw new ValidationException(ValidationRules.CannotBeNull, "BrowsePaths");
             }
         }
     }

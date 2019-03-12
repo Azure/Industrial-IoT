@@ -1386,6 +1386,10 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [options.connected] Whether the endpoint is connected on
    * supervisor.
    *
+   * @param {string} [options.endpointState] The last state of the the activated
+   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
+   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   *
    * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
    *
@@ -1405,7 +1409,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  getFilteredListOfEndpointsWithHttpOperationResponse(options?: { url? : string, userAuthentication? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.EndpointInfoListApiModel>>;
+  getFilteredListOfEndpointsWithHttpOperationResponse(options?: { url? : string, userAuthentication? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.EndpointInfoListApiModel>>;
 
   /**
    * @summary Get filtered list of endpoints
@@ -1435,6 +1439,10 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {boolean} [options.connected] Whether the endpoint is connected on
    * supervisor.
+   *
+   * @param {string} [options.endpointState] The last state of the the activated
+   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
+   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
    *
    * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
@@ -1472,9 +1480,9 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getFilteredListOfEndpoints(options?: { url? : string, userAuthentication? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.EndpointInfoListApiModel>;
+  getFilteredListOfEndpoints(options?: { url? : string, userAuthentication? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.EndpointInfoListApiModel>;
   getFilteredListOfEndpoints(callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
-  getFilteredListOfEndpoints(options: { url? : string, userAuthentication? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
+  getFilteredListOfEndpoints(options: { url? : string, userAuthentication? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
 
 
   /**
@@ -1505,6 +1513,10 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {boolean} [query.connected] Whether the endpoint is connected on
    * supervisor.
+   *
+   * @param {string} [query.endpointState] The last state of the the activated
+   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
+   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
    *
    * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
@@ -1555,6 +1567,10 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {boolean} [query.connected] Whether the endpoint is connected on
    * supervisor.
+   *
+   * @param {string} [query.endpointState] The last state of the the activated
+   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
+   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
    *
    * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted

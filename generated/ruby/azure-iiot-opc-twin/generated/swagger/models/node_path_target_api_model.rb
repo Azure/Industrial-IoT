@@ -13,6 +13,9 @@ module azure.iiot.opc.twin
     # Node path target
     #
     class NodePathTargetApiModel
+      # @return [Array<String>] The target browse path
+      attr_accessor :browse_path
+
       # @return [NodeApiModel] Target node
       attr_accessor :target
 
@@ -33,9 +36,25 @@ module azure.iiot.opc.twin
             name: 'Composite',
             class_name: 'NodePathTargetApiModel',
             model_properties: {
+              browse_path: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'browsePath',
+                type: {
+                  name: 'Sequence',
+                  element: {
+                      client_side_validation: true,
+                      required: false,
+                      serialized_name: 'StringElementType',
+                      type: {
+                        name: 'String'
+                      }
+                  }
+                }
+              },
               target: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'target',
                 type: {
                   name: 'Composite',

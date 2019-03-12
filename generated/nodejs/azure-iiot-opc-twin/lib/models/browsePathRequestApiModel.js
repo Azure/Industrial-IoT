@@ -17,10 +17,9 @@
 class BrowsePathRequestApiModel {
   /**
    * Create a BrowsePathRequestApiModel.
-   * @property {string} [nodeId] Node to browse.
+   * @property {string} [nodeId] Node to browse from.
    * (default: RootFolder).
-   * @property {array} pathElements The path elements of the path to browse
-   * from node.
+   * @property {array} browsePaths The paths to browse from node.
    * (mandatory)
    * @property {boolean} [readVariableValues] Whether to read variable values
    * on target nodes.
@@ -66,16 +65,23 @@ class BrowsePathRequestApiModel {
               name: 'String'
             }
           },
-          pathElements: {
+          browsePaths: {
             required: true,
-            serializedName: 'pathElements',
+            serializedName: 'browsePaths',
             type: {
               name: 'Sequence',
               element: {
                   required: false,
-                  serializedName: 'StringElementType',
+                  serializedName: 'ArrayElementType',
                   type: {
-                    name: 'String'
+                    name: 'Sequence',
+                    element: {
+                        required: false,
+                        serializedName: 'StringElementType',
+                        type: {
+                          name: 'String'
+                        }
+                    }
                   }
               }
             }

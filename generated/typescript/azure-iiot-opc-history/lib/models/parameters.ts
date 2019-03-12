@@ -90,6 +90,18 @@ export const endpointId: msRest.OperationURLParameter = {
     }
   }
 };
+export const endpointState: msRest.OperationQueryParameter = {
+  parameterPath: [
+    "options",
+    "endpointState"
+  ],
+  mapper: {
+    serializedName: "EndpointState",
+    type: {
+      name: "String"
+    }
+  }
+};
 export const includeNotSeenSince: msRest.OperationQueryParameter = {
   parameterPath: [
     "options",

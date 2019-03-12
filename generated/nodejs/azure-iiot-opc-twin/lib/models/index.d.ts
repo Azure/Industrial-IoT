@@ -421,15 +421,15 @@ export interface BrowseNextResponseApiModel {
  */
 export interface BrowsePathRequestApiModel {
   /**
-   * Node to browse.
+   * Node to browse from.
    * (default: RootFolder).
    */
   nodeId?: string;
   /**
-   * The path elements of the path to browse from node.
+   * The paths to browse from node.
    * (mandatory)
    */
-  pathElements: string[];
+  browsePaths: string[][];
   /**
    * Whether to read variable values on target nodes.
    * (default is false)
@@ -446,9 +446,13 @@ export interface BrowsePathRequestApiModel {
  */
 export interface NodePathTargetApiModel {
   /**
+   * The target browse path
+   */
+  browsePath?: string[];
+  /**
    * Target node
    */
-  target: NodeApiModel;
+  target?: NodeApiModel;
   /**
    * Remaining index in path
    */

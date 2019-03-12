@@ -28,6 +28,9 @@ class EndpointRegistrationQueryApiModel {
    * @property {boolean} [activated] Whether the endpoint was activated
    * @property {boolean} [connected] Whether the endpoint is connected on
    * supervisor.
+   * @property {string} [endpointState] The last state of the the activated
+   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
+   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
    * @property {boolean} [includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
    */
@@ -97,6 +100,14 @@ class EndpointRegistrationQueryApiModel {
             serializedName: 'connected',
             type: {
               name: 'Boolean'
+            }
+          },
+          endpointState: {
+            required: false,
+            serializedName: 'endpointState',
+            type: {
+              name: 'Enum',
+              allowedValues: [ 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error' ]
             }
           },
           includeNotSeenSince: {

@@ -402,6 +402,11 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='connected'>
         /// Whether the endpoint is connected on supervisor.
         /// </param>
+        /// <param name='endpointState'>
+        /// The last state of the the activated endpoint. Possible values
+        /// include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
+        /// 'CertificateInvalid', 'Ready', 'Error'
+        /// </param>
         /// <param name='includeNotSeenSince'>
         /// Whether to include endpoints that were soft deleted
         /// </param>
@@ -419,7 +424,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<EndpointInfoListApiModel>> GetFilteredListOfEndpointsWithHttpMessagesAsync(string url = default(string), string userAuthentication = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<EndpointInfoListApiModel>> GetFilteredListOfEndpointsWithHttpMessagesAsync(string url = default(string), string userAuthentication = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), string endpointState = default(string), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Query endpoints
