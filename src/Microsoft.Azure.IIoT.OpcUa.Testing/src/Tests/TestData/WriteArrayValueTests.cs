@@ -254,7 +254,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10310";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<double>(false, 100, false));
+            var expected = JToken.FromObject(new double[] {
+                -5.0,
+                1.0,
+                0.0,
+                6.0,
+                10000.1,
+                double.MinValue,
+                double.MaxValue,
+                double.PositiveInfinity,
+                double.NegativeInfinity,
+                double.NaN
+            });
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,

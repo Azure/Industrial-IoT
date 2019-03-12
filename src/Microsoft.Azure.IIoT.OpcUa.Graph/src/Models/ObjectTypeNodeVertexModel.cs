@@ -17,7 +17,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// Whether type is abstract, if type can
         /// be abstract.  Null if not type node.
         /// </summary>
-        [JsonProperty(PropertyName = "isAbstract")]
+        [JsonProperty(PropertyName = "isAbstract",
+            NullValueHandling = NullValueHandling.Ignore)]
         public bool? IsAbstract { get; set; }
     }
 }

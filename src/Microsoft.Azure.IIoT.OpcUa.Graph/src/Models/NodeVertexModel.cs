@@ -57,14 +57,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// <summary>
         /// Default write mask for the node (default: 0)
         /// </summary>
-        [JsonProperty(PropertyName = "writeMask")]
+        [JsonProperty(PropertyName = "writeMask",
+            NullValueHandling = NullValueHandling.Ignore)]
         public uint? WriteMask { get; set; }
 
         /// <summary>
         /// Default user write mask for the node (default: 0)
         /// </summary>
-        [JsonProperty(PropertyName = "userWriteMask")]
+        [JsonProperty(PropertyName = "userWriteMask",
+            NullValueHandling = NullValueHandling.Ignore)]
         public uint? UserWriteMask { get; set; }
+
+        /// <summary>
+        /// Symbolic name
+        /// </summary>
+        [JsonProperty(PropertyName = "symbolicName",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string SymbolicName { get; set; }
 
         /// <summary>
         /// Get all role permissions
@@ -80,10 +89,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// Get all backward references
         /// </summary>
         public TargetEdgeModel Backward { get; set; }
-
-        /// <summary>
-        /// Symbolic name
-        /// </summary>
-        public string SymbolicName { get; set; }
     }
 }

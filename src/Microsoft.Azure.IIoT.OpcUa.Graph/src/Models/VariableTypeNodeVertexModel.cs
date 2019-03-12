@@ -19,27 +19,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// <summary>
         /// Whether type is abstract, if type can be abstract.
         /// </summary>
-        [JsonProperty(PropertyName = "isAbstract")]
+        [JsonProperty(PropertyName = "isAbstract",
+            NullValueHandling = NullValueHandling.Ignore)]
         public bool? IsAbstract { get; set; }
 
         /// <summary>
         /// Value rank of the variable data of a variable
         /// or variable type, otherwise null.
         /// </summary>
-        [JsonProperty(PropertyName = "valueRank")]
+        [JsonProperty(PropertyName = "valueRank",
+            NullValueHandling = NullValueHandling.Ignore)]
         public NodeValueRank? ValueRank { get; set; }
 
         /// <summary>
         /// Array dimensions of variable or variable type.
         /// </summary>
-        [JsonProperty(PropertyName = "arrayDimensions")]
+        [JsonProperty(PropertyName = "arrayDimensions",
+            NullValueHandling = NullValueHandling.Ignore)]
         public uint[] ArrayDimensions { get; set; }
 
         /// <summary>
         /// Default value of the subtyped variable in case node is a
         /// variable type.
         /// </summary>
-        [JsonProperty(PropertyName = "value")]
+        [JsonProperty(PropertyName = "value",
+            NullValueHandling = NullValueHandling.Ignore)]
         public JToken Value { get; set; }
 
         /// <summary>

@@ -18,28 +18,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// Default access level for value in variable
         /// node.
         /// </summary>
-        [JsonProperty(PropertyName = "accessLevel")]
+        [JsonProperty(PropertyName = "accessLevel",
+            NullValueHandling = NullValueHandling.Ignore)]
         public NodeAccessLevel? AccessLevel { get; set; }
 
         /// <summary>
         /// Default user access level for value in variable
         /// node.
         /// </summary>
-        [JsonProperty(PropertyName = "userAccessLevel")]
+        [JsonProperty(PropertyName = "userAccessLevel",
+            NullValueHandling = NullValueHandling.Ignore)]
         public NodeAccessLevel? UserAccessLevel { get; set; }
 
         /// <summary>
         /// Whether the value of a variable is historizing.
         /// (default: false)
         /// </summary>
-        [JsonProperty(PropertyName = "historizing")]
+        [JsonProperty(PropertyName = "historizing",
+            NullValueHandling = NullValueHandling.Ignore)]
         public bool? Historizing { get; set; }
 
         /// <summary>
         /// Minimum sampling interval for the variable
         /// value, otherwise null if not a variable node.
         /// </summary>
-        [JsonProperty(PropertyName = "minimumSamplingInterval")]
+        [JsonProperty(PropertyName = "minimumSamplingInterval",
+            NullValueHandling = NullValueHandling.Ignore)]
         public double? MinimumSamplingInterval { get; set; }
     }
 }

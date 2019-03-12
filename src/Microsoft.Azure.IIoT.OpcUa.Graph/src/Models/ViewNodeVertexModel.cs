@@ -18,7 +18,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// Whether a view contains loops. Null if
         /// not a view.
         /// </summary>
-        [JsonProperty(PropertyName = "containsNoLoops")]
+        [JsonProperty(PropertyName = "containsNoLoops",
+            NullValueHandling = NullValueHandling.Ignore)]
         public bool? ContainsNoLoops { get; set; }
 
         /// <summary>
@@ -26,7 +27,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// to subscribe to.
         /// (default: no events supported)
         /// </summary>
-        [JsonProperty(PropertyName = "eventNotifier")]
+        [JsonProperty(PropertyName = "eventNotifier",
+            NullValueHandling = NullValueHandling.Ignore)]
         public NodeEventNotifier? EventNotifier { get; set; }
     }
 }

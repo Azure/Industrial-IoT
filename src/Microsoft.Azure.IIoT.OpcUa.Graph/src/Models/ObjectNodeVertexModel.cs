@@ -19,7 +19,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// to subscribe to.
         /// (default: no events supported)
         /// </summary>
-        [JsonProperty(PropertyName = "eventNotifier")]
+        [JsonProperty(PropertyName = "eventNotifier",
+            NullValueHandling = NullValueHandling.Ignore)]
         public NodeEventNotifier? EventNotifier { get; set; }
     }
 }
