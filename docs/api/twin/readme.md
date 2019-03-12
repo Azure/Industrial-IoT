@@ -622,7 +622,7 @@ and server must trust each other.
 ```json
 {
   "nodeId" : "string",
-  "pathElements" : [ "string" ],
+  "browsePaths" : [ [ "string" ] ],
   "readVariableValues" : true,
   "header" : {
     "elevation" : {
@@ -646,6 +646,7 @@ and server must trust each other.
 ```json
 {
   "targets" : [ {
+    "browsePath" : [ "string" ],
     "target" : {
       "nodeClass" : "string",
       "displayName" : "string",

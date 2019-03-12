@@ -923,6 +923,7 @@ more results.
   "securityPolicy" : "string",
   "activated" : true,
   "connected" : true,
+  "endpointState" : "string",
   "includeNotSeenSince" : true
 }
 ```
@@ -989,6 +990,7 @@ more results.
 |**Query**|**Activated**  <br>*optional*|Whether the endpoint was activated|boolean|
 |**Query**|**Certificate**  <br>*optional*|Certificate of the endpoint|string (byte)|
 |**Query**|**Connected**  <br>*optional*|Whether the endpoint is connected on supervisor.|boolean|
+|**Query**|**EndpointState**  <br>*optional*|The last state of the the activated endpoint|enum (Connecting, NotReachable, Busy, NoTrust, CertificateInvalid, Ready, Error)|
 |**Query**|**IncludeNotSeenSince**  <br>*optional*|Whether to include endpoints that were soft deleted|boolean|
 |**Query**|**SecurityMode**  <br>*optional*|Security Mode|enum (Best, Sign, SignAndEncrypt, None)|
 |**Query**|**SecurityPolicy**  <br>*optional*|Security policy uri|string|

@@ -4,7 +4,7 @@ This article explains how to deploy only the Azure Platform Services need to do 
 
 ## Deploy Azure Platform Services
 
-1. Make sure you have PowerShell and [Azure PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps?view=azps-1.1.0) extensions installed.  Open a command prompt or terminal and run:
+1. Make sure you have PowerShell and [Azure PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps?view=azps-1.1.0) extensions installed (Linux support is coming soon).  Open a command prompt or terminal and run:
 
    ```bash
    git clone https://github.com/Azure/azure-iiot-components

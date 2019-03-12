@@ -327,6 +327,32 @@ Request node history update
 |**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
 
 
+<a name="historyupdaterequestapimodel-inserteventsdetailsapimodel"></a>
+### HistoryUpdateRequestApiModel[InsertEventsDetailsApiModel]
+Request node history update
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[inserteventsdetailsapimodel](#inserteventsdetailsapimodel)"`|[InsertEventsDetailsApiModel](definitions.md#inserteventsdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
+
+
+<a name="historyupdaterequestapimodel-insertvaluesdetailsapimodel"></a>
+### HistoryUpdateRequestApiModel[InsertValuesDetailsApiModel]
+Request node history update
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[insertvaluesdetailsapimodel](#insertvaluesdetailsapimodel)"`|[InsertValuesDetailsApiModel](definitions.md#insertvaluesdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
+
+
 <a name="historyupdaterequestapimodel-jtoken"></a>
 ### HistoryUpdateRequestApiModel[JToken]
 Request node history update
@@ -340,28 +366,28 @@ Request node history update
 |**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
 
 
-<a name="historyupdaterequestapimodel-updateeventsdetailsapimodel"></a>
-### HistoryUpdateRequestApiModel[UpdateEventsDetailsApiModel]
+<a name="historyupdaterequestapimodel-replaceeventsdetailsapimodel"></a>
+### HistoryUpdateRequestApiModel[ReplaceEventsDetailsApiModel]
 Request node history update
 
 
 |Name|Description|Schema|
 |---|---|---|
 |**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[updateeventsdetailsapimodel](#updateeventsdetailsapimodel)"`|[UpdateEventsDetailsApiModel](definitions.md#updateeventsdetailsapimodel)|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[replaceeventsdetailsapimodel](#replaceeventsdetailsapimodel)"`|[ReplaceEventsDetailsApiModel](definitions.md#replaceeventsdetailsapimodel)|
 |**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
 
 
-<a name="historyupdaterequestapimodel-updatevaluesdetailsapimodel"></a>
-### HistoryUpdateRequestApiModel[UpdateValuesDetailsApiModel]
+<a name="historyupdaterequestapimodel-replacevaluesdetailsapimodel"></a>
+### HistoryUpdateRequestApiModel[ReplaceValuesDetailsApiModel]
 Request node history update
 
 
 |Name|Description|Schema|
 |---|---|---|
 |**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[updatevaluesdetailsapimodel](#updatevaluesdetailsapimodel)"`|[UpdateValuesDetailsApiModel](definitions.md#updatevaluesdetailsapimodel)|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[replacevaluesdetailsapimodel](#replacevaluesdetailsapimodel)"`|[ReplaceValuesDetailsApiModel](definitions.md#replacevaluesdetailsapimodel)|
 |**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
 
@@ -375,6 +401,27 @@ History update results
 |---|---|---|
 |**errorInfo**  <br>*optional*|Service result in case of service call error  <br>**Example** : `"[serviceresultapimodel](#serviceresultapimodel)"`|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
 |**results**  <br>*optional*|List of results from the update operation  <br>**Example** : `[ "[serviceresultapimodel](#serviceresultapimodel)" ]`|< [ServiceResultApiModel](definitions.md#serviceresultapimodel) > array|
+
+
+<a name="inserteventsdetailsapimodel"></a>
+### InsertEventsDetailsApiModel
+Insert historic events
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**events**  <br>*required*|The new events to insert  <br>**Example** : `[ "[historiceventapimodel](#historiceventapimodel)" ]`|< [HistoricEventApiModel](definitions.md#historiceventapimodel) > array|
+|**filter**  <br>*optional*|The filter to use to select the events  <br>**Example** : `"object"`|object|
+
+
+<a name="insertvaluesdetailsapimodel"></a>
+### InsertValuesDetailsApiModel
+Insert historic data
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**values**  <br>*required*|Values to insert  <br>**Example** : `[ "[historicvalueapimodel](#historicvalueapimodel)" ]`|< [HistoricValueApiModel](definitions.md#historicvalueapimodel) > array|
 
 
 <a name="modificationinfoapimodel"></a>
@@ -452,6 +499,27 @@ Read historic values
 |**startTime**  <br>*optional*|Beginning of period to read. Set to null<br>if no specific start time is specified.  <br>**Example** : `"string"`|string (date-time)|
 
 
+<a name="replaceeventsdetailsapimodel"></a>
+### ReplaceEventsDetailsApiModel
+Replace historic events
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**events**  <br>*required*|The events to replace  <br>**Example** : `[ "[historiceventapimodel](#historiceventapimodel)" ]`|< [HistoricEventApiModel](definitions.md#historiceventapimodel) > array|
+|**filter**  <br>*optional*|The filter to use to select the events  <br>**Example** : `"object"`|object|
+
+
+<a name="replacevaluesdetailsapimodel"></a>
+### ReplaceValuesDetailsApiModel
+Replace historic data
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**values**  <br>*required*|Values to replace  <br>**Example** : `[ "[historicvalueapimodel](#historicvalueapimodel)" ]`|< [HistoricValueApiModel](definitions.md#historicvalueapimodel) > array|
+
+
 <a name="requestheaderapimodel"></a>
 ### RequestHeaderApiModel
 Request header model
@@ -492,29 +560,6 @@ Status response model
 |**status**  <br>*optional*|Operational status  <br>**Example** : `"string"`|string|
 |**uid**  <br>*optional*  <br>*read-only*|Value generated at bootstrap by each instance of the service and<br>used to correlate logs coming from the same instance. The value<br>changes every time the service starts.  <br>**Example** : `"string"`|string|
 |**upTime**  <br>*optional*  <br>*read-only*|Up time of service  <br>**Example** : `0`|integer (int64)|
-
-
-<a name="updateeventsdetailsapimodel"></a>
-### UpdateEventsDetailsApiModel
-Update historic events
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**eventData**  <br>*required*|The new events to insert or replace  <br>**Example** : `[ "[historiceventapimodel](#historiceventapimodel)" ]`|< [HistoricEventApiModel](definitions.md#historiceventapimodel) > array|
-|**filter**  <br>*optional*|The filter to use to select the events  <br>**Example** : `"object"`|object|
-|**performInsertReplace**  <br>*required*|Whether to perform insert or replacement  <br>**Example** : `"string"`|enum (Insert, Replace, Update, Delete)|
-
-
-<a name="updatevaluesdetailsapimodel"></a>
-### UpdateValuesDetailsApiModel
-Update historic data
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**performInsertReplace**  <br>*required*|Whether to perform an insert or replacement  <br>**Example** : `"string"`|enum (Insert, Replace, Update, Delete)|
-|**updateValues**  <br>*required*|Values to insert or replace  <br>**Example** : `[ "[historicvalueapimodel](#historicvalueapimodel)" ]`|< [HistoricValueApiModel](definitions.md#historicvalueapimodel) > array|
 
 
 

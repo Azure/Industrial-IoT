@@ -79,9 +79,9 @@ Browse nodes by path
 
 |Name|Description|Schema|
 |---|---|---|
+|**browsePaths**  <br>*required*|The paths to browse from node.<br>(mandatory)  <br>**Example** : `[ [ "string" ] ]`|< < string > array > array|
 |**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**nodeId**  <br>*optional*|Node to browse.<br>(default: RootFolder).  <br>**Example** : `"string"`|string|
-|**pathElements**  <br>*required*|The path elements of the path to browse from node.<br>(mandatory)  <br>**Example** : `[ "string" ]`|< string > array|
+|**nodeId**  <br>*optional*|Node to browse from.<br>(default: RootFolder).  <br>**Example** : `"string"`|string|
 |**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)  <br>**Default** : `false`  <br>**Example** : `true`|boolean|
 
 
@@ -283,8 +283,9 @@ Node path target
 
 |Name|Description|Schema|
 |---|---|---|
+|**browsePath**  <br>*optional*|The target browse path  <br>**Example** : `[ "string" ]`|< string > array|
 |**remainingPathIndex**  <br>*optional*|Remaining index in path  <br>**Example** : `0`|integer (int32)|
-|**target**  <br>*required*|Target node  <br>**Example** : `"[nodeapimodel](#nodeapimodel)"`|[NodeApiModel](definitions.md#nodeapimodel)|
+|**target**  <br>*optional*|Target node  <br>**Example** : `"[nodeapimodel](#nodeapimodel)"`|[NodeApiModel](definitions.md#nodeapimodel)|
 
 
 <a name="nodereferenceapimodel"></a>

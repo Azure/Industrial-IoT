@@ -276,6 +276,7 @@ Endpoint query
 |**activated**  <br>*optional*|Whether the endpoint was activated  <br>**Example** : `true`|boolean|
 |**certificate**  <br>*optional*|Certificate of the endpoint  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`  <br>**Example** : `"string"`|string (byte)|
 |**connected**  <br>*optional*|Whether the endpoint is connected on supervisor.  <br>**Example** : `true`|boolean|
+|**endpointState**  <br>*optional*|The last state of the the activated endpoint  <br>**Example** : `"string"`|enum (Connecting, NotReachable, Busy, NoTrust, CertificateInvalid, Ready, Error)|
 |**includeNotSeenSince**  <br>*optional*|Whether to include endpoints that were soft deleted  <br>**Example** : `true`|boolean|
 |**securityMode**  <br>*optional*|Security Mode  <br>**Example** : `"string"`|enum (Best, Sign, SignAndEncrypt, None)|
 |**securityPolicy**  <br>*optional*|Security policy uri  <br>**Example** : `"string"`|string|

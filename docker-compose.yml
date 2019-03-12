@@ -1,20 +1,7 @@
 version: '3'
 services:
-  reverseproxy:
-    build: 
-      context: ./services
-      dockerfile: ./reverse-proxy/Dockerfile
-    restart: always
-    ports:
-      - "10080:10080"
-    depends_on:
-      - registryservice
-      - onboardingservice
-      - gatewayservice
-      - twinservice
-      - twinwebui
-      - twinmodule
   registryservice:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-registry-service:${IMAGE_VERSION:-latest}
     build: 
       context: ./services
       dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Registry/docker/Dockerfile
@@ -32,6 +19,7 @@ services:
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
   onboardingservice:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-onboarding-service:${IMAGE_VERSION:-latest}
     build: 
       context: ./services
       dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Onboarding/docker/Dockerfile
@@ -46,6 +34,7 @@ services:
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
   twinservice:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-twin-service:${IMAGE_VERSION:-latest}
     build: 
       context: ./services
       dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Twin/docker/Dockerfile
@@ -63,6 +52,7 @@ services:
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
   historyservice:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-history-service:${IMAGE_VERSION:-latest}
     build: 
       context: ./services
       dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.History/docker/Dockerfile
@@ -80,6 +70,7 @@ services:
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
   gatewayservice:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-gateway-service:${IMAGE_VERSION:-latest}
     build: 
       context: ./services
       dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Gateway/docker/Dockerfile
@@ -98,27 +89,39 @@ services:
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
   modelprocessor:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-processor-service:${IMAGE_VERSION:-latest}
     build: 
       context: ./services
       dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Processor/docker/Dockerfile
     restart: always
     environment:
-      - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_HUB_ENDPOINT
+      - PCS_IOTHUBREACT_HUB_PARTITIONS
+      - PCS_IOTHUBREACT_HUB_NAME
+      - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
       - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
   blobnotification:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}blob-notification-service:${IMAGE_VERSION:-latest}
     build: 
       context: ./services
       dockerfile: ./src/Microsoft.Azure.IIoT.Services.Notification.Blob/docker/Dockerfile
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_HUB_ENDPOINT
+      - PCS_IOTHUBREACT_HUB_PARTITIONS
+      - PCS_IOTHUBREACT_HUB_NAME
+      - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
+      - PCS_EVENTHUB_CONNSTRING
       - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
   twinwebui:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-twin-webui:${IMAGE_VERSION:-latest}
     build: ./samples/opc-twin-webui
     restart: always
     command: npm start
@@ -134,11 +137,13 @@ services:
       - REACT_APP_PCS_TWIN_REGISTRY_URL=http://twinregistry:9042
       - REACT_APP_PCS_TWIN_SERVICE_URL=http://twinservice:9041
   twinmodule:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-twin:host-${IMAGE_VERSION:-latest}
     build: ./modules/opc-twin
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
   publishermodule:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-publisher:${IMAGE_VERSION:-latest}
     build: 
       context: ./modules/opc-publisher
       dockerfile: ./docker/linux/amd64/Dockerfile
@@ -147,21 +152,25 @@ services:
       - _HUB_CS
     command: --aa
   opcserver0:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-testing:${IMAGE_VERSION:-latest}
     build: ./components/opc-ua
     hostname: opcserver0
     restart: always
     command: --sample -p 51210
   opcserver1:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-testing:${IMAGE_VERSION:-latest}
     build: ./components/opc-ua
     hostname: opcserver1
     restart: always
     command: --sample -p 51211
   opcserver2:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-testing:${IMAGE_VERSION:-latest}
     build: ./components/opc-ua
     hostname: opcserver2
     restart: always
     command: --sample -p 51212
   twinconsole:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-api:${IMAGE_VERSION:-latest}
     build: ./api
     command: exit
     environment:

@@ -17,9 +17,11 @@ Azure Industrial IoT OPC UA Historic Access Service
 ### Tags
 
 * Delete : Services to delete history
-* Read : Historic events access services
+* History : History raw access services
+* Insert : History insert services
+* Read : Historic access read services
+* Replace : History replace services
 * Status : Status checks
-* Update : History update services
 
 
 
@@ -402,9 +404,482 @@ and server must trust each other.
 ```
 
 
+<a name="history_resource"></a>
+### History
+History raw access services
+
+
+<a name="historyreadraw"></a>
+#### Read history using json details
+```
+POST /v1/history/read/{endpointId}
+```
+
+
+##### Description
+Read node history if available using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
+|**Body**|**request**  <br>*required*|The history read request|[HistoryReadRequestApiModel[JToken]](definitions.md#historyreadrequestapimodel-jtoken)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryReadResponseApiModel[JToken]](definitions.md#historyreadresponseapimodel-jtoken)|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+
+
+##### Produces
+
+* `application/json`
+
+
+##### Example HTTP request
+
+###### Request path
+```
+/v1/history/read/string
+```
+
+
+###### Request body
+```json
+{
+  "nodeId" : "string",
+  "browsePath" : [ "string" ],
+  "details" : "object",
+  "indexRange" : "string",
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
+  }
+}
+```
+
+
+##### Example HTTP response
+
+###### Response 200
+```json
+{
+  "history" : "object",
+  "continuationToken" : "string",
+  "errorInfo" : {
+    "statusCode" : 0,
+    "errorMessage" : "string",
+    "diagnostics" : "object"
+  }
+}
+```
+
+
+<a name="historyreadrawnext"></a>
+#### Read next batch of history as json
+```
+POST /v1/history/read/{endpointId}/next
+```
+
+
+##### Description
+Read next batch of node history values using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
+|**Body**|**request**  <br>*required*|The history read next request|[HistoryReadNextRequestApiModel](definitions.md#historyreadnextrequestapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryReadNextResponseApiModel[JToken]](definitions.md#historyreadnextresponseapimodel-jtoken)|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+
+
+##### Produces
+
+* `application/json`
+
+
+##### Example HTTP request
+
+###### Request path
+```
+/v1/history/read/string/next
+```
+
+
+###### Request body
+```json
+{
+  "continuationToken" : "string",
+  "abort" : true,
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
+  }
+}
+```
+
+
+##### Example HTTP response
+
+###### Response 200
+```json
+{
+  "history" : "object",
+  "continuationToken" : "string",
+  "errorInfo" : {
+    "statusCode" : 0,
+    "errorMessage" : "string",
+    "diagnostics" : "object"
+  }
+}
+```
+
+
+<a name="historyupdateraw"></a>
+#### Update node history using raw json
+```
+POST /v1/history/update/{endpointId}
+```
+
+
+##### Description
+Update node history using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
+|**Body**|**request**  <br>*required*|The history update request|[HistoryUpdateRequestApiModel[JToken]](definitions.md#historyupdaterequestapimodel-jtoken)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+
+
+##### Produces
+
+* `application/json`
+
+
+##### Example HTTP request
+
+###### Request path
+```
+/v1/history/update/string
+```
+
+
+###### Request body
+```json
+{
+  "nodeId" : "string",
+  "browsePath" : [ "string" ],
+  "details" : "object",
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
+  }
+}
+```
+
+
+##### Example HTTP response
+
+###### Response 200
+```json
+{
+  "results" : [ {
+    "statusCode" : 0,
+    "errorMessage" : "string",
+    "diagnostics" : "object"
+  } ],
+  "errorInfo" : {
+    "statusCode" : 0,
+    "errorMessage" : "string",
+    "diagnostics" : "object"
+  }
+}
+```
+
+
+<a name="insert_resource"></a>
+### Insert
+History insert services
+
+
+<a name="historyinsertevents"></a>
+#### Insert historic events
+```
+POST /v1/insert/{endpointId}/events
+```
+
+
+##### Description
+Insert historic events using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
+|**Body**|**request**  <br>*required*|The history insert request|[HistoryUpdateRequestApiModel[InsertEventsDetailsApiModel]](definitions.md#historyupdaterequestapimodel-inserteventsdetailsapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+
+
+##### Produces
+
+* `application/json`
+
+
+##### Example HTTP request
+
+###### Request path
+```
+/v1/insert/string/events
+```
+
+
+###### Request body
+```json
+{
+  "nodeId" : "string",
+  "browsePath" : [ "string" ],
+  "details" : {
+    "filter" : "object",
+    "events" : [ {
+      "eventFields" : [ "object" ]
+    } ]
+  },
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
+  }
+}
+```
+
+
+##### Example HTTP response
+
+###### Response 200
+```json
+{
+  "results" : [ {
+    "statusCode" : 0,
+    "errorMessage" : "string",
+    "diagnostics" : "object"
+  } ],
+  "errorInfo" : {
+    "statusCode" : 0,
+    "errorMessage" : "string",
+    "diagnostics" : "object"
+  }
+}
+```
+
+
+<a name="historyinsertvalues"></a>
+#### Insert historic values
+```
+POST /v1/insert/{endpointId}/values
+```
+
+
+##### Description
+Insert historic values using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
+|**Body**|**request**  <br>*required*|The history insert request|[HistoryUpdateRequestApiModel[InsertValuesDetailsApiModel]](definitions.md#historyupdaterequestapimodel-insertvaluesdetailsapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+
+
+##### Produces
+
+* `application/json`
+
+
+##### Example HTTP request
+
+###### Request path
+```
+/v1/insert/string/values
+```
+
+
+###### Request body
+```json
+{
+  "nodeId" : "string",
+  "browsePath" : [ "string" ],
+  "details" : {
+    "values" : [ {
+      "value" : "object",
+      "statusCode" : 0,
+      "sourceTimestamp" : "string",
+      "sourcePicoseconds" : 0,
+      "serverTimestamp" : "string",
+      "serverPicoseconds" : 0,
+      "modificationInfo" : {
+        "modificationTime" : "string",
+        "updateType" : "string",
+        "userName" : "string"
+      }
+    } ]
+  },
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
+  }
+}
+```
+
+
+##### Example HTTP response
+
+###### Response 200
+```json
+{
+  "results" : [ {
+    "statusCode" : 0,
+    "errorMessage" : "string",
+    "diagnostics" : "object"
+  } ],
+  "errorInfo" : {
+    "statusCode" : 0,
+    "errorMessage" : "string",
+    "diagnostics" : "object"
+  }
+}
+```
+
+
 <a name="read_resource"></a>
 ### Read
-Historic events access services
+Historic access read services
 
 
 <a name="historyreadevents"></a>
@@ -580,180 +1055,6 @@ and server must trust each other.
   "history" : [ {
     "eventFields" : [ "object" ]
   } ],
-  "continuationToken" : "string",
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
-
-
-<a name="historyreadraw"></a>
-#### Read history using json details
-```
-POST /v1/read/{endpointId}/raw
-```
-
-
-##### Description
-Read node history if available using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history read request|[HistoryReadRequestApiModel[JToken]](definitions.md#historyreadrequestapimodel-jtoken)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryReadResponseApiModel[JToken]](definitions.md#historyreadresponseapimodel-jtoken)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Produces
-
-* `application/json`
-
-
-##### Example HTTP request
-
-###### Request path
-```
-/v1/read/string/raw
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : "object",
-  "indexRange" : "string",
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "history" : "object",
-  "continuationToken" : "string",
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
-
-
-<a name="historyreadrawnext"></a>
-#### Read next batch of history as json
-```
-POST /v1/read/{endpointId}/raw/next
-```
-
-
-##### Description
-Read next batch of node history values using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history read next request|[HistoryReadNextRequestApiModel](definitions.md#historyreadnextrequestapimodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryReadNextResponseApiModel[JToken]](definitions.md#historyreadnextresponseapimodel-jtoken)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Produces
-
-* `application/json`
-
-
-##### Example HTTP request
-
-###### Request path
-```
-/v1/read/string/raw/next
-```
-
-
-###### Request body
-```json
-{
-  "continuationToken" : "string",
-  "abort" : true,
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "history" : "object",
   "continuationToken" : "string",
   "errorInfo" : {
     "statusCode" : 0,
@@ -1286,6 +1587,210 @@ and server must trust each other.
 ```
 
 
+<a name="replace_resource"></a>
+### Replace
+History replace services
+
+
+<a name="historyreplaceevents"></a>
+#### Replace historic events
+```
+POST /v1/replace/{endpointId}/events
+```
+
+
+##### Description
+Replace historic events using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
+|**Body**|**request**  <br>*required*|The history replace request|[HistoryUpdateRequestApiModel[ReplaceEventsDetailsApiModel]](definitions.md#historyupdaterequestapimodel-replaceeventsdetailsapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+
+
+##### Produces
+
+* `application/json`
+
+
+##### Example HTTP request
+
+###### Request path
+```
+/v1/replace/string/events
+```
+
+
+###### Request body
+```json
+{
+  "nodeId" : "string",
+  "browsePath" : [ "string" ],
+  "details" : {
+    "filter" : "object",
+    "events" : [ {
+      "eventFields" : [ "object" ]
+    } ]
+  },
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
+  }
+}
+```
+
+
+##### Example HTTP response
+
+###### Response 200
+```json
+{
+  "results" : [ {
+    "statusCode" : 0,
+    "errorMessage" : "string",
+    "diagnostics" : "object"
+  } ],
+  "errorInfo" : {
+    "statusCode" : 0,
+    "errorMessage" : "string",
+    "diagnostics" : "object"
+  }
+}
+```
+
+
+<a name="historyreplacevalues"></a>
+#### Replace historic values
+```
+POST /v1/replace/{endpointId}/values
+```
+
+
+##### Description
+Replace historic values using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
+|**Body**|**request**  <br>*required*|The history replace request|[HistoryUpdateRequestApiModel[ReplaceValuesDetailsApiModel]](definitions.md#historyupdaterequestapimodel-replacevaluesdetailsapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+
+
+##### Produces
+
+* `application/json`
+
+
+##### Example HTTP request
+
+###### Request path
+```
+/v1/replace/string/values
+```
+
+
+###### Request body
+```json
+{
+  "nodeId" : "string",
+  "browsePath" : [ "string" ],
+  "details" : {
+    "values" : [ {
+      "value" : "object",
+      "statusCode" : 0,
+      "sourceTimestamp" : "string",
+      "sourcePicoseconds" : 0,
+      "serverTimestamp" : "string",
+      "serverPicoseconds" : 0,
+      "modificationInfo" : {
+        "modificationTime" : "string",
+        "updateType" : "string",
+        "userName" : "string"
+      }
+    } ]
+  },
+  "header" : {
+    "elevation" : {
+      "type" : "string",
+      "value" : "object"
+    },
+    "locales" : [ "string" ],
+    "diagnostics" : {
+      "level" : "string",
+      "auditId" : "string",
+      "timeStamp" : "string"
+    }
+  }
+}
+```
+
+
+##### Example HTTP response
+
+###### Response 200
+```json
+{
+  "results" : [ {
+    "statusCode" : 0,
+    "errorMessage" : "string",
+    "diagnostics" : "object"
+  } ],
+  "errorInfo" : {
+    "statusCode" : 0,
+    "errorMessage" : "string",
+    "diagnostics" : "object"
+  }
+}
+```
+
+
 <a name="status_resource"></a>
 ### Status
 Status checks
@@ -1337,302 +1842,6 @@ GET /v1/status
   },
   "$metadata" : {
     "string" : "string"
-  }
-}
-```
-
-
-<a name="update_resource"></a>
-### Update
-History update services
-
-
-<a name="historyupdateevents"></a>
-#### Update historic events
-```
-POST /v1/update/{endpointId}/events
-```
-
-
-##### Description
-Update historic events using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history update request|[HistoryUpdateRequestApiModel[UpdateEventsDetailsApiModel]](definitions.md#historyupdaterequestapimodel-updateeventsdetailsapimodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Produces
-
-* `application/json`
-
-
-##### Example HTTP request
-
-###### Request path
-```
-/v1/update/string/events
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "performInsertReplace" : "string",
-    "filter" : "object",
-    "eventData" : [ {
-      "eventFields" : [ "object" ]
-    } ]
-  },
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "results" : [ {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  } ],
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
-
-
-<a name="historyupdateraw"></a>
-#### Update node history using raw json
-```
-POST /v1/update/{endpointId}/raw
-```
-
-
-##### Description
-Update node history using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history update request|[HistoryUpdateRequestApiModel[JToken]](definitions.md#historyupdaterequestapimodel-jtoken)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Produces
-
-* `application/json`
-
-
-##### Example HTTP request
-
-###### Request path
-```
-/v1/update/string/raw
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : "object",
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "results" : [ {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  } ],
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
-
-
-<a name="historyupdatevalues"></a>
-#### Update historic values
-```
-POST /v1/update/{endpointId}/values
-```
-
-
-##### Description
-Update historic values using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history update request|[HistoryUpdateRequestApiModel[UpdateValuesDetailsApiModel]](definitions.md#historyupdaterequestapimodel-updatevaluesdetailsapimodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Produces
-
-* `application/json`
-
-
-##### Example HTTP request
-
-###### Request path
-```
-/v1/update/string/values
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "performInsertReplace" : "string",
-    "updateValues" : [ {
-      "value" : "object",
-      "statusCode" : 0,
-      "sourceTimestamp" : "string",
-      "sourcePicoseconds" : 0,
-      "serverTimestamp" : "string",
-      "serverPicoseconds" : 0,
-      "modificationInfo" : {
-        "modificationTime" : "string",
-        "updateType" : "string",
-        "userName" : "string"
-      }
-    } ]
-  },
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "results" : [ {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  } ],
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
   }
 }
 ```
