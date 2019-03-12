@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read request</param>
         /// <returns>The historic events</returns>
-        [HttpPost("events/{endpointId}")]
+        [HttpPost("{endpointId}/events")]
         public async Task<HistoryReadResponseApiModel<HistoricEventApiModel[]>> HistoryReadEventsAsync(
             string endpointId,
             [FromBody] [Required] HistoryReadRequestApiModel<ReadEventsDetailsApiModel> request) {
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read next request</param>
         /// <returns>The historic events</returns>
-        [HttpPost("events/{endpointId}/next")]
+        [HttpPost("{endpointId}/events/next")]
         public async Task<HistoryReadNextResponseApiModel<HistoricEventApiModel[]>> HistoryReadEventsNextAsync(
             string endpointId,
             [FromBody] [Required] HistoryReadNextRequestApiModel request) {
@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read request</param>
         /// <returns>The historic values</returns>
-        [HttpPost("values/{endpointId}")]
+        [HttpPost("{endpointId}/values")]
         public async Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadValuesAsync(
             string endpointId,
             [FromBody] [Required] HistoryReadRequestApiModel<ReadValuesDetailsApiModel> request) {
@@ -115,7 +115,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read request</param>
         /// <returns>The historic values</returns>
-        [HttpPost("values/{endpointId}/pick")]
+        [HttpPost("{endpointId}/values/pick")]
         public async Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadValuesAtTimesAsync(
             string endpointId,
             [FromBody] [Required] HistoryReadRequestApiModel<ReadValuesAtTimesDetailsApiModel> request) {
@@ -139,7 +139,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read request</param>
         /// <returns>The historic values</returns>
-        [HttpPost("values/{endpointId}/processed")]
+        [HttpPost("{endpointId}/values/processed")]
         public async Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadProcessedValuesAsync(
             string endpointId,
             [FromBody] [Required] HistoryReadRequestApiModel<ReadProcessedValuesDetailsApiModel> request) {
@@ -163,7 +163,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read request</param>
         /// <returns>The historic values</returns>
-        [HttpPost("values/{endpointId}/modified")]
+        [HttpPost("{endpointId}/values/modified")]
         public async Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadModifiedValuesAsync(
             string endpointId,
             [FromBody] [Required] HistoryReadRequestApiModel<ReadModifiedValuesDetailsApiModel> request) {
@@ -187,7 +187,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read next request</param>
         /// <returns>The historic values</returns>
-        [HttpPost("values/{endpointId}/next")]
+        [HttpPost("{endpointId}/values/next")]
         public async Task<HistoryReadNextResponseApiModel<HistoricValueApiModel[]>> HistoryReadValueNextAsync(
             string endpointId,
             [FromBody] [Required] HistoryReadNextRequestApiModel request) {

@@ -18,7 +18,7 @@ services:
       - /app:/app:ro
       - /logs:/logs:rw
   registryservice:
-    image: mcr.microsoft.com/iot/opc-registry-service:latest
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-registry-service:${SERVICES_VERSION:-latest}
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
@@ -32,7 +32,7 @@ services:
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
   onboardingservice:
-    image: mcr.microsoft.com/iot/opc-onboarding-service:latest
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-onboarding-service:${SERVICES_VERSION:-latest}
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
@@ -44,7 +44,7 @@ services:
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
   twinservice:
-    image: mcr.microsoft.com/iot/opc-twin-service:latest
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-twin-service:${SERVICES_VERSION:-latest}
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
@@ -58,7 +58,7 @@ services:
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
   historyservice:
-    image: mcr.microsoft.com/iot/opc-history-service:latest
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-history-service:${SERVICES_VERSION:-latest}
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
@@ -71,7 +71,7 @@ services:
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
    gatewayservice:
-    image: mcr.microsoft.com/iot/opc-gateway-service:latest
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-gateway-service:${SERVICES_VERSION:-latest}
     ports:
       - "4840:51111"
     restart: always
@@ -87,24 +87,33 @@ services:
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
   modelprocessor:
-    image: mcr.microsoft.com/iot/opc-processor-service:latest
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-processor-service:${SERVICES_VERSION:-latest}
     restart: always
     environment:
-      - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_HUB_ENDPOINT
+      - PCS_IOTHUBREACT_HUB_PARTITIONS
+      - PCS_IOTHUBREACT_HUB_NAME
+      - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
       - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
   blobnotification:
-    image: mcr.microsoft.com/iot/blob-notification-service:latest
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}blob-notification-service:${SERVICES_VERSION:-latest}
     restart: always
     environment:
       - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_HUB_ENDPOINT
+      - PCS_IOTHUBREACT_HUB_PARTITIONS
+      - PCS_IOTHUBREACT_HUB_NAME
+      - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
+      - PCS_EVENTHUB_CONNSTRING
       - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
   twinwebui:
-    image: mcr.microsoft.com/iot/opc-twin-webui:latest
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-twin-webui:${SERVICES_VERSION:-latest}
     restart: always
     command: npm start
     environment:

@@ -4,31 +4,31 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Controllers {
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Filters;
     using Microsoft.Azure.IIoT.Services.OpcUa.History.v1.Models;
-    using Microsoft.Azure.IIoT.OpcUa.History;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-    using System;
-    using System.Threading.Tasks;
-    using System.ComponentModel.DataAnnotations;
     using Newtonsoft.Json.Linq;
+    using System;
+    using System.ComponentModel.DataAnnotations;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// History raw access services
     /// </summary>
-    [Route(VersionInfo.PATH + "/raw")]
+    [Route(VersionInfo.PATH + "/history")]
     [ExceptionsFilter]
     [Produces(ContentEncodings.MimeTypeJson)]
     [Authorize(Policy = Policies.CanUpdate)]
-    public class RawController : Controller {
+    public class HistoryController : Controller {
 
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="client"></param>
-        public RawController(IHistoricAccessServices<string> client) {
+        public HistoryController(IHistoricAccessServices<string> client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
