@@ -56,7 +56,7 @@ Function SelectEnvironment() {
     switch ($script:environmentName) {
         "AzureCloud" {
             if ((Get-AzureRMEnvironment AzureCloud) -eq $null) {
-                Add-AzureRMEnvironment –Name AzureCloud -EnableAdfsAuthentication $False `
+                Add-AzureRMEnvironment -Name AzureCloud -EnableAdfsAuthentication $False `
                     -ActiveDirectoryServiceEndpointResourceId https://management.core.windows.net/  `
                     -GalleryUrl https://gallery.azure.com/ `
                     -ServiceManagementUrl https://management.core.windows.net/ `
