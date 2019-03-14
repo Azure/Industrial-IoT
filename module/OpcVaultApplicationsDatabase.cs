@@ -32,6 +32,12 @@ namespace Opc.Ua.Gds.Server.Database.OpcVault
         {
             bool isUpdate = true;
             string applicationId = null;
+            // TODO: remove workaround if base nuget is fixed. Fill NA for servers without caps.
+            if (application.ApplicationType != Opc.Ua.ApplicationType.Client &&
+                (application.ServerCapabilities == null || application.ServerCapabilities.Count == 0))
+            {
+                application.ServerCapabilities = new StringCollection() { "NA" };
+            }
             NodeId appNodeId = base.RegisterApplication(application);
             if (NodeId.IsNull(appNodeId))
             {

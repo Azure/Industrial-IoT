@@ -21,7 +21,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
     [Authorize]
     public class CertificateRequestController : DownloadController
     {
-
+        // TODO: implement paging
+        const int PageSize = 1000;
         public CertificateRequestController(
             OpcVaultApiOptions opcVaultOptions,
             AzureADOptions azureADOptions,
@@ -39,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             var indexRequests = new List<CertificateRequestIndexApiModel>();
             try
             {
-                var requests = await _opcVault.QueryCertificateRequestsAsync();
+                var requests = await _opcVault.QueryCertificateRequestsAsync(pageSize: PageSize);
                 while (requests != null)
                 {
                     foreach (var request in requests.Requests)
@@ -64,7 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
                         break;
                     }
                     nextPageLink = requests.NextPageLink;
-                    requests = await _opcVault.QueryCertificateRequestsAsync(nextPageLink);
+                    requests = await _opcVault.QueryCertificateRequestsAsync(nextPageLink, pageSize: PageSize);
                 }
             }
             catch (Exception ex)

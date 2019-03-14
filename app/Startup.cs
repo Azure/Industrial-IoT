@@ -75,7 +75,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App
                 {
                     OnTicketReceived = context =>
                     {
-                        // If your authentication logic is based on users then add your logic here
+                        // stop by `/Home/Continue` instead of going directly to the ReturnUri
+                        // to work around Safari's issues with SameSite=lax session cookies not being
+                        // returned on the final redirect of the authentication flow.
+                        // credits:
+                        // https://community.auth0.com/t/authentication-broken-on-asp-net-core-and-safari-on-ios-12-mojave-take-2/19104
+                        context.ReturnUri = "/Home/Continue?returnUrl=" + System.Net.WebUtility.UrlEncode(context.ReturnUri ?? "/");
                         return Task.CompletedTask;
                     },
                     OnAuthenticationFailed = context =>
@@ -159,9 +164,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App
             app.UseStaticFiles();
             app.UseCookiePolicy();
 
-            // fix iOS12 login issue
-            FixWebkitOpenIDLoginLoop(app);
-
             app.UseAuthentication();
             app.UseMvc(routes =>
             {
@@ -195,27 +197,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App
             return builder.Build();
         }
 
-        /// <summary>
-        /// Fix for webkit strict same site cookie implementation
-        /// Credits go to:
-        /// https://brockallen.com/2019/01/11/same-site-cookies-asp-net-core-and-external-authentication-providers/
-        /// </summary>
-        /// <param name="app"></param>
-        private void FixWebkitOpenIDLoginLoop(IApplicationBuilder app)
-        {
-            app.Use(async (ctx, next) =>
-            {
-                await next();
-                if (ctx.Request.Path == "/signin-oidc" &&
-                    ctx.Response.StatusCode == 302)
-                {
-                    var location = ctx.Response.Headers["location"];
-                    ctx.Response.StatusCode = 200;
-                    var html = $@"<html><head><meta http-equiv='refresh' content='0;url={location}' /></head></html>";
-                    await ctx.Response.WriteAsync(html);
-                }
-            });
-        }
 
     }
 }

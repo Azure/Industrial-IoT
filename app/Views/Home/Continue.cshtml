@@ -1,0 +1,18 @@
+@{
+    Layout = null;
+}
+<html>
+<head>
+    <title>Working...</title>
+</head>
+<body>
+    <noscript>
+        <a href="@ViewBag.ReturnUrl">Script is disabled. Click Submit to continue.</a>
+    </noscript>
+    <script language="javascript" type="text/javascript">
+      window.setTimeout(function() {
+        window.location = "@ViewBag.ReturnUrl";
+      }, 0);
+    </script>
+</body>
+</html>

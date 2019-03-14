@@ -444,6 +444,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 }
             } while (maxRecordsToReturn > 0 && !lastQuery);
 
+            if (lastQuery)
+            {
+                nextRecordId = 0;
+            }
+
             return new QueryApplicationsByIdResponseModel(records.ToArray(), lastCounterResetTime, nextRecordId);
         }
 
