@@ -33,11 +33,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1 {
             if (!useRoleBasedAccess) {
                 options.AddPolicy(Policies.CanUpdate, policy =>
                     policy.RequireAuthenticatedUser());
+                options.AddPolicy(Policies.CanDelete, policy =>
+                    policy.RequireAuthenticatedUser());
             }
             else {
                 options.AddPolicy(Policies.CanUpdate, policy =>
                     policy.RequireAuthenticatedUser()
-                        .Require(ControlRights));
+                        .Require(UpdateRights));
+                options.AddPolicy(Policies.CanDelete, policy =>
+                    policy.RequireAuthenticatedUser()
+                        .Require(UpdateRights));
             }
         }
 
@@ -53,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v1 {
         /// <summary>
         /// Control has Sign, Admin or Writer role, or has execute claim
         /// </summary>
-        public static bool ControlRights(AuthorizationHandlerContext context) {
+        public static bool UpdateRights(AuthorizationHandlerContext context) {
             return
                 context.User.IsInRole(Roles.Write) ||
                 context.User.IsInRole(Roles.Admin) ||

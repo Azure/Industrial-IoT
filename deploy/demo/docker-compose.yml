@@ -11,11 +11,10 @@ services:
       - "443:10443"
     depends_on:
       - registryservice
-      - onboardingservice
       - gatewayservice
+      - historyservice
       - twinservice
       - twinwebui
-      - twinmodule
     volumes:
       - /app:/app:ro
       - /logs:/logs:rw

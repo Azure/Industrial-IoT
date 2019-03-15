@@ -10,6 +10,7 @@ CERT="${CERTS}/tls.crt"
 PKEY="${CERTS}/tls.key"
 UNSAFE="false"
 ADMIN=$USER
+REGISTRY_PREFIX=
 
 # ========================================================================
 
@@ -21,6 +22,7 @@ PCS_APPLICATION_SECRET=$(cat /dev/urandom | LC_CTYPE=C tr -dc 'a-zA-Z0-9-,./;:[]
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --hostname)                     HOST_NAME="$2" ;;
+        --registry-prefix)              REGISTRY_PREFIX="$2" ;;
         --admin)                        ADMIN="$2" ;;
         --log-level)                    PCS_LOG_LEVEL="$2" ;;
         --unsafe)                       UNSAFE="$2" ;;
@@ -148,7 +150,7 @@ rm -f ${ENVVARS}
 touch ${ENVVARS} && chmod 644 ${ENVVARS}
 
 echo "HOST_NAME=${HOST_NAME}" >> ${ENVVARS}
-echo "PCS_AUTH_HTTPSREDIRECTPORT=10443" >> ${ENVVARS}
+echo "PCS_AUTH_HTTPSREDIRECTPORT=0" >> ${ENVVARS}
 echo "PCS_AUTH_ISSUER=${PCS_AUTH_ISSUER}" >> ${ENVVARS}
 echo "PCS_AUTH_AUDIENCE=${PCS_AUTH_AUDIENCE}" >> ${ENVVARS}
 echo "PCS_WEBUI_AUTH_AAD_TENANT=${PCS_WEBUI_AUTH_AAD_TENANT}" >> ${ENVVARS}
@@ -178,6 +180,14 @@ echo "PCS_EVENTHUB_NAME=${PCS_EVENTHUB_NAME}" >> ${ENVVARS}
 echo "PCS_APPLICATION_SECRET=${PCS_APPLICATION_SECRET}" >> ${ENVVARS}
 echo "PCS_LOG_LEVEL=${PCS_LOG_LEVEL}" >> ${ENVVARS}
 echo "PCS_RELEASE_VERSION=${PCS_RELEASE_VERSION}" >> ${ENVVARS}
+
+if [ -z "$REGISTRY_PREFIX" ]; then
+  echo -e "Deploying from default registry."
+else
+  echo -e "Using registry prefix ${REGISTRY_PREFIX}."
+  echo "SERVICES_REPOSITORY=${REGISTRY_PREFIX}" >> ${ENVVARS}
+  echo "MODULES_REPOSITORY=${REGISTRY_PREFIX}" >> ${ENVVARS}
+fi
 
 # ========================================================================
 

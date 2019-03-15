@@ -32,6 +32,9 @@
     "azureWebsiteName": {
       "value": "{Added through command line interface}"
     },
+    "containerRegistryPrefix": {
+      "value": "{Added through command line interface}"
+    },
     "remoteEndpointSSLThumbprint": {
       "value": "{Added through command line interface}"
     },

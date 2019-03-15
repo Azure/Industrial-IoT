@@ -11,9 +11,10 @@ services:
       - "443:10443"
     depends_on:
       - registryservice
-      - onboardingservice
       - gatewayservice
+      - historyservice
       - twinservice
+      - twinwebui
     volumes:
       - /app:/app:ro
       - /logs:/logs:rw
@@ -70,7 +71,7 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
-   gatewayservice:
+  gatewayservice:
     image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-gateway-service:${SERVICES_VERSION:-latest}
     ports:
       - "4840:51111"

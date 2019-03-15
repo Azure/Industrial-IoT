@@ -11,6 +11,9 @@
  .PARAMETER resourceGroupName
     The resource group where the template will be deployed. 
 
+ .PARAMETER containerRegistryPrefix
+    Optional, a container registry prefix from which to pull the micro services containers to deploy.
+
  .PARAMETER aadConfig
     The AAD configuration the template will be configured with.
 
@@ -22,6 +25,7 @@ param(
     [Parameter(Mandatory=$True)] [string] $applicationName,
     [Parameter(Mandatory=$True)] [string] $resourceGroupName,
     $aadConfig = $null,
+    $containerRegistryPrefix = $null,
     $interactive = $true
 )
 
@@ -197,6 +201,10 @@ if ($aadConfig) {
     if (![string]::IsNullOrEmpty($aadConfig.Instance)) { 
         $templateParameters.Add("aadInstance", $aadConfig.Instance)
     }
+}
+
+if (![string]::IsNullOrEmpty($script:containerRegistryPrefix)) {
+    $templateParameters.Add("containerRegistryPrefix", $script:containerRegistryPrefix)
 }
 
 # Create ssl cert 

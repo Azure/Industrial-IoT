@@ -23,6 +23,9 @@
  .PARAMETER resourceGroupLocation
     Optional, a resource group location. If specified, will try to create a new resource group in this location.
 
+ .PARAMETER containerRegistryPrefix
+    Optional, a container registry prefix from which to pull the micro services containers to deploy.
+
  .PARAMETER aadApplicationName
     The AAD application name to register - defaults to $applicationName. 
 
@@ -41,6 +44,7 @@ param(
     [string] $subscriptionName,
     [string] $subscriptionId,
     [string] $accountName,
+    [string] $containerRegistryPrefix,
     $credentials,
     [string] $tenantId,
     [string] $aadApplicationName,
@@ -179,7 +183,7 @@ Function Login() {
         catch {
             throw "The login to the Azure account was not successful."
         }
-        $reply = Read-Host -Prompt "Save user profile in $profileFile? [y/n]"
+        $reply = Read-Host -Prompt ("Save user profile in '{0}'? [y/n]" -f $profileFile)
         if ($reply -match "[yY]") { 
             Save-AzureRmContext -Path "$profileFile"
             $script:profileFile = $profileFile;
@@ -871,11 +875,11 @@ if (![System.IO.File]::Exists($deploymentScript)) {
 }
 
 $script:interactive = $($script:credential -eq $null)
-while ([string]::IsNullOrEmpty($script:applicationName)) {
+while ([string]::IsNullOrEmpty($script:applicationName) -or ($script:applicationName -notmatch "^[a-z0-9-]*$")) {
     if (!$script:interactive) {
-        throw "No application name specified which is mandatory for non-interactive script use."
+        throw "Invalid application name specified which is mandatory for non-interactive script use."
     }
-    $script:applicationName = Read-Host "Please specify a name for your application"
+    $script:applicationName = Read-Host "Please specify a name for your application (use alphanumeric characters)"
 }
 
 SelectEnvironment
@@ -890,6 +894,7 @@ try {
         -applicationName $script:applicationName `
         -resourceGroupName $script:resourceGroupName `
         -interactive $script:interactive `
+        -containerRegistryPrefix $script:containerRegistryPrefix `
         -aadConfig $aadConfig
 
     Write-Host "Deployment succeeded."
