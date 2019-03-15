@@ -69,7 +69,7 @@ services:
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
   twinwebui:
-    image: marcschier/azure-iiot-opc-twin-webui:latest
+    image: marcschier/azure-iiot-opc-twin-webui:1.0.1
     restart: always
     command: npm start
     environment:
