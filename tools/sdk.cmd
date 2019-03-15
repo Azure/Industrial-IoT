@@ -134,7 +134,7 @@ goto :eof
 :main
 pushd %build_root% 
 rem start services
-echo Rebuilding...
+echo Rebuilding...	
 docker-compose build --no-cache > %TMP%\sdk_build.log 2>&1
 if not !ERRORLEVEL! == 0 type %TMP%\sdk_build.log && goto :done
 
@@ -158,6 +158,8 @@ call :generate_sdk
 rem stop services
 docker-compose down >nul 2>&1
 echo ... Down.
+if "%REPOSITORY%" == "" goto :done
+docker-compose push
 :done
 if exist %TMP%\sdk_build.log del /f %TMP%\sdk_build.log
 set PCS_AUTH_HTTPSREDIRECTPORT=
