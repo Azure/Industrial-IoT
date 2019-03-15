@@ -1,5 +1,18 @@
 version: '3'
 services:
+  reverseproxy:
+    build: 
+      context: ./services
+      dockerfile: ./reverse-proxy/Dockerfile
+    restart: always
+    ports:
+      - "10080:10080"
+    depends_on:
+      - registryservice
+      - onboardingservice
+      - gatewayservice
+      - twinservice
+      - historyservice
   registryservice:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-registry-service:${IMAGE_VERSION:-latest}
     build: 

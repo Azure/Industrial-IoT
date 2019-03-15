@@ -59,7 +59,7 @@ For more information about OPC Publisher, see the [OPC Publisher](https://github
 
 ## Next steps
 
-- [Learn how to deploy OPC Twin Module](howto-moduels.md)
+- [Learn how to deploy OPC Twin Module](howto-modules.md)
 - [Explore the OPC Twin Module repository](https://github.com/Azure/azure-iiot-opc-twin-module)
 - [Learn about the OPC Twin Service](twin.md)
 - [Learn about OPC Registry Onboarding](onboarding.md)

@@ -55,7 +55,7 @@ rem
 if not exist %build_root%\docs\api mkdir %build_root%\docs\api
 pushd %build_root%\docs\api
 echo swagger2markup.markupLanguage=MARKDOWN                      > config.properties
-echo swagger2markup.generatedExamplesEnabled=true               >> config.properties
+echo swagger2markup.generatedExamplesEnabled=false              >> config.properties
 echo swagger2markup.pathsGroupedBy=TAGS                         >> config.properties
 echo swagger2markup.inlineSchemaEnabled=true                    >> config.properties
 echo swagger2markup.lineSeparator=WINDOWS                       >> config.properties
