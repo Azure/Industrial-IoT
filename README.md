@@ -1,9 +1,9 @@
 | Branch                    | Build Status                                                 |
 | ------------------------- | ------------------------------------------------------------ |
 | **master** (Release)      | [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/ci-azure-iiot-components?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=33971&branchName=master) |
-| **develop** (Pre-release) | [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/ci-azure-iiot-components?branchName=develop)](https://msazure.visualstudio.com/One/_build/latest?definitionId=33971&branchName=develop) |
+| **develop** (Preview)     | [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/ci-azure-iiot-components?branchName=develop)](https://msazure.visualstudio.com/One/_build/latest?definitionId=33971&branchName=develop) |
 
-# Azure Industrial IoT Components
+# Azure Industrial IoT Components (Preview)
 
 ### Discover, register and manage your Industrial Assets in Azure
 
