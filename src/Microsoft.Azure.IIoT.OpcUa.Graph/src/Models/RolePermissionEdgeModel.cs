@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     /// </summary>
     [Label(AddressSpaceElementNames.rolePermission)]
     public class RolePermissionEdgeModel :
-        AddressSpaceEdgeModel<NodeVertexModel, VariableNodeVertexModel> {
+        AddressSpaceEdgeModel<BaseNodeVertexModel, VariableNodeVertexModel> {
 
         /// <summary>
         /// Returns the permissions for the role

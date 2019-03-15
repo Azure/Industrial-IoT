@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     /// View node vertex
     /// </summary>
     [Label(AddressSpaceElementNames.View)]
-    public class ViewNodeVertexModel : NodeVertexModel {
+    public class ViewNodeVertexModel : BaseNodeVertexModel {
 
         /// <summary>
         /// Whether a view contains loops. Null if

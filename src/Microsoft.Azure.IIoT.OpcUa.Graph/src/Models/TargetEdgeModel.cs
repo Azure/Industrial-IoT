@@ -11,6 +11,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     /// </summary>
     [Label(AddressSpaceElementNames.to)]
     public class TargetEdgeModel :
-        AddressSpaceEdgeModel<ReferenceNodeVertexModel, NodeVertexModel> {
+        AddressSpaceEdgeModel<ReferenceNodeVertexModel, BaseNodeVertexModel> {
     }
 }

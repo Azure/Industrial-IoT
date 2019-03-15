@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     /// Method node vertex
     /// </summary>
     [Label(AddressSpaceElementNames.Method)]
-    public class MethodNodeVertexModel : NodeVertexModel {
+    public class MethodNodeVertexModel : BaseNodeVertexModel {
 
         /// <summary>
         /// If method node class, whether method can be called.

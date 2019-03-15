@@ -7,11 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Gremlin.Net.CosmosDb.Structure;
 
     /// <summary>
-    /// The outgoing vertex is the source of a reference or permitted
-    /// operation in a role permission
+    /// The outgoing vertex is the role of a permission vertex
     /// </summary>
-    [Label(AddressSpaceElementNames.from)]
-    public class OriginEdgeModel :
-        AddressSpaceEdgeModel<ReferenceNodeVertexModel, BaseNodeVertexModel> {
+    [Label(AddressSpaceElementNames.userRolePermission)]
+    public class UserRolePermissionEdgeModel : RolePermissionEdgeModel {
     }
 }

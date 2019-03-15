@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     /// Variable type node vertex
     /// </summary>
     [Label(AddressSpaceElementNames.VariableType)]
-    public class VariableTypeNodeVertexModel : NodeVertexModel {
+    public class VariableTypeNodeVertexModel : BaseNodeVertexModel {
 
         /// <summary>
         /// Whether type is abstract, if type can be abstract.

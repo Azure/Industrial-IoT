@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     /// <summary>
     /// Node vertex
     /// </summary>
-    public abstract class NodeVertexModel : AddressSpaceVertexModel {
+    public abstract class BaseNodeVertexModel : AddressSpaceVertexModel {
 
         /// <summary>
         /// Node Class - also a vertex type discriminator
@@ -79,6 +79,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// Get all role permissions
         /// </summary>
         public RolePermissionEdgeModel RolePermissions { get; set; }
+
+        /// <summary>
+        /// Get all user role permissions
+        /// </summary>
+        public UserRolePermissionEdgeModel UserRolePermissions { get; set; }
 
         /// <summary>
         /// Get all forward references

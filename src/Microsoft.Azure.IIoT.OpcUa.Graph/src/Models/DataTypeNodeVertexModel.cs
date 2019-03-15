@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     /// Data type node vertex
     /// </summary>
     [Label(AddressSpaceElementNames.DataType)]
-    public class DataTypeNodeVertexModel : NodeVertexModel {
+    public class DataTypeNodeVertexModel : BaseNodeVertexModel {
 
         /// <summary>
         /// Whether type is abstract, if type can

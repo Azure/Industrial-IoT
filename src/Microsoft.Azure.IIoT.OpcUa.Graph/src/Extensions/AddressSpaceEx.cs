@@ -98,11 +98,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// Convert node model to vertex
         /// </summary>
         /// <param name="node"></param>
+        /// <param name="sourceId"></param>
+        /// <param name="revision"></param>
         /// <param name="codec"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static NodeVertexModel ToVertex(this BaseNodeModel node, IVariantEncoder codec,
-            ServiceMessageContext context) {
+        public static BaseNodeVertexModel ToVertex(this BaseNodeModel node, string sourceId,
+            long revision, IVariantEncoder codec, ServiceMessageContext context) {
             if (node == null) {
                 throw new ArgumentNullException(nameof(node));
             }
@@ -110,7 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                 throw new ArgumentException(nameof(node));
             }
             var builtInType = BuiltInType.Null;
-            NodeVertexModel vertex;
+            BaseNodeVertexModel vertex;
             switch (node) {
                 case ObjectNodeModel oNode:
                     vertex = new ObjectNodeVertexModel {
@@ -184,8 +186,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                 case DataTypeNodeModel dtNode:
                     vertex = new DataTypeNodeVertexModel {
                         IsAbstract = dtNode.IsAbstract,
-                        // Definition = dtNode.Definition,
-                        Purpose = dtNode.Purpose
+                        DataTypeDefinition = dtNode.Definition == null ? null : 
+                            codec.Encode(new Variant(new ExtensionObject(dtNode.Definition)), 
+                            out _, context)
                     };
                     break;
                 case ReferenceTypeNodeModel rtNode:
@@ -207,7 +210,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
             if (!string.IsNullOrEmpty(node.SymbolicName) && node.SymbolicName != node.BrowseName.Name) {
                 vertex.SymbolicName = node.SymbolicName;
             }
+
+            vertex.Revision = revision;
+            vertex.SourceId = sourceId;
+            vertex.Id = CreateAddressSpaceVertexId(sourceId, vertex.NodeId);
+
 #if FALSE
+          if (node.RolePermissions != null && node.RolePermissions.Count > 0) {
+            }
+            if (node.UserRolePermissions != null && node.UserRolePermissions.Count > 0) {
+            }
+
             // export references.
             var exportedReferences = new List<Reference>();
             foreach (var reference in node.GetAllReferences(context)) {
@@ -239,7 +252,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// <param name="codec"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static BaseNodeModel ToNodeModel(this NodeVertexModel vertex,
+        public static BaseNodeModel ToNodeModel(this BaseNodeVertexModel vertex,
             string dataTypeId, IEnumerable<ReferenceNodeVertexModel> nodeReferences,
             IEnumerable<RolePermissionEdgeModel> rolePermissions,
             IEnumerable<RolePermissionEdgeModel> userRolePermissions,
@@ -325,8 +338,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                 case DataTypeNodeVertexModel uaDataType:
                     decoded = new DataTypeNodeModel {
                         IsAbstract = uaDataType.IsAbstract,
-                        // Definition = uaDataType.Definition,
-                        // Purpose = uaDataType.Purpose
+                        Definition = uaDataType.DataTypeDefinition == null ? null : 
+                            (DataTypeDefinition)(codec.Decode(uaDataType.DataTypeDefinition, 
+                                BuiltInType.ExtensionObject, context).Value as ExtensionObject)?.Body,
+                        Purpose = Opc.Ua.Nodeset.Schema.DataTypePurpose.Normal
                     };
                     break;
                 case ReferenceTypeNodeVertexModel uaReferenceType:

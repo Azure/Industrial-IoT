@@ -5,10 +5,12 @@ This repo contains the core business logic for the Azure Industrial IoT OPC UA s
 * [Microsoft.Azure.IIoT.OpcUa](src/Microsoft.Azure.IIoT.OpcUa/src) contains shared and common code among...
   * [Microsoft.Azure.IIoT.OpcUa.Protocol](src/Microsoft.Azure.IIoT.OpcUa.Protocol/src) contains the OPC UA stack and protocol used in the Gateway and Edge.
   * [Microsoft.Azure.IIoT.OpcUa.Edge](src/Microsoft.Azure.IIoT.OpcUa.Edge/src) contains the services hosted by the [OPC Device Twin module](https://github.com/Azure/azure-iiot-opc-twin-module).
-  * [Microsoft.Azure.IIoT.OpcUa.Twin](src/Microsoft.Azure.IIoT.OpcUa.Twin/src) contains services hosted by the [OPC Device Twin service](https://github.com/Azure/azure-iiot-services).
+  * [Microsoft.Azure.IIoT.OpcUa.Twin](src/Microsoft.Azure.IIoT.OpcUa.Twin/src) contains services hosted by the [OPC Device Twin service](https://github.com/Azure/azure-iiot-services)
+    * [Microsoft.Azure.IIoT.OpcUa.History](src/Microsoft.Azure.IIoT.OpcUa.History/src) contains the Historic Access services used by the [OPC History service](https://github.com/Azure/azure-iiot-services).
   * [Microsoft.Azure.IIoT.OpcUa.Registry](src/Microsoft.Azure.IIoT.OpcUa.Registry/src) contains the [OPC UA Device Registry](https://github.com/Azure/azure-iiot-services) micro service business logic.
-  * [Microsoft.Azure.IIoT.OpcUa.Gateway](src/Microsoft.Azure.IIoT.OpcUa.Gateway/src) contains the business logic of the [OPC Device Twin Gateway](https://github.com/Azure/azure-iiot-services).
-* [Microsoft.Azure.IIoT.OpcUa.Servers](src/Microsoft.Azure.IIoT.OpcUa.Servers/src) contains test servers.
+  * [Microsoft.Azure.IIoT.OpcUa.Gateway](src/Microsoft.Azure.IIoT.OpcUa.Gateway/src) contains the server controller logic of the [OPC Device Twin Gateway](https://github.com/Azure/azure-iiot-services) that provides a UA interface on top of OPC Device Twin. (Preview)
+  * [Microsoft.Azure.IIoT.OpcUa.Graph](src/Microsoft.Azure.IIoT.OpcUa.Graph/src) contains services to process and import OPC UA Information Model data uploaded from the edge (Preview).
+* [Microsoft.Azure.IIoT.OpcUa.Testing](src/Microsoft.Azure.IIoT.OpcUa.Testing/src) contains test servers and fixtures for integration testing.
 
 The OPC UA components are part of our suite of [Azure IoT Industrial components](https://github.com/Azure/azure-iiot-components).
 

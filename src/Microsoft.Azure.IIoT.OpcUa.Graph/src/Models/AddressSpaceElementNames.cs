@@ -97,6 +97,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         public const string rolePermission = nameof(rolePermission);
 
         /// <summary>
+        /// Links a node to a permission
+        /// </summary>
+        public const string userRolePermission = nameof(userRolePermission);
+
+        /// <summary>
         /// Unknown node vertex type
         /// </summary>
         public const string Unknown = nameof(Unknown);

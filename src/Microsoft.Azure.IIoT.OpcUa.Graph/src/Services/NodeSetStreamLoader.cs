@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
                 foreach (var node in nodeset.GetNodeStates(context)) {
                     ct.ThrowIfCancellationRequested();
                     if (node != null) {
-                        await WriteAsync(node, context);
+                        await WriteNodeAsync(node, context);
                     }
                 }
             }
@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
                         if (node == null) {
                             break;
                         }
-                        await WriteAsync(node.Node, context);
+                        await WriteNodeAsync(node.Node, context);
                     }
                 }
             }
@@ -84,11 +84,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
         /// <param name="node"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        private async Task WriteAsync(BaseNodeModel node, ISystemContext context) {
+        private async Task WriteNodeAsync(BaseNodeModel node, ISystemContext context) {
             if (node == null) {
                 return;
             }
-            var vertex = node.ToVertex(_codec, _context);
+            var vertex = node.ToVertex(_source.Id, _revision, _codec, _context);
             if (vertex == null) {
                 return;
             }
@@ -97,6 +97,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
                 await WriteReferenceAsync(vertex, reference);
             }
             await _loader.AddVertexAsync(vertex);
+
+            // Add source edge
             await _loader.AddEdgeAsync(vertex,
                 new AddressSpaceSourceEdgeModel {
                     Id = _source.CreateEdgeId(vertex.NodeId, _source.Id),
@@ -113,7 +115,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
         /// <param name="vertex"></param>
         /// <param name="reference"></param>
         /// <returns></returns>
-        private async Task WriteReferenceAsync(NodeVertexModel vertex,
+        private async Task WriteReferenceAsync(BaseNodeVertexModel vertex,
             IReference reference) {
 
             var originId = vertex.NodeId;
@@ -178,7 +180,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
         /// <param name="model"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        private async Task WriteRolePermissionsAsync(NodeVertexModel model, DataValue value) {
+        private async Task WriteRolePermissionsAsync(BaseNodeVertexModel model, DataValue value) {
             var rolePermissions = value.GetValueOrDefault<RolePermissionTypeCollection>();
             if (rolePermissions != null) {
                 foreach (var permission in rolePermissions) {
