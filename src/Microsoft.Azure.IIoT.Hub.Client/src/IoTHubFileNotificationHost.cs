@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -66,7 +66,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         }
 
         /// <inheritdoc/>
-        public void Dispose() => StopAsync().Wait();
+        public void Dispose() {
+            StopAsync().Wait();
+        }
 
         /// <summary>
         /// Handle file notifications
@@ -76,6 +78,10 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         private async Task RunAsync(FileNotificationReceiver<FileNotification> receiver) {
             while (!_cts.IsCancellationRequested) {
                 var notification = await receiver.ReceiveAsync();
+                if (notification == null) {
+                    _logger.Error("Received null notification.");
+                    continue;
+                }
 
                 // Parse content type from blob name
                 var blobName = notification.BlobName;

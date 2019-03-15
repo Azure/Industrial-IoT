@@ -147,12 +147,14 @@ namespace Swashbuckle.AspNetCore.Swagger {
         private class AutoRestSchemaExtensions : ISchemaFilter, IParameterFilter {
 
             /// <inheritdoc/>
-            public void Apply(Schema model, SchemaFilterContext context) =>
+            public void Apply(Schema model, SchemaFilterContext context) {
                 AddExtension(context.SystemType, model.Extensions);
+            }
 
             /// <inheritdoc/>
-            public void Apply(IParameter parameter, ParameterFilterContext context) =>
+            public void Apply(IParameter parameter, ParameterFilterContext context) {
                 AddExtension(context.ParameterInfo.ParameterType, parameter.Extensions);
+            }
 
             /// <summary>
             /// Add enum extension
