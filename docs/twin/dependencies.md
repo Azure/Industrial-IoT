@@ -20,7 +20,6 @@ All micro services are registered as Application in Active Directory to integrat
 
 ## Next steps
 
-- [Deploy dependencies for local development](howto-deployment-local.md)
-- [Deploy OPC Device Management](howto-deployment-services.md)
-- Learn more about Azure IoT Hub
+- [Deploy dependencies for local development](../howto-deploy-dependencies.md)
+- [Deploy OPC Device Management](../howto-deploy-services.md)
 - [Learn about Azure IoT Edge](https://azure.microsoft.com/en-us/services/iot-edge/).

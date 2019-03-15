@@ -122,6 +122,6 @@ To support non interactive usage of script.  (TODO)
 
 Now that you have successfully deployed OPC Device Management services to an existing project, here is the suggested next step:
 
-- [Deploy Industrial IoT modules to IoT Edge](howto-deployment-modules.md)
+- [Deploy Industrial IoT modules to IoT Edge](howto-deploy-modules.md)
 - [What is OPC Device Management?](twin/readme.md)
-- [OPC Device Management Dependencies](/twin/dependencies.md)
+- [OPC Device Management Dependencies](twin/dependencies.md)

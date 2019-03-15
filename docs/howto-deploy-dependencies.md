@@ -37,6 +37,6 @@ The deployment script tries to register AAD applications in Azure Active Directo
 
 Now that you have successfully deployed OPC Device Management services to an existing project, here is the suggested next step:
 
-- [Run the Industrial IoT modules locally](howto-deployment-modules.md)
+- [Run the Industrial IoT modules locally](howto-deploy-modules.md)
 - [Learn about the OPC Device Management dependencies](twin/dependencies.md)
 
