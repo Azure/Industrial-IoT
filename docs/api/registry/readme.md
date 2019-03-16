@@ -57,6 +57,8 @@ located by a supervisor in its network using the discovery url.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -72,31 +74,11 @@ located by a supervisor in its network using the discovery url.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/applications
-```
-
-
-###### Request body
-```json
-{
-  "discoveryUrl" : "string",
-  "id" : "string",
-  "callback" : {
-    "uri" : "string",
-    "method" : "string",
-    "authenticationHeader" : "string"
-  },
-  "activationFilter" : {
-    "trustLists" : [ "string" ],
-    "securityPolicies" : [ "string" ],
-    "securityMode" : "string"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getlistofapplications"></a>
@@ -126,6 +108,8 @@ Call this operation again using the token to retrieve more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationInfoListApiModel](definitions.md#applicationinfolistapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -133,38 +117,11 @@ Call this operation again using the token to retrieve more results.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/applications
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "items" : [ {
-    "applicationId" : "string",
-    "applicationType" : "Server",
-    "applicationUri" : "string",
-    "productUri" : "string",
-    "applicationName" : "string",
-    "locale" : "en",
-    "certificate" : "string",
-    "capabilities" : "LDS",
-    "discoveryUrls" : [ "string" ],
-    "discoveryProfileUri" : "string",
-    "hostAddresses" : [ "string" ],
-    "siteId" : "productionlineA",
-    "supervisorId" : "string",
-    "notSeenSince" : "string"
-  } ],
-  "continuationToken" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="createapplication"></a>
@@ -193,6 +150,8 @@ in a network not reachable through a Twin module.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationRegistrationResponseApiModel](definitions.md#applicationregistrationresponseapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -208,37 +167,11 @@ in a network not reachable through a Twin module.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/applications
-```
-
-
-###### Request body
-```json
-{
-  "applicationUri" : "string",
-  "applicationType" : "Server",
-  "productUri" : "http://contoso.com/fridge/1.0",
-  "applicationName" : "string",
-  "locale" : "en",
-  "capabilities" : "LDS",
-  "discoveryUrls" : [ "string" ],
-  "discoveryProfileUri" : "string"
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "id" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="deletealldisabledapplications"></a>
@@ -264,6 +197,8 @@ Purges all applications that have not been seen for a specified amount of time.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -271,12 +206,11 @@ Purges all applications that have not been seen for a specified amount of time.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/applications
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="discoverserver"></a>
@@ -303,6 +237,8 @@ network. Requires that the onboarding agent service is running.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -318,43 +254,11 @@ network. Requires that the onboarding agent service is running.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/applications/discover
-```
-
-
-###### Request body
-```json
-{
-  "id" : "string",
-  "discovery" : "string",
-  "configuration" : {
-    "addressRangesToScan" : "string",
-    "networkProbeTimeoutMs" : 0,
-    "maxNetworkProbes" : 0,
-    "portRangesToScan" : "string",
-    "portProbeTimeoutMs" : 0,
-    "maxPortProbes" : 0,
-    "minPortProbesPercent" : 0,
-    "idleTimeBetweenScansSec" : 0,
-    "discoveryUrls" : [ "string" ],
-    "locales" : [ "string" ],
-    "callbacks" : [ {
-      "uri" : "string",
-      "method" : "string",
-      "authenticationHeader" : "string"
-    } ],
-    "activationFilter" : {
-      "trustLists" : [ "string" ],
-      "securityPolicies" : [ "string" ],
-      "securityMode" : "string"
-    }
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="queryapplications"></a>
@@ -385,6 +289,8 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationInfoListApiModel](definitions.md#applicationinfolistapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -400,53 +306,11 @@ more results.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/applications/query
-```
-
-
-###### Request body
-```json
-{
-  "applicationType" : "string",
-  "applicationUri" : "string",
-  "productUri" : "string",
-  "applicationName" : "string",
-  "locale" : "string",
-  "capability" : "string",
-  "siteOrSupervisorId" : "string",
-  "includeNotSeenSince" : true
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "items" : [ {
-    "applicationId" : "string",
-    "applicationType" : "Server",
-    "applicationUri" : "string",
-    "productUri" : "string",
-    "applicationName" : "string",
-    "locale" : "en",
-    "certificate" : "string",
-    "capabilities" : "LDS",
-    "discoveryUrls" : [ "string" ],
-    "discoveryProfileUri" : "string",
-    "hostAddresses" : [ "string" ],
-    "siteId" : "productionlineA",
-    "supervisorId" : "string",
-    "notSeenSince" : "string"
-  } ],
-  "continuationToken" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getfilteredlistofapplications"></a>
@@ -477,6 +341,8 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationInfoListApiModel](definitions.md#applicationinfolistapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -492,53 +358,11 @@ more results.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/applications/query
-```
-
-
-###### Request body
-```json
-{
-  "applicationType" : "string",
-  "applicationUri" : "string",
-  "productUri" : "string",
-  "applicationName" : "string",
-  "locale" : "string",
-  "capability" : "string",
-  "siteOrSupervisorId" : "string",
-  "includeNotSeenSince" : true
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "items" : [ {
-    "applicationId" : "string",
-    "applicationType" : "Server",
-    "applicationUri" : "string",
-    "productUri" : "string",
-    "applicationName" : "string",
-    "locale" : "en",
-    "certificate" : "string",
-    "capabilities" : "LDS",
-    "discoveryUrls" : [ "string" ],
-    "discoveryProfileUri" : "string",
-    "hostAddresses" : [ "string" ],
-    "siteId" : "productionlineA",
-    "supervisorId" : "string",
-    "notSeenSince" : "string"
-  } ],
-  "continuationToken" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getlistofsites"></a>
@@ -565,6 +389,8 @@ List all sites applications are registered in.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationSiteListApiModel](definitions.md#applicationsitelistapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -572,23 +398,11 @@ List all sites applications are registered in.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/applications/sites
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "sites" : [ "string" ],
-  "continuationToken" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getapplicationregistration"></a>
@@ -610,6 +424,8 @@ GET /v1/applications/{applicationId}
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationRegistrationApiModel](definitions.md#applicationregistrationapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -617,60 +433,11 @@ GET /v1/applications/{applicationId}
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/applications/string
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "application" : {
-    "applicationId" : "string",
-    "applicationType" : "Server",
-    "applicationUri" : "string",
-    "productUri" : "string",
-    "applicationName" : "string",
-    "locale" : "en",
-    "certificate" : "string",
-    "capabilities" : "LDS",
-    "discoveryUrls" : [ "string" ],
-    "discoveryProfileUri" : "string",
-    "hostAddresses" : [ "string" ],
-    "siteId" : "productionlineA",
-    "supervisorId" : "string",
-    "notSeenSince" : "string"
-  },
-  "endpoints" : [ {
-    "id" : "string",
-    "siteId" : "string",
-    "endpoint" : {
-      "url" : "string",
-      "user" : {
-        "type" : "string",
-        "value" : "object"
-      },
-      "securityMode" : "string",
-      "securityPolicy" : "string",
-      "serverThumbprint" : "string"
-    },
-    "securityLevel" : 0,
-    "certificate" : "string",
-    "authenticationMethods" : [ {
-      "id" : "string",
-      "credentialType" : "string",
-      "securityPolicy" : "string",
-      "configuration" : "object"
-    } ]
-  } ],
-  "securityAssessment" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="deleteapplication"></a>
@@ -696,6 +463,8 @@ Unregisters and deletes application and all its associated endpoints.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -703,12 +472,11 @@ Unregisters and deletes application and all its associated endpoints.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/applications/string
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="updateapplicationregistration"></a>
@@ -737,6 +505,8 @@ during a discovery run (recurring or one-time).
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -752,26 +522,11 @@ during a discovery run (recurring or one-time).
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/applications/string
-```
-
-
-###### Request body
-```json
-{
-  "productUri" : "string",
-  "applicationName" : "string",
-  "locale" : "string",
-  "certificate" : "string",
-  "capabilities" : [ "string" ],
-  "discoveryUrls" : [ "string" ],
-  "discoveryProfileUri" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="endpoints_resource"></a>
@@ -807,6 +562,8 @@ Call this operation again using the token to retrieve more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[EndpointInfoListApiModel](definitions.md#endpointinfolistapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -814,51 +571,11 @@ Call this operation again using the token to retrieve more results.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/endpoints
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "items" : [ {
-    "registration" : {
-      "id" : "string",
-      "siteId" : "string",
-      "endpoint" : {
-        "url" : "string",
-        "user" : {
-          "type" : "string",
-          "value" : "object"
-        },
-        "securityMode" : "string",
-        "securityPolicy" : "string",
-        "serverThumbprint" : "string"
-      },
-      "securityLevel" : 0,
-      "certificate" : "string",
-      "authenticationMethods" : [ {
-        "id" : "string",
-        "credentialType" : "string",
-        "securityPolicy" : "string",
-        "configuration" : "object"
-      } ]
-    },
-    "applicationId" : "string",
-    "activationState" : "string",
-    "endpointState" : "string",
-    "outOfSync" : true,
-    "notSeenSince" : "string"
-  } ],
-  "continuationToken" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="queryendpoints"></a>
@@ -890,6 +607,8 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[EndpointInfoListApiModel](definitions.md#endpointinfolistapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -905,67 +624,11 @@ more results.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/endpoints/query
-```
-
-
-###### Request body
-```json
-{
-  "url" : "string",
-  "userAuthentication" : "string",
-  "certificate" : "string",
-  "securityMode" : "string",
-  "securityPolicy" : "string",
-  "activated" : true,
-  "connected" : true,
-  "endpointState" : "string",
-  "includeNotSeenSince" : true
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "items" : [ {
-    "registration" : {
-      "id" : "string",
-      "siteId" : "string",
-      "endpoint" : {
-        "url" : "string",
-        "user" : {
-          "type" : "string",
-          "value" : "object"
-        },
-        "securityMode" : "string",
-        "securityPolicy" : "string",
-        "serverThumbprint" : "string"
-      },
-      "securityLevel" : 0,
-      "certificate" : "string",
-      "authenticationMethods" : [ {
-        "id" : "string",
-        "credentialType" : "string",
-        "securityPolicy" : "string",
-        "configuration" : "object"
-      } ]
-    },
-    "applicationId" : "string",
-    "activationState" : "string",
-    "endpointState" : "string",
-    "outOfSync" : true,
-    "notSeenSince" : "string"
-  } ],
-  "continuationToken" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getfilteredlistofendpoints"></a>
@@ -1005,6 +668,8 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[EndpointInfoListApiModel](definitions.md#endpointinfolistapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -1012,51 +677,11 @@ more results.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/endpoints/query
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "items" : [ {
-    "registration" : {
-      "id" : "string",
-      "siteId" : "string",
-      "endpoint" : {
-        "url" : "string",
-        "user" : {
-          "type" : "string",
-          "value" : "object"
-        },
-        "securityMode" : "string",
-        "securityPolicy" : "string",
-        "serverThumbprint" : "string"
-      },
-      "securityLevel" : 0,
-      "certificate" : "string",
-      "authenticationMethods" : [ {
-        "id" : "string",
-        "credentialType" : "string",
-        "securityPolicy" : "string",
-        "configuration" : "object"
-      } ]
-    },
-    "applicationId" : "string",
-    "activationState" : "string",
-    "endpointState" : "string",
-    "outOfSync" : true,
-    "notSeenSince" : "string"
-  } ],
-  "continuationToken" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getendpoint"></a>
@@ -1083,6 +708,8 @@ Gets information about an endpoint.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[EndpointInfoApiModel](definitions.md#endpointinfoapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -1090,48 +717,11 @@ Gets information about an endpoint.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/endpoints/string
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "registration" : {
-    "id" : "string",
-    "siteId" : "string",
-    "endpoint" : {
-      "url" : "string",
-      "user" : {
-        "type" : "string",
-        "value" : "object"
-      },
-      "securityMode" : "string",
-      "securityPolicy" : "string",
-      "serverThumbprint" : "string"
-    },
-    "securityLevel" : 0,
-    "certificate" : "string",
-    "authenticationMethods" : [ {
-      "id" : "string",
-      "credentialType" : "string",
-      "securityPolicy" : "string",
-      "configuration" : "object"
-    } ]
-  },
-  "applicationId" : "string",
-  "activationState" : "string",
-  "endpointState" : "string",
-  "outOfSync" : true,
-  "notSeenSince" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="updateendpoint"></a>
@@ -1154,6 +744,8 @@ PATCH /v1/endpoints/{endpointId}
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1169,23 +761,11 @@ PATCH /v1/endpoints/{endpointId}
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/endpoints/string
-```
-
-
-###### Request body
-```json
-{
-  "user" : {
-    "type" : "string",
-    "value" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="activateendpoint"></a>
@@ -1213,6 +793,8 @@ activation filter during application registration or discovery.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -1220,12 +802,11 @@ activation filter during application registration or discovery.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/endpoints/string/activate
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="deactivateendpoint"></a>
@@ -1251,6 +832,8 @@ Deactivates the endpoint and disable access through twin service.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -1258,12 +841,11 @@ Deactivates the endpoint and disable access through twin service.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/endpoints/string/deactivate
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="status_resource"></a>
@@ -1288,38 +870,6 @@ GET /v1/status
 ##### Produces
 
 * `application/json`
-
-
-##### Example HTTP request
-
-###### Request path
-```
-/v1/status
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "name" : "string",
-  "status" : "string",
-  "currentTime" : "string",
-  "startTime" : "string",
-  "upTime" : 0,
-  "uid" : "string",
-  "properties" : {
-    "string" : "string"
-  },
-  "dependencies" : {
-    "string" : "string"
-  },
-  "$metadata" : {
-    "string" : "string"
-  }
-}
-```
 
 
 <a name="supervisors_resource"></a>
@@ -1355,6 +905,8 @@ Call this operation again using the token to retrieve more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorListApiModel](definitions.md#supervisorlistapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -1362,52 +914,11 @@ Call this operation again using the token to retrieve more results.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/supervisors
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "items" : [ {
-    "id" : "string",
-    "siteId" : "string",
-    "discovery" : "string",
-    "discoveryConfig" : {
-      "addressRangesToScan" : "string",
-      "networkProbeTimeoutMs" : 0,
-      "maxNetworkProbes" : 0,
-      "portRangesToScan" : "string",
-      "portProbeTimeoutMs" : 0,
-      "maxPortProbes" : 0,
-      "minPortProbesPercent" : 0,
-      "idleTimeBetweenScansSec" : 0,
-      "discoveryUrls" : [ "string" ],
-      "locales" : [ "string" ],
-      "callbacks" : [ {
-        "uri" : "string",
-        "method" : "string",
-        "authenticationHeader" : "string"
-      } ],
-      "activationFilter" : {
-        "trustLists" : [ "string" ],
-        "securityPolicies" : [ "string" ],
-        "securityMode" : "string"
-      }
-    },
-    "certificate" : "string",
-    "outOfSync" : true,
-    "connected" : true
-  } ],
-  "continuationToken" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="querysupervisors"></a>
@@ -1439,6 +950,8 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorListApiModel](definitions.md#supervisorlistapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1454,62 +967,11 @@ more results.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/supervisors/query
-```
-
-
-###### Request body
-```json
-{
-  "siteId" : "string",
-  "discovery" : "string",
-  "connected" : true
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "items" : [ {
-    "id" : "string",
-    "siteId" : "string",
-    "discovery" : "string",
-    "discoveryConfig" : {
-      "addressRangesToScan" : "string",
-      "networkProbeTimeoutMs" : 0,
-      "maxNetworkProbes" : 0,
-      "portRangesToScan" : "string",
-      "portProbeTimeoutMs" : 0,
-      "maxPortProbes" : 0,
-      "minPortProbesPercent" : 0,
-      "idleTimeBetweenScansSec" : 0,
-      "discoveryUrls" : [ "string" ],
-      "locales" : [ "string" ],
-      "callbacks" : [ {
-        "uri" : "string",
-        "method" : "string",
-        "authenticationHeader" : "string"
-      } ],
-      "activationFilter" : {
-        "trustLists" : [ "string" ],
-        "securityPolicies" : [ "string" ],
-        "securityMode" : "string"
-      }
-    },
-    "certificate" : "string",
-    "outOfSync" : true,
-    "connected" : true
-  } ],
-  "continuationToken" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getfilteredlistofsupervisors"></a>
@@ -1543,6 +1005,8 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorListApiModel](definitions.md#supervisorlistapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -1550,52 +1014,11 @@ more results.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/supervisors/query
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "items" : [ {
-    "id" : "string",
-    "siteId" : "string",
-    "discovery" : "string",
-    "discoveryConfig" : {
-      "addressRangesToScan" : "string",
-      "networkProbeTimeoutMs" : 0,
-      "maxNetworkProbes" : 0,
-      "portRangesToScan" : "string",
-      "portProbeTimeoutMs" : 0,
-      "maxPortProbes" : 0,
-      "minPortProbesPercent" : 0,
-      "idleTimeBetweenScansSec" : 0,
-      "discoveryUrls" : [ "string" ],
-      "locales" : [ "string" ],
-      "callbacks" : [ {
-        "uri" : "string",
-        "method" : "string",
-        "authenticationHeader" : "string"
-      } ],
-      "activationFilter" : {
-        "trustLists" : [ "string" ],
-        "securityPolicies" : [ "string" ],
-        "securityMode" : "string"
-      }
-    },
-    "certificate" : "string",
-    "outOfSync" : true,
-    "connected" : true
-  } ],
-  "continuationToken" : "string"
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getsupervisor"></a>
@@ -1623,6 +1046,8 @@ A supervisor id corresponds to the twin modules module identity.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorApiModel](definitions.md#supervisorapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -1630,49 +1055,11 @@ A supervisor id corresponds to the twin modules module identity.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/supervisors/string
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "id" : "string",
-  "siteId" : "string",
-  "discovery" : "string",
-  "discoveryConfig" : {
-    "addressRangesToScan" : "string",
-    "networkProbeTimeoutMs" : 0,
-    "maxNetworkProbes" : 0,
-    "portRangesToScan" : "string",
-    "portProbeTimeoutMs" : 0,
-    "maxPortProbes" : 0,
-    "minPortProbesPercent" : 0,
-    "idleTimeBetweenScansSec" : 0,
-    "discoveryUrls" : [ "string" ],
-    "locales" : [ "string" ],
-    "callbacks" : [ {
-      "uri" : "string",
-      "method" : "string",
-      "authenticationHeader" : "string"
-    } ],
-    "activationFilter" : {
-      "trustLists" : [ "string" ],
-      "securityPolicies" : [ "string" ],
-      "securityMode" : "string"
-    }
-  },
-  "certificate" : "string",
-  "outOfSync" : true,
-  "connected" : true
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="updatesupervisor"></a>
@@ -1700,6 +1087,8 @@ identified by the supervisor id or update site information.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1715,49 +1104,11 @@ identified by the supervisor id or update site information.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/supervisors/string
-```
-
-
-###### Request body
-```json
-{
-  "siteId" : "string",
-  "discovery" : "string",
-  "discoveryConfig" : {
-    "addressRangesToScan" : "string",
-    "networkProbeTimeoutMs" : 0,
-    "maxNetworkProbes" : 0,
-    "portRangesToScan" : "string",
-    "portProbeTimeoutMs" : 0,
-    "maxPortProbes" : 0,
-    "minPortProbesPercent" : 0,
-    "idleTimeBetweenScansSec" : 0,
-    "discoveryUrls" : [ "string" ],
-    "locales" : [ "string" ],
-    "callbacks" : [ {
-      "uri" : "string",
-      "method" : "string",
-      "authenticationHeader" : "string"
-    } ],
-    "activationFilter" : {
-      "trustLists" : [ "string" ],
-      "securityPolicies" : [ "string" ],
-      "securityMode" : "string"
-    }
-  },
-  "discoveryCallbacks" : [ {
-    "uri" : "string",
-    "method" : "string",
-    "authenticationHeader" : "string"
-  } ],
-  "removeDiscoveryCallbacks" : true
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="resetsupervisor"></a>
@@ -1784,6 +1135,8 @@ identity identifier.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -1791,12 +1144,11 @@ identity identifier.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/supervisors/string/reset
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getsupervisorstatus"></a>
@@ -1822,6 +1174,8 @@ Allows a caller to get runtime status for a supervisor.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorStatusApiModel](definitions.md#supervisorstatusapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -1829,28 +1183,11 @@ Allows a caller to get runtime status for a supervisor.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/supervisors/string/status
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "deviceId" : "string",
-  "moduleId" : "string",
-  "siteId" : "string",
-  "endpoints" : [ {
-    "id" : "string",
-    "activationState" : "string"
-  } ]
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 

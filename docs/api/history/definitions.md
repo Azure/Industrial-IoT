@@ -9,11 +9,11 @@ Aggregate configuration
 
 |Name|Description|Schema|
 |---|---|---|
-|**percentDataBad**  <br>*optional*|Percent of data that is bad  <br>**Example** : `0`|integer (int32)|
-|**percentDataGood**  <br>*optional*|Percent of data that is good  <br>**Example** : `0`|integer (int32)|
-|**treatUncertainAsBad**  <br>*optional*|Whether to treat uncertain as bad  <br>**Example** : `true`|boolean|
-|**useServerCapabilitiesDefaults**  <br>*optional*|Whether to use the default server caps  <br>**Example** : `true`|boolean|
-|**useSlopedExtrapolation**  <br>*optional*|Whether to use sloped extrapolation.  <br>**Example** : `true`|boolean|
+|**percentDataBad**  <br>*optional*|Percent of data that is bad|integer (int32)|
+|**percentDataGood**  <br>*optional*|Percent of data that is good|integer (int32)|
+|**treatUncertainAsBad**  <br>*optional*|Whether to treat uncertain as bad|boolean|
+|**useServerCapabilitiesDefaults**  <br>*optional*|Whether to use the default server caps|boolean|
+|**useSlopedExtrapolation**  <br>*optional*|Whether to use sloped extrapolation.|boolean|
 
 
 <a name="credentialapimodel"></a>
@@ -23,8 +23,8 @@ Credential model
 
 |Name|Description|Schema|
 |---|---|---|
-|**type**  <br>*optional*|Type of credential  <br>**Default** : `"None"`  <br>**Example** : `"string"`|enum (None, UserName, X509Certificate, JwtToken)|
-|**value**  <br>*optional*|Value to pass to server  <br>**Example** : `"object"`|object|
+|**type**  <br>*optional*|Type of credential  <br>**Default** : `"None"`|enum (None, UserName, X509Certificate, JwtToken)|
+|**value**  <br>*optional*|Value to pass to server|object|
 
 
 <a name="deleteeventsdetailsapimodel"></a>
@@ -34,7 +34,7 @@ The events to delete
 
 |Name|Description|Schema|
 |---|---|---|
-|**eventIds**  <br>*required*|Events to delete  <br>**Example** : `[ "string" ]`|< string (byte) > array|
+|**eventIds**  <br>*required*|Events to delete|< string (byte) > array|
 
 
 <a name="deletemodifiedvaluesdetailsapimodel"></a>
@@ -44,8 +44,8 @@ Delete raw modified data
 
 |Name|Description|Schema|
 |---|---|---|
-|**endTime**  <br>*optional*|End time to delete until  <br>**Example** : `"string"`|string (date-time)|
-|**startTime**  <br>*optional*|Start time  <br>**Example** : `"string"`|string (date-time)|
+|**endTime**  <br>*optional*|End time to delete until|string (date-time)|
+|**startTime**  <br>*optional*|Start time|string (date-time)|
 
 
 <a name="deletevaluesattimesdetailsapimodel"></a>
@@ -55,7 +55,7 @@ Deletes data at times
 
 |Name|Description|Schema|
 |---|---|---|
-|**reqTimes**  <br>*required*|The timestamps to delete  <br>**Example** : `[ "string" ]`|< string (date-time) > array|
+|**reqTimes**  <br>*required*|The timestamps to delete|< string (date-time) > array|
 
 
 <a name="deletevaluesdetailsapimodel"></a>
@@ -65,8 +65,8 @@ Delete raw modified data
 
 |Name|Description|Schema|
 |---|---|---|
-|**endTime**  <br>*optional*|End time to delete until  <br>**Example** : `"string"`|string (date-time)|
-|**startTime**  <br>*optional*|Start time  <br>**Example** : `"string"`|string (date-time)|
+|**endTime**  <br>*optional*|End time to delete until|string (date-time)|
+|**startTime**  <br>*optional*|Start time|string (date-time)|
 
 
 <a name="diagnosticsapimodel"></a>
@@ -76,9 +76,9 @@ Diagnostics configuration
 
 |Name|Description|Schema|
 |---|---|---|
-|**auditId**  <br>*optional*|Client audit log entry.<br>(default: client generated)  <br>**Example** : `"string"`|string|
-|**level**  <br>*optional*|Requested level of response diagnostics.<br>(default: Status)  <br>**Example** : `"string"`|enum (None, Status, Operations, Diagnostics, Verbose)|
-|**timeStamp**  <br>*optional*|Timestamp of request.<br>(default: client generated)  <br>**Example** : `"string"`|string (date-time)|
+|**auditId**  <br>*optional*|Client audit log entry.<br>(default: client generated)|string|
+|**level**  <br>*optional*|Requested level of response diagnostics.<br>(default: Status)|enum (None, Status, Operations, Diagnostics, Verbose)|
+|**timeStamp**  <br>*optional*|Timestamp of request.<br>(default: client generated)|string (date-time)|
 
 
 <a name="historiceventapimodel"></a>
@@ -88,7 +88,7 @@ Historic event
 
 |Name|Description|Schema|
 |---|---|---|
-|**eventFields**  <br>*optional*|The selected fields of the event  <br>**Example** : `[ "object" ]`|< object > array|
+|**eventFields**  <br>*optional*|The selected fields of the event|< object > array|
 
 
 <a name="historicvalueapimodel"></a>
@@ -98,13 +98,13 @@ Historic data
 
 |Name|Description|Schema|
 |---|---|---|
-|**modificationInfo**  <br>*optional*|modification information when reading modifications.  <br>**Example** : `"[modificationinfoapimodel](#modificationinfoapimodel)"`|[ModificationInfoApiModel](definitions.md#modificationinfoapimodel)|
-|**serverPicoseconds**  <br>*optional*|Additional resolution for the server timestamp.  <br>**Example** : `0`|integer (int32)|
-|**serverTimestamp**  <br>*optional*|The server timestamp associated with the value.  <br>**Example** : `"string"`|string (date-time)|
-|**sourcePicoseconds**  <br>*optional*|Additional resolution for the source timestamp.  <br>**Example** : `0`|integer (int32)|
-|**sourceTimestamp**  <br>*optional*|The source timestamp associated with the value.  <br>**Example** : `"string"`|string (date-time)|
-|**statusCode**  <br>*optional*|The status code associated with the value.  <br>**Example** : `0`|integer (int32)|
-|**value**  <br>*optional*|,<br>            The value of data value.  <br>**Example** : `"object"`|object|
+|**modificationInfo**  <br>*optional*|modification information when reading modifications.|[ModificationInfoApiModel](definitions.md#modificationinfoapimodel)|
+|**serverPicoseconds**  <br>*optional*|Additional resolution for the server timestamp.|integer (int32)|
+|**serverTimestamp**  <br>*optional*|The server timestamp associated with the value.|string (date-time)|
+|**sourcePicoseconds**  <br>*optional*|Additional resolution for the source timestamp.|integer (int32)|
+|**sourceTimestamp**  <br>*optional*|The source timestamp associated with the value.|string (date-time)|
+|**statusCode**  <br>*optional*|The status code associated with the value.|integer (int32)|
+|**value**  <br>*optional*|,<br>            The value of data value.|object|
 
 
 <a name="historyreadnextrequestapimodel"></a>
@@ -114,9 +114,9 @@ Request node history read continuation
 
 |Name|Description|Schema|
 |---|---|---|
-|**abort**  <br>*optional*|Abort reading after this read  <br>**Default** : `false`  <br>**Example** : `true`|boolean|
-|**continuationToken**  <br>*required*|Continuation token to continue reading more<br>results.  <br>**Example** : `"string"`|string|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**abort**  <br>*optional*|Abort reading after this read  <br>**Default** : `false`|boolean|
+|**continuationToken**  <br>*required*|Continuation token to continue reading more<br>results.|string|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 
 
 <a name="historyreadnextresponseapimodel-historiceventapimodel"></a>
@@ -126,9 +126,9 @@ History read continuation result
 
 |Name|Description|Schema|
 |---|---|---|
-|**continuationToken**  <br>*optional*|Continuation token if more results pending.  <br>**Example** : `"string"`|string|
-|**errorInfo**  <br>*optional*|Service result in case of error  <br>**Example** : `"[serviceresultapimodel](#serviceresultapimodel)"`|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
-|**history**  <br>*optional*|History as json encoded extension object  <br>**Example** : `[ "[historiceventapimodel](#historiceventapimodel)" ]`|< [HistoricEventApiModel](definitions.md#historiceventapimodel) > array|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*|Service result in case of error|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
+|**history**  <br>*optional*|History as json encoded extension object|< [HistoricEventApiModel](definitions.md#historiceventapimodel) > array|
 
 
 <a name="historyreadnextresponseapimodel-historicvalueapimodel"></a>
@@ -138,9 +138,9 @@ History read continuation result
 
 |Name|Description|Schema|
 |---|---|---|
-|**continuationToken**  <br>*optional*|Continuation token if more results pending.  <br>**Example** : `"string"`|string|
-|**errorInfo**  <br>*optional*|Service result in case of error  <br>**Example** : `"[serviceresultapimodel](#serviceresultapimodel)"`|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
-|**history**  <br>*optional*|History as json encoded extension object  <br>**Example** : `[ "[historicvalueapimodel](#historicvalueapimodel)" ]`|< [HistoricValueApiModel](definitions.md#historicvalueapimodel) > array|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*|Service result in case of error|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
+|**history**  <br>*optional*|History as json encoded extension object|< [HistoricValueApiModel](definitions.md#historicvalueapimodel) > array|
 
 
 <a name="historyreadnextresponseapimodel-jtoken"></a>
@@ -150,9 +150,9 @@ History read continuation result
 
 |Name|Description|Schema|
 |---|---|---|
-|**continuationToken**  <br>*optional*|Continuation token if more results pending.  <br>**Example** : `"string"`|string|
-|**errorInfo**  <br>*optional*|Service result in case of error  <br>**Example** : `"[serviceresultapimodel](#serviceresultapimodel)"`|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
-|**history**  <br>*optional*|History as json encoded extension object  <br>**Example** : `"object"`|object|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*|Service result in case of error|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
+|**history**  <br>*optional*|History as json encoded extension object|object|
 
 
 <a name="historyreadrequestapimodel-jtoken"></a>
@@ -162,11 +162,11 @@ Request node history read
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.  <br>**Example** : `"object"`|object|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.  <br>**Example** : `"string"`|string|
-|**nodeId**  <br>*optional*|Node to read from (mandatory)  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.|object|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory)|string|
 
 
 <a name="historyreadrequestapimodel-readeventsdetailsapimodel"></a>
@@ -176,11 +176,11 @@ Request node history read
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.  <br>**Example** : `"[readeventsdetailsapimodel](#readeventsdetailsapimodel)"`|[ReadEventsDetailsApiModel](definitions.md#readeventsdetailsapimodel)|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.  <br>**Example** : `"string"`|string|
-|**nodeId**  <br>*optional*|Node to read from (mandatory)  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.|[ReadEventsDetailsApiModel](definitions.md#readeventsdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory)|string|
 
 
 <a name="historyreadrequestapimodel-readmodifiedvaluesdetailsapimodel"></a>
@@ -190,11 +190,11 @@ Request node history read
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.  <br>**Example** : `"[readmodifiedvaluesdetailsapimodel](#readmodifiedvaluesdetailsapimodel)"`|[ReadModifiedValuesDetailsApiModel](definitions.md#readmodifiedvaluesdetailsapimodel)|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.  <br>**Example** : `"string"`|string|
-|**nodeId**  <br>*optional*|Node to read from (mandatory)  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.|[ReadModifiedValuesDetailsApiModel](definitions.md#readmodifiedvaluesdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory)|string|
 
 
 <a name="historyreadrequestapimodel-readprocessedvaluesdetailsapimodel"></a>
@@ -204,11 +204,11 @@ Request node history read
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.  <br>**Example** : `"[readprocessedvaluesdetailsapimodel](#readprocessedvaluesdetailsapimodel)"`|[ReadProcessedValuesDetailsApiModel](definitions.md#readprocessedvaluesdetailsapimodel)|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.  <br>**Example** : `"string"`|string|
-|**nodeId**  <br>*optional*|Node to read from (mandatory)  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.|[ReadProcessedValuesDetailsApiModel](definitions.md#readprocessedvaluesdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory)|string|
 
 
 <a name="historyreadrequestapimodel-readvaluesattimesdetailsapimodel"></a>
@@ -218,11 +218,11 @@ Request node history read
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.  <br>**Example** : `"[readvaluesattimesdetailsapimodel](#readvaluesattimesdetailsapimodel)"`|[ReadValuesAtTimesDetailsApiModel](definitions.md#readvaluesattimesdetailsapimodel)|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.  <br>**Example** : `"string"`|string|
-|**nodeId**  <br>*optional*|Node to read from (mandatory)  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.|[ReadValuesAtTimesDetailsApiModel](definitions.md#readvaluesattimesdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory)|string|
 
 
 <a name="historyreadrequestapimodel-readvaluesdetailsapimodel"></a>
@@ -232,11 +232,11 @@ Request node history read
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.  <br>**Example** : `"[readvaluesdetailsapimodel](#readvaluesdetailsapimodel)"`|[ReadValuesDetailsApiModel](definitions.md#readvaluesdetailsapimodel)|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.  <br>**Example** : `"string"`|string|
-|**nodeId**  <br>*optional*|Node to read from (mandatory)  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.|[ReadValuesDetailsApiModel](definitions.md#readvaluesdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory)|string|
 
 
 <a name="historyreadresponseapimodel-historiceventapimodel"></a>
@@ -246,9 +246,9 @@ History read results
 
 |Name|Description|Schema|
 |---|---|---|
-|**continuationToken**  <br>*optional*|Continuation token if more results pending.  <br>**Example** : `"string"`|string|
-|**errorInfo**  <br>*optional*|Service result in case of error  <br>**Example** : `"[serviceresultapimodel](#serviceresultapimodel)"`|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
-|**history**  <br>*optional*|History as json encoded extension object  <br>**Example** : `[ "[historiceventapimodel](#historiceventapimodel)" ]`|< [HistoricEventApiModel](definitions.md#historiceventapimodel) > array|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*|Service result in case of error|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
+|**history**  <br>*optional*|History as json encoded extension object|< [HistoricEventApiModel](definitions.md#historiceventapimodel) > array|
 
 
 <a name="historyreadresponseapimodel-historicvalueapimodel"></a>
@@ -258,9 +258,9 @@ History read results
 
 |Name|Description|Schema|
 |---|---|---|
-|**continuationToken**  <br>*optional*|Continuation token if more results pending.  <br>**Example** : `"string"`|string|
-|**errorInfo**  <br>*optional*|Service result in case of error  <br>**Example** : `"[serviceresultapimodel](#serviceresultapimodel)"`|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
-|**history**  <br>*optional*|History as json encoded extension object  <br>**Example** : `[ "[historicvalueapimodel](#historicvalueapimodel)" ]`|< [HistoricValueApiModel](definitions.md#historicvalueapimodel) > array|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*|Service result in case of error|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
+|**history**  <br>*optional*|History as json encoded extension object|< [HistoricValueApiModel](definitions.md#historicvalueapimodel) > array|
 
 
 <a name="historyreadresponseapimodel-jtoken"></a>
@@ -270,9 +270,9 @@ History read results
 
 |Name|Description|Schema|
 |---|---|---|
-|**continuationToken**  <br>*optional*|Continuation token if more results pending.  <br>**Example** : `"string"`|string|
-|**errorInfo**  <br>*optional*|Service result in case of error  <br>**Example** : `"[serviceresultapimodel](#serviceresultapimodel)"`|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
-|**history**  <br>*optional*|History as json encoded extension object  <br>**Example** : `"object"`|object|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*|Service result in case of error|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
+|**history**  <br>*optional*|History as json encoded extension object|object|
 
 
 <a name="historyupdaterequestapimodel-deleteeventsdetailsapimodel"></a>
@@ -282,10 +282,10 @@ Request node history update
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[deleteeventsdetailsapimodel](#deleteeventsdetailsapimodel)"`|[DeleteEventsDetailsApiModel](definitions.md#deleteeventsdetailsapimodel)|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.|[DeleteEventsDetailsApiModel](definitions.md#deleteeventsdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**nodeId**  <br>*optional*|Node to update|string|
 
 
 <a name="historyupdaterequestapimodel-deletemodifiedvaluesdetailsapimodel"></a>
@@ -295,10 +295,10 @@ Request node history update
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[deletemodifiedvaluesdetailsapimodel](#deletemodifiedvaluesdetailsapimodel)"`|[DeleteModifiedValuesDetailsApiModel](definitions.md#deletemodifiedvaluesdetailsapimodel)|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.|[DeleteModifiedValuesDetailsApiModel](definitions.md#deletemodifiedvaluesdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**nodeId**  <br>*optional*|Node to update|string|
 
 
 <a name="historyupdaterequestapimodel-deletevaluesattimesdetailsapimodel"></a>
@@ -308,10 +308,10 @@ Request node history update
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[deletevaluesattimesdetailsapimodel](#deletevaluesattimesdetailsapimodel)"`|[DeleteValuesAtTimesDetailsApiModel](definitions.md#deletevaluesattimesdetailsapimodel)|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.|[DeleteValuesAtTimesDetailsApiModel](definitions.md#deletevaluesattimesdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**nodeId**  <br>*optional*|Node to update|string|
 
 
 <a name="historyupdaterequestapimodel-deletevaluesdetailsapimodel"></a>
@@ -321,10 +321,10 @@ Request node history update
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[deletevaluesdetailsapimodel](#deletevaluesdetailsapimodel)"`|[DeleteValuesDetailsApiModel](definitions.md#deletevaluesdetailsapimodel)|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.|[DeleteValuesDetailsApiModel](definitions.md#deletevaluesdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**nodeId**  <br>*optional*|Node to update|string|
 
 
 <a name="historyupdaterequestapimodel-inserteventsdetailsapimodel"></a>
@@ -334,10 +334,10 @@ Request node history update
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[inserteventsdetailsapimodel](#inserteventsdetailsapimodel)"`|[InsertEventsDetailsApiModel](definitions.md#inserteventsdetailsapimodel)|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.|[InsertEventsDetailsApiModel](definitions.md#inserteventsdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**nodeId**  <br>*optional*|Node to update|string|
 
 
 <a name="historyupdaterequestapimodel-insertvaluesdetailsapimodel"></a>
@@ -347,10 +347,10 @@ Request node history update
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[insertvaluesdetailsapimodel](#insertvaluesdetailsapimodel)"`|[InsertValuesDetailsApiModel](definitions.md#insertvaluesdetailsapimodel)|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.|[InsertValuesDetailsApiModel](definitions.md#insertvaluesdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**nodeId**  <br>*optional*|Node to update|string|
 
 
 <a name="historyupdaterequestapimodel-jtoken"></a>
@@ -360,10 +360,10 @@ Request node history update
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"object"`|object|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.|object|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**nodeId**  <br>*optional*|Node to update|string|
 
 
 <a name="historyupdaterequestapimodel-replaceeventsdetailsapimodel"></a>
@@ -373,10 +373,10 @@ Request node history update
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[replaceeventsdetailsapimodel](#replaceeventsdetailsapimodel)"`|[ReplaceEventsDetailsApiModel](definitions.md#replaceeventsdetailsapimodel)|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.|[ReplaceEventsDetailsApiModel](definitions.md#replaceeventsdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**nodeId**  <br>*optional*|Node to update|string|
 
 
 <a name="historyupdaterequestapimodel-replacevaluesdetailsapimodel"></a>
@@ -386,10 +386,10 @@ Request node history update
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.  <br>**Example** : `[ "string" ]`|< string > array|
-|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.  <br>**Example** : `"[replacevaluesdetailsapimodel](#replacevaluesdetailsapimodel)"`|[ReplaceValuesDetailsApiModel](definitions.md#replacevaluesdetailsapimodel)|
-|**header**  <br>*optional*|Optional request header  <br>**Example** : `"[requestheaderapimodel](#requestheaderapimodel)"`|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**nodeId**  <br>*optional*|Node to update  <br>**Example** : `"string"`|string|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.|[ReplaceValuesDetailsApiModel](definitions.md#replacevaluesdetailsapimodel)|
+|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**nodeId**  <br>*optional*|Node to update|string|
 
 
 <a name="historyupdateresponseapimodel"></a>
@@ -399,8 +399,8 @@ History update results
 
 |Name|Description|Schema|
 |---|---|---|
-|**errorInfo**  <br>*optional*|Service result in case of service call error  <br>**Example** : `"[serviceresultapimodel](#serviceresultapimodel)"`|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
-|**results**  <br>*optional*|List of results from the update operation  <br>**Example** : `[ "[serviceresultapimodel](#serviceresultapimodel)" ]`|< [ServiceResultApiModel](definitions.md#serviceresultapimodel) > array|
+|**errorInfo**  <br>*optional*|Service result in case of service call error|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
+|**results**  <br>*optional*|List of results from the update operation|< [ServiceResultApiModel](definitions.md#serviceresultapimodel) > array|
 
 
 <a name="inserteventsdetailsapimodel"></a>
@@ -410,8 +410,8 @@ Insert historic events
 
 |Name|Description|Schema|
 |---|---|---|
-|**events**  <br>*required*|The new events to insert  <br>**Example** : `[ "[historiceventapimodel](#historiceventapimodel)" ]`|< [HistoricEventApiModel](definitions.md#historiceventapimodel) > array|
-|**filter**  <br>*optional*|The filter to use to select the events  <br>**Example** : `"object"`|object|
+|**events**  <br>*required*|The new events to insert|< [HistoricEventApiModel](definitions.md#historiceventapimodel) > array|
+|**filter**  <br>*optional*|The filter to use to select the events|object|
 
 
 <a name="insertvaluesdetailsapimodel"></a>
@@ -421,7 +421,7 @@ Insert historic data
 
 |Name|Description|Schema|
 |---|---|---|
-|**values**  <br>*required*|Values to insert  <br>**Example** : `[ "[historicvalueapimodel](#historicvalueapimodel)" ]`|< [HistoricValueApiModel](definitions.md#historicvalueapimodel) > array|
+|**values**  <br>*required*|Values to insert|< [HistoricValueApiModel](definitions.md#historicvalueapimodel) > array|
 
 
 <a name="modificationinfoapimodel"></a>
@@ -431,9 +431,9 @@ Modification information
 
 |Name|Description|Schema|
 |---|---|---|
-|**modificationTime**  <br>*optional*|Modification time  <br>**Example** : `"string"`|string (date-time)|
-|**updateType**  <br>*optional*|Operation  <br>**Example** : `"string"`|enum (Insert, Replace, Update, Delete)|
-|**userName**  <br>*optional*|User who made the change  <br>**Example** : `"string"`|string|
+|**modificationTime**  <br>*optional*|Modification time|string (date-time)|
+|**updateType**  <br>*optional*|Operation|enum (Insert, Replace, Update, Delete)|
+|**userName**  <br>*optional*|User who made the change|string|
 
 
 <a name="readeventsdetailsapimodel"></a>
@@ -443,10 +443,10 @@ Read event data
 
 |Name|Description|Schema|
 |---|---|---|
-|**endTime**  <br>*optional*|End time to read to  <br>**Example** : `"string"`|string (date-time)|
-|**filter**  <br>*optional*|The filter to use to select the event fields  <br>**Example** : `"object"`|object|
-|**numEvents**  <br>*optional*|Number of events to read  <br>**Example** : `0`|integer (int32)|
-|**startTime**  <br>*optional*|Start time to read from  <br>**Example** : `"string"`|string (date-time)|
+|**endTime**  <br>*optional*|End time to read to|string (date-time)|
+|**filter**  <br>*optional*|The filter to use to select the event fields|object|
+|**numEvents**  <br>*optional*|Number of events to read|integer (int32)|
+|**startTime**  <br>*optional*|Start time to read from|string (date-time)|
 
 
 <a name="readmodifiedvaluesdetailsapimodel"></a>
@@ -456,9 +456,9 @@ Read modified data
 
 |Name|Description|Schema|
 |---|---|---|
-|**endTime**  <br>*optional*|The end time to read to  <br>**Example** : `"string"`|string (date-time)|
-|**numValues**  <br>*optional*|The number of values to read  <br>**Example** : `0`|integer (int32)|
-|**startTime**  <br>*optional*|The start time to read from  <br>**Example** : `"string"`|string (date-time)|
+|**endTime**  <br>*optional*|The end time to read to|string (date-time)|
+|**numValues**  <br>*optional*|The number of values to read|integer (int32)|
+|**startTime**  <br>*optional*|The start time to read from|string (date-time)|
 
 
 <a name="readprocessedvaluesdetailsapimodel"></a>
@@ -468,11 +468,11 @@ Read processed historic data
 
 |Name|Description|Schema|
 |---|---|---|
-|**aggregateConfiguration**  <br>*optional*|A configuration for the aggregate  <br>**Example** : `"[aggregateconfigapimodel](#aggregateconfigapimodel)"`|[AggregateConfigApiModel](definitions.md#aggregateconfigapimodel)|
-|**aggregateTypeId**  <br>*optional*|The aggregate type node ids  <br>**Example** : `"string"`|string|
-|**endTime**  <br>*optional*|End time to read until  <br>**Example** : `"string"`|string (date-time)|
-|**processingInterval**  <br>*optional*|Interval to process  <br>**Example** : `0.0`|number (double)|
-|**startTime**  <br>*optional*|Start time to read from.  <br>**Example** : `"string"`|string (date-time)|
+|**aggregateConfiguration**  <br>*optional*|A configuration for the aggregate|[AggregateConfigApiModel](definitions.md#aggregateconfigapimodel)|
+|**aggregateTypeId**  <br>*optional*|The aggregate type node ids|string|
+|**endTime**  <br>*optional*|End time to read until|string (date-time)|
+|**processingInterval**  <br>*optional*|Interval to process|number (double)|
+|**startTime**  <br>*optional*|Start time to read from.|string (date-time)|
 
 
 <a name="readvaluesattimesdetailsapimodel"></a>
@@ -482,8 +482,8 @@ Read data at specified times
 
 |Name|Description|Schema|
 |---|---|---|
-|**reqTimes**  <br>*required*|Requested datums  <br>**Example** : `[ "string" ]`|< string (date-time) > array|
-|**useSimpleBounds**  <br>*optional*|Whether to use simple bounds  <br>**Example** : `true`|boolean|
+|**reqTimes**  <br>*required*|Requested datums|< string (date-time) > array|
+|**useSimpleBounds**  <br>*optional*|Whether to use simple bounds|boolean|
 
 
 <a name="readvaluesdetailsapimodel"></a>
@@ -493,10 +493,10 @@ Read historic values
 
 |Name|Description|Schema|
 |---|---|---|
-|**endTime**  <br>*optional*|End of period to read. Set to null if no<br>specific end time is specified.  <br>**Example** : `"string"`|string (date-time)|
-|**numValues**  <br>*optional*|The maximum number of values returned for any Node<br>over the time range. If only one time is specified,<br>the time range shall extend to return this number<br>of values. 0 or null indicates that there is no<br>maximum.  <br>**Example** : `0`|integer (int32)|
-|**returnBounds**  <br>*optional*|Whether to return the bounding values or not.  <br>**Example** : `true`|boolean|
-|**startTime**  <br>*optional*|Beginning of period to read. Set to null<br>if no specific start time is specified.  <br>**Example** : `"string"`|string (date-time)|
+|**endTime**  <br>*optional*|End of period to read. Set to null if no<br>specific end time is specified.|string (date-time)|
+|**numValues**  <br>*optional*|The maximum number of values returned for any Node<br>over the time range. If only one time is specified,<br>the time range shall extend to return this number<br>of values. 0 or null indicates that there is no<br>maximum.|integer (int32)|
+|**returnBounds**  <br>*optional*|Whether to return the bounding values or not.|boolean|
+|**startTime**  <br>*optional*|Beginning of period to read. Set to null<br>if no specific start time is specified.|string (date-time)|
 
 
 <a name="replaceeventsdetailsapimodel"></a>
@@ -506,8 +506,8 @@ Replace historic events
 
 |Name|Description|Schema|
 |---|---|---|
-|**events**  <br>*required*|The events to replace  <br>**Example** : `[ "[historiceventapimodel](#historiceventapimodel)" ]`|< [HistoricEventApiModel](definitions.md#historiceventapimodel) > array|
-|**filter**  <br>*optional*|The filter to use to select the events  <br>**Example** : `"object"`|object|
+|**events**  <br>*required*|The events to replace|< [HistoricEventApiModel](definitions.md#historiceventapimodel) > array|
+|**filter**  <br>*optional*|The filter to use to select the events|object|
 
 
 <a name="replacevaluesdetailsapimodel"></a>
@@ -517,7 +517,7 @@ Replace historic data
 
 |Name|Description|Schema|
 |---|---|---|
-|**values**  <br>*required*|Values to replace  <br>**Example** : `[ "[historicvalueapimodel](#historicvalueapimodel)" ]`|< [HistoricValueApiModel](definitions.md#historicvalueapimodel) > array|
+|**values**  <br>*required*|Values to replace|< [HistoricValueApiModel](definitions.md#historicvalueapimodel) > array|
 
 
 <a name="requestheaderapimodel"></a>
@@ -527,9 +527,9 @@ Request header model
 
 |Name|Description|Schema|
 |---|---|---|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration  <br>**Example** : `"[diagnosticsapimodel](#diagnosticsapimodel)"`|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
-|**elevation**  <br>*optional*|Optional User elevation  <br>**Example** : `"[credentialapimodel](#credentialapimodel)"`|[CredentialApiModel](definitions.md#credentialapimodel)|
-|**locales**  <br>*optional*|Optional list of locales in preference order.  <br>**Example** : `[ "string" ]`|< string > array|
+|**diagnostics**  <br>*optional*|Optional diagnostics configuration|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
+|**elevation**  <br>*optional*|Optional User elevation|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**locales**  <br>*optional*|Optional list of locales in preference order.|< string > array|
 
 
 <a name="serviceresultapimodel"></a>
@@ -539,9 +539,9 @@ Service result
 
 |Name|Description|Schema|
 |---|---|---|
-|**diagnostics**  <br>*optional*|Additional diagnostics information  <br>**Example** : `"object"`|object|
-|**errorMessage**  <br>*optional*|Error message in case of error or null.  <br>**Example** : `"string"`|string|
-|**statusCode**  <br>*optional*|Error code - if null operation succeeded.  <br>**Example** : `0`|integer (int32)|
+|**diagnostics**  <br>*optional*|Additional diagnostics information|object|
+|**errorMessage**  <br>*optional*|Error message in case of error or null.|string|
+|**statusCode**  <br>*optional*|Error code - if null operation succeeded.|integer (int32)|
 
 
 <a name="statusresponseapimodel"></a>
@@ -551,15 +551,15 @@ Status response model
 
 |Name|Description|Schema|
 |---|---|---|
-|**$metadata**  <br>*optional*  <br>*read-only*|Optional meta data.  <br>**Example** : `{<br>  "string" : "string"<br>}`|< string, string > map|
-|**currentTime**  <br>*optional*  <br>*read-only*|Current time  <br>**Example** : `"string"`|string|
-|**dependencies**  <br>*optional*  <br>*read-only*|A property bag with details about the internal dependencies  <br>**Example** : `{<br>  "string" : "string"<br>}`|< string, string > map|
-|**name**  <br>*optional*  <br>*read-only*|Name of this service  <br>**Example** : `"string"`|string|
-|**properties**  <br>*optional*  <br>*read-only*|A property bag with details about the service  <br>**Example** : `{<br>  "string" : "string"<br>}`|< string, string > map|
-|**startTime**  <br>*optional*  <br>*read-only*|Start time of service  <br>**Example** : `"string"`|string|
-|**status**  <br>*optional*|Operational status  <br>**Example** : `"string"`|string|
-|**uid**  <br>*optional*  <br>*read-only*|Value generated at bootstrap by each instance of the service and<br>used to correlate logs coming from the same instance. The value<br>changes every time the service starts.  <br>**Example** : `"string"`|string|
-|**upTime**  <br>*optional*  <br>*read-only*|Up time of service  <br>**Example** : `0`|integer (int64)|
+|**$metadata**  <br>*optional*  <br>*read-only*|Optional meta data.|< string, string > map|
+|**currentTime**  <br>*optional*  <br>*read-only*|Current time|string|
+|**dependencies**  <br>*optional*  <br>*read-only*|A property bag with details about the internal dependencies|< string, string > map|
+|**name**  <br>*optional*  <br>*read-only*|Name of this service|string|
+|**properties**  <br>*optional*  <br>*read-only*|A property bag with details about the service|< string, string > map|
+|**startTime**  <br>*optional*  <br>*read-only*|Start time of service|string|
+|**status**  <br>*optional*|Operational status|string|
+|**uid**  <br>*optional*  <br>*read-only*|Value generated at bootstrap by each instance of the service and<br>used to correlate logs coming from the same instance. The value<br>changes every time the service starts.|string|
+|**upTime**  <br>*optional*  <br>*read-only*|Up time of service|integer (int64)|
 
 
 

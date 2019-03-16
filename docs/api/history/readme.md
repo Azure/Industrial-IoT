@@ -60,6 +60,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -75,55 +77,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/delete/string/events
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "eventIds" : [ "string" ]
-  },
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "results" : [ {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  } ],
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historydeletevalues"></a>
@@ -152,6 +110,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -167,56 +127,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/delete/string/values
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "startTime" : "string",
-    "endTime" : "string"
-  },
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "results" : [ {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  } ],
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historydeletemodifiedvalues"></a>
@@ -245,6 +160,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -260,56 +177,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/delete/string/values/modified
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "startTime" : "string",
-    "endTime" : "string"
-  },
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "results" : [ {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  } ],
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historydeletevaluesattimes"></a>
@@ -338,6 +210,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -353,55 +227,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/delete/string/values/pick
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "reqTimes" : [ "string" ]
-  },
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "results" : [ {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  } ],
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="history_resource"></a>
@@ -435,6 +265,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadResponseApiModel[JToken]](definitions.md#historyreadresponseapimodel-jtoken)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -450,51 +282,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/history/read/string
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : "object",
-  "indexRange" : "string",
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "history" : "object",
-  "continuationToken" : "string",
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historyreadrawnext"></a>
@@ -523,6 +315,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadNextResponseApiModel[JToken]](definitions.md#historyreadnextresponseapimodel-jtoken)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -538,49 +332,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/history/read/string/next
-```
-
-
-###### Request body
-```json
-{
-  "continuationToken" : "string",
-  "abort" : true,
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "history" : "object",
-  "continuationToken" : "string",
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historyupdateraw"></a>
@@ -609,6 +365,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -624,53 +382,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/history/update/string
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : "object",
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "results" : [ {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  } ],
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="insert_resource"></a>
@@ -704,6 +420,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -719,58 +437,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/insert/string/events
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "filter" : "object",
-    "events" : [ {
-      "eventFields" : [ "object" ]
-    } ]
-  },
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "results" : [ {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  } ],
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historyinsertvalues"></a>
@@ -799,6 +470,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -814,67 +487,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/insert/string/values
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "values" : [ {
-      "value" : "object",
-      "statusCode" : 0,
-      "sourceTimestamp" : "string",
-      "sourcePicoseconds" : 0,
-      "serverTimestamp" : "string",
-      "serverPicoseconds" : 0,
-      "modificationInfo" : {
-        "modificationTime" : "string",
-        "updateType" : "string",
-        "userName" : "string"
-      }
-    } ]
-  },
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "results" : [ {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  } ],
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="read_resource"></a>
@@ -908,6 +525,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadResponseApiModel[HistoricEventApiModel[]]](definitions.md#historyreadresponseapimodel-historiceventapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -923,58 +542,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/read/string/events
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "startTime" : "string",
-    "endTime" : "string",
-    "numEvents" : 0,
-    "filter" : "object"
-  },
-  "indexRange" : "string",
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "history" : [ {
-    "eventFields" : [ "object" ]
-  } ],
-  "continuationToken" : "string",
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historyreadeventsnext"></a>
@@ -1003,6 +575,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadNextResponseApiModel[HistoricEventApiModel[]]](definitions.md#historyreadnextresponseapimodel-historiceventapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1018,51 +592,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/read/string/events/next
-```
-
-
-###### Request body
-```json
-{
-  "continuationToken" : "string",
-  "abort" : true,
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "history" : [ {
-    "eventFields" : [ "object" ]
-  } ],
-  "continuationToken" : "string",
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historyreadvalues"></a>
@@ -1091,6 +625,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadresponseapimodel-historicvalueapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1106,68 +642,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/read/string/values
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "startTime" : "string",
-    "endTime" : "string",
-    "numValues" : 0,
-    "returnBounds" : true
-  },
-  "indexRange" : "string",
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "history" : [ {
-    "value" : "object",
-    "statusCode" : 0,
-    "sourceTimestamp" : "string",
-    "sourcePicoseconds" : 0,
-    "serverTimestamp" : "string",
-    "serverPicoseconds" : 0,
-    "modificationInfo" : {
-      "modificationTime" : "string",
-      "updateType" : "string",
-      "userName" : "string"
-    }
-  } ],
-  "continuationToken" : "string",
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historyreadmodifiedvalues"></a>
@@ -1196,6 +675,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadresponseapimodel-historicvalueapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1211,67 +692,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/read/string/values/modified
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "startTime" : "string",
-    "endTime" : "string",
-    "numValues" : 0
-  },
-  "indexRange" : "string",
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "history" : [ {
-    "value" : "object",
-    "statusCode" : 0,
-    "sourceTimestamp" : "string",
-    "sourcePicoseconds" : 0,
-    "serverTimestamp" : "string",
-    "serverPicoseconds" : 0,
-    "modificationInfo" : {
-      "modificationTime" : "string",
-      "updateType" : "string",
-      "userName" : "string"
-    }
-  } ],
-  "continuationToken" : "string",
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historyreadvaluenext"></a>
@@ -1300,6 +725,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadNextResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadnextresponseapimodel-historicvalueapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1315,61 +742,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/read/string/values/next
-```
-
-
-###### Request body
-```json
-{
-  "continuationToken" : "string",
-  "abort" : true,
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "history" : [ {
-    "value" : "object",
-    "statusCode" : 0,
-    "sourceTimestamp" : "string",
-    "sourcePicoseconds" : 0,
-    "serverTimestamp" : "string",
-    "serverPicoseconds" : 0,
-    "modificationInfo" : {
-      "modificationTime" : "string",
-      "updateType" : "string",
-      "userName" : "string"
-    }
-  } ],
-  "continuationToken" : "string",
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historyreadvaluesattimes"></a>
@@ -1398,6 +775,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadresponseapimodel-historicvalueapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1413,66 +792,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/read/string/values/pick
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "reqTimes" : [ "string" ],
-    "useSimpleBounds" : true
-  },
-  "indexRange" : "string",
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "history" : [ {
-    "value" : "object",
-    "statusCode" : 0,
-    "sourceTimestamp" : "string",
-    "sourcePicoseconds" : 0,
-    "serverTimestamp" : "string",
-    "serverPicoseconds" : 0,
-    "modificationInfo" : {
-      "modificationTime" : "string",
-      "updateType" : "string",
-      "userName" : "string"
-    }
-  } ],
-  "continuationToken" : "string",
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historyreadprocessedvalues"></a>
@@ -1501,6 +825,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadresponseapimodel-historicvalueapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1516,75 +842,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/read/string/values/processed
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "startTime" : "string",
-    "endTime" : "string",
-    "processingInterval" : 0.0,
-    "aggregateTypeId" : "string",
-    "aggregateConfiguration" : {
-      "useServerCapabilitiesDefaults" : true,
-      "treatUncertainAsBad" : true,
-      "percentDataBad" : 0,
-      "percentDataGood" : 0,
-      "useSlopedExtrapolation" : true
-    }
-  },
-  "indexRange" : "string",
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "history" : [ {
-    "value" : "object",
-    "statusCode" : 0,
-    "sourceTimestamp" : "string",
-    "sourcePicoseconds" : 0,
-    "serverTimestamp" : "string",
-    "serverPicoseconds" : 0,
-    "modificationInfo" : {
-      "modificationTime" : "string",
-      "updateType" : "string",
-      "userName" : "string"
-    }
-  } ],
-  "continuationToken" : "string",
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="replace_resource"></a>
@@ -1618,6 +880,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1633,58 +897,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/replace/string/events
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "filter" : "object",
-    "events" : [ {
-      "eventFields" : [ "object" ]
-    } ]
-  },
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "results" : [ {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  } ],
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historyreplacevalues"></a>
@@ -1713,6 +930,8 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+|**401**|Unauthorized|No Content|
+|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1728,67 +947,11 @@ and server must trust each other.
 * `application/json`
 
 
-##### Example HTTP request
+##### Security
 
-###### Request path
-```
-/v1/replace/string/values
-```
-
-
-###### Request body
-```json
-{
-  "nodeId" : "string",
-  "browsePath" : [ "string" ],
-  "details" : {
-    "values" : [ {
-      "value" : "object",
-      "statusCode" : 0,
-      "sourceTimestamp" : "string",
-      "sourcePicoseconds" : 0,
-      "serverTimestamp" : "string",
-      "serverPicoseconds" : 0,
-      "modificationInfo" : {
-        "modificationTime" : "string",
-        "updateType" : "string",
-        "userName" : "string"
-      }
-    } ]
-  },
-  "header" : {
-    "elevation" : {
-      "type" : "string",
-      "value" : "object"
-    },
-    "locales" : [ "string" ],
-    "diagnostics" : {
-      "level" : "string",
-      "auditId" : "string",
-      "timeStamp" : "string"
-    }
-  }
-}
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "results" : [ {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  } ],
-  "errorInfo" : {
-    "statusCode" : 0,
-    "errorMessage" : "string",
-    "diagnostics" : "object"
-  }
-}
-```
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="status_resource"></a>
@@ -1813,38 +976,6 @@ GET /v1/status
 ##### Produces
 
 * `application/json`
-
-
-##### Example HTTP request
-
-###### Request path
-```
-/v1/status
-```
-
-
-##### Example HTTP response
-
-###### Response 200
-```json
-{
-  "name" : "string",
-  "status" : "string",
-  "currentTime" : "string",
-  "startTime" : "string",
-  "upTime" : 0,
-  "uid" : "string",
-  "properties" : {
-    "string" : "string"
-  },
-  "dependencies" : {
-    "string" : "string"
-  },
-  "$metadata" : {
-    "string" : "string"
-  }
-}
-```
 
 
 
