@@ -81,7 +81,7 @@ namespace OpcPublisher
         /// <summary>
         /// Apply the patterns specified in the telemetry configuration on the message data fields.
         /// </summary>
-        public void ApplyPatterns(IEndpointTelemetryConfigurationModel telemetryConfiguration)
+        public void ApplyPatterns(EndpointTelemetryConfigurationModel telemetryConfiguration)
         {
             if (telemetryConfiguration.EndpointUrl.Publish == true)
             {
@@ -424,7 +424,7 @@ namespace OpcPublisher
                 else
                 {
                     // update the required message data to pass only the required data to the hub communication
-                    IEndpointTelemetryConfigurationModel telemetryConfiguration = TelemetryConfiguration.GetEndpointTelemetryConfiguration(EndpointUrl);
+                    EndpointTelemetryConfigurationModel telemetryConfiguration = TelemetryConfiguration.GetEndpointTelemetryConfiguration(EndpointUrl);
 
                     // the endpoint URL is required to allow HubCommunication lookup the telemetry configuration
                     messageData.EndpointUrl = EndpointUrl;

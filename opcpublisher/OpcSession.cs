@@ -1326,7 +1326,7 @@ namespace OpcPublisher
         private CancellationTokenSource _sessionCancelationTokenSource;
         private CancellationToken _sessionCancelationToken;
         private NamespaceTable _namespaceTable;
-        private IEndpointTelemetryConfigurationModel _telemetryConfiguration;
+        private EndpointTelemetryConfigurationModel _telemetryConfiguration;
         private Task _connectAndMonitorAsync;
     }
 }
