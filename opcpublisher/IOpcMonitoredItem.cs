@@ -58,7 +58,7 @@ namespace OpcPublisher
         /// <summary>
         /// Apply the patterns specified in the telemetry configuration on the message data fields.
         /// </summary>
-        void ApplyPatterns(IEndpointTelemetryConfigurationModel telemetryConfiguration);
+        void ApplyPatterns(EndpointTelemetryConfigurationModel telemetryConfiguration);
     }
 
     /// <summary>

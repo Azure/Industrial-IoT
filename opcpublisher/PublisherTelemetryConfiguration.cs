@@ -115,7 +115,7 @@ namespace OpcPublisher
     /// <summary>
     /// Class to define the MonitoredItem related telemetry configuration.
     /// </summary>
-    public class MonitoredItemTelemetryConfiguration : IMonitoredItemTelemetryConfiguration
+    public class MonitoredItemTelemetryConfiguration
     {
         /// <summary>
         /// Controls if the MonitoredItem object should be flattened.
@@ -178,7 +178,7 @@ namespace OpcPublisher
     /// <summary>
     /// Class to define the Value related telemetry configuration.
     /// </summary>
-    public class ValueTelemetryConfiguration : IValueTelemetryConfiguration
+    public class ValueTelemetryConfiguration
     {
         /// <summary>
         /// Controls if the Value object should be flattened.
@@ -273,7 +273,7 @@ namespace OpcPublisher
     /// <summary>
     /// Class to define the model for the telemetry configuration of an endpoint in the configuration file.
     /// </summary>
-    public class EndpointTelemetryConfigurationModel : IEndpointTelemetryConfigurationModel
+    public class EndpointTelemetryConfigurationModel
     {
         /// <summary>
         /// Specifies the endpoint URL the telemetry should be configured for.
@@ -311,7 +311,7 @@ namespace OpcPublisher
         /// <summary>
         /// Specifies the configuration for the value MonitoredItem.
         /// </summary>
-        public IMonitoredItemTelemetryConfiguration MonitoredItem
+        public MonitoredItemTelemetryConfiguration MonitoredItem
         {
             get => _monitoredItem;
             set
@@ -325,7 +325,7 @@ namespace OpcPublisher
         /// <summary>
         /// Specifies the configuration for the value Value.
         /// </summary>
-        public IValueTelemetryConfiguration Value
+        public ValueTelemetryConfiguration Value
         {
             get => _value;
             set
@@ -364,19 +364,19 @@ namespace OpcPublisher
         /// <summary>
         /// Default settings for all endpoints without specific configuration.
         /// </summary>
-        public IEndpointTelemetryConfigurationModel Defaults { get; set; }
+        public EndpointTelemetryConfigurationModel Defaults { get; set; }
 
         /// <summary>
         /// Endpoint specific configuration.
         /// </summary>
-        public List<IEndpointTelemetryConfigurationModel> EndpointSpecific { get; }
+        public List<EndpointTelemetryConfigurationModel> EndpointSpecific { get; }
 
         /// <summary>
         /// Ctor for the telemetry configuration.
         /// </summary>
         public TelemetryConfigurationFileModel()
         {
-            EndpointSpecific = new List<IEndpointTelemetryConfigurationModel>();
+            EndpointSpecific = new List<EndpointTelemetryConfigurationModel>();
         }
     }
 
@@ -417,9 +417,9 @@ namespace OpcPublisher
         public PublisherTelemetryConfiguration()
         {
             _telemetryConfiguration = null;
-            _endpointTelemetryConfigurations = new List<IEndpointTelemetryConfigurationModel>();
+            _endpointTelemetryConfigurations = new List<EndpointTelemetryConfigurationModel>();
             _defaultEndpointTelemetryConfiguration = null;
-            _endpointTelemetryConfigurationCache = new Dictionary<string, IEndpointTelemetryConfigurationModel>();
+            _endpointTelemetryConfigurationCache = new Dictionary<string, EndpointTelemetryConfigurationModel>();
 
             // initialize with the default server telemetry configuration
             InitializePublisherDefaultEndpointTelemetryConfiguration();
@@ -436,7 +436,7 @@ namespace OpcPublisher
         /// <summary>
         /// Method to get the telemetry configuration for a specific endpoint URL. If the endpoint URL is not found, then the default configuration is returned.
         /// </summary>
-        public IEndpointTelemetryConfigurationModel GetEndpointTelemetryConfiguration(string endpointUrl)
+        public EndpointTelemetryConfigurationModel GetEndpointTelemetryConfiguration(string endpointUrl)
         {
             // lookup configuration in cache and return it or return default configuration
             if (_endpointTelemetryConfigurationCache.ContainsKey(endpointUrl))
@@ -449,7 +449,7 @@ namespace OpcPublisher
         /// <summary>
         /// Validate the endpoint configuration. 'Name' and 'Flat' properties are not allowed and there is only one configuration per endpoint allowed.
         /// </summary>
-        private bool ValidateEndpointConfiguration(IEndpointTelemetryConfigurationModel config)
+        private bool ValidateEndpointConfiguration(EndpointTelemetryConfigurationModel config)
         {
             if (config.ForEndpointUrl == null)
             {
@@ -539,7 +539,7 @@ namespace OpcPublisher
         /// Update the endpoint specific telemetry configuration using settings from the default configuration.
         /// Only those settings are applied, which are not defined by the endpoint specific configuration.
         /// </summary>
-        public void UpdateEndpointTelemetryConfiguration(IEndpointTelemetryConfigurationModel config)
+        public void UpdateEndpointTelemetryConfiguration(EndpointTelemetryConfigurationModel config)
         {
             // process all properties, applying only those defaults which are not set in the endpoint specific config
             config.EndpointUrl.Name = config.EndpointUrl.Name ?? _defaultEndpointTelemetryConfiguration.EndpointUrl.Name;
@@ -595,7 +595,7 @@ namespace OpcPublisher
             try
             {
                 Logger.Information($"Attempting to load telemetry configuration file from: {PublisherTelemetryConfigurationFilename}");
-                _telemetryConfiguration = JsonConvert.DeserializeObject<ITelemetryConfigurationFileModel>(await File.ReadAllTextAsync(PublisherTelemetryConfigurationFilename).ConfigureAwait(false));
+                _telemetryConfiguration = JsonConvert.DeserializeObject<TelemetryConfigurationFileModel>(await File.ReadAllTextAsync(PublisherTelemetryConfigurationFilename).ConfigureAwait(false));
 
                 // update the default configuration with the 'Defaults' settings from the configuration file
                 if (UpdateDefaultEndpointTelemetryConfiguration() == false)
@@ -627,10 +627,10 @@ namespace OpcPublisher
             return true;
         }
 
-        private ITelemetryConfigurationFileModel _telemetryConfiguration;
-        private List<IEndpointTelemetryConfigurationModel> _endpointTelemetryConfigurations;
-        private IEndpointTelemetryConfigurationModel _defaultEndpointTelemetryConfiguration;
-        private Dictionary<string, IEndpointTelemetryConfigurationModel> _endpointTelemetryConfigurationCache;
+        private TelemetryConfigurationFileModel _telemetryConfiguration;
+        private List<EndpointTelemetryConfigurationModel> _endpointTelemetryConfigurations;
+        private EndpointTelemetryConfigurationModel _defaultEndpointTelemetryConfiguration;
+        private Dictionary<string, EndpointTelemetryConfigurationModel> _endpointTelemetryConfigurationCache;
 
         private static readonly object _singletonLock = new object();
         private static IPublisherTelemetryConfiguration _instance = null;
