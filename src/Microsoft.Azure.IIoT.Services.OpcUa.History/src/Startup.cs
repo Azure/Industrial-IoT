@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.History {
     using Microsoft.Azure.IIoT.Services.OpcUa.History.Runtime;
-    using Microsoft.Azure.IIoT.Services.OpcUa.History.v1;
+    using Microsoft.Azure.IIoT.Services.OpcUa.History.v2;
     using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.IIoT.Services.Diagnostics;
     using Microsoft.Azure.IIoT.Services.Auth;
@@ -90,7 +90,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History {
 
             // Add authorization
             services.AddAuthorization(options => {
-                options.AddV1Policies(Config.AuthRequired,
+                options.AddPolicies(Config.AuthRequired,
                     Config.UseRoles && !Environment.IsDevelopment());
             });
 

@@ -39,7 +39,14 @@ Function GetEnvironmentVariables() {
 
     $IOTHUB_NAME = $deployment.Outputs["iothub-name"].Value
     $IOTHUB_ENDPOINT = $deployment.Outputs["iothub-endpoint"].Value
+    $IOTHUB_CONSUMERGROUP = $deployment.Outputs["iothub-consumer-group"].Value
     $IOTHUB_CONNSTRING = $deployment.Outputs["iothub-connstring"].Value
+    $BLOB_ACCOUNT = $deployment.Outputs["azureblob-account"].Value
+    $BLOB_KEY = $deployment.Outputs["azureblob-key"].Value
+    $BLOB_ENDPOINT_SUFFIX = $deployment.Outputs["azureblob-endpoint-suffix"].Value
+    $DOCUMENTDB_CONNSTRING = $deployment.Outputs["docdb-connstring"].Value
+    $EVENTHUB_CONNSTRING = $deployment.Outputs["eventhub-connstring"].Value
+    $EVENTHUB_NAME = $deployment.Outputs["eventhub-name"].Value
     $AZURE_WEBSITE = $deployment.Outputs["azureWebsite"].Value
 
     Write-Output `
@@ -47,11 +54,35 @@ Function GetEnvironmentVariables() {
     Write-Output `
         "PCS_IOTHUB_CONNSTRING=$IOTHUB_CONNSTRING"
     Write-Output `
+        "PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING=$DOCUMENTDB_CONNSTRING"
+    Write-Output `
+        "PCS_TELEMETRY_DOCUMENTDB_CONNSTRING=$DOCUMENTDB_CONNSTRING"
+    Write-Output `
+        "PCS_TELEMETRYAGENT_DOCUMENTDB_CONNSTRING=$DOCUMENTDB_CONNSTRING"
+    Write-Output `
         "PCS_IOTHUBREACT_ACCESS_CONNSTRING=$IOTHUB_CONNSTRING"
     Write-Output `
         "PCS_IOTHUBREACT_HUB_NAME=$IOTHUB_NAME"
     Write-Output `
         "PCS_IOTHUBREACT_HUB_ENDPOINT=$IOTHUB_ENDPOINT"
+    Write-Output `
+        "PCS_IOTHUBREACT_HUB_CONSUMERGROUP=$IOTHUB_CONSUMERGROUP"
+    Write-Output `
+        "PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT=$BLOB_ACCOUNT"
+    Write-Output `
+        "PCS_IOTHUBREACT_AZUREBLOB_KEY=$BLOB_KEY"
+    Write-Output `
+        "PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX=$BLOB_ENDPOINT_SUFFIX"
+    Write-Output `
+        "PCS_ASA_DATA_AZUREBLOB_ACCOUNT=$BLOB_ACCOUNT"
+    Write-Output `
+        "PCS_ASA_DATA_AZUREBLOB_KEY=$BLOB_KEY"
+    Write-Output `
+        "PCS_ASA_DATA_AZUREBLOB_ENDPOINT_SUFFIX=$BLOB_ENDPOINT_SUFFIX"
+    Write-Output `
+        "PCS_EVENTHUB_CONNSTRING=$EVENTHUB_CONNSTRING"
+    Write-Output `
+        "PCS_EVENTHUB_NAME=$EVENTHUB_NAME"
         
     Write-Output `
         "PCS_TWIN_REGISTRY_URL=$AZURE_WEBSITE/registry"
@@ -64,7 +95,7 @@ Function GetEnvironmentVariables() {
 
     if (!$aadConfig) {
     Write-Output `
-        "PCS_AUTH_HTTPSREDIRECTPORT=443"
+        "PCS_AUTH_HTTPSREDIRECTPORT=0"
     Write-Output `
         "PCS_AUTH_REQUIRED=false"
     Write-Output `
@@ -78,7 +109,7 @@ Function GetEnvironmentVariables() {
     $AUTH_AAD_AUTHORITY = $aadConfig.Instance
 
     Write-Output `
-        "PCS_AUTH_HTTPSREDIRECTPORT=443"
+        "PCS_AUTH_HTTPSREDIRECTPORT=0"
     Write-Output `
         "PCS_AUTH_REQUIRED=true"
     Write-Output `
@@ -239,20 +270,6 @@ $deployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGro
 $website = $deployment.Outputs["azureWebsite"].Value
 $iothub = $deployment.Outputs["iothub-connstring"].Value
 
-if ($aadConfig -and $aadConfig.ClientObjectId) {
-    # 
-    # Update client application to add reply urls 
-    #
-    $replyUrls = New-Object System.Collections.Generic.List[System.String]
-    $replyUrls.Add($website)
-    $replyUrls.Add($website + "/twin/oauth2-redirect.html")
-    $replyUrls.Add($website + "/registry/oauth2-redirect.html")
-    $replyUrls.Add($website + "/history/oauth2-redirect.html")
-    $replyUrls.Add($website + "/vault/oauth2-redirect.html")
-    # still connected
-    Set-AzureADApplication -ObjectId $aadConfig.ClientObjectId -ReplyUrls $replyUrls
-}
-
 # find the top most folder with docker-compose.yml in it
 $rootDir = GetRootFolder $ScriptDir
 
@@ -276,6 +293,26 @@ if ($script:interactive) {
         }
     }
 }
+
+if ($aadConfig -and $aadConfig.ClientObjectId) {
+    # 
+    # Update client application to add reply urls 
+    #
+    $replyUrls = New-Object System.Collections.Generic.List[System.String]
+    $replyUrls.Add($website)
+    $replyUrls.Add($website + "/twin/oauth2-redirect.html")
+    $replyUrls.Add($website + "/registry/oauth2-redirect.html")
+    $replyUrls.Add($website + "/history/oauth2-redirect.html")
+    $replyUrls.Add($website + "/vault/oauth2-redirect.html")
+    $replyUrls.Add($website + "/ua/oauth2-redirect.html")
+    if ($writeFile) {
+        $replyUrls.Add("http://localhost:3000")
+        $replyUrls.Add("urn:ietf:wg:oauth:2.0:oob")
+    }
+    # still connected
+    Set-AzureADApplication -ObjectId $aadConfig.ClientObjectId -ReplyUrls $replyUrls
+}
+
 if ($writeFile) {
     GetEnvironmentVariables $deployment | Out-File -Encoding ascii `
         -FilePath $ENVVARS

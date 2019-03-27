@@ -37,8 +37,8 @@ namespace Microsoft.Azure.IIoT.Services.Hub.Router {
 
             // Onboarder
 
-            ["application/x-discovery-result-v1-json"] = "onboarding",
-            ["application/x-discovery-event-v1-json"] = "onboarding",
+            ["application/x-discovery-result-v2-json"] = "onboarding",
+            ["application/x-discovery-event-v2-json"] = "onboarding",
 
             // Model upload
 

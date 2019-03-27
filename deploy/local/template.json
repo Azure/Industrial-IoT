@@ -411,7 +411,15 @@
         },
         "docdb-connstring": {
             "type": "string",
-            "value": "[concat('AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';')]"
+            "value": "[concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"')]"
+        },
+        "eventhub-name": {
+            "type": "string",
+            "value": "[parameters('eventHubName')]"
+        },
+        "eventhub-connstring": {
+            "type": "string",
+            "value": "[concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"')]"
         },
         "iothub-name": {
             "type": "string",
@@ -420,6 +428,10 @@
         "iothub-endpoint": {
             "type": "string",
             "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint]"
+        },
+        "iothub-consumer-group": {
+            "type": "string",
+            "value": "[variables('onboardingConsumerGroupName')]"
         },
         "azureblob-account": {
             "type": "string",
@@ -433,21 +445,9 @@
             "type": "string",
             "value": "[parameters('storageEndpointSuffix')]"
         },
-        "iothub-consumer-group": {
-            "type": "string",
-            "value": "[variables('onboardingConsumerGroupName')]"
-        },
-        "eventhub-connstring": {
-            "type": "string",
-            "value": "[concat('Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey)]"
-        },
-        "eventhub-name": {
-            "type": "string",
-            "value": "[parameters('eventHubName')]"
-        },
         "resourceGroup" : {
             "type": "string",
             "value": "[resourceGroup().name]"
-        }
+        }       
     }
 }

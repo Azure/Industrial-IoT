@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.History {
-    using Microsoft.Azure.IIoT.Services.OpcUa.History.v1;
+    using Microsoft.Azure.IIoT.Services.OpcUa.History.v2;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Control;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;

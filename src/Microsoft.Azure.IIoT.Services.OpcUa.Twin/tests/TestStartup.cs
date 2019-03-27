@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v1;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Control;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;

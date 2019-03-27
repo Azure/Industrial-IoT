@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v1;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Clients;
     using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.IIoT.Services.Diagnostics;
@@ -88,7 +88,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
 
             // Add authorization
             services.AddAuthorization(options => {
-                options.AddV1Policies(Config.AuthRequired,
+                options.AddPolicies(Config.AuthRequired,
                     Config.UseRoles && !Environment.IsDevelopment());
             });
 

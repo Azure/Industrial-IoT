@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.v1;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.Services;
@@ -89,7 +89,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
 
             // Add authorization
             services.AddAuthorization(options => {
-                options.AddV1Policies(Config.AuthRequired,
+                options.AddPolicies(Config.AuthRequired,
                     Config.UseRoles && !Environment.IsDevelopment());
             });
 

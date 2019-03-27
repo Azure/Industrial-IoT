@@ -354,6 +354,7 @@
         "onboardingConsumerGroupName": "onboarding",
         "storageApiVersion": "2017-06-01",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts/',  parameters('storageName'))]",
+        "keyVaultVersion": "2015-06-01",
         "computeApiVersion": "2017-03-30",
         "vmFQDN": "[concat(parameters('vmName'), '.', variables('location'), '.', parameters('vmFQDNSuffix'))]",
         "imagePublisher": "Canonical",
@@ -372,7 +373,6 @@
         "nicName": "[concat(parameters('solutionName'), '-nic')]",
         "servicesBranch": "[parameters('branchName')]",
         "servicesRepoUrl": "https://raw.githubusercontent.com/Azure/azure-iiot-services/",
-        "keyVaultVersion": "2015-06-01",
         "proxyBranch": "master",
         "hostingPlanName": "[parameters('azureWebsiteName')]",
         "appServiceVersion": "2018-02-01",
@@ -847,18 +847,6 @@
         }
     ],
     "outputs": {
-        "iothub-connstring": {
-            "type": "string",
-            "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey)]"
-        },
-        "iothub-name": {
-            "type": "string",
-            "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.path]"
-        },
-        "iothub-endpoint": {
-            "type": "string",
-            "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint]"
-        },
         "azureWebsite": {
             "type": "string",
             "value": "[concat('https://', reference(concat('Microsoft.Web/sites/', parameters('azureWebsiteName'))).hostNames[0])]"
@@ -870,6 +858,46 @@
         "adminUsername": {
             "type": "string",
             "value": "[parameters('adminUsername')]"
+        },
+        "iothub-connstring": {
+            "type": "string",
+            "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey)]"
+        },
+        "docdb-connstring": {
+            "type": "string",
+            "value": "[concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"')]"
+        },
+        "eventhub-name": {
+            "type": "string",
+            "value": "[parameters('eventHubName')]"
+        },
+        "eventhub-connstring": {
+            "type": "string",
+            "value": "[concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"')]"
+        },
+        "iothub-name": {
+            "type": "string",
+            "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.path]"
+        },
+        "iothub-endpoint": {
+            "type": "string",
+            "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint]"
+        },
+        "iothub-consumer-group": {
+            "type": "string",
+            "value": "[variables('onboardingConsumerGroupName')]"
+        },
+        "azureblob-account": {
+            "type": "string",
+            "value": "[parameters('storageName')]"
+        },
+        "azureblob-key": {
+            "type": "string",
+            "value": "[listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
+        },
+        "azureblob-endpoint-suffix": {
+            "type": "string",
+            "value": "[parameters('storageEndpointSuffix')]"
         },
         "resourceGroup" : {
             "type": "string",

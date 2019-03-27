@@ -16,18 +16,18 @@ startall() {
 
   # assume http -> https redirect in place.
     echo "Waiting for registry service to start..."
-  ISUP=$(curl -ks https://localhost/registry/v1/status | grep -i "Alive and well" | wc -l)
+  ISUP=$(curl -ks https://localhost/registry/v2/status | grep -i "Alive and well" | wc -l)
   while [[ "$ISUP" == "0" ]]; do
     echo "Waiting for registry service to start..."
     sleep 3
-    ISUP=$(curl -ks https://localhost/registry/v1/status | grep -i "Alive and well" | wc -l)
+    ISUP=$(curl -ks https://localhost/registry/v2/status | grep -i "Alive and well" | wc -l)
   done
     echo "Waiting for twin service to start..."
-  ISUP=$(curl -ks https://localhost/twin/v1/status | grep -i "Alive and well" | wc -l)
+  ISUP=$(curl -ks https://localhost/twin/v2/status | grep -i "Alive and well" | wc -l)
   while [[ "$ISUP" == "0" ]]; do
     echo "Waiting for twin service to start..."
     sleep 3
-    ISUP=$(curl -ks https://localhost/twin/v1/status | grep -i "Alive and well" | wc -l)
+    ISUP=$(curl -ks https://localhost/twin/v2/status | grep -i "Alive and well" | wc -l)
   done
   echo "Services started!"
 }
