@@ -22,6 +22,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends unzip procps && \
     rm -rf /var/lib/apt/lists/*
 
+RUN apk --no-cache add curl procps 
 RUN curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/vsdbg
 
 WORKDIR /app
