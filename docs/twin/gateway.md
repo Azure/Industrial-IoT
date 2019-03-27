@@ -1,6 +1,6 @@
 # OPC Gateway service (Preview)
 
-> **The OPC Gateway service is not intended for production use at this point in time !** 
+> **The OPC Gateway service is not intended for production use at this point in time !**
 
 ## Overview
 

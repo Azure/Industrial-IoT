@@ -5,7 +5,7 @@ The Onboarding agent receives discovery events from the OPC Twin module (supervi
 When receiving new scan results it performs the following tasks:
 
 - Add new applications and their endpoints to the registry if they do not yet exist
-- Update existing applications and endpoints to reflect what the server reported and reenable them if they are disabled.
+- Update existing applications and endpoints to reflect what the server reported and re-enable them if they are disabled.
 - Add the "Supervisor ID" to any endpoint to claim the endpoint for the supervisor that found it (unless it is already activated).
 - Disable all applications and endpoints found or registered through the supervisor at an earlier point in time and that were not found this time around.  
 

@@ -10,7 +10,7 @@ The discovery interface allows for **recurring** as well as **one-time** scans.
 
 ### Configuration
 
-The Discovery process can involve active network and port scanning.  Scanning can be finely configured, e.g. specifiying
+The Discovery process can involve active network and port scanning.  Scanning can be finely configured, e.g. specifying
 
 - address ranges (needed when hosted in a docker context where the host interfaces are not visible)
 - port ranges (to narrow or widen scanning to a list of known ports)
@@ -50,12 +50,12 @@ A single session is opened on demand per endpoint (same as in the existing OPC P
 The OPC Publisher module is responsible for maintaining durable Subscriptions to Variables and Events on an endpoint.  On startup, the twin module locates the OPC Publisher module in its Edge environment.  It then forwards requests to it that it receives by way of the OPC Twin Micro service REST API.  This includes requests to
 
 - **`Publish`** a variable on an endpoint to IoT Hub.
-- Disable publishing (**`Unpublish`**) 
+- Disable publishing (**`Unpublish`**)
 - **`List`** all currently published nodes
 
-If no OPC Publisher module is deployed alongside OPC Twin module, OPC Twin publishing REST calls will fail.   
+If no OPC Publisher module is deployed alongside OPC Twin module, OPC Twin publishing REST calls will fail.
 
-For more information about OPC Publisher, see the [OPC Publisher](https://github.com/Azure/iot-edge-opc-publisher) repository on GitHub. 
+For more information about OPC Publisher, see the [OPC Publisher](https://github.com/Azure/iot-edge-opc-publisher) repository on GitHub.
 
 ## Next steps
 

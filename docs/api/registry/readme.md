@@ -7,7 +7,7 @@ Azure Industrial IoT OPC UA Registry Service
 
 
 ### Version information
-*Version* : v1
+*Version* : v2
 
 
 ### URI scheme
@@ -35,7 +35,7 @@ CRUD and Query application resources
 <a name="registerserver"></a>
 #### Register new server
 ```
-POST /v1/applications
+POST /v2/applications
 ```
 
 
@@ -57,8 +57,6 @@ located by a supervisor in its network using the discovery url.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -74,17 +72,10 @@ located by a supervisor in its network using the discovery url.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getlistofapplications"></a>
 #### Get list of applications
 ```
-GET /v1/applications
+GET /v2/applications
 ```
 
 
@@ -108,8 +99,6 @@ Call this operation again using the token to retrieve more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationInfoListApiModel](definitions.md#applicationinfolistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -117,17 +106,10 @@ Call this operation again using the token to retrieve more results.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="createapplication"></a>
 #### Create new application
 ```
-PUT /v1/applications
+PUT /v2/applications
 ```
 
 
@@ -150,8 +132,6 @@ in a network not reachable through a Twin module.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationRegistrationResponseApiModel](definitions.md#applicationregistrationresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -167,17 +147,10 @@ in a network not reachable through a Twin module.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="deletealldisabledapplications"></a>
 #### Purge applications
 ```
-DELETE /v1/applications
+DELETE /v2/applications
 ```
 
 
@@ -197,8 +170,6 @@ Purges all applications that have not been seen for a specified amount of time.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -206,17 +177,10 @@ Purges all applications that have not been seen for a specified amount of time.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="discoverserver"></a>
 #### Discover servers
 ```
-POST /v1/applications/discover
+POST /v2/applications/discover
 ```
 
 
@@ -237,8 +201,6 @@ network. Requires that the onboarding agent service is running.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -254,17 +216,10 @@ network. Requires that the onboarding agent service is running.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="queryapplications"></a>
 #### Query applications
 ```
-POST /v1/applications/query
+POST /v2/applications/query
 ```
 
 
@@ -289,8 +244,6 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationInfoListApiModel](definitions.md#applicationinfolistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -306,17 +259,10 @@ more results.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getfilteredlistofapplications"></a>
 #### Get filtered list of applications
 ```
-GET /v1/applications/query
+GET /v2/applications/query
 ```
 
 
@@ -341,8 +287,6 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationInfoListApiModel](definitions.md#applicationinfolistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -358,17 +302,10 @@ more results.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getlistofsites"></a>
 #### Get list of sites
 ```
-GET /v1/applications/sites
+GET /v2/applications/sites
 ```
 
 
@@ -389,8 +326,6 @@ List all sites applications are registered in.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationSiteListApiModel](definitions.md#applicationsitelistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -398,17 +333,10 @@ List all sites applications are registered in.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getapplicationregistration"></a>
 #### Get application registration
 ```
-GET /v1/applications/{applicationId}
+GET /v2/applications/{applicationId}
 ```
 
 
@@ -424,8 +352,6 @@ GET /v1/applications/{applicationId}
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationRegistrationApiModel](definitions.md#applicationregistrationapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -433,17 +359,10 @@ GET /v1/applications/{applicationId}
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="deleteapplication"></a>
 #### Unregister application
 ```
-DELETE /v1/applications/{applicationId}
+DELETE /v2/applications/{applicationId}
 ```
 
 
@@ -463,8 +382,6 @@ Unregisters and deletes application and all its associated endpoints.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -472,17 +389,10 @@ Unregisters and deletes application and all its associated endpoints.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="updateapplicationregistration"></a>
 #### Update application registration
 ```
-PATCH /v1/applications/{applicationId}
+PATCH /v2/applications/{applicationId}
 ```
 
 
@@ -505,8 +415,6 @@ during a discovery run (recurring or one-time).
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -522,13 +430,6 @@ during a discovery run (recurring or one-time).
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="endpoints_resource"></a>
 ### Endpoints
 Activate, Deactivate and Query endpoint resources
@@ -537,7 +438,7 @@ Activate, Deactivate and Query endpoint resources
 <a name="getlistofendpoints"></a>
 #### Get list of endpoints
 ```
-GET /v1/endpoints
+GET /v2/endpoints
 ```
 
 
@@ -562,8 +463,6 @@ Call this operation again using the token to retrieve more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[EndpointInfoListApiModel](definitions.md#endpointinfolistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -571,17 +470,10 @@ Call this operation again using the token to retrieve more results.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="queryendpoints"></a>
 #### Query endpoints
 ```
-POST /v1/endpoints/query
+POST /v2/endpoints/query
 ```
 
 
@@ -607,8 +499,6 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[EndpointInfoListApiModel](definitions.md#endpointinfolistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -624,17 +514,10 @@ more results.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getfilteredlistofendpoints"></a>
 #### Get filtered list of endpoints
 ```
-GET /v1/endpoints/query
+GET /v2/endpoints/query
 ```
 
 
@@ -668,8 +551,6 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[EndpointInfoListApiModel](definitions.md#endpointinfolistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -677,17 +558,10 @@ more results.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getendpoint"></a>
 #### Get endpoint information
 ```
-GET /v1/endpoints/{endpointId}
+GET /v2/endpoints/{endpointId}
 ```
 
 
@@ -708,8 +582,6 @@ Gets information about an endpoint.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[EndpointInfoApiModel](definitions.md#endpointinfoapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -717,17 +589,10 @@ Gets information about an endpoint.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="updateendpoint"></a>
 #### Update endpoint information
 ```
-PATCH /v1/endpoints/{endpointId}
+PATCH /v2/endpoints/{endpointId}
 ```
 
 
@@ -744,8 +609,6 @@ PATCH /v1/endpoints/{endpointId}
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -761,17 +624,10 @@ PATCH /v1/endpoints/{endpointId}
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="activateendpoint"></a>
 #### Activate endpoint
 ```
-POST /v1/endpoints/{endpointId}/activate
+POST /v2/endpoints/{endpointId}/activate
 ```
 
 
@@ -793,8 +649,6 @@ activation filter during application registration or discovery.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -802,17 +656,10 @@ activation filter during application registration or discovery.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="deactivateendpoint"></a>
 #### Deactivate endpoint
 ```
-POST /v1/endpoints/{endpointId}/deactivate
+POST /v2/endpoints/{endpointId}/deactivate
 ```
 
 
@@ -832,20 +679,11 @@ Deactivates the endpoint and disable access through twin service.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="status_resource"></a>
@@ -856,7 +694,7 @@ Status checks
 <a name="getstatus"></a>
 #### Return the service status in the form of the service status api model.
 ```
-GET /v1/status
+GET /v2/status
 ```
 
 
@@ -880,7 +718,7 @@ Read, Update and Query supervisor resources
 <a name="getlistofsupervisors"></a>
 #### Get list of supervisors
 ```
-GET /v1/supervisors
+GET /v2/supervisors
 ```
 
 
@@ -905,8 +743,6 @@ Call this operation again using the token to retrieve more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorListApiModel](definitions.md#supervisorlistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -914,17 +750,10 @@ Call this operation again using the token to retrieve more results.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="querysupervisors"></a>
 #### Query supervisors
 ```
-POST /v1/supervisors/query
+POST /v2/supervisors/query
 ```
 
 
@@ -950,8 +779,6 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorListApiModel](definitions.md#supervisorlistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -967,17 +794,10 @@ more results.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getfilteredlistofsupervisors"></a>
 #### Get filtered list of supervisors
 ```
-GET /v1/supervisors/query
+GET /v2/supervisors/query
 ```
 
 
@@ -1005,8 +825,6 @@ more results.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorListApiModel](definitions.md#supervisorlistapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -1014,17 +832,10 @@ more results.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getsupervisor"></a>
 #### Get supervisor registration information
 ```
-GET /v1/supervisors/{supervisorId}
+GET /v2/supervisors/{supervisorId}
 ```
 
 
@@ -1046,8 +857,6 @@ A supervisor id corresponds to the twin modules module identity.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorApiModel](definitions.md#supervisorapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -1055,17 +864,10 @@ A supervisor id corresponds to the twin modules module identity.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="updatesupervisor"></a>
 #### Update supervisor information
 ```
-PATCH /v1/supervisors/{supervisorId}
+PATCH /v2/supervisors/{supervisorId}
 ```
 
 
@@ -1087,8 +889,6 @@ identified by the supervisor id or update site information.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -1104,17 +904,10 @@ identified by the supervisor id or update site information.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="resetsupervisor"></a>
 #### Reset supervisor
 ```
-POST /v1/supervisors/{supervisorId}/reset
+POST /v2/supervisors/{supervisorId}/reset
 ```
 
 
@@ -1135,8 +928,6 @@ identity identifier.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -1144,17 +935,10 @@ identity identifier.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getsupervisorstatus"></a>
 #### Get runtime status of supervisor
 ```
-GET /v1/supervisors/{supervisorId}/status
+GET /v2/supervisors/{supervisorId}/status
 ```
 
 
@@ -1174,20 +958,11 @@ Allows a caller to get runtime status for a supervisor.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[SupervisorStatusApiModel](definitions.md#supervisorstatusapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 

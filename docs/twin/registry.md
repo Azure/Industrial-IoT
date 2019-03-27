@@ -14,7 +14,7 @@ You can also Create and Delete Application identities ("resources").  There are 
 
 - By **POST**ing of an Application Model.  In this case the application will not have endpoints associated.  This is useful to register client applications or reflect servers registered in another system.
 - By the onboarding service as a result of a "Discover" API call (One time)
-- By the onboarding service as a result of a continous discovery (configured in the supervisor identity)
+- By the onboarding service as a result of a continuous discovery (configured in the supervisor identity)
 
 A **DELETE** of an application will deactivate and delete all associated endpoints.  
 
@@ -24,7 +24,7 @@ The supervisor model for example contains the configuration for "recurring" disc
 
 To update an item, you must send a HTTP `PATCH` request containing the item's model (e.g. a `SupervisorModel`).  
 
-Values in the model that are set to *null* <u>are not updated</u>.  However, missing values in the incoming payload are deserialized as *null*.  This means, to remove a value, you must excplicitly set the value in the model to its *default*, e.g. an empty string, or 0, etc.
+Values in the model that are set to *null* <u>are not updated</u>.  However, missing values in the incoming payload are de-serialized as *null*.  This means, to remove a value, you must explicitly set the value in the model to its *default*, e.g. an empty string, or 0, etc.
 
 ## Activate and Deactivate Endpoints
 

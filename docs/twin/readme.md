@@ -1,6 +1,6 @@
 # What is Azure IoT OPC UA Device management?
 
-Azure IoT OPC UA Device Management, also known as "**OPC Twin**", consists of several microservices that use Azure IoT Edge and IoT Hub to connect the cloud and factory networks. 
+Azure IoT OPC UA Device Management, also known as "**OPC Twin**", consists of several micro services that use Azure IoT Edge and IoT Hub to connect the cloud and factory networks. 
 
 OPC UA Device Management uses [Azure Industrial IoT OPC UA components](https://github.com/Azure/azure-iiot-opc-ua) to provide discovery, registration, and remote control of industrial devices through REST APIs.  Applications using the REST API do not require an OPC UA SDK, and can be implemented in any programming language and framework that can call an HTTP endpoint. 
 

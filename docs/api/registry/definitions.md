@@ -218,10 +218,11 @@ Endpoint model
 
 |Name|Description|Schema|
 |---|---|---|
+|**alternativeUrls**  <br>*optional*|Alternative endpoint urls that can be used for<br>accessing and validating the server|< string > array|
 |**securityMode**  <br>*optional*|Security Mode to use for communication<br>default to best.  <br>**Default** : `"Best"`|enum (Best, Sign, SignAndEncrypt, None)|
 |**securityPolicy**  <br>*optional*|Security policy uri to use for communication<br>default to best.|string|
 |**serverThumbprint**  <br>*optional*|Thumbprint to validate against or null to trust any.  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
-|**url**  <br>*required*|Endpoint|string|
+|**url**  <br>*required*|Endpoint url to use to connect with|string|
 |**user**  <br>*optional*|User Authentication|[CredentialApiModel](definitions.md#credentialapimodel)|
 
 
@@ -261,6 +262,7 @@ Endpoint registration model
 |**authenticationMethods**  <br>*optional*|Supported authentication methods that can be selected to<br>obtain a credential and used to interact with the endpoint.|< [AuthenticationMethodApiModel](definitions.md#authenticationmethodapimodel) > array|
 |**certificate**  <br>*optional*|Endpoint cert that was registered.  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**endpoint**  <br>*required*|Endpoint information of the registration|[EndpointApiModel](definitions.md#endpointapimodel)|
+|**endpointUrl**  <br>*optional*|Original endpoint url of the endpoint|string|
 |**id**  <br>*required*|Registered identifier of the endpoint|string|
 |**securityLevel**  <br>*optional*|Security level of the endpoint|integer (int32)|
 |**siteId**  <br>*optional*|Registered site of the endpoint|string|
@@ -337,6 +339,7 @@ Supervisor registration model
 |**discovery**  <br>*optional*|Whether the supervisor is in discovery mode  <br>**Default** : `"Off"`|enum (Off, Local, Network, Fast, Scan)|
 |**discoveryConfig**  <br>*optional*|Supervisor configuration|[DiscoveryConfigApiModel](definitions.md#discoveryconfigapimodel)|
 |**id**  <br>*required*|Supervisor id|string|
+|**logLevel**  <br>*optional*|Current log level  <br>**Default** : `"Information"`|enum (Error, Information, Debug, Verbose)|
 |**outOfSync**  <br>*optional*|Whether the registration is out of sync between<br>client (module) and server (service) (default: false).|boolean|
 |**siteId**  <br>*optional*|Site of the supervisor|string|
 
@@ -387,6 +390,7 @@ Supervisor registration update request
 |**discovery**  <br>*optional*|Whether the supervisor is in discovery mode.<br>If null, does not change.  <br>**Default** : `"Off"`|enum (Off, Local, Network, Fast, Scan)|
 |**discoveryCallbacks**  <br>*optional*|Callbacks to add or remove (see below)|< [CallbackApiModel](definitions.md#callbackapimodel) > array|
 |**discoveryConfig**  <br>*optional*|Supervisor discovery configuration|[DiscoveryConfigApiModel](definitions.md#discoveryconfigapimodel)|
+|**logLevel**  <br>*optional*|Current log level|enum (Error, Information, Debug, Verbose)|
 |**removeDiscoveryCallbacks**  <br>*optional*|Whether to add or remove callbacks|boolean|
 |**siteId**  <br>*optional*|Site of the supervisor|string|
 

@@ -7,7 +7,7 @@ Azure Industrial IoT OPC UA Historic Access Service
 
 
 ### Version information
-*Version* : v1
+*Version* : v2
 
 
 ### URI scheme
@@ -37,7 +37,7 @@ Services to delete history
 <a name="historydeleteevents"></a>
 #### Delete historic events
 ```
-POST /v1/delete/{endpointId}/events
+POST /v2/delete/{endpointId}/events
 ```
 
 
@@ -60,8 +60,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -77,17 +75,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="historydeletevalues"></a>
 #### Delete historic values
 ```
-POST /v1/delete/{endpointId}/values
+POST /v2/delete/{endpointId}/values
 ```
 
 
@@ -110,8 +101,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -127,17 +116,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="historydeletemodifiedvalues"></a>
 #### Delete historic values
 ```
-POST /v1/delete/{endpointId}/values/modified
+POST /v2/delete/{endpointId}/values/modified
 ```
 
 
@@ -160,8 +142,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -177,17 +157,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="historydeletevaluesattimes"></a>
 #### Delete value history at specified times
 ```
-POST /v1/delete/{endpointId}/values/pick
+POST /v2/delete/{endpointId}/values/pick
 ```
 
 
@@ -210,8 +183,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -227,13 +198,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="history_resource"></a>
 ### History
 History raw access services
@@ -242,7 +206,7 @@ History raw access services
 <a name="historyreadraw"></a>
 #### Read history using json details
 ```
-POST /v1/history/read/{endpointId}
+POST /v2/history/read/{endpointId}
 ```
 
 
@@ -265,8 +229,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadResponseApiModel[JToken]](definitions.md#historyreadresponseapimodel-jtoken)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -282,17 +244,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="historyreadrawnext"></a>
 #### Read next batch of history as json
 ```
-POST /v1/history/read/{endpointId}/next
+POST /v2/history/read/{endpointId}/next
 ```
 
 
@@ -315,8 +270,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadNextResponseApiModel[JToken]](definitions.md#historyreadnextresponseapimodel-jtoken)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -332,17 +285,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="historyupdateraw"></a>
 #### Update node history using raw json
 ```
-POST /v1/history/update/{endpointId}
+POST /v2/history/update/{endpointId}
 ```
 
 
@@ -365,8 +311,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -382,13 +326,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="insert_resource"></a>
 ### Insert
 History insert services
@@ -397,7 +334,7 @@ History insert services
 <a name="historyinsertevents"></a>
 #### Insert historic events
 ```
-POST /v1/insert/{endpointId}/events
+POST /v2/insert/{endpointId}/events
 ```
 
 
@@ -420,8 +357,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -437,17 +372,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="historyinsertvalues"></a>
 #### Insert historic values
 ```
-POST /v1/insert/{endpointId}/values
+POST /v2/insert/{endpointId}/values
 ```
 
 
@@ -470,8 +398,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -487,13 +413,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="read_resource"></a>
 ### Read
 Historic access read services
@@ -502,7 +421,7 @@ Historic access read services
 <a name="historyreadevents"></a>
 #### Read historic events
 ```
-POST /v1/read/{endpointId}/events
+POST /v2/read/{endpointId}/events
 ```
 
 
@@ -525,8 +444,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadResponseApiModel[HistoricEventApiModel[]]](definitions.md#historyreadresponseapimodel-historiceventapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -542,17 +459,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="historyreadeventsnext"></a>
 #### Read next batch of historic events
 ```
-POST /v1/read/{endpointId}/events/next
+POST /v2/read/{endpointId}/events/next
 ```
 
 
@@ -575,8 +485,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadNextResponseApiModel[HistoricEventApiModel[]]](definitions.md#historyreadnextresponseapimodel-historiceventapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -592,17 +500,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="historyreadvalues"></a>
 #### Read historic processed values at specified times
 ```
-POST /v1/read/{endpointId}/values
+POST /v2/read/{endpointId}/values
 ```
 
 
@@ -625,8 +526,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadresponseapimodel-historicvalueapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -642,17 +541,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="historyreadmodifiedvalues"></a>
 #### Read historic modified values at specified times
 ```
-POST /v1/read/{endpointId}/values/modified
+POST /v2/read/{endpointId}/values/modified
 ```
 
 
@@ -675,8 +567,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadresponseapimodel-historicvalueapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -692,17 +582,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="historyreadvaluenext"></a>
 #### Read next batch of historic values
 ```
-POST /v1/read/{endpointId}/values/next
+POST /v2/read/{endpointId}/values/next
 ```
 
 
@@ -725,8 +608,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadNextResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadnextresponseapimodel-historicvalueapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -742,17 +623,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="historyreadvaluesattimes"></a>
 #### Read historic values at specified times
 ```
-POST /v1/read/{endpointId}/values/pick
+POST /v2/read/{endpointId}/values/pick
 ```
 
 
@@ -775,8 +649,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadresponseapimodel-historicvalueapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -792,17 +664,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="historyreadprocessedvalues"></a>
 #### Read historic processed values at specified times
 ```
-POST /v1/read/{endpointId}/values/processed
+POST /v2/read/{endpointId}/values/processed
 ```
 
 
@@ -825,8 +690,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryReadResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadresponseapimodel-historicvalueapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -842,13 +705,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="replace_resource"></a>
 ### Replace
 History replace services
@@ -857,7 +713,7 @@ History replace services
 <a name="historyreplaceevents"></a>
 #### Replace historic events
 ```
-POST /v1/replace/{endpointId}/events
+POST /v2/replace/{endpointId}/events
 ```
 
 
@@ -880,8 +736,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -897,17 +751,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="historyreplacevalues"></a>
 #### Replace historic values
 ```
-POST /v1/replace/{endpointId}/values
+POST /v2/replace/{endpointId}/values
 ```
 
 
@@ -930,8 +777,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -947,13 +792,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="status_resource"></a>
 ### Status
 Status checks
@@ -962,7 +800,7 @@ Status checks
 <a name="getstatus"></a>
 #### Return the service status in the form of the service status api model.
 ```
-GET /v1/status
+GET /v2/status
 ```
 
 

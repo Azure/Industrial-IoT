@@ -7,7 +7,7 @@ Azure Industrial IoT OPC UA Twin Service
 
 
 ### Version information
-*Version* : v1
+*Version* : v2
 
 
 ### URI scheme
@@ -37,7 +37,7 @@ Browse nodes services
 <a name="browse"></a>
 #### Browse node references
 ```
-POST /v1/browse/{endpointId}
+POST /v2/browse/{endpointId}
 ```
 
 
@@ -60,8 +60,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[BrowseResponseApiModel](definitions.md#browseresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -77,17 +75,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getsetofuniquenodes"></a>
 #### Browse set of unique target nodes
 ```
-GET /v1/browse/{endpointId}
+GET /v2/browse/{endpointId}
 ```
 
 
@@ -115,8 +106,6 @@ and the targetNodesOnly flag set to true.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[BrowseResponseApiModel](definitions.md#browseresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -124,17 +113,10 @@ and the targetNodesOnly flag set to true.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="browsenext"></a>
 #### Browse next set of references
 ```
-POST /v1/browse/{endpointId}/next
+POST /v2/browse/{endpointId}/next
 ```
 
 
@@ -157,8 +139,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[BrowseNextResponseApiModel](definitions.md#browsenextresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -174,17 +154,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getnextsetofuniquenodes"></a>
 #### Browse next set of unique target nodes
 ```
-GET /v1/browse/{endpointId}/next
+GET /v2/browse/{endpointId}/next
 ```
 
 
@@ -210,8 +183,6 @@ the continuation token and the targetNodesOnly flag set to true.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[BrowseNextResponseApiModel](definitions.md#browsenextresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -219,17 +190,10 @@ the continuation token and the targetNodesOnly flag set to true.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="browseusingpath"></a>
 #### Browse using a browse path
 ```
-POST /v1/browse/{endpointId}/path
+POST /v2/browse/{endpointId}/path
 ```
 
 
@@ -253,8 +217,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[BrowsePathResponseApiModel](definitions.md#browsepathresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -270,13 +232,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="call_resource"></a>
 ### Call
 Call node method services
@@ -285,7 +240,7 @@ Call node method services
 <a name="callmethod"></a>
 #### Call a method
 ```
-POST /v1/call/{endpointId}
+POST /v2/call/{endpointId}
 ```
 
 
@@ -308,8 +263,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[MethodCallResponseApiModel](definitions.md#methodcallresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -325,17 +278,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getcallmetadata"></a>
 #### Get method meta data
 ```
-POST /v1/call/{endpointId}/metadata
+POST /v2/call/{endpointId}/metadata
 ```
 
 
@@ -359,8 +305,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[MethodMetadataResponseApiModel](definitions.md#methodmetadataresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -376,13 +320,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="publish_resource"></a>
 ### Publish
 Value and Event publishing services
@@ -391,7 +328,7 @@ Value and Event publishing services
 <a name="getfirstlistofpublishednodes"></a>
 #### Get currently published nodes
 ```
-POST /v1/publish/{endpointId}
+POST /v2/publish/{endpointId}
 ```
 
 
@@ -414,8 +351,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[PublishedItemListResponseApiModel](definitions.md#publisheditemlistresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -431,17 +366,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getnextlistofpublishednodes"></a>
 #### Get next set of published nodes
 ```
-GET /v1/publish/{endpointId}
+GET /v2/publish/{endpointId}
 ```
 
 
@@ -464,8 +392,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[PublishedItemListResponseApiModel](definitions.md#publisheditemlistresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -473,17 +399,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="startpublishingvalues"></a>
 #### Start publishing node values
 ```
-POST /v1/publish/{endpointId}/start
+POST /v2/publish/{endpointId}/start
 ```
 
 
@@ -506,8 +425,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[PublishStartResponseApiModel](definitions.md#publishstartresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -523,17 +440,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="stoppublishingvalues"></a>
 #### Stop publishing node values
 ```
-POST /v1/publish/{endpointId}/stop
+POST /v2/publish/{endpointId}/stop
 ```
 
 
@@ -556,8 +466,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[PublishStopResponseApiModel](definitions.md#publishstopresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -573,13 +481,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="read_resource"></a>
 ### Read
 Node read services
@@ -588,7 +489,7 @@ Node read services
 <a name="readvalue"></a>
 #### Read variable value
 ```
-POST /v1/read/{endpointId}
+POST /v2/read/{endpointId}
 ```
 
 
@@ -611,8 +512,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ValueReadResponseApiModel](definitions.md#valuereadresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -628,17 +527,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="getvalue"></a>
 #### Get variable value
 ```
-GET /v1/read/{endpointId}
+GET /v2/read/{endpointId}
 ```
 
 
@@ -661,8 +553,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ValueReadResponseApiModel](definitions.md#valuereadresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Produces
@@ -670,17 +560,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="readattributes"></a>
 #### Read node attributes
 ```
-POST /v1/read/{endpointId}/attributes
+POST /v2/read/{endpointId}/attributes
 ```
 
 
@@ -703,8 +586,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ReadResponseApiModel](definitions.md#readresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -720,13 +601,6 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="status_resource"></a>
 ### Status
 Status checks
@@ -735,7 +609,7 @@ Status checks
 <a name="getstatus"></a>
 #### Return the service status in the form of the service status api model.
 ```
-GET /v1/status
+GET /v2/status
 ```
 
 
@@ -759,7 +633,7 @@ Node writing services
 <a name="writevalue"></a>
 #### Write variable value
 ```
-POST /v1/write/{endpointId}
+POST /v2/write/{endpointId}
 ```
 
 
@@ -782,8 +656,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ValueWriteResponseApiModel](definitions.md#valuewriteresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -799,17 +671,10 @@ and server must trust each other.
 * `application/json`
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="writeattributes"></a>
 #### Write node attributes
 ```
-POST /v1/write/{endpointId}/attributes
+POST /v2/write/{endpointId}/attributes
 ```
 
 
@@ -832,8 +697,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[WriteResponseApiModel](definitions.md#writeresponseapimodel)|
-|**401**|Unauthorized|No Content|
-|**403**|Forbidden|No Content|
 
 
 ##### Consumes
@@ -847,13 +710,6 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 

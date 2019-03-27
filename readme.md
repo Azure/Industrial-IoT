@@ -56,5 +56,7 @@ If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft
 
 ## License
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the [MIT](LICENSE) License.  
