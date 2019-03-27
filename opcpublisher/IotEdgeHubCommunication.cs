@@ -10,19 +10,6 @@
     public class IotEdgeHubCommunication : HubCommunicationBase
     {
         /// <summary>
-        /// Detects if publisher is running as an IoTEdge module.
-        /// </summary>
-        public static bool IsIotEdgeModule
-        {
-            get => (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("IOTEDGE_IOTHUBHOSTNAME")) &&
-                    !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("IOTEDGE_MODULEGENERATIONID")) &&
-                    !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("IOTEDGE_WORKLOADURI")) &&
-                    !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID")) &&
-                    !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("IOTEDGE_MODULEID"))) ||
-                !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("EdgeHubConnectionString"));
-        }
-
-        /// <summary>
         /// Get the singleton.
         /// </summary>
         public static IotEdgeHubCommunication Instance

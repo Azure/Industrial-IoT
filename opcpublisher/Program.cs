@@ -29,6 +29,7 @@ namespace OpcPublisher
     using static PublisherTelemetryConfiguration;
     using static System.Console;
     using System.ComponentModel;
+    using OpcPublisher.Crypto;
 
     public sealed class Program
     {
@@ -51,6 +52,11 @@ namespace OpcPublisher
         /// Diagnostics object.
         /// </summary>
         public static IPublisherDiagnostics Diag { get; set; }
+
+        /// <summary>
+        /// Provider to encrypt/decrypt data.
+        /// </summary>
+        public static ICryptoProvider CryptoProvider { get; set; }
 
         /// <summary>
         /// Shutdown token source.
@@ -93,13 +99,11 @@ namespace OpcPublisher
         public static void Main(string[] args)
         {
             // enable this to catch when running in IoTEdge
-            //bool waitHere = true;
-            //int i = 0;
-            //while (waitHere)
+            //while (IotEdgeIndicator.RunsAsIotEdgeModule && !Debugger.IsAttached)
             //{
-            //    WriteLine($"forever loop (iteration {i++})");
-            //    Thread.Sleep(5000);
+            //    Thread.Sleep(1000);
             //}
+
             MainAsync(args).Wait();
         }
 
@@ -115,18 +119,22 @@ namespace OpcPublisher
 
                 // detect the runtime environment. either we run standalone (native or containerized) or as IoT Edge module (containerized)
                 // check if we have an environment variable containing an IoT Edge connectionstring, we run as IoT Edge module
-                if (IsIotEdgeModule)
+                if (IotEdgeIndicator.RunsAsIotEdgeModule)
                 {
                     WriteLine("IoTEdge detected.");
+
+                    CryptoProvider = new IotEdgeCryptoProvider();
 
                     // set IoT Edge specific defaults
                     HubProtocol = IotEdgeHubProtocolDefault;
                 }
+                else
+                {
+                    CryptoProvider = new StandaloneCryptoProvider();
+                }
 
                 // command line options
                 Mono.Options.OptionSet options = new Mono.Options.OptionSet {
-
-
                         // Publisher configuration options
                         { "pf|publishfile=", $"the filename to configure the nodes to publish.\nDefault: '{PublisherNodeConfigurationFilename}'", (string p) => PublisherNodeConfigurationFilename = p },
                         { "tc|telemetryconfigfile=", $"the filename to configure the ingested telemetry\nDefault: '{PublisherTelemetryConfigurationFilename}'", (string p) => PublisherTelemetryConfigurationFilename = p },
@@ -203,7 +211,7 @@ namespace OpcPublisher
                         { "ih|iothubprotocol=", $"the protocol to use for communication with IoTHub (allowed values: {$"{string.Join(", ", Enum.GetNames(HubProtocol.GetType()))}"}) or IoT EdgeHub (allowed values: Mqtt_Tcp_Only, Amqp_Tcp_Only).\nDefault for IoTHub: {IotHubProtocolDefault}\nDefault for IoT EdgeHub: {IotEdgeHubProtocolDefault}",
                             (Microsoft.Azure.Devices.Client.TransportType p) => {
                                 HubProtocol = p;
-                                if (IsIotEdgeModule)
+                                if (IotEdgeIndicator.RunsAsIotEdgeModule)
                                 {
                                     if (p != Microsoft.Azure.Devices.Client.TransportType.Mqtt_Tcp_Only && p != Microsoft.Azure.Devices.Client.TransportType.Amqp_Tcp_Only)
                                     {
@@ -236,8 +244,8 @@ namespace OpcPublisher
                             }
                         },
 
-                        { "dc|deviceconnectionstring=", $"{(IsIotEdgeModule ? "not supported when running as IoTEdge module\n" : $"if publisher is not able to register itself with IoTHub, you can create a device with name <applicationname> manually and pass in the connectionstring of this device.\nDefault: none")}",
-                            (string dc) => DeviceConnectionString = (IsIotEdgeModule ? null : dc)
+                        { "dc|deviceconnectionstring=", $"{(IotEdgeIndicator.RunsAsIotEdgeModule ? "not supported when running as IoTEdge module\n" : $"if publisher is not able to register itself with IoTHub, you can create a device with name <applicationname> manually and pass in the connectionstring of this device.\nDefault: none")}",
+                            (string dc) => DeviceConnectionString = (IotEdgeIndicator.RunsAsIotEdgeModule ? null : dc)
                         },
                         { "c|connectionstring=", $"the IoTHub owner connectionstring.\nDefault: none",
                             (string cs) => IotHubOwnerConnectionString = cs
@@ -616,7 +624,7 @@ namespace OpcPublisher
                     case 2:
                         {
                             ApplicationName = extraArgs[APP_NAME_INDEX];
-                            if (IsIotEdgeModule)
+                            if (IotEdgeIndicator.RunsAsIotEdgeModule)
                             {
                                 WriteLine($"Warning: connection string parameter is not supported in IoTEdge context, given parameter is ignored");
                             }
@@ -704,7 +712,7 @@ namespace OpcPublisher
                 TelemetryConfiguration = PublisherTelemetryConfiguration.Instance;
 
                 // initialize hub communication
-                if (IsIotEdgeModule)
+                if (IotEdgeIndicator.RunsAsIotEdgeModule)
                 {
                     // initialize and start EdgeHub communication
                     Hub = IotEdgeHubCommunication.Instance;

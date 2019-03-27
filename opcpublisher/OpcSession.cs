@@ -6,8 +6,10 @@ using System.Linq;
 namespace OpcPublisher
 {
     using Opc.Ua;
+    using OpcPublisher.Crypto;
     using System.Diagnostics;
     using System.Net;
+    using System.Security;
     using System.Threading;
     using System.Threading.Tasks;
     using static OpcApplicationConfiguration;
@@ -103,6 +105,16 @@ namespace OpcPublisher
         /// Signals to run the connect and monitor task.
         /// </summary>
         public AutoResetEvent ConnectAndMonitorSession { get; set; }
+
+        /// <summary>
+        /// The encrypted credential for authentication against the OPC UA Server. This is only used, when <see cref="OpcAuthenticationMode"/> is set to "UsernamePassword".
+        /// </summary>
+        public EncryptedNetworkCredential EncryptedAuthCredential { get; set; }
+
+        /// <summary>
+        /// The authentication mode to use for authentication against the OPC UA Server.
+        /// </summary>
+        public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
 
         /// <summary>
         /// Number of subscirptoins on this session.
@@ -220,7 +232,7 @@ namespace OpcPublisher
         /// <summary>
         /// Ctor for the session.
         /// </summary>
-        public OpcSession(string endpointUrl, bool useSecurity, uint sessionTimeout)
+        public OpcSession(string endpointUrl, bool useSecurity, uint sessionTimeout, OpcAuthenticationMode opcAuthenticationMode, EncryptedNetworkCredential encryptedAuthCredential)
         {
             State = SessionState.Disconnected;
             EndpointUrl = endpointUrl;
@@ -237,6 +249,34 @@ namespace OpcPublisher
             _namespaceTable = new NamespaceTable();
             _telemetryConfiguration = TelemetryConfiguration.GetEndpointTelemetryConfiguration(endpointUrl);
             _connectAndMonitorAsync = Task.Run(ConnectAndMonitorAsync, _sessionCancelationToken);
+            this.OpcAuthenticationMode= opcAuthenticationMode;
+            this.EncryptedAuthCredential = encryptedAuthCredential;
+        }
+
+        public async Task Reconnect()
+        {
+            try
+            {
+                var sessionLocked = await LockSessionAsync().ConfigureAwait(false);
+
+                if (sessionLocked)
+                {
+                    InternalDisconnect();
+                }
+
+                if (State != SessionState.Disconnected)
+                {
+                    throw new Exception("Could not disconnect session.");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while disconnecting session", ex);
+            }
+            finally
+            {
+                ReleaseSession();
+            }
         }
 
         /// <summary>
@@ -397,6 +437,28 @@ namespace OpcPublisher
                     configuredEndpoint = new ConfiguredEndpoint(null, selectedEndpoint, EndpointConfiguration.Create(OpcApplicationConfiguration.ApplicationConfiguration));
                     uint timeout = SessionTimeout * ((UnsuccessfulConnectionCount >= OpcSessionCreationBackoffMax) ? OpcSessionCreationBackoffMax : UnsuccessfulConnectionCount + 1);
                     Logger.Information($"Create {(UseSecurity ? "secured" : "unsecured")} session for endpoint URI '{EndpointUrl}' with timeout of {timeout} ms.");
+
+                    UserIdentity userIdentity = null;
+
+                    switch (OpcAuthenticationMode)
+                    {
+                        case OpcAuthenticationMode.Anonymous:
+                            userIdentity = new UserIdentity(new AnonymousIdentityToken());
+                            break;
+                        case OpcAuthenticationMode.UsernamePassword:
+                            if (EncryptedAuthCredential == null)
+                            {
+                                throw new NullReferenceException("Please specity user credential to authentication with mode 'UsernamePassword'");
+                            }
+
+                            var plainCredential = await EncryptedAuthCredential.Decrypt();
+
+                            userIdentity = new UserIdentity(plainCredential.UserName, plainCredential.Password);
+                            break;
+                        default:
+                            throw new NotImplementedException($"The authentication mode '{OpcAuthenticationMode}' has not yet been implemented.");
+                    }
+
                     OpcUaClientSession = new OpcUaSession(
                             OpcApplicationConfiguration.ApplicationConfiguration,
                             configuredEndpoint,
@@ -404,7 +466,7 @@ namespace OpcPublisher
                             false,
                             OpcApplicationConfiguration.ApplicationConfiguration.ApplicationName,
                             timeout,
-                            new UserIdentity(new AnonymousIdentityToken()),
+                            userIdentity,
                             null);
                 }
                 catch (Exception e)

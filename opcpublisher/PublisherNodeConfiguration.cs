@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace OpcPublisher
 {
+    using OpcPublisher.Crypto;
     using System.Globalization;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using static OpcApplicationConfiguration;
     using static OpcMonitoredItem;
@@ -340,7 +342,8 @@ namespace OpcPublisher
                     try
                     {
                         await PublisherNodeConfigurationFileSemaphore.WaitAsync().ConfigureAwait(false);
-                        _configurationFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigurationFileEntryLegacyModel>>(File.ReadAllText(PublisherNodeConfigurationFilename));
+                        var json = File.ReadAllText(PublisherNodeConfigurationFilename);
+                        _configurationFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigurationFileEntryLegacyModel>>(json);
                     }
                     finally
                     {
@@ -363,7 +366,7 @@ namespace OpcPublisher
                                         _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.ExpandedNodeId,
                                             publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.UseSecurity,
                                             opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName,
-                                            opcNode.HeartbeatInterval, opcNode.SkipFirst));
+                                            opcNode.HeartbeatInterval, opcNode.SkipFirst, publisherConfigFileEntryLegacy.OpcAuthenticationMode, publisherConfigFileEntryLegacy.EncryptedAuthCredential));
                                     }
                                     else
                                     {
@@ -375,7 +378,7 @@ namespace OpcPublisher
                                             _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.Id,
                                                 publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.UseSecurity,
                                                 opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName,
-                                                opcNode.HeartbeatInterval, opcNode.SkipFirst));
+                                                opcNode.HeartbeatInterval, opcNode.SkipFirst, publisherConfigFileEntryLegacy.OpcAuthenticationMode, publisherConfigFileEntryLegacy.EncryptedAuthCredential));
                                         }
                                         else
                                         {
@@ -384,7 +387,7 @@ namespace OpcPublisher
                                             _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(nodeId, opcNode.Id,
                                                 publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.UseSecurity,
                                                 opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName,
-                                                opcNode.HeartbeatInterval, opcNode.SkipFirst));
+                                                opcNode.HeartbeatInterval, opcNode.SkipFirst, publisherConfigFileEntryLegacy.OpcAuthenticationMode, publisherConfigFileEntryLegacy.EncryptedAuthCredential));
                                         }
                                     }
                                 }
@@ -395,7 +398,7 @@ namespace OpcPublisher
                                 _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(publisherConfigFileEntryLegacy.NodeId,
                                     publisherConfigFileEntryLegacy.NodeId.ToString(), publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.UseSecurity,
                                     null, null, null,
-                                    null, null));
+                                    null, null, publisherConfigFileEntryLegacy.OpcAuthenticationMode, publisherConfigFileEntryLegacy.EncryptedAuthCredential));
                             }
                         }
                     }
@@ -418,9 +421,9 @@ namespace OpcPublisher
             return true;
         }
 
-        public virtual IOpcSession CreateOpcSession(string endpointUrl, bool useSecurity, uint sessionTimeout)
+        public virtual IOpcSession CreateOpcSession(string endpointUrl, bool useSecurity, uint sessionTimeout, OpcAuthenticationMode opcAuthenticationMode, EncryptedNetworkCredential encryptedAuthCredential)
         {
-            return new OpcSession(endpointUrl, _nodePublishingConfiguration.Where(n => n.EndpointUrl == endpointUrl).First().UseSecurity, OpcSessionCreationTimeout);
+            return new OpcSession(endpointUrl, _nodePublishingConfiguration.Where(n => n.EndpointUrl == endpointUrl).First().UseSecurity, OpcSessionCreationTimeout, opcAuthenticationMode, encryptedAuthCredential);
         }
 
         /// <summary>
@@ -438,8 +441,22 @@ namespace OpcPublisher
                 var uniqueEndpointUrls = _nodePublishingConfiguration.Select(n => n.EndpointUrl).Distinct();
                 foreach (var endpointUrl in uniqueEndpointUrls)
                 {
+                    var currentNodePublishingConfiguration = _nodePublishingConfiguration.Where(n => n.EndpointUrl == endpointUrl).First();
+
+                    EncryptedNetworkCredential encryptedAuthCredential = null;
+
+                    if (currentNodePublishingConfiguration.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword)
+                    {
+                        if (currentNodePublishingConfiguration.EncryptedAuthCredential == null)
+                        {
+                            throw new NullReferenceException($"Could not retrieve credentials to authenticate to the server. Please check if 'OpcAuthenticationUsername' and 'OpcAuthenticationPassword' are set in configuration.");
+                        }
+
+                        encryptedAuthCredential = currentNodePublishingConfiguration.EncryptedAuthCredential;
+                    }
+
                     // create new session info.
-                    IOpcSession opcSession = new OpcSession(endpointUrl, _nodePublishingConfiguration.Where(n => n.EndpointUrl == endpointUrl).First().UseSecurity, OpcSessionCreationTimeout);
+                    IOpcSession opcSession = new OpcSession(endpointUrl, currentNodePublishingConfiguration.UseSecurity, OpcSessionCreationTimeout, currentNodePublishingConfiguration.OpcAuthenticationMode, encryptedAuthCredential);
 
                     // create a subscription for each distinct publishing inverval
                     var nodesDistinctPublishingInterval = _nodePublishingConfiguration.Where(n => n.EndpointUrl.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase)).Select(c => c.OpcPublishingInterval).Distinct();
@@ -525,6 +542,8 @@ namespace OpcPublisher
                                 PublisherConfigurationFileEntryModel publisherConfigurationFileEntry = new PublisherConfigurationFileEntryModel();
 
                                 publisherConfigurationFileEntry.EndpointUrl = new Uri(session.EndpointUrl);
+                                publisherConfigurationFileEntry.OpcAuthenticationMode = session.OpcAuthenticationMode;
+                                publisherConfigurationFileEntry.EncryptedAuthCredential = session.EncryptedAuthCredential;
                                 publisherConfigurationFileEntry.UseSecurity = session.UseSecurity;
                                 publisherConfigurationFileEntry.OpcNodes = new List<OpcNodeOnEndpointModel>();
 
