@@ -37,7 +37,7 @@
             "restartPolicy": "never",
             "settings": {
               "image": "mcr.microsoft.com/iotedge/opc-twin:latest",
-              "createOptions": ""
+              "createOptions": "{\"HostConfig\": { \"NetworkMode\": \"host\", \"CapAdd\": [\"NET_ADMIN\"] } }"
             }
           },
           "opcpublisher": {
