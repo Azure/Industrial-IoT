@@ -409,7 +409,7 @@ and server must trust each other.
     const _SWAGGER_OBJECT_DATA = [
         'host' => 'localhost',
         'paths' => [
-            '/v1/browse/{endpointId}' => [
+            '/v2/browse/{endpointId}' => [
                 'get' => [
                     'operationId' => 'GetSetOfUniqueNodes',
                     'parameters' => [
@@ -426,11 +426,7 @@ and server must trust each other.
                             'type' => 'string'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/BrowseResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseResponseApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'Browse',
@@ -448,14 +444,10 @@ and server must trust each other.
                             'schema' => ['$ref' => '#/definitions/BrowseRequestApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/BrowseResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseResponseApiModel']]]
                 ]
             ],
-            '/v1/browse/{endpointId}/next' => [
+            '/v2/browse/{endpointId}/next' => [
                 'get' => [
                     'operationId' => 'GetNextSetOfUniqueNodes',
                     'parameters' => [
@@ -472,11 +464,7 @@ and server must trust each other.
                             'type' => 'string'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/BrowseNextResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseNextResponseApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'BrowseNext',
@@ -494,14 +482,10 @@ and server must trust each other.
                             'schema' => ['$ref' => '#/definitions/BrowseNextRequestApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/BrowseNextResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseNextResponseApiModel']]]
                 ]
             ],
-            '/v1/browse/{endpointId}/path' => ['post' => [
+            '/v2/browse/{endpointId}/path' => ['post' => [
                 'operationId' => 'BrowseUsingPath',
                 'parameters' => [
                     [
@@ -517,13 +501,9 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/BrowsePathRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/BrowsePathResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowsePathResponseApiModel']]]
             ]],
-            '/v1/call/{endpointId}/metadata' => ['post' => [
+            '/v2/call/{endpointId}/metadata' => ['post' => [
                 'operationId' => 'GetCallMetadata',
                 'parameters' => [
                     [
@@ -539,13 +519,9 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/MethodMetadataRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/MethodMetadataResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/MethodMetadataResponseApiModel']]]
             ]],
-            '/v1/call/{endpointId}' => ['post' => [
+            '/v2/call/{endpointId}' => ['post' => [
                 'operationId' => 'CallMethod',
                 'parameters' => [
                     [
@@ -561,13 +537,9 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/MethodCallRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/MethodCallResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/MethodCallResponseApiModel']]]
             ]],
-            '/v1/publish/{endpointId}/start' => ['post' => [
+            '/v2/publish/{endpointId}/start' => ['post' => [
                 'operationId' => 'StartPublishingValues',
                 'parameters' => [
                     [
@@ -583,13 +555,9 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/PublishStartRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/PublishStartResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishStartResponseApiModel']]]
             ]],
-            '/v1/publish/{endpointId}/stop' => ['post' => [
+            '/v2/publish/{endpointId}/stop' => ['post' => [
                 'operationId' => 'StopPublishingValues',
                 'parameters' => [
                     [
@@ -605,13 +573,9 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/PublishStopRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/PublishStopResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishStopResponseApiModel']]]
             ]],
-            '/v1/publish/{endpointId}' => [
+            '/v2/publish/{endpointId}' => [
                 'get' => [
                     'operationId' => 'GetNextListOfPublishedNodes',
                     'parameters' => [
@@ -628,11 +592,7 @@ and server must trust each other.
                             'type' => 'string'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'GetFirstListOfPublishedNodes',
@@ -650,14 +610,10 @@ and server must trust each other.
                             'schema' => ['$ref' => '#/definitions/PublishedItemListRequestApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']]]
                 ]
             ],
-            '/v1/read/{endpointId}' => [
+            '/v2/read/{endpointId}' => [
                 'get' => [
                     'operationId' => 'GetValue',
                     'parameters' => [
@@ -674,11 +630,7 @@ and server must trust each other.
                             'type' => 'string'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ValueReadResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ValueReadResponseApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'ReadValue',
@@ -696,14 +648,10 @@ and server must trust each other.
                             'schema' => ['$ref' => '#/definitions/ValueReadRequestApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ValueReadResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ValueReadResponseApiModel']]]
                 ]
             ],
-            '/v1/read/{endpointId}/attributes' => ['post' => [
+            '/v2/read/{endpointId}/attributes' => ['post' => [
                 'operationId' => 'ReadAttributes',
                 'parameters' => [
                     [
@@ -719,18 +667,14 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/ReadRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/ReadResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ReadResponseApiModel']]]
             ]],
-            '/v1/status' => ['get' => [
+            '/v2/status' => ['get' => [
                 'operationId' => 'GetStatus',
                 'parameters' => [],
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/StatusResponseApiModel']]]
             ]],
-            '/v1/write/{endpointId}' => ['post' => [
+            '/v2/write/{endpointId}' => ['post' => [
                 'operationId' => 'WriteValue',
                 'parameters' => [
                     [
@@ -746,13 +690,9 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/ValueWriteRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/ValueWriteResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ValueWriteResponseApiModel']]]
             ]],
-            '/v1/write/{endpointId}/attributes' => ['post' => [
+            '/v2/write/{endpointId}/attributes' => ['post' => [
                 'operationId' => 'WriteAttributes',
                 'parameters' => [
                     [
@@ -768,11 +708,7 @@ and server must trust each other.
                         'schema' => ['$ref' => '#/definitions/WriteRequestApiModel']
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/WriteResponseApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/WriteResponseApiModel']]]
             ]]
         ],
         'definitions' => [

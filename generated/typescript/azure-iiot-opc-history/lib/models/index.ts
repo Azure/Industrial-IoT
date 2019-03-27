@@ -351,9 +351,15 @@ export interface CredentialApiModel {
  */
 export interface EndpointApiModel {
   /**
-   * @member {string} url Endpoint
+   * @member {string} url Endpoint url to use to connect with
    */
   url: string;
+  /**
+   * @member {string[]} [alternativeUrls] Alternative endpoint urls that can be
+   * used for
+   * accessing and validating the server
+   */
+  alternativeUrls?: string[];
   /**
    * @member {CredentialApiModel} [user] User Authentication
    */
@@ -417,6 +423,10 @@ export interface EndpointRegistrationApiModel {
    * @member {string} id Registered identifier of the endpoint
    */
   id: string;
+  /**
+   * @member {string} [endpointUrl] Original endpoint url of the endpoint
+   */
+  endpointUrl?: string;
   /**
    * @member {string} [siteId] Registered site of the endpoint
    */
@@ -783,6 +793,12 @@ export interface SupervisorApiModel {
    */
   certificate?: Uint8Array;
   /**
+   * @member {SupervisorLogLevel} [logLevel] Current log level. Possible values
+   * include: 'Error', 'Information', 'Debug', 'Verbose'. Default value:
+   * 'Information' .
+   */
+  logLevel?: SupervisorLogLevel;
+  /**
    * @member {boolean} [outOfSync] Whether the registration is out of sync
    * between
    * client (module) and server (service) (default: false).
@@ -828,6 +844,11 @@ export interface SupervisorUpdateApiModel {
    * callbacks
    */
   removeDiscoveryCallbacks?: boolean;
+  /**
+   * @member {SupervisorLogLevel} [logLevel] Current log level. Possible values
+   * include: 'Error', 'Information', 'Debug', 'Verbose'
+   */
+  logLevel?: SupervisorLogLevel;
 }
 
 /**
@@ -1287,6 +1308,14 @@ export type EndpointActivationState = 'Deactivated' | 'Activated' | 'ActivatedAn
  * @enum {string}
  */
 export type EndpointConnectivityState = 'Connecting' | 'NotReachable' | 'Busy' | 'NoTrust' | 'CertificateInvalid' | 'Ready' | 'Error';
+
+/**
+ * Defines values for SupervisorLogLevel.
+ * Possible values include: 'Error', 'Information', 'Debug', 'Verbose'
+ * @readonly
+ * @enum {string}
+ */
+export type SupervisorLogLevel = 'Error' | 'Information' | 'Debug' | 'Verbose';
 
 /**
  * Defines values for UserAuthentication.

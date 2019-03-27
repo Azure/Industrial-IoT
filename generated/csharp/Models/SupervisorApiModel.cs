@@ -37,18 +37,21 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// 'Scan'</param>
         /// <param name="discoveryConfig">Supervisor configuration</param>
         /// <param name="certificate">Supervisor public client cert</param>
+        /// <param name="logLevel">Current log level. Possible values include:
+        /// 'Error', 'Information', 'Debug', 'Verbose'</param>
         /// <param name="outOfSync">Whether the registration is out of sync
         /// between
         /// client (module) and server (service) (default: false).</param>
         /// <param name="connected">Whether supervisor is connected on this
         /// registration</param>
-        public SupervisorApiModel(string id, string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), DiscoveryConfigApiModel discoveryConfig = default(DiscoveryConfigApiModel), byte[] certificate = default(byte[]), bool? outOfSync = default(bool?), bool? connected = default(bool?))
+        public SupervisorApiModel(string id, string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), DiscoveryConfigApiModel discoveryConfig = default(DiscoveryConfigApiModel), byte[] certificate = default(byte[]), SupervisorLogLevel? logLevel = default(SupervisorLogLevel?), bool? outOfSync = default(bool?), bool? connected = default(bool?))
         {
             Id = id;
             SiteId = siteId;
             Discovery = discovery;
             DiscoveryConfig = discoveryConfig;
             Certificate = certificate;
+            LogLevel = logLevel;
             OutOfSync = outOfSync;
             Connected = connected;
             CustomInit();
@@ -89,6 +92,13 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// </summary>
         [JsonProperty(PropertyName = "certificate")]
         public byte[] Certificate { get; set; }
+
+        /// <summary>
+        /// Gets or sets current log level. Possible values include: 'Error',
+        /// 'Information', 'Debug', 'Verbose'
+        /// </summary>
+        [JsonProperty(PropertyName = "logLevel")]
+        public SupervisorLogLevel? LogLevel { get; set; }
 
         /// <summary>
         /// Gets or sets whether the registration is out of sync between

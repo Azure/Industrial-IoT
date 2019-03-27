@@ -171,6 +171,24 @@ const fqdn = "go/azure-iiot-opc-history"
         return []SecurityMode{SecurityModeBest,SecurityModeNone,SecurityModeSign,SecurityModeSignAndEncrypt}
     }
 
+        // SupervisorLogLevel enumerates the values for supervisor log level.
+    type SupervisorLogLevel string
+
+    const (
+                // SupervisorLogLevelDebug ...
+        SupervisorLogLevelDebug SupervisorLogLevel = "Debug"
+                // SupervisorLogLevelError ...
+        SupervisorLogLevelError SupervisorLogLevel = "Error"
+                // SupervisorLogLevelInformation ...
+        SupervisorLogLevelInformation SupervisorLogLevel = "Information"
+                // SupervisorLogLevelVerbose ...
+        SupervisorLogLevelVerbose SupervisorLogLevel = "Verbose"
+            )
+    // PossibleSupervisorLogLevelValues returns an array of possible values for the SupervisorLogLevel const type.
+    func PossibleSupervisorLogLevelValues() []SupervisorLogLevel {
+        return []SupervisorLogLevel{SupervisorLogLevelDebug,SupervisorLogLevelError,SupervisorLogLevelInformation,SupervisorLogLevelVerbose}
+    }
+
             // ApplicationInfoAPIModel application info model
             type ApplicationInfoAPIModel struct {
             // ApplicationID - Unique application id
@@ -656,8 +674,11 @@ const fqdn = "go/azure-iiot-opc-history"
 
             // EndpointAPIModel endpoint model
             type EndpointAPIModel struct {
-            // URL - Endpoint
+            // URL - Endpoint url to use to connect with
             URL *string `json:"url,omitempty"`
+            // AlternativeUrls - Alternative endpoint urls that can be used for
+            // accessing and validating the server
+            AlternativeUrls *[]string `json:"alternativeUrls,omitempty"`
             // User - User Authentication
             User *CredentialAPIModel `json:"user,omitempty"`
             // SecurityMode - Security Mode to use for communication
@@ -830,6 +851,8 @@ const fqdn = "go/azure-iiot-opc-history"
             type EndpointRegistrationAPIModel struct {
             // ID - Registered identifier of the endpoint
             ID *string `json:"id,omitempty"`
+            // EndpointURL - Original endpoint url of the endpoint
+            EndpointURL *string `json:"endpointUrl,omitempty"`
             // SiteID - Registered site of the endpoint
             SiteID *string `json:"siteId,omitempty"`
             // Endpoint - Endpoint information of the registration
@@ -956,6 +979,8 @@ const fqdn = "go/azure-iiot-opc-history"
             DiscoveryConfig *DiscoveryConfigAPIModel `json:"discoveryConfig,omitempty"`
             // Certificate - Supervisor public client cert
             Certificate *[]byte `json:"certificate,omitempty"`
+            // LogLevel - Current log level. Possible values include: 'SupervisorLogLevelError', 'SupervisorLogLevelInformation', 'SupervisorLogLevelDebug', 'SupervisorLogLevelVerbose'
+            LogLevel SupervisorLogLevel `json:"logLevel,omitempty"`
             // OutOfSync - Whether the registration is out of sync between
             // client (module) and server (service) (default: false).
             OutOfSync *bool `json:"outOfSync,omitempty"`
@@ -1138,5 +1163,7 @@ const fqdn = "go/azure-iiot-opc-history"
             DiscoveryCallbacks *[]CallbackAPIModel `json:"discoveryCallbacks,omitempty"`
             // RemoveDiscoveryCallbacks - Whether to add or remove callbacks
             RemoveDiscoveryCallbacks *bool `json:"removeDiscoveryCallbacks,omitempty"`
+            // LogLevel - Current log level. Possible values include: 'SupervisorLogLevelError', 'SupervisorLogLevelInformation', 'SupervisorLogLevelDebug', 'SupervisorLogLevelVerbose'
+            LogLevel SupervisorLogLevel `json:"logLevel,omitempty"`
             }
 

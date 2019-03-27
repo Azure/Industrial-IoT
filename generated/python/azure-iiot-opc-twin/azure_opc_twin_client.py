@@ -62,7 +62,7 @@ class AzureOpcTwinClient(object):
         self._client = ServiceClient(self.config.credentials, self.config)
 
         client_models = {k: v for k, v in models.__dict__.items() if isinstance(v, type)}
-        self.api_version = 'v1'
+        self.api_version = 'v2'
         self._serialize = Serializer(client_models)
         self._deserialize = Deserializer(client_models)
 
@@ -119,7 +119,7 @@ class AzureOpcTwinClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -132,7 +132,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    get_set_of_unique_nodes.metadata = {'url': '/v1/browse/{endpointId}'}
+    get_set_of_unique_nodes.metadata = {'url': '/v2/browse/{endpointId}'}
 
     def browse(
             self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
@@ -181,7 +181,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -194,7 +194,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    browse.metadata = {'url': '/v1/browse/{endpointId}'}
+    browse.metadata = {'url': '/v2/browse/{endpointId}'}
 
     def get_next_set_of_unique_nodes(
             self, endpoint_id, continuation_token, custom_headers=None, raw=False, **operation_config):
@@ -245,7 +245,7 @@ class AzureOpcTwinClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -258,7 +258,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    get_next_set_of_unique_nodes.metadata = {'url': '/v1/browse/{endpointId}/next'}
+    get_next_set_of_unique_nodes.metadata = {'url': '/v2/browse/{endpointId}/next'}
 
     def browse_next(
             self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
@@ -307,7 +307,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -320,7 +320,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    browse_next.metadata = {'url': '/v1/browse/{endpointId}/next'}
+    browse_next.metadata = {'url': '/v2/browse/{endpointId}/next'}
 
     def browse_using_path(
             self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
@@ -370,7 +370,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -383,7 +383,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    browse_using_path.metadata = {'url': '/v1/browse/{endpointId}/path'}
+    browse_using_path.metadata = {'url': '/v2/browse/{endpointId}/path'}
 
     def get_call_metadata(
             self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
@@ -435,7 +435,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -448,7 +448,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    get_call_metadata.metadata = {'url': '/v1/call/{endpointId}/metadata'}
+    get_call_metadata.metadata = {'url': '/v2/call/{endpointId}/metadata'}
 
     def call_method(
             self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
@@ -497,7 +497,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -510,7 +510,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    call_method.metadata = {'url': '/v1/call/{endpointId}'}
+    call_method.metadata = {'url': '/v2/call/{endpointId}'}
 
     def start_publishing_values(
             self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
@@ -559,7 +559,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -572,7 +572,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    start_publishing_values.metadata = {'url': '/v1/publish/{endpointId}/start'}
+    start_publishing_values.metadata = {'url': '/v2/publish/{endpointId}/start'}
 
     def stop_publishing_values(
             self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
@@ -621,7 +621,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -634,7 +634,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    stop_publishing_values.metadata = {'url': '/v1/publish/{endpointId}/stop'}
+    stop_publishing_values.metadata = {'url': '/v2/publish/{endpointId}/stop'}
 
     def get_next_list_of_published_nodes(
             self, endpoint_id, continuation_token, custom_headers=None, raw=False, **operation_config):
@@ -681,7 +681,7 @@ class AzureOpcTwinClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -694,7 +694,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    get_next_list_of_published_nodes.metadata = {'url': '/v1/publish/{endpointId}'}
+    get_next_list_of_published_nodes.metadata = {'url': '/v2/publish/{endpointId}'}
 
     def get_first_list_of_published_nodes(
             self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
@@ -745,7 +745,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -758,7 +758,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    get_first_list_of_published_nodes.metadata = {'url': '/v1/publish/{endpointId}'}
+    get_first_list_of_published_nodes.metadata = {'url': '/v2/publish/{endpointId}'}
 
     def get_value(
             self, endpoint_id, node_id, custom_headers=None, raw=False, **operation_config):
@@ -804,7 +804,7 @@ class AzureOpcTwinClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -817,7 +817,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    get_value.metadata = {'url': '/v1/read/{endpointId}'}
+    get_value.metadata = {'url': '/v2/read/{endpointId}'}
 
     def read_value(
             self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
@@ -866,7 +866,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -879,7 +879,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    read_value.metadata = {'url': '/v1/read/{endpointId}'}
+    read_value.metadata = {'url': '/v2/read/{endpointId}'}
 
     def read_attributes(
             self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
@@ -928,7 +928,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -941,7 +941,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    read_attributes.metadata = {'url': '/v1/read/{endpointId}/attributes'}
+    read_attributes.metadata = {'url': '/v2/read/{endpointId}/attributes'}
 
     def get_status(
             self, custom_headers=None, raw=False, **operation_config):
@@ -988,7 +988,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    get_status.metadata = {'url': '/v1/status'}
+    get_status.metadata = {'url': '/v2/status'}
 
     def write_value(
             self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
@@ -1037,7 +1037,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1050,7 +1050,7 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    write_value.metadata = {'url': '/v1/write/{endpointId}'}
+    write_value.metadata = {'url': '/v2/write/{endpointId}'}
 
     def write_attributes(
             self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
@@ -1099,7 +1099,7 @@ class AzureOpcTwinClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1112,4 +1112,4 @@ class AzureOpcTwinClient(object):
             return client_raw_response
 
         return deserialized
-    write_attributes.metadata = {'url': '/v1/write/{endpointId}/attributes'}
+    write_attributes.metadata = {'url': '/v2/write/{endpointId}/attributes'}

@@ -59,6 +59,8 @@ class SupervisorApiModel {
    * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
    * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    * @property {buffer} [certificate] Supervisor public client cert
+   * @property {string} [logLevel] Current log level. Possible values include:
+   * 'Error', 'Information', 'Debug', 'Verbose'. Default value: 'Information' .
    * @property {boolean} [outOfSync] Whether the registration is out of sync
    * between
    * client (module) and server (service) (default: false).
@@ -118,6 +120,15 @@ class SupervisorApiModel {
             serializedName: 'certificate',
             type: {
               name: 'ByteArray'
+            }
+          },
+          logLevel: {
+            required: false,
+            serializedName: 'logLevel',
+            defaultValue: 'Information',
+            type: {
+              name: 'Enum',
+              allowedValues: [ 'Error', 'Information', 'Debug', 'Verbose' ]
             }
           },
           outOfSync: {

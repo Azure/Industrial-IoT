@@ -288,9 +288,14 @@ export interface CredentialApiModel {
  */
 export interface EndpointApiModel {
   /**
-   * Endpoint
+   * Endpoint url to use to connect with
    */
   url: string;
+  /**
+   * Alternative endpoint urls that can be used for
+   * accessing and validating the server
+   */
+  alternativeUrls?: string[];
   /**
    * User Authentication
    */
@@ -341,6 +346,10 @@ export interface EndpointRegistrationApiModel {
    * Registered identifier of the endpoint
    */
   id: string;
+  /**
+   * Original endpoint url of the endpoint
+   */
+  endpointUrl?: string;
   /**
    * Registered site of the endpoint
    */
@@ -638,6 +647,10 @@ export interface SupervisorApiModel {
    */
   certificate?: Buffer;
   /**
+   * Current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'
+   */
+  logLevel?: string;
+  /**
    * Whether the registration is out of sync between
    * client (module) and server (service) (default: false).
    */
@@ -673,6 +686,10 @@ export interface SupervisorUpdateApiModel {
    * Whether to add or remove callbacks
    */
   removeDiscoveryCallbacks?: boolean;
+  /**
+   * Current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'
+   */
+  logLevel?: string;
 }
 
 /**

@@ -807,7 +807,7 @@ class AzureOpcHistoryClient extends AzureOpcHistoryClientContext {
 const serializer = new msRest.Serializer(Mappers);
 const getListOfApplicationsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/applications",
+  path: "v2/applications",
   queryParameters: [
     Parameters.continuationToken,
     Parameters.pageSize
@@ -816,8 +816,6 @@ const getListOfApplicationsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ApplicationInfoListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -825,7 +823,7 @@ const getListOfApplicationsOperationSpec: msRest.OperationSpec = {
 
 const createApplicationOperationSpec: msRest.OperationSpec = {
   httpMethod: "PUT",
-  path: "v1/applications",
+  path: "v2/applications",
   requestBody: {
     parameterPath: "request",
     mapper: {
@@ -838,8 +836,6 @@ const createApplicationOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ApplicationRegistrationResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -847,7 +843,7 @@ const createApplicationOperationSpec: msRest.OperationSpec = {
 
 const registerServerOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/applications",
+  path: "v2/applications",
   requestBody: {
     parameterPath: "request",
     mapper: {
@@ -858,8 +854,6 @@ const registerServerOperationSpec: msRest.OperationSpec = {
   contentType: "application/json-patch+json; charset=utf-8",
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -867,14 +861,12 @@ const registerServerOperationSpec: msRest.OperationSpec = {
 
 const deleteAllDisabledApplicationsOperationSpec: msRest.OperationSpec = {
   httpMethod: "DELETE",
-  path: "v1/applications",
+  path: "v2/applications",
   queryParameters: [
     Parameters.notSeenFor
   ],
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -882,7 +874,7 @@ const deleteAllDisabledApplicationsOperationSpec: msRest.OperationSpec = {
 
 const discoverServerOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/applications/discover",
+  path: "v2/applications/discover",
   requestBody: {
     parameterPath: "request",
     mapper: {
@@ -893,8 +885,6 @@ const discoverServerOperationSpec: msRest.OperationSpec = {
   contentType: "application/json-patch+json; charset=utf-8",
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -902,7 +892,7 @@ const discoverServerOperationSpec: msRest.OperationSpec = {
 
 const getApplicationRegistrationOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/applications/{applicationId}",
+  path: "v2/applications/{applicationId}",
   urlParameters: [
     Parameters.applicationId
   ],
@@ -910,8 +900,6 @@ const getApplicationRegistrationOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ApplicationRegistrationApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -919,14 +907,12 @@ const getApplicationRegistrationOperationSpec: msRest.OperationSpec = {
 
 const deleteApplicationOperationSpec: msRest.OperationSpec = {
   httpMethod: "DELETE",
-  path: "v1/applications/{applicationId}",
+  path: "v2/applications/{applicationId}",
   urlParameters: [
     Parameters.applicationId
   ],
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -934,7 +920,7 @@ const deleteApplicationOperationSpec: msRest.OperationSpec = {
 
 const updateApplicationRegistrationOperationSpec: msRest.OperationSpec = {
   httpMethod: "PATCH",
-  path: "v1/applications/{applicationId}",
+  path: "v2/applications/{applicationId}",
   urlParameters: [
     Parameters.applicationId
   ],
@@ -948,8 +934,6 @@ const updateApplicationRegistrationOperationSpec: msRest.OperationSpec = {
   contentType: "application/json-patch+json; charset=utf-8",
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -957,7 +941,7 @@ const updateApplicationRegistrationOperationSpec: msRest.OperationSpec = {
 
 const getListOfSitesOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/applications/sites",
+  path: "v2/applications/sites",
   queryParameters: [
     Parameters.continuationToken,
     Parameters.pageSize
@@ -966,8 +950,6 @@ const getListOfSitesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ApplicationSiteListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -975,7 +957,7 @@ const getListOfSitesOperationSpec: msRest.OperationSpec = {
 
 const getFilteredListOfApplicationsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/applications/query",
+  path: "v2/applications/query",
   queryParameters: [
     Parameters.pageSize
   ],
@@ -991,8 +973,6 @@ const getFilteredListOfApplicationsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ApplicationInfoListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1000,7 +980,7 @@ const getFilteredListOfApplicationsOperationSpec: msRest.OperationSpec = {
 
 const queryApplicationsOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/applications/query",
+  path: "v2/applications/query",
   queryParameters: [
     Parameters.pageSize
   ],
@@ -1016,8 +996,6 @@ const queryApplicationsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ApplicationInfoListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1025,14 +1003,12 @@ const queryApplicationsOperationSpec: msRest.OperationSpec = {
 
 const activateEndpointOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/endpoints/{endpointId}/activate",
+  path: "v2/endpoints/{endpointId}/activate",
   urlParameters: [
     Parameters.endpointId
   ],
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1040,7 +1016,7 @@ const activateEndpointOperationSpec: msRest.OperationSpec = {
 
 const getEndpointOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/endpoints/{endpointId}",
+  path: "v2/endpoints/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -1051,8 +1027,6 @@ const getEndpointOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.EndpointInfoApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1060,7 +1034,7 @@ const getEndpointOperationSpec: msRest.OperationSpec = {
 
 const updateEndpointOperationSpec: msRest.OperationSpec = {
   httpMethod: "PATCH",
-  path: "v1/endpoints/{endpointId}",
+  path: "v2/endpoints/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -1074,8 +1048,6 @@ const updateEndpointOperationSpec: msRest.OperationSpec = {
   contentType: "application/json-patch+json; charset=utf-8",
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1083,7 +1055,7 @@ const updateEndpointOperationSpec: msRest.OperationSpec = {
 
 const getListOfEndpointsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/endpoints",
+  path: "v2/endpoints",
   queryParameters: [
     Parameters.onlyServerState,
     Parameters.continuationToken,
@@ -1093,8 +1065,6 @@ const getListOfEndpointsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.EndpointInfoListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1102,7 +1072,7 @@ const getListOfEndpointsOperationSpec: msRest.OperationSpec = {
 
 const getFilteredListOfEndpointsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/endpoints/query",
+  path: "v2/endpoints/query",
   queryParameters: [
     Parameters.url,
     Parameters.userAuthentication,
@@ -1120,8 +1090,6 @@ const getFilteredListOfEndpointsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.EndpointInfoListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1129,7 +1097,7 @@ const getFilteredListOfEndpointsOperationSpec: msRest.OperationSpec = {
 
 const queryEndpointsOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/endpoints/query",
+  path: "v2/endpoints/query",
   queryParameters: [
     Parameters.onlyServerState,
     Parameters.pageSize
@@ -1146,8 +1114,6 @@ const queryEndpointsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.EndpointInfoListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1155,14 +1121,12 @@ const queryEndpointsOperationSpec: msRest.OperationSpec = {
 
 const deactivateEndpointOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/endpoints/{endpointId}/deactivate",
+  path: "v2/endpoints/{endpointId}/deactivate",
   urlParameters: [
     Parameters.endpointId
   ],
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1170,7 +1134,7 @@ const deactivateEndpointOperationSpec: msRest.OperationSpec = {
 
 const getStatusOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/status",
+  path: "v2/status",
   responses: {
     200: {
       bodyMapper: Mappers.StatusResponseApiModel
@@ -1182,7 +1146,7 @@ const getStatusOperationSpec: msRest.OperationSpec = {
 
 const getSupervisorOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/supervisors/{supervisorId}",
+  path: "v2/supervisors/{supervisorId}",
   urlParameters: [
     Parameters.supervisorId
   ],
@@ -1193,8 +1157,6 @@ const getSupervisorOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.SupervisorApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1202,7 +1164,7 @@ const getSupervisorOperationSpec: msRest.OperationSpec = {
 
 const updateSupervisorOperationSpec: msRest.OperationSpec = {
   httpMethod: "PATCH",
-  path: "v1/supervisors/{supervisorId}",
+  path: "v2/supervisors/{supervisorId}",
   urlParameters: [
     Parameters.supervisorId
   ],
@@ -1216,8 +1178,6 @@ const updateSupervisorOperationSpec: msRest.OperationSpec = {
   contentType: "application/json-patch+json; charset=utf-8",
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1225,7 +1185,7 @@ const updateSupervisorOperationSpec: msRest.OperationSpec = {
 
 const getSupervisorStatusOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/supervisors/{supervisorId}/status",
+  path: "v2/supervisors/{supervisorId}/status",
   urlParameters: [
     Parameters.supervisorId
   ],
@@ -1233,8 +1193,6 @@ const getSupervisorStatusOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.SupervisorStatusApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1242,14 +1200,12 @@ const getSupervisorStatusOperationSpec: msRest.OperationSpec = {
 
 const resetSupervisorOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/supervisors/{supervisorId}/reset",
+  path: "v2/supervisors/{supervisorId}/reset",
   urlParameters: [
     Parameters.supervisorId
   ],
   responses: {
     200: {},
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1257,7 +1213,7 @@ const resetSupervisorOperationSpec: msRest.OperationSpec = {
 
 const getListOfSupervisorsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/supervisors",
+  path: "v2/supervisors",
   queryParameters: [
     Parameters.onlyServerState,
     Parameters.continuationToken,
@@ -1267,8 +1223,6 @@ const getListOfSupervisorsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.SupervisorListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1276,7 +1230,7 @@ const getListOfSupervisorsOperationSpec: msRest.OperationSpec = {
 
 const getFilteredListOfSupervisorsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/supervisors/query",
+  path: "v2/supervisors/query",
   queryParameters: [
     Parameters.siteId,
     Parameters.discovery,
@@ -1288,8 +1242,6 @@ const getFilteredListOfSupervisorsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.SupervisorListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -1297,7 +1249,7 @@ const getFilteredListOfSupervisorsOperationSpec: msRest.OperationSpec = {
 
 const querySupervisorsOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/supervisors/query",
+  path: "v2/supervisors/query",
   queryParameters: [
     Parameters.onlyServerState,
     Parameters.pageSize
@@ -1314,8 +1266,6 @@ const querySupervisorsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.SupervisorListApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer

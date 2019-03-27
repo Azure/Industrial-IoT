@@ -31,6 +31,10 @@ module azure.iiot.opc.registry
       # @return [Boolean] Whether to add or remove callbacks
       attr_accessor :remove_discovery_callbacks
 
+      # @return [SupervisorLogLevel] Current log level. Possible values
+      # include: 'Error', 'Information', 'Debug', 'Verbose'
+      attr_accessor :log_level
+
 
       #
       # Mapper for SupervisorUpdateApiModel class as Ruby Hash.
@@ -95,6 +99,15 @@ module azure.iiot.opc.registry
                 serialized_name: 'removeDiscoveryCallbacks',
                 type: {
                   name: 'Boolean'
+                }
+              },
+              log_level: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'logLevel',
+                type: {
+                  name: 'Enum',
+                  module: 'SupervisorLogLevel'
                 }
               }
             }

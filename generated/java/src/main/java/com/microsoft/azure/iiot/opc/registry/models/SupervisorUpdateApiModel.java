@@ -50,6 +50,13 @@ public class SupervisorUpdateApiModel {
     private Boolean removeDiscoveryCallbacks;
 
     /**
+     * Current log level. Possible values include: 'Error', 'Information',
+     * 'Debug', 'Verbose'.
+     */
+    @JsonProperty(value = "logLevel")
+    private SupervisorLogLevel logLevel;
+
+    /**
      * Get site of the supervisor.
      *
      * @return the siteId value
@@ -148,6 +155,26 @@ public class SupervisorUpdateApiModel {
      */
     public SupervisorUpdateApiModel withRemoveDiscoveryCallbacks(Boolean removeDiscoveryCallbacks) {
         this.removeDiscoveryCallbacks = removeDiscoveryCallbacks;
+        return this;
+    }
+
+    /**
+     * Get current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     *
+     * @return the logLevel value
+     */
+    public SupervisorLogLevel logLevel() {
+        return this.logLevel;
+    }
+
+    /**
+     * Set current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     *
+     * @param logLevel the logLevel value to set
+     * @return the SupervisorUpdateApiModel object itself.
+     */
+    public SupervisorUpdateApiModel withLogLevel(SupervisorLogLevel logLevel) {
+        this.logLevel = logLevel;
         return this;
     }
 

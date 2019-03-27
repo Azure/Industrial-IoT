@@ -28,6 +28,9 @@ class SupervisorApiModel(Model):
      ~azure-iiot-opc-registry.models.DiscoveryConfigApiModel
     :param certificate: Supervisor public client cert
     :type certificate: bytearray
+    :param log_level: Current log level. Possible values include: 'Error',
+     'Information', 'Debug', 'Verbose'. Default value: "Information" .
+    :type log_level: str or ~azure-iiot-opc-registry.models.SupervisorLogLevel
     :param out_of_sync: Whether the registration is out of sync between
      client (module) and server (service) (default: false).
     :type out_of_sync: bool
@@ -45,16 +48,18 @@ class SupervisorApiModel(Model):
         'discovery': {'key': 'discovery', 'type': 'DiscoveryMode'},
         'discovery_config': {'key': 'discoveryConfig', 'type': 'DiscoveryConfigApiModel'},
         'certificate': {'key': 'certificate', 'type': 'bytearray'},
+        'log_level': {'key': 'logLevel', 'type': 'SupervisorLogLevel'},
         'out_of_sync': {'key': 'outOfSync', 'type': 'bool'},
         'connected': {'key': 'connected', 'type': 'bool'},
     }
 
-    def __init__(self, id, site_id=None, discovery="Off", discovery_config=None, certificate=None, out_of_sync=None, connected=None):
+    def __init__(self, id, site_id=None, discovery="Off", discovery_config=None, certificate=None, log_level="Information", out_of_sync=None, connected=None):
         super(SupervisorApiModel, self).__init__()
         self.id = id
         self.site_id = site_id
         self.discovery = discovery
         self.discovery_config = discovery_config
         self.certificate = certificate
+        self.log_level = log_level
         self.out_of_sync = out_of_sync
         self.connected = connected

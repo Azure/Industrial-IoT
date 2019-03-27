@@ -62,7 +62,7 @@ class AzureOpcHistoryClient(object):
         self._client = ServiceClient(self.config.credentials, self.config)
 
         client_models = {k: v for k, v in models.__dict__.items() if isinstance(v, type)}
-        self.api_version = 'v1'
+        self.api_version = 'v2'
         self._serialize = Serializer(client_models)
         self._deserialize = Deserializer(client_models)
 
@@ -113,7 +113,7 @@ class AzureOpcHistoryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -126,7 +126,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    get_list_of_applications.metadata = {'url': '/v1/applications'}
+    get_list_of_applications.metadata = {'url': '/v2/applications'}
 
     def create_application(
             self, request, custom_headers=None, raw=False, **operation_config):
@@ -173,7 +173,7 @@ class AzureOpcHistoryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -186,7 +186,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    create_application.metadata = {'url': '/v1/applications'}
+    create_application.metadata = {'url': '/v2/applications'}
 
     def register_server(
             self, request, custom_headers=None, raw=False, **operation_config):
@@ -229,13 +229,13 @@ class AzureOpcHistoryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
             client_raw_response = ClientRawResponse(None, response)
             return client_raw_response
-    register_server.metadata = {'url': '/v1/applications'}
+    register_server.metadata = {'url': '/v2/applications'}
 
     def delete_all_disabled_applications(
             self, not_seen_for=None, custom_headers=None, raw=False, **operation_config):
@@ -274,13 +274,13 @@ class AzureOpcHistoryClient(object):
         request = self._client.delete(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
             client_raw_response = ClientRawResponse(None, response)
             return client_raw_response
-    delete_all_disabled_applications.metadata = {'url': '/v1/applications'}
+    delete_all_disabled_applications.metadata = {'url': '/v2/applications'}
 
     def discover_server(
             self, request, custom_headers=None, raw=False, **operation_config):
@@ -321,13 +321,13 @@ class AzureOpcHistoryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
             client_raw_response = ClientRawResponse(None, response)
             return client_raw_response
-    discover_server.metadata = {'url': '/v1/applications/discover'}
+    discover_server.metadata = {'url': '/v2/applications/discover'}
 
     def get_application_registration(
             self, application_id, custom_headers=None, raw=False, **operation_config):
@@ -367,7 +367,7 @@ class AzureOpcHistoryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -380,7 +380,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    get_application_registration.metadata = {'url': '/v1/applications/{applicationId}'}
+    get_application_registration.metadata = {'url': '/v2/applications/{applicationId}'}
 
     def delete_application(
             self, application_id, custom_headers=None, raw=False, **operation_config):
@@ -420,13 +420,13 @@ class AzureOpcHistoryClient(object):
         request = self._client.delete(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
             client_raw_response = ClientRawResponse(None, response)
             return client_raw_response
-    delete_application.metadata = {'url': '/v1/applications/{applicationId}'}
+    delete_application.metadata = {'url': '/v2/applications/{applicationId}'}
 
     def update_application_registration(
             self, application_id, request, custom_headers=None, raw=False, **operation_config):
@@ -476,13 +476,13 @@ class AzureOpcHistoryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
             client_raw_response = ClientRawResponse(None, response)
             return client_raw_response
-    update_application_registration.metadata = {'url': '/v1/applications/{applicationId}'}
+    update_application_registration.metadata = {'url': '/v2/applications/{applicationId}'}
 
     def get_list_of_sites(
             self, continuation_token=None, page_size=None, custom_headers=None, raw=False, **operation_config):
@@ -527,7 +527,7 @@ class AzureOpcHistoryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -540,7 +540,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    get_list_of_sites.metadata = {'url': '/v1/applications/sites'}
+    get_list_of_sites.metadata = {'url': '/v2/applications/sites'}
 
     def get_filtered_list_of_applications(
             self, query, page_size=None, custom_headers=None, raw=False, **operation_config):
@@ -591,7 +591,7 @@ class AzureOpcHistoryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -604,7 +604,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    get_filtered_list_of_applications.metadata = {'url': '/v1/applications/query'}
+    get_filtered_list_of_applications.metadata = {'url': '/v2/applications/query'}
 
     def query_applications(
             self, query, page_size=None, custom_headers=None, raw=False, **operation_config):
@@ -655,7 +655,7 @@ class AzureOpcHistoryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -668,7 +668,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    query_applications.metadata = {'url': '/v1/applications/query'}
+    query_applications.metadata = {'url': '/v2/applications/query'}
 
     def activate_endpoint(
             self, endpoint_id, custom_headers=None, raw=False, **operation_config):
@@ -710,13 +710,13 @@ class AzureOpcHistoryClient(object):
         request = self._client.post(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
             client_raw_response = ClientRawResponse(None, response)
             return client_raw_response
-    activate_endpoint.metadata = {'url': '/v1/endpoints/{endpointId}/activate'}
+    activate_endpoint.metadata = {'url': '/v2/endpoints/{endpointId}/activate'}
 
     def get_endpoint(
             self, endpoint_id, only_server_state=None, custom_headers=None, raw=False, **operation_config):
@@ -763,7 +763,7 @@ class AzureOpcHistoryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -776,7 +776,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    get_endpoint.metadata = {'url': '/v1/endpoints/{endpointId}'}
+    get_endpoint.metadata = {'url': '/v2/endpoints/{endpointId}'}
 
     def update_endpoint(
             self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
@@ -821,13 +821,13 @@ class AzureOpcHistoryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
             client_raw_response = ClientRawResponse(None, response)
             return client_raw_response
-    update_endpoint.metadata = {'url': '/v1/endpoints/{endpointId}'}
+    update_endpoint.metadata = {'url': '/v2/endpoints/{endpointId}'}
 
     def get_list_of_endpoints(
             self, only_server_state=None, continuation_token=None, page_size=None, custom_headers=None, raw=False, **operation_config):
@@ -878,7 +878,7 @@ class AzureOpcHistoryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -891,7 +891,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    get_list_of_endpoints.metadata = {'url': '/v1/endpoints'}
+    get_list_of_endpoints.metadata = {'url': '/v2/endpoints'}
 
     def get_filtered_list_of_endpoints(
             self, url=None, user_authentication=None, certificate=None, security_mode=None, security_policy=None, activated=None, connected=None, endpoint_state=None, include_not_seen_since=None, only_server_state=None, page_size=None, custom_headers=None, raw=False, **operation_config):
@@ -983,7 +983,7 @@ class AzureOpcHistoryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -996,7 +996,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    get_filtered_list_of_endpoints.metadata = {'url': '/v1/endpoints/query'}
+    get_filtered_list_of_endpoints.metadata = {'url': '/v2/endpoints/query'}
 
     def query_endpoints(
             self, query, only_server_state=None, page_size=None, custom_headers=None, raw=False, **operation_config):
@@ -1051,7 +1051,7 @@ class AzureOpcHistoryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1064,7 +1064,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    query_endpoints.metadata = {'url': '/v1/endpoints/query'}
+    query_endpoints.metadata = {'url': '/v2/endpoints/query'}
 
     def deactivate_endpoint(
             self, endpoint_id, custom_headers=None, raw=False, **operation_config):
@@ -1104,13 +1104,13 @@ class AzureOpcHistoryClient(object):
         request = self._client.post(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
             client_raw_response = ClientRawResponse(None, response)
             return client_raw_response
-    deactivate_endpoint.metadata = {'url': '/v1/endpoints/{endpointId}/deactivate'}
+    deactivate_endpoint.metadata = {'url': '/v2/endpoints/{endpointId}/deactivate'}
 
     def get_status(
             self, custom_headers=None, raw=False, **operation_config):
@@ -1157,7 +1157,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    get_status.metadata = {'url': '/v1/status'}
+    get_status.metadata = {'url': '/v2/status'}
 
     def get_supervisor(
             self, supervisor_id, only_server_state=None, custom_headers=None, raw=False, **operation_config):
@@ -1205,7 +1205,7 @@ class AzureOpcHistoryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1218,7 +1218,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    get_supervisor.metadata = {'url': '/v1/supervisors/{supervisorId}'}
+    get_supervisor.metadata = {'url': '/v2/supervisors/{supervisorId}'}
 
     def update_supervisor(
             self, supervisor_id, request, custom_headers=None, raw=False, **operation_config):
@@ -1266,13 +1266,13 @@ class AzureOpcHistoryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
             client_raw_response = ClientRawResponse(None, response)
             return client_raw_response
-    update_supervisor.metadata = {'url': '/v1/supervisors/{supervisorId}'}
+    update_supervisor.metadata = {'url': '/v2/supervisors/{supervisorId}'}
 
     def get_supervisor_status(
             self, supervisor_id, custom_headers=None, raw=False, **operation_config):
@@ -1313,7 +1313,7 @@ class AzureOpcHistoryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1326,7 +1326,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    get_supervisor_status.metadata = {'url': '/v1/supervisors/{supervisorId}/status'}
+    get_supervisor_status.metadata = {'url': '/v2/supervisors/{supervisorId}/status'}
 
     def reset_supervisor(
             self, supervisor_id, custom_headers=None, raw=False, **operation_config):
@@ -1367,13 +1367,13 @@ class AzureOpcHistoryClient(object):
         request = self._client.post(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         if raw:
             client_raw_response = ClientRawResponse(None, response)
             return client_raw_response
-    reset_supervisor.metadata = {'url': '/v1/supervisors/{supervisorId}/reset'}
+    reset_supervisor.metadata = {'url': '/v2/supervisors/{supervisorId}/reset'}
 
     def get_list_of_supervisors(
             self, only_server_state=None, continuation_token=None, page_size=None, custom_headers=None, raw=False, **operation_config):
@@ -1425,7 +1425,7 @@ class AzureOpcHistoryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1438,7 +1438,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    get_list_of_supervisors.metadata = {'url': '/v1/supervisors'}
+    get_list_of_supervisors.metadata = {'url': '/v2/supervisors'}
 
     def get_filtered_list_of_supervisors(
             self, site_id=None, discovery=None, connected=None, only_server_state=None, page_size=None, custom_headers=None, raw=False, **operation_config):
@@ -1501,7 +1501,7 @@ class AzureOpcHistoryClient(object):
         request = self._client.get(url, query_parameters)
         response = self._client.send(request, header_parameters, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1514,7 +1514,7 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    get_filtered_list_of_supervisors.metadata = {'url': '/v1/supervisors/query'}
+    get_filtered_list_of_supervisors.metadata = {'url': '/v2/supervisors/query'}
 
     def query_supervisors(
             self, query, only_server_state=None, page_size=None, custom_headers=None, raw=False, **operation_config):
@@ -1569,7 +1569,7 @@ class AzureOpcHistoryClient(object):
         response = self._client.send(
             request, header_parameters, body_content, stream=False, **operation_config)
 
-        if response.status_code not in [200, 401, 403]:
+        if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
         deserialized = None
@@ -1582,4 +1582,4 @@ class AzureOpcHistoryClient(object):
             return client_raw_response
 
         return deserialized
-    query_supervisors.metadata = {'url': '/v1/supervisors/query'}
+    query_supervisors.metadata = {'url': '/v2/supervisors/query'}

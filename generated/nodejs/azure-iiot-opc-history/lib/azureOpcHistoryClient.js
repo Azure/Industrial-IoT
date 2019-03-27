@@ -80,7 +80,7 @@ function _getListOfApplications(options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/applications';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
   let queryParameters = [];
   if (continuationToken !== null && continuationToken !== undefined) {
     queryParameters.push('continuationToken=' + encodeURIComponent(continuationToken));
@@ -113,7 +113,7 @@ function _getListOfApplications(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -229,7 +229,7 @@ function _createApplication(request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/applications';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
 
   // Create HTTP transport objects
   let httpRequest = new WebResource();
@@ -266,7 +266,7 @@ function _createApplication(request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -394,7 +394,7 @@ function _registerServer(request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/applications';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
 
   // Create HTTP transport objects
   let httpRequest = new WebResource();
@@ -431,7 +431,7 @@ function _registerServer(request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -508,7 +508,7 @@ function _deleteAllDisabledApplications(options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/applications';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
   let queryParameters = [];
   if (notSeenFor !== null && notSeenFor !== undefined) {
     queryParameters.push('notSeenFor=' + encodeURIComponent(notSeenFor));
@@ -538,7 +538,7 @@ function _deleteAllDisabledApplications(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -672,7 +672,7 @@ function _discoverServer(request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/applications/discover';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/discover';
 
   // Create HTTP transport objects
   let httpRequest = new WebResource();
@@ -709,7 +709,7 @@ function _discoverServer(request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -784,7 +784,7 @@ function _getApplicationRegistration(applicationId, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/applications/{applicationId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/{applicationId}';
   requestUrl = requestUrl.replace('{applicationId}', encodeURIComponent(applicationId));
 
   // Create HTTP transport objects
@@ -808,7 +808,7 @@ function _getApplicationRegistration(applicationId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -900,7 +900,7 @@ function _deleteApplication(applicationId, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/applications/{applicationId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/{applicationId}';
   requestUrl = requestUrl.replace('{applicationId}', encodeURIComponent(applicationId));
 
   // Create HTTP transport objects
@@ -924,7 +924,7 @@ function _deleteApplication(applicationId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1020,7 +1020,7 @@ function _updateApplicationRegistration(applicationId, request, options, callbac
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/applications/{applicationId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/{applicationId}';
   requestUrl = requestUrl.replace('{applicationId}', encodeURIComponent(applicationId));
 
   // Create HTTP transport objects
@@ -1058,7 +1058,7 @@ function _updateApplicationRegistration(applicationId, request, options, callbac
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1144,7 +1144,7 @@ function _getListOfSites(options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/applications/sites';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/sites';
   let queryParameters = [];
   if (continuationToken !== null && continuationToken !== undefined) {
     queryParameters.push('continuationToken=' + encodeURIComponent(continuationToken));
@@ -1177,7 +1177,7 @@ function _getListOfSites(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1300,7 +1300,7 @@ function _getFilteredListOfApplications(query, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/applications/query';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/query';
   let queryParameters = [];
   if (pageSize !== null && pageSize !== undefined) {
     queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
@@ -1344,7 +1344,7 @@ function _getFilteredListOfApplications(query, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1468,7 +1468,7 @@ function _queryApplications(query, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/applications/query';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/query';
   let queryParameters = [];
   if (pageSize !== null && pageSize !== undefined) {
     queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
@@ -1512,7 +1512,7 @@ function _queryApplications(query, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1606,7 +1606,7 @@ function _activateEndpoint(endpointId, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/endpoints/{endpointId}/activate';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/{endpointId}/activate';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -1630,7 +1630,7 @@ function _activateEndpoint(endpointId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1714,7 +1714,7 @@ function _getEndpoint(endpointId, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/endpoints/{endpointId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/{endpointId}';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
   let queryParameters = [];
   if (onlyServerState !== null && onlyServerState !== undefined) {
@@ -1745,7 +1745,7 @@ function _getEndpoint(endpointId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1848,7 +1848,7 @@ function _updateEndpoint(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/endpoints/{endpointId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/{endpointId}';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -1886,7 +1886,7 @@ function _updateEndpoint(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1980,7 +1980,7 @@ function _getListOfEndpoints(options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/endpoints';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints';
   let queryParameters = [];
   if (onlyServerState !== null && onlyServerState !== undefined) {
     queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
@@ -2016,7 +2016,7 @@ function _getListOfEndpoints(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2185,7 +2185,7 @@ function _getFilteredListOfEndpoints(options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/endpoints/query';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/query';
   let queryParameters = [];
   if (url !== null && url !== undefined) {
     queryParameters.push('Url=' + encodeURIComponent(url));
@@ -2245,7 +2245,7 @@ function _getFilteredListOfEndpoints(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2381,7 +2381,7 @@ function _queryEndpoints(query, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/endpoints/query';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/query';
   let queryParameters = [];
   if (onlyServerState !== null && onlyServerState !== undefined) {
     queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
@@ -2428,7 +2428,7 @@ function _queryEndpoints(query, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2520,7 +2520,7 @@ function _deactivateEndpoint(endpointId, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/endpoints/{endpointId}/deactivate';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/{endpointId}/deactivate';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -2544,7 +2544,7 @@ function _deactivateEndpoint(endpointId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2610,7 +2610,7 @@ function _getStatus(options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/status';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/status';
 
   // Create HTTP transport objects
   let httpRequest = new WebResource();
@@ -2735,7 +2735,7 @@ function _getSupervisor(supervisorId, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/supervisors/{supervisorId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/{supervisorId}';
   requestUrl = requestUrl.replace('{supervisorId}', encodeURIComponent(supervisorId));
   let queryParameters = [];
   if (onlyServerState !== null && onlyServerState !== undefined) {
@@ -2766,7 +2766,7 @@ function _getSupervisor(supervisorId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2889,6 +2889,9 @@ function _getSupervisor(supervisorId, options, callback) {
  * @param {boolean} [request.removeDiscoveryCallbacks] Whether to add or remove
  * callbacks
  *
+ * @param {string} [request.logLevel] Current log level. Possible values
+ * include: 'Error', 'Information', 'Debug', 'Verbose'
+ *
  * @param {object} [options] Optional Parameters.
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
@@ -2930,7 +2933,7 @@ function _updateSupervisor(supervisorId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/supervisors/{supervisorId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/{supervisorId}';
   requestUrl = requestUrl.replace('{supervisorId}', encodeURIComponent(supervisorId));
 
   // Create HTTP transport objects
@@ -2968,7 +2971,7 @@ function _updateSupervisor(supervisorId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -3045,7 +3048,7 @@ function _getSupervisorStatus(supervisorId, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/supervisors/{supervisorId}/status';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/{supervisorId}/status';
   requestUrl = requestUrl.replace('{supervisorId}', encodeURIComponent(supervisorId));
 
   // Create HTTP transport objects
@@ -3069,7 +3072,7 @@ function _getSupervisorStatus(supervisorId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -3162,7 +3165,7 @@ function _resetSupervisor(supervisorId, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/supervisors/{supervisorId}/reset';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/{supervisorId}/reset';
   requestUrl = requestUrl.replace('{supervisorId}', encodeURIComponent(supervisorId));
 
   // Create HTTP transport objects
@@ -3186,7 +3189,7 @@ function _resetSupervisor(supervisorId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -3280,7 +3283,7 @@ function _getListOfSupervisors(options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/supervisors';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors';
   let queryParameters = [];
   if (onlyServerState !== null && onlyServerState !== undefined) {
     queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
@@ -3316,7 +3319,7 @@ function _getListOfSupervisors(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -3442,7 +3445,7 @@ function _getFilteredListOfSupervisors(options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/supervisors/query';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/query';
   let queryParameters = [];
   if (siteId !== null && siteId !== undefined) {
     queryParameters.push('SiteId=' + encodeURIComponent(siteId));
@@ -3484,7 +3487,7 @@ function _getFilteredListOfSupervisors(options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -3603,7 +3606,7 @@ function _querySupervisors(query, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/supervisors/query';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/query';
   let queryParameters = [];
   if (onlyServerState !== null && onlyServerState !== undefined) {
     queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
@@ -3650,7 +3653,7 @@ function _querySupervisors(query, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -6130,6 +6133,9 @@ class AzureOpcHistoryClient extends ServiceClient {
    * @param {boolean} [request.removeDiscoveryCallbacks] Whether to add or remove
    * callbacks
    *
+   * @param {string} [request.logLevel] Current log level. Possible values
+   * include: 'Error', 'Information', 'Debug', 'Verbose'
+   *
    * @param {object} [options] Optional Parameters.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
@@ -6230,6 +6236,9 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @param {boolean} [request.removeDiscoveryCallbacks] Whether to add or remove
    * callbacks
+   *
+   * @param {string} [request.logLevel] Current log level. Possible values
+   * include: 'Error', 'Information', 'Debug', 'Verbose'
    *
    * @param {object} [options] Optional Parameters.
    *

@@ -376,7 +376,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/browse/{endpointId}").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/browse/{endpointId}").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             List<string> _queryParameters = new List<string>();
             if (nodeId != null)
@@ -429,7 +429,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -543,7 +543,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/browse/{endpointId}").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/browse/{endpointId}").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -593,7 +593,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -706,7 +706,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/browse/{endpointId}/next").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/browse/{endpointId}/next").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             List<string> _queryParameters = new List<string>();
             if (continuationToken != null)
@@ -759,7 +759,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -873,7 +873,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/browse/{endpointId}/next").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/browse/{endpointId}/next").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -923,7 +923,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1038,7 +1038,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/browse/{endpointId}/path").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/browse/{endpointId}/path").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -1088,7 +1088,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1203,7 +1203,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/call/{endpointId}/metadata").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/call/{endpointId}/metadata").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -1253,7 +1253,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1363,7 +1363,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/call/{endpointId}").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/call/{endpointId}").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -1413,7 +1413,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1527,7 +1527,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/publish/{endpointId}/start").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/publish/{endpointId}/start").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -1577,7 +1577,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1691,7 +1691,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/publish/{endpointId}/stop").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/publish/{endpointId}/stop").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -1741,7 +1741,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -1851,7 +1851,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/publish/{endpointId}").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/publish/{endpointId}").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             List<string> _queryParameters = new List<string>();
             if (continuationToken != null)
@@ -1904,7 +1904,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -2014,7 +2014,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/publish/{endpointId}").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/publish/{endpointId}").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -2064,7 +2064,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -2174,7 +2174,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/read/{endpointId}").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/read/{endpointId}").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             List<string> _queryParameters = new List<string>();
             if (nodeId != null)
@@ -2227,7 +2227,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -2341,7 +2341,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/read/{endpointId}").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/read/{endpointId}").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -2391,7 +2391,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -2505,7 +2505,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/read/{endpointId}/attributes").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/read/{endpointId}/attributes").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -2555,7 +2555,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -2639,7 +2639,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/status").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/status").ToString();
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
@@ -2796,7 +2796,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/write/{endpointId}").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/write/{endpointId}").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -2846,7 +2846,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {
@@ -2960,7 +2960,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v1/write/{endpointId}/attributes").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/write/{endpointId}/attributes").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -3010,7 +3010,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
             cancellationToken.ThrowIfCancellationRequested();
             string _responseContent = null;
-            if ((int)_statusCode != 200 && (int)_statusCode != 401 && (int)_statusCode != 403)
+            if ((int)_statusCode != 200)
             {
                 var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
                 if (_httpResponse.Content != null) {

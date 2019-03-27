@@ -83,7 +83,7 @@ function _getSetOfUniqueNodes(endpointId, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/browse/{endpointId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/browse/{endpointId}';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
   let queryParameters = [];
   if (nodeId !== null && nodeId !== undefined) {
@@ -114,7 +114,7 @@ function _getSetOfUniqueNodes(endpointId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -280,7 +280,7 @@ function _browse(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/browse/{endpointId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/browse/{endpointId}';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -318,7 +318,7 @@ function _browse(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -423,7 +423,7 @@ function _getNextSetOfUniqueNodes(endpointId, continuationToken, options, callba
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/browse/{endpointId}/next';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/browse/{endpointId}/next';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
   let queryParameters = [];
   queryParameters.push('continuationToken=' + encodeURIComponent(continuationToken));
@@ -452,7 +452,7 @@ function _getNextSetOfUniqueNodes(endpointId, continuationToken, options, callba
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -596,7 +596,7 @@ function _browseNext(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/browse/{endpointId}/next';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/browse/{endpointId}/next';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -634,7 +634,7 @@ function _browseNext(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -772,7 +772,7 @@ function _browseUsingPath(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/browse/{endpointId}/path';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/browse/{endpointId}/path';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -810,7 +810,7 @@ function _browseUsingPath(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -945,7 +945,7 @@ function _getCallMetadata(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/call/{endpointId}/metadata';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/call/{endpointId}/metadata';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -983,7 +983,7 @@ function _getCallMetadata(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1129,7 +1129,7 @@ function _callMethod(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/call/{endpointId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/call/{endpointId}';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -1167,7 +1167,7 @@ function _callMethod(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1315,7 +1315,7 @@ function _startPublishingValues(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/publish/{endpointId}/start';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publish/{endpointId}/start';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -1353,7 +1353,7 @@ function _startPublishingValues(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1481,7 +1481,7 @@ function _stopPublishingValues(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/publish/{endpointId}/stop';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publish/{endpointId}/stop';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -1519,7 +1519,7 @@ function _stopPublishingValues(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1620,7 +1620,7 @@ function _getNextListOfPublishedNodes(endpointId, continuationToken, options, ca
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/publish/{endpointId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publish/{endpointId}';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
   let queryParameters = [];
   queryParameters.push('continuationToken=' + encodeURIComponent(continuationToken));
@@ -1649,7 +1649,7 @@ function _getNextListOfPublishedNodes(endpointId, continuationToken, options, ca
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1753,7 +1753,7 @@ function _getFirstListOfPublishedNodes(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/publish/{endpointId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publish/{endpointId}';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -1791,7 +1791,7 @@ function _getFirstListOfPublishedNodes(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -1892,7 +1892,7 @@ function _getValue(endpointId, nodeId, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/read/{endpointId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/read/{endpointId}';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
   let queryParameters = [];
   queryParameters.push('nodeId=' + encodeURIComponent(nodeId));
@@ -1921,7 +1921,7 @@ function _getValue(endpointId, nodeId, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2059,7 +2059,7 @@ function _readValue(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/read/{endpointId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/read/{endpointId}';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -2097,7 +2097,7 @@ function _readValue(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2225,7 +2225,7 @@ function _readAttributes(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/read/{endpointId}/attributes';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/read/{endpointId}/attributes';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -2263,7 +2263,7 @@ function _readAttributes(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2346,7 +2346,7 @@ function _getStatus(options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/status';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/status';
 
   // Create HTTP transport objects
   let httpRequest = new WebResource();
@@ -2514,7 +2514,7 @@ function _writeValue(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/write/{endpointId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/write/{endpointId}';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -2552,7 +2552,7 @@ function _writeValue(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);
@@ -2680,7 +2680,7 @@ function _writeAttributes(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v1/write/{endpointId}/attributes';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/write/{endpointId}/attributes';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -2718,7 +2718,7 @@ function _writeAttributes(endpointId, request, options, callback) {
       return callback(err);
     }
     let statusCode = response.statusCode;
-    if (statusCode !== 200 && statusCode !== 401 && statusCode !== 403) {
+    if (statusCode !== 200) {
       let error = new Error(responseBody);
       error.statusCode = response.statusCode;
       error.request = msRest.stripRequest(httpRequest);

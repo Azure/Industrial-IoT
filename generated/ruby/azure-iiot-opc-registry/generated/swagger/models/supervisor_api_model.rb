@@ -30,6 +30,11 @@ module azure.iiot.opc.registry
       # @return [Array<Integer>] Supervisor public client cert
       attr_accessor :certificate
 
+      # @return [SupervisorLogLevel] Current log level. Possible values
+      # include: 'Error', 'Information', 'Debug', 'Verbose'. Default value:
+      # 'Information' .
+      attr_accessor :log_level
+
       # @return [Boolean] Whether the registration is out of sync between
       # client (module) and server (service) (default: false).
       attr_accessor :out_of_sync
@@ -92,6 +97,16 @@ module azure.iiot.opc.registry
                 serialized_name: 'certificate',
                 type: {
                   name: 'ByteArray'
+                }
+              },
+              log_level: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'logLevel',
+                default_value: 'Information',
+                type: {
+                  name: 'Enum',
+                  module: 'SupervisorLogLevel'
                 }
               },
               out_of_sync: {

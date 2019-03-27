@@ -16,6 +16,9 @@ module azure.iiot.opc.history
       # @return [String] Registered identifier of the endpoint
       attr_accessor :id
 
+      # @return [String] Original endpoint url of the endpoint
+      attr_accessor :endpoint_url
+
       # @return [String] Registered site of the endpoint
       attr_accessor :site_id
 
@@ -51,6 +54,14 @@ module azure.iiot.opc.history
                 client_side_validation: true,
                 required: true,
                 serialized_name: 'id',
+                type: {
+                  name: 'String'
+                }
+              },
+              endpoint_url: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'endpointUrl',
                 type: {
                   name: 'String'
                 }

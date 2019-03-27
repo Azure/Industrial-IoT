@@ -620,7 +620,7 @@ class AzureOpcTwinClient extends AzureOpcTwinClientContext {
 const serializer = new msRest.Serializer(Mappers);
 const getSetOfUniqueNodesOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/browse/{endpointId}",
+  path: "v2/browse/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -632,8 +632,6 @@ const getSetOfUniqueNodesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.BrowseResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -641,7 +639,7 @@ const getSetOfUniqueNodesOperationSpec: msRest.OperationSpec = {
 
 const browseOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/browse/{endpointId}",
+  path: "v2/browse/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -656,8 +654,6 @@ const browseOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.BrowseResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -665,7 +661,7 @@ const browseOperationSpec: msRest.OperationSpec = {
 
 const getNextSetOfUniqueNodesOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/browse/{endpointId}/next",
+  path: "v2/browse/{endpointId}/next",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -677,8 +673,6 @@ const getNextSetOfUniqueNodesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.BrowseNextResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -686,7 +680,7 @@ const getNextSetOfUniqueNodesOperationSpec: msRest.OperationSpec = {
 
 const browseNextOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/browse/{endpointId}/next",
+  path: "v2/browse/{endpointId}/next",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -701,8 +695,6 @@ const browseNextOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.BrowseNextResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -710,7 +702,7 @@ const browseNextOperationSpec: msRest.OperationSpec = {
 
 const browseUsingPathOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/browse/{endpointId}/path",
+  path: "v2/browse/{endpointId}/path",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -725,8 +717,6 @@ const browseUsingPathOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.BrowsePathResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -734,7 +724,7 @@ const browseUsingPathOperationSpec: msRest.OperationSpec = {
 
 const getCallMetadataOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/call/{endpointId}/metadata",
+  path: "v2/call/{endpointId}/metadata",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -749,8 +739,6 @@ const getCallMetadataOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.MethodMetadataResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -758,7 +746,7 @@ const getCallMetadataOperationSpec: msRest.OperationSpec = {
 
 const callMethodOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/call/{endpointId}",
+  path: "v2/call/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -773,8 +761,6 @@ const callMethodOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.MethodCallResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -782,7 +768,7 @@ const callMethodOperationSpec: msRest.OperationSpec = {
 
 const startPublishingValuesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/publish/{endpointId}/start",
+  path: "v2/publish/{endpointId}/start",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -797,8 +783,6 @@ const startPublishingValuesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.PublishStartResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -806,7 +790,7 @@ const startPublishingValuesOperationSpec: msRest.OperationSpec = {
 
 const stopPublishingValuesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/publish/{endpointId}/stop",
+  path: "v2/publish/{endpointId}/stop",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -821,8 +805,6 @@ const stopPublishingValuesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.PublishStopResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -830,7 +812,7 @@ const stopPublishingValuesOperationSpec: msRest.OperationSpec = {
 
 const getNextListOfPublishedNodesOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/publish/{endpointId}",
+  path: "v2/publish/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -842,8 +824,6 @@ const getNextListOfPublishedNodesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.PublishedItemListResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -851,7 +831,7 @@ const getNextListOfPublishedNodesOperationSpec: msRest.OperationSpec = {
 
 const getFirstListOfPublishedNodesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/publish/{endpointId}",
+  path: "v2/publish/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -866,8 +846,6 @@ const getFirstListOfPublishedNodesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.PublishedItemListResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -875,7 +853,7 @@ const getFirstListOfPublishedNodesOperationSpec: msRest.OperationSpec = {
 
 const getValueOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/read/{endpointId}",
+  path: "v2/read/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -887,8 +865,6 @@ const getValueOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ValueReadResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -896,7 +872,7 @@ const getValueOperationSpec: msRest.OperationSpec = {
 
 const readValueOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/read/{endpointId}",
+  path: "v2/read/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -911,8 +887,6 @@ const readValueOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ValueReadResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -920,7 +894,7 @@ const readValueOperationSpec: msRest.OperationSpec = {
 
 const readAttributesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/read/{endpointId}/attributes",
+  path: "v2/read/{endpointId}/attributes",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -935,8 +909,6 @@ const readAttributesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ReadResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -944,7 +916,7 @@ const readAttributesOperationSpec: msRest.OperationSpec = {
 
 const getStatusOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v1/status",
+  path: "v2/status",
   contentType: "application/json; charset=utf-8",
   responses: {
     200: {
@@ -957,7 +929,7 @@ const getStatusOperationSpec: msRest.OperationSpec = {
 
 const writeValueOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/write/{endpointId}",
+  path: "v2/write/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -972,8 +944,6 @@ const writeValueOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ValueWriteResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer
@@ -981,7 +951,7 @@ const writeValueOperationSpec: msRest.OperationSpec = {
 
 const writeAttributesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v1/write/{endpointId}/attributes",
+  path: "v2/write/{endpointId}/attributes",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -996,8 +966,6 @@ const writeAttributesOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.WriteResponseApiModel
     },
-    401: {},
-    403: {},
     default: {}
   },
   serializer

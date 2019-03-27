@@ -13,8 +13,12 @@ module azure.iiot.opc.history
     # Endpoint model
     #
     class EndpointApiModel
-      # @return [String] Endpoint
+      # @return [String] Endpoint url to use to connect with
       attr_accessor :url
+
+      # @return [Array<String>] Alternative endpoint urls that can be used for
+      # accessing and validating the server
+      attr_accessor :alternative_urls
 
       # @return [CredentialApiModel] User Authentication
       attr_accessor :user
@@ -52,6 +56,25 @@ module azure.iiot.opc.history
                 serialized_name: 'url',
                 type: {
                   name: 'String'
+                }
+              },
+              alternative_urls: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'alternativeUrls',
+                constraints: {
+                  UniqueItems: true
+                },
+                type: {
+                  name: 'Sequence',
+                  element: {
+                      client_side_validation: true,
+                      required: false,
+                      serialized_name: 'StringElementType',
+                      type: {
+                        name: 'String'
+                      }
+                  }
                 }
               },
               user: {

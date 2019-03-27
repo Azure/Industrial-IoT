@@ -550,6 +550,20 @@ export const EndpointApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
+      alternativeUrls: {
+        serializedName: "alternativeUrls",
+        constraints: {
+          UniqueItems: true
+        },
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "String"
+            }
+          }
+        }
+      },
       user: {
         serializedName: "user",
         type: {
@@ -637,6 +651,12 @@ export const EndpointRegistrationApiModel: msRest.CompositeMapper = {
       id: {
         required: true,
         serializedName: "id",
+        type: {
+          name: "String"
+        }
+      },
+      endpointUrl: {
+        serializedName: "endpointUrl",
         type: {
           name: "String"
         }
@@ -1209,6 +1229,19 @@ export const SupervisorApiModel: msRest.CompositeMapper = {
           name: "ByteArray"
         }
       },
+      logLevel: {
+        serializedName: "logLevel",
+        defaultValue: 'Information',
+        type: {
+          name: "Enum",
+          allowedValues: [
+            "Error",
+            "Information",
+            "Debug",
+            "Verbose"
+          ]
+        }
+      },
       outOfSync: {
         serializedName: "outOfSync",
         type: {
@@ -1274,6 +1307,18 @@ export const SupervisorUpdateApiModel: msRest.CompositeMapper = {
         serializedName: "removeDiscoveryCallbacks",
         type: {
           name: "Boolean"
+        }
+      },
+      logLevel: {
+        serializedName: "logLevel",
+        type: {
+          name: "Enum",
+          allowedValues: [
+            "Error",
+            "Information",
+            "Debug",
+            "Verbose"
+          ]
         }
       }
     }

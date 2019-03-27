@@ -172,7 +172,7 @@ module azure.iiot.opc.twin
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/browse/{endpointId}'
+      path_template = 'v2/browse/{endpointId}'
 
       request_url = @base_url || self.base_url
 
@@ -189,7 +189,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -275,7 +275,7 @@ module azure.iiot.opc.twin
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/browse/{endpointId}'
+      path_template = 'v2/browse/{endpointId}'
 
       request_url = @base_url || self.base_url
 
@@ -292,7 +292,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -384,7 +384,7 @@ module azure.iiot.opc.twin
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/browse/{endpointId}/next'
+      path_template = 'v2/browse/{endpointId}/next'
 
       request_url = @base_url || self.base_url
 
@@ -401,7 +401,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -490,7 +490,7 @@ module azure.iiot.opc.twin
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/browse/{endpointId}/next'
+      path_template = 'v2/browse/{endpointId}/next'
 
       request_url = @base_url || self.base_url
 
@@ -507,7 +507,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -596,7 +596,7 @@ module azure.iiot.opc.twin
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/browse/{endpointId}/path'
+      path_template = 'v2/browse/{endpointId}/path'
 
       request_url = @base_url || self.base_url
 
@@ -613,7 +613,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -702,7 +702,7 @@ module azure.iiot.opc.twin
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/call/{endpointId}/metadata'
+      path_template = 'v2/call/{endpointId}/metadata'
 
       request_url = @base_url || self.base_url
 
@@ -719,7 +719,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -805,7 +805,7 @@ module azure.iiot.opc.twin
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/call/{endpointId}'
+      path_template = 'v2/call/{endpointId}'
 
       request_url = @base_url || self.base_url
 
@@ -822,7 +822,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -908,7 +908,7 @@ module azure.iiot.opc.twin
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/publish/{endpointId}/start'
+      path_template = 'v2/publish/{endpointId}/start'
 
       request_url = @base_url || self.base_url
 
@@ -925,7 +925,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1011,7 +1011,7 @@ module azure.iiot.opc.twin
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/publish/{endpointId}/stop'
+      path_template = 'v2/publish/{endpointId}/stop'
 
       request_url = @base_url || self.base_url
 
@@ -1028,7 +1028,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1108,7 +1108,7 @@ module azure.iiot.opc.twin
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/publish/{endpointId}'
+      path_template = 'v2/publish/{endpointId}'
 
       request_url = @base_url || self.base_url
 
@@ -1125,7 +1125,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1211,7 +1211,7 @@ module azure.iiot.opc.twin
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/publish/{endpointId}'
+      path_template = 'v2/publish/{endpointId}'
 
       request_url = @base_url || self.base_url
 
@@ -1228,7 +1228,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1308,7 +1308,7 @@ module azure.iiot.opc.twin
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/read/{endpointId}'
+      path_template = 'v2/read/{endpointId}'
 
       request_url = @base_url || self.base_url
 
@@ -1325,7 +1325,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1411,7 +1411,7 @@ module azure.iiot.opc.twin
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/read/{endpointId}'
+      path_template = 'v2/read/{endpointId}'
 
       request_url = @base_url || self.base_url
 
@@ -1428,7 +1428,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1514,7 +1514,7 @@ module azure.iiot.opc.twin
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/read/{endpointId}/attributes'
+      path_template = 'v2/read/{endpointId}/attributes'
 
       request_url = @base_url || self.base_url
 
@@ -1531,7 +1531,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1594,7 +1594,7 @@ module azure.iiot.opc.twin
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/status'
+      path_template = 'v2/status'
 
       request_url = @base_url || self.base_url
 
@@ -1695,7 +1695,7 @@ module azure.iiot.opc.twin
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/write/{endpointId}'
+      path_template = 'v2/write/{endpointId}'
 
       request_url = @base_url || self.base_url
 
@@ -1712,7 +1712,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1798,7 +1798,7 @@ module azure.iiot.opc.twin
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/write/{endpointId}/attributes'
+      path_template = 'v2/write/{endpointId}/attributes'
 
       request_url = @base_url || self.base_url
 
@@ -1815,7 +1815,7 @@ module azure.iiot.opc.twin
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end

@@ -24,6 +24,12 @@ public class EndpointRegistrationApiModel {
     private String id;
 
     /**
+     * Original endpoint url of the endpoint.
+     */
+    @JsonProperty(value = "endpointUrl")
+    private String endpointUrl;
+
+    /**
      * Registered site of the endpoint.
      */
     @JsonProperty(value = "siteId")
@@ -71,6 +77,26 @@ public class EndpointRegistrationApiModel {
      */
     public EndpointRegistrationApiModel withId(String id) {
         this.id = id;
+        return this;
+    }
+
+    /**
+     * Get original endpoint url of the endpoint.
+     *
+     * @return the endpointUrl value
+     */
+    public String endpointUrl() {
+        return this.endpointUrl;
+    }
+
+    /**
+     * Set original endpoint url of the endpoint.
+     *
+     * @param endpointUrl the endpointUrl value to set
+     * @return the EndpointRegistrationApiModel object itself.
+     */
+    public EndpointRegistrationApiModel withEndpointUrl(String endpointUrl) {
+        this.endpointUrl = endpointUrl;
         return this;
     }
 

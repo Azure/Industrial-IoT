@@ -37,6 +37,8 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// <param name="id">Registered identifier of the endpoint</param>
         /// <param name="endpoint">Endpoint information of the
         /// registration</param>
+        /// <param name="endpointUrl">Original endpoint url of the
+        /// endpoint</param>
         /// <param name="siteId">Registered site of the endpoint</param>
         /// <param name="securityLevel">Security level of the endpoint</param>
         /// <param name="certificate">Endpoint cert that was
@@ -44,9 +46,10 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// <param name="authenticationMethods">Supported authentication
         /// methods that can be selected to
         /// obtain a credential and used to interact with the endpoint.</param>
-        public EndpointRegistrationApiModel(string id, EndpointApiModel endpoint, string siteId = default(string), int? securityLevel = default(int?), byte[] certificate = default(byte[]), IList<AuthenticationMethodApiModel> authenticationMethods = default(IList<AuthenticationMethodApiModel>))
+        public EndpointRegistrationApiModel(string id, EndpointApiModel endpoint, string endpointUrl = default(string), string siteId = default(string), int? securityLevel = default(int?), byte[] certificate = default(byte[]), IList<AuthenticationMethodApiModel> authenticationMethods = default(IList<AuthenticationMethodApiModel>))
         {
             Id = id;
+            EndpointUrl = endpointUrl;
             SiteId = siteId;
             Endpoint = endpoint;
             SecurityLevel = securityLevel;
@@ -65,6 +68,12 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets original endpoint url of the endpoint
+        /// </summary>
+        [JsonProperty(PropertyName = "endpointUrl")]
+        public string EndpointUrl { get; set; }
 
         /// <summary>
         /// Gets or sets registered site of the endpoint

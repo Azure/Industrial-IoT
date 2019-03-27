@@ -10,6 +10,7 @@
 
 package com.microsoft.azure.iiot.opc.history.models;
 
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -17,10 +18,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class EndpointApiModel {
     /**
-     * Endpoint.
+     * Endpoint url to use to connect with.
      */
     @JsonProperty(value = "url", required = true)
     private String url;
+
+    /**
+     * Alternative endpoint urls that can be used for
+     * accessing and validating the server.
+     */
+    @JsonProperty(value = "alternativeUrls")
+    private List<String> alternativeUrls;
 
     /**
      * User Authentication.
@@ -50,7 +58,7 @@ public class EndpointApiModel {
     private byte[] serverThumbprint;
 
     /**
-     * Get endpoint.
+     * Get endpoint url to use to connect with.
      *
      * @return the url value
      */
@@ -59,13 +67,35 @@ public class EndpointApiModel {
     }
 
     /**
-     * Set endpoint.
+     * Set endpoint url to use to connect with.
      *
      * @param url the url value to set
      * @return the EndpointApiModel object itself.
      */
     public EndpointApiModel withUrl(String url) {
         this.url = url;
+        return this;
+    }
+
+    /**
+     * Get alternative endpoint urls that can be used for
+     accessing and validating the server.
+     *
+     * @return the alternativeUrls value
+     */
+    public List<String> alternativeUrls() {
+        return this.alternativeUrls;
+    }
+
+    /**
+     * Set alternative endpoint urls that can be used for
+     accessing and validating the server.
+     *
+     * @param alternativeUrls the alternativeUrls value to set
+     * @return the EndpointApiModel object itself.
+     */
+    public EndpointApiModel withAlternativeUrls(List<String> alternativeUrls) {
+        this.alternativeUrls = alternativeUrls;
         return this;
     }
 

@@ -29,6 +29,9 @@ class SupervisorUpdateApiModel(Model):
      list[~azure-iiot-opc-history.models.CallbackApiModel]
     :param remove_discovery_callbacks: Whether to add or remove callbacks
     :type remove_discovery_callbacks: bool
+    :param log_level: Current log level. Possible values include: 'Error',
+     'Information', 'Debug', 'Verbose'
+    :type log_level: str or ~azure-iiot-opc-history.models.SupervisorLogLevel
     """
 
     _attribute_map = {
@@ -37,12 +40,14 @@ class SupervisorUpdateApiModel(Model):
         'discovery_config': {'key': 'discoveryConfig', 'type': 'DiscoveryConfigApiModel'},
         'discovery_callbacks': {'key': 'discoveryCallbacks', 'type': '[CallbackApiModel]'},
         'remove_discovery_callbacks': {'key': 'removeDiscoveryCallbacks', 'type': 'bool'},
+        'log_level': {'key': 'logLevel', 'type': 'SupervisorLogLevel'},
     }
 
-    def __init__(self, site_id=None, discovery="Off", discovery_config=None, discovery_callbacks=None, remove_discovery_callbacks=None):
+    def __init__(self, site_id=None, discovery="Off", discovery_config=None, discovery_callbacks=None, remove_discovery_callbacks=None, log_level=None):
         super(SupervisorUpdateApiModel, self).__init__()
         self.site_id = site_id
         self.discovery = discovery
         self.discovery_config = discovery_config
         self.discovery_callbacks = discovery_callbacks
         self.remove_discovery_callbacks = remove_discovery_callbacks
+        self.log_level = log_level

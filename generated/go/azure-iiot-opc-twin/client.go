@@ -1,5 +1,5 @@
 // Package azureiiotopctwin implements the Azure ARM Azureiiotopctwin service
-// API version v1.
+// API version v2.
 //
 // Azure Industrial IoT OPC UA Twin Service
 package azureiiotopctwin
@@ -100,7 +100,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/browse/{endpointId}",pathParameters),
+        autorest.WithPathParameters("/v2/browse/{endpointId}",pathParameters),
         autorest.WithJSON(request))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -118,7 +118,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -179,7 +179,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/browse/{endpointId}/next",pathParameters),
+        autorest.WithPathParameters("/v2/browse/{endpointId}/next",pathParameters),
         autorest.WithJSON(request))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -197,7 +197,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -259,7 +259,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/browse/{endpointId}/path",pathParameters),
+        autorest.WithPathParameters("/v2/browse/{endpointId}/path",pathParameters),
         autorest.WithJSON(request))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -277,7 +277,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -332,7 +332,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/call/{endpointId}",pathParameters),
+        autorest.WithPathParameters("/v2/call/{endpointId}",pathParameters),
         autorest.WithJSON(request))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -350,7 +350,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -413,7 +413,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/call/{endpointId}/metadata",pathParameters),
+        autorest.WithPathParameters("/v2/call/{endpointId}/metadata",pathParameters),
         autorest.WithJSON(request))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -431,7 +431,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -487,7 +487,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/publish/{endpointId}",pathParameters),
+        autorest.WithPathParameters("/v2/publish/{endpointId}",pathParameters),
         autorest.WithJSON(request))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -505,7 +505,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -565,7 +565,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/publish/{endpointId}",pathParameters),
+        autorest.WithPathParameters("/v2/publish/{endpointId}",pathParameters),
         autorest.WithQueryParameters(queryParameters))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -583,7 +583,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -684,7 +684,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/browse/{endpointId}/next",pathParameters),
+        autorest.WithPathParameters("/v2/browse/{endpointId}/next",pathParameters),
         autorest.WithQueryParameters(queryParameters))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -702,7 +702,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -805,7 +805,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/browse/{endpointId}",pathParameters),
+        autorest.WithPathParameters("/v2/browse/{endpointId}",pathParameters),
         autorest.WithQueryParameters(queryParameters))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -823,7 +823,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -868,7 +868,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPath("/v1/status"))
+        autorest.WithPath("/v2/status"))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -943,7 +943,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/read/{endpointId}",pathParameters),
+        autorest.WithPathParameters("/v2/read/{endpointId}",pathParameters),
         autorest.WithQueryParameters(queryParameters))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -961,7 +961,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1022,7 +1022,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/read/{endpointId}/attributes",pathParameters),
+        autorest.WithPathParameters("/v2/read/{endpointId}/attributes",pathParameters),
         autorest.WithJSON(request))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -1040,7 +1040,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1101,7 +1101,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/read/{endpointId}",pathParameters),
+        autorest.WithPathParameters("/v2/read/{endpointId}",pathParameters),
         autorest.WithJSON(request))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -1119,7 +1119,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1182,7 +1182,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/publish/{endpointId}/start",pathParameters),
+        autorest.WithPathParameters("/v2/publish/{endpointId}/start",pathParameters),
         autorest.WithJSON(request))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -1200,7 +1200,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1261,7 +1261,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/publish/{endpointId}/stop",pathParameters),
+        autorest.WithPathParameters("/v2/publish/{endpointId}/stop",pathParameters),
         autorest.WithJSON(request))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -1279,7 +1279,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1340,7 +1340,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/write/{endpointId}/attributes",pathParameters),
+        autorest.WithPathParameters("/v2/write/{endpointId}/attributes",pathParameters),
         autorest.WithJSON(request))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -1358,7 +1358,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}
@@ -1420,7 +1420,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v1/write/{endpointId}",pathParameters),
+        autorest.WithPathParameters("/v2/write/{endpointId}",pathParameters),
         autorest.WithJSON(request))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -1438,7 +1438,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK,http.StatusUnauthorized,http.StatusForbidden),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
         autorest.ByUnmarshallingJSON(&result),
         autorest.ByClosing())
         result.Response = autorest.Response{Response: resp}

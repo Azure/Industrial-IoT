@@ -12,7 +12,7 @@ package azureiiotopctwin
 
 // UserAgent returns the UserAgent string to use when sending http.Requests.
 func UserAgent() string {
-    return "Azure-SDK-For-Go/0.0.0 azureiiotopctwin/v1"
+    return "Azure-SDK-For-Go/0.0.0 azureiiotopctwin/v2"
 }
 
 // Version returns the semantic version (see http://semver.org) of the client.

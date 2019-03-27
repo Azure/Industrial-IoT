@@ -12,6 +12,8 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
 {
     using Microsoft.Rest;
     using Newtonsoft.Json;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
@@ -30,7 +32,10 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// <summary>
         /// Initializes a new instance of the EndpointApiModel class.
         /// </summary>
-        /// <param name="url">Endpoint</param>
+        /// <param name="url">Endpoint url to use to connect with</param>
+        /// <param name="alternativeUrls">Alternative endpoint urls that can be
+        /// used for
+        /// accessing and validating the server</param>
         /// <param name="user">User Authentication</param>
         /// <param name="securityMode">Security Mode to use for communication
         /// default to best. Possible values include: 'Best', 'Sign',
@@ -40,9 +45,10 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// default to best.</param>
         /// <param name="serverThumbprint">Thumbprint to validate against or
         /// null to trust any.</param>
-        public EndpointApiModel(string url, CredentialApiModel user = default(CredentialApiModel), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), byte[] serverThumbprint = default(byte[]))
+        public EndpointApiModel(string url, IList<string> alternativeUrls = default(IList<string>), CredentialApiModel user = default(CredentialApiModel), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), byte[] serverThumbprint = default(byte[]))
         {
             Url = url;
+            AlternativeUrls = alternativeUrls;
             User = user;
             SecurityMode = securityMode;
             SecurityPolicy = securityPolicy;
@@ -56,10 +62,17 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets endpoint
+        /// Gets or sets endpoint url to use to connect with
         /// </summary>
         [JsonProperty(PropertyName = "url")]
         public string Url { get; set; }
+
+        /// <summary>
+        /// Gets or sets alternative endpoint urls that can be used for
+        /// accessing and validating the server
+        /// </summary>
+        [JsonProperty(PropertyName = "alternativeUrls")]
+        public IList<string> AlternativeUrls { get; set; }
 
         /// <summary>
         /// Gets or sets user Authentication
@@ -99,6 +112,13 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
             if (Url == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "Url");
+            }
+            if (AlternativeUrls != null)
+            {
+                if (AlternativeUrls.Count != System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(AlternativeUrls)))
+                {
+                    throw new ValidationException(ValidationRules.UniqueItems, "AlternativeUrls");
+                }
             }
         }
     }

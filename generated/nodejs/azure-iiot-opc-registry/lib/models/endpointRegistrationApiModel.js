@@ -18,9 +18,13 @@ class EndpointRegistrationApiModel {
   /**
    * Create a EndpointRegistrationApiModel.
    * @property {string} id Registered identifier of the endpoint
+   * @property {string} [endpointUrl] Original endpoint url of the endpoint
    * @property {string} [siteId] Registered site of the endpoint
    * @property {object} endpoint Endpoint information of the registration
-   * @property {string} [endpoint.url] Endpoint
+   * @property {string} [endpoint.url] Endpoint url to use to connect with
+   * @property {array} [endpoint.alternativeUrls] Alternative endpoint urls
+   * that can be used for
+   * accessing and validating the server
    * @property {object} [endpoint.user] User Authentication
    * @property {string} [endpoint.user.type] Type of credential. Possible
    * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
@@ -60,6 +64,13 @@ class EndpointRegistrationApiModel {
           id: {
             required: true,
             serializedName: 'id',
+            type: {
+              name: 'String'
+            }
+          },
+          endpointUrl: {
+            required: false,
+            serializedName: 'endpointUrl',
             type: {
               name: 'String'
             }

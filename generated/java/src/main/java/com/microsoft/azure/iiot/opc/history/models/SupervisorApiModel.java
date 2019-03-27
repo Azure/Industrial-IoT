@@ -48,6 +48,13 @@ public class SupervisorApiModel {
     private byte[] certificate;
 
     /**
+     * Current log level. Possible values include: 'Error', 'Information',
+     * 'Debug', 'Verbose'.
+     */
+    @JsonProperty(value = "logLevel")
+    private SupervisorLogLevel logLevel;
+
+    /**
      * Whether the registration is out of sync between
      * client (module) and server (service) (default: false).
      */
@@ -157,6 +164,26 @@ public class SupervisorApiModel {
      */
     public SupervisorApiModel withCertificate(byte[] certificate) {
         this.certificate = certificate;
+        return this;
+    }
+
+    /**
+     * Get current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     *
+     * @return the logLevel value
+     */
+    public SupervisorLogLevel logLevel() {
+        return this.logLevel;
+    }
+
+    /**
+     * Set current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     *
+     * @param logLevel the logLevel value to set
+     * @return the SupervisorApiModel object itself.
+     */
+    public SupervisorApiModel withLogLevel(SupervisorLogLevel logLevel) {
+        this.logLevel = logLevel;
         return this;
     }
 

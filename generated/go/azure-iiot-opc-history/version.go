@@ -12,7 +12,7 @@ package azureiiotopchistory
 
 // UserAgent returns the UserAgent string to use when sending http.Requests.
 func UserAgent() string {
-    return "Azure-SDK-For-Go/0.0.0 azureiiotopchistory/v1"
+    return "Azure-SDK-For-Go/0.0.0 azureiiotopchistory/v2"
 }
 
 // Version returns the semantic version (see http://semver.org) of the client.

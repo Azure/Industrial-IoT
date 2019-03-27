@@ -62,5 +62,6 @@ module azure.iiot.opc.history
     autoload :SecurityAssessment,                                 'generated/swagger/models/security_assessment.rb'
     autoload :EndpointActivationState,                            'generated/swagger/models/endpoint_activation_state.rb'
     autoload :EndpointConnectivityState,                          'generated/swagger/models/endpoint_connectivity_state.rb'
+    autoload :SupervisorLogLevel,                                 'generated/swagger/models/supervisor_log_level.rb'
   end
 end

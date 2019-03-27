@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Supervisor registration update request
+    /// Supervisor update request
     /// </summary>
     public class SupervisorUpdateApiModel {
 
@@ -46,5 +46,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         [JsonProperty(PropertyName = "removeDiscoveryCallbacks",
             NullValueHandling = NullValueHandling.Ignore)]
         public bool? RemoveDiscoveryCallbacks { get; set; }
+
+        /// <summary>
+        /// Current log level
+        /// </summary>
+        [JsonProperty(PropertyName = "logLevel",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public SupervisorLogLevel? LogLevel { get; set; }
     }
 }

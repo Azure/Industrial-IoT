@@ -76,3 +76,11 @@ class EndpointConnectivityState(Enum):
     certificate_invalid = "CertificateInvalid"
     ready = "Ready"
     error = "Error"
+
+
+class SupervisorLogLevel(Enum):
+
+    error = "Error"
+    information = "Information"
+    debug = "Debug"
+    verbose = "Verbose"

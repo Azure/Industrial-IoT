@@ -129,107 +129,107 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      */
     interface AzureOpcRegistryClientService {
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getListOfApplications" })
-        @GET("v1/applications")
+        @GET("v2/applications")
         Observable<Response<ResponseBody>> getListOfApplications(@Query("continuationToken") String continuationToken, @Query("pageSize") Integer pageSize);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient createApplication" })
-        @PUT("v1/applications")
+        @PUT("v2/applications")
         Observable<Response<ResponseBody>> createApplication(@Body ApplicationRegistrationRequestApiModel request);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient registerServer" })
-        @POST("v1/applications")
+        @POST("v2/applications")
         Observable<Response<ResponseBody>> registerServer(@Body ServerRegistrationRequestApiModel request);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient deleteAllDisabledApplications" })
-        @HTTP(path = "v1/applications", method = "DELETE", hasBody = true)
+        @HTTP(path = "v2/applications", method = "DELETE", hasBody = true)
         Observable<Response<ResponseBody>> deleteAllDisabledApplications(@Query("notSeenFor") String notSeenFor);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient discoverServer" })
-        @POST("v1/applications/discover")
+        @POST("v2/applications/discover")
         Observable<Response<ResponseBody>> discoverServer(@Body DiscoveryRequestApiModel request);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getApplicationRegistration" })
-        @GET("v1/applications/{applicationId}")
+        @GET("v2/applications/{applicationId}")
         Observable<Response<ResponseBody>> getApplicationRegistration(@Path("applicationId") String applicationId);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient deleteApplication" })
-        @HTTP(path = "v1/applications/{applicationId}", method = "DELETE", hasBody = true)
+        @HTTP(path = "v2/applications/{applicationId}", method = "DELETE", hasBody = true)
         Observable<Response<ResponseBody>> deleteApplication(@Path("applicationId") String applicationId);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient updateApplicationRegistration" })
-        @PATCH("v1/applications/{applicationId}")
+        @PATCH("v2/applications/{applicationId}")
         Observable<Response<ResponseBody>> updateApplicationRegistration(@Path("applicationId") String applicationId, @Body ApplicationRegistrationUpdateApiModel request);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getListOfSites" })
-        @GET("v1/applications/sites")
+        @GET("v2/applications/sites")
         Observable<Response<ResponseBody>> getListOfSites(@Query("continuationToken") String continuationToken, @Query("pageSize") Integer pageSize);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getFilteredListOfApplications" })
-        @GET("v1/applications/query")
+        @GET("v2/applications/query")
         Observable<Response<ResponseBody>> getFilteredListOfApplications(@Body ApplicationRegistrationQueryApiModel query, @Query("pageSize") Integer pageSize);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient queryApplications" })
-        @POST("v1/applications/query")
+        @POST("v2/applications/query")
         Observable<Response<ResponseBody>> queryApplications(@Body ApplicationRegistrationQueryApiModel query, @Query("pageSize") Integer pageSize);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient activateEndpoint" })
-        @POST("v1/endpoints/{endpointId}/activate")
+        @POST("v2/endpoints/{endpointId}/activate")
         Observable<Response<ResponseBody>> activateEndpoint(@Path("endpointId") String endpointId);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getEndpoint" })
-        @GET("v1/endpoints/{endpointId}")
+        @GET("v2/endpoints/{endpointId}")
         Observable<Response<ResponseBody>> getEndpoint(@Path("endpointId") String endpointId, @Query("onlyServerState") Boolean onlyServerState);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient updateEndpoint" })
-        @PATCH("v1/endpoints/{endpointId}")
+        @PATCH("v2/endpoints/{endpointId}")
         Observable<Response<ResponseBody>> updateEndpoint(@Path("endpointId") String endpointId, @Body EndpointRegistrationUpdateApiModel request);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getListOfEndpoints" })
-        @GET("v1/endpoints")
+        @GET("v2/endpoints")
         Observable<Response<ResponseBody>> getListOfEndpoints(@Query("onlyServerState") Boolean onlyServerState, @Query("continuationToken") String continuationToken, @Query("pageSize") Integer pageSize);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getFilteredListOfEndpoints" })
-        @GET("v1/endpoints/query")
+        @GET("v2/endpoints/query")
         Observable<Response<ResponseBody>> getFilteredListOfEndpoints(@Query("Url") String url, @Query("UserAuthentication") String userAuthentication, @Query("Certificate") String certificate, @Query("SecurityMode") String securityMode, @Query("SecurityPolicy") String securityPolicy, @Query("Activated") Boolean activated, @Query("Connected") Boolean connected, @Query("EndpointState") String endpointState, @Query("IncludeNotSeenSince") Boolean includeNotSeenSince, @Query("onlyServerState") Boolean onlyServerState, @Query("pageSize") Integer pageSize);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient queryEndpoints" })
-        @POST("v1/endpoints/query")
+        @POST("v2/endpoints/query")
         Observable<Response<ResponseBody>> queryEndpoints(@Body EndpointRegistrationQueryApiModel query, @Query("onlyServerState") Boolean onlyServerState, @Query("pageSize") Integer pageSize);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient deactivateEndpoint" })
-        @POST("v1/endpoints/{endpointId}/deactivate")
+        @POST("v2/endpoints/{endpointId}/deactivate")
         Observable<Response<ResponseBody>> deactivateEndpoint(@Path("endpointId") String endpointId);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getStatus" })
-        @GET("v1/status")
+        @GET("v2/status")
         Observable<Response<ResponseBody>> getStatus();
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getSupervisor" })
-        @GET("v1/supervisors/{supervisorId}")
+        @GET("v2/supervisors/{supervisorId}")
         Observable<Response<ResponseBody>> getSupervisor(@Path("supervisorId") String supervisorId, @Query("onlyServerState") Boolean onlyServerState);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient updateSupervisor" })
-        @PATCH("v1/supervisors/{supervisorId}")
+        @PATCH("v2/supervisors/{supervisorId}")
         Observable<Response<ResponseBody>> updateSupervisor(@Path("supervisorId") String supervisorId, @Body SupervisorUpdateApiModel request);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getSupervisorStatus" })
-        @GET("v1/supervisors/{supervisorId}/status")
+        @GET("v2/supervisors/{supervisorId}/status")
         Observable<Response<ResponseBody>> getSupervisorStatus(@Path("supervisorId") String supervisorId);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient resetSupervisor" })
-        @POST("v1/supervisors/{supervisorId}/reset")
+        @POST("v2/supervisors/{supervisorId}/reset")
         Observable<Response<ResponseBody>> resetSupervisor(@Path("supervisorId") String supervisorId);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getListOfSupervisors" })
-        @GET("v1/supervisors")
+        @GET("v2/supervisors")
         Observable<Response<ResponseBody>> getListOfSupervisors(@Query("onlyServerState") Boolean onlyServerState, @Query("continuationToken") String continuationToken, @Query("pageSize") Integer pageSize);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getFilteredListOfSupervisors" })
-        @GET("v1/supervisors/query")
+        @GET("v2/supervisors/query")
         Observable<Response<ResponseBody>> getFilteredListOfSupervisors(@Query("SiteId") String siteId, @Query("Discovery") String discovery, @Query("Connected") Boolean connected, @Query("onlyServerState") Boolean onlyServerState, @Query("pageSize") Integer pageSize);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient querySupervisors" })
-        @POST("v1/supervisors/query")
+        @POST("v2/supervisors/query")
         Observable<Response<ResponseBody>> querySupervisors(@Body SupervisorQueryApiModel query, @Query("onlyServerState") Boolean onlyServerState, @Query("pageSize") Integer pageSize);
 
     }
@@ -405,8 +405,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationInfoListApiModel> getListOfApplicationsDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<ApplicationInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationInfoListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -496,8 +494,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationRegistrationResponseApiModel> createApplicationDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ApplicationRegistrationResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationRegistrationResponseApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -582,8 +578,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> registerServerDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -719,8 +713,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> deleteAllDisabledApplicationsDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -801,8 +793,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> discoverServerDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -875,8 +865,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationRegistrationApiModel> getApplicationRegistrationDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ApplicationRegistrationApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationRegistrationApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -952,8 +940,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> deleteApplicationDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1045,8 +1031,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> updateApplicationRegistrationDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1197,8 +1181,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationSiteListApiModel> getListOfSitesDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<ApplicationSiteListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationSiteListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1384,8 +1366,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationInfoListApiModel> getFilteredListOfApplicationsDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ApplicationInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationInfoListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1575,8 +1555,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationInfoListApiModel> queryApplicationsDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ApplicationInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationInfoListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1660,8 +1638,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> activateEndpointDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1821,8 +1797,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<EndpointInfoApiModel> getEndpointDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<EndpointInfoApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<EndpointInfoApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -1902,8 +1876,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> updateEndpointDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2079,8 +2051,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<EndpointInfoListApiModel> getListOfEndpointsDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<EndpointInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<EndpointInfoListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2310,8 +2280,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<EndpointInfoListApiModel> getFilteredListOfEndpointsDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<EndpointInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<EndpointInfoListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2506,8 +2474,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<EndpointInfoListApiModel> queryEndpointsDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<EndpointInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<EndpointInfoListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2583,8 +2549,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> deactivateEndpointDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2821,8 +2785,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<SupervisorApiModel> getSupervisorDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<SupervisorApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<SupervisorApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2910,8 +2872,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> updateSupervisorDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2988,8 +2948,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<SupervisorStatusApiModel> getSupervisorStatusDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<SupervisorStatusApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<SupervisorStatusApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -3069,8 +3027,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> resetSupervisorDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -3246,8 +3202,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<SupervisorListApiModel> getListOfSupervisorsDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<SupervisorListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<SupervisorListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -3445,8 +3399,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<SupervisorListApiModel> getFilteredListOfSupervisorsDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<SupervisorListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<SupervisorListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -3645,8 +3597,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<SupervisorListApiModel> querySupervisorsDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<SupervisorListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<SupervisorListApiModel>() { }.getType())
-                .register(401, new TypeToken<Void>() { }.getType())
-                .register(403, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 

@@ -19,10 +19,16 @@ class EndpointInfoApiModel {
    * Create a EndpointInfoApiModel.
    * @property {object} registration Endpoint registration
    * @property {string} [registration.id] Registered identifier of the endpoint
+   * @property {string} [registration.endpointUrl] Original endpoint url of the
+   * endpoint
    * @property {string} [registration.siteId] Registered site of the endpoint
    * @property {object} [registration.endpoint] Endpoint information of the
    * registration
-   * @property {string} [registration.endpoint.url] Endpoint
+   * @property {string} [registration.endpoint.url] Endpoint url to use to
+   * connect with
+   * @property {array} [registration.endpoint.alternativeUrls] Alternative
+   * endpoint urls that can be used for
+   * accessing and validating the server
    * @property {object} [registration.endpoint.user] User Authentication
    * @property {string} [registration.endpoint.user.type] Type of credential.
    * Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'

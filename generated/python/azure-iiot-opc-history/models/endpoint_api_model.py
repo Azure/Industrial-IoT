@@ -15,8 +15,11 @@ from msrest.serialization import Model
 class EndpointApiModel(Model):
     """Endpoint model.
 
-    :param url: Endpoint
+    :param url: Endpoint url to use to connect with
     :type url: str
+    :param alternative_urls: Alternative endpoint urls that can be used for
+     accessing and validating the server
+    :type alternative_urls: list[str]
     :param user: User Authentication
     :type user: ~azure-iiot-opc-history.models.CredentialApiModel
     :param security_mode: Security Mode to use for communication
@@ -33,19 +36,22 @@ class EndpointApiModel(Model):
 
     _validation = {
         'url': {'required': True},
+        'alternative_urls': {'unique': True},
     }
 
     _attribute_map = {
         'url': {'key': 'url', 'type': 'str'},
+        'alternative_urls': {'key': 'alternativeUrls', 'type': '[str]'},
         'user': {'key': 'user', 'type': 'CredentialApiModel'},
         'security_mode': {'key': 'securityMode', 'type': 'SecurityMode'},
         'security_policy': {'key': 'securityPolicy', 'type': 'str'},
         'server_thumbprint': {'key': 'serverThumbprint', 'type': 'bytearray'},
     }
 
-    def __init__(self, url, user=None, security_mode="Best", security_policy=None, server_thumbprint=None):
+    def __init__(self, url, alternative_urls=None, user=None, security_mode="Best", security_policy=None, server_thumbprint=None):
         super(EndpointApiModel, self).__init__()
         self.url = url
+        self.alternative_urls = alternative_urls
         self.user = user
         self.security_mode = security_mode
         self.security_policy = security_policy

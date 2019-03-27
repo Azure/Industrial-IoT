@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Implementation of v1 registry service api.
+    /// Implementation of registry service api.
     /// </summary>
     public sealed class RegistryServiceClient : IRegistryServiceApi {
 
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
 
         /// <inheritdoc/>
         public async Task<StatusResponseApiModel> GetServiceStatusAsync() {
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/status", _resourceId);
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/status", _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
             return response.GetContent<StatusResponseApiModel>();
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         /// <inheritdoc/>
         public async Task<SupervisorListApiModel> ListSupervisorsAsync(
             string continuation, bool? onlyServerState, int? pageSize) {
-            var uri = new UriBuilder($"{_serviceUri}/v1/supervisors");
+            var uri = new UriBuilder($"{_serviceUri}/v2/supervisors");
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         /// <inheritdoc/>
         public async Task<SupervisorListApiModel> QuerySupervisorsAsync(
             SupervisorQueryApiModel query, bool? onlyServerState, int? pageSize) {
-            var uri = new UriBuilder($"{_serviceUri}/v1/supervisors/query");
+            var uri = new UriBuilder($"{_serviceUri}/v2/supervisors/query");
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (string.IsNullOrEmpty(supervisorId)) {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v1/supervisors/{supervisorId}");
+            var uri = new UriBuilder($"{_serviceUri}/v2/supervisors/{supervisorId}");
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (string.IsNullOrEmpty(supervisorId)) {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v1/supervisors/{supervisorId}/status");
+            var uri = new UriBuilder($"{_serviceUri}/v2/supervisors/{supervisorId}/status");
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -124,7 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (string.IsNullOrEmpty(supervisorId)) {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v1/supervisors/{supervisorId}/reset");
+            var uri = new UriBuilder($"{_serviceUri}/v2/supervisors/{supervisorId}/reset");
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -139,7 +139,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (string.IsNullOrEmpty(supervisorId)) {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/supervisors/{supervisorId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/supervisors/{supervisorId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PatchAsync(request).ConfigureAwait(false);
@@ -154,7 +154,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (content.DiscoveryUrl == null) {
                 throw new ArgumentNullException(nameof(content.DiscoveryUrl));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications",
                 _resourceId);
             request.SetContent(content);
             request.Options.Timeout = 60000;
@@ -167,7 +167,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications/discover",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/discover",
                 _resourceId);
             request.SetContent(content);
             request.Options.Timeout = 60000;
@@ -184,7 +184,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (content.ApplicationUri == null) {
                 throw new ArgumentNullException(nameof(content.ApplicationUri));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PutAsync(request).ConfigureAwait(false);
@@ -201,7 +201,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (string.IsNullOrEmpty(applicationId)) {
                 throw new ArgumentNullException(nameof(applicationId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications/{applicationId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/{applicationId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PatchAsync(request).ConfigureAwait(false);
@@ -211,7 +211,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         /// <inheritdoc/>
         public async Task<ApplicationRegistrationApiModel> GetApplicationAsync(
             string applicationId) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications/{applicationId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/{applicationId}",
                 _resourceId);
             var response = await _httpClient.GetAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -221,7 +221,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         /// <inheritdoc/>
         public async Task<ApplicationInfoListApiModel> QueryApplicationsAsync(
             ApplicationRegistrationQueryApiModel query, int? pageSize) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications/query",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/query",
                 _resourceId);
             if (pageSize != null) {
                 request.AddHeader(kPageSizeHeaderKey, pageSize.ToString());
@@ -235,7 +235,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         /// <inheritdoc/>
         public async Task<ApplicationInfoListApiModel> ListApplicationsAsync(
             string continuation, int? pageSize) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications",
                 _resourceId);
             if (continuation != null) {
                 request.AddHeader(kContinuationTokenHeaderKey, continuation);
@@ -251,7 +251,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         /// <inheritdoc/>
         public async Task<ApplicationSiteListApiModel> ListSitesAsync(
             string continuation, int? pageSize) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications/sites",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/sites",
                 _resourceId);
             if (continuation != null) {
                 request.AddHeader(kContinuationTokenHeaderKey, continuation);
@@ -269,7 +269,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (string.IsNullOrEmpty(applicationId)) {
                 throw new ArgumentNullException(nameof(applicationId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/applications/{applicationId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/{applicationId}",
                 _resourceId);
             var response = await _httpClient.DeleteAsync(request).ConfigureAwait(false);
             response.Validate();
@@ -278,7 +278,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         /// <inheritdoc/>
         public async Task PurgeDisabledApplicationsAsync(TimeSpan notSeenFor) {
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/applications?notSeenFor={notSeenFor}", _resourceId);
+                $"{_serviceUri}/v2/applications?notSeenFor={notSeenFor}", _resourceId);
             var response = await _httpClient.DeleteAsync(request).ConfigureAwait(false);
             response.Validate();
         }
@@ -286,7 +286,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         /// <inheritdoc/>
         public async Task<EndpointInfoListApiModel> ListEndpointsAsync(string continuation,
             bool? onlyServerState, int? pageSize) {
-            var uri = new UriBuilder($"{_serviceUri}/v1/endpoints");
+            var uri = new UriBuilder($"{_serviceUri}/v2/endpoints");
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
@@ -305,7 +305,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         /// <inheritdoc/>
         public async Task<EndpointInfoListApiModel> QueryEndpointsAsync(EndpointRegistrationQueryApiModel query,
             bool? onlyServerState, int? pageSize) {
-            var uri = new UriBuilder($"{_serviceUri}/v1/endpoints/query");
+            var uri = new UriBuilder($"{_serviceUri}/v2/endpoints/query");
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
@@ -325,7 +325,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v1/endpoints/{endpointId}");
+            var uri = new UriBuilder($"{_serviceUri}/v2/endpoints/{endpointId}");
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
@@ -344,7 +344,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v1/endpoints/{endpointId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/endpoints/{endpointId}",
                 _resourceId);
             request.SetContent(content);
             var response = await _httpClient.PatchAsync(request).ConfigureAwait(false);
@@ -357,7 +357,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/endpoints/{endpointId}/activate", _resourceId);
+                $"{_serviceUri}/v2/endpoints/{endpointId}/activate", _resourceId);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
         }
@@ -368,7 +368,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v1/endpoints/{endpointId}/deactivate", _resourceId);
+                $"{_serviceUri}/v2/endpoints/{endpointId}/deactivate", _resourceId);
             var response = await _httpClient.PostAsync(request).ConfigureAwait(false);
             response.Validate();
         }

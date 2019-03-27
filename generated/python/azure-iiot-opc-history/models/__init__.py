@@ -46,6 +46,7 @@ from .azure_opc_history_client_enums import (
     SecurityAssessment,
     EndpointActivationState,
     EndpointConnectivityState,
+    SupervisorLogLevel,
 )
 
 __all__ = [
@@ -85,4 +86,5 @@ __all__ = [
     'SecurityAssessment',
     'EndpointActivationState',
     'EndpointConnectivityState',
+    'SupervisorLogLevel',
 ]

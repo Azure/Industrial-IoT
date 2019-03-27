@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Security mode of endpoint
@@ -40,10 +41,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     public class EndpointApiModel {
 
         /// <summary>
-        /// Endpoint
+        /// Endpoint url to use to connect with
         /// </summary>
         [JsonProperty(PropertyName = "url")]
         public string Url { get; set; }
+
+        /// <summary>
+        /// Alternative endpoint urls that can be used for
+        /// accessing and validating the server
+        /// </summary>
+        [JsonProperty(PropertyName = "alternativeUrls",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public HashSet<string> AlternativeUrls { get; set; }
 
         /// <summary>
         /// User Authentication

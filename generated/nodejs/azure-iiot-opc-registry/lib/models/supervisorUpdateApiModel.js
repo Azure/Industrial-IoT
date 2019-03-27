@@ -62,6 +62,8 @@ class SupervisorUpdateApiModel {
    * below)
    * @property {boolean} [removeDiscoveryCallbacks] Whether to add or remove
    * callbacks
+   * @property {string} [logLevel] Current log level. Possible values include:
+   * 'Error', 'Information', 'Debug', 'Verbose'
    */
   constructor() {
   }
@@ -124,6 +126,14 @@ class SupervisorUpdateApiModel {
             serializedName: 'removeDiscoveryCallbacks',
             type: {
               name: 'Boolean'
+            }
+          },
+          logLevel: {
+            required: false,
+            serializedName: 'logLevel',
+            type: {
+              name: 'Enum',
+              allowedValues: [ 'Error', 'Information', 'Debug', 'Verbose' ]
             }
           }
         }

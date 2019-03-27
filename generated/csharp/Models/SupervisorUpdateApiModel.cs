@@ -42,13 +42,16 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// below)</param>
         /// <param name="removeDiscoveryCallbacks">Whether to add or remove
         /// callbacks</param>
-        public SupervisorUpdateApiModel(string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), DiscoveryConfigApiModel discoveryConfig = default(DiscoveryConfigApiModel), IList<CallbackApiModel> discoveryCallbacks = default(IList<CallbackApiModel>), bool? removeDiscoveryCallbacks = default(bool?))
+        /// <param name="logLevel">Current log level. Possible values include:
+        /// 'Error', 'Information', 'Debug', 'Verbose'</param>
+        public SupervisorUpdateApiModel(string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), DiscoveryConfigApiModel discoveryConfig = default(DiscoveryConfigApiModel), IList<CallbackApiModel> discoveryCallbacks = default(IList<CallbackApiModel>), bool? removeDiscoveryCallbacks = default(bool?), SupervisorLogLevel? logLevel = default(SupervisorLogLevel?))
         {
             SiteId = siteId;
             Discovery = discovery;
             DiscoveryConfig = discoveryConfig;
             DiscoveryCallbacks = discoveryCallbacks;
             RemoveDiscoveryCallbacks = removeDiscoveryCallbacks;
+            LogLevel = logLevel;
             CustomInit();
         }
 
@@ -88,6 +91,13 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// </summary>
         [JsonProperty(PropertyName = "removeDiscoveryCallbacks")]
         public bool? RemoveDiscoveryCallbacks { get; set; }
+
+        /// <summary>
+        /// Gets or sets current log level. Possible values include: 'Error',
+        /// 'Information', 'Debug', 'Verbose'
+        /// </summary>
+        [JsonProperty(PropertyName = "logLevel")]
+        public SupervisorLogLevel? LogLevel { get; set; }
 
     }
 }

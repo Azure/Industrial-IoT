@@ -159,7 +159,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/applications'
+      path_template = 'v2/applications'
 
       request_url = @base_url || self.base_url
 
@@ -175,7 +175,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -263,7 +263,7 @@ module azure.iiot.opc.registry
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/applications'
+      path_template = 'v2/applications'
 
       request_url = @base_url || self.base_url
 
@@ -279,7 +279,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -363,7 +363,7 @@ module azure.iiot.opc.registry
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/applications'
+      path_template = 'v2/applications'
 
       request_url = @base_url || self.base_url
 
@@ -379,7 +379,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -440,7 +440,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/applications'
+      path_template = 'v2/applications'
 
       request_url = @base_url || self.base_url
 
@@ -456,7 +456,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -524,7 +524,7 @@ module azure.iiot.opc.registry
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/applications/discover'
+      path_template = 'v2/applications/discover'
 
       request_url = @base_url || self.base_url
 
@@ -540,7 +540,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -594,7 +594,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/applications/{applicationId}'
+      path_template = 'v2/applications/{applicationId}'
 
       request_url = @base_url || self.base_url
 
@@ -610,7 +610,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -679,7 +679,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/applications/{applicationId}'
+      path_template = 'v2/applications/{applicationId}'
 
       request_url = @base_url || self.base_url
 
@@ -695,7 +695,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -773,7 +773,7 @@ module azure.iiot.opc.registry
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/applications/{applicationId}'
+      path_template = 'v2/applications/{applicationId}'
 
       request_url = @base_url || self.base_url
 
@@ -790,7 +790,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -858,7 +858,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/applications/sites'
+      path_template = 'v2/applications/sites'
 
       request_url = @base_url || self.base_url
 
@@ -874,7 +874,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -965,7 +965,7 @@ module azure.iiot.opc.registry
       request_content = self.serialize(request_mapper,  query)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/applications/query'
+      path_template = 'v2/applications/query'
 
       request_url = @base_url || self.base_url
 
@@ -982,7 +982,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1076,7 +1076,7 @@ module azure.iiot.opc.registry
       request_content = self.serialize(request_mapper,  query)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/applications/query'
+      path_template = 'v2/applications/query'
 
       request_url = @base_url || self.base_url
 
@@ -1093,7 +1093,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1168,7 +1168,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/endpoints/{endpointId}/activate'
+      path_template = 'v2/endpoints/{endpointId}/activate'
 
       request_url = @base_url || self.base_url
 
@@ -1184,7 +1184,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1253,7 +1253,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/endpoints/{endpointId}'
+      path_template = 'v2/endpoints/{endpointId}'
 
       request_url = @base_url || self.base_url
 
@@ -1270,7 +1270,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1343,7 +1343,7 @@ module azure.iiot.opc.registry
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/endpoints/{endpointId}'
+      path_template = 'v2/endpoints/{endpointId}'
 
       request_url = @base_url || self.base_url
 
@@ -1360,7 +1360,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1437,7 +1437,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/endpoints'
+      path_template = 'v2/endpoints'
 
       request_url = @base_url || self.base_url
 
@@ -1453,7 +1453,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1591,7 +1591,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/endpoints/query'
+      path_template = 'v2/endpoints/query'
 
       request_url = @base_url || self.base_url
 
@@ -1607,7 +1607,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1704,7 +1704,7 @@ module azure.iiot.opc.registry
       request_content = self.serialize(request_mapper,  query)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/endpoints/query'
+      path_template = 'v2/endpoints/query'
 
       request_url = @base_url || self.base_url
 
@@ -1721,7 +1721,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1790,7 +1790,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/endpoints/{endpointId}/deactivate'
+      path_template = 'v2/endpoints/{endpointId}/deactivate'
 
       request_url = @base_url || self.base_url
 
@@ -1806,7 +1806,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -1859,7 +1859,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/status'
+      path_template = 'v2/status'
 
       request_url = @base_url || self.base_url
 
@@ -1956,7 +1956,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/supervisors/{supervisorId}'
+      path_template = 'v2/supervisors/{supervisorId}'
 
       request_url = @base_url || self.base_url
 
@@ -1973,7 +1973,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -2055,7 +2055,7 @@ module azure.iiot.opc.registry
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/supervisors/{supervisorId}'
+      path_template = 'v2/supervisors/{supervisorId}'
 
       request_url = @base_url || self.base_url
 
@@ -2072,7 +2072,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -2132,7 +2132,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/supervisors/{supervisorId}/status'
+      path_template = 'v2/supervisors/{supervisorId}/status'
 
       request_url = @base_url || self.base_url
 
@@ -2148,7 +2148,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -2220,7 +2220,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/supervisors/{supervisorId}/reset'
+      path_template = 'v2/supervisors/{supervisorId}/reset'
 
       request_url = @base_url || self.base_url
 
@@ -2236,7 +2236,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -2313,7 +2313,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/supervisors'
+      path_template = 'v2/supervisors'
 
       request_url = @base_url || self.base_url
 
@@ -2329,7 +2329,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -2431,7 +2431,7 @@ module azure.iiot.opc.registry
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v1/supervisors/query'
+      path_template = 'v2/supervisors/query'
 
       request_url = @base_url || self.base_url
 
@@ -2447,7 +2447,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
@@ -2547,7 +2547,7 @@ module azure.iiot.opc.registry
       request_content = self.serialize(request_mapper,  query)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v1/supervisors/query'
+      path_template = 'v2/supervisors/query'
 
       request_url = @base_url || self.base_url
 
@@ -2564,7 +2564,7 @@ module azure.iiot.opc.registry
         http_response = result.response
         status_code = http_response.status
         response_content = http_response.body
-        unless status_code == 200 || status_code == 401 || status_code == 403
+        unless status_code == 200
           error_model = JSON.load(response_content)
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end

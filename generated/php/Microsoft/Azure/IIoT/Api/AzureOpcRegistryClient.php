@@ -568,7 +568,7 @@ more results.
     const _SWAGGER_OBJECT_DATA = [
         'host' => 'localhost',
         'paths' => [
-            '/v1/applications' => [
+            '/v2/applications' => [
                 'get' => [
                     'operationId' => 'GetListOfApplications',
                     'parameters' => [
@@ -586,11 +586,7 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
                 ],
                 'put' => [
                     'operationId' => 'CreateApplication',
@@ -600,11 +596,7 @@ more results.
                         'required' => TRUE,
                         'schema' => ['$ref' => '#/definitions/ApplicationRegistrationRequestApiModel']
                     ]],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ApplicationRegistrationResponseApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationRegistrationResponseApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'RegisterServer',
@@ -614,11 +606,7 @@ more results.
                         'required' => TRUE,
                         'schema' => ['$ref' => '#/definitions/ServerRegistrationRequestApiModel']
                     ]],
-                    'responses' => [
-                        '200' => [],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => []]
                 ],
                 'delete' => [
                     'operationId' => 'DeleteAllDisabledApplications',
@@ -628,14 +616,10 @@ more results.
                         'required' => FALSE,
                         'type' => 'string'
                     ]],
-                    'responses' => [
-                        '200' => [],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => []]
                 ]
             ],
-            '/v1/applications/discover' => ['post' => [
+            '/v2/applications/discover' => ['post' => [
                 'operationId' => 'DiscoverServer',
                 'parameters' => [[
                     'name' => 'request',
@@ -643,13 +627,9 @@ more results.
                     'required' => TRUE,
                     'schema' => ['$ref' => '#/definitions/DiscoveryRequestApiModel']
                 ]],
-                'responses' => [
-                    '200' => [],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => []]
             ]],
-            '/v1/applications/{applicationId}' => [
+            '/v2/applications/{applicationId}' => [
                 'get' => [
                     'operationId' => 'GetApplicationRegistration',
                     'parameters' => [[
@@ -658,11 +638,7 @@ more results.
                         'required' => TRUE,
                         'type' => 'string'
                     ]],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ApplicationRegistrationApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationRegistrationApiModel']]]
                 ],
                 'delete' => [
                     'operationId' => 'DeleteApplication',
@@ -672,11 +648,7 @@ more results.
                         'required' => TRUE,
                         'type' => 'string'
                     ]],
-                    'responses' => [
-                        '200' => [],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => []]
                 ],
                 'patch' => [
                     'operationId' => 'UpdateApplicationRegistration',
@@ -694,14 +666,10 @@ more results.
                             'schema' => ['$ref' => '#/definitions/ApplicationRegistrationUpdateApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => [],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => []]
                 ]
             ],
-            '/v1/applications/sites' => ['get' => [
+            '/v2/applications/sites' => ['get' => [
                 'operationId' => 'GetListOfSites',
                 'parameters' => [
                     [
@@ -718,13 +686,9 @@ more results.
                         'format' => 'int32'
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/ApplicationSiteListApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationSiteListApiModel']]]
             ]],
-            '/v1/applications/query' => [
+            '/v2/applications/query' => [
                 'get' => [
                     'operationId' => 'GetFilteredListOfApplications',
                     'parameters' => [
@@ -742,11 +706,7 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'QueryApplications',
@@ -765,14 +725,10 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
                 ]
             ],
-            '/v1/endpoints/{endpointId}/activate' => ['post' => [
+            '/v2/endpoints/{endpointId}/activate' => ['post' => [
                 'operationId' => 'ActivateEndpoint',
                 'parameters' => [[
                     'name' => 'endpointId',
@@ -780,13 +736,9 @@ more results.
                     'required' => TRUE,
                     'type' => 'string'
                 ]],
-                'responses' => [
-                    '200' => [],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => []]
             ]],
-            '/v1/endpoints/{endpointId}' => [
+            '/v2/endpoints/{endpointId}' => [
                 'get' => [
                     'operationId' => 'GetEndpoint',
                     'parameters' => [
@@ -803,11 +755,7 @@ more results.
                             'type' => 'boolean'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoApiModel']]]
                 ],
                 'patch' => [
                     'operationId' => 'UpdateEndpoint',
@@ -825,14 +773,10 @@ more results.
                             'schema' => ['$ref' => '#/definitions/EndpointRegistrationUpdateApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => [],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => []]
                 ]
             ],
-            '/v1/endpoints' => ['get' => [
+            '/v2/endpoints' => ['get' => [
                 'operationId' => 'GetListOfEndpoints',
                 'parameters' => [
                     [
@@ -855,13 +799,9 @@ more results.
                         'format' => 'int32'
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']]]
             ]],
-            '/v1/endpoints/query' => [
+            '/v2/endpoints/query' => [
                 'get' => [
                     'operationId' => 'GetFilteredListOfEndpoints',
                     'parameters' => [
@@ -955,11 +895,7 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'QueryEndpoints',
@@ -984,14 +920,10 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']]]
                 ]
             ],
-            '/v1/endpoints/{endpointId}/deactivate' => ['post' => [
+            '/v2/endpoints/{endpointId}/deactivate' => ['post' => [
                 'operationId' => 'DeactivateEndpoint',
                 'parameters' => [[
                     'name' => 'endpointId',
@@ -999,18 +931,14 @@ more results.
                     'required' => TRUE,
                     'type' => 'string'
                 ]],
-                'responses' => [
-                    '200' => [],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => []]
             ]],
-            '/v1/status' => ['get' => [
+            '/v2/status' => ['get' => [
                 'operationId' => 'GetStatus',
                 'parameters' => [],
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/StatusResponseApiModel']]]
             ]],
-            '/v1/supervisors/{supervisorId}' => [
+            '/v2/supervisors/{supervisorId}' => [
                 'get' => [
                     'operationId' => 'GetSupervisor',
                     'parameters' => [
@@ -1027,11 +955,7 @@ more results.
                             'type' => 'boolean'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/SupervisorApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorApiModel']]]
                 ],
                 'patch' => [
                     'operationId' => 'UpdateSupervisor',
@@ -1049,14 +973,10 @@ more results.
                             'schema' => ['$ref' => '#/definitions/SupervisorUpdateApiModel']
                         ]
                     ],
-                    'responses' => [
-                        '200' => [],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => []]
                 ]
             ],
-            '/v1/supervisors/{supervisorId}/status' => ['get' => [
+            '/v2/supervisors/{supervisorId}/status' => ['get' => [
                 'operationId' => 'GetSupervisorStatus',
                 'parameters' => [[
                     'name' => 'supervisorId',
@@ -1064,13 +984,9 @@ more results.
                     'required' => TRUE,
                     'type' => 'string'
                 ]],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/SupervisorStatusApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorStatusApiModel']]]
             ]],
-            '/v1/supervisors/{supervisorId}/reset' => ['post' => [
+            '/v2/supervisors/{supervisorId}/reset' => ['post' => [
                 'operationId' => 'ResetSupervisor',
                 'parameters' => [[
                     'name' => 'supervisorId',
@@ -1078,13 +994,9 @@ more results.
                     'required' => TRUE,
                     'type' => 'string'
                 ]],
-                'responses' => [
-                    '200' => [],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => []]
             ]],
-            '/v1/supervisors' => ['get' => [
+            '/v2/supervisors' => ['get' => [
                 'operationId' => 'GetListOfSupervisors',
                 'parameters' => [
                     [
@@ -1107,13 +1019,9 @@ more results.
                         'format' => 'int32'
                     ]
                 ],
-                'responses' => [
-                    '200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']],
-                    '401' => [],
-                    '403' => []
-                ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']]]
             ]],
-            '/v1/supervisors/query' => [
+            '/v2/supervisors/query' => [
                 'get' => [
                     'operationId' => 'GetFilteredListOfSupervisors',
                     'parameters' => [
@@ -1156,11 +1064,7 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']]]
                 ],
                 'post' => [
                     'operationId' => 'QuerySupervisors',
@@ -1185,11 +1089,7 @@ more results.
                             'format' => 'int32'
                         ]
                     ],
-                    'responses' => [
-                        '200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']],
-                        '401' => [],
-                        '403' => []
-                    ]
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']]]
                 ]
             ]
         ],
@@ -1411,6 +1311,10 @@ more results.
             'EndpointApiModel' => [
                 'properties' => [
                     'url' => ['type' => 'string'],
+                    'alternativeUrls' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
                     'user' => ['$ref' => '#/definitions/CredentialApiModel'],
                     'securityMode' => [
                         'type' => 'string',
@@ -1451,6 +1355,7 @@ more results.
             'EndpointRegistrationApiModel' => [
                 'properties' => [
                     'id' => ['type' => 'string'],
+                    'endpointUrl' => ['type' => 'string'],
                     'siteId' => ['type' => 'string'],
                     'endpoint' => ['$ref' => '#/definitions/EndpointApiModel'],
                     'securityLevel' => [
@@ -1689,6 +1594,15 @@ more results.
                         'type' => 'string',
                         'format' => 'byte'
                     ],
+                    'logLevel' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Error',
+                            'Information',
+                            'Debug',
+                            'Verbose'
+                        ]
+                    ],
                     'outOfSync' => ['type' => 'boolean'],
                     'connected' => ['type' => 'boolean']
                 ],
@@ -1713,7 +1627,16 @@ more results.
                         'type' => 'array',
                         'items' => ['$ref' => '#/definitions/CallbackApiModel']
                     ],
-                    'removeDiscoveryCallbacks' => ['type' => 'boolean']
+                    'removeDiscoveryCallbacks' => ['type' => 'boolean'],
+                    'logLevel' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Error',
+                            'Information',
+                            'Debug',
+                            'Verbose'
+                        ]
+                    ]
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []

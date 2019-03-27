@@ -17,7 +17,10 @@
 class EndpointApiModel {
   /**
    * Create a EndpointApiModel.
-   * @property {string} url Endpoint
+   * @property {string} url Endpoint url to use to connect with
+   * @property {array} [alternativeUrls] Alternative endpoint urls that can be
+   * used for
+   * accessing and validating the server
    * @property {object} [user] User Authentication
    * @property {string} [user.type] Type of credential. Possible values
    * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
@@ -53,6 +56,23 @@ class EndpointApiModel {
             serializedName: 'url',
             type: {
               name: 'String'
+            }
+          },
+          alternativeUrls: {
+            required: false,
+            serializedName: 'alternativeUrls',
+            constraints: {
+              UniqueItems: true
+            },
+            type: {
+              name: 'Sequence',
+              element: {
+                  required: false,
+                  serializedName: 'StringElementType',
+                  type: {
+                    name: 'String'
+                  }
+              }
             }
           },
           user: {
