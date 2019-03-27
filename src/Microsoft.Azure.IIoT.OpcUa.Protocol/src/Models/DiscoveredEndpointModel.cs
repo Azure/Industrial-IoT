@@ -18,6 +18,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public EndpointDescription Description { get; set; }
 
         /// <summary>
+        /// Endpoint url that can be accessed
+        /// </summary>
+        public string AccessibleEndpointUrl { get; set; }
+
+        /// <summary>
         /// Capabilities of endpoint (server)
         /// </summary>
         public HashSet<string> Capabilities { get; set; }

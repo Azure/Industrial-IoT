@@ -127,7 +127,7 @@ namespace DataAccess {
             switch (tag.DataType) {
                 case UnderlyingSystemDataType.Integer1: { tag.Value = (sbyte)0; break; }
                 case UnderlyingSystemDataType.Integer2: { tag.Value = (short)0; break; }
-                case UnderlyingSystemDataType.Integer4: { tag.Value = (int)0; break; }
+                case UnderlyingSystemDataType.Integer4: { tag.Value = 0; break; }
                 case UnderlyingSystemDataType.Real4: { tag.Value = (float)0; break; }
                 case UnderlyingSystemDataType.String: { tag.Value = string.Empty; break; }
             }
@@ -386,7 +386,7 @@ namespace DataAccess {
                             tag.Value = generator.GetRandomInt32();
                         }
                         else {
-                            tag.Value = (int)value;
+                            tag.Value = value;
                         }
 
                         break;

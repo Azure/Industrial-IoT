@@ -138,7 +138,7 @@ namespace TestData {
                 }
 
                 // link all conditions to the conditions folder.
-                var conditionsFolder = (NodeState)FindPredefinedNode(
+                var conditionsFolder = FindPredefinedNode(
                     new NodeId(Objects.Data_Conditions, _typeNamespaceIndex),
                     typeof(NodeState));
 

@@ -19,6 +19,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string Id { get; set; }
 
         /// <summary>
+        /// The reported endpoint url
+        /// </summary>
+        public string EndpointUrl { get; set; }
+
+        /// <summary>
         /// Site of endpoint
         /// </summary>
         public string SiteId { get; set; }

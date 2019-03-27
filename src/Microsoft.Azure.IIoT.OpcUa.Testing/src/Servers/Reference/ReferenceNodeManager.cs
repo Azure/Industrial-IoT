@@ -732,7 +732,7 @@ namespace Reference {
                     variables.Add(nodeIdsInstructions);
 
                     var integerNodeId = CreateVariable(nodeIdsFolder, nodeIds + "Int16Integer", "Int16Integer", DataTypeIds.Int16, ValueRanks.Scalar);
-                    integerNodeId.NodeId = new NodeId((uint)9202, NamespaceIndex);
+                    integerNodeId.NodeId = new NodeId(9202, NamespaceIndex);
                     variables.Add(integerNodeId);
 
                     variables.Add(CreateVariable(nodeIdsFolder, nodeIds + "Int16String", "Int16String", DataTypeIds.Int16, ValueRanks.Scalar));
@@ -1343,7 +1343,7 @@ namespace Reference {
                 _simulationInterval = (ushort)value;
 
                 if (_simulationEnabled) {
-                    _simulationTimer.Change(100, (int)_simulationInterval);
+                    _simulationTimer.Change(100, _simulationInterval);
                 }
 
                 return ServiceResult.Good;
@@ -1359,7 +1359,7 @@ namespace Reference {
                 _simulationEnabled = (bool)value;
 
                 if (_simulationEnabled) {
-                    _simulationTimer.Change(100, (int)_simulationInterval);
+                    _simulationTimer.Change(100, _simulationInterval);
                 }
                 else {
                     _simulationTimer.Change(100, 0);
@@ -2269,7 +2269,7 @@ namespace Reference {
                 var uintValue = (uint)inputArguments[1];
 
                 // set output parameter
-                outputArguments[0] = (float)(floatValue + uintValue);
+                outputArguments[0] = floatValue + uintValue;
                 return ServiceResult.Good;
             }
             catch {
@@ -2293,7 +2293,7 @@ namespace Reference {
                 var op2 = (ushort)inputArguments[1];
 
                 // set output parameter
-                outputArguments[0] = (int)(op1 * op2);
+                outputArguments[0] = op1 * op2;
                 return ServiceResult.Good;
             }
             catch {
@@ -2317,7 +2317,7 @@ namespace Reference {
                 var op2 = (ushort)inputArguments[1];
 
                 // set output parameter
-                outputArguments[0] = (float)((float)op1 / (float)op2);
+                outputArguments[0] = op1 / (float)op2;
                 return ServiceResult.Good;
             }
             catch {
@@ -2364,7 +2364,7 @@ namespace Reference {
                 var op1 = (string)inputArguments[0];
 
                 // set output parameter
-                outputArguments[0] = (string)("hello " + op1);
+                outputArguments[0] = "hello " + op1;
                 return ServiceResult.Good;
             }
             catch {
@@ -2394,7 +2394,7 @@ namespace Reference {
             // all arguments must be provided.
             try {
                 // set output parameter
-                outputArguments[0] = (string)("Output");
+                outputArguments[0] = "Output";
                 return ServiceResult.Good;
             }
             catch {

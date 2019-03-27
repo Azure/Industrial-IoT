@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -201,7 +201,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -229,7 +229,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             if (result.Value.Type == JTokenType.Null) {
                 return;
             }
@@ -263,7 +263,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -291,7 +291,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -319,7 +319,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -347,7 +347,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -375,7 +375,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -403,7 +403,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -431,7 +431,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -459,7 +459,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -487,7 +487,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -515,7 +515,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -543,7 +543,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -572,7 +572,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             if (result.Value.Type == JTokenType.Null) {
                 return;
             }
@@ -603,7 +603,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -631,7 +631,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -659,7 +659,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -687,7 +687,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -715,7 +715,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -743,7 +743,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -772,7 +772,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -797,7 +797,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -825,7 +825,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
             Assert.Equal(JTokenType.Array, result.Value.Type);
             if (((JArray)result.Value).Count == 0) {
                 return;
@@ -854,7 +854,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
 
             if (result.Value.Type == JTokenType.String) {
                 Assert.NotEmpty(((string)result.Value).DecodeAsBase64());
@@ -886,7 +886,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
 
             if (result.Value.Type == JTokenType.String) {
                 Assert.NotEmpty(((string)result.Value).DecodeAsBase64());
@@ -918,7 +918,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             Assert.True(JToken.DeepEquals(expected, result.Value),
-                $"Expected: {expected} != Actual: {result.Value}");
+                $"Expected: {expected} ({expected?.Type}) != Actual: {result.Value} ({result?.Value?.Type})");
 
             if (result.Value.Type == JTokenType.String) {
                 Assert.NotEmpty(((string)result.Value).DecodeAsBase64());

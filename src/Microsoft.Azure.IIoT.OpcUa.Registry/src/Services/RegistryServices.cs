@@ -580,6 +580,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     null : request.SiteId;
             }
 
+            if (request.LogLevel != null) {
+                patched.LogLevel = request.LogLevel == SupervisorLogLevel.Information ?
+                    null : request.LogLevel;
+            }
+
             if (request.DiscoveryConfig != null) {
                 if (patched.DiscoveryConfig == null) {
                     patched.DiscoveryConfig = new DiscoveryConfigModel();

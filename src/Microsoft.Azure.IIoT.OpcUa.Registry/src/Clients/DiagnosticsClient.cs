@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using System.Diagnostics;
 
     /// <summary>
-    /// Client for supervisor diagnostics services 
+    /// Client for supervisor diagnostics services
     /// </summary>
     public sealed class DiagnosticsClient : ISupervisorDiagnostics {
 
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             var deviceId = SupervisorModelEx.ParseDeviceId(supervisorId,
                 out var moduleId);
             var result = await _client.CallMethodAsync(deviceId, moduleId,
-                "GetStatus_V1", null);
+                "GetStatus_V2", null);
             _logger.Debug("Get {deviceId}/{moduleId} status took " +
                 "{elapsed} ms.", deviceId, moduleId, sw.ElapsedMilliseconds);
             return JsonConvertEx.DeserializeObject<SupervisorStatusModel>(
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             var deviceId = SupervisorModelEx.ParseDeviceId(supervisorId,
                 out var moduleId);
             var result = await _client.CallMethodAsync(deviceId, moduleId,
-                "Reset_V1", null);
+                "Reset_V2", null);
             _logger.Debug("Reset supervisor {deviceId}/{moduleId} took " +
                 "{elapsed} ms.", deviceId, moduleId, sw.ElapsedMilliseconds);
         }

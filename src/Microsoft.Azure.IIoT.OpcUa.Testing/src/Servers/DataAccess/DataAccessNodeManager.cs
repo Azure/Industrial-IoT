@@ -40,8 +40,7 @@ namespace DataAccess {
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
-        public DataAccessNodeManager(IServerInternal server, ApplicationConfiguration configuration)
-        :
+        public DataAccessNodeManager(IServerInternal server, ApplicationConfiguration configuration) :
             base(server, configuration, Namespaces.DataAccess) {
             AliasRoot = "DA";
 
@@ -60,8 +59,6 @@ namespace DataAccess {
             _blocks = new Dictionary<NodeId, BlockState>();
         }
 
-
-
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
@@ -70,8 +67,6 @@ namespace DataAccess {
                 _system.Dispose();
             }
         }
-
-
 
         /// <summary>
         /// Creates the NodeId for the specified node.
@@ -89,8 +84,6 @@ namespace DataAccess {
         public override NodeId New(ISystemContext context, NodeState node) {
             return ModelUtils.ConstructIdForComponent(node, NamespaceIndex);
         }
-
-
 
         /// <summary>
         /// Does any initialization required before the address space can be used.

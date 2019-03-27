@@ -193,7 +193,7 @@ namespace Opc.Ua.Sample {
             NodeId referenceTypeId,
             QualifiedName browseName,
             BaseInstanceState instance) {
-            var contextToUse = (ServerSystemContext)SystemContext.Copy(context);
+            var contextToUse = SystemContext.Copy(context);
 
             lock (Lock) {
                 instance.ReferenceTypeId = referenceTypeId;
@@ -247,8 +247,6 @@ namespace Opc.Ua.Sample {
             return found;
         }
 
-
-
         /// <summary>
         /// Returns the namespaces used by the node manager.
         /// </summary>
@@ -266,7 +264,6 @@ namespace Opc.Ua.Sample {
                 else {
                     _namespaceUris = new List<string>();
                 }
-
                 _namespaceIndexes = new ushort[_namespaceUris.Count];
             }
         }

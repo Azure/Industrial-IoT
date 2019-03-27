@@ -204,7 +204,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
         /// <param name="value"></param>
         /// <returns></returns>
         private Task WriteDataTypeAsync(VariableTypeNodeVertexModel model, DataValue value) {
-            var dataTypeId = value.ToSimpleAttribute(o => ((NodeId)o).AsString(_context));
+            var dataTypeId = value.GetValue(NodeId.Null).AsString(_context);
             if (dataTypeId != null) {
                 return _loader.AddEdgeAsync(model,
                     new DataTypeEdgeModel {

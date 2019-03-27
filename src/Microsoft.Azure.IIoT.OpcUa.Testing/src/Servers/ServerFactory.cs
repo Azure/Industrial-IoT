@@ -395,7 +395,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
 
                         if (id == null) {
                             Utils.Trace(
-                                (int)Utils.TraceMasks.Error,
+                                Utils.TraceMasks.Error,
                                 "Could not load CertificateIdentifier for UserTokenPolicy {0}",
                                 policy.PolicyId);
 
@@ -413,7 +413,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
 
                         if (trustedIssuers == null) {
                             Utils.Trace(
-                                (int)Utils.TraceMasks.Error,
+                                Utils.TraceMasks.Error,
                                 "Could not load CertificateTrustList for UserTokenPolicy {0}",
                                 policy.PolicyId);
 

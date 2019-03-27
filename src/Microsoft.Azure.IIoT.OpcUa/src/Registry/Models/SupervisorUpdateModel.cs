@@ -40,5 +40,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Supervisor client cert
         /// </summary>
         public byte[] Certificate { get; set; }
+
+        /// <summary>
+        /// Current log level
+        /// </summary>
+        public SupervisorLogLevel? LogLevel { get; set; }
     }
 }

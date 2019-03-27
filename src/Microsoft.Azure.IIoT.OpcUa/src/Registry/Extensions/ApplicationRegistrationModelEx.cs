@@ -111,8 +111,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 }
                 else {
                     foreach (var ep in server.Endpoints) {
-                        if (!model.Endpoints.Any(ep.IsSameAs)) {
+                        var found = model.Endpoints.Where(ep.IsSameAs);
+                        if (!found.Any()) {
                             model.Endpoints.Add(ep);
+                        }
+                        foreach (var existing in found) {
+                            if (existing.Endpoint == null) {
+                                existing.Endpoint = ep.Endpoint;
+                                continue;
+                            }
+                            existing.Endpoint?.UnionWith(ep.Endpoint);
                         }
                     }
                 }

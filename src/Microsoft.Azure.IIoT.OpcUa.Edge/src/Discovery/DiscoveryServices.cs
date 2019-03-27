@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 if (Mode != DiscoveryMode.Off) {
                     _discovery = new CancellationTokenSource();
                     _completed = _processor.Scheduler.Run(() =>
-                        RunContinouslyAsync(Request.Clone(), _setupDelay, _discovery.Token));
+                        RunContinuouslyAsync(Request.Clone(), _setupDelay, _discovery.Token));
                     _setupDelay = null;
                 }
             }
@@ -169,7 +169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// <param name="delay"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task RunContinouslyAsync(DiscoveryRequest request,
+        private async Task RunContinuouslyAsync(DiscoveryRequest request,
             TimeSpan? delay, CancellationToken ct) {
 
             if (delay != null) {
@@ -354,12 +354,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             foreach (var item in discoveryUrls) {
                 ct.ThrowIfCancellationRequested();
                 var url = item.Value;
-                var eps = await _client.FindEndpointsAsync(url, locales, ct).ConfigureAwait(false);
+
+                // Find endpoints at the real accessible ip address
+                var eps = await _client.FindEndpointsAsync(new UriBuilder(url) {
+                    Host = item.Key.Address.ToString()
+                }.Uri, locales, ct).ConfigureAwait(false);
+
                 if (!eps.Any()) {
+                    _logger.Information("No endpoints found on {host}:{port} ({address}).",
+                        eps.Count(), url.Host, url.Port, item.Key.Address);
                     continue;
                 }
-                _logger.Information("Found {count} endpoints on {host}:{port}.",
-                    eps.Count(), url.Host, url.Port);
+                _logger.Information("Found {count} endpoints on {host}:{port} ({address}).",
+                    eps.Count(), url.Host, url.Port, item.Key.Address);
                 // Merge results...
                 foreach (var ep in eps) {
                     discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),

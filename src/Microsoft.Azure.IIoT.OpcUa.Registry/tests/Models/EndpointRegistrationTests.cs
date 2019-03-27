@@ -127,10 +127,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             fix.Customizations.Add(new TypeRelay(typeof(JToken), typeof(JObject)));
 
             var cert = fix.CreateMany<byte>(1000).ToArray();
+            var urls = fix.CreateMany<Uri>(4).ToList();
             var r1 = fix.Build<EndpointRegistration>()
                 .With(x => x.Certificate, cert.EncodeAsDictionary())
                 .With(x => x.Thumbprint, cert.ToSha1Hash())
                 .With(x => x.ClientCertificate, cert.EncodeAsDictionary())
+                .With(x => x.AlternativeUrls,
+                    fix.CreateMany<Uri>(4)
+                        .Select(u => u.ToString())
+                        .ToList().EncodeAsDictionary())
                 .With(x => x.AuthenticationMethods,
                     fix.CreateMany<AuthenticationMethodModel>()
                         .Select(JToken.FromObject).ToList().EncodeAsDictionary())

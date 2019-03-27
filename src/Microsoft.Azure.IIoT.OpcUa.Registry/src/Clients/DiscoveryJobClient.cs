@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await CallServiceOnAllSupervisors("Discover_V1",
+            await CallServiceOnAllSupervisors("Discover_V2",
                 request, kDiscoveryTimeout);
         }
 

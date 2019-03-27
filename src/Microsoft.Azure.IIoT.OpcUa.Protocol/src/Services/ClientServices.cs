@@ -192,7 +192,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 //
                 var endpoints = await client.GetEndpointsAsync(null,
                     client.Endpoint.EndpointUrl, localeIds, null);
-                // ReplaceLocalHostWithRemoteHost(endpoints, discoveryUrl);
                 if (!(endpoints?.Endpoints?.Any() ?? false)) {
                     _logger.Debug("No endpoints at {discoveryUrl}...", discoveryUrl);
                     return;
@@ -202,7 +201,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 foreach (var ep in endpoints.Endpoints.Where(ep =>
                     ep.Server.ApplicationType != Opc.Ua.ApplicationType.DiscoveryServer)) {
                     result.Add(new DiscoveredEndpointModel {
-                        Description = ep,
+                        Description = ep, // Reported
+                        AccessibleEndpointUrl = new UriBuilder(ep.EndpointUrl) {
+                            Host = discoveryUrl.DnsSafeHost
+                        }.ToString(),
                         Capabilities = new HashSet<string>(caps)
                     });
                 }
@@ -216,8 +218,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         new StringCollection());
                     var servers = response?.Servers ?? new ServerOnNetworkCollection();
                     foreach (var server in servers) {
-                        var url = CreateDiscoveryUri(server.DiscoveryUrl,
-                            discoveryUrl.Port);
+                        var url = CreateDiscoveryUri(server.DiscoveryUrl, discoveryUrl.Port);
                         if (!visitedUris.Contains(url)) {
                             queue.Enqueue(Tuple.Create(discoveryUrl,
                                 server.ServerCapabilities.ToList()));

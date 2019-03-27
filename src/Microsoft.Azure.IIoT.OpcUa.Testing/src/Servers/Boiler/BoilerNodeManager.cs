@@ -116,7 +116,7 @@ namespace Boiler {
                 null,
                 true);
 
-            var folder = (NodeState)FindPredefinedNode(
+            var folder = FindPredefinedNode(
                 ExpandedNodeId.ToNodeId(ObjectIds.Boilers, Server.NamespaceUris),
                 typeof(NodeState));
 

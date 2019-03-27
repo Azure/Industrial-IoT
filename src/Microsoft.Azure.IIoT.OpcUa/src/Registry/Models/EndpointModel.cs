@@ -3,6 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+using System.Collections.Generic;
+
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
     /// <summary>
@@ -14,6 +16,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Endoint url for direct server access
         /// </summary>
         public string Url { get; set; }
+
+        /// <summary>
+        /// Alternative endpoints that can be used for accessing
+        /// the server
+        /// </summary>
+        public HashSet<string> AlternativeUrls { get; set; }
 
         /// <summary>
         /// Default user credential to use for all access.

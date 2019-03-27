@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             if (!secret.IsBase64()) {
                 throw new ArgumentException("not base64", nameof(secret));
             }
-            await CallServiceOnSupervisor("ActivateEndpoint_V1", registration.SupervisorId, new {
+            await CallServiceOnSupervisor("ActivateEndpoint_V2", registration.SupervisorId, new {
                 registration.Id,
                 Secret = secret
             });
@@ -63,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             if (string.IsNullOrEmpty(registration.Id)) {
                 throw new ArgumentNullException(nameof(registration.Id));
             }
-            await CallServiceOnSupervisor("DeactivateEndpoint_V1", registration.SupervisorId,
+            await CallServiceOnSupervisor("DeactivateEndpoint_V2", registration.SupervisorId,
                 registration.Id);
         }
 

@@ -1655,12 +1655,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-
-        public async Task NodeMethodCallStaticScalarMethod4Test1() {
+        public async Task NodeMethodCallBoiler2ResetTest() {
 
             var service = _services();
-            var methodId = "ns=4;i=15021";
-            var objectId = "ns=4;i=1287";
+            var methodId = "ns=5;i=37";
+            var objectId = "ns=5;i=31";
 
             // Act
             var result = await service.NodeMethodCallAsync(_endpoint,
@@ -1675,7 +1674,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod4Test2() {
+        public async Task NodeMethodCallBoiler1ResetTest() {
 
             var service = _services();
             var methodId = "http://opcfoundation.org/UA/Boiler/#i=15022";

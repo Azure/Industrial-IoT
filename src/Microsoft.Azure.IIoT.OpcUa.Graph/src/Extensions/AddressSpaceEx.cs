@@ -186,8 +186,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                 case DataTypeNodeModel dtNode:
                     vertex = new DataTypeNodeVertexModel {
                         IsAbstract = dtNode.IsAbstract,
-                        DataTypeDefinition = dtNode.Definition == null ? null : 
-                            codec.Encode(new Variant(new ExtensionObject(dtNode.Definition)), 
+                        DataTypeDefinition = dtNode.Definition == null ? null :
+                            codec.Encode(new Variant(new ExtensionObject(dtNode.Definition)),
                             out _, context)
                     };
                     break;
@@ -338,8 +338,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                 case DataTypeNodeVertexModel uaDataType:
                     decoded = new DataTypeNodeModel {
                         IsAbstract = uaDataType.IsAbstract,
-                        Definition = uaDataType.DataTypeDefinition == null ? null : 
-                            (DataTypeDefinition)(codec.Decode(uaDataType.DataTypeDefinition, 
+                        Definition = uaDataType.DataTypeDefinition == null ? null :
+                            (DataTypeDefinition)(codec.Decode(uaDataType.DataTypeDefinition,
                                 BuiltInType.ExtensionObject, context).Value as ExtensionObject)?.Body,
                         Purpose = Opc.Ua.Nodeset.Schema.DataTypePurpose.Normal
                     };

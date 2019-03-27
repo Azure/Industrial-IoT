@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Twin (endpoint) registration persisted and comparable
@@ -36,7 +37,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Lower case endpoint url
         /// </summary>
         public string EndpointUrlLC =>
-            EndpointUrl?.ToLowerInvariant();
+            EndpointRegistrationUrl?.ToLowerInvariant();
+
+        /// <summary>
+        /// Reported endpoint description url as opposed to the
+        /// one that can be used to connect with.
+        /// </summary>
+        public string EndpointRegistrationUrl { get; set; }
 
         /// <summary>
         /// Security level of endpoint
@@ -61,6 +68,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Endoint url for direct server access
         /// </summary>
         public string EndpointUrl { get; set; }
+
+        /// <summary>
+        /// Alternative urls
+        /// </summary>
+        public Dictionary<string, string> AlternativeUrls { get; set; }
 
         /// <summary>
         /// Default user authentication credential type
@@ -103,7 +115,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Device id is the endpoint id
         /// </summary>
         public string Id => EndpointInfoModelEx.CreateEndpointId(
-            ApplicationId, EndpointUrl, SecurityMode, SecurityPolicy);
+            ApplicationId, EndpointRegistrationUrl, SecurityMode, SecurityPolicy);
 
         /// <summary>
         /// Activation state
@@ -143,17 +155,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             var twin = BaseRegistration.Patch(existing, update);
 
-            // Tags + Endpoint Property
+            // Tags
 
-            if (update?.EndpointUrl != null &&
-                update.EndpointUrl != existing?.EndpointUrl) {
+            if (update?.EndpointRegistrationUrl != null &&
+                update.EndpointRegistrationUrl != existing?.EndpointRegistrationUrl) {
                 twin.Tags.Add(nameof(EndpointUrlLC),
                     update.EndpointUrlLC);
-                twin.Properties.Desired.Add(nameof(EndpointUrl),
-                    update.EndpointUrl);
+                twin.Tags.Add(nameof(EndpointRegistrationUrl),
+                    update.EndpointRegistrationUrl);
             }
-
-            // Tags
 
             if (update?.SecurityLevel != existing?.SecurityLevel) {
                 twin.Tags.Add(nameof(SecurityLevel), update?.SecurityLevel == null ?
@@ -174,6 +184,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
 
             // Endpoint Property
+
+            if (update?.EndpointUrl != null &&
+                update.EndpointUrl != existing?.EndpointUrl) {
+                twin.Properties.Desired.Add(nameof(EndpointUrl),
+                    update.EndpointUrl);
+            }
+
+            var urlsEqual = update?.AlternativeUrls.DecodeAsList().ToHashSetSafe().SetEqualsSafe(
+                existing?.AlternativeUrls?.DecodeAsList());
+            if (!(urlsEqual ?? true)) {
+                twin.Properties.Desired.Add(nameof(AlternativeUrls), update?.AlternativeUrls == null ?
+                    null : JToken.FromObject(update.AlternativeUrls));
+            }
 
             if (update?.SecurityMode != null &&
                 update.SecurityMode != existing?.SecurityMode) {
@@ -212,11 +235,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             // Recalculate identity
 
-            var endpointUrl = existing?.EndpointUrl;
-            if (update?.EndpointUrl != null) {
-                endpointUrl = update.EndpointUrl;
+            var reportedEndpointUrl = existing?.EndpointRegistrationUrl;
+            if (update?.EndpointRegistrationUrl != null) {
+                reportedEndpointUrl = update.EndpointRegistrationUrl;
             }
-            if (endpointUrl == null) {
+            if (reportedEndpointUrl == null) {
                 throw new ArgumentException(nameof(EndpointUrl));
             }
             var applicationId = existing?.ApplicationId;
@@ -236,7 +259,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
 
             twin.Id = EndpointInfoModelEx.CreateEndpointId(
-                applicationId, endpointUrl, securityMode, securityPolicy);
+                applicationId, reportedEndpointUrl, securityMode, securityPolicy);
 
             if (existing?.DeviceId != twin.Id) {
                 twin.Etag = null; // Force creation of new identity
@@ -285,6 +308,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     tags.GetValueOrDefault<int>(nameof(SecurityLevel), null),
                 AuthenticationMethods =
                     tags.GetValueOrDefault<Dictionary<string, JToken>>(nameof(AuthenticationMethods), null),
+                EndpointRegistrationUrl =
+                    tags.GetValueOrDefault<string>(nameof(EndpointRegistrationUrl), null),
 
                 // Properties
 
@@ -299,6 +324,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                         tags.GetValueOrDefault<string>(nameof(SiteId), null)),
                 EndpointUrl =
                     properties.GetValueOrDefault<string>(nameof(EndpointUrl), null),
+                AlternativeUrls =
+                    properties.GetValueOrDefault<Dictionary<string, string>>(nameof(AlternativeUrls), null),
                 Credential =
                     properties.GetValueOrDefault<JToken>(nameof(Credential), null),
                 CredentialType =
@@ -366,9 +393,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     AuthenticationMethods = AuthenticationMethods?.DecodeAsList(j =>
                         j.ToObject<AuthenticationMethodModel>()),
                     SecurityLevel = SecurityLevel,
+                    EndpointUrl = string.IsNullOrEmpty(EndpointRegistrationUrl) ?
+                        (string.IsNullOrEmpty(EndpointUrl) ?
+                            EndpointUrlLC : EndpointUrl) : EndpointRegistrationUrl,
                     Endpoint = new EndpointModel {
                         Url = string.IsNullOrEmpty(EndpointUrl) ?
                             EndpointUrlLC : EndpointUrl,
+                        AlternativeUrls = AlternativeUrls?.DecodeAsList().ToHashSetSafe(),
                         User = CredentialType == null ? null :
                             new CredentialModel {
                                 Value = Credential,
@@ -428,7 +459,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Certificate = model.Registration?.Certificate?.EncodeAsDictionary(),
                 Thumbprint = model.Registration?.Certificate?.ToSha1Hash(),
                 SecurityLevel = model.Registration?.SecurityLevel,
+                EndpointRegistrationUrl = model.Registration?.EndpointUrl ??
+                    model.Registration?.Endpoint.Url,
                 EndpointUrl = model.Registration?.Endpoint.Url,
+                AlternativeUrls = model.Registration?.Endpoint.AlternativeUrls?.ToList()?
+                    .EncodeAsDictionary(),
                 AuthenticationMethods = model.Registration?.AuthenticationMethods?
                     .EncodeAsDictionary(JToken.FromObject),
                 Credential = model.Registration?.Endpoint.User?.Value,
@@ -454,6 +489,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public bool Matches(EndpointModel endpoint) {
             return endpoint != null &&
                 EndpointUrl == endpoint.Url &&
+                AlternativeUrls.DecodeAsList().ToHashSetSafe().SetEqualsSafe(
+                    endpoint.AlternativeUrls) &&
                 CredentialType == (endpoint.User?.Type ?? Models.CredentialType.None) &&
                 JToken.DeepEquals(Credential, endpoint.User?.Value) &&
                 SecurityMode == (endpoint.SecurityMode ?? Models.SecurityMode.Best) &&
@@ -472,6 +509,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             _isInSync =
                 other != null &&
                 EndpointUrl == other.EndpointUrl &&
+                AlternativeUrls.DecodeAsList().ToHashSetSafe().SetEqualsSafe(
+                    other.AlternativeUrls.DecodeAsList()) &&
                 CredentialType == other.CredentialType &&
                 JToken.DeepEquals(Credential, other.Credential) &&
                 SecurityPolicy == other.SecurityPolicy &&

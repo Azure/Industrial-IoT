@@ -48,7 +48,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (model == null || that == null) {
                 return false;
             }
-            return model.Endpoint.IsSameAs(that.Endpoint) &&
+            return model.Endpoint.HasSameSecurityProperties(that.Endpoint) &&
+                model.EndpointUrl == that.EndpointUrl &&
                 model.AuthenticationMethods.IsSameAs(that.AuthenticationMethods) &&
                 model.SiteId == that.SiteId &&
                 model.SupervisorId == that.SupervisorId &&
@@ -68,6 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return new EndpointRegistrationModel {
                 Certificate = model.Certificate,
                 Endpoint = model.Endpoint.Clone(),
+                EndpointUrl = model.EndpointUrl,
                 Id = model.Id,
                 AuthenticationMethods = model.AuthenticationMethods?
                     .Select(c => c.Clone()).ToList(),

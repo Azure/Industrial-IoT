@@ -36,6 +36,7 @@ namespace DataAccess {
     /// A class that builds NodeIds used by the DataAccess NodeManager
     /// </summary>
     public static class ModelUtils {
+
         /// <summary>
         /// The RootType for a Segment node identfier.
         /// </summary>
@@ -58,7 +59,6 @@ namespace DataAccess {
                 NamespaceIndex = namespaceIndex,
                 RootType = 0
             };
-
             return parsedNodeId.Construct();
         }
 
@@ -74,7 +74,6 @@ namespace DataAccess {
                 NamespaceIndex = namespaceIndex,
                 RootType = 1
             };
-
             return parsedNodeId.Construct();
         }
 

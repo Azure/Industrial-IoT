@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
+    using Serilog.Events;
 
     /// <summary>
     /// Endpoint persisted in twin and comparable
@@ -57,6 +58,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Discovery state
         /// </summary>
         public DiscoveryMode Discovery { get; set; }
+
+        /// <summary>
+        /// Current log level
+        /// </summary>
+        public SupervisorLogLevel? LogLevel { get; set; }
 
         /// <summary>
         /// Address ranges to scan (null == all wired)
@@ -126,8 +132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         /// <param name="existing"></param>
         /// <param name="update"></param>
-        public static DeviceTwinModel Patch(
-            SupervisorRegistration existing,
+        public static DeviceTwinModel Patch(SupervisorRegistration existing,
             SupervisorRegistration update) {
 
             var twin = new DeviceTwinModel {
@@ -218,6 +223,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     update?.NetworkProbeTimeout);
             }
 
+            if (update?.LogLevel != existing?.LogLevel) {
+                twin.Properties.Desired.Add(nameof(LogLevel), update?.LogLevel == null ?
+                    null : JToken.FromObject(update.LogLevel));
+            }
+
             if (update?.MaxNetworkProbes != existing?.MaxNetworkProbes) {
                 twin.Properties.Desired.Add(nameof(MaxNetworkProbes),
                     update?.MaxNetworkProbes);
@@ -301,6 +311,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
                 Certificate =
                     properties.GetValueOrDefault<Dictionary<string, string>>(nameof(Certificate), null),
+                LogLevel =
+                    properties.GetValueOrDefault<SupervisorLogLevel>(nameof(LogLevel), null),
                 Discovery =
                     properties.GetValueOrDefault(nameof(Discovery), DiscoveryMode.Off),
                 AddressRangesToScan =
@@ -407,6 +419,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 SupervisorId = model.Id,
                 DeviceId = deviceId,
                 ModuleId = moduleId,
+                LogLevel = model.LogLevel,
                 Discovery = model.Discovery ?? DiscoveryMode.Off,
                 AddressRangesToScan = model.DiscoveryConfig?.AddressRangesToScan,
                 NetworkProbeTimeout = model.DiscoveryConfig?.NetworkProbeTimeout,
@@ -446,6 +459,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Id = SupervisorId,
                 SiteId = SiteId,
                 Certificate = Certificate?.DecodeAsByteArray(),
+                LogLevel = LogLevel,
                 DiscoveryConfig = ToConfigModel(),
                 Connected = IsConnected() ? true : (bool?)null,
                 OutOfSync = IsConnected() && !_isInSync ? true : (bool?)null
@@ -458,6 +472,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return base.Equals(registration) &&
                 ModuleId == registration.ModuleId &&
                 Discovery == registration.Discovery &&
+                LogLevel == registration.LogLevel &&
                 AddressRangesToScan == registration.AddressRangesToScan &&
                 EqualityComparer<TimeSpan?>.Default.Equals(
                     NetworkProbeTimeout, registration.NetworkProbeTimeout) &&
@@ -506,6 +521,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 EqualityComparer<string>.Default.GetHashCode(ModuleId);
             hashCode = hashCode * -1521134295 +
                 Discovery.GetHashCode();
+            hashCode = hashCode * -1521134295 +
+                EqualityComparer<SupervisorLogLevel?>.Default.GetHashCode(LogLevel);
             hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(AddressRangesToScan);
             hashCode = hashCode * -1521134295 +
@@ -603,6 +620,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             _isInSync =
                 other != null &&
                 SiteId == other.SiteId &&
+                LogLevel == other.LogLevel &&
                 Discovery == other.Discovery &&
                 AddressRangesToScan == other.AddressRangesToScan &&
                 PortRangesToScan == other.PortRangesToScan &&

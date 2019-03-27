@@ -191,7 +191,7 @@ namespace Opc.Ua.Sample {
             NodeId referenceTypeId,
             QualifiedName browseName,
             BaseInstanceState instance) {
-            var contextToUse = (ServerSystemContext)SystemContext.Copy(context);
+            var contextToUse = SystemContext.Copy(context);
 
             lock (Lock) {
                 instance.ReferenceTypeId = referenceTypeId;

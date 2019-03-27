@@ -50,8 +50,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                         Certificate = result.Description.ServerCertificate,
                         SecurityLevel = result.Description.SecurityLevel,
                         AuthenticationMethods = result.Description.UserIdentityTokens.ToServiceModel(),
+                        EndpointUrl = result.Description.EndpointUrl, // Reported
                         Endpoint = new EndpointModel {
-                            Url = result.Description.EndpointUrl,
+                            Url = result.AccessibleEndpointUrl, // Accessible
+                            AlternativeUrls = new HashSet<string> {
+                                result.AccessibleEndpointUrl,
+                                result.Description.EndpointUrl,
+                            },
                             SecurityMode = result.Description.SecurityMode.ToServiceType() ??
                                 SecurityMode.None,
                             SecurityPolicy = result.Description.SecurityPolicyUri

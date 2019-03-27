@@ -171,7 +171,7 @@ namespace TestData {
 
                     case Variables.AnalogScalarValueObjectType_Int32Value:
                     case Variables.AnalogScalarValueObjectType_IntegerValue: {
-                            return (int)(((int)(_generator.GetRandom<uint>(false) % 201)) - 100);
+                            return ((int)(_generator.GetRandom<uint>(false) % 201)) - 100;
                         }
 
                     case Variables.ScalarValueObjectType_UInt32Value:
@@ -181,7 +181,7 @@ namespace TestData {
 
                     case Variables.AnalogScalarValueObjectType_UInt32Value:
                     case Variables.AnalogScalarValueObjectType_UIntegerValue: {
-                            return (uint)((_generator.GetRandom<uint>(false) % 201) + 50);
+                            return (_generator.GetRandom<uint>(false) % 201) + 50;
                         }
 
                     case Variables.ScalarValueObjectType_Int64Value:
@@ -371,7 +371,7 @@ namespace TestData {
                             var values = _generator.GetRandomArray<int>(false, 100, false);
 
                             for (var ii = 0; ii < values.Length; ii++) {
-                                values[ii] = (int)(((int)(_generator.GetRandom<uint>(false) % 201)) - 100);
+                                values[ii] = ((int)(_generator.GetRandom<uint>(false) % 201)) - 100;
                             }
 
                             return values;
@@ -387,7 +387,7 @@ namespace TestData {
                             var values = _generator.GetRandomArray<uint>(false, 100, false);
 
                             for (var ii = 0; ii < values.Length; ii++) {
-                                values[ii] = (uint)((_generator.GetRandom<uint>(false) % 201) + 50);
+                                values[ii] = (_generator.GetRandom<uint>(false) % 201) + 50;
                             }
 
                             return values;
@@ -402,7 +402,7 @@ namespace TestData {
                             var values = _generator.GetRandomArray<long>(false, 100, false);
 
                             for (var ii = 0; ii < values.Length; ii++) {
-                                values[ii] = (long)(((int)(_generator.GetRandom<uint>(false) % 201)) - 100);
+                                values[ii] = ((int)(_generator.GetRandom<uint>(false) % 201)) - 100;
                             }
 
                             return values;
@@ -417,7 +417,7 @@ namespace TestData {
                             var values = _generator.GetRandomArray<ulong>(false, 100, false);
 
                             for (var ii = 0; ii < values.Length; ii++) {
-                                values[ii] = (ulong)((_generator.GetRandom<uint>(false) % 201) + 50);
+                                values[ii] = (_generator.GetRandom<uint>(false) % 201) + 50;
                             }
 
                             return values;
@@ -432,7 +432,7 @@ namespace TestData {
                             var values = _generator.GetRandomArray<float>(false, 100, false);
 
                             for (var ii = 0; ii < values.Length; ii++) {
-                                values[ii] = (float)(((int)(_generator.GetRandom<uint>(false) % 201)) - 100);
+                                values[ii] = ((int)(_generator.GetRandom<uint>(false) % 201)) - 100;
                             }
 
                             return values;
@@ -448,7 +448,7 @@ namespace TestData {
                             var values = _generator.GetRandomArray<double>(false, 100, false);
 
                             for (var ii = 0; ii < values.Length; ii++) {
-                                values[ii] = (double)(((int)(_generator.GetRandom<uint>(false) % 201)) - 100);
+                                values[ii] = ((int)(_generator.GetRandom<uint>(false) % 201)) - 100;
                             }
 
                             return values;

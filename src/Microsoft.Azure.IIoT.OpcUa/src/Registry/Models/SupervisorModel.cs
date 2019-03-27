@@ -36,6 +36,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public byte[] Certificate { get; set; }
 
         /// <summary>
+        /// Current log level
+        /// </summary>
+        public SupervisorLogLevel? LogLevel { get; set; }
+
+        /// <summary>
         /// Whether the registration is out of sync between
         /// client (module) and server (service) (default: false).
         /// </summary>

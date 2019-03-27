@@ -14,16 +14,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public static class EndpointInfoModelEx {
 
         /// <summary>
-        /// Create unique endpoint id
-        /// </summary>
-        /// <param name="applicationId"></param>
-        /// <param name="endpoint"></param>
-        /// <returns></returns>
-        public static string CreateTwinId(string applicationId,
-            EndpointModel endpoint) => CreateEndpointId(applicationId,
-                endpoint.Url, endpoint.SecurityMode, endpoint.SecurityPolicy);
-
-        /// <summary>
         /// Create unique endpoint
         /// </summary>
         /// <param name="applicationId"></param>

@@ -41,8 +41,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         [Fact]
         public void GetTwinThatExists() {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
-            var id = EndpointInfoModelEx.CreateTwinId(endpoints.First().ApplicationId,
-                endpoints.First().Registration.Endpoint);
+            var first = endpoints.First();
+            var id = EndpointInfoModelEx.CreateEndpointId(first.ApplicationId,
+                first.Registration.EndpointUrl, first.Registration.Endpoint.SecurityMode,
+                first.Registration.Endpoint.SecurityPolicy);
 
             using (var mock = AutoMock.GetLoose()) {
                 mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
@@ -264,6 +266,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             devices = endpoints
                 .Select(a => {
+                    a.Registration.EndpointUrl = a.Registration.Endpoint.Url;
                     var r = EndpointRegistration.FromServiceModel(a);
                     var t = EndpointRegistration.Patch(null, r);
                     t.Properties.Reported = new Dictionary<string, JToken> {

@@ -14,13 +14,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Message contains discover requests
         /// </summary>
         public const string DiscoveryRequest =
-            "application/x-discovery-request-v1-json";
+            "application/x-discovery-request-v2-json";
 
         /// <summary>
         /// Message contains discovery events
         /// </summary>
         public const string DiscoveryEvent =
-            "application/x-discovery-event-v1-json";
+            "application/x-discovery-event-v2-json";
 
         /// <summary>
         /// Content is a nodeset

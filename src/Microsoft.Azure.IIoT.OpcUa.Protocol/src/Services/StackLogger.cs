@@ -63,10 +63,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void Tracing_TraceEventHandler(object sender, TraceEventArgs e) {
-            if (!string.IsNullOrEmpty(e.Format)) {
-                var traceName = ToLogLevel(e.TraceMask, out var level);
-                Logger.Write(level, e.Exception, traceName + ":" + e.Format,
-                    e.Arguments);
+            if (!string.IsNullOrEmpty(e.Format) &&
+                ShouldLog(e.TraceMask, out var level, out var traceName)) {
+                Logger.Write(level, e.Exception, $"({traceName}) {e.Format}", e.Arguments);
             }
         }
 
@@ -75,44 +74,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="traceMask"></param>
         /// <param name="level"></param>
+        /// <param name="name"></param>
         /// <returns></returns>
-        private static string ToLogLevel(int traceMask, out LogEventLevel level) {
+        private static bool ShouldLog(int traceMask, out LogEventLevel level, out string name) {
             switch (traceMask) {
                 case Utils.TraceMasks.Error:
                     level = LogEventLevel.Error;
-                    return nameof(Utils.TraceMasks.Error);
+                    name = nameof(Utils.TraceMasks.Error);
+                    break;
                 case Utils.TraceMasks.Information:
                     // level = LogLevel.Info; // TOO VERBOSE
                     level = LogEventLevel.Verbose;
-                    return nameof(Utils.TraceMasks.Information);
+                    name = nameof(Utils.TraceMasks.Information);
+                    break;
                 case Utils.TraceMasks.StartStop:
                     level = LogEventLevel.Information;
-                    return nameof(Utils.TraceMasks.StartStop);
+                    name = nameof(Utils.TraceMasks.StartStop);
+                    break;
                 case Utils.TraceMasks.Operation:
                     level = LogEventLevel.Debug;
-                    return nameof(Utils.TraceMasks.Operation);
+                    name = nameof(Utils.TraceMasks.Operation);
+                    break;
                 case Utils.TraceMasks.ExternalSystem:
                     level = LogEventLevel.Debug;
-                    return nameof(Utils.TraceMasks.ExternalSystem);
+                    name = nameof(Utils.TraceMasks.ExternalSystem);
+                    break;
                 case Utils.TraceMasks.StackTrace:
                     level = LogEventLevel.Verbose;
-                    return nameof(Utils.TraceMasks.Service);
+                    name = nameof(Utils.TraceMasks.Service);
+                    break;
                 case Utils.TraceMasks.Service:
                     level = LogEventLevel.Verbose;
-                    return nameof(Utils.TraceMasks.Service);
-                case Utils.TraceMasks.ServiceDetail:
-                    level = LogEventLevel.Verbose;
-                    return nameof(Utils.TraceMasks.ServiceDetail);
-                case Utils.TraceMasks.OperationDetail:
-                    level = LogEventLevel.Verbose;
-                    return nameof(Utils.TraceMasks.OperationDetail);
+                    name = nameof(Utils.TraceMasks.Service);
+                    break;
                 case Utils.TraceMasks.Security:
                     level = LogEventLevel.Verbose;
-                    return nameof(Utils.TraceMasks.Security);
+                    name = nameof(Utils.TraceMasks.Security);
+                    break;
+#if LOG_VERBOSE
+                case Utils.TraceMasks.ServiceDetail:
+                    level = LogEventLevel.Verbose;
+                    name = nameof(Utils.TraceMasks.ServiceDetail);
+                    break;
+                case Utils.TraceMasks.OperationDetail:
+                    level = LogEventLevel.Verbose;
+                    name = nameof(Utils.TraceMasks.OperationDetail);
+                    break;
+#endif
                 default:
                     level = LogEventLevel.Verbose;
-                    return "unknown";
+                    name = null;
+                    return false;
             }
+            return true;
         }
     }
 }
