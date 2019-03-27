@@ -137,7 +137,7 @@ namespace Swashbuckle.AspNetCore.Swagger {
                     }
                 }
                 options.RoutePrefix = "";
-                options.SwaggerEndpoint("v1/swagger.json", info.Version);
+                options.SwaggerEndpoint("v2/swagger.json", info.Version);
             });
         }
 

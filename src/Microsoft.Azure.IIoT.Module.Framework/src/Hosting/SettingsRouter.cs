@@ -110,42 +110,47 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="target"></param>
         private void AddToCallTable(object target) {
 
-            var version = target.GetType().GetCustomAttribute<VersionAttribute>(true)?.Numeric
-                ?? ulong.MaxValue;
-
-            var apply = target.GetType().GetMethod("ApplyAsync");
-            if (apply != null) {
-                if (apply.GetParameters().Length != 0 || apply.ReturnType != typeof(Task)) {
-                    apply = null;
-                }
+            var versions = target.GetType().GetCustomAttributes<VersionAttribute>(true)
+                .Select(v => v.Numeric)
+                .ToList();
+            if (versions.Count == 0) {
+                versions.Add(ulong.MaxValue);
             }
-
-            var controller = new Controller(target, version, apply, _logger);
-
-            foreach (var propInfo in target.GetType().GetProperties()) {
-                if (!propInfo.CanWrite || propInfo.GetIndexParameters().Length > 1) {
-                    // must be able to write
-                    continue;
-                }
-                var name = propInfo.Name.ToLowerInvariant();
-                var indexers = propInfo.GetIndexParameters();
-                var indexed = false;
-                if (indexers.Length == 1 && indexers[0].ParameterType == typeof(string)) {
-                    // save .net indexer as default
-                    if (name == "item") {
-                        name = kDefaultProp;
+            foreach (var version in versions) {
+                var apply = target.GetType().GetMethod("ApplyAsync");
+                if (apply != null) {
+                    if (apply.GetParameters().Length != 0 || apply.ReturnType != typeof(Task)) {
+                        apply = null;
                     }
-                    indexed = true;
                 }
-                else if (indexers.Length != 0) {
-                    // Unusable
-                    continue;
+
+                var controller = new Controller(target, version, apply, _logger);
+
+                foreach (var propInfo in target.GetType().GetProperties()) {
+                    if (!propInfo.CanWrite || propInfo.GetIndexParameters().Length > 1) {
+                        // must be able to write
+                        continue;
+                    }
+                    var name = propInfo.Name.ToLowerInvariant();
+                    var indexers = propInfo.GetIndexParameters();
+                    var indexed = false;
+                    if (indexers.Length == 1 && indexers[0].ParameterType == typeof(string)) {
+                        // save .net indexer as default
+                        if (name == "item") {
+                            name = kDefaultProp;
+                        }
+                        indexed = true;
+                    }
+                    else if (indexers.Length != 0) {
+                        // Unusable
+                        continue;
+                    }
+                    if (!_calltable.TryGetValue(name, out var invoker)) {
+                        invoker = new CascadingInvoker(_logger);
+                        _calltable.Add(name, invoker);
+                    }
+                    invoker.Add(controller, propInfo, indexed);
                 }
-                if (!_calltable.TryGetValue(name, out var invoker)) {
-                    invoker = new CascadingInvoker(_logger);
-                    _calltable.Add(name, invoker);
-                }
-                invoker.Add(controller, propInfo, indexed);
             }
         }
 

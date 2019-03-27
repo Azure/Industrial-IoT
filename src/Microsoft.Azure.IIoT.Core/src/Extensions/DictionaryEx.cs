@@ -46,7 +46,7 @@ namespace System.Collections.Generic {
         /// <returns></returns>
         public static bool DictionaryEqualsSafe<K, V>(this IDictionary<K, V> dict,
             IDictionary<K, V> that) {
-            return DictionaryEqualsSafe(dict, that, (v1, v2) => v1.EqualsSafe(v2));
+            return DictionaryEqualsSafe(dict, that, (x, y) => x.EqualsSafe(y));
         }
 
         /// <summary>

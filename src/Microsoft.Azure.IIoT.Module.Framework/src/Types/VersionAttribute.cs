@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
     /// <summary>
     /// Attribute to version a controller implementation
     /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class VersionAttribute : Attribute {
 
         /// <summary>

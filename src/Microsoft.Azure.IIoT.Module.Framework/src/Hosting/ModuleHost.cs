@@ -73,6 +73,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         }
                         catch (OperationCanceledException) { }
                         catch (IotHubCommunicationException) { }
+                        catch (DeviceNotFoundException) { }
                         catch (UnauthorizedException) { }
                         catch (Exception se) {
                             _logger.Error(se, "Module Host not cleanly disconnected.");

@@ -361,6 +361,42 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             Assert.Equal(expected, returned);
         }
 
+        [Theory]
+        [InlineData(0)]
+        [InlineData(19)]
+        [InlineData(1049)]
+        [InlineData(64 * 1024)]
+        [InlineData(95 * 1024)]
+        public void TestTest8InvocationV1NonChunked(int size) {
+            var router = GetRouter();
+            var expected = new byte[size];
+            r.NextBytes(expected);
+            var response = router.InvokeMethodAsync(new MethodRequest(
+                "Test8_V1", Encoding.UTF8.GetBytes(
+                    JsonConvertEx.SerializeObject(expected)))).Result;
+            var returned = JsonConvertEx.DeserializeObject<byte[]>(
+                response.ResultAsJson);
+            Assert.Equal(expected, returned);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(19)]
+        [InlineData(1049)]
+        [InlineData(64 * 1024)]
+        [InlineData(95 * 1024)]
+        public void TestTest8InvocationV2NonChunked(int size) {
+            var router = GetRouter();
+            var expected = new byte[size];
+            r.NextBytes(expected);
+            var response = router.InvokeMethodAsync(new MethodRequest(
+                "Test8_V2", Encoding.UTF8.GetBytes(
+                    JsonConvertEx.SerializeObject(expected)))).Result;
+            var returned = JsonConvertEx.DeserializeObject<byte[]>(
+                response.ResultAsJson);
+            Assert.Equal(expected, returned);
+        }
+
         [Fact]
         public void TestTest2InvocationNonChunkedFailsWithLargeBuffer() {
             var router = GetRouter();
@@ -387,6 +423,50 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             var expected = new byte[size];
             r.NextBytes(expected);
             var response = client.CallMethodAsync("test", "test", "Test2_V1",
+                Encoding.UTF8.GetBytes(JsonConvertEx.SerializeObject(expected)),
+                    null, null).Result;
+
+            var returned = JsonConvertEx.DeserializeObject<byte[]>(
+                Encoding.UTF8.GetString(response));
+            Assert.Equal(expected, returned);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(19)]
+        [InlineData(1049)]
+        [InlineData(128 * 1024)]
+        [InlineData(450000)]
+        [InlineData(129 * 1024)]
+        public void TestTest8InvocationV1Chunked(int size) {
+            var router = GetRouter();
+            var client = new ChunkMethodClient(new TestMethodClient(router),
+                Log.Logger);
+            var expected = new byte[size];
+            r.NextBytes(expected);
+            var response = client.CallMethodAsync("test", "test", "Test8_V1",
+                Encoding.UTF8.GetBytes(JsonConvertEx.SerializeObject(expected)),
+                    null, null).Result;
+
+            var returned = JsonConvertEx.DeserializeObject<byte[]>(
+                Encoding.UTF8.GetString(response));
+            Assert.Equal(expected, returned);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(19)]
+        [InlineData(1049)]
+        [InlineData(128 * 1024)]
+        [InlineData(450000)]
+        [InlineData(129 * 1024)]
+        public void TestTest8InvocationV2Chunked(int size) {
+            var router = GetRouter();
+            var client = new ChunkMethodClient(new TestMethodClient(router),
+                Log.Logger);
+            var expected = new byte[size];
+            r.NextBytes(expected);
+            var response = client.CallMethodAsync("test", "test", "Test8_V2",
                 Encoding.UTF8.GetBytes(JsonConvertEx.SerializeObject(expected)),
                     null, null).Result;
 
@@ -456,7 +536,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private static List<IMethodController> GetControllers() {
             return new List<IMethodController> {
                 new TestControllerV1(),
-                new TestControllerV2()
+                new TestControllerV2(),
+                new TestControllerV1And2()
             };
         }
 
@@ -533,6 +614,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     throw new ArgumentNullException(nameof(request));
                 }
                 return Task.FromResult(value);
+            }
+        }
+
+        [Version(1)]
+        [Version(2)]
+        public class TestControllerV1And2 : IMethodController {
+
+            public Task<byte[]> Test8Async(byte[] request) {
+                return Task.FromResult(request);
             }
         }
     }

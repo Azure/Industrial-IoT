@@ -89,7 +89,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// </summary>
         /// <param name="target"></param>
         private void AddToCallTable(object target) {
-            var version = target.GetType().GetCustomAttribute<VersionAttribute>(true);
+            var versions = target.GetType().GetCustomAttributes<VersionAttribute>(true)
+                .Select(v => "_v" + v.Value)
+                .ToList();
+            if (versions.Count == 0) {
+                versions.Add(string.Empty);
+            }
             foreach (var methodInfo in target.GetType().GetMethods()) {
                 if (!typeof(Task).IsAssignableFrom(methodInfo.ReturnType)) {
                     // must be assignable from task
@@ -106,21 +111,23 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     name = name.Substring(0, name.Length - 5);
                 }
                 name = name.ToLowerInvariant();
-                if (version != null) {
-                    name = name + "_v" + version.Value;
-                }
-                name = name.ToLowerInvariant();
-                if (!_calltable.TryGetValue(name, out var invoker)) {
-                    invoker = new DynamicInvoker(_logger);
-                    _calltable.Add(name, invoker);
-                }
-                if (invoker is DynamicInvoker dynamicInvoker) {
-                    dynamicInvoker.Add(target, methodInfo);
-                }
-                else {
-                    // Should never happen...
-                    throw new InvalidOperationException(
-                        $"Cannot add method {name} since invoker is private.");
+
+                // Register for all defined versions
+                foreach (var version in versions) {
+                    var versionedName = name + version;
+                    versionedName = versionedName.ToLowerInvariant();
+                    if (!_calltable.TryGetValue(versionedName, out var invoker)) {
+                        invoker = new DynamicInvoker(_logger);
+                        _calltable.Add(versionedName, invoker);
+                    }
+                    if (invoker is DynamicInvoker dynamicInvoker) {
+                        dynamicInvoker.Add(target, methodInfo);
+                    }
+                    else {
+                        // Should never happen...
+                        throw new InvalidOperationException(
+                            $"Cannot add {versionedName} since invoker is private.");
+                    }
                 }
             }
         }
