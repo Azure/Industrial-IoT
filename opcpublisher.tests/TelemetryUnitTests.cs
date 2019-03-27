@@ -109,7 +109,7 @@ namespace OpcPublisher
                 _output.WriteLine($"items configured {NodeConfiguration.NumberOfOpcMonitoredItemsConfigured}, monitored {NodeConfiguration.NumberOfOpcMonitoredItemsMonitored}, toRemove {NodeConfiguration.NumberOfOpcMonitoredItemsToRemove}");
                 _output.WriteLine($"waited {seconds} seconds till monitoring started, events generated {eventsReceived}");
                 hubClientMock.VerifySet(m => m.ProductInfo = "OpcPublisher");
-                Assert.True(eventsAfterDelay - eventsAtStart == 3);
+                Assert.Equal(3, eventsAfterDelay - eventsAtStart);
             }
             finally
             {
@@ -179,7 +179,7 @@ namespace OpcPublisher
                 _output.WriteLine($"items configured {NodeConfiguration.NumberOfOpcMonitoredItemsConfigured}, monitored {NodeConfiguration.NumberOfOpcMonitoredItemsMonitored}, toRemove {NodeConfiguration.NumberOfOpcMonitoredItemsToRemove}");
                 _output.WriteLine($"waited {seconds} seconds till monitoring started, events generated {eventsReceived}");
                 hubClientMock.VerifySet(m => m.ProductInfo = "OpcPublisher");
-                Assert.True(eventsAfterDelay - eventsAtStart == 1);
+                Assert.Equal(1, eventsAfterDelay - eventsAtStart);
             }
             finally
             {
