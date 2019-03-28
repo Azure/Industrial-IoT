@@ -13,6 +13,7 @@ while [ "$#" -gt 0 ]; do
         --image-name)                   MY_SUBPATH="$2" ;;
         --namespace)                    MY_ACRNAMESPACE="$2" ;;
         --tag)                          MY_IMAGETAG="$2" ;;
+        --tag-prefix)                   MY_IMAGETAGPREFIX="$2" ;;
         --include-arm)                  INCLUDE_ARM="$2" ;;
     esac
     shift
@@ -53,20 +54,20 @@ manifestFile="$MANIFESTFILENAMEBASE.latest.yaml"
 echo "image: $IMAGE:latest" > $manifestFile
 echo "manifests:" >> $manifestFile
 echo "  -" >> $manifestFile
-echo "    image: $IMAGE:linux-amd64" >> $manifestFile
+echo "    image: $IMAGE:${MY_IMAGETAGPREFIX}linux-amd64" >> $manifestFile
 echo "    platform:" >> $manifestFile
 echo "      architecture: amd64" >> $manifestFile
 echo "      os: linux" >> $manifestFile
 if [ ${INCLUDE_ARM} != "false" ]
 then
 echo "  -" >> $manifestFile
-echo "    image: $IMAGE:linux-arm32v7" >> $manifestFile
+echo "    image: $IMAGE:${MY_IMAGETAGPREFIX}linux-arm32v7" >> $manifestFile
 echo "    platform:" >> $manifestFile
 echo "      architecture: arm" >> $manifestFile
 echo "      os: linux" >> $manifestFile
 fi
 echo "  -" >> $manifestFile
-echo "    image: $IMAGE:windows-amd64" >> $manifestFile
+echo "    image: $IMAGE:${MY_IMAGETAGPREFIX}windows-amd64" >> $manifestFile
 echo "    platform:" >> $manifestFile
 echo "      architecture: amd64" >> $manifestFile
 echo "      os: windows" >> $manifestFile
@@ -102,20 +103,20 @@ ExtractSemanticVersion $MY_IMAGETAG
 echo "tags: [ '$majorVersion', '$majorMinorVersion' ]" >> $manifestFile
 echo "manifests:" >> $manifestFile
 echo "  -" >> $manifestFile
-echo "    image: $IMAGE:$MY_IMAGETAG-linux-amd64" >> $manifestFile
+echo "    image: $IMAGE:${MY_IMAGETAGPREFIX}linux-amd64" >> $manifestFile
 echo "    platform:" >> $manifestFile
 echo "      architecture: amd64" >> $manifestFile
 echo "      os: linux" >> $manifestFile
 if [ ${INCLUDE_ARM} != "false" ]
 then
 echo "  -" >> $manifestFile
-echo "    image: $IMAGE:$MY_IMAGETAG-linux-arm32v7" >> $manifestFile
+echo "    image: $IMAGE:${MY_IMAGETAGPREFIX}linux-arm32v7" >> $manifestFile
 echo "    platform:" >> $manifestFile
 echo "      architecture: arm" >> $manifestFile
 echo "      os: linux" >> $manifestFile
 fi
 echo "  -" >> $manifestFile
-echo "    image: $IMAGE:$MY_IMAGETAG-windows-amd64" >> $manifestFile
+echo "    image: $IMAGE:${MY_IMAGETAGPREFIX}windows-amd64" >> $manifestFile
 echo "    platform:" >> $manifestFile
 echo "      architecture: amd64" >> $manifestFile
 echo "      os: windows" >> $manifestFile

@@ -35,7 +35,7 @@ then
         echo "Using source tag for release: $source_tag"
         cr_latesttag="latest"
         cr_imagetag="${source_tag}"
-        cr_imagetagprefix="${source_tag}-"
+        cr_imagetagprefix=""
         cr_acrnamespace="public/"
     fi
 else
