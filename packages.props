@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
-    <CommonVersion>2.0.0</CommonVersion>
-    <ComponentsOpcUaVersion>2.0.0</ComponentsOpcUaVersion>
+    <CommonVersion>2.0.1</CommonVersion>
+    <ComponentsOpcUaVersion>2.0.1</ComponentsOpcUaVersion>
   </PropertyGroup>
   <PropertyGroup>
     <CommonPrereleaseVersion>$(CommonVersion)-*</CommonPrereleaseVersion>
