@@ -27,7 +27,7 @@ namespace OpcPublisher
         /// </summary>
         string PatternMatch(string stringToParse);
     }
-    
+
     public interface IPublisherTelemetryConfiguration
     {
         /// <summary>
