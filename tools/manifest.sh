@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 ignoredTags=("x.y.z" "a.b.c")
 #WINVERSION="10.0.17763.194"
