@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 ignoredTags=("x.y.z" "a.b.c")
 #WINVERSION="10.0.17763.194"
@@ -14,6 +14,7 @@ while [ "$#" -gt 0 ]; do
         --namespace)                    MY_ACRNAMESPACE="$2" ;;
         --tag)                          MY_IMAGETAG="$2" ;;
         --tag-prefix)                   MY_IMAGETAGPREFIX="$2" ;;
+        --tag-latest)                   MY_LATESTTAG="$2" ;;
         --include-arm)                  INCLUDE_ARM="$2" ;;
     esac
     shift
@@ -49,9 +50,9 @@ function ExtractSemanticVersion {
 
 # always process latest
 echo ""
-echo "Generating manifest for tag latest"
-manifestFile="$MANIFESTFILENAMEBASE.latest.yaml"
-echo "image: $IMAGE:latest" > $manifestFile
+echo "Generating manifest for tag ${MY_LATESTTAG}"
+manifestFile="$MANIFESTFILENAMEBASE.${MY_LATESTTAG}.yaml"
+echo "image: $IMAGE:${MY_LATESTTAG}" > $manifestFile
 echo "manifests:" >> $manifestFile
 echo "  -" >> $manifestFile
 echo "    image: $IMAGE:${MY_IMAGETAGPREFIX}linux-amd64" >> $manifestFile
@@ -81,7 +82,7 @@ echo ""
 echo "Push manifest to registry"
 ~/manifest-tool --username $MY_USERNAME --password $MY_PASSWORD push from-spec $manifestFile
 
-if [[ $MY_IMAGETAG = "latest" ]]; then
+if [[ $MY_IMAGETAG = $MY_LATESTTAG ]]; then
     echo "Only latest processing is required. Exiting..."
     exit
 fi

@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 source_tag=""
 if [ -e /usr/bin/git ]
@@ -23,7 +23,7 @@ echo "branch: $BUILD_SOURCEBRANCHNAME"
 if [ "$BUILD_SOURCEBRANCHNAME" == "master" ]
 then
     # image is a release image
-    echo "Building release image from master."
+    echo "Building release images from master."
     if [ -z "$source_tag" ]
     then
         echo "No source tag exists"
@@ -35,27 +35,27 @@ then
         echo "Using source tag for release: $source_tag"
         cr_latesttag="latest"
         cr_imagetag="${source_tag}"
-        cr_imagetagprefix=""
+        cr_imagetagprefix="${source_tag}-"
         cr_acrnamespace="public/"
     fi
 else
     if [ "$BUILD_SOURCEBRANCHNAME" == "develop" ]
     then
-        # Develop branch is prerelease branch
-        echo "Building pre-release images from develop."
+        # Develop branch is preview branch
+        echo "Building preview images from develop."
         if [ -z "$source_tag" ]
         then
             echo "No source tag exists"
-            cr_latesttag="prerelease"
-            cr_imagetag="prerelease"
-            cr_imagetagprefix="prerelease-"
-            # TODO cr_acrnamespace="public/"
+            cr_latesttag="preview"
+            cr_imagetag="preview"
+            cr_imagetagprefix="preview-"
+            cr_acrnamespace="public/"
         else
-            echo "Using source tag for pre-release: $source_tag"
-            cr_latesttag="${source_tag}-prerelease"
-            cr_imagetag="${source_tag}-prerelease"
-            cr_imagetagprefix="${source_tag}-prerelease-"
-            # TODO cr_acrnamespace="public/"
+            echo "Using source tag for preview: $source_tag"
+            cr_latesttag="${source_tag}-preview"
+            cr_imagetag="${source_tag}-preview"
+            cr_imagetagprefix="${source_tag}-preview-"
+            cr_acrnamespace="public/"
         fi
     else
         # image goes into the internal subtree
