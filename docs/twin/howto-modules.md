@@ -153,7 +153,13 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 
 1. Ensure you have the prerequisites for [deploying modules using Azure portal](#Deploying-from-Azure-Portal).
 
-2. Install the latest version of the [Azure command line interface (AZ)](https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest) from [here](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest).
+2. Install the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).  You must have at least `v2.0.24`, which you can verify with `az --version`.
+
+3. Add the [IoT Edge Extension](https://raw.githubusercontent.com/Azure/azure-iot-cli-extension/dev/README.md) with the following commands: 
+
+    ```bash
+    az extension add --name azure-cli-iot-ext
+    ```
 
 ### Quick start
 
@@ -186,7 +192,7 @@ For trouble shooting and debugging it is useful to run the Edge modules locally 
 
 2. Install [Docker CE (18.02.0+)](https://www.docker.com/community-edition) on [Windows](https://docs.docker.com/docker-for-windows/install/), [macOS](https://docs.docker.com/docker-for-mac/install/) or [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce).
 
-3. Install [Docker Compose (1.20.0+)](https://docs.docker.com/compose/install/#install-compose) (Only required for **Linux**. Compose has already been included in Windows/macOS Docker CE installation)
+3. Install [Docker Compose (1.20.0+)](https://docs.docker.com/compose/install/#install-compose) (Only required for **Linux**. Compose is included in Windows/macOS Docker CE installation)
 
 4. Install [Python (2.7/3.5+) and Pip](https://www.python.org/)
 
