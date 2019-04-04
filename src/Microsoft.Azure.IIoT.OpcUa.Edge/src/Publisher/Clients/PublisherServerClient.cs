@@ -27,22 +27,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
         /// <param name="client"></param>
         /// <param name="logger"></param>
         public PublisherServerClient(IEndpointServices client, ILogger logger) :
-            this(client, null, logger) {
+            this(client, new Uri($"opc.tcp://{Utils.GetHostName()}:62222/UA/Publisher"), 
+                logger) {
         }
 
         /// <summary>
         /// Create client service to control publisher
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="hostName"></param>
+        /// <param name="publisherUri"></param>
         /// <param name="logger"></param>
-        public PublisherServerClient(IEndpointServices client, string hostName,
+        public PublisherServerClient(IEndpointServices client, Uri publisherUri,
             ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            var host = hostName ?? Utils.GetHostName();
-            var publisherUri = new Uri($"opc.tcp://{host}:62222/UA/Publisher");
+            if (publisherUri == null) {
+                throw new ArgumentNullException(nameof(publisherUri));
+            }
             _endpoint = new EndpointModel { Url = publisherUri.ToString() };
         }
 

@@ -4,24 +4,26 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers {
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Serilog;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Net;
     using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Azure.IIoT.Net.Scanner;
-    using Autofac;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Newtonsoft.Json;
     using Opc.Ua;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using Autofac;
 
     /// <summary>
     /// Finds the best publisher server and creates a client
@@ -31,11 +33,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers {
         /// <summary>
         /// Create server
         /// </summary>
-        /// <param name="methods"></param>
-        /// <param name="client"></param>
         /// <param name="modules"></param>
-        /// <param name="discovery"></param>
         /// <param name="identity"></param>
+        /// <param name="methods"></param>
+        /// <param name="discovery"></param>
+        /// <param name="client"></param>
         /// <param name="logger"></param>
         public PublisherDiscovery(IModuleDiscovery modules, IIdentity identity,
             IJsonMethodClient methods, IEndpointDiscovery discovery, IEndpointServices client,
@@ -50,43 +52,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers {
 
         /// <inheritdoc/>
         public async Task<IPublisherClient> ConnectAsync() {
-            const string kPublisherName = "publisher";
+            const string kPublisherName = "opcpublisher";
             const int kPublisherPort = 62222;
+
             _logger.Information("Finding publisher to use as publish service...");
-            if (!string.IsNullOrEmpty(_identity.DeviceId)) {
+
+            var deviceId = _identity.DeviceId;
+            if (string.IsNullOrEmpty(deviceId)) {
+                // No identity at this point - look up from IoT Edge environment
+                deviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
+            }
+            if (!string.IsNullOrEmpty(deviceId)) {
+                _logger.Debug("Get all modules in current edge context.");
                 // Get modules
-                var modules = await _modules.GetModulesAsync(
-                    _identity.DeviceId);
+                var modules = await _modules.GetModulesAsync(deviceId);
                 var publisherModule = modules
                     .Where(m => m.Status.EqualsIgnoreCase("running"))
                     .FirstOrDefault(m =>
-                        m.ImageName?.Contains(kPublisherName) ?? false ||
+                        m.ImageName?.Contains("opc-publisher") ?? false ||
                         m.Id.EqualsIgnoreCase(kPublisherName));
+
+                if (publisherModule == null) {
+                    _logger.Warning("No publisher module running in edge context.");
+                }
+
                 // Have publisher module
                 var moduleId = publisherModule?.Id ?? kPublisherName;
-                var publisher = new PublisherMethodClient(_methods,
-                    _identity.DeviceId, moduleId, _logger);
-                if (await TestConnectivityAsync(publisher)) {
-                    _logger.Information("Using publisher module '{moduleId}' via methods.",
-                        moduleId);
+                _logger.Information("Testing publisher module {moduleId} using methods...",
+                    moduleId);
+                var publisher = new PublisherMethodClient(_methods, deviceId, moduleId, _logger);
+                var error = await TestConnectivityAsync(publisher);
+                if (error == null) {
+                    _logger.Information(
+                        "Success - using publisher module '{moduleId}' ({image}) via methods.",
+                        moduleId, publisherModule?.ImageName ?? "<unknown>");
                     return publisher;
                 }
-                // use opc ua server as fallback
+                _logger.Debug("Publisher module {moduleId} method call uncuccessful." +
+                    " Fallback to UA server...", moduleId, error);
             }
 
             // Try shortcut of finding it on localhost
             var cts = new CancellationTokenSource();
-            var localEndpoints = await _discovery.FindEndpointsAsync(
-                new Uri($"opc.tcp://{Utils.GetHostName()}:62222"), null, cts.Token);
-#if TEST_PNP_SCAN
-            localEndpoints = Enumerable.Empty<Protocol.Models.DiscoveredEndpointModel>();
-#endif
+            var uri = new Uri($"opc.tcp://{Utils.GetHostName()}:62222");
+            var localEndpoints = await _discovery.FindEndpointsAsync(uri, null, cts.Token);
             if (localEndpoints.Any()) {
-                var publisher = new PublisherServerClient(_client, Utils.GetHostName(), _logger);
-                if (await TestConnectivityAsync(publisher)) {
+#if !TEST_PNP_SCAN
+                var publisher = new PublisherServerClient(_client, uri, _logger);
+                var error = await TestConnectivityAsync(publisher);
+                if (error == null) {
                     _logger.Information("Using publisher server on localhost.");
                     return publisher;
                 }
+#endif
             }
 
             // Discover publishers in network - use fast scanning
@@ -117,26 +135,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers {
             }
 
             // We might have found a couple publishers - lets test them...
-            foreach (var module in publishers) {
-                _logger.Information("Testing publisher at address {module} in network.",
-                    module);
-                var endpoints = await _discovery.FindEndpointsAsync(
-                    new Uri("opc.tcp://" + module), null, CancellationToken.None);
+            foreach (var ep in publishers) {
+                var remoteEp = await ep.TryResolveAsync();
+                _logger.Information("Test publisher at address {remoteEp} in network.",
+                    remoteEp);
+                uri = new Uri("opc.tcp://" + remoteEp);
+                var endpoints = await _discovery.FindEndpointsAsync(uri, null,
+                    CancellationToken.None);
                 if (!endpoints.Any()) {
                     continue;
                 }
-                var publisher = new PublisherServerClient(_client, module.Address.ToString(),
-                    _logger);
-                if (await TestConnectivityAsync(publisher)) {
-                    _logger.Information("Using publisher server at address {module}.",
-                        module);
+                var publisher = new PublisherServerClient(_client, uri, _logger);
+                var error = await TestConnectivityAsync(publisher);
+                if (error == null) {
+                    _logger.Information("Using publisher server at address {remoteEp}.",
+                        remoteEp);
                     return publisher;
                 }
             }
 
-            // TODO Load publisher as side car service?
-            // ...
-
+            // TODO: Consider loading publisher as side car service?
+            // No publisher found - will try again later.
             return null;
         }
 
@@ -144,17 +163,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers {
         /// Test connectivity by listing and ensuring no exception happens.
         /// </summary>
         /// <returns></returns>
-        private async Task<bool> TestConnectivityAsync(IPublisherClient server) {
+        private async Task<ServiceResultModel> TestConnectivityAsync(IPublisherClient server) {
             try {
-                var test = Newtonsoft.Json.JsonConvertEx.SerializeObject(new GetNodesRequestModel {
+                var test = JsonConvertEx.SerializeObject(new GetNodesRequestModel {
                     EndpointUrl = "opc.tcp://test"
                 });
                 var (errorInfo, result) = await server.CallMethodAsync(
                     "GetConfiguredNodesOnEndpoint", test, null);
-                return errorInfo == null;
+                return errorInfo;
             }
             catch {
-                return false;
+                return null;
             }
         }
 

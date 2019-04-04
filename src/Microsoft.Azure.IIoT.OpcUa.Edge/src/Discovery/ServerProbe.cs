@@ -117,7 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                             _buffer[7] = (byte)((_size & 0xFF000000) >> 24);
                             arg.SetBuffer(_buffer, 0, _size);
                             _len = 0;
-                            _logger.Debug("Probe {index} : {ep} ({remoteEp})...", index, ep,
+                            _logger.Debug("Probe {index} : {ep} ({remoteEp})...", index, "opc.tcp://" + ep,
                                 _socket.RemoteEndPoint);
                             _state = State.SendHello;
                             if (!_socket.SendAsync(arg)) {
@@ -148,9 +148,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                             if (_len >= _size) {
                                 var type = BitConverter.ToUInt32(_buffer, 0);
                                 if (type != TcpMessageType.Acknowledge) {
-                                    _logger.Verbose("Probe {index} : {remoteEp} " +
-                                        "returned invalid message type {type}.",
-                                        index, _socket.RemoteEndPoint, type);
+                                    if (TcpMessageType.IsValid(type)) {
+                                        _logger.Debug("Probe {index} : {remoteEp} " +
+                                            "returned message type {type} != Ack.",
+                                            index, _socket.RemoteEndPoint, type);
+                                    }
+                                    else {
+                                        _logger.Verbose("Probe {index} : {remoteEp} " +
+                                            "returned invalid message type {type}.",
+                                            index, _socket.RemoteEndPoint, type);
+                                    }
                                     _state = State.BeginProbe;
                                     return true;
                                 }

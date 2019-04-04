@@ -10,6 +10,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
     using Microsoft.Azure.IIoT.Hub;
     using System;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Access the publisher module via its device method interface.
@@ -57,7 +59,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
                 return (null, response);
             }
             catch (Exception ex) {
-                return (new ServiceResultModel { ErrorMessage = ex.Message }, null);
+                return (new ServiceResultModel {
+                    ErrorMessage = ex.Message,
+                    Diagnostics = JToken.FromObject(ex,
+                        JsonSerializer.Create(JsonConvertEx.GetSettings()))
+                }, null);
             }
         }
 

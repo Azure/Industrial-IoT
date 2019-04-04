@@ -44,13 +44,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
                 throw new ArgumentNullException(nameof(server));
             }
             //
-            // Give it 5 seconds in which we are expecting StartAsync to be
-            // called. If it is not called within 5 seconds start is called 
+            // Give it 10 seconds in which we are expecting StartAsync to be
+            // called. If it is not called within 10 seconds start is called 
             // from timer thread. This allows startup to await publisher
             // finding without module processing begins and publish calls
             // initially fail.
             //
-            _pnp = new Timer(OnConnectTimer, null, 5000, Timeout.Infinite);
+            _pnp = new Timer(OnReconnectTimer, null, 10000, Timeout.Infinite);
         }
 
         /// <summary>
@@ -72,11 +72,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
         public async Task StartAsync() {
             await _lock.WaitAsync();
             try {
-                if (_client != null && _client != _publishUnsupported) {
-                    _logger.Error("Publish services already started.");
+                if (_client != null) {
+                    _logger.Error("Start called, but already publishing.");
                     return;
                 }
-                _client = await ConnectAsync();
+                // Start reconnect timer
+                _pnp?.Change(5000, Timeout.Infinite);
             }
             finally {
                 _lock.Release();
@@ -87,14 +88,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
         public async Task StopAsync() {
             await _lock.WaitAsync();
             try {
+                _pnp?.Change(Timeout.Infinite, Timeout.Infinite);
                 _retries = 0;
                 if (_client == null) {
                     _logger.Information("Publish services not started.");
                     return;
                 }
                 if (_client is IDisposable dispose) {
+                    _logger.Debug("Stop publishing - disconnect from publisher.");
                     dispose.Dispose();
-                    _logger.Debug("Disconnected from publisher.");
                 }
                 _client = null;
             }
@@ -237,16 +239,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
         }
 
         /// <summary>
-        /// Start services
+        /// Reconnect timer
         /// </summary>
         /// <param name="state"></param>
-        private void OnConnectTimer(object state) {
+        private void OnReconnectTimer(object state) {
             try {
-                _pnp.Change(Timeout.Infinite, Timeout.Infinite);
-                StartAsync().Wait();
+                ReconnectAsync().Wait();
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to start in connect timer callback.");
+                _logger.Error(ex, "Failed connecting to publisher - retry...");
                 Try.Op(() => _pnp.Change(10000, Timeout.Infinite));
             }
         }
@@ -255,37 +256,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
         /// Connect to server and schedule retries if connection failed.
         /// </summary>
         /// <returns></returns>
-        private async Task<IPublisherClient> ConnectAsync() {
-            System.Diagnostics.Debug.Assert(_lock.CurrentCount == 0);
-            IPublisherClient client = null;
+        private async Task ReconnectAsync() {
+            await _lock.WaitAsync();
             try {
-                _pnp?.Change(Timeout.Infinite, Timeout.Infinite);
-                _logger.Debug("Trying to connect to publisher...");
-                client = await _server.ConnectAsync();
-            }
-            catch (Exception ex) {
-                _logger.Error(ex, "Error during publisher discovery.");
-            }
-            if (client == null) {
-                _retries++;
-                client = _publishUnsupported;
-                if (_retries > kMaxRetries) {
-                    _logger.Information("No publisher found - Publish services not supported.");
+                if (_client != null && _client != _publishUnsupported) {
+                    _logger.Error("Publish services started.");
+                    return;
+                }
+                IPublisherClient client = null;
+                try {
+                    _pnp?.Change(Timeout.Infinite, Timeout.Infinite);
+                    _logger.Debug("Trying to connect to publisher...");
+                    client = await _server.ConnectAsync();
+                }
+                catch (Exception ex) {
+                    _logger.Error(ex, "Error during publisher discovery.");
+                }
+                if (client == null) {
+                    _retries++;
+                    client = _publishUnsupported;
+                    if (_retries > kMaxRetries) {
+                        _logger.Information("No publisher found - Publish services not supported.");
+                    }
+                    else {
+                        var delay = Retry.GetExponentialDelay(_retries, 40000, kMaxRetries);
+                        _logger.Information("No publisher found - retrying in {delay} ms...", delay);
+                        if (_pnp == null) {
+                            _pnp = new Timer(OnReconnectTimer);
+                        }
+                        _pnp.Change(delay, Timeout.Infinite);
+                    }
                 }
                 else {
-                    var delay = Retry.GetExponentialDelay(_retries, 40000, kMaxRetries);
-                    _logger.Information("No publisher found - retrying in {delay} ms...", delay);
-                    if (_pnp == null) {
-                        _pnp = new Timer(OnConnectTimer);
-                    }
-                    _pnp.Change(delay, Timeout.Infinite);
+                    _retries = 0;
+                    _logger.Information("Publisher connected!");
                 }
+                _client = client;
             }
-            else {
-                _retries = 0;
-                _logger.Information("Publisher connected!");
+            finally {
+                _lock.Release();
             }
-            return client;
         }
 
         /// <summary>
