@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace System {
+    using System.Net;
     using System.Web;
 
     /// <summary>
@@ -59,5 +60,48 @@ namespace System {
         /// <returns></returns>
         public static string UrlDecode(this string value) =>
             HttpUtility.UrlDecode(value);
+
+        /// <summary>
+        /// Parse uds uri
+        /// </summary>
+        /// <param name="fileUri"></param>
+        /// <param name="httpRequestUri"></param>
+        public static string ParseUdsPath(this Uri fileUri, out Uri httpRequestUri) {
+            var localPath = fileUri.LocalPath;
+            // Find socket
+            var builder = new UriBuilder(fileUri) {
+                Scheme = "https",
+                Host = Dns.GetHostName()
+            };
+            string fileDevice;
+            string pathAndQuery;
+            var index = localPath.IndexOf(".sock", StringComparison.InvariantCultureIgnoreCase);
+            if (index != -1) {
+                fileDevice = localPath.Substring(0, index + 5);
+                pathAndQuery = localPath.Substring(index + 5);
+            }
+            else {
+                // Find fake port delimiter
+                index = localPath.IndexOf(':');
+                if (index != -1) {
+                    fileDevice = localPath.Substring(0, index);
+                    pathAndQuery = localPath.Substring(index + 1);
+                }
+                else {
+                    builder.Path = "/";
+                    httpRequestUri = builder.Uri;
+                    return localPath.TrimEnd('/');
+                }
+            }
+
+            // Find first path character and strip off everything before...
+            index = pathAndQuery.IndexOf('/');
+            if (index > 0) {
+                pathAndQuery = pathAndQuery.Substring(index, pathAndQuery.Length - index);
+            }
+            builder.Path = pathAndQuery;
+            httpRequestUri = builder.Uri;
+            return fileDevice;
+        }
     }
 }

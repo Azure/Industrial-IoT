@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
-    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
     using Microsoft.Azure.Devices.Shared;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -44,36 +44,45 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             var deviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
             var moduleId = Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
             var ehubHost = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
-            try {
-                if (!string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
-                    _cs = IotHubConnectionStringBuilder.Create(config.EdgeHubConnectionString);
-                    if (string.IsNullOrEmpty(_cs.DeviceId)) {
-                        throw new InvalidConfigurationException(
-                            "Connection string is not a device or module connection string.");
+
+            if (string.IsNullOrEmpty(deviceId) ||
+                string.IsNullOrEmpty(moduleId)) {
+                try {
+                    if (!string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
+                        _cs = IotHubConnectionStringBuilder.Create(config.EdgeHubConnectionString);
+
+                        if (string.IsNullOrEmpty(_cs.SharedAccessKey)) {
+                            throw new InvalidConfigurationException(
+                                "Connection string is missing shared access key.");
+                        }
+                        if (string.IsNullOrEmpty(_cs.DeviceId)) {
+                            throw new InvalidConfigurationException(
+                                "Connection string is missing device id.");
+                        }
+
+                        deviceId = _cs.DeviceId;
+                        moduleId = _cs.ModuleId;
+                        ehubHost = _cs.GatewayHostName;
                     }
-                    deviceId = _cs.DeviceId;
-                    moduleId = _cs.ModuleId;
-                    ehubHost = _cs.GatewayHostName;
                 }
-                else if (string.IsNullOrEmpty(moduleId)) {
-                    throw new InvalidConfigurationException(
-                        "Must have connection string or module id to create clients.");
+                catch (Exception e) {
+                    _logger.Error(e, "Bad configuration value in EdgeHubConnectionString config.");
                 }
-            }
-            catch (Exception e) {
-                var ex = new InvalidConfigurationException(
-                    "The host configuration is incomplete and is missing a " +
-                    "connection string for Azure IoTEdge or IoTHub. " +
-                    "You either have to run the host under the control of " +
-                    "EdgeAgent, or manually set the 'EdgeHubConnectionString' " +
-                    "environment variable or configure the connection string " +
-                    "value in your 'appsettings.json' configuration file.", e);
-                _logger.Error(ex, "Bad configuration");
-                throw ex;
             }
 
             ModuleId = moduleId;
             DeviceId = deviceId;
+
+            if (string.IsNullOrEmpty(DeviceId)) {
+                var ex = new InvalidConfigurationException(
+                    "If you are running outside of an IoT Edge context or in EdgeHubDev mode, then the " +
+                    "host configuration is incomplete and missing the EdgeHubConnectionString setting." +
+                    "You can run the module using the command line interface or in IoT Edge context, or " +
+                    "manually set the 'EdgeHubConnectionString' environment variable.");
+
+                _logger.Error(ex, "The Twin module was not configured correctly.");
+                throw ex;
+            }
 
             _bypassCertValidation = config.BypassCertVerification;
             if (!_bypassCertValidation) {
@@ -145,12 +154,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <returns></returns>
         private Task<IClient> CreateAdapterAsync(string product, Action onError,
             ITransportSettings transportSetting = null) {
-            if (_cs != null && string.IsNullOrEmpty(_cs.ModuleId)) {
-                return DeviceClientAdapter.CreateAsync(product, _cs, transportSetting,
-                    _timeout, RetryPolicy, onError, _logger);
+            if (string.IsNullOrEmpty(ModuleId)) {
+                if (_cs == null) {
+                    throw new InvalidConfigurationException(
+                        "No connection string for device client specified.");
+                }
+                return DeviceClientAdapter.CreateAsync(product, _cs, DeviceId, 
+                    transportSetting, _timeout, RetryPolicy, onError, _logger);
             }
-            return ModuleClientAdapter.CreateAsync(product, _cs, transportSetting,
-                _timeout, RetryPolicy, onError, _logger);
+            return ModuleClientAdapter.CreateAsync(product, _cs, DeviceId, ModuleId,
+                transportSetting, _timeout, RetryPolicy, onError, _logger);
         }
 
         /// <summary>
@@ -177,6 +190,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// </summary>
             /// <param name="product"></param>
             /// <param name="cs"></param>
+            /// <param name="deviceId"></param>
+            /// <param name="moduleId"></param>
             /// <param name="transportSetting"></param>
             /// <param name="timeout"></param>
             /// <param name="retry"></param>
@@ -184,9 +199,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <param name="logger"></param>
             /// <returns></returns>
             public static async Task<IClient> CreateAsync(string product,
-                IotHubConnectionStringBuilder cs, ITransportSettings transportSetting,
+                IotHubConnectionStringBuilder cs, string deviceId, string moduleId,
+                ITransportSettings transportSetting,
                 TimeSpan timeout, IRetryPolicy retry, Action onConnectionLost,
                 ILogger logger) {
+
+                if (cs == null) {
+                    logger.Information("Running in iotedge production context.");
+                }
+                else {
+                    logger.Information("Running in iotedge development context.");
+                }
 
                 var client = await CreateAsync(cs, transportSetting);
                 var adapter = new ModuleClientAdapter(client);
@@ -195,7 +218,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
                 client.SetConnectionStatusChangesHandler((s, r) => {
                     logger.Information("Module {deviceId}_{moduleId} connection status " +
-                        "changed to {s} due to {r}.", cs.DeviceId, cs.ModuleId, s, r);
+                        "changed to {s} due to {r}.", deviceId, moduleId, s, r);
                     if (r == ConnectionStatusChangeReason.Client_Close && !adapter.IsClosed) {
                         adapter.IsClosed = true;
                         onConnectionLost?.Invoke();
@@ -329,6 +352,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// </summary>
             /// <param name="product"></param>
             /// <param name="cs"></param>
+            /// <param name="deviceId"></param>
             /// <param name="transportSetting"></param>
             /// <param name="timeout"></param>
             /// <param name="retry"></param>
@@ -336,9 +360,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <param name="logger"></param>
             /// <returns></returns>
             public static async Task<IClient> CreateAsync(string product,
-                IotHubConnectionStringBuilder cs, ITransportSettings transportSetting,
-                TimeSpan timeout, IRetryPolicy retry, Action onConnectionLost,
-                ILogger logger) {
+                IotHubConnectionStringBuilder cs, string deviceId,
+                ITransportSettings transportSetting, TimeSpan timeout, 
+                IRetryPolicy retry, Action onConnectionLost, ILogger logger) {
                 var client = Create(cs, transportSetting);
                 var adapter = new DeviceClientAdapter(client);
 
@@ -347,7 +371,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 client.SetConnectionStatusChangesHandler((s, r) => {
                     logger.Information(
                         "Device {deviceId} connection status changed to {s} due to {r}.",
-                        cs.DeviceId, s, r);
+                        deviceId, s, r);
 
                     if (r == ConnectionStatusChangeReason.Client_Close && !adapter.IsClosed) {
                         adapter.IsClosed = true;

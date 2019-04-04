@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <PackageLicenseUrl>$(RepositoryUrl)/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <NoWarn>NU5125</NoWarn>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>

@@ -27,31 +27,54 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// </summary>
         /// <param name="client"></param>
         /// <param name="logger"></param>
-        public EdgeletClient(IHttpClient client, ILogger logger) {
+        public EdgeletClient(IHttpClient client, ILogger logger) : this (client,
+            Environment.GetEnvironmentVariable("IOTEDGE_WORKLOADURI")?.TrimEnd('/'),
+            Environment.GetEnvironmentVariable("IOTEDGE_MODULEGENERATIONID"),
+            Environment.GetEnvironmentVariable("IOTEDGE_MODULEID"),
+            Environment.GetEnvironmentVariable("IOTEDGE_APIVERSION"), 
+            logger) {
+        }
+
+        /// <summary>
+        /// Create client
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="workloaduri"></param>
+        /// <param name="genId"></param>
+        /// <param name="moduleId"></param>
+        /// <param name="apiVersion"></param>
+        /// <param name="logger"></param>
+        public EdgeletClient(IHttpClient client, string workloaduri,
+            string genId, string moduleId, string apiVersion,
+            ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            _workloaduri = Environment.GetEnvironmentVariable(
-                "IOTEDGE_WORKLOADURI")?.TrimEnd('/');
-            _moduleGenerationId = Environment.GetEnvironmentVariable(
-                "IOTEDGE_MODULEGENERATIONID");
-            _moduleId = Environment.GetEnvironmentVariable(
-                "IOTEDGE_MODULEID");
-            _apiVersion = Environment.GetEnvironmentVariable(
-                "IOTEDGE_APIVERSION") ?? "2018-06-28";
+            _workloaduri = workloaduri; 
+            _moduleGenerationId = genId; 
+            _moduleId = moduleId; 
+            _apiVersion = apiVersion ?? "2019-01-30"; 
         }
 
         /// <inheritdoc/>
         public async Task<List<DiscoveredModuleModel>> GetModulesAsync(
             string deviceId) {
             if (!string.IsNullOrEmpty(_workloaduri)) {
-                var request = _client.NewRequest(_workloaduri +
-                    "/modules?api-version=" + _apiVersion);
+                var uri = _workloaduri + "/modules?api-version=" + _apiVersion;
+                _logger.Debug("Calling GET on {uri} uri...", uri);
+                var request = _client.NewRequest(uri);
                 var result = await Retry.WithExponentialBackoff(_logger, async () => {
                     var response = await _client.GetAsync(request);
+                    var payload = response.GetContentAsString();
+                    if (response.StatusCode == System.Net.HttpStatusCode.OK) {
+                        _logger.Debug("... returned {statusCode}.", response.StatusCode);
+                        _logger.Verbose("payload: {payload}.", payload);
+                    }
+                    else {
+                        _logger.Warning("... resulted in {statusCode} with error: {payload}.",
+                            response.StatusCode, payload);
+                    }
                     response.Validate();
-                    return JsonConvertEx.DeserializeObject<EdgeletModules>(
-                       response.GetContentAsString());
+                    return JsonConvertEx.DeserializeObject<EdgeletModules>(payload);
                 });
                 return result.Modules?.Select(m => new DiscoveredModuleModel {
                     Id = m.Name,
@@ -177,23 +200,45 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             [JsonProperty(PropertyName = "name")]
             public string Name { get; set; }
 
-            /// <summary> Module status </summary>
-            [JsonProperty(PropertyName = "status")]
-            public EdgeletModuleStatus Status { get; set; }
+            /// <summary> Module type </summary>
+            [JsonProperty(PropertyName = "type")]
+            public string Type { get; set; }
 
             /// <summary> Module config</summary>
             [JsonProperty(PropertyName = "config")]
             public EdgeletModuleConfig Config { get; set; }
+
+            /// <summary> Module status </summary>
+            [JsonProperty(PropertyName = "status")]
+            public EdgeletModuleStatus Status { get; set; }
         }
 
         /// <summary>
-        /// Module status
+        /// Module runtime status
         /// </summary>
         public class EdgeletModuleStatus {
 
-            /// <summary> Module status </summary>
+            /// <summary> Runtime status </summary>
             [JsonProperty(PropertyName = "runtimeStatus")]
             public EdgeletModuleRuntimeStatus RuntimeStatus { get; set; }
+
+            /// <summary> Exit status </summary>
+            [JsonProperty(PropertyName = "exitStatus")]
+            public EdgeletModuleExitStatus ExitStatus { get; set; }
+        }
+
+        /// <summary>
+        /// Module exit status
+        /// </summary>
+        public class EdgeletModuleExitStatus {
+
+            /// <summary> Exit status code </summary>
+            [JsonProperty(PropertyName = "statusCode")]
+            public string StatusCode { get; set; }
+
+            /// <summary> Exit time </summary>
+            [JsonProperty(PropertyName = "exitTime")]
+            public string ExitTime { get; set; }
         }
 
         /// <summary>
@@ -204,6 +249,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <summary> Module status </summary>
             [JsonProperty(PropertyName = "status")]
             public string Status { get; set; }
+
+            /// <summary> Module status description </summary>
+            [JsonProperty(PropertyName = "description")]
+            public string Description { get; set; }
         }
 
         /// <summary>
@@ -228,6 +277,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <summary> Image hash </summary>
             [JsonProperty(PropertyName = "imageHash")]
             public string ImageHash { get; set; }
+
+            /// <summary> Create Options </summary>
+            [JsonProperty(PropertyName = "createOptions")]
+            public JToken CreateOptions { get; set; }
         }
 
         private readonly IHttpClient _client;

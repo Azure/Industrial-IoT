@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace System.Net {
+    using System.Net.Sockets;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -16,10 +17,18 @@ namespace System.Net {
         /// IPEndPoint.  Otherwise return null.
         /// </summary>
         /// <param name="endpoint"></param>
+        /// <param name="preferv4"></param>
         /// <returns></returns>
-        public static IPAddress GetIPAddress(this EndPoint endpoint) {
+        public static IPAddress GetIPAddress(this EndPoint endpoint, 
+            bool preferv4 = false) {
             if (endpoint is IPEndPoint ipe) {
-                return ipe.Address;
+                var address = ipe.Address;
+                if (preferv4 && 
+                    address.AddressFamily == AddressFamily.InterNetworkV6 &&
+                    address.IsIPv4MappedToIPv6) {
+                    return address.MapToIPv4();
+                }
+                return address;
             }
             return null;
         }
@@ -71,7 +80,7 @@ namespace System.Net {
                 return endpoint.Resolve();
             }
             catch {
-                return $"{endpoint.GetIPAddress()}:{endpoint.GetPort()}";
+                return $"{endpoint.GetIPAddress(true)}:{endpoint.GetPort()}";
             }
         }
 
@@ -89,9 +98,8 @@ namespace System.Net {
                 return await endpoint.ResolveAsync();
             }
             catch {
-                return $"{endpoint.GetIPAddress()}:{endpoint.GetPort()}";
+                return $"{endpoint.GetIPAddress(true)}:{endpoint.GetPort()}";
             }
         }
-
     }
 }

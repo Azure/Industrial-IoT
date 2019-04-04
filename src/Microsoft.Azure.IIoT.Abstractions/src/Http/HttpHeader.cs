@@ -47,6 +47,11 @@ namespace Microsoft.Azure.IIoT.Http {
         public const string SourceId = "x-source";
 
         /// <summary>
+        /// Unix transport (internal)
+        /// </summary>
+        public const string UdsPath = "x-internal-uds-transport";
+
+        /// <summary>
         /// Forwarded path information
         /// </summary>
         public const string Location = "x-location";

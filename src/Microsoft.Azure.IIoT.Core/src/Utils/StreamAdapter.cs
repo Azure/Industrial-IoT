@@ -144,7 +144,10 @@ namespace Microsoft.Azure.IIoT.Utils {
         public virtual new void Dispose() =>
             _inner.Dispose();
 
-        private readonly Stream _inner;
+        /// <summary>
+        /// The inner stream
+        /// </summary>
+        protected readonly Stream _inner;
     }
 
 }
