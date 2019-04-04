@@ -49,13 +49,13 @@ else
             cr_latesttag="preview"
             cr_imagetag="preview"
             cr_imagetagprefix="preview-"
-            cr_acrnamespace="public/"
+            # TODO cr_acrnamespace="public/"
         else
             echo "Using source tag for preview: $source_tag"
             cr_latesttag="${source_tag}-preview"
             cr_imagetag="${source_tag}-preview"
             cr_imagetagprefix="${source_tag}-preview-"
-            cr_acrnamespace="public/"
+            # TODO cr_acrnamespace="public/"
         fi
     else
         # image goes into the internal subtree

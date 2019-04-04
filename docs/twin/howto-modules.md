@@ -46,7 +46,7 @@ All modules are deployed using a deployment manifest.  An example manifest to de
             "restartPolicy": "never",
             "settings": {
               "image": "mcr.microsoft.com/iotedge/opc-twin:latest",
-              "createOptions": "{\"HostConfig\": { \"NetworkMode\": \"host\", \"CapAdd\": [\"NET_ADMIN\"] } }"
+              "createOptions": "{\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\": \"host\",\"CapAdd\":[\"NET_ADMIN\"]}}"
             }
           },
           "opcpublisher": {
@@ -56,7 +56,7 @@ All modules are deployed using a deployment manifest.  An example manifest to de
             "restartPolicy": "never",
             "settings": {
               "image": "mcr.microsoft.com/iotedge/opc-publisher:latest",
-              "createOptions": "{\"Hostname\": \"publisher\", \"Cmd\": [ \"publisher\", \"--pf=./pn.json\", \"--di=60\", \"--to\", \"--aa\", \"--si=0\", \"--ms=0\" ], \"ExposedPorts\": { \"62222/tcp\": {} }, \"HostConfig\": { \"PortBindings\": { \"62222/tcp\": [{ \"HostPort\": \"62222\" }] } } }"
+              "createOptions": "{\"Hostname\":\"publisher\",\"Cmd\":[ \"publisher\",\"--pf=./pn.json\",\"--di=60\",\"--to\", \"--aa\",\"--si=0\",\"--ms=0\"],\"ExposedPorts\":{ \"62222/tcp\":{}},\"HostConfig\":{\"PortBindings\":{\"62222/tcp\":[{\"HostPort\":\"62222\" }]}}}"
             }
           }
         }
@@ -109,7 +109,7 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
    As *create options* use the following JSON:
 
    ```json
-   {"HostConfig":{"NetworkMode":"host","CapAdd":["NET_ADMIN"]}}
+   {"NetworkingConfig":{"EndpointsConfig":{"host":{}}},"HostConfig":{"NetworkMode":"host","CapAdd":["NET_ADMIN"]}}
    ```
 
    Fill out the optional fields if necessary. For more information about container create options, restart policy, and desired status see [EdgeAgent desired properties](https://docs.microsoft.com/en-us/azure/iot-edge/module-edgeagent-edgehub#edgeagent-desired-properties). For more information about the module twin see [Define or update desired properties](https://docs.microsoft.com/en-us/azure/iot-edge/module-composition#define-or-update-desired-properties).
@@ -155,7 +155,7 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 
 2. Install the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).  You must have at least `v2.0.24`, which you can verify with `az --version`.
 
-3. Add the [IoT Edge Extension](https://raw.githubusercontent.com/Azure/azure-iot-cli-extension/dev/README.md) with the following commands: 
+3. Add the [IoT Edge Extension](https://github.com/Azure/azure-iot-cli-extension/) with the following commands: 
 
     ```bash
     az extension add --name azure-cli-iot-ext
@@ -221,6 +221,8 @@ For trouble shooting and debugging it is useful to run the Edge modules locally 
     ```bash
     iotedgehubdev start -d deployment.json
     ```
+
+> Note: https://github.com/Azure/iotedgehubdev/issues/183 currently prevents you from specifying `"NetworkingMode""` as `"host"`. As a workaround, specify empty `"createOptions": {}` for the twin module until the issue has been addressed. 
 
 4. Stop the simulator using
 
