@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <CommonVersion>2.0.1</CommonVersion>
+    <CommonVersion>2.0.2</CommonVersion>
   </PropertyGroup>
   <PropertyGroup>
     <CommonPrereleaseVersion>$(CommonVersion)-*</CommonPrereleaseVersion>
