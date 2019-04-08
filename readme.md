@@ -20,7 +20,7 @@ The major components which come into play are:
 
 The complete architecture of Industrial IoT Components is shown below:
 
-![architecture](C:\Users\movarshn\Desktop\architecture.PNG)
+![architecture](media/architecture.PNG)
 
 
 
