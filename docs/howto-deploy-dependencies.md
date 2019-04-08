@@ -2,14 +2,28 @@
 
 This article explains how to deploy only the Azure Platform Services need to do local development and debugging.   At the end you will have a resource group deployed that contains everything you need for local development and debugging.
 
-## Deploy Azure Platform Services
+## Prerequisites
 
-1. Make sure you have PowerShell and [Azure PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps?view=azps-1.1.0) extensions installed (Linux support is coming soon).  Open a command prompt or terminal and run:
+> [!NOTE]
+> Note: Due the dependency on the AzureRM module, deployment currently is only supported on Windows.  We will add support for Linux soon.
+
+1. Make sure you have PowerShell and [Azure PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps?view=azps-1.1.0) extensions installed.  If not, first install PowerShell, then open PowerShell as Administrator and run
+
+   ```powershell
+   Install-Module -Name AzureRM -AllowClobber
+   Install-Module -Name AzureAD -AllowClobber
+   ```
+
+2. If you have not done so yet, clone this GitHub repository.  Open a command prompt or terminal and run:
 
    ```bash
-   git clone https://github.com/Azure/azure-iiot-components
+   git clone --recursive https://github.com/Azure/azure-iiot-components 
    cd azure-iiot-components
    ```
+
+## Deploy Azure Platform Services
+
+1. Open a command prompt or terminal in the repository root and run:
 
    ```bash
    deploy -type local
@@ -25,7 +39,7 @@ This article explains how to deploy only the Azure Platform Services need to do 
 
 Ensure you use a short and simple resource group name.  The name is used also to name resources as such it must comply with resource naming requirements.  
 
-### Azure Active Directory (AAD) Registration 
+### Azure Active Directory (AAD) Registration
 
 The deployment script tries to register AAD applications in Azure Active Directory.  Depending on your rights to the selected AAD tenant, this might fail.   There are 3 options:
 
@@ -39,4 +53,3 @@ Now that you have successfully deployed OPC Device Management services to an exi
 
 - [Run the Industrial IoT modules locally](howto-deploy-modules.md)
 - [Learn about the OPC Device Management dependencies](twin/dependencies.md)
-

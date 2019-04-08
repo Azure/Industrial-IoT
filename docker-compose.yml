@@ -147,12 +147,15 @@ services:
       - REACT_APP_PCS_WEBUI_AUTH_AAD_APPID
       - REACT_APP_PCS_WEBUI_AUTH_AAD_AUTHORITY
       - REACT_APP_PCS_WEBUI_AUTH_AAD_TENANT
-      - REACT_APP_PCS_TWIN_REGISTRY_URL=http://twinregistry:9042
-      - REACT_APP_PCS_TWIN_SERVICE_URL=http://twinservice:9041
+      - REACT_APP_PCS_TWIN_REGISTRY_URL=http://localhost:10080/registry
+      - REACT_APP_PCS_TWIN_SERVICE_URL=http://localhost:10080/twin
   twinmodule:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-twin:host-${IMAGE_VERSION:-latest}
     build: ./modules/opc-twin
     restart: always
+    network_mode: "${HOST_NETWORK:-host}"
+    cap_add:
+      - NET_ADMIN
     environment:
       - PCS_IOTHUB_CONNSTRING
   publishermodule:
@@ -160,6 +163,8 @@ services:
     build: 
       context: ./modules/opc-publisher
       dockerfile: ./docker/linux/amd64/Dockerfile
+    ports:
+      - "62222:62222"
     restart: always
     environment:
       - _HUB_CS
@@ -170,18 +175,24 @@ services:
     hostname: opcserver0
     restart: always
     command: --sample -p 51210
+    ports:
+      - "51210:51210"
   opcserver1:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-testing:${IMAGE_VERSION:-latest}
     build: ./components/opc-ua
     hostname: opcserver1
     restart: always
     command: --sample -p 51211
+    ports:
+      - "51211:51211"
   opcserver2:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-testing:${IMAGE_VERSION:-latest}
     build: ./components/opc-ua
     hostname: opcserver2
     restart: always
     command: --sample -p 51212
+    ports:
+      - "51212:51212"
   twinconsole:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-api:${IMAGE_VERSION:-latest}
     build: ./api

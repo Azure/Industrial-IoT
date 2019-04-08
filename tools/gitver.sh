@@ -1,4 +1,3 @@
-# this is the poor man's gitversion, which is not available on ARM
 
 echo "tags reported by git:"
 git tag

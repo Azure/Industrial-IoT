@@ -22,7 +22,7 @@ The OPC Twin service REST API uses OPC UA JSON reversible encoding as per standa
 
 2. In addition to the standard string encoding using a namespace index (e.g. `ns=4;i=3`) or the expanded format (e.g. `nsu=http://opcfoundation.org/UA/;i=3523`) the API supports and encourages the use of URI encoded Node Ids (see [RFC 3986](http://tools.ietf.org/html/rfc3986)).
 
-   ```
+   ```bash
    <namespace-uri>#<id-type>=<URL-encoded-id-value>
    ```
 
@@ -34,7 +34,7 @@ The OPC Twin service REST API uses OPC UA JSON reversible encoding as per standa
 
 3. Expanded Node Identifiers can also be encoded using the OPC UA defined syntax (e.g. `src=opc.tcp://test;nsu=http://opcfoundation.org/UA/;i=3523`).  However, all requests accept and responses return a URI encoded Expanded Node Id, which differs from the regular Node Id URI format only if a server URI is specified.  In this case the server URI is appended as 
 
-   ```
+   ```bash
    <namespace-uri>&srv=<URL-encoded-server-uri>#<id-type>=<URL-encoded-id-value>
    ```
 
@@ -51,4 +51,3 @@ While not always enforced, ensure you **URL encode** the id value or name of Qua
 - [Learn more about the OPC Twin module](module.md)
 - [Learn more about the overall Architecture](architecture.md)
 - [Explore the OPC Twin REST API](../api/twin/readme.md)
-

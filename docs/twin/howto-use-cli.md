@@ -10,7 +10,7 @@ You should have already successfully deployed all services and at least one IoT 
 
 2. [Deploy Industrial IoT Edge Modules](../howto-deploy-modules.md)
 
-To run the demo OPC UA server and the OPC Device Management Console Client you will also need Docker installed on your development PC.  If you have not, please follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or on [Windows](https://docs.docker.com/docker-for-windows/install/).   
+To run the demo OPC UA server and the OPC Device Management Console Client you will also need Docker installed on your development PC.  If you have not, please follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or on [Windows](https://docs.docker.com/docker-for-windows/install/).
 
 Also, make sure you have Git installed.  Otherwise follow the instructions for [Linux or Mac](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), or [Windows](https://gitforwindows.org/) to install it.
 
@@ -20,7 +20,7 @@ To make the demo deterministic we also start a demo OPC UA server.
 
 1. Open a terminal or command prompt and run
 
-   ```
+   ```bash
    hostname 
    ```
 
@@ -49,14 +49,14 @@ To make the demo deterministic we also start a demo OPC UA server.
 
 3. You will now see a prompt and be able to enter commands, e.g. type 
 
-   ```
+   ```bash
    > help
-   
+
    aziiotcli - Allows to script Industrial IoT Services api.
    usage:      aziiotcli command [options]
-   
+
    Commands and Options
-   
+
         console     Run in interactive mode. Enter commands after the >
         exit        Exit interactive mode and thus the cli.
         apps        Manage applications
@@ -66,25 +66,25 @@ To make the demo deterministic we also start a demo OPC UA server.
         status      Print service status
         help, -h, -? --help
                     Prints out this help.
-   
+
    >
    ```
 
 4. Test your connectivity with the services by running
 
-   ```
+   ```bash
    > status
    ```
 
    If you have deployed with authentication you should see an output like this:
 
-   ```
+   ```bash
    To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code ABCDEFG to authenticate.
    ```
 
    Follow the prompt to authenticate and you should see output similar to
 
-   ```
+   ```bash
    Connecting to https://opctwintest.azurewebsites.net/twin...
    ==================
    {
@@ -110,13 +110,13 @@ To make the demo deterministic we also start a demo OPC UA server.
 
 5. Next, make sure the IoT Edge Gateway with OPC Twin module is up and running by entering...
 
-   ```
+   ```bash
    > supervisors list
    ```
 
    You should see the OPC Twin Modules you deployed in the form of their supervisor identities, for example:
 
-   ```
+   ```bash
    ==================
    {
      "items": [
@@ -137,7 +137,7 @@ To make the demo deterministic we also start a demo OPC UA server.
 
 2. Enter..
 
-   ```
+   ```bash
    > apps add --url opc.tcp://<hostname>:50000 -a
    ```
 
@@ -145,13 +145,13 @@ To make the demo deterministic we also start a demo OPC UA server.
 
 3. Run
 
-   ```
+   ```bash
    > apps list
    ```
 
    a couple of times until the application is discovered and registered, which should happen within seconds.
 
-   ```
+   ```bash
    ==================
    {
      "items": [
@@ -182,17 +182,17 @@ To make the demo deterministic we also start a demo OPC UA server.
 
 ### Browse all root nodes of the activated endpoint
 
-1. Run 
+1. Run
 
-   ```
+   ```bash
    > apps get –i <applicationId>
    ```
 
    to see the application and its endpoints. Select one of the id under `endpoints` (endpointId).
 
-2. Run 
+2. Run
 
-   ```
+   ```bash
    > nodes browse –i <endpointId> 
    ```
 
@@ -204,7 +204,7 @@ To make the demo deterministic we also start a demo OPC UA server.
 
 Note the `applicationId` in `apps list` and remove the application and related twins by running:
 
-```
+```bash
 apps unregister -i <applicationId>
 ```
 
@@ -214,9 +214,9 @@ apps unregister -i <applicationId>
 
 1. On the console prompt, run `apps list` and `endpoints list`, the result should be empty lists, meaning that there are no applications registered. If you see applications or endpoints, follow the cleanup steps below.
 
-1. Run 
+1. Run
 
-   ```
+   ```bash
    > supervisors list
    ```
 
@@ -224,7 +224,7 @@ apps unregister -i <applicationId>
 
 1. Enable scanning in the supervisor by running 
 
-   ```
+   ```bash
    > supervisors update –d Fast -i <supervisorId> –a
    ```
 
@@ -234,7 +234,7 @@ apps unregister -i <applicationId>
 
 1. The discovery takes about a minute. Run 
 
-   ```
+   ```bash
    > apps list
    ```
 
@@ -246,13 +246,13 @@ You can now [browse one of the discovered endpoints](#Browse-all-root-nodes-of-t
 
 1. Note each applicationId in `apps list` and remove them by running
 
-   ```
+   ```bash
    > apps unregister -i <applicationId> 
    ```
 
    Disable scanning on the supervisor by running
 
-   ```
+   ```bash
    > supervisor update -d Off -i <supervisorId> 
    ```
 
@@ -262,4 +262,3 @@ Now that you are done, try to run your own OPC UA server in the same network as 
 
 - Learn how to write an application that reads and writes variable values on an OPC UA server
 - [Explore the OPC Device Management REST APIs](../api/readme.md)
-

@@ -48,9 +48,9 @@ if "%_history_up%" == "" goto :wait_up_0
 ping nowhere -w 5000 >nul 2>&1
 goto :eof
 
-rem 
+rem
 rem generate docs
-rem 
+rem
 :generate_docs
 if not exist %build_root%\docs\api mkdir %build_root%\docs\api
 pushd %build_root%\docs\api
@@ -70,19 +70,19 @@ docker pull swagger2markup/swagger2markup:latest
 set convert=docker run --rm --mount type=bind,source=%cd%,target=/opt swagger2markup/swagger2markup:latest convert
 
 if exist twin\security.md move twin\security.md twin\security_save.md
-%convert% -i http://%_hostname%:9041/v1/swagger.json -d /opt/twin -c /opt/config.properties
+%convert% -i http://%_hostname%:9041/v2/swagger.json -d /opt/twin -c /opt/config.properties
 if exist twin\security_save.md move twin\security_save.md twin\security.md
 if exist twin\paths.md type twin\paths.md >> twin\readme.md
 if exist twin\paths.md del /f twin\paths.md
 
 if exist registry\security.md move registry\security.md registry\security_save.md
-%convert% -i http://%_hostname%:9042/v1/swagger.json -d /opt/registry -c /opt/config.properties
+%convert% -i http://%_hostname%:9042/v2/swagger.json -d /opt/registry -c /opt/config.properties
 if exist registry\security_save.md move registry\security_save.md registry\security.md
 if exist registry\paths.md type registry\paths.md >> registry\readme.md
 if exist registry\paths.md del /f registry\paths.md
 
 if exist history\security.md move history\security.md history\security_save.md
-%convert% -i http://%_hostname%:9043/v1/swagger.json -d /opt/history -c /opt/config.properties
+%convert% -i http://%_hostname%:9043/v2/swagger.json -d /opt/history -c /opt/config.properties
 if exist history\security_save.md move history\security_save.md history\security.md
 if exist history\paths.md type history\paths.md >> history\readme.md
 if exist history\paths.md del /f history\paths.md
@@ -92,9 +92,9 @@ if exist config.properties del /f config.properties
 popd
 goto :eof
 
-rem 
+rem
 rem generate sdk
-rem 
+rem
 :generate_sdk
 docker pull azuresdk/autorest:latest
 if exist %build_root%\api\generated rmdir /s /q %build_root%\api\generated
@@ -103,15 +103,15 @@ pushd %build_root%\api\generated
 
 rem generate twin sdk
 copy %build_root%\docs\api\twin\autorest.md readme.md
-set args=--input-file=http://%_hostname%:9041/v1/swagger.json
+set args=--input-file=http://%_hostname%:9041/v2/swagger.json
 docker run --rm --mount type=bind,source=%cd%,target=/opt -w /opt azuresdk/autorest:latest %args%
 rem generate registry sdk
 copy %build_root%\docs\api\registry\autorest.md readme.md
-set args=--input-file=http://%_hostname%:9042/v1/swagger.json
+set args=--input-file=http://%_hostname%:9042/v2/swagger.json
 docker run --rm --mount type=bind,source=%cd%,target=/opt -w /opt azuresdk/autorest:latest %args%
 rem generate history sdk
 copy %build_root%\docs\api\history\autorest.md readme.md
-set args=--input-file=http://%_hostname%:9042/v1/swagger.json
+set args=--input-file=http://%_hostname%:9042/v2/swagger.json
 docker run --rm --mount type=bind,source=%cd%,target=/opt -w /opt azuresdk/autorest:latest %args%
 
 set args=
@@ -122,9 +122,9 @@ goto :eof
 :retrieve_spec
 if not exist %build_root%\swagger mkdir %build_root%\swagger
 pushd %build_root%\swagger
-curl -o twin.json http://%_hostname%:9041/v1/swagger.json
-curl -o registry.json http://%_hostname%:9042/v1/swagger.json
-curl -o history.json http://%_hostname%:9043/v1/swagger.json
+curl -o twin.json http://%_hostname%:9041/v2/swagger.json
+curl -o registry.json http://%_hostname%:9042/v2/swagger.json
+curl -o history.json http://%_hostname%:9043/v2/swagger.json
 popd
 goto :eof
 
@@ -132,9 +132,9 @@ goto :eof
 @rem Main
 @rem
 :main
-pushd %build_root% 
+pushd %build_root%
 rem start services
-echo Rebuilding...	
+echo Rebuilding...
 docker-compose build --no-cache > %TMP%\sdk_build.log 2>&1
 if not !ERRORLEVEL! == 0 type %TMP%\sdk_build.log && goto :done
 

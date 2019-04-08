@@ -8,5 +8,5 @@ set current-path=%~dp0
 rem // remove trailing slash
 set current-path=%current-path:~0,-1%
 pushd %current-path%\services\deploy
-powershell ./deploy.ps1 %* -containerRegistryPrefix marcschier/azure-iiot-
+powershell ./deploy.ps1 %*
 popd
