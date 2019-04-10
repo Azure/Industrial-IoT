@@ -1,28 +1,17 @@
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments
 
-# Table of Contents
-* [OPC Publisher](https://github.com/Azure/iot-edge-opc-publisher#opc-publisher)
-* [Building the application](https://github.com/Azure/iot-edge-opc-publisher#building-the-application)
-* [Configuring the telemetry published to IoTHub](https://github.com/Azure/iot-edge-opc-publisher#configuring-the-telemetry-to-iot-hub)
-* [Running the application](https://github.com/Azure/iot-edge-opc-publisher#running-the-application)
-* [Debugging the application](https://github.com/Azure/iot-edge-opc-publisher#debugging-the-application)
-* [Controlling the application remotely](https://github.com/Azure/iot-edge-opc-publisher#controlling-the-application-remotely)
-* [Simulate OPC UA server](https://github.com/Azure/iot-edge-opc-publisher#simulate-opc-ua-server)
-* [Learn More](https://github.com/Azure/iot-edge-opc-publisher#learn-more)
-
-
 # OPC Publisher
-This reference implementation demonstrates how to connect to existing OPC UA servers and publish JSON encoded telemetry data from these servers in OPC UA "Pub/Sub" format (using a JSON payload) to Azure IoT Hub. All transport protocols supported by Azure IoT Hub client SDK can be used, i.e., HTTPS, AMQP and MQTT.
+This reference implementation demonstrates how to connect to existing OPC UA servers and publishes JSON encoded telemetry data from these servers in OPC UA "Pub/Sub" format (using a JSON payload) to Azure IoT Hub. All transport protocols supported by the Azure IoTHub client SDK can be used, i.e. HTTPS, AMQP and MQTT.
 
-This application includes OPC UA *client* for connecting to existing OPC UA servers (in the network). Additionally, it includes an OPC UA *server* on port 62222 which can be used to manage which data values of the node gets published. OPC Publisher offers IoT Hub direct methods to do the same.
+This application, apart from including an OPC UA *client* for connecting to existing OPC UA servers you have on your network, also includes an OPC UA *server* on port 62222 that can be used to manage what gets published and offers IoTHub direct methods to do the same.
 
 The application is implemented using .NET Core technology and is able to run on the platforms supported by .NET Core.
 
 OPC Publisher implements a retry logic to establish connections to endpoints which have not responded to a certain number of keep alive requests, for example if the OPC UA server on this endpoint had a power outage.
 
-For each distinct publishing interval to an OPC UA server, it creates a separate subscription over which all nodes with this publishing interval are updated.
+For each distinct publishing interval to an OPC UA server it creates a separate subscription over which all nodes with this publishing interval are updated.
 
-OPC Publisher supports batching of the data sent to IoT Hub,in order to reduce network load. Batching means to send a packet to IoT Hub only if the configured package size is reached.
+OPC Publisher supports batching of the data sent to IoTHub, to reduce network load. This batching is sending a packet to IoTHub only if the configured package size is reached.
 
 This application uses the OPC Foundations's OPC UA reference stack as nuget packages and therefore licensing of their nuget packages apply. Visit https://opcfoundation.org/license/redistributables/1.3/ for the licensing terms.
 
@@ -38,8 +27,7 @@ Open the opcpublisher.sln project with Visual Studio 2017 and build the solution
 
 ## As Docker container
 
-There are different configuration files (Dockerfile or Dockerfile.Windows) to use for building the container, depending on if you use Docker Linux or Docker Windows containers.
-
+Depending if you use Docker Linux or Docker Windows containers, there are different configuration files (Dockerfile or Dockerfile.Windows) to use for building the container.
 From the root of the repository, in a console, type:
 
     docker build -f <docker-configfile-to-use> -t <your-container-name> .
@@ -71,7 +59,7 @@ An example for the format of the configuration file is:
           }
         ]
 
-If you want to publish node values even if they have not changed after a certain amount of time (static node values regularly), then you can add the `HeartbeatInterval` key to a node configuration. This specifies a value in seconds
+If you want to publish node values even they have not changed after a certain amount of time (with this you can also publish static node values regularily), then you can add the `HeartbeatInterval` key to a node configuration. This specifies a value in seconds
  where the last value should be resent, even it has not changed:
 
                 "HeartbeatInterval": 3600,
@@ -86,7 +74,6 @@ Both configurations settings can be enabled for all nodes in your configuration 
 ### Configuration via OPC UA method calls
 OPC Publisher has an OPC UA Server integrated, which can be accessed on port 62222. If the hostname is `publisher`, then the URI of the endpoint is: `opc.tcp://publisher:62222/UA/Publisher`
 This endpoint exposes five methods:
-
   - PublishNode
   - UnpublishNode
   - GetPublishedNodes
@@ -110,14 +97,14 @@ The format of the JSON payload of the method request and responses are defined i
 If you call a unknown method on the module, it responds with a string, saying the method is not implemented. This can be used to ping the module.
 
 
-# Configuring the telemetry published to IoT Hub
-When OPC Publisher gets notified about a value change in one of the configured published nodes, it generates a JSON formatted message, which is sent to IoT Hub.
+# Configuring the telemetry published to IoTHub
+When OPC Publisher gets notified about a value change in one of the configured published nodes, it generates a JSON formatted message, which is sent to IoTHub.
 The content of this JSON formatted message can be configured via a configuration file. If no configuration file is specified via the `--tc` option a default configuration is used,
 which is compatible with the [Connected factory Preconfigured Solution](https://github.com/Azure/azure-iot-connected-factory).
 
 If OPC Publisher is configured to batch messages, then they are sent as a valid JSON array.
 
-The ingested data is taken from three sources:
+The data which is ingested is taken from three sources:
 * the OPC Publisher node configuration for the node
 * the MonitoredItem object of the OPC UA stack for which OPC Publisher got a notification
 * the argument passed to this notification, which provides details on the data value change
@@ -132,7 +119,7 @@ The syntax of the configuration file is as follows:
         // Both objects are optional and if they are not specified, then publisher uses
         // its internal default configuration, which generates telemetry messages compatible
         // with the Microsoft Connected factory Preconfigured Solution (https://github.com/Azure/azure-iot-connected-factory).
-    
+
         // A JSON telemetry message for Connected factory looks like:
         //  {
         //      "NodeId": "i=2058",
@@ -143,7 +130,7 @@ The syntax of the configuration file is as follows:
         //          "SourceTimestamp": "2017-11-10T14:03:17Z"
         //      }
         //  }
-    
+
         // The 'Defaults' object in the sample below, are similar to what publisher is
         // using as its internal default telemetry configuration.
         {
@@ -151,13 +138,13 @@ The syntax of the configuration file is as follows:
                 // The first two properties ('EndpointUrl' and 'NodeId' are configuring data
                 // taken from the OpcPublisher node configuration.
                 "EndpointUrl": {
-    
+
                     // The following three properties can be used to configure the 'EndpointUrl'
                     // property in the JSON message send by publisher to IoTHub.
-    
+
                     // Publish controls if the property should be part of the JSON message at all.
                     "Publish": false,
-    
+
                     // Pattern is a regular expression, which is applied to the actual value of the
                     // property (here 'EndpointUrl').
                     // If this key is ommited (which is the default), then no regex matching is done
@@ -176,28 +163,28 @@ The syntax of the configuration file is as follows:
                     // "Pattern": "(i)=(.*)"
                     // defined for Defaults.NodeId.Pattern, will generate for the above sample
                     // a 'NodeId' value of 'i2058' to be sent by publisher
-    
+
                     // Name allows you to use a shorter string as property name in the JSON message
                     // sent by publisher. By default the property name is unchanged and will be
                     // here 'EndpointUrl'.
                     // The 'Name' property can only be set in the 'Defaults' object to ensure
                     // all messages from publisher sent to IoTHub have a similar layout.
                     "Name": "EndpointUrl"
-    
+
                 },
                 "NodeId": {
                     "Publish": true,
-    
+
                     // If you set Defaults.NodeId.Name to "ni", then the "NodeId" key/value pair
                     // (from the above example) will change to:
                     //      "ni": "i=2058",
                     "Name": "NodeId"
                 },
-    
+
                 // The MonitoredItem object is configuring the data taken from the MonitoredItem
                 // OPC UA object for published nodes.
                 "MonitoredItem": {
-    
+
                     // If you set the Defaults.MonitoredItem.Flat to 'false', then a
                     // 'MonitoredItem' object will appear, which contains 'ApplicationUri'
                     // and 'DisplayNode' proerties:
@@ -210,7 +197,7 @@ The syntax of the configuration file is as follows:
                     // 'Value' objects of the 'Defaults' object and will be used
                     // for all JSON messages sent by publisher.
                     "Flat": true,
-    
+
                     "ApplicationUri": {
                         "Publish": true,
                         "Name": "ApplicationUri"
@@ -233,7 +220,7 @@ The syntax of the configuration file is as follows:
                     // objects of the 'Defaults' object and will be used for all
                     // messages sent by publisher.
                     "Flat": false,
-    
+
                     "Value": {
                         "Publish": true,
                         "Name": "Value"
@@ -255,7 +242,7 @@ The syntax of the configuration file is as follows:
                     }
                 }
             },
-    
+
             // The next object allows to configure 'Publish' and 'Pattern' for specific
             // endpoint URLs. Those will overwrite the ones specified in the 'Defaults' object
             // or the defaults used by publisher.
@@ -322,29 +309,29 @@ The complete usage of the application can be shown using the `--help` command li
         Current directory is: /appdata
         Log file is: <hostname>-publisher.log
         Log level is: info
-    
+
         OPC Publisher V2.3.0
         Informational version: V2.3.0+Branch.develop_hans_methodlog.Sha.0985e54f01a0b0d7f143b1248936022ea5d749f9
-    
+
         Usage: opcpublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
-    
+
         OPC Edge Publisher to subscribe to configured OPC UA servers and send telemetry to Azure IoTHub.
         To exit the application, just press CTRL-C while it is running.
-    
+
         applicationname: the OPC UA application name to use, required
                          The application name is also used to register the publisher under this name in the
                          IoTHub device registry.
-    
+
         iothubconnectionstring: the IoTHub owner connectionstring, optional
-    
+
         There are a couple of environment variables which can be used to control the application:
         _HUB_CS: sets the IoTHub owner connectionstring
         _GW_LOGP: sets the filename of the log file to use
         _TPC_SP: sets the path to store certificates of trusted stations
         _GW_PNFP: sets the filename of the publishing configuration file
-    
+
         Command line arguments overrule environment variable settings.
-    
+
         Options:
               --pf, --publishfile=VALUE
                                      the filename to configure the nodes to publish.
@@ -630,8 +617,8 @@ The complete usage of the application can be shown using the `--help` command li
 
 
 
-Typically you specify the IoT Hub owner *connectionstring* only on the first start of the application. The *connectionstring* will be encrypted and stored in the platforms certificate store.
-On subsequent calls it will be read from there and re-used. If you specify the *connectionstring* on each start, the device which is created for the application in the IoT Hub device registry will be removed and recreated each time.
+Typically you specify the IoTHub owner connectionstring only on the first start of the application. The connectionstring will be encrypted and stored in the platforms certificiate store.
+On subsequent calls it will be read from there and reused. If you specify the connectionstring on each start, the device which is created for the application in the IoTHub device registry will be removed and recreated each time.
 
 
 ## Native on Windows
@@ -654,7 +641,7 @@ Check [docker Hub](https://hub.docker.com/_/microsoft-iotedge-opc-publisher) to 
 The right container for your OS and CPU architecture (if supported) will be automatically selected and used.
 
 ## Using it as a module in Azure IoT Edge
-OPC Publisher is ready to be used as a module to run in [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge) which is Microsoft's Intelligent Edge framework.
+OPC Publisher is ready to be used as a module to run in [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge) Microsoft's Intelligent Edge framework.
 We recommend to take a look on the information available on the beforementioned link and use then the information provided here. When using
 OPC Publisher as IoT Edge module only Amqp_Tcp_Only and Mqtt_Tcp_Only are supported as transport protocols.
 
@@ -845,7 +832,7 @@ Here are some measurements with different values for `--si` and `--ms` parameter
 OPC Publisher was used as debug build on Windows 10 natively for 120 seconds. The IoTHub protocol was the default MQTT protocol.
 
 #### Default configuration (--si 10 --ms 262144)
-
+ 
         ==========================================================================
         OpcPublisher status @ 26.10.2017 15:33:05 (started @ 26.10.2017 15:31:09)
         ---------------------------------
@@ -1001,16 +988,11 @@ In addition to this is implements a direct method to exit the application.
 In the following github repos there are tools to [configure the nodes to publish](https://github.com/Azure-Samples/iot-edge-opc-publisher-nodeconfiguration) 
 and [read the diagnostic information](https://github.com/Azure-Samples/iot-edge-opc-publisher-diagnostics). Both tools are also available as containers in Docker Hub.
 
-# Simulate OPC UA server
+# As OPC UA server to start
 
 If you do not have a real OPC UA server, you can use this [sample OPC UA PLC](https://github.com/Azure-Samples/iot-edge-opc-plc) to start. This sample PLC is also available on Docker Hub.
 
 It implements a couple of tags, which generate random data and tags with anomalies and can be extended easily if you need to simulate any tag values.
-
-
-# Learn More
-- [Explore OPC Twin module repository](https://github.com/Azure/azure-iiot-opc-twin-module) and for more info about OPC Twin check [here](https://github.com/Azure/azure-iiot-components/tree/master/docs/twin/readme.md)
-- [Explore API repository](https://github.com/Azure/azure-iiot-services-api) and for more info about APIs check [here](https://github.com/Azure/azure-iiot-components/tree/master/docs/api/readme.md)
 
 
 
