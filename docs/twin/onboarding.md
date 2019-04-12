@@ -1,6 +1,6 @@
 # OPC Onboarding Agent
 
-The Onboarding agent receives discovery events from the OPC Twin module (supervisor) as a result of a scan.  The events are processed, and the agent creates IoT Hub Device Twins for each OPC UA application’s endpoint using the IoT Hub Device Twin Registry.  The onboarding micro service is an event processor host.  It can be scaled to the number of event hub partitioned of IoT Hub.
+The OPC Onboarding agent receives discovery events from the OPC Twin module (supervisor) as a result of a scan.  The events are processed, and the agent creates IoT Hub Device Twins for each OPC UA application’s endpoint using the IoT Hub Device Twin Registry.  The onboarding Microservice is an event processor host.  It can be scaled to the number of event hub partitioned of IoT Hub.
 
 When receiving new scan results it performs the following tasks:
 

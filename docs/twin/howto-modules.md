@@ -253,5 +253,5 @@ For trouble shooting and debugging it is useful to run the Edge modules locally 
 
 ## Next steps
 
-- [Deploy and monitor OPC UA Device Management modules at scale](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-monitor)
+- [Deploy and monitor Edge modules at scale](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-monitor)
 - [Learn more about Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge)

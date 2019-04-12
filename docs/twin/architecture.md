@@ -1,6 +1,6 @@
-# OPC UA Device Management Architecture
+# OPC Twin Architecture
 
-The following diagrams illustrate the OPC UA Device Management architecture and how its components interact.
+The following diagrams illustrate the OPC Twin architecture and how its components interact.
 
 ## Discovery and Activation
 
@@ -8,20 +8,20 @@ The following diagrams illustrate the OPC UA Device Management architecture and 
 
    ![How OPC Twin works](media/twin1.png)
 
-1. The operator inspects the certificate of the discovered endpoint and activates the registered endpoint twin for access using the Activation REST API of the [OPC Registry Micro service](registry.md).​ 
+1. The operator inspects the certificate of the discovered endpoint and activates the registered endpoint twin for access using the Activation REST API of the [OPC Registry Microservice](registry.md).​ 
 
    ![How OPC Twin works](media/twin2.png)
 
 ## Interact with a Server Endpoint
 
-1. Once activated, the operator can use the [OPC Twin service](twin.md) REST API to browse or inspect the server information model, read/write object variables and call methods.  The API expects the Azure IoT Hub identity of one of the registered Server endpoints.  
+1. Once activated, the operator can use the [OPC Twin Microservice](twin.md) REST API to browse or inspect the server information model, read/write object variables and call methods.  The API expects the Azure IoT Hub identity of one of the registered Server endpoints.  
 
    ![How OPC Twin works](media/twin3.png)
 
-1. The [OPC Twin service](twin.md) REST interface can also be used to create monitored items and subscriptions inside the OPC Publisher module. The OPC Publisher sends variable changes and events in the OPC UA server as telemetry to Azure IoT Hub. For more information about OPC Publisher, see the [OPC Publisher](https://github.com/Azure/iot-edge-opc-publisher) repository on GitHub. 
+1. The [OPC Twin Microservice](twin.md) REST interface can also be used to create monitored items and subscriptions inside the OPC Publisher module. The OPC Publisher sends variable changes and events in the OPC UA server as telemetry to Azure IoT Hub. For more information about OPC Publisher, see the [OPC Publisher](https://github.com/Azure/iot-edge-opc-publisher) repository on GitHub. 
 
    ![How OPC Twin works](media/twin4.png)
 
 ## Next steps
 
-- [Deploy OPC Device Management to Azure](../howto-deploy-services-md)
+- [Deploy OPC Twin Microservices to Azure](../howto-deploy-microservices-md)
