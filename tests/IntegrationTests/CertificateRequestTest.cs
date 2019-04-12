@@ -4,13 +4,7 @@
 // ------------------------------------------------------------
 
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using Microsoft.Azure.IIoT.Auth.Clients;
-using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.Exceptions;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
@@ -18,6 +12,12 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Types;
 using Microsoft.Extensions.Configuration;
 using Opc.Ua.Test;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using TestCaseOrdering;
 using Xunit;
 using Xunit.Abstractions;
@@ -29,12 +29,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
     {
         private readonly IClientConfig _clientConfig = new ClientConfig();
         private readonly IDocumentDBRepository _documentDBRepository;
-        private ServicesConfig _serviceConfig = new ServicesConfig();
-        private IConfigurationRoot _configuration;
+        private readonly ServicesConfig _serviceConfig = new ServicesConfig();
         private readonly string _configId;
         private readonly string _groupId;
-        private KeyVaultCertificateGroup _keyVaultCertificateGroup;
-        public TraceLogger Logger = new TraceLogger(new LogConfig());
+        private readonly KeyVaultCertificateGroup _keyVaultCertificateGroup;
+        private readonly ILogger _logger;
         public IApplicationsDatabase ApplicationsDatabase;
         public ICertificateGroup CertificateGroup;
         public ICertificateRequest CertificateRequest;
@@ -53,24 +52,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                 .AddJsonFile("testsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile("testsettings.Development.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables();
-            _configuration = builder.Build();
-            _configuration.Bind("OpcVault", _serviceConfig);
-            _configuration.Bind("Auth", _clientConfig);
+            IConfigurationRoot configuration = builder.Build();
+            configuration.Bind("OpcVault", _serviceConfig);
+            configuration.Bind("Auth", _clientConfig);
+            _logger = SerilogTestLogger.Create<CertificateRequestTestFixture>();
             if (!InvalidConfiguration())
             {
                 _documentDBRepository = new OpcVaultDocumentDbRepository(_serviceConfig);
-                ApplicationsDatabase = CosmosDBApplicationsDatabaseFactory.Create(null, _serviceConfig, _documentDBRepository, Logger);
+                ApplicationsDatabase = CosmosDBApplicationsDatabaseFactory.Create(null, _serviceConfig, _documentDBRepository, _logger);
 
                 var timeid = (DateTime.UtcNow.ToFileTimeUtc() / 1000) % 10000;
                 _groupId = "CertReqIssuerCA" + timeid.ToString();
                 _configId = "CertReqConfig" + timeid.ToString();
-                var keyVaultServiceClient = KeyVaultServiceClient.Get(_configId, _serviceConfig, _clientConfig, Logger);
-                _keyVaultCertificateGroup = new KeyVaultCertificateGroup(keyVaultServiceClient, _serviceConfig, _clientConfig, Logger);
+                var keyVaultServiceClient = KeyVaultServiceClient.Get(_configId, _serviceConfig, _clientConfig, _logger);
+                _keyVaultCertificateGroup = new KeyVaultCertificateGroup(keyVaultServiceClient, _serviceConfig, _clientConfig, _logger);
                 _keyVaultCertificateGroup.PurgeAsync(_configId, _groupId).Wait();
                 CertificateGroup = _keyVaultCertificateGroup;
-                CertificateGroup = new KeyVaultCertificateGroup(keyVaultServiceClient, _serviceConfig, _clientConfig, Logger);
+                CertificateGroup = new KeyVaultCertificateGroup(keyVaultServiceClient, _serviceConfig, _clientConfig, _logger);
                 CertificateGroup.CreateCertificateGroupConfiguration(_groupId, "CN=OPC Vault Cert Request Test CA, O=Microsoft, OU=Azure IoT", null).Wait();
-                CertificateRequest = CosmosDBCertificateRequestFactory.Create(ApplicationsDatabase, CertificateGroup, _serviceConfig, _documentDBRepository, Logger);
+                CertificateRequest = CosmosDBCertificateRequestFactory.Create(ApplicationsDatabase, CertificateGroup, _serviceConfig, _documentDBRepository, _logger);
 
                 // create test set
                 ApplicationTestSet = new List<ApplicationTestData>();
@@ -115,7 +115,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
     public class CertificateRequestTest : IClassFixture<CertificateRequestTestFixture>
     {
         CertificateRequestTestFixture _fixture;
-        private TraceLogger _logger;
+        private ILogger _logger;
         private IApplicationsDatabase _applicationsDatabase;
         private ICertificateGroup _certificateGroup;
         private ICertificateRequest _certificateRequest;
@@ -125,10 +125,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         public CertificateRequestTest(CertificateRequestTestFixture fixture, ITestOutputHelper log)
         {
             _fixture = fixture;
-            _log = log;
             // fixture
             fixture.SkipOnInvalidConfiguration();
-            _logger = fixture.Logger;
+            _logger = SerilogTestLogger.Create<CertificateRequestTest>(log);
             _applicationsDatabase = fixture.ApplicationsDatabase;
             _certificateGroup = fixture.CertificateGroup;
             _certificateRequest = fixture.CertificateRequest;
@@ -142,6 +141,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(100)]
         private async Task CleanupAllApplications()
         {
+            _logger.Information("Cleanup All Applications");
             foreach (var application in _applicationTestSet)
             {
                 var applicationModelList = await _applicationsDatabase.ListApplicationAsync(application.Model.ApplicationUri);
@@ -678,9 +678,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                 }
             }
         }
-
-        /// <summary>The test logger</summary>
-        private readonly ITestOutputHelper _log;
     }
 
 

@@ -22,6 +22,7 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.TokenStorage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Serilog;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App
 {
@@ -193,6 +194,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App
             // for each request, which is good to reduce the risk of memory
             // leaks, but not so good for the overall performance.
             // Register configuration interfaces
+
+            // register the serilog logger
+            builder.RegisterInstance(Log.Logger).As<ILogger>();
 
             return builder.Build();
         }

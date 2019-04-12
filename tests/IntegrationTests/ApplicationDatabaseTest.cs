@@ -4,18 +4,18 @@
 // ------------------------------------------------------------
 
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 using Microsoft.Azure.IIoT.Auth.Clients;
-using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.Exceptions;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Types;
 using Microsoft.Extensions.Configuration;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using TestCaseOrdering;
 using Xunit;
 using Xunit.Abstractions;
@@ -27,12 +27,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
     {
         private readonly IClientConfig _clientConfig = new ClientConfig();
         private readonly IDocumentDBRepository _documentDBRepository;
+        private readonly ILogger _logger;
         private ServicesConfig _serviceConfig = new ServicesConfig();
         private IConfigurationRoot _configuration;
-        public TraceLogger _logger = new TraceLogger(new LogConfig());
-        public IApplicationsDatabase _applicationsDatabase;
-        public IList<ApplicationTestData> _applicationTestSet;
-        public ApplicationTestDataGenerator _randomGenerator;
+        public IApplicationsDatabase ApplicationsDatabase;
+        public IList<ApplicationTestData> ApplicationTestSet;
+        public ApplicationTestDataGenerator RandomGenerator;
         public bool RegistrationOk;
 
         const int _randomStart = 3388;
@@ -48,20 +48,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
             _configuration = builder.Build();
             _configuration.Bind("OpcVault", _serviceConfig);
             _configuration.Bind("Auth", _clientConfig);
+            _logger = SerilogTestLogger.Create<ApplicationDatabaseTestFixture>();
             if (!InvalidConfiguration())
             {
-                _randomGenerator = new ApplicationTestDataGenerator(_randomStart);
+                RandomGenerator = new ApplicationTestDataGenerator(_randomStart);
                 _documentDBRepository = new OpcVaultDocumentDbRepository(_serviceConfig);
-                _applicationsDatabase = CosmosDBApplicationsDatabaseFactory.Create(null, _serviceConfig, _documentDBRepository, _logger);
+                ApplicationsDatabase = CosmosDBApplicationsDatabaseFactory.Create(null, _serviceConfig, _documentDBRepository, _logger);
                 // create test set
-                _applicationTestSet = new List<ApplicationTestData>();
+                ApplicationTestSet = new List<ApplicationTestData>();
                 for (int i = 0; i < _testSetSize; i++)
                 {
-                    var randomApp = _randomGenerator.RandomApplicationTestData();
-                    _applicationTestSet.Add(randomApp);
+                    var randomApp = RandomGenerator.RandomApplicationTestData();
+                    ApplicationTestSet.Add(randomApp);
                 }
                 // try initialize DB
-                _applicationsDatabase.Initialize().Wait();
+                ApplicationsDatabase.Initialize().Wait();
             }
             RegistrationOk = false;
         }
@@ -90,21 +91,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
     [TestCaseOrderer("TestCaseOrdering.PriorityOrderer", "Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test")]
     public class ApplicationDatabaseTest : IClassFixture<ApplicationDatabaseTestFixture>
     {
-        ITestOutputHelper _log;
-        ApplicationDatabaseTestFixture _fixture;
-        TraceLogger _logger;
-        IApplicationsDatabase _applicationsDatabase;
-        IList<ApplicationTestData> _applicationTestSet;
+        private readonly ApplicationDatabaseTestFixture _fixture;
+        private readonly ILogger _logger;
+        private readonly IApplicationsDatabase _applicationsDatabase;
+        private readonly IList<ApplicationTestData> _applicationTestSet;
 
         public ApplicationDatabaseTest(ApplicationDatabaseTestFixture fixture, ITestOutputHelper log)
         {
             _fixture = fixture;
-            _log = log;
             // fixture
             _fixture.SkipOnInvalidConfiguration();
-            _logger = fixture._logger;
-            _applicationsDatabase = fixture._applicationsDatabase;
-            _applicationTestSet = fixture._applicationTestSet;
+            _logger = SerilogTestLogger.Create<ApplicationDatabaseTest>(log);
+            _applicationsDatabase = fixture.ApplicationsDatabase;
+            _applicationTestSet = fixture.ApplicationTestSet;
         }
 
         /// <summary>
@@ -135,6 +134,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(100)]
         private async Task CleanupAllApplications()
         {
+            _logger.Information("Cleanup All Applications");
             foreach (var application in _applicationTestSet)
             {
                 var applicationModelList = await _applicationsDatabase.ListApplicationAsync(application.Model.ApplicationUri);

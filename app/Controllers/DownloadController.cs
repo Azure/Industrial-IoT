@@ -14,6 +14,7 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.TokenStorage;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Utils;
 using Microsoft.Rest;
+using Serilog;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
 {
@@ -24,15 +25,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         private readonly OpcVaultApiOptions _opcVaultOptions;
         private readonly AzureADOptions _azureADOptions;
         private readonly ITokenCacheService _tokenCacheService;
+        private readonly ILogger _log;
 
         public DownloadController(
             OpcVaultApiOptions opcVaultOptions,
             AzureADOptions azureADOptions,
-            ITokenCacheService tokenCacheService)
+            ITokenCacheService tokenCacheService,
+            ILogger log)
         {
             _opcVaultOptions = opcVaultOptions;
             _azureADOptions = azureADOptions;
             _tokenCacheService = tokenCacheService;
+            _log = log;
         }
 
         [ActionName("Details")]
@@ -65,6 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             }
             catch (Exception ex)
             {
+                _log.Error(ex, "Failed to approve certificate request.");
                 string errorMessage =
                 "Failed to approve certificate request." +
                 "Message: " + ex.Message;
@@ -83,6 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             }
             catch (Exception ex)
             {
+                _log.Error(ex, "Failed to reject certificate request.");
                 string errorMessage =
                 "Failed to reject certificate request." +
                 "Message: " + ex.Message;
@@ -101,6 +107,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
             }
             catch (Exception ex)
             {
+                _log.Error(ex, "Failed to accept certificate request.");
                 string errorMessage =
                 "Failed to accept certificate request." +
                 "Message: " + ex.Message;

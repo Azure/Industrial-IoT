@@ -1,11 +1,11 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for
 // license information.
 //
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging;
+using Serilog;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -22,14 +22,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.TokenStorage
         /// Initializes a new instance of <see cref="Tailspin.Surveys.TokenStorage.DistributedTokenCacheService"/>
         /// </summary>
         /// <param name="contextAccessor">An instance of <see cref="Microsoft.AspNetCore.Http.IHttpContextAccessor"/> used to get access to the current HTTP context.</param>
-        /// <param name="loggerFactory"><see cref="Microsoft.Extensions.Logging.ILoggerFactory"/> used to create type-specific <see cref="Microsoft.Extensions.Logging.ILogger"/> instances.</param>
+        /// <param name="logger">A <see cref="Serilog.ILogger"/> instance.</param>
         /// <param name="dataProtectionProvider">An <see cref="Microsoft.AspNetCore.DataProtection.IDataProtectionProvider"/> for creating a data protector.</param>
         public DistributedTokenCacheService(
             IDistributedCache distributedCache,
             IHttpContextAccessor contextAccessor,
-            ILoggerFactory loggerFactory,
+            ILogger logger,
             IDataProtectionProvider dataProtectionProvider)
-            : base(loggerFactory)
+            : base(logger)
         {
             _distributedCache = distributedCache;
             _contextAccessor = contextAccessor;
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.TokenStorage
         {
             if (_cache == null)
             {
-                _cache = new DistributedTokenCache(claimsPrincipal, _distributedCache, _loggerFactory, _dataProtectionProvider);
+                _cache = new DistributedTokenCache(claimsPrincipal, _distributedCache, _logger, _dataProtectionProvider);
             }
 
             return Task.FromResult(_cache);

@@ -5,18 +5,18 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
+    using Autofac;
+    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
+    using Serilog;
     using System;
     using System.Threading.Tasks;
-    using Autofac;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
 
     public class WarmStartDatabase : IStartable
     {
-        IDocumentDBRepository _repository;
-        ICertificateRequest _certificateRequest;
-        IApplicationsDatabase _applicationDatabase;
-        ILogger _logger;
+        private readonly IDocumentDBRepository _repository;
+        private readonly ICertificateRequest _certificateRequest;
+        private readonly IApplicationsDatabase _applicationDatabase;
+        private readonly ILogger _logger;
 
         public WarmStartDatabase(
             IDocumentDBRepository repository,
@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                     await _repository.CreateRepositoryIfNotExistsAsync();
                     await _applicationDatabase.Initialize();
                     await _certificateRequest.Initialize();
-                    _logger.Info("Database warm start successful.");
+                    _logger.Information("Database warm start successful.");
                 }
                 catch (Exception ex)
                 {

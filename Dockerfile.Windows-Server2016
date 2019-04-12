@@ -1,8 +1,8 @@
-FROM microsoft/dotnet:2.1-aspnetcore-runtime-nanoserver-sac2016 AS base
+FROM microsoft/dotnet:2.2-aspnetcore-runtime-nanoserver-sac2016 AS base
 WORKDIR /app
 EXPOSE 80
 
-FROM microsoft/dotnet:2.1-sdk-nanoserver-sac2016 AS build
+FROM microsoft/dotnet:2.2-sdk-nanoserver-sac2016 AS build
 WORKDIR /src
 COPY src/Microsoft.Azure.IIoT.OpcUa.Services.Vault.csproj src/
 COPY NuGet.Config NuGet.Config

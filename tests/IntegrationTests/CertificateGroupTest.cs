@@ -4,13 +4,7 @@
 // ------------------------------------------------------------
 
 
-using System;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using Microsoft.Azure.IIoT.Auth.Clients;
-using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.Exceptions;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
@@ -18,6 +12,12 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Configuration;
 using Opc.Ua;
+using Serilog;
+using System;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using TestCaseOrdering;
 using Xunit;
 using Xunit.Abstractions;
@@ -27,10 +27,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
 
     public class CertificateGroupTestFixture : IDisposable
     {
-        IConfigurationRoot _configuration;
-        ServicesConfig _serviceConfig = new ServicesConfig();
-        IClientConfig _clientConfig = new ClientConfig();
-        TraceLogger _logger = new TraceLogger(new LogConfig());
+        private readonly ServicesConfig _serviceConfig = new ServicesConfig();
+        private readonly IClientConfig _clientConfig = new ClientConfig();
+        private readonly ILogger _logger;
         public ApplicationTestDataGenerator RandomGenerator;
         public KeyVaultCertificateGroup KeyVault;
         public bool KeyVaultInitOk;
@@ -47,13 +46,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                 .AddJsonFile("testsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile("testsettings.Development.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables();
-            _configuration = builder.Build();
-            _configuration.Bind("OpcVault", _serviceConfig);
-            _configuration.Bind("Auth", _clientConfig);
+            IConfigurationRoot configuration = builder.Build();
+            configuration.Bind("OpcVault", _serviceConfig);
+            configuration.Bind("Auth", _clientConfig);
+            _logger = SerilogTestLogger.Create<CertificateGroupTestFixture>();
             if (!InvalidConfiguration())
             {
                 RandomGenerator = new ApplicationTestDataGenerator();
-
                 var timeid = (DateTime.UtcNow.ToFileTimeUtc() / 1000) % 10000;
                 GroupId = "GroupTestIssuerCA" + timeid.ToString();
                 ConfigId = "GroupTestConfig" + timeid.ToString();
@@ -88,12 +87,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
     [TestCaseOrderer("TestCaseOrdering.PriorityOrderer", "Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test")]
     public class CertificateGroupTest : IClassFixture<CertificateGroupTestFixture>
     {
-        CertificateGroupTestFixture _fixture;
-        KeyVaultCertificateGroup _keyVault;
+        private readonly CertificateGroupTestFixture _fixture;
+        private readonly KeyVaultCertificateGroup _keyVault;
+        private readonly ILogger _logger;
 
         public CertificateGroupTest(CertificateGroupTestFixture fixture, ITestOutputHelper log)
         {
-            _log = log;
+            _logger = SerilogTestLogger.Create<CertificateGroupTest>(log);
             _fixture = fixture;
             _keyVault = _fixture.KeyVault;
             _fixture.SkipOnInvalidConfiguration();
@@ -105,6 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
         [SkippableFact, Trait(Constants.Type, Constants.UnitTest), TestPriority(1)]
         public async Task KeyVaultInit()
         {
+            _logger.Information("Initializing KeyVault");
             await _keyVault.Init();
             _fixture.KeyVaultInitOk = true;
         }
@@ -469,7 +470,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                     // invalid parameter test
                     await Assert.ThrowsAsync<ResourceNotFoundException>(async () =>
                     {
-                        await _keyVault.GetIssuerCACrlChainAsync(group, cert.Thumbprint+"a");
+                        await _keyVault.GetIssuerCACrlChainAsync(group, cert.Thumbprint + "a");
                     });
                     await Assert.ThrowsAsync<ResourceNotFoundException>(async () =>
                     {
@@ -591,9 +592,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
                 }
             }
         }
-
-        /// <summary>The test logger</summary>
-        private readonly ITestOutputHelper _log;
     }
 
 

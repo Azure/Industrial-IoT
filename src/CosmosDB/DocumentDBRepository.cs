@@ -6,14 +6,14 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
 {
+    using Microsoft.Azure.Documents;
+    using Microsoft.Azure.Documents.Client;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Security;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Documents;
-    using Microsoft.Azure.Documents.Client;
-    using Newtonsoft.Json;
 
     public class DocumentDBRepository : IDocumentDBRepository
     {
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB
                 {
                     new Newtonsoft.Json.Converters.StringEnumConverter()
                     {
-                        CamelCaseText = false,
+                        NamingStrategy = null,
                         AllowIntegerValues = true
                     }
                 }

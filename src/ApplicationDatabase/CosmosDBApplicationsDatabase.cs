@@ -3,6 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+using Autofac;
+using Microsoft.Azure.Documents;
+using Microsoft.Azure.IIoT.Exceptions;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
+using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Types;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,15 +19,6 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Autofac;
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.IIoT.Diagnostics;
-using Microsoft.Azure.IIoT.Exceptions;
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
-using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Types;
 using ApplicationsDatabaseBase = Opc.Ua.Gds.Server.Database.ApplicationsDatabaseBase;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             _scope = scope;
             _autoApprove = config.ApplicationsAutoApprove;
             _log = logger;
-            _log.Debug("Creating new instance of `CosmosDBApplicationsDatabase` service " + config.CosmosDBCollection, () => { });
+            _log.Debug("Creating new instance of `CosmosDBApplicationsDatabase` service " + config.CosmosDBCollection);
             // set unique key in CosmosDB for application ID 
             db.UniqueKeyPolicy.UniqueKeys.Add(new UniqueKey { Paths = new Collection<string> { "/" + nameof(Application.ClassType), "/" + nameof(Application.ID) } });
             _applications = new DocumentDBCollection<Application>(db, config.CosmosDBCollection);
@@ -581,7 +581,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 bool first = true;
                 foreach (QueryApplicationState state in Enum.GetValues(typeof(QueryApplicationState)))
                 {
-                    if (state == 0) continue;
+                    if (state == 0)
+                    {
+                        continue;
+                    }
+
                     if ((queryState & state) == state)
                     {
                         var sqlParm = "@" + state.ToString().ToLower();

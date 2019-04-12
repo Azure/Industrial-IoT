@@ -4,21 +4,20 @@
 // ------------------------------------------------------------
 
 
-using System;
 using Microsoft.Azure.IIoT.Auth.Clients;
-using Microsoft.Azure.IIoT.Diagnostics;
-using Microsoft.Azure.IIoT.Auth.Server;
 using Microsoft.Azure.IIoT.Auth.Runtime;
+using Microsoft.Azure.IIoT.Auth.Server;
 using Microsoft.Azure.IIoT.Services.Cors;
 using Microsoft.Azure.IIoT.Services.Cors.Runtime;
 using Microsoft.Azure.IIoT.Services.Swagger;
-using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
+using Microsoft.Azure.IIoT.Utils;
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
 {
     /// <summary>Web service configuration</summary>
-    public class Config : LogConfig, IAuthConfig,
+    public class Config : ConfigBase, IAuthConfig,
         ICorsConfig, IClientConfig, ISwaggerConfig
     {
         // services config
@@ -42,7 +41,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         /// <param name="configuration"></param>
         internal Config(string processId, string serviceId,
             IConfigurationRoot configuration) :
-            base(processId, configuration) {
+            base(configuration)
+        {
             ServicesConfig = new ServicesConfig();
             configuration.Bind(_opcVaultKey, ServicesConfig);
             SwaggerConfig = new SwaggerConfig();
@@ -74,9 +74,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         /// <inheritdoc/>
         public string SwaggerAppSecret => SwaggerConfig.AppSecret;
         /// <inheritdoc/>
+        public bool WithHttpScheme => SwaggerConfig.WithHttpScheme;
+        /// <inheritdoc/>
         public bool AuthRequired => _auth.AuthRequired;
         /// <inheritdoc/>
         public string TrustedIssuer => _auth.TrustedIssuer;
+        /// <inheritdoc/>
+        public int HttpsRedirectPort => _auth.HttpsRedirectPort;
         /// <inheritdoc/>
         public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
 

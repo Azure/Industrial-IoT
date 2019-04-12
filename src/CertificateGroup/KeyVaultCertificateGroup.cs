@@ -3,20 +3,20 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.IIoT.Auth.Clients;
-using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth;
 using Newtonsoft.Json;
 using Opc.Ua;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 _keyVaultServiceClient.SetAuthenticationTokenProvider();
             }
             _log = logger;
-            _log.Debug("Creating new instance of `KeyVault` service " + servicesConfig.KeyVaultBaseUrl, () => { });
+            _log.Debug("Creating new instance of `KeyVault` service " + servicesConfig.KeyVaultBaseUrl);
         }
 
         /// <inheritdoc/>
@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             _serviceHost = _servicesConfig.ServiceHost;
             _keyVaultServiceClient = keyVaultServiceClient;
             _log = logger;
-            _log.Debug("Creating new on behalf of instance of `KeyVault` service ", () => { });
+            _log.Debug("Creating new on behalf of instance of `KeyVault` service ");
         }
 
         /// <inheritdoc/>
@@ -93,18 +93,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
                 }
                 catch (Exception ex)
                 {
-                    _log.Error("Failed to initialize certificate group. ", () => new { ex });
+                    _log.Error("Failed to initialize certificate group. ", ex);
                     if (certificateGroup == null)
                     {
                         throw ex;
                     }
                 }
 
-                _log.Error("Create new issuer CA certificate for group. ", () => new { certificateGroup });
+                _log.Information("Create new issuer CA certificate for group. ", certificateGroup);
 
                 if (!await certificateGroup.CreateIssuerCACertificateAsync().ConfigureAwait(false))
                 {
-                    _log.Error("Failed to create issuer CA certificate. ", () => new { certificateGroup });
+                    _log.Error("Failed to create issuer CA certificate. ", certificateGroup);
                 }
             }
         }
@@ -141,7 +141,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             catch (Exception ex)
             {
                 // try default
-                _log.Error("Failed to create on behalf Key Vault client. ", () => new { ex });
+                _log.Error(ex, "Failed to create on behalf Key Vault client. ");
             }
             return Task.FromResult<ICertificateGroup>(this);
         }
@@ -242,7 +242,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         }
 
         /// <inheritdoc/>
-        public async Task<(X509Certificate2Collection,string)> GetIssuerCACertificateVersionsAsync(string id, bool? withCertificates, string nextPageLink, int? pageSize)
+        public async Task<(X509Certificate2Collection, string)> GetIssuerCACertificateVersionsAsync(string id, bool? withCertificates, string nextPageLink, int? pageSize)
         {
             // TODO: implement withCertificates
             var certificateGroup = await KeyVaultCertificateGroupProvider.Create(_keyVaultServiceClient, id, _serviceHost).ConfigureAwait(false);

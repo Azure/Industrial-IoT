@@ -3,16 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Documents;
-using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.Exceptions;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models;
@@ -20,6 +12,14 @@ using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Types;
 using Microsoft.Azure.KeyVault.Models;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Threading.Tasks;
 using CertificateRequest = Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB.Models.CertificateRequest;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             _certificateRequests = new DocumentDBCollection<CosmosDB.Models.CertificateRequest>(db, config.CosmosDBCollection);
             // set unique key in CosmosDB for Certificate ID ()
             // db.UniqueKeyPolicy.UniqueKeys.Add(new UniqueKey { Paths = new Collection<string> { "/" + nameof(CertificateRequest.ClassType), "/" + nameof(CertificateRequest.ID) } });
-            _log.Debug("Created new instance of `CosmosDBApplicationsDatabase` service " + config.CosmosDBCollection, () => { });
+            _log.Debug("Created new instance of `CosmosDBApplicationsDatabase` service " + config.CosmosDBCollection);
         }
 
         #region ICertificateRequest
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             catch (Exception ex)
             {
                 // try default 
-                _log.Error("Failed to create on behalf ICertificateRequest. ", () => new { ex });
+                _log.Error(ex, "Failed to create on behalf ICertificateRequest. ");
             }
             return this;
         }

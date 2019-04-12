@@ -15,5 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime
         public string AppId { get; set; }
         /// <summary>Application key</summary>
         public string AppSecret { get; set; }
+        /// <summary>Allow Http scheme</summary>
+        public bool WithHttpScheme { get; set; }
     }
 }

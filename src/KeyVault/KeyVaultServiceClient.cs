@@ -4,15 +4,6 @@
 // ------------------------------------------------------------
 
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.Exceptions;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
@@ -22,6 +13,15 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Rest;
 using Microsoft.Rest.Azure;
 using Opc.Ua;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
 {
@@ -224,7 +224,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             }
             catch (Exception ex)
             {
-                _logger.Error("Error while loading the certificate versions for " + id + ".", () => new { ex });
+                _logger.Error(ex, "Error while loading the certificate versions for " + id + ".");
             }
             return (certificates, nextPageLink);
         }
@@ -266,7 +266,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             }
             catch (Exception ex)
             {
-                _logger.Error("Error while loading the certificate versions for " + id + ".", () => new { ex });
+                _logger.Error(ex, "Error while loading the certificate versions for " + id + ".");
             }
             return result;
         }
@@ -292,7 +292,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             throw new NotImplementedException("Unknown content type: " + secret.ContentType);
 #else
             _logger.Error("Error in LoadSigningCertificateAsync " + signingCertificateKey + "." +
-                "Loading the private key is not permitted.", () => new { signingCertificateKey });
+                "Loading the private key is not permitted.", signingCertificateKey);
             throw new NotSupportedException("Loading the private key from key Vault is not permitted.");
 #endif
         }
@@ -326,7 +326,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
                 else
                 {
                     _logger.Error("Error in SignDigestAsync " + signingKey + "." +
-                        "Unsupported hash algorithm used.", () => new { signingKey });
+                        "Unsupported hash algorithm used.", signingKey );
                     throw new ArgumentOutOfRangeException(nameof(hashAlgorithm));
                 }
             }
@@ -354,7 +354,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
             else
             {
                 _logger.Error("Error in SignDigestAsync " + padding + "." +
-                    "Unsupported padding algorithm used.", () => new { padding });
+                    "Unsupported padding algorithm used.", new { padding });
                 throw new ArgumentOutOfRangeException(nameof(padding));
             }
 
@@ -1111,8 +1111,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.KeyVault
         private readonly string _groupSecret;
         private readonly string _vaultBaseUrl;
         private readonly bool _keyStoreHSM;
+        private readonly ILogger _logger;
         private IKeyVaultClient _keyVaultClient;
-        private ILogger _logger;
         private ClientAssertionCertificate _assertionCert;
         private ClientCredential _clientCredential;
     }

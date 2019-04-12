@@ -1,10 +1,10 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for
 // license information.
 //
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging;
+using Serilog;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System;
 using System.Security.Claims;
@@ -14,29 +14,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.TokenStorage
     public class DistributedTokenCache : TokenCache
     {
         private ClaimsPrincipal _claimsPrincipal;
-        private ILogger _logger;
+        private readonly ILogger _logger;
         private IDistributedCache _distributedCache;
         private IDataProtector _protector;
         private string _cacheKey;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="Tailspin.Surveys.TokenStorage.DistributedTokenCache"/>
+        /// Initializes a new instance of <see cref="TokenStorage.DistributedTokenCache"/>
         /// </summary>
         /// <param name="claimsPrincipal">A <see cref="System.Security.Claims.ClaimsPrincipal"/> for the signed in user</param>
         /// <param name="distributedCache">An implementation of <see cref="Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> in which to store the access tokens.</param>
-        /// <param name="loggerFactory"><see cref="Microsoft.Extensions.Logging.ILoggerFactory"/> used to create type-specific <see cref="Microsoft.Extensions.Logging.ILogger"/> instances.</param>
+        /// <param name="logger">A <see cref="Serilog.ILogger"/> instance.</param>
         /// <param name="dataProtectionProvider">An <see cref="Microsoft.AspNetCore.DataProtection.IDataProtectionProvider"/> for creating a data protector.</param>
         public DistributedTokenCache(
             ClaimsPrincipal claimsPrincipal,
             IDistributedCache distributedCache,
-            ILoggerFactory loggerFactory,
+            ILogger logger,
             IDataProtectionProvider dataProtectionProvider)
             : base()
         {
             _claimsPrincipal = claimsPrincipal;
             _cacheKey = BuildCacheKey(_claimsPrincipal);
             _distributedCache = distributedCache;
-            _logger = loggerFactory.CreateLogger<DistributedTokenCache>();
+            _logger = logger;
             _protector = dataProtectionProvider.CreateProtector(typeof(DistributedTokenCache).FullName);
             AfterAccess = AfterAccessNotification;
             LoadFromCache();

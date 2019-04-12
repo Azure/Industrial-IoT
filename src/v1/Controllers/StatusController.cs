@@ -7,14 +7,14 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
 {
-    using System;
-    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Auth;
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Models;
+    using Serilog;
+    using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// The status service.
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
                 applicationOk = false;
                 applicationMessage = ex.Message;
             }
-            this._log.Info("Service status application database", () => new { Healthy = applicationOk, Message = applicationMessage });
+            this._log.Information("Service status application database", new { Healthy = applicationOk, Message = applicationMessage });
 
             bool kvOk;
             string kvMessage = "Alive and well";
@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1.Controllers
                 kvOk = false;
                 kvMessage = ex.Message;
             }
-            this._log.Info("Service status OpcVault", () => new { Healthy = kvOk, Message = kvMessage });
+            this._log.Information("Service status OpcVault", new { Healthy = kvOk, Message = kvMessage });
 
             return new StatusApiModel(applicationOk, applicationMessage, kvOk, kvMessage);
         }

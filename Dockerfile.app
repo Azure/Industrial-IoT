@@ -1,9 +1,9 @@
-FROM microsoft/dotnet:2.1-aspnetcore-runtime AS base
+FROM microsoft/dotnet:2.2-aspnetcore-runtime AS base
 WORKDIR /app
 EXPOSE 56310
 EXPOSE 44342
 
-FROM microsoft/dotnet:2.1-sdk AS build
+FROM microsoft/dotnet:2.2-sdk AS build
 WORKDIR /src
 COPY app/Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.csproj app/
 COPY api-csharp/Microsoft.Azure.IIoT.OpcUa.Api.Vault.csproj api-csharp/

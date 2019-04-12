@@ -15,6 +15,7 @@ using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
 using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Models;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.TokenStorage;
+using Serilog;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
 {
@@ -26,8 +27,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.App.Controllers
         public CertificateRequestController(
             OpcVaultApiOptions opcVaultOptions,
             AzureADOptions azureADOptions,
-            ITokenCacheService tokenCacheService) :
-            base(opcVaultOptions, azureADOptions, tokenCacheService)
+            ITokenCacheService tokenCacheService,
+            ILogger log) :
+            base(opcVaultOptions, azureADOptions, tokenCacheService, log)
         {
         }
 

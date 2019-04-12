@@ -5,8 +5,8 @@
 
 
 using Microsoft.Azure.IIoT.Auth.Clients;
-using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
+using Serilog;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test
 {

@@ -5,13 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
 {
-    using System;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.OpcUa.Services.Vault.CosmosDB;
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.Swagger;
     using Microsoft.Azure.IIoT.OpcUa.Services.Vault.v1;
@@ -23,11 +20,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
+    using Serilog;
     using Swashbuckle.AspNetCore.Swagger;
+    using System;
     using CorsSetup = IIoT.Services.Cors.CorsSetup;
-    using ILogger = Microsoft.Azure.IIoT.Diagnostics.ILogger;
 
     /// <summary>
     /// Webservice startup
@@ -111,8 +108,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         /// <returns></returns>
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddLogging(o => o.AddConsole().AddDebug());
-
             // Setup (not enabling yet) CORS
             services.AddCors();
 
@@ -159,18 +154,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
         /// </summary>
         /// <param name="app"></param>
         /// <param name="env"></param>
-        /// <param name="loggerFactory"></param>
+        /// <param name="logger"></param>
         /// <param name="appLifetime"></param>
         public void Configure(
             IApplicationBuilder app,
             IHostingEnvironment env,
-            ILoggerFactory loggerFactory,
+            ILogger logger,
             IApplicationLifetime appLifetime)
         {
-
-            ILogger log = ApplicationContainer.Resolve<ILogger>();
-            loggerFactory.AddConsole(Config.Configuration.GetSection("Logging"));
-
             if (Config.AuthRequired)
             {
                 app.UseAuthentication();
@@ -192,8 +183,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             appLifetime.ApplicationStopped.Register(ApplicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.Info($"{ServiceInfo.NAME} web service started",
-                () => new { Uptime.ProcessId, env });
+            logger.Information($"{ServiceInfo.NAME} web service started",
+                new { Uptime.ProcessId, env });
         }
 
         /// <summary>
@@ -217,9 +208,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault
             builder.RegisterInstance(Config.ServicesConfig)
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Register logger
-            builder.RegisterType<TraceLogger>()
-                .AsImplementedInterfaces().SingleInstance();
+            // register the serilog logger
+            builder.RegisterInstance(Log.Logger).As<ILogger>();
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
