@@ -6,15 +6,15 @@ These microservices use [Azure Industrial IoT OPC UA components](https://github.
 
 Following are Microservices:
 
-- [OPC Registry Microservice](microservices/registry.md)
-- [OPC Onboarding Agent](microservices/onboarding.md)
-- [OPC Twin Microservice](microservices/twin.md)
-- [OPC Gateway](microservices/gateway.md)
+- [OPC Registry Microservice](registry.md)
+- [OPC Onboarding Agent](onboarding.md)
+- [OPC Twin Microservice](twin.md)
+- [OPC Gateway](gateway.md)
 
 ## Next steps
 
-- [Explore the Architecture](architecture.md)
+- [Explore the Architecture](../architecture.md)
 - [Deploy Microservices to Azure](../howto-deploy-microservices.md)
-- [Register a server and browse its address space](microservices/howto-use-cli.md) 
+- [Register a server and browse its address space](howto-use-cli.md) 
 - [Explore the REST API](../api/readme.md)
 - [Explore the OPC UA source code](https://github.com/Azure/azure-iiot-opc-ua)

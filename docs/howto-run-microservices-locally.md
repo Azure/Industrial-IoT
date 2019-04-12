@@ -42,7 +42,7 @@ The easiest way to start all Microservices is to use the `docker-compose.yml` fi
 5. Start debugging by pressing the "Start" button or hitting F5.
 6. [Ensure the Microservices are running](#Ensure-the-Microservices-are-running)
 
-## Ensure the Azure Industrial IoT Microservices are running
+## Ensure the Microservices are running
 
 After starting open a browser window to:
 

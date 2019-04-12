@@ -12,7 +12,7 @@ The Azure IoT Hub is used as cloud broker for Edge to Cloud and Cloud to Edge me
 
 ## Azure Storage
 
-A storage account is used by the [onboarding](onboarding.md) Microservice to persist Azure IoT Hub Event Hub Endpoint read offsets and partition information to support partitioned and reliable access from multiple instances.
+A storage account is used by the [onboarding](../services/onboarding.md) Microservice to persist Azure IoT Hub Event Hub Endpoint read offsets and partition information to support partitioned and reliable access from multiple instances.
 
 ## Azure Active Directory
 

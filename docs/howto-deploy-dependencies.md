@@ -29,7 +29,7 @@ This article explains how to deploy only the Azure Platform Microservices need t
    deploy -type local
    ```
 
-2. Follow the prompts to assign a name to the resource group for your deployment  The script deploys only the [dependencies](architecture-dependencies.md) to this resource group in your Azure subscription, but not the Microservices .  The script also registers an Application in Azure Active Directory.  This is needed to support OAUTH based authentication.  Deployment can take several minutes.  In case you run into issues please follow the steps [below](#Troubleshooting-deployment-failures).
+2. Follow the prompts to assign a name to the resource group for your deployment  The script deploys only the [dependencies](modules/dependencies.md) to this resource group in your Azure subscription, but not the Microservices .  The script also registers an Application in Azure Active Directory.  This is needed to support OAUTH based authentication.  Deployment can take several minutes.  In case you run into issues please follow the steps [below](#Troubleshooting-deployment-failures).
 
 3. Once the script completes, you can select to save the .env file.  The .env environment file is the configuration file of all Microservices and tools you want to run on your development machine.  
 
@@ -52,4 +52,4 @@ The deployment script tries to register AAD applications in Azure Active Directo
 Now that you have successfully deployed Azure Industrial IoT Microservices to an existing project, here are the suggested next steps:
 
 - [Run the Industrial IoT modules locally](howto-deploy-modules.md)
-- [Learn about the OPC Twin dependencies](twin/dependencies.md)
+- [Learn about the OPC Twin dependencies](modules/dependencies.md)
