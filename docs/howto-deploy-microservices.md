@@ -1,11 +1,11 @@
-# Deploying Azure Industrial IoT services and dependencies
+# Deploying Azure Industrial IoT Microservices and dependencies
 
-This article explains how to deploy the Industrial IoT Services in Azure.
+This article explains how to deploy the Azure Industrial IoT Microservices in Azure.
 
 ## Prerequisites
 
 > [!NOTE]
-> Note: Due the dependency on the AzureRM module, deployment currently is only supported on Windows.  We will add support for Linux soon.
+> Note: Due to the dependency on the AzureRM module, deployment currently is only supported on Windows.  We will add support for Linux soon.
 
 1. Make sure you have PowerShell and [Azure PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps?view=azps-1.1.0) extensions installed.  If not, first install PowerShell, then open PowerShell as Administrator and run
 
@@ -21,7 +21,7 @@ This article explains how to deploy the Industrial IoT Services in Azure.
    cd azure-iiot-components
    ```
 
-## Deploy Industrial IoT Services to Azure
+## Deploy Industrial IoT Microservices to Azure
 
 1. Open a command prompt or terminal in the repository root and run:
 
@@ -29,7 +29,7 @@ This article explains how to deploy the Industrial IoT Services in Azure.
    deploy
    ```
 
-2. Follow the prompts to assign a name to the resource group of the deployment and a name to the website.   The script deploys the micro services and their Azure platform dependencies into the resource group in your Azure subscription.  The script also registers an Application in your Azure Active Directory (AAD) tenant to support OAUTH based authentication.  Deployment will take several minutes.  An example of what you'd see once the solution is successfully deployed:
+2. Follow the prompts to assign a name to the resource group of the deployment and a name to the website. The script deploys the Microservices and their Azure platform dependencies into the resource group in your Azure subscription.  The script also registers an Application in your Azure Active Directory (AAD) tenant to support OAUTH based authentication.  Deployment will take several minutes.  An example of what you'd see once the solution is successfully deployed:
 
    ![Deployment Result](media/deployment1.png)
 
@@ -58,9 +58,9 @@ The deployment script tries to register 2 AAD applications in Azure Active Direc
 
 **WARNING**:  NEVER continue without Authentication.  If you choose to do so, anyone can access your OPC Device Management endpoints from the Internet unauthenticated.   You can always choose the ["local" deployment option](howto-deploy-dependencies.md) to kick the tires.
 
-## Deploy an all-in-one Industrial IoT Services Demo
+## Deploy an all-in-one Industrial IoT Microservices Demo
 
-Instead of just the services and dependencies you can also deploy an all-in-one demo.  The all in one demo contains 3 OPC UA servers, the OPC Twin module, and all micro services as well as a sample Web Application.  It is intended for demonstration purposes.
+Instead of just the Microservices and dependencies you can also deploy an all-in-one demo.  The all in one demo contains 3 OPC UA servers, the OPC Twin module, and all Microservices as well as a sample Web Application.  It is intended for demonstration purposes.
 
 1. Make sure you have a clone of the repository (see above). Open a command prompt or terminal in the  root of the repository and run:
 
@@ -122,8 +122,8 @@ AAD tenant to use.
 
 ## Next steps
 
-Now that you have successfully deployed OPC Device Management services to an existing project, here is the suggested next step:
+Now that you have successfully deployed the Microservices to an existing project, here are the suggested next steps:
 
 - [Deploy Industrial IoT modules to IoT Edge](howto-deploy-modules.md)
-- [What is OPC Device Management?](twin/readme.md)
-- [OPC Device Management Dependencies](twin/dependencies.md)
+- [Learn more about OPC Twin](twin/readme.md)
+- [OPC Twin Dependencies](twin/dependencies.md)

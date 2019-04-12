@@ -1,16 +1,16 @@
-# OPC Gateway service (Preview)
+# OPC Gateway Microservice (Preview)
 
-> **The OPC Gateway service is not intended for production use at this point in time !**
+> **The OPC Gateway Microservice is not intended for production use at this point in time !**
 
 ## Overview
 
-The OPC Gateway service is an OPC UA server in the "Gateway" role.  It allows accessing the OPC Registry and OPC Twin services using OPC UA protocol.  
+The OPC Gateway Microservice is an OPC UA server in the "Gateway" role.  It allows accessing the OPC Registry and OPC Twin Microservices using OPC UA protocol.  
 
-The OPC Gateway service exposes HTTP and OPC UA Secure Channel endpoints that expose all **activated** endpoint resources in the OPC Registry.  
+The OPC Gateway Microservice exposes HTTP and OPC UA Secure Channel endpoints that expose all **activated** endpoint resources in the OPC Registry.  
 
 A client, such as UA Expert or the OPC UA Reference Client can be used to connect to the endpoint and use the OPC Twin supported OPC UA services, e.g. browsing, reading and writing node values and attributes.  
 
-OPC Gateway enables existing UA applications to use your OPC UA Device Management infrastructure.
+OPC Gateway enables existing UA applications to use your OPC Twin infrastructure.
 
 ## Current Limitations
 
@@ -24,4 +24,4 @@ OPC Gateway enables existing UA applications to use your OPC UA Device Managemen
 
 - [Learn more about the OPC Registry](registry.md)
 - [Learn more about the OPC Twin](twin.md)
-- [Learn more about the overall Architecture](architecture.md)
+- [Learn more about the overall Architecture](../architecture.md)

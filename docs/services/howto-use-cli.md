@@ -4,9 +4,9 @@ This article will walk you through the steps to discover and register OPC UA ser
 
 ## Prerequisites
 
-You should have already successfully deployed all services and at least one IoT Edge Gateway with the Industrial IoT Modules.  If you have not, please follow the instructions in:
+You should have already successfully deployed all Microservices and at least one IoT Edge Gateway with the Industrial IoT Modules.  If you have not, please follow the instructions in:
 
-1. [Deploy the Industrial IoT services to Azure](../howto-deploy-services.md) and securely store the resulting `.env` file.
+1. [Deploy the Industrial IoT Microservices to Azure](../howto-deploy-microservices.md) and securely store the resulting `.env` file.
 
 2. [Deploy Industrial IoT Edge Modules](../howto-deploy-modules.md)
 
@@ -45,14 +45,14 @@ To make the demo deterministic we also start a demo OPC UA server.
    docker run -it --env-file .env cli console 
    ```
 
-   > If you are trying to access running services on your local development machine and your OS is Linux you must explicitly specify your host's host name using `-e _HOST=$(hostname)` argument.
+   > If you are trying to access running Microservices on your local development machine and your OS is Linux you must explicitly specify your host's host name using `-e _HOST=$(hostname)` argument.
 
 3. You will now see a prompt and be able to enter commands, e.g. type 
 
    ```bash
    > help
 
-   aziiotcli - Allows to script Industrial IoT Services api.
+   aziiotcli - Allows to script Industrial IoT Microservices api.
    usage:      aziiotcli command [options]
 
    Commands and Options
@@ -70,7 +70,7 @@ To make the demo deterministic we also start a demo OPC UA server.
    >
    ```
 
-4. Test your connectivity with the services by running
+4. Test your connectivity with the Microservices by running
 
    ```bash
    > status
@@ -260,5 +260,5 @@ You can now [browse one of the discovered endpoints](#Browse-all-root-nodes-of-t
 
 Now that you are done, try to run your own OPC UA server in the same network as your IoT Edge gateway and follow the instructions above with the relevant variations (e.g. discovery URL).
 
-- Learn how to write an application that reads and writes variable values on an OPC UA server
-- [Explore the OPC Device Management REST APIs](../api/readme.md)
+- Learn how to write an application that reads and writes variable values on an OPC UA server (COMING SOON)
+- [Explore Microservices REST APIs](../api/readme.md)

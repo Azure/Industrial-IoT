@@ -1,10 +1,10 @@
-# OPC Registry service
+# OPC Registry Microservice
 
-The role of the OPC Registry microservice is to manage all involved device identities in IoT Hub.  These items include:
+The role of the OPC Registry Microservice is to manage all involved device identities in IoT Hub.  These items include:
 
 - **Applications**. In OPC parlance, an “Application” can be a server or a client or both.  It is also a grouping mechanism for Endpoints, i.e. Applications have Endpoints.  An Application contains all server provided information, such as Discovery URLs, Application and Product URIs.
 - **Endpoints**.  Each endpoint represents the twin of an OPC UA Server application’s endpoint.  A server can have multiple endpoints with different configurations, including security properties.
-- **Supervisors**.  The supervisor identity is a OPC Twin module’s identity.  A supervisor manages "activated" endpoint identities.  It also performs discovery and has a couple of other services up its sleeve.  
+- **Supervisors**.  The supervisor identity is a OPC Twin module’s identity.  A supervisor manages "activated" endpoint identities.  It also performs discovery and has a couple of other Microservices up its sleeve.  
 
 You can update, read as well as **query** all of these identities' models in the OPC Registry.  
 
@@ -13,8 +13,8 @@ You can update, read as well as **query** all of these identities' models in the
 You can also Create and Delete Application identities ("resources").  There are 3 ways applications are created:
 
 - By **POST**ing of an Application Model.  In this case the application will not have endpoints associated.  This is useful to register client applications or reflect servers registered in another system.
-- By the onboarding service as a result of a "Discover" API call (One time)
-- By the onboarding service as a result of a continuous discovery (configured in the supervisor identity)
+- By the onboarding Microservice as a result of a "Discover" API call (One time)
+- By the onboarding Microservice as a result of a continuous discovery (configured in the supervisor identity)
 
 A **DELETE** of an application will deactivate and delete all associated endpoints.  
 
@@ -33,5 +33,5 @@ When registered in OPC Registry (and thus Azure IoT Hub) Server endpoints are by
 ## Next steps
 
 - [Learn about OPC Registry Onboarding](onboarding.md)
-- [Learn about the OPC Twin module](module.md)
+- [Learn about the OPC Twin module](../modules/module.md)
 - [Explore the OPC Registry REST API](../api/registry/readme.md)

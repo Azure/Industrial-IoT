@@ -4,7 +4,7 @@ The OPC Twin module runs inside IoT Edge.
 
 ## Server Discovery
 
-The supervisor provided services inside the OPC Twin module include OPC UA server discovery.  If discovery is configured and enabled, the OPC Twin Module will send the results of a scan probe via the IoT Edge and IoT Hub telemetry path to the Onboarding agent.  The agent processes the results and updates the Identities in the [OPC Registry](registry.md) and thus IoT Hub Device Registry.
+The supervisor provides services inside the OPC Twin module which include OPC UA server discovery.  If discovery is configured and enabled, the OPC Twin Module will send the results of a scan probe via the IoT Edge and IoT Hub telemetry path to the Onboarding agent.  The agent processes the results and updates the Identities in the [OPC Registry](registry.md) and thus IoT Hub Device Registry.
 
 The discovery interface allows for **recurring** as well as **one-time** scans.  
 
@@ -39,7 +39,7 @@ Using the configuration's discovery URLs, servers can be registered using a well
 
 ## OPC UA Client Services
 
-Another service provided by the Module is the Azure IoT Hub device method OPC UA client API.  The API allows the OPC Twin service to invoke OPC UA server functionality on an activated endpoint.  The Payload is transcoded from JSON to OPC UA binary and passed on through the OPC UA stack to the OPC UA server.  The response is reencoded to JSON and passed back to the cloud micro service.  This includes [Variant](twin.md) encoding and decoding in a consistent JSON format.
+Another service provided by the Module is the Azure IoT Hub device method OPC UA client API.  The API allows the OPC Twin Microservice to invoke OPC UA server functionality on an activated endpoint. The Payload is transcoded from JSON to OPC UA binary and passed on through the OPC UA stack to the OPC UA server.  The response is reencoded to JSON and passed back to the cloud service.  This includes [Variant](twin.md) encoding and decoding in a consistent JSON format.
 
 Payloads that are larger than the Azure IoT Hub supported Device Method payload size are chunked, compressed, sent, then decompressed and reassembled for both request and response.  This allows fast and large value writes and reads, as well as returning large browse results.  
 
@@ -47,7 +47,7 @@ A single session is opened on demand per endpoint (same as in the existing OPC P
 
 ## OPC Publisher Module Integration
 
-The OPC Publisher module is responsible for maintaining durable Subscriptions to Variables and Events on an endpoint.  On startup, the twin module locates the OPC Publisher module in its Edge environment.  It then forwards requests to it that it receives by way of the OPC Twin Micro service REST API.  This includes requests to
+The OPC Publisher module is responsible for maintaining durable Subscriptions to Variables and Events on an endpoint.  On startup, the twin module locates the OPC Publisher module in its Edge environment.  It then forwards requests to it that it receives by way of the OPC Twin Microservice REST API.  This includes requests to
 
 - **`Publish`** a variable on an endpoint to IoT Hub.
 - Disable publishing (**`Unpublish`**)
@@ -61,5 +61,5 @@ For more information about OPC Publisher, see the [OPC Publisher](https://github
 
 - [Learn how to deploy OPC Twin Module](howto-modules.md)
 - [Explore the OPC Twin Module repository](https://github.com/Azure/azure-iiot-opc-twin-module)
-- [Learn about the OPC Twin Service](twin.md)
+- [Learn about the OPC Twin Microservice](twin.md)
 - [Learn about OPC Registry Onboarding](onboarding.md)

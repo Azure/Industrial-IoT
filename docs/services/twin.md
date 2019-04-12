@@ -1,8 +1,8 @@
-# OPC Twin service
+# OPC Twin Microservice
 
 ## Supported OPC UA Services
 
-The OPC Twin cloud service exposes a [REST API](../api/twin/readme.md) to call the following OPC UA services on activated endpoints in an OPC Twin edge module:
+OPC Twin Microservice in cloud exposes a [REST API](../api/twin/readme.md) to call the following OPC UA services on activated endpoints in an OPC Twin edge module:
 
 - **Read** and **Write** a “Value” on a Variable node
   Write is also exposed as Desired/Reported Property on the endpoint identity
@@ -16,7 +16,7 @@ The OPC Twin cloud service exposes a [REST API](../api/twin/readme.md) to call t
 
 ## OPC UA JSON
 
-The OPC Twin service REST API uses OPC UA JSON reversible encoding as per standard defined in OPC UA specification 1.04, Part 6, with the following exceptions or enhancements:
+The Twin Microservice REST API uses OPC UA JSON reversible encoding as per standard defined in OPC UA specification 1.04, Part 6, with the following exceptions or enhancements:
 
 1. `null` values are not encoded.  A missing value implies `null`.
 
@@ -48,6 +48,6 @@ While not always enforced, ensure you **URL encode** the id value or name of Qua
 
 ## Next steps
 
-- [Learn more about the OPC Twin module](module.md)
-- [Learn more about the overall Architecture](architecture.md)
-- [Explore the OPC Twin REST API](../api/twin/readme.md)
+- [Learn more about the OPC Twin module](../modules/module.md)
+- [Learn more about the overall Architecture](../architecture.md)
+- [Explore the Twin Microservice REST API](../api/twin/readme.md)
