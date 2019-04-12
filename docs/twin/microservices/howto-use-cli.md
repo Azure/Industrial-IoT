@@ -261,4 +261,4 @@ You can now [browse one of the discovered endpoints](#Browse-all-root-nodes-of-t
 Now that you are done, try to run your own OPC UA server in the same network as your IoT Edge gateway and follow the instructions above with the relevant variations (e.g. discovery URL).
 
 - Learn how to write an application that reads and writes variable values on an OPC UA server (COMING SOON)
-- [Explore the OPC Twin REST APIs](../api/readme.md)
+- [Explore Microservices REST APIs](../api/readme.md)

@@ -24,4 +24,4 @@ OPC Gateway enables existing UA applications to use your OPC Twin infrastructure
 
 - [Learn more about the OPC Registry](registry.md)
 - [Learn more about the OPC Twin](twin.md)
-- [Learn more about the overall Architecture](architecture.md)
+- [Learn more about the overall Architecture](../architecture.md)

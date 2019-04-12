@@ -1,6 +1,6 @@
-# Run the OPC Twin Microservices locally
+# Run the Azure Industrial IoT Microservices locally
 
-The OPC Twin Microservices contained in this repository provide a REST like API on top of our Azure Industrial IoT components, for example our [OPC UA components](https://github.com/Azure/azure-iiot-opc-ua).  
+The Industrial IoT Microservices contained in this repository provide a REST like API on top of our Azure Industrial IoT components, for example our [OPC UA components](https://github.com/Azure/azure-iiot-opc-ua).  
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ git clone --recursive https://github.com/Azure/azure-iiot-components
 cd azure-iiot-components
 ```
 
-## Start all OPC Twin Microservices locally using Docker
+## Start all Industrial IoT Microservices locally using Docker
 
 The easiest way to start all Microservices is to use the `docker-compose.yml` file located in this repository's root folder.
 
@@ -31,7 +31,7 @@ The easiest way to start all Microservices is to use the `docker-compose.yml` fi
 
    And follow the instructions below to [ensure the Microservices are running](#Ensure-the-Microservices-are-running).
 
-## Build and run the OPC Twin Microservices with Visual Studio or VS Code
+## Build and run the Industrial IoT Microservices with Visual Studio or VS Code
 
 1. First, make sure your development tool chain is setup to build the Microservices. If you have not, [install .NET Core 2.1+][dotnet-install] and any recent edition of Visual Studio (Windows/MacOS) or Visual Studio Code (Windows/MacOS/Linux).
    - If you already have Visual Studio installed, then ensure you have [.NET Core Tools for Visual Studio 2017][dotnetcore-tools-url] installed (Windows only).
@@ -42,12 +42,12 @@ The easiest way to start all Microservices is to use the `docker-compose.yml` fi
 5. Start debugging by pressing the "Start" button or hitting F5.
 6. [Ensure the Microservices are running](#Ensure-the-Microservices-are-running)
 
-## Ensure the OPC Twin Microservices are running
+## Ensure the Azure Industrial IoT Microservices are running
 
 After starting open a browser window to:
 
 - http://localhost:9042 for OPC Registry Microservice
-- http://localhost:9041 for OPC Twin Microservice (This microservice is part of bigger umbrella which is OPC Twin Microservices)
+- http://localhost:9041 for OPC Twin Microservice 
 - http://localhost:9043 for OPC Historic Access Microservice
 
 which will show you the each Microservice's swagger UI. If the services exit immediately after start, check that the `.env` file exists in the root.  

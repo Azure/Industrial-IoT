@@ -30,7 +30,7 @@ The repository (azure-iiot-components) includes all Azure Industrial IoT compone
    - [OPC Vault](https://github.com/Azure/azure-iiot-opc-vault-service) Microservices enable secure communication among OPC UA enabled devices and the cloud. 
 - [API](docs/api/readme.md)
 -  IoT Edge modules
-  - [OPC Twin module](docs/twin/module.md)
+  - [OPC Twin module](docs/twin/module/module.md)
   - [OPC Publisher module](https://github.com/Azure/iot-edge-opc-publisher)
 - Components and protocol stacks including
   - [OPC Unified Architecture (OPC UA)](https://github.com/Azure/azure-iiot-opc-ua)

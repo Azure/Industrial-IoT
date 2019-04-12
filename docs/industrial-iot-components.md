@@ -2,13 +2,13 @@
 
 ##  Industrial IoT
 
-The Industrial Iot or Iiot connects machines and devices in industries. This connectivity allows for data collection, exchange and analysis, potentially  improving productivity and efficiency. To read more about Microsoft Azure IoT, click [here](https://azure.microsoft.com/en-us/overview/iot/) and about Industry 4.0, [here](https://azure.microsoft.com/en-us/overview/iot/industry/discrete-manufacturing/)
+Industrial IoT or IIoT connects machines and devices in industries. This connectivity allows for data collection, exchange and analysis, potentially  improving productivity and efficiency. To read more about Microsoft Azure IoT, click [here](https://azure.microsoft.com/en-us/overview/iot/) and about Industry 4.0, [here](https://azure.microsoft.com/en-us/overview/iot/industry/discrete-manufacturing/)
 
 Watch a [demo](https://azure.microsoft.com/en-us/features/iot-accelerators/connected-factory/) about improving industrial efficiencies with a connected factory. Connected Factory is basically an implementation of Azure Industrial IoT reference architecture, packaged as on open-source solution.
 
 ##  Industrial IoT Components
 
-The major industrial IoT components which come into play are:
+The Industrial IoT components include:
 
 1. **Device** or **machine** - which has OPC UA Server
 2. **IoT Edge device** - comprised of Edge Runtime and Edge modules. Edge modules are docker containers which are the smallest unit of computation e.g. OPC Publisher and OPC Twin in our case. Edge device is used to deploy such modules which act as mediator between OPC UA server and IoT Hub in cloud. More information about IoT Edge is [here](https://docs.microsoft.com/en-us/azure/iot-edge/about-iot-edge).

@@ -1,6 +1,6 @@
 # Deploying Azure Industrial IoT
 
-Deploying Azure Industrial IoT includes deploying the Azure Industrial IoT micro-services to Azure and the corresponding modules to Azure IoT Edge.  The following articles provide more information about how to deploy both services and edge modules in addition to the dependencies.
+Deploying Azure Industrial IoT includes deploying the Azure Industrial IoT Microservices to Azure in addition to its dependencies and the corresponding modules to Azure IoT Edge. The following articles provide more information about how to deploy both Microservices and edge modules in addition to the dependencies.
 
 * [Deploy all Microservices and dependencies to Azure](howto-deploy-microservices.md)
   * [Deploy only the Microservices dependencies in Azure](howto-deploy-dependencies.md) if you want to ...

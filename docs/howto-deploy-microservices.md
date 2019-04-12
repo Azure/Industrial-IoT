@@ -125,5 +125,5 @@ AAD tenant to use.
 Now that you have successfully deployed the Microservices to an existing project, here are the suggested next steps:
 
 - [Deploy Industrial IoT modules to IoT Edge](howto-deploy-modules.md)
-- [Learn more about OPC Twin?](twin/readme.md)
+- [Learn more about OPC Twin](twin/readme.md)
 - [OPC Twin Dependencies](twin/dependencies.md)

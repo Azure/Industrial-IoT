@@ -1,6 +1,6 @@
-# OPC Twin dependencies
+# Industrial IoT dependencies
 
-The OPC Twin Microservices depend on many other Microservices. This includes
+The Industrial IoT Microservices depend on many other services. This includes
 
 ## OPC Vault
 
