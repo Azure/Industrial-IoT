@@ -1,17 +1,15 @@
 <Project>
   <PropertyGroup>
     <Product>Microsoft Azure Industrial IoT OPC UA Vault Service</Product>
-    <PackageLicenseUrl>$(RepositoryUrl)/blob/master/LICENSE</PackageLicenseUrl>
-    <Authors>Microsoft</Authors>
+    <PackageLicenseUrl>$(RepositoryUrl)/blob/master/license.txt</PackageLicenseUrl>
+    <Authors>Azure Industrial IoT</Authors>
     <Company>Microsoft</Company>
-    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <Copyright>Copyright © 2019 Microsoft Corp. All rights reserved.</Copyright>
     <PackageIconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</PackageIconUrl>
     <PackageReleaseNotes>$(RepositoryUrl)/releases</PackageReleaseNotes>
     <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <HighEntropyVA>true</HighEntropyVA>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <!-- prevent building packages and releasing to nuget until ready/public -->
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 </Project>

@@ -19,9 +19,18 @@
       </ItemGroup>
     </When>
     <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.354.23" />
-      </ItemGroup>
+      <Choose>
+        <When Condition="'$(Configuration)'=='Release'">
+          <ItemGroup>
+            <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.355.25" />
+          </ItemGroup>
+        </When>
+        <Otherwise>
+          <ItemGroup>
+            <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.355.25" />
+          </ItemGroup>
+        </Otherwise>
+      </Choose>
     </Otherwise>
   </Choose>
 

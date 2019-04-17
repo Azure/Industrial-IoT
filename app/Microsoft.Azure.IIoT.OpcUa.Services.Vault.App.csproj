@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
@@ -21,8 +21,20 @@
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.3" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.354.23" />
   </ItemGroup>
+
+  <Choose>
+    <When Condition="'$(Configuration)'=='Release'">
+      <ItemGroup>
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.355.25" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.355.25" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
 
   <ItemGroup>
     <ProjectReference Include="..\api-csharp\Microsoft.Azure.IIoT.OpcUa.Api.Vault.csproj" />
