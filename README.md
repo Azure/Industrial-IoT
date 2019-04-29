@@ -1,12 +1,12 @@
-# Azure Industrial IoT OPC Device Twin Module
+# Azure Industrial IoT OPC Twin Module
 
-The OPC Device Twin module runs on the edge and provides serveral edge services to the [OPC Device Twin and Registry Services](https://github.com/Azure/azure-iiot-services). 
+The OPC Twin module runs on the edge and provides serveral edge services to the [OPC Twin and Registry Services](https://github.com/Azure/azure-iiot-services). 
 
 Core of the module is the Supervisor identity.  The supervisor manages endpoint "twins", which correspond to OPC UA server endpoints that are activated using the corresponding OPC UA registry API.  These endpoint twins translate OPC UA JSON received from the Twin micro service running in the cloud into OPC UA binary messages which are sent over a stateful secure channel to the managed endpoint.  
 
 The supervisor also provides discovery services which send device discovery events to the [OPC UA Device Onboarding service](https://github.com/Azure/azure-iiot-services) for processing, where these events result in updates to the OPC UA registry.
 
-The OPC Device Twin module can be deployed in an [IoT Edge][iotedge-url] gateway.  For development and testing purposes it can also be run standalone following the instructions [below](#Build-and-Run).  
+The OPC Twin module can be deployed in an [IoT Edge][iotedge-url] gateway.  For development and testing purposes it can also be run standalone following the instructions [below](#Build-and-Run).  
 
 This module is part of our suite of [Azure IoT Industrial components](https://github.com/Azure/azure-iiot-components).
 
@@ -19,7 +19,7 @@ To use it follow the instructions on how to deploy the module to [IoT Edge][iote
   * Instructions on how to [deploy](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-portal) a module to one or a set of IoT Edge targets.
   * Instructions on how to install IoT Edge [on Linux](https://docs.microsoft.com/en-us/azure/iot-edge/quickstart-linux) and [on Windows](https://docs.microsoft.com/en-us/azure/iot-edge/quickstart).
 
-> Install one IoT Edge gateway and module per factory network.  Make sure you run one or more OPC UA servers in the same network to utilize the OPC Device Twin capabilities.
+> Install one IoT Edge gateway and module per factory network.  Make sure you run one or more OPC UA servers in the same network to utilize the OPC Twin capabilities.
 
 ## Build and Run
 
