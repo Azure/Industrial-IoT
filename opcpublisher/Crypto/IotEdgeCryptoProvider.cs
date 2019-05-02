@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using OpcPublisher.Http;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -42,12 +43,12 @@ namespace OpcPublisher.Crypto
 
         public IotEdgeCryptoProvider()
         {
-            workloadHttpClient = new HttpClient();
-
             var baseUrl = Environment.GetEnvironmentVariable("IOTEDGE_WORKLOADURI").TrimEnd('/');
             var moduleName = Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
             var moduleGenId = Environment.GetEnvironmentVariable("IOTEDGE_MODULEGENERATIONID");
             var apiVersion = "2018-06-28";
+
+            workloadHttpClient = HttpClientHelper.GetHttpClient(new Uri(baseUrl));
 
             workloadBaseUriPattern = $"{baseUrl}/modules/{moduleName}/genid/{moduleGenId}/{{0}}?api-version={apiVersion}";
         }
