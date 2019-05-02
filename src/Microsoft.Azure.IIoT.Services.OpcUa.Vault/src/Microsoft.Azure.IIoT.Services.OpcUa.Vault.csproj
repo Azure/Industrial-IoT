@@ -2,39 +2,16 @@
   <PropertyGroup>
     <LangVersion>7.2</LangVersion>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <AssemblyName>Microsoft.Azure.IIoT.OpcUa.Services.Vault</AssemblyName>
-    <RootNamespace>Microsoft.Azure.IIoT.OpcUa.Services.Vault</RootNamespace>
-    <Product>Microsoft Azure Industrial IoT OPC UA Vault Service</Product>
-    <Authors>Azure Industrial IoT</Authors>
-    <Company>Microsoft</Company>
-    <PackageLicenseUrl>https://github.com/Azure/azure-iiot-opc-vault-service/blob/master/license.txt</PackageLicenseUrl>
-    <Copyright>Microsoft Corp. All rights reserved.</Copyright>
-    <Description>Azure Industrial IoT OPC UA Vault service component</Description>
-    <UserSecretsId>71f9c347-48d7-4f74-8f1b-c3df149c26c8</UserSecretsId>
-    <HighEntropyVA>true</HighEntropyVA>
-    <Configurations>Debug;Release;Develop</Configurations>
+    <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.1\Microsoft.Azure.IIoT.OpcUa.Services.Vault.xml</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|AnyCPU'">
-    <DocumentationFile>bin\Develop\netcoreapp2.1\Microsoft.Azure.IIoT.OpcUa.Services.Vault.xml</DocumentationFile>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>bin\Release\netcoreapp2.1\Microsoft.Azure.IIoT.OpcUa.Services.Vault.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Properties\PublishProfiles\AdvancedSettings.pubxml" />
@@ -75,29 +52,19 @@
     </Otherwise>
   </Choose>
   <Choose>
-    <When Condition="Exists('..\..\common')">
+    <When Condition="Exists('..\..\..\..\common')">
       <ItemGroup>
-        <ProjectReference Include="..\..\common\src\Microsoft.Azure.IIoT.Services\src\Microsoft.Azure.IIoT.Services.csproj" />
-        <ProjectReference Include="..\..\common\src\Microsoft.Azure.IIoT.Abstractions\src\Microsoft.Azure.IIoT.Abstractions.csproj" />
-        <ProjectReference Include="..\..\common\src\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
-      </ItemGroup>
-    </When>
-    <When Condition="Exists('..\..\azure-iiot-common') and '$(Configuration)'=='Develop'">
-      <ItemGroup>
-        <ProjectReference Include="..\..\azure-iiot-common\src\Microsoft.Azure.IIoT.Services\src\Microsoft.Azure.IIoT.Services.csproj" />
-        <ProjectReference Include="..\..\azure-iiot-common\src\Microsoft.Azure.IIoT.Abstractions\src\Microsoft.Azure.IIoT.Abstractions.csproj" />
-        <ProjectReference Include="..\..\azure-iiot-common\src\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
+        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Services\src\Microsoft.Azure.IIoT.Services.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="2.0.0" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="$(CommonVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <!-- "Service Include" required by IntelliJ Rider -->
-    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+    <DotNetCliToolReference Include="Swashbuckle.AspNetCore.Cli" Version="2.4.0-beta1" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="appsettings.Development.json">
@@ -112,8 +79,5 @@
   </ItemGroup>
   <ItemGroup>
     <Content Update="appsettings.*.json" CopyToPublishDirectory="Never" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Connected Services" />
   </ItemGroup>
 </Project>
