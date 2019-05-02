@@ -1,7 +1,0 @@
-.user
-.app
-.env
-*.zip
-*.config
-*.cmd
-*.publishsettings
