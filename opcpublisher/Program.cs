@@ -98,11 +98,22 @@ namespace OpcPublisher
         /// </summary>
         public static void Main(string[] args)
         {
-            // enable this to catch when running in IoTEdge
-            //while (IotEdgeIndicator.RunsAsIotEdgeModule && !Debugger.IsAttached)
-            //{
-            //    Thread.Sleep(1000);
-            //}
+            if (IotEdgeIndicator.RunsAsIotEdgeModule)
+            {
+                var waitForDebugger = args.Any(a => a.ToLower().Contains("wfd") || a.ToLower().Contains("waitfordebugger"));
+
+                if (waitForDebugger)
+                {
+                    Console.WriteLine("Waiting for debugger to attach...");
+
+                    while (!Debugger.IsAttached)
+                    {
+                        Thread.Sleep(1000);
+                    }
+
+                    Console.WriteLine("Debugger attached.");
+                }
+            }
 
             MainAsync(args).Wait();
         }
@@ -124,6 +135,8 @@ namespace OpcPublisher
                     WriteLine("IoTEdge detected.");
 
                     CryptoProvider = new IotEdgeCryptoProvider();
+
+                    var result = await CryptoProvider.EncryptAsync("MyValue");
 
                     // set IoT Edge specific defaults
                     HubProtocol = IotEdgeHubProtocolDefault;
