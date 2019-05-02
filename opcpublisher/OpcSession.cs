@@ -574,6 +574,8 @@ namespace OpcPublisher
                             else
                             {
                                 currentNodeId = item.ConfigNodeId;
+                                var ns = _namespaceTable.GetString(currentNodeId.NamespaceIndex);
+                                item.ConfigExpandedNodeId = new ExpandedNodeId(currentNodeId, ns);
                             }
 
                             // if configured, get the DisplayName for the node, otherwise use the nodeId

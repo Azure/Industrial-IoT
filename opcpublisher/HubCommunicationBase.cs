@@ -1418,6 +1418,12 @@ namespace OpcPublisher
                         await _jsonWriter.WriteValueAsync(messageData.NodeId).ConfigureAwait(false);
                     }
 
+                    if (!string.IsNullOrEmpty(messageData.ExpandedNodeId))
+                    {
+                        await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.ExpandedNodeId.Name).ConfigureAwait(false);
+                        await _jsonWriter.WriteValueAsync(messageData.ExpandedNodeId).ConfigureAwait(false);
+                    }
+
                     // process MonitoredItem object properties
                     if (!string.IsNullOrEmpty(messageData.ApplicationUri) || !string.IsNullOrEmpty(messageData.DisplayName))
                     {
