@@ -189,10 +189,6 @@ if (!$SkipLocalRegistryCheck) {
 
 Write-Host
 
-# Change working directory...
-$location = (Get-Location).Path
-Set-Location $WorkingDirectory
-
 Write-Host "Getting latest tag from local images..."
 
 # Determine the tag and label
@@ -222,8 +218,13 @@ $label = $repository + ":" + $newTagAsString
 Write-Host "New Label: $($label)"
 Write-Host
 
+$location = (Get-Location).Path
+Set-Location $WorkingDirectory
+
 Write-Host "Building docker image..."
 . docker build -t "$($label)" -f "$($DockerFile)" .
+
+Set-Location $location
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Error while building docker image. Check logs for details."
@@ -260,17 +261,13 @@ if ($UpdateModuleManifest) {
 
     Write-Host "Updating modules in IoT Edge device..."
     az iot edge set-modules --hub-name "$($iotHubName)" --device-id "$($DeviceId)" --content "$($tempFilename)" -l "$($IothubConnectionString)" | Out-Null
-
+    Remove-Item $tempFilename -Force
+    
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Error while updating modules in Edge device."
         return
     }
-
-    Write-Host "Removing temp file $($tempFile)..."
-    Remove-Item $tempFilename -Force
 }
-
-Set-Location $location
 
 if ($AttachToLogs) {
     $service = Get-Service iotedge -ErrorAction SilentlyContinue
@@ -288,7 +285,7 @@ if ($AttachToLogs) {
         $ioTEdgeDeviceConnectionString = $ioTEdgeDeviceConnectionString.connectionString
 
         Write-Host "Install IoT Edge Runtime..."
-        . {Invoke-WebRequest -useb aka.ms/iotedge-win} | Invoke-Expression; Install-SecurityDaemon -Manual -ContainerOs Linux -DeviceConnectionString '$($ioTEdgeDeviceConnectionString)'
+        . {Invoke-WebRequest -useb aka.ms/iotedge-win} | Invoke-Expression; Install-SecurityDaemon -Manual -ContainerOs Linux -DeviceConnectionString "$($ioTEdgeDeviceConnectionString)"
     }
 
     Write-Host
@@ -330,3 +327,4 @@ if ($AttachToLogs) {
 
     . docker logs -f $ModuleName
 }
+
