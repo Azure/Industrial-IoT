@@ -92,14 +92,21 @@ namespace OpcPublisher
         /// </summary>
         public static void Main(string[] args)
         {
-            // enable this to catch when running in IoTEdge
-            //bool waitHere = true;
-            //int i = 0;
-            //while (waitHere)
-            //{
-            //    WriteLine($"forever loop (iteration {i++})");
-            //    Thread.Sleep(5000);
-            //}
+            if (IsIotEdgeModule)
+            {
+                if (args.Any(a => a.ToLowerInvariant().Contains("wfd") || a.ToLowerInvariant().Contains("waitfordebugger")))
+                {
+                    Console.WriteLine("Waiting for debugger being attached...");
+
+                    while (!Debugger.IsAttached)
+                    {
+                        Thread.Sleep(1000);
+                    }
+
+                    Console.WriteLine("Debugger attached.");
+                }
+            }
+
             MainAsync(args).Wait();
         }
 
