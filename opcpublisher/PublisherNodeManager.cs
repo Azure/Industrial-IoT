@@ -7,7 +7,6 @@ namespace OpcPublisher
 {
     using Microsoft.Azure.Devices.Client;
     using Newtonsoft.Json;
-    using OpcPublisher.Crypto;
     using System.Linq;
     using System.Net;
     using System.Text;
@@ -140,10 +139,7 @@ namespace OpcPublisher
             method.InputArguments.Value = new Argument[]
             {
                 new Argument() { Name = "NodeId", Description = "NodeId of the node to publish in NodeId format.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar },
-                new Argument() { Name = "EndpointUrl", Description = "Endpoint URI of the OPC UA server owning the node.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar },
-                new Argument() { Name = "OpcAuthenticationMode", Description = $"The authentication mode to authenticate against the OPC UA Server. Allowed values: {string.Join(", ", Enum.GetNames(typeof(OpcAuthenticationMode)))}, defaults to {OpcAuthenticationMode.Anonymous}.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar },
-                new Argument() { Name = "Username", Description = "Username for authentication against OPC UA Server (only needed when OpcAuthenticationMode is set to 'UsernamePassword')",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar },
-                new Argument() { Name = "Password", Description = "Password for authentication against OPC UA Server (only needed when OpcAuthenticationMode is set to 'UsernamePassword')",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                new Argument() { Name = "EndpointUrl", Description = "Endpoint URI of the OPC UA server owning the node.",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
             };
 
             method.OnCallMethod = new GenericMethodCalledEventHandler(OnPublishNodeCall);
@@ -455,45 +451,10 @@ namespace OpcPublisher
         private ServiceResult OnPublishNodeCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
             string logPrefix = "OnPublishNodeCall:";
-            var nodeIdInput = inputArguments[0] as string;
-            var endpointUrlInput = inputArguments[1] as string;
-            var opcAuthenticationModeInput = inputArguments[2] as string;
-            var usernameInput = inputArguments[3] as string;
-            var passwordInput = inputArguments[4] as string;
-
-            EncryptedNetworkCredential desiredEncryptedCredential = null;
-            OpcAuthenticationMode? desiredAuthenticationMode = null;
-
-            if (!string.IsNullOrWhiteSpace(opcAuthenticationModeInput))
-            {
-                OpcAuthenticationMode o;
-
-                if (Enum.TryParse(opcAuthenticationModeInput, out o))
-                {
-                    desiredAuthenticationMode = o;
-                }
-                else
-                {
-                    Logger.Error($"{logPrefix} The value '{opcAuthenticationModeInput}' for OpcAuthenticationMode could not be recognized.");
-                    return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments as strings!");
-                }
-            }
-
-            if (string.IsNullOrWhiteSpace(nodeIdInput) || string.IsNullOrWhiteSpace(endpointUrlInput))
+            if (string.IsNullOrEmpty(inputArguments[0] as string) || string.IsNullOrEmpty(inputArguments[1] as string))
             {
                 Logger.Error($"{logPrefix} Invalid Arguments when trying to publish a node.");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments as strings!");
-            }
-
-            if (desiredAuthenticationMode == OpcAuthenticationMode.UsernamePassword)
-            {
-                if (string.IsNullOrWhiteSpace(usernameInput) && string.IsNullOrWhiteSpace(passwordInput))
-                {
-                    Logger.Error($"{logPrefix} Please specify username and/or password when using authentication mode '{desiredAuthenticationMode}'");
-                    return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments as strings!");
-                }
-
-                desiredEncryptedCredential = EncryptedNetworkCredential.FromPlainCredential(usernameInput, passwordInput).Result;
             }
 
             HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
@@ -501,29 +462,29 @@ namespace OpcPublisher
             ExpandedNodeId expandedNodeId = null;
             Uri endpointUri = null;
             bool isNodeIdFormat = true;
-
             try
             {
-                if (nodeIdInput.Contains("nsu=", StringComparison.InvariantCulture))
+                string id = inputArguments[0] as string;
+                if (id.Contains("nsu=", StringComparison.InvariantCulture))
                 {
-                    expandedNodeId = ExpandedNodeId.Parse(nodeIdInput);
+                    expandedNodeId = ExpandedNodeId.Parse(id);
                     isNodeIdFormat = false;
                 }
                 else
                 {
-                    nodeId = NodeId.Parse(nodeIdInput);
+                    nodeId = NodeId.Parse(id);
                     isNodeIdFormat = true;
                 }
-                endpointUri = new Uri(endpointUrlInput);
+                endpointUri = new Uri(inputArguments[1] as string);
             }
             catch (UriFormatException)
             {
-                Logger.Error($"{logPrefix} The EndpointUrl has an invalid format '{endpointUrlInput}'!");
+                Logger.Error($"{logPrefix} The EndpointUrl has an invalid format '{inputArguments[1] as string}'!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA endpoint URL as second argument!");
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"{logPrefix} The NodeId has an invalid format '{endpointUrlInput}'!");
+                Logger.Error(e, $"{logPrefix} The NodeId has an invalid format '{inputArguments[0] as string}'!");
                 return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide a valid OPC UA NodeId in NodeId or ExpandedNodeId format as first argument!");
             }
 
@@ -545,40 +506,10 @@ namespace OpcPublisher
                 // add a new session.
                 if (opcSession == null)
                 {
-                    if (!desiredAuthenticationMode.HasValue)
-                    {
-                        desiredAuthenticationMode = OpcAuthenticationMode.Anonymous;
-                    }
-
                     // create new session info.
-                    opcSession = new OpcSession(endpointUri.OriginalString, true, OpcSessionCreationTimeout, desiredAuthenticationMode.Value, desiredEncryptedCredential);
+                    opcSession = new OpcSession(endpointUri.OriginalString, true, OpcSessionCreationTimeout, OpcAuthenticationMode.Anonymous, null);
                     NodeConfiguration.OpcSessions.Add(opcSession);
                     Logger.Information($"OnPublishNodeCall: No matching session found for endpoint '{endpointUri.OriginalString}'. Requested to create a new one.");
-                }
-                else
-                {
-                    // a session already exists, so we check, if we need to change authentication settings. This is only true, if the payload contains an OpcAuthenticationMode-Property
-                    if (desiredAuthenticationMode.HasValue)
-                    {
-                        bool reconnectRequired = false;
-
-                        if (opcSession.OpcAuthenticationMode != desiredAuthenticationMode)
-                        {
-                            opcSession.OpcAuthenticationMode = desiredAuthenticationMode.Value;
-                            reconnectRequired = true;
-                        }
-
-                        if (opcSession.EncryptedAuthCredential != desiredEncryptedCredential)
-                        {
-                            opcSession.EncryptedAuthCredential = desiredEncryptedCredential;
-                            reconnectRequired = true;
-                        }
-
-                        if (reconnectRequired)
-                        {
-                            opcSession.Reconnect().Wait();
-                        }
-                    }
                 }
 
                 if (isNodeIdFormat)
@@ -620,7 +551,7 @@ namespace OpcPublisher
             if (string.IsNullOrEmpty(inputArguments[0] as string) || string.IsNullOrEmpty(inputArguments[1] as string))
             {
                 Logger.Error($"{logPrefix} Invalid arguments!");
-                return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide required arguments!");
+                return ServiceResult.Create(StatusCodes.BadArgumentsMissing, "Please provide all arguments!");
             }
 
             HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
