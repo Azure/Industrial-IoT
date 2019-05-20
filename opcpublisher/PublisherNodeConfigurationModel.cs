@@ -74,20 +74,23 @@ namespace OpcPublisher
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
         public bool? UseSecurity { get; set; }
 
+        /// <summary>
+        /// Gets ot sets the authentication mode to authenticate against the OPC UA Server.
+        /// </summary>
         [DefaultValue(OpcAuthenticationMode.Anonymous)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(StringEnumConverter))]
         public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
 
+        /// <summary>
+        /// Gets or sets the encrypted username to authenticate against the OPC UA Server (when OpcAuthenticationMode is set to UsernamePassword
+        /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
         public string EncryptedAuthUsername
         {
             get
             {
-                if (EncryptedAuthCredential == null)
-                    return null;
-                else
-                    return EncryptedAuthCredential.UserName;
+                return EncryptedAuthCredential?.UserName;
             }
             set
             {
@@ -98,15 +101,15 @@ namespace OpcPublisher
             }
         }
 
+        /// <summary>
+        /// Gets or sets the encrypted password to authenticate against the OPC UA Server (when OpcAuthenticationMode is set to UsernamePassword
+        /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
         public string EncryptedAuthPassword
         {
             get
             {
-                if (EncryptedAuthCredential == null)
-                    return null;
-                else
-                    return EncryptedAuthCredential.Password;
+                return EncryptedAuthCredential?.Password;
             }
             set
             {
@@ -117,6 +120,9 @@ namespace OpcPublisher
             }
         }
 
+        /// <summary>
+        /// Gets or sets the encrpyted credential to authenticate against the OPC UA Server (when OpcAuthenticationMode is set to UsernamePassword.
+        /// </summary>
         [JsonIgnore]
         public EncryptedNetworkCredential EncryptedAuthCredential { get; set; }
 
@@ -181,8 +187,14 @@ namespace OpcPublisher
         /// </summary>
         public bool? SkipFirst { get; set; }
 
+        /// <summary>
+        /// Gets or sets the authentication mode to authenticate against the OPC UA Server.
+        /// </summary>
         public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
 
+        /// <summary>
+        /// Gets or sets the encrypted auth credential when OpcAuthenticationMode is set to UsernamePassword.
+        /// </summary>
         public EncryptedNetworkCredential EncryptedAuthCredential { get; set; }
 
         /// <summary>
@@ -268,20 +280,23 @@ namespace OpcPublisher
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public NodeId NodeId { get; set; }
 
+        /// <summary>
+        /// Gets ot sets the authentication mode to authenticate against the OPC UA Server.
+        /// </summary>
         [DefaultValue(OpcAuthenticationMode.Anonymous)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(StringEnumConverter))]
         public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
 
+        /// <summary>
+        /// Gets or sets the encrypted username to authenticate against the OPC UA Server (when OpcAuthenticationMode is set to UsernamePassword
+        /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
         public string EncryptedAuthUsername
         {
             get
             {
-                if (EncryptedAuthCredential == null)
-                    return null;
-                else
-                    return EncryptedAuthCredential.UserName;
+                return EncryptedAuthCredential?.UserName;
             }
             set
             {
@@ -292,15 +307,15 @@ namespace OpcPublisher
             }
         }
 
+        /// <summary>
+        /// Gets or sets the encrypted password to authenticate against the OPC UA Server (when OpcAuthenticationMode is set to UsernamePassword
+        /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
         public string EncryptedAuthPassword
         {
             get
             {
-                if (EncryptedAuthCredential == null)
-                    return null;
-                else
-                    return EncryptedAuthCredential.Password;
+                return EncryptedAuthCredential?.Password;
             }
             set
             {
@@ -311,7 +326,9 @@ namespace OpcPublisher
             }
         }
 
-
+        /// <summary>
+        /// Gets or sets the encrypted auth credential when OpcAuthenticationMode is set to UsernamePassword.
+        /// </summary>
         [JsonIgnore]
         public EncryptedNetworkCredential EncryptedAuthCredential { get; set; }
 

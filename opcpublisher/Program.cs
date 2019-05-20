@@ -136,8 +136,6 @@ namespace OpcPublisher
 
                     CryptoProvider = new IotEdgeCryptoProvider();
 
-                    var result = await CryptoProvider.EncryptAsync("MyValue");
-
                     // set IoT Edge specific defaults
                     HubProtocol = IotEdgeHubProtocolDefault;
                 }

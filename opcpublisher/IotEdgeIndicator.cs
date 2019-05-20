@@ -4,7 +4,7 @@ namespace OpcPublisher
 {
     public static class IotEdgeIndicator
     {
-        private static readonly bool runsAsIotEdgeModule;
+        public static bool RunsAsIotEdgeModule => runsAsIotEdgeModule;
 
         static IotEdgeIndicator()
         {
@@ -15,6 +15,6 @@ namespace OpcPublisher
                     !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("IOTEDGE_MODULEID"));
         }
 
-        public static bool RunsAsIotEdgeModule => runsAsIotEdgeModule;
+        private static readonly bool runsAsIotEdgeModule;
     }
 }
