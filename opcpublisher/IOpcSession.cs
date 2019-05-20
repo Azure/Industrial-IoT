@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace OpcPublisher
 {
     using Opc.Ua;
+    using OpcPublisher.Crypto;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
@@ -18,6 +19,16 @@ namespace OpcPublisher
         /// The endpoint to connect to for the session.
         /// </summary>
         string EndpointUrl { get; set; }
+
+        /// <summary>
+        /// The encrypted credential for authentication against the OPC UA Server. This is only used, when <see cref="OpcAuthenticationMode"/> is set to "UsernamePassword".
+        /// </summary>
+        EncryptedNetworkCredential EncryptedAuthCredential { get; set; }
+
+        /// <summary>
+        /// The authentication mode to use for authentication against the OPC UA Server.
+        /// </summary>
+        OpcAuthenticationMode OpcAuthenticationMode { get; set; }
 
         /// <summary>
         /// The OPC UA stack session object of the session.
@@ -167,5 +178,6 @@ namespace OpcPublisher
         /// Release the session semaphore.
         /// </summary>
         void ReleaseSession();
+        Task Reconnect();
     }
 }

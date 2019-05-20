@@ -308,6 +308,17 @@ namespace OpcPublisher
             }
         }
 
+        public ITelemetrySettings ExpandedNodeId
+        {
+            get => _expandedNodeId;
+            set
+            {
+                _expandedNodeId.Publish = value.Publish;
+                _expandedNodeId.Name = value.Name;
+                _expandedNodeId.Pattern = value.Pattern;
+            }
+        }
+
         /// <summary>
         /// Specifies the configuration for the value MonitoredItem.
         /// </summary>
@@ -346,6 +357,7 @@ namespace OpcPublisher
             ForEndpointUrl = null;
             _endpointUrl = new TelemetrySettings();
             _nodeId = new TelemetrySettings();
+            _expandedNodeId = new TelemetrySettings();
             _monitoredItem = new MonitoredItemTelemetryConfiguration();
             _value = new ValueTelemetryConfiguration();
         }
@@ -354,6 +366,7 @@ namespace OpcPublisher
         private MonitoredItemTelemetryConfiguration _monitoredItem;
         private ValueTelemetryConfiguration _value;
         private TelemetrySettings _nodeId;
+        private TelemetrySettings _expandedNodeId;
     }
 
     /// <summary>
@@ -384,6 +397,7 @@ namespace OpcPublisher
     {
         public const string EndpointUrlNameDefault = "EndpointUrl";
         public const string NodeIdNameDefault = "NodeId";
+        public const string ExpandedNodeIdNameDefault = "ExpandedNodeId";
         public const string ApplicationUriNameDefault = "ApplicationUri";
         public const string DisplayNameNameDefault = "DisplayName";
         public const string ValueNameDefault = "Value";
@@ -488,6 +502,7 @@ namespace OpcPublisher
             // set defaults for 'Name' to be compatible with Connected factory
             _defaultEndpointTelemetryConfiguration.EndpointUrl.Name = EndpointUrlNameDefault;
             _defaultEndpointTelemetryConfiguration.NodeId.Name = NodeIdNameDefault;
+            _defaultEndpointTelemetryConfiguration.ExpandedNodeId.Name = ExpandedNodeIdNameDefault;
             _defaultEndpointTelemetryConfiguration.MonitoredItem.ApplicationUri.Name = ApplicationUriNameDefault;
             _defaultEndpointTelemetryConfiguration.MonitoredItem.DisplayName.Name = DisplayNameNameDefault;
             _defaultEndpointTelemetryConfiguration.Value.Value.Name = ValueNameDefault;
@@ -498,6 +513,7 @@ namespace OpcPublisher
             // set defaults for 'Publish' to be compatible with Connected factory
             _defaultEndpointTelemetryConfiguration.EndpointUrl.Publish = false;
             _defaultEndpointTelemetryConfiguration.NodeId.Publish = true;
+            _defaultEndpointTelemetryConfiguration.ExpandedNodeId.Publish = false;
             _defaultEndpointTelemetryConfiguration.MonitoredItem.ApplicationUri.Publish = true;
             _defaultEndpointTelemetryConfiguration.MonitoredItem.DisplayName.Publish = true;
             _defaultEndpointTelemetryConfiguration.Value.Value.Publish = true;
@@ -529,6 +545,7 @@ namespace OpcPublisher
                 // process all properties
                 _defaultEndpointTelemetryConfiguration.EndpointUrl = _telemetryConfiguration.Defaults.EndpointUrl;
                 _defaultEndpointTelemetryConfiguration.NodeId = _telemetryConfiguration.Defaults.NodeId;
+                _defaultEndpointTelemetryConfiguration.ExpandedNodeId = _telemetryConfiguration.Defaults.ExpandedNodeId;
                 _defaultEndpointTelemetryConfiguration.MonitoredItem = _telemetryConfiguration.Defaults.MonitoredItem;
                 _defaultEndpointTelemetryConfiguration.Value = _telemetryConfiguration.Defaults.Value;
             }
@@ -549,6 +566,10 @@ namespace OpcPublisher
             config.NodeId.Name = config.NodeId.Name ?? _defaultEndpointTelemetryConfiguration.NodeId.Name;
             config.NodeId.Publish = config.NodeId.Publish ?? _defaultEndpointTelemetryConfiguration.NodeId.Publish;
             config.NodeId.Pattern = config.NodeId.Pattern ?? _defaultEndpointTelemetryConfiguration.NodeId.Pattern;
+
+            config.ExpandedNodeId.Name = config.ExpandedNodeId.Name ?? _defaultEndpointTelemetryConfiguration.ExpandedNodeId.Name;
+            config.ExpandedNodeId.Publish = config.ExpandedNodeId.Publish ?? _defaultEndpointTelemetryConfiguration.ExpandedNodeId.Publish;
+            config.ExpandedNodeId.Pattern = config.ExpandedNodeId.Pattern ?? _defaultEndpointTelemetryConfiguration.ExpandedNodeId.Pattern;
 
             config.MonitoredItem.Flat = config.MonitoredItem.Flat ?? _defaultEndpointTelemetryConfiguration.MonitoredItem.Flat;
 

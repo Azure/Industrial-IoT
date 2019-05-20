@@ -28,6 +28,11 @@ namespace OpcPublisher
         public string NodeId { get; set; }
 
         /// <summary>
+        /// The OPC UA Node Id with the namespace expanded.
+        /// </summary>
+        public string ExpandedNodeId { get; set; }
+
+        /// <summary>
         /// The Application URI of the OPC UA server the node belongs to.
         /// </summary>
         public string ApplicationUri { get; set; }
@@ -69,6 +74,7 @@ namespace OpcPublisher
         {
             EndpointUrl = null;
             NodeId = null;
+            ExpandedNodeId = null;
             ApplicationUri = null;
             DisplayName = null;
             Value = null;
@@ -428,6 +434,11 @@ namespace OpcPublisher
 
                     // the endpoint URL is required to allow HubCommunication lookup the telemetry configuration
                     messageData.EndpointUrl = EndpointUrl;
+
+                    if (telemetryConfiguration.ExpandedNodeId.Publish == true)
+                    {
+                        messageData.ExpandedNodeId = ConfigExpandedNodeId?.ToString();
+                    }
                     if (telemetryConfiguration.NodeId.Publish == true)
                     {
                         messageData.NodeId = OriginalId;
