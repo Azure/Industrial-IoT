@@ -5,8 +5,11 @@ using System.Collections.Generic;
 
 namespace OpcPublisher
 {
+    using Newtonsoft.Json.Converters;
+    using OpcPublisher.Crypto;
     using System.ComponentModel;
     using System.Globalization;
+    using System.Net;
 
 
     /// <summary>
@@ -50,7 +53,6 @@ namespace OpcPublisher
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool? SkipFirst { get; set; }
     }
-
     /// <summary>
     /// Class describing the nodes which should be published.
     /// </summary>
@@ -71,6 +73,58 @@ namespace OpcPublisher
         [DefaultValue(true)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
         public bool? UseSecurity { get; set; }
+
+        /// <summary>
+        /// Gets ot sets the authentication mode to authenticate against the OPC UA Server.
+        /// </summary>
+        [DefaultValue(OpcAuthenticationMode.Anonymous)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the encrypted username to authenticate against the OPC UA Server (when OpcAuthenticationMode is set to UsernamePassword
+        /// </summary>
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
+        public string EncryptedAuthUsername
+        {
+            get
+            {
+                return EncryptedAuthCredential?.UserName;
+            }
+            set
+            {
+                if (EncryptedAuthCredential == null)
+                    EncryptedAuthCredential = new EncryptedNetworkCredential();
+
+                EncryptedAuthCredential.UserName = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the encrypted password to authenticate against the OPC UA Server (when OpcAuthenticationMode is set to UsernamePassword
+        /// </summary>
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
+        public string EncryptedAuthPassword
+        {
+            get
+            {
+                return EncryptedAuthCredential?.Password;
+            }
+            set
+            {
+                if (EncryptedAuthCredential == null)
+                    EncryptedAuthCredential = new EncryptedNetworkCredential();
+
+                EncryptedAuthCredential.Password = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the encrpyted credential to authenticate against the OPC UA Server (when OpcAuthenticationMode is set to UsernamePassword.
+        /// </summary>
+        [JsonIgnore]
+        public EncryptedNetworkCredential EncryptedAuthCredential { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 #pragma warning disable CA2227 // Collection properties should be read only
@@ -134,10 +188,20 @@ namespace OpcPublisher
         public bool? SkipFirst { get; set; }
 
         /// <summary>
+        /// Gets or sets the authentication mode to authenticate against the OPC UA Server.
+        /// </summary>
+        public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the encrypted auth credential when OpcAuthenticationMode is set to UsernamePassword.
+        /// </summary>
+        public EncryptedNetworkCredential EncryptedAuthCredential { get; set; }
+
+        /// <summary>
         /// Ctor of the object.
         /// </summary>
         public NodePublishingConfigurationModel(ExpandedNodeId expandedNodeId, string originalId, string endpointUrl, bool? useSecurity,
-                    int? opcPublishingInterval, int? opcSamplingInterval, string displayName, int? heartbeatInterval, bool? skipFirst)
+                    int? opcPublishingInterval, int? opcSamplingInterval, string displayName, int? heartbeatInterval, bool? skipFirst, OpcAuthenticationMode opcAuthenticationMode, EncryptedNetworkCredential encryptedAuthCredential)
 
         {
             NodeId = null;
@@ -150,13 +214,15 @@ namespace OpcPublisher
             OpcPublishingInterval = opcPublishingInterval;
             HeartbeatInterval = heartbeatInterval;
             SkipFirst = skipFirst;
+            OpcAuthenticationMode = opcAuthenticationMode;
+            EncryptedAuthCredential = encryptedAuthCredential;
         }
 
         /// <summary>
         /// Ctor of the object.
         /// </summary>
         public NodePublishingConfigurationModel(NodeId nodeId, string originalId, string endpointUrl, bool? useSecurity,
-                    int? opcPublishingInterval, int? opcSamplingInterval, string displayName, int? heartbeatInterval, bool? skipFirst)
+                    int? opcPublishingInterval, int? opcSamplingInterval, string displayName, int? heartbeatInterval, bool? skipFirst, OpcAuthenticationMode opcAuthenticationMode, EncryptedNetworkCredential encryptedAuthCredential)
         {
             NodeId = nodeId;
             ExpandedNodeId = null;
@@ -168,6 +234,8 @@ namespace OpcPublisher
             OpcPublishingInterval = opcPublishingInterval;
             HeartbeatInterval = heartbeatInterval;
             SkipFirst = skipFirst;
+            OpcAuthenticationMode = opcAuthenticationMode;
+            EncryptedAuthCredential = encryptedAuthCredential;
         }
     }
 
@@ -213,6 +281,58 @@ namespace OpcPublisher
         public NodeId NodeId { get; set; }
 
         /// <summary>
+        /// Gets ot sets the authentication mode to authenticate against the OPC UA Server.
+        /// </summary>
+        [DefaultValue(OpcAuthenticationMode.Anonymous)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the encrypted username to authenticate against the OPC UA Server (when OpcAuthenticationMode is set to UsernamePassword
+        /// </summary>
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
+        public string EncryptedAuthUsername
+        {
+            get
+            {
+                return EncryptedAuthCredential?.UserName;
+            }
+            set
+            {
+                if (EncryptedAuthCredential == null)
+                    EncryptedAuthCredential = new EncryptedNetworkCredential();
+
+                EncryptedAuthCredential.UserName = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the encrypted password to authenticate against the OPC UA Server (when OpcAuthenticationMode is set to UsernamePassword
+        /// </summary>
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
+        public string EncryptedAuthPassword
+        {
+            get
+            {
+                return EncryptedAuthCredential?.Password;
+            }
+            set
+            {
+                if (EncryptedAuthCredential == null)
+                    EncryptedAuthCredential = new EncryptedNetworkCredential();
+
+                EncryptedAuthCredential.Password = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the encrypted auth credential when OpcAuthenticationMode is set to UsernamePassword.
+        /// </summary>
+        [JsonIgnore]
+        public EncryptedNetworkCredential EncryptedAuthCredential { get; set; }
+
+        /// <summary>
         /// Instead all nodes should be defined in this collection.
         /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -220,7 +340,4 @@ namespace OpcPublisher
         public List<OpcNodeOnEndpointModel> OpcNodes { get; set; }
 #pragma warning restore CA2227 // Collection properties should be read only
     }
-
-
-
 }

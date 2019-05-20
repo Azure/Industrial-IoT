@@ -13,7 +13,7 @@ RUN dotnet restore
 WORKDIR /app
 COPY opcpublisher/. ./opcpublisher/
 WORKDIR /app/opcpublisher
-RUN dotnet publish -c Release -o out
+RUN dotnet publish -c Debug -o out
 
 # start it up
 FROM microsoft/dotnet:${runtime_base_tag} AS runtime
