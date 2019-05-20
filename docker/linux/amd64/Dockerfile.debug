@@ -19,10 +19,10 @@ RUN dotnet publish -c Debug -o out
 FROM microsoft/dotnet:${runtime_base_tag} AS runtime
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends unzip procps && \
+    apt-get install -y --no-install-recommends unzip curl procps && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/vsdbg
+RUN curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /vsdbg
 
 WORKDIR /app
 COPY --from=build /app/opcpublisher/out ./
