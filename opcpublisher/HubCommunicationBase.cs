@@ -272,6 +272,7 @@ namespace OpcPublisher
                         throw new ArgumentException($"If {nameof(publishNodesMethodData.OpcAuthenticationMode)} is set to '{OpcAuthenticationMode.UsernamePassword}', you have to specify '{nameof(publishNodesMethodData.UserName)}' and/or '{nameof(publishNodesMethodData.Password)}'.");
                     }
 
+                    desiredAuthenticationMode = OpcAuthenticationMode.UsernamePassword;
                     desiredEncryptedCredential = await EncryptedNetworkCredential.FromPlainCredential(publishNodesMethodData.UserName, publishNodesMethodData.Password);
                 }
             }
